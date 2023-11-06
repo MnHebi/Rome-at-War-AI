@@ -1,0 +1,38 @@
+
+;-----Advance age-----
+(defrule
+	(or
+		(up-compare-goal villager-count g:>= desired-ageup-villagers)
+		(current-age-time >= 300)
+	)
+	(current-age g:< desired-age)
+	(can-research-with-escrow feudal-age)
+=>
+	(release-escrow food)
+	(research feudal-age)
+)
+
+(defrule
+	(or
+		(up-compare-goal villager-count g:>= desired-ageup-villagers)
+		(current-age-time >= 300)
+	)
+	(current-age g:< desired-age)
+	(can-research-with-escrow castle-age)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(research castle-age)
+)
+(defrule
+	(or
+		(up-compare-goal villager-count g:>= desired-ageup-villagers)
+		(current-age-time >= 300)
+	)
+	(current-age g:< desired-age)
+	(can-research-with-escrow imperial-age)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(research imperial-age)
+)
