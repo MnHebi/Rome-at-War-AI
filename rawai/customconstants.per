@@ -21,10 +21,10 @@
 (defconst phase4-military-explorers 1)
 (defconst phase5-military-explorers 1)
 (defconst phase1-civilian-explorers 1)
-(defconst phase2-civilian-explorers 1)
-(defconst phase3-civilian-explorers 1)
-(defconst phase4-civilian-explorers 1)
-(defconst phase5-civilian-explorers 1)
+(defconst phase2-civilian-explorers 0)
+(defconst phase3-civilian-explorers 0)
+(defconst phase4-civilian-explorers 0)
+(defconst phase5-civilian-explorers 0)
 (defconst phase1-naval-explorers 1)
 (defconst phase2-naval-explorers 1)
 (defconst phase3-naval-explorers 1)
@@ -1208,6 +1208,23 @@
 (defconst desired-number-octeres 111)
 (defconst desired-number-transports 112)
 
+;goals for unit countering
+(defconst train-anti-infantry 113)
+(defconst train-anti-archer 114)
+(defconst train-anti-cavalryarcher 115)
+(defconst train-skirmishers 116)
+(defconst train-anti-cavalry 117)
+(defconst train-anti-elephant 118)
+(defconst train-anti-siege 119)
+(defconst train-anti-priest 120)
+
+(defconst train-scoutships 121)
+(defconst train-remes 122)
+(defconst train-fireships 123)
+(defconst train-demoships 124)
+(defconst train-hemiolia 125)
+(defconst train-boardingships 126)
+
 (defconst point-x 480)
 (defconst point-y 481)
 (defconst point2-x 482)
@@ -1245,3 +1262,109 @@
 (defconst unit-spread-timer 2)
 (defconst land-attack-timer 3)
 (defconst naval-attack-timer 4)
+
+(defrule
+	(true)
+=>
+	(set-strategic-number sn-maximum-food-drop-distance 0)
+	(set-strategic-number sn-maximum-wood-drop-distance 0)
+	(set-strategic-number sn-maximum-gold-drop-distance 0)
+	(set-strategic-number sn-maximum-hunt-drop-distance 0)
+	(set-strategic-number sn-maximum-stone-drop-distance 0)
+	(set-strategic-number sn-food-gatherer-percentage 0)
+	(set-strategic-number sn-wood-gatherer-percentage 0)
+	(set-strategic-number sn-gold-gatherer-percentage 0)
+	(set-strategic-number sn-stone-gatherer-percentage 0)	
+	(set-strategic-number sn-cap-civilian-explorers 0)
+	(set-strategic-number sn-percent-civilian-explorers 100)
+	(set-strategic-number sn-defense-distance 20)
+	(set-strategic-number sn-sentry-distance 20)
+	(set-strategic-number sn-percent-enemy-sighted-response 100)
+	(set-strategic-number sn-number-explore-groups 0)
+	(set-strategic-number sn-percent-attack-soldiers 0)
+	(set-strategic-number sn-task-ungrouped-soldiers 0)
+	(set-strategic-number sn-number-attack-groups 0)
+	(set-strategic-number sn-enemy-sighted-response-distance 10)
+	(set-strategic-number sn-total-number-explorers 0)
+	(set-strategic-number sn-minimum-town-size 0)
+	(set-strategic-number sn-maximum-town-size 0)
+	(disable-self))
+(defrule
+	(true)
+=>
+	(set-strategic-number sn-mill-max-distance 30)
+	(up-get-point position-map-size temporary-goal2)
+	(up-modify-goal map-size g:= temporary-goal2)
+    (set-strategic-number sn-enable-boar-hunting 1)
+	(set-goal spread-units 0)
+	(set-strategic-number sn-wall-targeting-mode 0)
+	(set-strategic-number sn-easiest-reaction-percentage 20)
+	(set-strategic-number sn-easier-reaction-percentage 60)
+	(up-get-point position-object position-self-x)
+	(disable-self))
+(defrule
+	(building-type-count town-center >= 1)
+=>
+	(up-full-reset-search)
+	(up-find-local c: town-center c: 1)
+	(up-set-target-object search-local c: 0)
+	(up-get-point position-object position-self-x))
+#load-if-not-defined DIFFICULTY-EASIEST
+#load-if-not-defined DIFFICULTY-EASY
+(defrule
+	(true)
+=>
+	(set-strategic-number sn-enable-new-building-system 1)
+	(disable-self))
+#end-if
+#end-if
+
+(defrule
+	(true)
+=>
+	(up-get-fact unit-type-count villager villager-count)
+	(up-get-fact game-time 0 gl-game-time)
+	(up-modify-goal land-attack-interval c:max 6)
+	(up-modify-goal naval-attack-interval c:max 6))
+
+
+(defrule
+	(up-compare-goal current-phase <= 0)
+=>
+	(chat-local-to-self "Entering Phase 1.")
+	(set-goal current-phase 1)
+	(disable-self)
+)
+
+(defrule
+    (dropsite-min-distance live-boar s:< sn-maximum-hunt-drop-distance)
+	(unit-type-count villager >= 6)
+(or	(research-completed ri-loom)
+    (dropsite-min-distance live-boar < 15))
+=>
+   (set-strategic-number sn-enable-boar-hunting 2)
+    (set-strategic-number sn-minimum-boar-lure-group-size 1)
+    (set-strategic-number sn-minimum-boar-hunt-group-size 1)
+    (set-strategic-number sn-minimum-number-hunters 1)
+)
+
+(defrule
+    (dropsite-min-distance live-boar < 6)
+    (unit-type-count villager-hunter < 6)
+	(unit-type-count villager >= 6)
+=>
+    (set-strategic-number sn-minimum-boar-hunt-group-size 6)
+    (set-strategic-number sn-minimum-number-hunters 6)
+    (up-request-hunters c: 5))
+(defrule
+    (dropsite-min-distance live-boar > 5)
+    (dropsite-min-distance live-boar s:< sn-maximum-hunt-drop-distance)
+    (unit-type-count villager-hunter < 1)
+	(unit-type-count villager >= 6)
+(or	(research-completed ri-loom)
+    (dropsite-min-distance live-boar < 15))
+=>
+    (set-strategic-number sn-minimum-boar-hunt-group-size 1)
+    (set-strategic-number sn-minimum-number-hunters 1)
+    (up-request-hunters c: 1)
+)

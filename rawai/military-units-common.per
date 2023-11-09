@@ -1,0 +1,104 @@
+
+; Phase 1
+
+; Phase 2
+
+; Train a few Militia to counter Infantry rushes
+(defrule
+	(goal current-phase 2)
+	(unit-type-count-total militiaman-line g:< 5)
+	(can-train militiaman-line)
+=>
+	(train militiaman-line)
+)
+
+; Train a few Spearmen to counter Cavalry rushes
+(defrule
+	(goal current-phase 2)
+	(unit-type-count-total spearman-line g:< 5)
+	(can-train spearman-line)
+=>
+	(train spearman-line)
+)
+
+; Phase 3
+; We should use trash until Phase 5 so we have the gold for aging up & other research
+; Civ specific files deal with Phase 5 unit recruitment
+
+; Train Scout Cavalry to counter Infantry
+(defrule
+	(goal current-phase 3)
+	(goal train-anti-infantry 1)
+	(unit-type-count-total scout-cavalry-line g:< desired-number-antiinfantrytrash)
+	(can-train scout-cavalry-line)
+=>
+	(train scout-cavalry-line)
+)
+
+; Train Spearmen to counter Cavalry
+(defrule
+	(goal current-phase 3)
+	(goal train-anti-cavalry 1)
+	(unit-type-count-total spearman-line g:< desired-number-anticavalrytrash)
+	(can-train spearman-line)
+=>
+	(train spearman-line)
+)
+
+; Train Skirmishers to counter Archers/Cavalry Archers
+; At Phase 5 Skirmishers use their own goal to be trained
+
+(defrule
+	(goal current-phase 3)
+	(goal train-anti-archer 1)
+	(unit-type-count-total skirmisher-line g:< desired-number-antiarchertrash)
+	(can-train skirmisher-line)
+=>
+	(train skirmisher-line)
+)
+
+(defrule
+	(goal current-phase 3)
+	(goal train-anti-cavalryarcher 1)
+	(unit-type-count-total skirmisher-line g:< desired-number-anticavalryarchertrash)
+	(can-train skirmisher-line)
+=>
+	(train skirmisher-line)
+)
+
+; Phase 4
+
+; Train Scout Cavalry to counter Infantry
+(defrule
+	(goal current-phase 4)
+	(goal train-anti-infantry 1)
+	(unit-type-count-total scout-cavalry-line g:< desired-number-antiinfantrytrash)
+	(can-train scout-cavalry-line)
+=>
+	(train scout-cavalry-line)
+)
+
+; Train Spearmen to counter Cavalry only if our civ cannot train Camels
+(defrule
+	(goal current-phase 4)
+	(goal train-anti-cavalry 1)
+	(unit-type-count-total spearman-line g:< desired-number-anticavalrytrash)
+	(and
+		(not
+			(can-train camel-line)
+		)
+		(can-train spearman-line)
+	)
+=>
+	(train spearman-line)
+)
+
+; Train Camels to counter Cavalry, this is a gold cost we can afford for better mobility
+(defrule
+	(goal current-phase 4)
+	(goal train-anti-cavalry 1)
+	(unit-type-count-total camel-line g:< desired-number-anticavalrytrash)
+	(can-train camel-line)
+=>
+	(train camel-line)
+)

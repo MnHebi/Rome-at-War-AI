@@ -1,4 +1,7 @@
 
+;start of rule jumping, do not add rules before rule jumping ends
+
+;rule 1
 (defrule
 	(up-compare-goal military-spread-time <= 0)
 =>
@@ -9,60 +12,91 @@
 =>
 	(up-set-timer c: unit-spread-timer g: military-spread-interval)
 	(up-jump-rule 2)
-	(disable-self))
+	(disable-self)
+)
+
+;rule 2
 (defrule
 	(goal spread-units 1)
 	(timer-triggered unit-spread-timer)
 =>
 	(set-strategic-number sn-task-ungrouped-soldiers 0)
 	(set-goal spread-units 0); sn-task-ungrouped-soldiers always 1 as a fact
-	(up-set-timer c: unit-spread-timer g: military-spread-interval))
+	(up-set-timer c: unit-spread-timer g: military-spread-interval)
+)
+
+;rule 3
 (defrule
 	(goal spread-units 0)
 	(up-timer-status unit-spread-timer != timer-running)
 =>
 	(set-strategic-number sn-task-ungrouped-soldiers 1)
 	(set-goal spread-units 1)
-	(up-set-timer c: unit-spread-timer g: military-spread-time))
+	(up-set-timer c: unit-spread-timer g: military-spread-time)
+)
 
+;rule 4
 (defrule
 	(players-building-count any-enemy >= 1)
 =>
 	(up-find-player enemy find-closest temporary-goal)
-	(up-modify-sn sn-target-player-number g:= temporary-goal))
+	(up-modify-sn sn-target-player-number g:= temporary-goal)
+)
 
+;rule 5
 (defrule
-(or	(up-compare-goal preferred-target-player <= 0)
-	(up-compare-goal preferred-target-player >= 9))
+	(or	
+		(up-compare-goal preferred-target-player <= 0)
+		(up-compare-goal preferred-target-player >= 9)
+	)
 =>
-	(up-jump-rule 3))
+	(up-jump-rule 3)
+)
+
+;rule 6
 (defrule
 	(true)
 =>
 	(up-modify-goal temporary-goal s:= sn-target-player-number)
-	(up-modify-sn sn-target-player-number g:= preferred-target-player))
+	(up-modify-sn sn-target-player-number g:= preferred-target-player)
+)
+
+;rule 7
 (defrule
 	(players-building-count target-player >= 1)
 	(player-in-game target-player)
-(not	(stance-toward target-player ally))
+(not	
+	(stance-toward target-player ally)
+)
 =>
-	(up-jump-rule 1))
+	(up-jump-rule 1)
+)
+
+;rule 8
 (defrule
 	(true)
 =>
-	(up-modify-sn sn-target-player-number g:= temporary-goal))
+	(up-modify-sn sn-target-player-number g:= temporary-goal)
+)
 
+;rule 9
 (defrule
 	(true)
 =>
-	(up-modify-sn sn-focus-player-number s:= sn-target-player-number))
+	(up-modify-sn sn-focus-player-number s:= sn-target-player-number)
+)
 
+;rule 10
 (defrule
-(or	(goal allow-wall-targeting 0)
-	(goal allow-wall-targeting 1))
+(or	
+	(goal allow-wall-targeting 0)
+	(goal allow-wall-targeting 1)
+)
 =>
-	(up-modify-sn sn-wall-targeting-mode g:= allow-wall-targeting))
+	(up-modify-sn sn-wall-targeting-mode g:= allow-wall-targeting)
+)
 
+;rule 11
 (defrule
 	(up-compare-goal land-attack-delay >= 0)
 	(up-compare-goal land-attack-percentage >= 1)
@@ -75,7 +109,11 @@
 	(set-strategic-number sn-percent-attack-boats 0)
 	(attack-now)
 	(up-set-timer c: land-attack-timer g: land-attack-interval)
-	(up-jump-rule 1))
+	(up-jump-rule 1)
+)
+
+;end of rule jumps
+;rule 12
 (defrule
 	(up-compare-goal naval-attack-delay >= 0)
 	(up-compare-goal naval-attack-percentage >= 1)
@@ -87,4 +125,196 @@
 	(up-modify-sn sn-percent-attack-boats g:= naval-attack-percentage)
 	(set-strategic-number sn-percent-attack-soldiers 0)
 	(attack-now)
-	(up-set-timer c: naval-attack-timer g: naval-attack-interval))
+	(up-set-timer c: naval-attack-timer g: naval-attack-interval)
+)
+
+;counter unit system begin
+
+;counter infantry, not finished, need to map all the infantry units in the mod
+(defrule
+		(or
+			(players-unit-type-count any-enemy militiaman-line >= 1)
+			(players-unit-type-count any-enemy spearman-line >= 1)
+		)
+=>
+		(set-goal train-anti-infantry 1)
+)
+
+(defrule
+		(or
+			(players-unit-type-count every-enemy militiaman-line == 0)
+			(players-unit-type-count every-enemy spearman-line == 0)
+		)
+=>
+		(set-goal train-anti-infantry 0)
+)
+
+;counter archers, not finished, need to map all the archer units in the mod
+(defrule
+		(or
+			(players-unit-type-count any-enemy archer-line >= 1)
+			(players-unit-type-count any-enemy hand-cannoneer >= 1)
+		)
+=>
+		(set-goal train-anti-archer 1)
+)
+
+(defrule
+		(or
+			(players-unit-type-count every-enemy archer-line == 0)
+			(players-unit-type-count every-enemy hand-cannoneer == 0)
+		)
+=>
+		(set-goal train-anti-archer 0)
+)
+
+;counter cavalry archers, not finished, need to map all the cavalry archer units in the mod
+(defrule
+		(players-unit-type-count any-enemy cavalry-archer-line >= 1)
+=>
+		(set-goal train-anti-cavalryarcher 1)
+)
+
+(defrule
+		(players-unit-type-count every-enemy cavalry-archer-line == 0)
+=>
+		(set-goal train-anti-cavalryarcher 0)
+)
+
+;counter cavalry, not finished, need to map all the cavalry units in the mod
+(defrule
+		(or
+			(players-unit-type-count any-enemy scout-cavalry-line >= 1)
+			(or
+				(players-unit-type-count any-enemy knight-line >= 1)
+				(players-unit-type-count any-enemy camel-line >= 1)
+			)
+		)
+=>
+		(set-goal train-anti-cavalry 1)
+)
+
+(defrule
+		(or
+			(players-unit-type-count every-enemy scout-cavalry-line == 0)
+			(or
+				(players-unit-type-count every-enemy knight-line == 0)
+				(players-unit-type-count every-enemy camel-line == 0)
+			)
+		)
+=>
+		(set-goal train-anti-cavalry 0)
+)
+
+;counter elephants, but not Ballista Elephants(these are considered siege weapons)
+(defrule
+		(or
+			(players-unit-type-count any-enemy war-elephant >= 1)
+			(or
+				(players-unit-type-count any-enemy elite-war-elephant >= 1)
+				(or
+					(players-unit-type-count any-enemy battle-elephant >= 1)
+					(or
+						(players-unit-type-count any-enemy elite-battle-elephant >= 1)
+						(or
+							(players-unit-type-count any-enemy armored-elephant >= 1)
+							(players-unit-type-count any-enemy siege-elephant >= 1)
+						)
+					)
+				)
+			)
+		)
+=>
+		(set-goal train-anti-elephant 1)
+)
+
+(defrule
+		(or
+			(players-unit-type-count every-enemy war-elephant == 0)
+			(or
+				(players-unit-type-count every-enemy elite-war-elephant == 0)
+				(or
+					(players-unit-type-count every-enemy battle-elephant == 0)
+					(or
+						(players-unit-type-count every-enemy elite-battle-elephant == 0)
+						(or
+							(players-unit-type-count every-enemy armored-elephant == 0)
+							(players-unit-type-count every-enemy siege-elephant == 0)
+						)
+					)
+				)
+			)
+		)
+=>
+		(set-goal train-anti-elephant 0)
+)
+
+;counter siege, including Ballista Elephants
+(defrule
+		(or
+			(players-unit-type-count any-enemy ballista-elephant >= 1)
+			(or
+				(players-unit-type-count any-enemy elite-ballista-elephant >= 1)
+				(or
+					(players-unit-type-count any-enemy battering-ram-line >= 1)
+					(or
+						(players-unit-type-count any-enemy mangonel-line >= 1)
+						(or
+							(players-unit-type-count any-enemy scorpion-line >= 1)
+							(or
+								(players-unit-type-count any-enemy trebuchet >= 1)
+								(players-unit-type-count any-enemy siege-tower >= 1)
+							)
+						)
+					)
+				)
+			)
+		)
+=>
+		(set-goal train-anti-siege 1)
+)
+
+(defrule
+		(or
+			(players-unit-type-count every-enemy ballista-elephant == 0)
+			(or
+				(players-unit-type-count every-enemy elite-ballista-elephant == 0)
+				(or
+					(players-unit-type-count every-enemy battering-ram-line == 0)
+					(or
+						(players-unit-type-count every-enemy mangonel-line == 0)
+						(or
+							(players-unit-type-count every-enemy scorpion-line == 0)
+							(or
+								(players-unit-type-count every-enemy trebuchet == 0)
+								(players-unit-type-count every-enemy siege-tower == 0)
+							)
+						)
+					)
+				)
+			)
+		)
+=>
+		(set-goal train-anti-siege 0)
+)
+
+;counter priests/brahmin
+(defrule
+		(or
+			(players-unit-type-count any-enemy priest >= 1)
+			(players-unit-type-count any-enemy brahmin >= 1)
+		)
+=>
+		(set-goal train-priest 1)
+)
+
+(defrule
+		(or
+			(players-unit-type-count every-enemy priest == 0)
+			(players-unit-type-count every-enemy brahmin == 0)
+		)
+=>
+		(set-goal train-priest 0)
+)
+
+;counter unit system end
