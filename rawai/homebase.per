@@ -430,8 +430,18 @@
 (defrule
 	(building-type-count-total castle g:< desired-number-castles)
 	(can-build castle)
+	(up-pending-objects c: castle < 1)
 =>
-	(build castle))
+	(up-get-fact building-type-count castle gl-number-castles)
+	
+	(up-modify-goal gl-castle-placement c:= 10)
+	(up-modify-goal gl-castle-placement g:* gl-number-castles)
+	(up-modify-goal gl-castle-placement c:+ 10)
+	(up-modify-goal gl-castle-placement s:min sn-maximum-town-size)
+	
+	(up-set-placement-data my-player-number -1 g: gl-castle-placement)
+	(up-build place-control 0 c: castle)
+)
 
 (defrule
 	(building-type-count-total outpost g:< desired-number-outposts)
@@ -440,11 +450,17 @@
 	(build outpost))
 
 (defrule
-	(building-type-count lumber-camp > 0)
 	(building-type-count-total watch-tower g:< desired-number-watchtowers)
 	(can-build watch-tower)
 	(up-pending-objects c: watch-tower < 1)
 =>
-	(up-set-placement-data my-player-number lumber-camp c: 4)
+	(up-get-fact building-type-count watch-tower gl-number-watchtowers)
+	
+	(up-modify-goal gl-watchtower-placement c:= 4)
+	(up-modify-goal gl-watchtower-placement g:* gl-number-watchtowers)
+	(up-modify-goal gl-watchtower-placement c:+ 4)
+	(up-modify-goal gl-watchtower-placement s:min sn-maximum-town-size)
+	
+	(up-set-placement-data my-player-number -1 g: gl-watchtower-placement)
 	(up-build place-control 0 c: watch-tower)
 )
