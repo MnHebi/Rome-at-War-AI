@@ -5,8 +5,8 @@
 
 ; Train a few Militia to counter Infantry rushes
 (defrule
-	(goal current-phase 2)
-	(unit-type-count-total militiaman-line g:< 5)
+	(up-compare-goal current-phase >= 2)
+	(unit-type-count-total militiaman-line < 5)
 	(can-train militiaman-line)
 =>
 	(train militiaman-line)
@@ -14,11 +14,21 @@
 
 ; Train a few Spearmen to counter Cavalry rushes
 (defrule
-	(goal current-phase 2)
-	(unit-type-count-total spearman-line g:< 5)
+	(up-compare-goal current-phase == 2)
+	(unit-type-count-total spearman-line < 5)
 	(can-train spearman-line)
 =>
 	(train spearman-line)
+)
+
+; Train some Scout Cavalry for scouting
+
+(defrule
+	(up-compare-goal current-phase == 2)
+	(unit-type-count-total scout-cavalry-line < 2)
+	(can-train scout-cavalry-line)
+=>
+	(train scout-cavalry-line)
 )
 
 ; Phase 3
@@ -101,4 +111,25 @@
 	(can-train camel-line)
 =>
 	(train camel-line)
+)
+
+; Train Skirmishers to counter Archers/Cavalry Archers
+; At Phase 5 Skirmishers use their own goal to be trained
+
+(defrule
+	(goal current-phase 4)
+	(goal train-anti-archer 1)
+	(unit-type-count-total skirmisher-line g:< desired-number-antiarchertrash)
+	(can-train skirmisher-line)
+=>
+	(train skirmisher-line)
+)
+
+(defrule
+	(goal current-phase 4)
+	(goal train-anti-cavalryarcher 1)
+	(unit-type-count-total skirmisher-line g:< desired-number-anticavalryarchertrash)
+	(can-train skirmisher-line)
+=>
+	(train skirmisher-line)
 )

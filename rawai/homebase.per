@@ -137,7 +137,8 @@
 	(building-type-count-total mill g:< desired-number-mills)
 	(can-build mill)
 =>
-	(build mill))
+	(build mill)
+)
 
 (defrule
 	(goal dependent-farms 1)
@@ -151,7 +152,8 @@
 	(up-modify-goal desired-number-farms g:+ 509)
 	(up-modify-goal desired-number-farms c:max 0)
 	(up-modify-goal 510 c:+ 2);
-	(up-modify-goal desired-number-farms g:min 510))
+	(up-modify-goal desired-number-farms g:min 510)
+)
 (defrule
 	(wood-amount < 160)
 	(dropsite-min-distance wood >= 5)
@@ -281,7 +283,9 @@
 	(up-modify-goal temporary-goal4 c:+ 1)
 	(set-goal temporary-goal8 0)
 	(set-goal temporary-goal10 0)
-	(up-jump-rule -13)); end jump
+	(up-jump-rule -13)
+); end jump
+
 (defrule
 (not	(up-set-target-object search-local g: temporary-goal4))
 	(goal temporary-goal town-center)
@@ -295,7 +299,8 @@
 	(set-goal temporary-goal10 0)
 	(up-jump-rule -14))
 (defrule
-	(can-build farm);
+	(wood-amount > 150)
+	(can-build farm)
 	(up-can-build 0 c: farm)
 =>
 ;	(chat-to-player my-player-number "Normal farm.")
@@ -371,19 +376,44 @@
 	(building-type-count-total market g:< desired-number-markets)
 	(can-build market)
 =>
-	(build market))
+	(up-get-fact building-type-count market gl-number-markets)
+	
+	(up-modify-goal gl-market-placement c:neg 10)
+	(up-modify-goal gl-market-placement g:* gl-number-markets)
+	(up-modify-goal gl-market-placement c:+ 10)
+	(up-modify-goal gl-market-placement s:min sn-maximum-town-size)
+	
+	(up-set-placement-data my-player-number -1 g: gl-market-placement)
+	(up-build place-control 0 c: market)
+)
 
 (defrule
 	(building-type-count-total dock g:< desired-number-docks)
 	(can-build dock)
 =>
-	(build dock))
+	(build dock)
+)
 	
 (defrule
-	(building-type-count-total shipyard g:< desired-number-shipyards)
+	(and
+		(building-type-count-total dock >= 1)
+		(building-type-count-total shipyard g:< desired-number-shipyards)
+	)
 	(can-build shipyard)
 =>
-	(build shipyard))
+	(build shipyard)
+)
+
+(defrule
+	(and
+		(building-type-count-total dock >= 1)
+		(building-type-count-total shipyard g:< desired-number-shipyards)
+	)
+	(up-can-build 0 c: shipyard)
+	(up-pending-objects c: shipyard < 1)
+=>
+	(up-build place-normal 0 c: shipyard)
+)
 
 (defrule
 	(building-type-count-total university g:< desired-number-universities)
@@ -410,13 +440,11 @@
 	(build outpost))
 
 (defrule
+	(building-type-count lumber-camp > 0)
 	(building-type-count-total watch-tower g:< desired-number-watchtowers)
 	(can-build watch-tower)
+	(up-pending-objects c: watch-tower < 1)
 =>
-	(build watch-tower))
-
-(defrule
-	(building-type-count-total bombard-tower g:< desired-number-bombardtowers)
-	(can-build bombard-tower)
-=>
-	(build bombard-tower))
+	(up-set-placement-data my-player-number lumber-camp c: 4)
+	(up-build place-control 0 c: watch-tower)
+)

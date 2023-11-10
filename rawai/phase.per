@@ -1,10 +1,21 @@
+
+(defrule
+	(up-compare-goal current-phase <= 0)
+=>
+	(chat-local-to-self "Entering Phase 1.")
+	(set-goal current-phase 1)
+	(disable-self)
+)
+
 (defrule
 	(up-compare-goal current-phase <= 0)
 	(up-compare-const phase1-always-enabled == 1)
 =>
 	(chat-local-to-self "Entering Phase 1.")
 	(set-goal current-phase 1)
-	(disable-self))
+	(disable-self)
+)
+
 (defrule
 	(goal current-phase 1)
 	(current-age == dark-age)
@@ -16,14 +27,26 @@
 =>
 	(chat-local-to-self "Entering Phase 2.")
 	(set-goal current-phase 2)
-	(disable-self))
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 1)
+	(current-age == feudal-age)
+=>
+	(chat-local-to-self "Entering Phase 2.")
+	(set-goal current-phase 2)
+	(disable-self)
+)
+
 (defrule
 	(goal current-phase 2)
 	(current-age == feudal-age)
 =>
 	(chat-local-to-self "Entering Phase 3.")
 	(set-goal current-phase 3)
-	(disable-self))
+	(disable-self)
+)
 (defrule
 	(goal current-phase 3)
 	(current-age == castle-age)
@@ -95,7 +118,6 @@
 	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 1)
 =>
-	(set-goal dependent-farms phase1-farm-dependency)
 	(set-goal desired-number-towncenters phase1-towncenter-cap)
 	(set-goal allow-houses phase1-allow-houses)
 	(set-goal desired-number-farms phase1-farm-cap)
@@ -350,7 +372,6 @@
 	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 2)
 =>
-	(set-goal dependent-farms phase2-farm-dependency)
 	(set-goal desired-number-towncenters phase2-towncenter-cap)
 	(set-goal allow-houses phase2-allow-houses)
 	(set-goal desired-number-farms phase2-farm-cap)
@@ -605,7 +626,6 @@
 	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 3)
 =>
-	(set-goal dependent-farms phase3-farm-dependency)
 	(set-goal desired-number-towncenters phase3-towncenter-cap)
 	(set-goal allow-houses phase3-allow-houses)
 	(set-goal desired-number-farms phase3-farm-cap)
@@ -860,7 +880,6 @@
 	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 4)
 =>
-	(set-goal dependent-farms phase4-farm-dependency)
 	(set-goal desired-number-towncenters phase4-towncenter-cap)
 	(set-goal allow-houses phase4-allow-houses)
 	(set-goal desired-number-farms phase4-farm-cap)
@@ -1115,7 +1134,6 @@
 	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 5)
 =>
-	(set-goal dependent-farms phase5-farm-dependency)
 	(set-goal desired-number-towncenters phase5-towncenter-cap)
 	(set-goal allow-houses phase5-allow-houses)
 	(set-goal desired-number-farms phase5-farm-cap)
