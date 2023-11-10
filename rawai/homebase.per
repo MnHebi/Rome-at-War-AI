@@ -4,7 +4,9 @@
 	(building-type-count-total town-center g:< desired-number-towncenters)
 	(can-build town-center)
 =>
-	(build town-center))
+	(build town-center)
+)
+
 (defrule
 	(goal allow-houses 1)
 	(up-pending-objects c: house <= 0)
@@ -12,7 +14,8 @@
 	(housing-headroom < 5)
 	(can-build house)
 =>
-	(build house))
+	(build house)
+)
 
 (defrule
 	(up-timer-status town-size-timer != timer-running)
@@ -33,7 +36,9 @@
 	(up-modify-sn sn-maximum-town-size c:max 8)
 	(up-modify-sn sn-maximum-town-size c:min 30)
 	(enable-timer town-size-timer 6)
-	(up-jump-rule 1))
+	(up-jump-rule 1)
+)
+
 (defrule
 	(up-timer-status town-size-timer != timer-running)
 (or	(up-pending-placement c: castle)
@@ -47,18 +52,23 @@
 	(up-modify-sn sn-maximum-town-size c:+ 1)
 	(up-modify-sn sn-maximum-town-size c:max 8)
 	(up-modify-sn sn-maximum-town-size c:min 30)
-	(enable-timer town-size-timer 6))
+	(enable-timer town-size-timer 6)
+)
+
 (defrule
 	(strategic-number sn-maximum-town-size s:> sn-camp-max-distance)
 =>
-	(up-modify-sn sn-camp-max-distance s:max sn-maximum-town-size))
+	(up-modify-sn sn-camp-max-distance s:max sn-maximum-town-size)
+)
 
 (defrule
 (or	(and	(up-pending-objects c: lumber-camp <= 0)
 		(up-pending-objects c: mining-camp <= 0))
 	(strategic-number sn-camp-max-distance g:>= map-size))
 =>
-	(up-jump-rule 4))
+	(up-jump-rule 4)
+)
+
 (defrule
 	(resource-found wood)
 	(up-pending-objects c: lumber-camp >= 1)
@@ -129,11 +139,16 @@
 	(build lumber-camp))
 
 (defrule
-(or	(resource-found food)
-	(and	(building-type-count-total farm g:< desired-number-farms)
-		(building-type-count-total mill < 1)))
-		(up-pending-objects c: mill <= 0)
+	(or	
+		(resource-found food)
+		(and	
+			(building-type-count-total farm g:< desired-number-farms)
+			(building-type-count-total mill < 1)
+		)
+	)
+	(up-pending-objects c: mill <= 0)
 	(strategic-number sn-food-gatherer-percentage >= 1)
+	(building-type-count-total lumber-camp >= 1)
 	(building-type-count-total mill g:< desired-number-mills)
 	(can-build mill)
 =>
@@ -463,4 +478,12 @@
 	
 	(up-set-placement-data my-player-number -1 g: gl-watchtower-placement)
 	(up-build place-control 0 c: watch-tower)
+)
+
+(defrule
+	(building-type-count-total watch-tower g:< desired-number-seatowers)
+	(can-build sea-tower)
+	(up-pending-objects c: sea-tower < 1)
+=>	
+	(up-build place-normal 0 c: sea-tower)
 )

@@ -133,3 +133,41 @@
 =>
 	(train skirmisher-line)
 )
+
+; Phase 5
+;Certain units that are trained by ALL civs will be here cause repeating these train commands over and over again does not make sense
+
+(defrule
+	(goal current-phase 5)
+	(unit-type-count-total priest g:< gl-one-percent)
+	(can-train priest)
+=>
+	(train priest)
+)
+
+(defrule
+	(goal current-phase 5)
+	(unit-type-count-total brahmin g:< gl-one-percent)
+	(can-train brahmin)
+=>
+	(train brahmin)
+)
+
+(defrule
+	(goal current-phase 5)
+	(and
+		(building-type-count-total palintonon g:< gl-one-percent)
+		(unit-type-count-total palintonon-packed g:< gl-one-percent)
+	)
+	(can-train palintonon-packed)
+=>
+	(train palintonon-packed)
+)
+
+(defrule
+	(goal current-phase 5)
+	(unit-type-count-total battering-ram g:< gl-one-percent)
+	(can-train battering-ram)
+=>
+	(train battering-ram)
+)
