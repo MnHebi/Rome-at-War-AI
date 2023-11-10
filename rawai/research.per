@@ -452,6 +452,29 @@
 	(chat-local-to-self "research heavy-demolition-ship")
 )
 
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-navy-villager-requirement)
+	(goal upgrade-navy 1)
+	(can-research-with-escrow ri-deeper-water-foundations)
+=>
+	(release-escrow wood)
+	(release-escrow stone)
+    (research ri-deeper-water-foundations)
+	(chat-local-to-self "research deeper-water-foundations")
+)
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-navy-villager-requirement)
+	(goal upgrade-navy 1)
+	(unit-type-count fishing-ship > 2)
+	(can-research-with-escrow ri-gillnets)
+=>
+	(release-escrow food)
+	(release-escrow wood)
+    (research ri-gillnets)
+	(chat-local-to-self "research deeper-water-foundations")
+)
+
 ; ////////////////////////WEAPONS/////////////////////////////////////////////////
 
 (defrule
