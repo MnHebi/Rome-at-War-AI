@@ -165,18 +165,20 @@
 (defrule
 	(goal current-phase 5)
 	(and
-		(building-type-count-total palintonon g:< gl-one-percent)
+		(unit-type-count-total palintonon g:< gl-one-percent)
 		(unit-type-count-total palintonon-packed g:< gl-one-percent)
 	)
 	(can-train palintonon-packed)
 =>
 	(train palintonon-packed)
+	(up-chat-data-to-all "One percent: %d" g: gl-one-percent)
 )
 
 (defrule
 	(goal current-phase 5)
-	(unit-type-count-total battering-ram g:< gl-one-percent)
-	(can-train battering-ram)
+	(unit-type-count-total battering-ram-line g:< gl-one-percent)
+	(can-train battering-ram-line)
 =>
-	(train battering-ram)
+	(train battering-ram-line)
+	(up-chat-data-to-all "One percent: %d" g: gl-one-percent)
 )

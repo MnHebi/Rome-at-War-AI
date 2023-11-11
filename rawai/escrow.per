@@ -1,6 +1,42 @@
 ;-----Escrow-----
 
 (defrule
+	(current-age == dark-age)
+=>
+	(set-escrow-percentage wood 5)
+	(set-escrow-percentage food 5)
+	(set-escrow-percentage gold 5)
+	(set-escrow-percentage stone 5)
+)
+
+(defrule
+	(current-age == feudal-age)
+=>
+	(set-escrow-percentage wood 15)
+	(set-escrow-percentage food 15)
+	(set-escrow-percentage gold 15)
+	(set-escrow-percentage stone 15)
+)
+
+(defrule
+	(current-age == castle-age)
+=>
+	(set-escrow-percentage wood 30)
+	(set-escrow-percentage food 30)
+	(set-escrow-percentage gold 30)
+	(set-escrow-percentage stone 30)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(set-escrow-percentage wood 50)
+	(set-escrow-percentage food 50)
+	(set-escrow-percentage gold 50)
+	(set-escrow-percentage stone 50)
+)
+
+(defrule
 	(up-compare-goal villager-count g:< upgrade-military-villager-requirement)
 	(up-compare-goal villager-count g:< upgrade-economy-villager-requirement)
 	(up-compare-goal villager-count g:< upgrade-fortifications-villager-requirement)
@@ -35,13 +71,4 @@
 	)
 =>
 	(up-release-escrow)
-)
-
-(defrule
-	(true)
-=>
-	(set-escrow-percentage wood 30)
-	(set-escrow-percentage food 30)
-	(set-escrow-percentage gold 30)
-	(set-escrow-percentage stone 30)
 )

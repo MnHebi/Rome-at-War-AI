@@ -319,7 +319,66 @@
 	(up-can-build 0 c: farm)
 =>
 ;	(chat-to-player my-player-number "Normal farm.")
-	(build farm)); end jump
+	(build farm)
+); end jump
+
+(defrule
+	(true)
+=> 
+	(up-get-point position-self gl-position-self-x)
+	(up-filter-status c: status-gather c: list-active)
+;	(up-get-point position-corner gl-shipyard-x)
+)
+
+(defrule
+	(or
+		(up-find-resource c: 905 c: 1)
+		(up-find-resource c: 933 c: 1)
+	)
+	(building-type-count-total dock > 0)
+	(building-type-count-total shipyard < 1)
+	(can-build shipyard)
+=>
+	(up-full-reset-search)
+	(up-filter-status c: status-gather c: list-active)
+	(up-find-resource c: 905 c: 1)
+	(up-find-resource c: 933 c: 1)
+	(up-set-target-object search-remote c: 0)
+	(up-get-point position-object gl-shipyard-x)
+	(set-goal temporary-goals3 15)
+	(chat-local-to-self "shipyard placement, locate fish")
+)
+
+(defrule
+	(and
+		(building-type-count-total dock >= 1)
+		(building-type-count-total shipyard g:< desired-number-shipyards)
+	)
+	(up-can-build-line 0 gl-shipyard-x c: shipyard)
+=>
+	(up-build-line gl-shipyard-x gl-shipyard-x c: shipyard)
+	(chat-local-to-self "shipyard placement, try placing shipyard")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(building-type-count-total dock > 0)
+	(building-type-count-total shipyard < 1)
+	(up-compare-goal gl-shipyard-x != -1)
+	(up-compare-goal temporary-goals3 > 0)
+=>
+	(generate-random-number 5)
+	(up-get-fact random-number 0 temporary-goals1)
+	(generate-random-number 5)
+	(up-get-fact random-number 0 temporary-goals2)
+	(up-modify-goal gl-shipyard-x g:+ temporary-goals1)
+	(up-modify-goal gl-shipyard-y g:+ temporary-goals2)
+	(up-modify-goal gl-shipyard-x c:- 3)
+	(up-modify-goal gl-shipyard-y c:- 3)
+	(up-modify-goal temporary-goals3 c:- 1)
+	(chat-local-to-self "shipyard placement, loop")
+	(up-jump-rule -2)
+)
 
 (defrule
 	(building-type-count-total town-center > 0)
@@ -330,6 +389,7 @@
 
 (defrule
 	(building-type-count-total town-center > 0)
+	(building-type-count-total lumber-camp > 0)
 	(building-type-count-total mining-camp == 0)
 	(can-build mining-camp)
 =>
@@ -337,6 +397,7 @@
 
 (defrule
 	(building-type-count-total mining-camp g:< desired-number-miningcamps)
+	(building-type-count-total lumber-camp > 0)
 	(up-pending-objects c: mining-camp <= 0)
 	(strategic-number sn-gold-gatherer-percentage >= 1)
 	(resource-found gold)
@@ -348,6 +409,7 @@
 
 (defrule
 	(building-type-count-total mining-camp g:< desired-number-miningcamps)
+	(building-type-count-total lumber-camp >= 1)
 	(up-pending-objects c: mining-camp <= 0)
 	(strategic-number sn-stone-gatherer-percentage >= 1)
 	(resource-found stone)
@@ -359,6 +421,7 @@
 
 (defrule
 	(building-type-count-total barracks g:< desired-number-barracks)
+	(building-type-count-total lumber-camp >= 1)
 	(can-build barracks)
 =>
 	(build barracks))
@@ -404,30 +467,10 @@
 
 (defrule
 	(building-type-count-total dock g:< desired-number-docks)
+	(building-type-count-total lumber-camp >= 1)
 	(can-build dock)
 =>
 	(build dock)
-)
-	
-(defrule
-	(and
-		(building-type-count-total dock >= 1)
-		(building-type-count-total shipyard g:< desired-number-shipyards)
-	)
-	(can-build shipyard)
-=>
-	(build shipyard)
-)
-
-(defrule
-	(and
-		(building-type-count-total dock >= 1)
-		(building-type-count-total shipyard g:< desired-number-shipyards)
-	)
-	(up-can-build 0 c: shipyard)
-	(up-pending-objects c: shipyard < 1)
-=>
-	(up-build place-normal 0 c: shipyard)
 )
 
 (defrule
