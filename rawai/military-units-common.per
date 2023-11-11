@@ -3,9 +3,34 @@
 
 ; Phase 2
 
+; Train Scout Galleys
+
+(defrule
+	(up-compare-goal current-phase >= 2)
+	(goal train-scoutships 1)
+	(wood-amount > 200)
+	(or
+		(unit-type-count-total scout-galley g:< desired-number-scoutships)
+		(or
+			(unit-type-count-total scout-ship g:< desired-number-scoutships)
+			(unit-type-count-total elite-scout-galley g:< desired-number-scoutships)
+		)
+	)
+	(or
+		(can-train scout-galley)
+		(or
+			(can-train scout-ship)
+			(can-train elite-scout-galley)
+		)
+	)
+=>
+	(train scout-galley)
+)
+
 ; Train Transport Ships
 (defrule
 	(up-compare-goal current-phase >= 2)
+	(wood-amount > 200)
 	(unit-type-count-total transport-ship g:< desired-number-transports)
 	(can-train transport-ship)
 =>

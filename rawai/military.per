@@ -134,16 +134,28 @@
 (defrule
 	(or
 		(players-unit-type-count any-enemy militiaman-line >= 1)
-		(players-unit-type-count any-enemy spearman-line >= 1)
+		(or
+			(players-unit-type-count any-enemy spearman-line >= 1)
+			(or
+				(players-unit-type-count any-enemy legionary >= 1)
+				(players-unit-type-count any-enemy imitation-legionary >= 1)
+			)
+		)
 	)
 =>
 	(set-goal train-anti-infantry 1)
 )
 
 (defrule
-	(or
+	(and
 		(players-unit-type-count every-enemy militiaman-line == 0)
-		(players-unit-type-count every-enemy spearman-line == 0)
+		(and
+			(players-unit-type-count every-enemy spearman-line == 0)
+			(and
+				(players-unit-type-count every-enemy legionary == 0)
+				(players-unit-type-count every-enemy imitation-legionary == 0)
+			)
+		)
 	)
 =>
 	(set-goal train-anti-infantry 0)
@@ -160,7 +172,7 @@
 )
 
 (defrule
-	(or
+	(and
 		(players-unit-type-count every-enemy archer-line == 0)
 		(players-unit-type-count every-enemy hand-cannoneer == 0)
 	)
@@ -195,9 +207,9 @@
 )
 
 (defrule
-	(or
+	(and
 		(players-unit-type-count every-enemy scout-cavalry-line == 0)
-		(or
+		(and
 			(players-unit-type-count every-enemy knight-line == 0)
 			(players-unit-type-count every-enemy camel-line == 0)
 		)
@@ -229,15 +241,15 @@
 )
 
 (defrule
-	(or
+	(and
 		(players-unit-type-count every-enemy war-elephant == 0)
-		(or
+		(and
 			(players-unit-type-count every-enemy elite-war-elephant == 0)
-			(or
+			(and
 				(players-unit-type-count every-enemy battle-elephant == 0)
-				(or
+				(and
 					(players-unit-type-count every-enemy elite-battle-elephant == 0)
-					(or
+					(and
 						(players-unit-type-count every-enemy armored-elephant == 0)
 						(players-unit-type-count every-enemy siege-elephant == 0)
 					)
@@ -275,17 +287,17 @@
 )
 
 (defrule
-	(or
+	(and
 		(players-unit-type-count every-enemy ballista-elephant == 0)
-		(or
+		(and
 			(players-unit-type-count every-enemy elite-ballista-elephant == 0)
-			(or
+			(and
 				(players-unit-type-count every-enemy battering-ram-line == 0)
-				(or
+				(and
 					(players-unit-type-count every-enemy mangonel-line == 0)
-					(or
+					(and
 						(players-unit-type-count every-enemy scorpion-line == 0)
-						(or
+						(and
 							(players-building-type-count every-enemy palintonon == 0)
 							(players-unit-type-count every-enemy palintonon-packed == 0)
 						)
@@ -309,12 +321,133 @@
 )
 
 (defrule
-	(or
+	(and
 		(players-unit-type-count every-enemy priest == 0)
 		(players-unit-type-count every-enemy brahmin == 0)
 	)
 =>
 	(set-goal train-anti-priest 0)
+)
+
+;counter boarding ships
+(defrule
+	(players-unit-type-count any-enemy boarding-ship >= 1)
+=>
+	(set-goal train-scoutships 1)
+)
+
+(defrule
+	(players-unit-type-count every-enemy boarding-ship == 0)
+=>
+	(set-goal train-scoutships 0)
+)
+
+;counter scout ships/fire ships
+(defrule
+	(or
+		(players-unit-type-count any-enemy fire-ship-line >= 1)
+		(or
+			(players-unit-type-count any-enemy scout-galley >= 1)
+			(or
+				(players-unit-type-count any-enemy scout-ship >= 1)
+				(players-unit-type-count any-enemy elite-scout-galley >= 1)
+			)
+		)
+	)
+=>
+	(set-goal train-hemiolia 1)
+)
+
+(defrule
+	(and
+		(players-unit-type-count every-enemy fire-ship-line == 0)
+		(and
+			(players-unit-type-count every-enemy scout-galley == 0)
+			(and
+				(players-unit-type-count every-enemy scout-ship == 0)
+				(players-unit-type-count every-enemy elite-scout-galley == 0)
+			)
+		)
+	)
+=>
+	(set-goal train-hemiolia 0)
+)
+
+;counter monoremes/scout ships
+(defrule
+	(or
+		(players-unit-type-count any-enemy galley-line >= 1)
+		(or
+			(players-unit-type-count any-enemy scout-galley >= 1)
+			(or
+				(players-unit-type-count any-enemy scout-ship >= 1)
+				(players-unit-type-count any-enemy elite-scout-galley >= 1)
+			)
+		)
+	)
+=>
+	(set-goal train-fireships 1)
+)
+
+(defrule
+	(and
+		(players-unit-type-count every-enemy galley-line == 0)
+		(and
+			(players-unit-type-count every-enemy scout-galley == 0)
+			(and
+				(players-unit-type-count every-enemy scout-ship == 0)
+				(players-unit-type-count every-enemy elite-scout-galley == 0)
+			)
+		)
+	)
+=>
+	(set-goal train-fireships 0)
+)
+
+;counter hemiolia
+
+(defrule
+	(or
+		(players-unit-type-count any-enemy hemiolia >= 1)
+		(or
+			(players-unit-type-count any-enemy trihemiolia >= 1)
+			(players-unit-type-count any-enemy elite-trihemiolia >= 1)
+		)
+	)
+=>
+	(set-goal train-remes 1)
+)
+
+(defrule
+	(and
+		(players-unit-type-count every-enemy hemiolia == 0)
+		(and
+			(players-unit-type-count every-enemy trihemiolia == 0)
+			(players-unit-type-count every-enemy elite-trihemiolia == 0)
+		)
+	)
+=>
+	(set-goal train-remes 0)
+)
+
+;counter juggernauts with boarding ships
+
+(defrule
+	(or
+		(players-unit-type-count any-enemy juggernaut >= 1)
+		(players-unit-type-count any-enemy elite-juggernaut >= 1)
+	)
+=>
+	(set-goal train-boardingships 1)
+)
+
+(defrule
+	(and
+		(players-unit-type-count every-enemy juggernaut == 0)
+		(players-unit-type-count every-enemy elite-juggernaut == 0)
+	)
+=>
+	(set-goal train-boardingships 0)
 )
 
 ;counter advanced warships
@@ -334,11 +467,11 @@
 )
 
 (defrule
-	(or
+	(and
 		(players-unit-type-count every-enemy octeres == 0)
-		(or
+		(and
 			(players-unit-type-count every-enemy quadrireme == 0)
-			(or
+			(and
 				(players-unit-type-count every-enemy juggernaut == 0)
 				(players-unit-type-count every-enemy elite-juggernaut == 0)
 			)
