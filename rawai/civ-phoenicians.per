@@ -1,0 +1,16 @@
+
+(defrule
+	(goal current-phase 5)
+	(goal train-counter-infantry 1)
+	(and
+		(unit-type-count-total balearic-slinger g:< desired-number-antiinfantry)
+		(unit-type-count-total elite-balearic-slinger g:< desired-number-antiinfantry)
+	)
+	(or
+		(can-train balearic-slinger)
+		(can-train elite-balearic-slinger)
+	)
+=>
+	(train balearic-slinger)
+	(train elite-balearic-slinger)
+)

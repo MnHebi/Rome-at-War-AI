@@ -1,0 +1,29 @@
+
+(defrule
+	(goal current-phase 5)
+	(unit-type-count-total amazigh-raider g:< desired-number-uniqueunitone)
+	(can-train amazigh-raider)
+=>
+	(train archer-of-the-eyes)
+	(train elite-archer-of-the-eyes)
+)
+
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-archer 1)
+		(goal train-anti-siege 1)
+	)
+		
+	(and
+		(unit-type-count-total amazigh g:< desired-number-antiarcher)
+		(unit-type-count-total elite-amazigh g:< desired-number-antiarcher)
+	)
+	(or
+		(can-train amazigh)
+		(can-train elite-amazigh)
+	)
+=>
+	(train amazigh)
+	(train elite-amazigh)
+)
