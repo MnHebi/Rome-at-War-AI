@@ -1,0 +1,57 @@
+
+(defrule
+	(building-type-count-total commandery <= 2)
+	(can-build commandery)
+=>
+	(build commandery)
+)
+
+(defrule
+	(goal current-phase 5)
+	(and
+		(unit-type-count-total xiaowei g:< gl-one-percent)
+		(unit-type-count-total elite-xiaowei g:< gl-one-percent)
+	)
+	(or
+		(can-train xiaowei)
+		(can-train elite-xiaowei)
+	)
+=>
+	(train xiaowei)
+	(train elite-xiaowei)
+)
+
+(defrule
+	(goal current-phase 5)
+	(and
+		(unit-type-count-total jiangjun g:< gl-one-percent)
+		(unit-type-count-total elite-jiangjun g:< gl-one-percent)
+	)
+	(or
+		(can-train jiangjun)
+		(can-train elite-jiangjun)
+	)
+=>
+	(train jiangjun)
+	(train elite-jiangjun)
+)
+
+;Cavalry & Elephant Counter
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-cavalry 1)
+		(goal train-anti-elephant 1)
+	)
+	(and
+		(unit-type-count-total zhuge-nu g:< desired-number-anticavalry)
+		(unit-type-count-total elite-zhuge-nu g:< desired-number-anticavalry)
+	)
+	(or
+		(can-train zhuge-nu)
+		(can-train elite-zhuge-nu)
+	)
+=>
+	(train zhuge-nu)
+	(train elite-zhuge-nu)
+)
