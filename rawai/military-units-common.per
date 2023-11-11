@@ -40,6 +40,27 @@
 	(train scout-cavalry-line)
 )
 
+; Train Skirmishers to counter Archers/Cavalry Archers
+; At Phase 5 Skirmishers use their own goal to be trained
+
+(defrule
+	(goal current-phase 2)
+	(goal train-anti-archer 1)
+	(unit-type-count-total skirmisher-line g:< desired-number-antiarchertrash)
+	(can-train skirmisher-line)
+=>
+	(train skirmisher-line)
+)
+
+(defrule
+	(goal current-phase 2)
+	(goal train-anti-cavalryarcher 1)
+	(unit-type-count-total skirmisher-line g:< desired-number-anticavalryarchertrash)
+	(can-train skirmisher-line)
+=>
+	(train skirmisher-line)
+)
+
 ; Phase 3
 ; We should use trash until Phase 5 so we have the gold for aging up & other research
 ; Civ specific files deal with Phase 5 unit recruitment
@@ -122,6 +143,32 @@
 	(train camel-line)
 )
 
+; Train Cavalry Archers to Counter Infantry if we can, we can afford them at this stage
+; Else train Crossbowmen
+
+(defrule
+	(goal current-phase 4)
+	(goal train-anti-infantry 1)
+	(unit-type-count-total archer-line g:< desired-number-antiinfrantry)
+	(and
+		(not
+			(can-train cavalry-archer-line)
+		)
+		(can-train archer-line)
+	)
+=>
+	(train archer-line)
+)
+
+(defrule
+	(goal current-phase 4)
+	(goal train-anti-infantry 1)
+	(unit-type-count-total archer-line g:< desired-number-antiinfrantry)
+	(can-train cavalry-archer-line)
+=>
+	(train cavalry-archer-line)
+)
+
 ; Train Skirmishers to counter Archers/Cavalry Archers
 ; At Phase 5 Skirmishers use their own goal to be trained
 
@@ -143,12 +190,22 @@
 	(train skirmisher-line)
 )
 
+; Train some Priests for Relics
+
+(defrule
+	(goal current-phase 4)
+	(unit-type-count-total priest < 2)
+	(can-train priest)
+=>
+	(train priest)
+)
+
 ; Phase 5
 ;Certain units that are trained by ALL civs will be here cause repeating these train commands over and over again does not make sense
 
 (defrule
 	(goal current-phase 5)
-	(unit-type-count-total priest g:< gl-one-percent)
+	(unit-type-count-total priest g:< desired-number-priests)
 	(can-train priest)
 =>
 	(train priest)
@@ -156,7 +213,7 @@
 
 (defrule
 	(goal current-phase 5)
-	(unit-type-count-total brahmin g:< gl-one-percent)
+	(unit-type-count-total brahmin g:< desired-number-brahmin)
 	(can-train brahmin)
 =>
 	(train brahmin)
@@ -165,8 +222,8 @@
 (defrule
 	(goal current-phase 5)
 	(and
-		(unit-type-count-total palintonon g:< gl-one-percent)
-		(unit-type-count-total palintonon-packed g:< gl-one-percent)
+		(unit-type-count-total palintonon g:< desired-number-palintonon)
+		(unit-type-count-total palintonon-packed g:< desired-number-palintonon)
 	)
 	(can-train palintonon-packed)
 =>
@@ -176,7 +233,7 @@
 
 (defrule
 	(goal current-phase 5)
-	(unit-type-count-total battering-ram-line g:< gl-one-percent)
+	(unit-type-count-total battering-ram-line g:< desired-number-batteringrams)
 	(can-train battering-ram-line)
 =>
 	(train battering-ram-line)
