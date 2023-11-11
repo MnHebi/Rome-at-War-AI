@@ -3,6 +3,15 @@
 
 ; Phase 2
 
+; Train Transport Ships
+(defrule
+	(up-compare-goal current-phase >= 2)
+	(unit-type-count-total transport-ship g:< desired-number-transports)
+	(can-train transport-ship)
+=>
+	(train transport-ship)
+)
+
 ; Train a few Militia to counter Infantry rushes
 (defrule
 	(up-compare-goal current-phase >= 2)
@@ -14,7 +23,7 @@
 
 ; Train a few Spearmen to counter Cavalry rushes
 (defrule
-	(up-compare-goal current-phase == 2)
+	(goal current-phase 2)
 	(unit-type-count-total spearman-line < 5)
 	(can-train spearman-line)
 =>
@@ -24,7 +33,7 @@
 ; Train some Scout Cavalry for scouting
 
 (defrule
-	(up-compare-goal current-phase == 2)
+	(goal current-phase 2)
 	(unit-type-count-total scout-cavalry-line < 2)
 	(can-train scout-cavalry-line)
 =>

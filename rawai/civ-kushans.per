@@ -1,0 +1,22 @@
+
+(defrule
+	(building-type-count-total royal-mint < 3)
+	(can-build royal-mint)
+=>
+	(build royal-mint)
+)
+
+(defrule
+	(goal current-phase 5)
+	(and
+		(unit-type-count-total kara-irango g:< gl-five-percent)
+		(unit-type-count-total elite-kara-irango g:< gl-five-percent)
+	)
+	(or
+		(can-train kara-irango)
+		(can-train elite-kara-irango)
+	)
+=>
+	(train kara-irango)
+	(train elite-kara-irango)
+)
