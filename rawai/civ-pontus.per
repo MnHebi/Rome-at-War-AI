@@ -1,0 +1,32 @@
+
+(defrule
+	(goal current-phase 5)
+	(goal train-counter-infantry 1)
+	(and
+		(unit-type-count-total imitation-legionary g:< desired-number-antiinfantry)
+		(unit-type-count-total elite-imitation-legionary g:< desired-number-antiinfantry)
+	)
+	(or
+		(can-train imitation-legionary)
+		(can-train elite-imitation-legionary)
+	)
+=>
+	(train imitation-legionary)
+	(train elite-imitation-legionary)
+)
+
+(defrule
+	(goal current-phase 5)
+	(goal train-counter-cavalry 1)
+	(and
+		(unit-type-count-total cataphract g:< desired-number-anticavalry)
+		(unit-type-count-total elite-cataphract g:< desired-number-anticavalry)
+	)
+	(or
+		(can-train cataphract)
+		(can-train elite-cataphract)
+	)
+=>
+	(train pontus-cataphract)
+	(train elite-pontus-cataphract)
+)

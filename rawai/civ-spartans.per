@@ -1,0 +1,17 @@
+
+
+(defrule
+	(goal current-phase 5)
+	(goal train-counter-infantry 1)
+	(and
+		(unit-type-count-total hippeus g:< desired-number-antiinfantry)
+		(unit-type-count-total elite-hippeus g:< desired-number-antiinfantry)
+	)
+	(or
+		(can-train hippeus)
+		(can-train elite-hippeus)
+	)
+=>
+	(train hippeus)
+	(train elite-hippeus)
+)

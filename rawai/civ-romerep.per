@@ -1,0 +1,31 @@
+
+(defrule
+	(goal current-phase 5)
+	(and
+		(unit-type-count-total legionary g:< desired-number-uniqueunittwo)
+		(unit-type-count-total elite-legionary g:< desired-number-uniqueunittwo)
+	)
+	(or
+		(can-train legionary)
+		(can-train elite-legionary)
+	)
+=>
+	(train legionary)
+	(train elite-legionary)
+)
+
+(defrule
+	(goal current-phase 5)
+	(goal train-counter-infantry 1)
+	(and
+		(unit-type-count-total praetorian-guard g:< desired-number-antiinfantry)
+		(unit-type-count-total elite-praetorian-guard g:< desired-number-antiinfantry)
+	)
+	(or
+		(can-train praetorian-guard)
+		(can-train elite-praetorian-guard)
+	)
+=>
+	(train praetorian-guard)
+	(train elite-praetorian-guard)
+)

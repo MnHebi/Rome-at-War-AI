@@ -1,0 +1,24 @@
+
+(defrule
+	(goal current-phase 5)
+	(and
+		(unit-type-count-total kurgan-bound-chief g:< desired-number-uniqueunitone)
+		(unit-type-count-total elite-kurgan-bound-chief g:< desired-number-uniqueunitone)
+	)
+	(or
+		(can-train kurgan-bound-chief)
+		(can-train elite-kurgan-bound-chief)
+	)
+=>
+	(train kurgan-bound-chief)
+	(train elite-kurgan-bound-chief)
+)
+
+(defrule
+	(goal current-phase 5)
+	(goal train-counter-siege 1)
+	(unit-type-count-total amazon g:< desired-number-antiinfantry)
+	(can-train amazon)
+=>
+	(train amazon)
+)
