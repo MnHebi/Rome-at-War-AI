@@ -13,18 +13,69 @@
 		(unit-type-count-total scout-galley g:< desired-number-scoutships)
 		(or
 			(unit-type-count-total scout-ship g:< desired-number-scoutships)
-			(unit-type-count-total elite-scout-galley g:< desired-number-scoutships)
+			(unit-type-count-total elite-scout-ship g:< desired-number-scoutships)
 		)
 	)
 	(or
 		(can-train scout-galley)
 		(or
 			(can-train scout-ship)
-			(can-train elite-scout-galley)
+			(can-train elite-scout-ship)
 		)
 	)
 =>
 	(train scout-galley)
+	(train scout-ship)
+	(train elite-scout-ship)
+)
+
+;Train Remes
+
+(defrule
+	(up-compare-goal current-phase >= 2)
+	(goal train-remes 1)
+	(wood-amount > 200)
+	(unit-type-count-total galley-line g:< desired-number-reme)
+	(can-train galley-line)
+=>
+	(train galley-line)
+)
+
+;Train Fire Ships
+
+(defrule
+	(up-compare-goal current-phase >= 2)
+	(goal train-fireships 1)
+	(wood-amount > 200)
+	(unit-type-count-total fire-ship-line g:< desired-number-fireships)
+	(can-train fire-ship-line)
+=>
+	(train fire-ship-line)
+)
+
+;Train Hemiolia
+(defrule
+	(up-compare-goal current-phase >= 2)
+	(goal train-hemiolia 1)
+	(wood-amount > 200)
+	(or
+		(unit-type-count-total hemiolia g:< desired-number-hemiolia)
+		(or
+			(unit-type-count-total trihemiolia g:< desired-number-hemiolia)
+			(unit-type-count-total elite-trihemiolia g:< desired-number-hemiolia)
+		)
+	)
+	(or
+		(can-train hemiolia)
+		(or
+			(can-train trihemiolia)
+			(can-train elite-trihemiolia)
+		)
+	)
+=>
+	(train hemiolia)
+	(train trihemiolia)
+	(train elite-trihemiolia)
 )
 
 ; Train Transport Ships
@@ -174,7 +225,7 @@
 (defrule
 	(goal current-phase 4)
 	(goal train-anti-infantry 1)
-	(unit-type-count-total archer-line g:< desired-number-antiinfrantry)
+	(unit-type-count-total archer-line g:< desired-number-antiinfantry)
 	(and
 		(not
 			(can-train cavalry-archer-line)
@@ -188,7 +239,7 @@
 (defrule
 	(goal current-phase 4)
 	(goal train-anti-infantry 1)
-	(unit-type-count-total archer-line g:< desired-number-antiinfrantry)
+	(unit-type-count-total archer-line g:< desired-number-antiinfantry)
 	(can-train cavalry-archer-line)
 =>
 	(train cavalry-archer-line)
