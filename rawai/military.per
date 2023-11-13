@@ -137,8 +137,11 @@
 		(or
 			(players-unit-type-count any-enemy spearman-line >= 1)
 			(or
-				(players-unit-type-count any-enemy legionary >= 1)
-				(players-unit-type-count any-enemy imitation-legionary >= 1)
+				(players-unit-type-count any-enemy legionary-ranged-line >= 1)
+				(or
+					(players-unit-type-count any-enemy legionary-melee-line >= 1)
+					(players-unit-type-count any-enemy imitation-legionary-line >= 1)
+				)
 			)
 		)
 	)
@@ -152,8 +155,11 @@
 		(and
 			(players-unit-type-count every-enemy spearman-line == 0)
 			(and
-				(players-unit-type-count every-enemy legionary == 0)
-				(players-unit-type-count every-enemy imitation-legionary == 0)
+				(players-unit-type-count every-enemy legionary-ranged-line == 0)
+				(and
+					(players-unit-type-count every-enemy legionary-melee-line == 0)
+					(players-unit-type-count every-enemy imitation-legionary-line == 0)
+				)
 			)
 		)
 	)
@@ -164,8 +170,8 @@
 ;counter archers, not finished, need to map all the archer units in the mod
 (defrule
 	(or
-		(players-unit-type-count any-enemy archer-line >= 1)
-		(players-unit-type-count any-enemy hand-cannoneer >= 1)
+		(players-unit-type-count any-enemy bowman-line >= 1)
+		(players-unit-type-count any-enemy crossbowman >= 1)
 	)
 =>
 	(set-goal train-anti-archer 1)
@@ -182,13 +188,19 @@
 
 ;counter cavalry archers, not finished, need to map all the cavalry archer units in the mod
 (defrule
-	(players-unit-type-count any-enemy cavalry-archer-line >= 1)
+	(or
+		(players-unit-type-count any-enemy cavalry-archer-line >= 1)
+		(players-unit-type-count any-enemy camel-archer-line >= 1)
+	)
 =>
 	(set-goal train-anti-cavalryarcher 1)
 )
 
 (defrule
-	(players-unit-type-count every-enemy cavalry-archer-line == 0)
+	(and
+		(players-unit-type-count every-enemy cavalry-archer-line == 0)
+		(players-unit-type-count every-enemy camel-archer-line == 0)
+	)
 =>
 	(set-goal train-anti-cavalryarcher 0)
 )
@@ -198,7 +210,7 @@
 	(or
 		(players-unit-type-count any-enemy scout-cavalry-line >= 1)
 		(or
-			(players-unit-type-count any-enemy knight-line >= 1)
+			(players-unit-type-count any-enemy cavalry-line >= 1)
 			(players-unit-type-count any-enemy camel-line >= 1)
 		)
 	)
@@ -210,7 +222,7 @@
 	(and
 		(players-unit-type-count every-enemy scout-cavalry-line == 0)
 		(and
-			(players-unit-type-count every-enemy knight-line == 0)
+			(players-unit-type-count every-enemy cavalry-line == 0)
 			(players-unit-type-count every-enemy camel-line == 0)
 		)
 	)
@@ -221,18 +233,12 @@
 ;counter elephants, but not Ballista Elephants(these are considered siege weapons)
 (defrule
 	(or
-		(players-unit-type-count any-enemy war-elephant >= 1)
+		(players-unit-type-count any-enemy war-elephant-line >= 1)
 		(or
-			(players-unit-type-count any-enemy elite-war-elephant >= 1)
+			(players-unit-type-count any-enemy battle-elephant-line >= 1)
 			(or
-				(players-unit-type-count any-enemy battle-elephant >= 1)
-				(or
-					(players-unit-type-count any-enemy elite-battle-elephant >= 1)
-					(or
-						(players-unit-type-count any-enemy armored-elephant >= 1)
-						(players-unit-type-count any-enemy siege-elephant >= 1)
-					)
-				)
+				(players-unit-type-count any-enemy armored-elephant-line >= 1)
+				(players-unit-type-count any-enemy siege-elephant >= 1)
 			)
 		)
 	)
@@ -242,18 +248,12 @@
 
 (defrule
 	(and
-		(players-unit-type-count every-enemy war-elephant == 0)
+		(players-unit-type-count every-enemy war-elephant-line == 0)
 		(and
-			(players-unit-type-count every-enemy elite-war-elephant == 0)
+			(players-unit-type-count every-enemy battle-elephant-line == 0)
 			(and
-				(players-unit-type-count every-enemy battle-elephant == 0)
-				(and
-					(players-unit-type-count every-enemy elite-battle-elephant == 0)
-					(and
-						(players-unit-type-count every-enemy armored-elephant == 0)
-						(players-unit-type-count every-enemy siege-elephant == 0)
-					)
-				)
+				(players-unit-type-count every-enemy armored-elephant-line == 0)
+				(players-unit-type-count every-enemy siege-elephant == 0)
 			)
 		)
 	)
@@ -346,13 +346,7 @@
 (defrule
 	(or
 		(players-unit-type-count any-enemy fire-ship-line >= 1)
-		(or
-			(players-unit-type-count any-enemy scout-galley >= 1)
-			(or
-				(players-unit-type-count any-enemy scout-ship >= 1)
-				(players-unit-type-count any-enemy elite-scout-ship >= 1)
-			)
-		)
+		(players-unit-type-count any-enemy scout-galley-line >= 1)
 	)
 =>
 	(set-goal train-hemiolia 1)
@@ -361,13 +355,7 @@
 (defrule
 	(and
 		(players-unit-type-count every-enemy fire-ship-line == 0)
-		(and
-			(players-unit-type-count every-enemy scout-galley == 0)
-			(and
-				(players-unit-type-count every-enemy scout-ship == 0)
-				(players-unit-type-count every-enemy elite-scout-ship == 0)
-			)
-		)
+		(players-unit-type-count every-enemy scout-galley-line == 0)
 	)
 =>
 	(set-goal train-hemiolia 0)
@@ -376,14 +364,8 @@
 ;counter monoremes/scout ships
 (defrule
 	(or
-		(players-unit-type-count any-enemy galley-line >= 1)
-		(or
-			(players-unit-type-count any-enemy scout-galley >= 1)
-			(or
-				(players-unit-type-count any-enemy scout-ship >= 1)
-				(players-unit-type-count any-enemy elite-scout-ship >= 1)
-			)
-		)
+		(players-unit-type-count any-enemy monoreme-line >= 1)
+		(players-unit-type-count any-enemy scout-galley-line >= 1)
 	)
 =>
 	(set-goal train-fireships 1)
@@ -391,14 +373,8 @@
 
 (defrule
 	(and
-		(players-unit-type-count every-enemy galley-line == 0)
-		(and
-			(players-unit-type-count every-enemy scout-galley == 0)
-			(and
-				(players-unit-type-count every-enemy scout-ship == 0)
-				(players-unit-type-count every-enemy elite-scout-ship == 0)
-			)
-		)
+		(players-unit-type-count every-enemy monoreme-line == 0)
+		(players-unit-type-count every-enemy scout-galley-line == 0)
 	)
 =>
 	(set-goal train-fireships 0)
@@ -407,25 +383,13 @@
 ;counter hemiolia
 
 (defrule
-	(or
-		(players-unit-type-count any-enemy hemiolia >= 1)
-		(or
-			(players-unit-type-count any-enemy trihemiolia >= 1)
-			(players-unit-type-count any-enemy elite-trihemiolia >= 1)
-		)
-	)
+	(players-unit-type-count any-enemy hemiolia-line >= 1)
 =>
 	(set-goal train-remes 1)
 )
 
 (defrule
-	(and
-		(players-unit-type-count every-enemy hemiolia == 0)
-		(and
-			(players-unit-type-count every-enemy trihemiolia == 0)
-			(players-unit-type-count every-enemy elite-trihemiolia == 0)
-		)
-	)
+	(players-unit-type-count every-enemy hemiolia-line == 0)
 =>
 	(set-goal train-remes 0)
 )
@@ -434,8 +398,14 @@
 
 (defrule
 	(or
-		(players-unit-type-count any-enemy juggernaut >= 1)
-		(players-unit-type-count any-enemy elite-juggernaut >= 1)
+		(players-unit-type-count any-enemy juggernaut-line >= 1)
+		(or
+			(players-unit-type-count any-enemy quadrireme-line >= 1)
+			(or
+				(players-unit-type-count any-enemy liburna-line >= 1)
+				(players-unit-type-count any-enemy octeres >= 1)
+			)
+		)
 	)
 =>
 	(set-goal train-boardingships 1)
@@ -443,8 +413,14 @@
 
 (defrule
 	(and
-		(players-unit-type-count every-enemy juggernaut == 0)
-		(players-unit-type-count every-enemy elite-juggernaut == 0)
+		(players-unit-type-count every-enemy juggernaut-line == 0)
+		(and
+			(players-unit-type-count every-enemy quadrireme-line == 0)
+			(and
+				(players-unit-type-count every-enemy liburna-line == 0)
+				(players-unit-type-count every-enemy octeres == 0)
+			)
+		)
 	)
 =>
 	(set-goal train-boardingships 0)
@@ -455,11 +431,8 @@
 	(or
 		(players-unit-type-count any-enemy octeres >= 1)
 		(or
-			(players-unit-type-count any-enemy quadrireme >= 1)
-			(or
-				(players-unit-type-count any-enemy juggernaut >= 1)
-				(players-unit-type-count any-enemy elite-juggernaut >= 1)
-			)
+			(players-unit-type-count any-enemy quadrireme-line >= 1)
+			(players-unit-type-count any-enemy juggernaut-line >= 1)
 		)
 	)
 =>
@@ -471,10 +444,7 @@
 		(players-unit-type-count every-enemy octeres == 0)
 		(and
 			(players-unit-type-count every-enemy quadrireme == 0)
-			(and
-				(players-unit-type-count every-enemy juggernaut == 0)
-				(players-unit-type-count every-enemy elite-juggernaut == 0)
-			)
+			(players-unit-type-count every-enemy juggernaut-line == 0)
 		)
 	)
 =>

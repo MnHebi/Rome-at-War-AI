@@ -9,24 +9,20 @@
 	(up-compare-goal current-phase >= 2)
 	(goal train-scoutships 1)
 	(wood-amount > 200)
-	(or
-		(unit-type-count-total scout-galley g:< desired-number-scoutships)
-		(or
-			(unit-type-count-total scout-ship g:< desired-number-scoutships)
-			(unit-type-count-total elite-scout-ship g:< desired-number-scoutships)
-		)
-	)
-	(or
-		(can-train scout-galley)
-		(or
-			(can-train scout-ship)
-			(can-train elite-scout-ship)
-		)
-	)
+	(unit-type-count-total scout-galley-line == 0)
+	(can-train scout-galley-line)
 =>
-	(train scout-galley)
-	(train scout-ship)
-	(train elite-scout-ship)
+	(train scout-galley-line)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 2)
+	(goal train-scoutships 1)
+	(wood-amount > 200)
+	(unit-type-count-total scout-galley-line g:< desired-number-scoutships)
+	(can-train scout-galley-line)
+=>
+	(train scout-galley-line)
 )
 
 ;Train Remes
@@ -35,13 +31,33 @@
 	(up-compare-goal current-phase >= 2)
 	(goal train-remes 1)
 	(wood-amount > 200)
-	(unit-type-count-total galley-line g:< desired-number-reme)
-	(can-train galley-line)
+	(unit-type-count-total monoreme-line == 0)
+	(can-train monoreme-line)
 =>
-	(train galley-line)
+	(train monoreme-line)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 2)
+	(goal train-remes 1)
+	(wood-amount > 200)
+	(unit-type-count-total monoreme-line g:< desired-number-reme)
+	(can-train monoreme-line)
+=>
+	(train monoreme-line)
 )
 
 ;Train Fire Ships
+
+(defrule
+	(up-compare-goal current-phase >= 2)
+	(goal train-fireships 1)
+	(wood-amount > 200)
+	(unit-type-count-total fire-ship-line == 0)
+	(can-train fire-ship-line)
+=>
+	(train fire-ship-line)
+)
 
 (defrule
 	(up-compare-goal current-phase >= 2)
@@ -54,28 +70,25 @@
 )
 
 ;Train Hemiolia
+
 (defrule
 	(up-compare-goal current-phase >= 2)
 	(goal train-hemiolia 1)
 	(wood-amount > 200)
-	(or
-		(unit-type-count-total hemiolia g:< desired-number-hemiolia)
-		(or
-			(unit-type-count-total trihemiolia g:< desired-number-hemiolia)
-			(unit-type-count-total elite-trihemiolia g:< desired-number-hemiolia)
-		)
-	)
-	(or
-		(can-train hemiolia)
-		(or
-			(can-train trihemiolia)
-			(can-train elite-trihemiolia)
-		)
-	)
+	(unit-type-count-total hemiolia-line == 0)
+	(can-train hemiolia-line)
 =>
-	(train hemiolia)
-	(train trihemiolia)
-	(train elite-trihemiolia)
+	(train hemiolia-line)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 2)
+	(goal train-hemiolia 1)
+	(wood-amount > 200)
+	(unit-type-count-total hemiolia-line g:< desired-number-hemiolia)
+	(can-train hemiolia-line)
+=>
+	(train hemiolia-line)
 )
 
 ; Train Transport Ships
@@ -225,15 +238,15 @@
 (defrule
 	(goal current-phase 4)
 	(goal train-anti-infantry 1)
-	(unit-type-count-total archer-line g:< desired-number-antiinfantry)
+	(unit-type-count-total bowman-line g:< desired-number-antiinfantry)
 	(and
 		(not
 			(can-train cavalry-archer-line)
 		)
-		(can-train archer-line)
+		(can-train bowman-line)
 	)
 =>
-	(train archer-line)
+	(train bowman-line)
 )
 
 (defrule
@@ -304,7 +317,6 @@
 	(can-train palintonon-packed)
 =>
 	(train palintonon-packed)
-	(up-chat-data-to-all "One percent: %d" g: gl-one-percent)
 )
 
 (defrule
@@ -313,5 +325,4 @@
 	(can-train battering-ram-line)
 =>
 	(train battering-ram-line)
-	(up-chat-data-to-all "One percent: %d" g: gl-one-percent)
 )
