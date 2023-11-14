@@ -1,4 +1,142 @@
+; Taixue
+(defrule
+	(and
+		(building-type-count-total university >= 1)
+		(building-type-count-total taixue == 0)
+	)
+	(can-build taixue)
+=>
+	(build taixue)
+)
 
+; Taixue research items
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(research-completed ri-architechture)
+	(can-research-with-escrow ri-rammed-earth-foundations)
+=>
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+	(research ri-rammed-earth-foundations)
+	(chat-local-to-self "research rammed earth foundations")
+)
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-fortifications-villager-requirement)
+	(goal upgrade-fortifications 1)
+	(research-completed ri-fortified-wall)
+	(can-research-with-escrow ri-great-wall)
+=>
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+	(research ri-great-wall)
+	(chat-local-to-self "research great wall")
+)
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-generic 1)
+	(research-completed ri-advanced-weaponry)
+	(can-research-with-escrow ri-arcuballista)
+=>
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+	(research ri-arcuballista)
+	(chat-local-to-self "research arcuballista")
+)
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-fortifications-villager-requirement)
+	(goal upgrade-military-generic 1)
+	(research-completed ri-ballistics)
+	(can-research-with-escrow ri-raised-relief-battle-maps)
+=>
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+	(research ri-raised-relief-battle-maps)
+	(chat-local-to-self "research raised-relief battle maps")
+)
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-generic 1)
+	(research-completed ri-siege-engineers)
+	(can-research-with-escrow ri-traction-trebuchets)
+=>
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+	(research ri-traction-trebuchets)
+	(chat-local-to-self "research traction trebuchets")
+)
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-fortifications-villager-requirement)
+	(goal upgrade-fortifications 1)
+	(research-completed ri-guard-tower)
+	(can-research-with-escrow ri-imperial-tower)
+=>
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+	(research ri-imperial-tower)
+	(chat-local-to-self "research imperial tower")
+)
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-fortifications-villager-requirement)
+	(goal upgrade-fortifications 1)
+	(research-completed ri-arrow-slits)
+	(can-research-with-escrow ri-crenellated-defenses)
+=>
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+	(research ri-crenellated-defenses)
+	(chat-local-to-self "research crenellated defenses")
+)
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-fortifications-villager-requirement)
+	(goal upgrade-fortifications 1)
+	(research-completed ri-murder-holes)
+	(can-research-with-escrow ri-dirty-moats)
+=>
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+	(research ri-dirty-moats)
+	(chat-local-to-self "research dirty moats")
+)
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(research-completed ri-treadmill-crane)
+	(can-research-with-escrow ri-waterwheel)
+=>
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+	(research ri-waterwheel)
+	(chat-local-to-self "research waterwheel")
+)
+
+; Commandery
 (defrule
 	(building-type-count-total commandery <= 2)
 	(can-build commandery)
@@ -6,52 +144,126 @@
 	(build commandery)
 )
 
+;Commandery research items
+
 (defrule
-	(goal current-phase 5)
-	(and
-		(unit-type-count-total jiangjun g:< desired-number-uniqueunitone)
-		(unit-type-count-total elite-jiangjun g:< desired-number-uniqueunitone)
-	)
-	(or
-		(can-train jiangjun)
-		(can-train elite-jiangjun)
-	)
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-line 1)
+	(can-research-with-escrow ri-lacquered-armor)
 =>
-	(train jiangjun)
-	(train elite-jiangjun)
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+	(research ri-lacquered-armor)
+	(chat-local-to-self "research lacquered armor")
 )
 
 (defrule
-	(goal current-phase 5)
-	(and
-		(unit-type-count-total xiaowei g:< desired-number-uniqueunittwo)
-		(unit-type-count-total elite-xiaowei g:< desired-number-uniqueunittwo)
-	)
-	(or
-		(can-train xiaowei)
-		(can-train elite-xiaowei)
-	)
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-line 1)
+	(can-research-with-escrow ri-beijun-royal-guards)
 =>
-	(train xiaowei)
-	(train elite-xiaowei)
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+	(research ri-beijun-royal-guards)
+	(chat-local-to-self "research beijun royal guards")
 )
 
-;Cavalry & Elephant Counter
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-economy-villager-requirement)
+	(goal upgrade-economy 1)
+	(can-research-with-escrow ri-labor-tax)
+=>
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+	(research ri-labor-tax)
+	(chat-local-to-self "research labor tax")
+)
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-line 1)
+	(can-research-with-escrow ri-nanjun-levies)
+=>
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+	(research ri-nanjun-levies)
+	(chat-local-to-self "research nanjun-levies")
+)
+
+; Train Jiangjun
 (defrule
 	(goal current-phase 5)
-	(or
-		(goal train-anti-cavalry 1)
-		(goal train-anti-elephant 1)
-	)
-	(and
-		(unit-type-count-total zhuge-nu g:< desired-number-anticavalry)
-		(unit-type-count-total elite-zhuge-nu g:< desired-number-anticavalry)
-	)
-	(or
-		(can-train zhuge-nu)
-		(can-train elite-zhuge-nu)
-	)
+	(unit-type-count-total jiangjun-line g:< desired-number-uniqueunitone)
+	(can-train jiangjun-line)
 =>
-	(train zhuge-nu)
-	(train elite-zhuge-nu)
+	(train jiangjun-line)
+)
+
+; Upgrade Jiangjun
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-line 1)
+	(can-research-with-escrow ri-elite-jiangjun)
+=>
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+	(research ri-elite-jiangjun)
+	(chat-local-to-self "research elite jiangjun")
+)
+
+; Train Xiaowei
+(defrule
+	(goal current-phase 5)
+	(unit-type-count-total xiaowei-line g:< desired-number-uniqueunittwo)
+	(can-train xiaowei-line)
+=>
+	(train xiaowei-line)
+)
+
+; Upgrade Xiaowei
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-line 1)
+	(can-research-with-escrow ri-elite-xiaowei)
+=>
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+	(research elite-xiaowei)
+	(chat-local-to-self "research elite xiaowei")
+)
+
+; Zhuge-nu act as Cavalry counters
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-cavalry 1)
+	(unit-type-count-total zhuge-nu-line g:< desired-number-anticavalry)
+	(can-train zhuge-nu-line)
+=>
+	(train zhuge-nu-line)
+)
+
+; Upgrade Zhuge-nu
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-line 1)
+	(can-research-with-escrow ri-elite-zhuge-nu)
+=>
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+	(research ri-elite-zhuge-nu)
+	(chat-local-to-self "research elite zhuge-nu")
 )

@@ -7,16 +7,21 @@
 )
 
 (defrule
-	(goal current-phase 5)
 	(and
-		(unit-type-count-total kara-irango g:< gl-five-percent)
-		(unit-type-count-total elite-kara-irango g:< gl-five-percent)
+		(building-type-count-total market == 2)
+		(building-type-count-total caravanserai < 2)
 	)
-	(or
-		(can-train kara-irango)
-		(can-train elite-kara-irango)
-	)
+	(can-build caravanserai)
+	(up-pending-objects c: caravanserai < 1)
 =>
-	(train kara-irango)
-	(train elite-kara-irango)
+	(up-set-placement-data my-player-number market c: 5)
+	(up-build place-control 0 c: caravanserai)
+)
+
+(defrule
+	(goal current-phase 5)
+	(unit-type-count-total kara-irango-line g:< desired-number-uniqueunitone)
+	(can-train kara-irango-line)
+=>
+	(train kara-irango-line)
 )
