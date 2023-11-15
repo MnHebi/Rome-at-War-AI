@@ -154,14 +154,20 @@
 ; We should use trash until Phase 5 so we have the gold for aging up & other research
 ; Civ specific files deal with Phase 5 unit recruitment
 
-; Train Scout Cavalry to counter Infantry
+;Train Bowmen to counter Infantry
+
 (defrule
 	(goal current-phase 3)
 	(goal train-anti-infantry 1)
-	(unit-type-count-total scout-cavalry-line g:< desired-number-antiinfantrytrash)
-	(can-train scout-cavalry-line)
+	(unit-type-count-total bowman-line g:< desired-number-antiinfantry)
+	(and
+		(not
+			(can-train cavalry-archer-line)
+		)
+		(can-train bowman-line)
+	)
 =>
-	(train scout-cavalry-line)
+	(train bowman-line)
 )
 
 ; Train Spearmen to counter Cavalry
@@ -197,10 +203,10 @@
 
 ; Phase 4
 
-; Train Scout Cavalry to counter Infantry
+; Train Scout Cavalry to counter Priests
 (defrule
 	(goal current-phase 4)
-	(goal train-anti-infantry 1)
+	(goal train-anti-priest 1)
 	(unit-type-count-total scout-cavalry-line g:< desired-number-antiinfantrytrash)
 	(can-train scout-cavalry-line)
 =>

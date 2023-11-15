@@ -98,6 +98,7 @@
 
 ;rule 11
 (defrule
+	(up-compare-goal military-superiority >= 1)
 	(up-compare-goal land-attack-delay >= 0)
 	(up-compare-goal land-attack-percentage >= 1)
 	(up-compare-goal gl-game-time g:>= land-attack-delay)
@@ -112,9 +113,9 @@
 	(up-jump-rule 1)
 )
 
-;end of rule jumps
 ;rule 12
 (defrule
+	(up-compare-goal naval-superiority >= 1)
 	(up-compare-goal naval-attack-delay >= 0)
 	(up-compare-goal naval-attack-percentage >= 1)
 	(up-compare-goal gl-game-time g:>= naval-attack-delay)
@@ -126,6 +127,172 @@
 	(set-strategic-number sn-percent-attack-soldiers 0)
 	(attack-now)
 	(up-set-timer c: naval-attack-timer g: naval-attack-interval)
+)
+;end of rule jumps
+
+;military superiority system, atm very rudimentary just to get it to stop attacking ALL THE TIME.
+;0 means inferior, 1 is equal, 2 is superior
+
+(defrule
+	(and
+		(military-population c:<= gl-one-percent)
+		(players-military-population any-enemy c:>= gl-one-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 0)
+)
+
+(defrule
+	(and
+		(military-population c:>= gl-one-percent)
+		(players-military-population any-enemy c:>= gl-one-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 1)
+)
+
+(defrule
+	(and
+		(military-population c:>= gl-two-percent)
+		(players-military-population any-enemy c:<= gl-one-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 2)
+)
+
+(defrule
+	(and
+		(military-population c:<= gl-five-percent)
+		(players-military-population any-enemy c:>= gl-five-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 0)
+)
+
+(defrule
+	(and
+		(military-population c:>= gl-five-percent)
+		(players-military-population any-enemy c:>= gl-five-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 1)
+)
+
+(defrule
+	(and
+		(military-population c:>= gl-six-percent)
+		(players-military-population any-enemy c:<= gl-five-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 2)
+)
+
+(defrule
+	(and
+		(military-population c:<= gl-ten-percent)
+		(players-military-population any-enemy c:>= gl-ten-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 0)
+)
+
+(defrule
+	(and
+		(military-population c:>= gl-ten-percent)
+		(players-military-population any-enemy c:>= gl-ten-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 1)
+)
+
+(defrule
+	(and
+		(military-population c:>= gl-fifteen-percent)
+		(players-military-population any-enemy c:<= gl-ten-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 2)
+)
+
+(defrule
+	(and
+		(military-population c:<= gl-fifteen-percent)
+		(players-military-population any-enemy c:>= gl-fifteen-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 0)
+)
+
+(defrule
+	(and
+		(military-population c:>= gl-fifteen-percent)
+		(players-military-population any-enemy c:>= gl-fifteen-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 1)
+)
+
+(defrule
+	(and
+		(military-population c:>= gl-twenty-percent)
+		(players-military-population any-enemy c:<= gl-fifteen-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 2)
+)
+
+(defrule
+	(and
+		(military-population c:<= gl-twenty-percent)
+		(players-military-population any-enemy c:>= gl-twenty-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 0)
+)
+
+(defrule
+	(and
+		(military-population c:>= gl-twenty-percent)
+		(players-military-population any-enemy c:>= gl-twenty-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 1)
+)
+
+(defrule
+	(and
+		(military-population c:>= gl-twentyfive-percent)
+		(players-military-population any-enemy c:<= gl-twenty-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 2)
+)
+
+(defrule
+	(and
+		(military-population c:<= gl-twentyfive-percent)
+		(players-military-population any-enemy c:>= gl-twentyfive-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 0)
+)
+
+(defrule
+	(and
+		(military-population c:>= gl-twentyfive-percent)
+		(players-military-population any-enemy c:>= gl-twentyfive-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 1)
+)
+
+(defrule
+	(and
+		(military-population c:>= gl-thirty-percent)
+		(players-military-population any-enemy c:<= gl-twentyfive-percent)
+	)
+=>
+	(up-modify-goal military-superiority c:= 2)
 )
 
 ;counter unit system begin
