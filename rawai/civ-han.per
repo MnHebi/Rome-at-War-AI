@@ -187,10 +187,8 @@
 	(goal upgrade-military-line 1)
 	(can-research-with-escrow ri-elite-jiangjun)
 =>
-	(release-escrow wood)
 	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
 	(research ri-elite-jiangjun)
 	(chat-local-to-self "research elite jiangjun")
 )
@@ -210,10 +208,8 @@
 	(goal upgrade-military-line 1)
 	(can-research-with-escrow ri-elite-xiaowei)
 =>
-	(release-escrow wood)
 	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
 	(research elite-xiaowei)
 	(chat-local-to-self "research elite xiaowei")
 )
@@ -235,9 +231,92 @@
 	(can-research-with-escrow ri-elite-zhuge-nu)
 =>
 	(release-escrow wood)
-	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
 	(research ri-elite-zhuge-nu)
 	(chat-local-to-self "research elite zhuge-nu")
+)
+
+; Upgrade Spearmen to Halberdiers
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-line 1)
+	(can-research-with-escrow ri-halberdier)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(research ri-halberdier)
+	(chat-local-to-self "research halberdier")
+)
+
+;unique technologies
+
+;Taiwei for Team Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 1)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-taiwei)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-taiwei)
+	(chat-local-to-self "research taiwei(UT)")
+)
+
+;Taiwei for Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(goal team-game 0)
+	(can-train-with-escrow ut-taiwei)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ri-elite-zhuge-nu)
+	(chat-local-to-self "research taiwei(UT)")
+)
+
+;Yushi Dafu for Team Games, will not be done in Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 0)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-yushi-dafu)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-yushi-dafu)
+	(chat-local-to-self "research yushi dafu(UT)")
+)
+
+;Jing Nu, chosen if current map is not sea strategy based
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(sea-game 0)
+	(can-train-with-escrow ut-jing-nu)
+=>
+	(release-escrow wood)
+	(release-escrow gold)
+	(train ut-jing-nu)
+	(chat-local-to-self "research yushi dafu(UT)")
+)
+
+;Louchuan, chosen if current map is sea strategy based
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(sea-game 1)
+	(can-train-with-escrow ut-louchuan)
+=>
+	(release-escrow wood)
+	(release-escrow gold)
+	(train ut-louchuan)
+	(chat-local-to-self "research louchuan(UT)")
 )
