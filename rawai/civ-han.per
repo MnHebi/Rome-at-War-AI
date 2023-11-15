@@ -1,3 +1,162 @@
+
+;Always Train Militia/Swordsmen
+(defrule
+	(goal current-phase 5)
+	(unit-type-count-total militiaman-line g:< desired-number-antiinfantry)
+	(can-train militiaman-line)
+=>
+	(train militiaman-line)
+)
+
+;Always have some Spearmen/Halberdier
+(defrule
+	(goal current-phase 5)
+	(unit-type-count-total spearman-line g:< gl-one-percent)
+	(can-train spearman-line)
+=>
+	(train spearman-line)
+)
+
+;Otherwise, train them to counter Cavalry and Cavalry Archers
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-cavalry 1)
+		(goal train-anti-cavalryarcher 1)
+	)
+	(unit-type-count-total spearman-line g:< desired-number-anticavalrytrash)
+	(can-train spearman-line)
+=>
+	(train spearman-line)
+)
+
+;Use Skirmishers against Archers & Cavalry Archers
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-archer 1)
+		(goal train-anti-cavalryarcher 1)
+	)
+	(unit-type-count-total skirmisher-line g:< desired-number-antiarchertrash)
+	(can-train skirmisher-line)
+=>
+	(train skirmisher-line)
+)
+
+;Use Mangonels against Archers(but not Cavalry Archers) in addition to Skirmishers
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-archer 1)
+	(unit-type-count-total mangonel-line g:< desired-number-antiarcher)
+	(can-train mangonel-line)
+=>
+	(train mangonel-line)
+)
+
+;Scorpions are used when both Cavalry(that includes Elephants) and enemy siege weapons are present
+(defrule
+	(goal current-phase 5)
+	(and
+		(goal train-anti-cavalry 1)
+		(goal train-anti-siege 1)
+	)
+	(unit-type-count-total scorpion-line g:< desired-number-antielephant)
+	(can-train scorpion-line)
+=>
+	(train scorpion-line)
+)
+
+;Scout/Light Cavalry are used as anti-siege trash if anti-siege units cannot be afforded
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-siege 1)
+	(and
+		(not
+			(can-afford-unit cavalry-line)
+		)
+		(and
+			(not
+				(can-afford-unit scorpion-line)
+			)
+			(not
+				(can-afford-unit catapult)
+			)
+		)
+	)
+	(unit-type-count-total scout-cavalry-line g:< desired-number-antisiegetrash)
+	(can-train scout-cavalry-line)
+=>
+	(train scout-cavalry-line)
+)
+
+;Catapults are used when there are enemy siege weapons present
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-siege 1)
+	(unit-type-count-total catapult g:< desired-number-antisiege)
+	(can-train catapult)
+=>
+	(train catapult)
+)
+
+;Cavalry are used in addition to other anti-siege measures as anti-siege units
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-siege 1)
+	(unit-type-count-total cavalry-line g:< desired-number-antisiege)
+	(can-train cavalry-line)
+=>
+	(train cavalry-line)
+)
+
+;Scout/Light Cavalry are also as anti-priest trash
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-priest 1)
+	(unit-type-count-total scout-cavalry-line g:< gl-one-percent)
+	(can-train scout-cavalry-line)
+=>
+	(train scout-cavalry-line)
+)
+
+;Navy, generic train rules that affect <x>reme etc training are in military-units-common.per
+;Train Quadriremes/Quinqueremes to complement our <x>remes and Hemiolia
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-remes 1)
+		(goal train-hemiolia 1)
+	)
+	(wood-amount > 300)
+	(unit-type-count-total quadrireme-line g:< desired-number-qremes)
+	(can-train quadrireme-line)
+=>
+	(train quadrireme-line)
+)
+
+;Train Juggernauts if you cannot afford Octeres
+(defrule
+	(goal current-phase 5)
+	(not
+		(can-afford-unit octeres)
+	)
+	(wood-amount > 250)
+	(unit-type-count-total juggernaut-line g:< desired-number-qremes)
+	(can-train juggernaut-line)
+=>
+	(train juggernaut-line)
+)
+
+;Else train Octeres
+(defrule
+	(goal current-phase 5)
+	(wood-amount > 350)
+	(unit-type-count-total octeres g:< desired-number-octeres)
+	(can-train octeres)
+=>
+	(train octeres)
+)
+
 ; Taixue
 (defrule
 	(and
@@ -38,12 +197,12 @@
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-generic 1)
 	(research-completed ri-advanced-weaponry)
-	(can-research-with-escrow ri-arcuballista)
+	(can-research-with-escrow ri-mohist-siege-crossbow)
 =>
 	(release-escrow food)
 	(release-escrow gold)
-	(research ri-arcuballista)
-	(chat-local-to-self "research arcuballista")
+	(research ri-mohist-siege-crossbow)
+	(chat-local-to-self "research mohist siege crossbow")
 )
 
 (defrule
@@ -98,12 +257,12 @@
 	(up-compare-goal villager-count g:>= upgrade-fortifications-villager-requirement)
 	(goal upgrade-fortifications 1)
 	(research-completed ri-murder-holes)
-	(can-research-with-escrow ri-dirty-moats)
+	(can-research-with-escrow ri-dry-moats)
 =>
 	(release-escrow food)
 	(release-escrow stone)
-	(research ri-dirty-moats)
-	(chat-local-to-self "research dirty moats")
+	(research ri-dry-moats)
+	(chat-local-to-self "research dry moats")
 )
 
 (defrule
@@ -130,7 +289,7 @@
 
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
-	(goal upgrade-military-line 1)
+	(goal upgrade-military-lines 1)
 	(can-research-with-escrow ri-lacquered-armor)
 =>
 	(release-escrow food)
@@ -141,7 +300,7 @@
 
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
-	(goal upgrade-military-line 1)
+	(goal upgrade-military-lines 1)
 	(can-research-with-escrow ri-beijun-royal-guards)
 =>
 	(release-escrow food)
@@ -163,7 +322,7 @@
 
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
-	(goal upgrade-military-line 1)
+	(goal upgrade-military-lines 1)
 	(can-research-with-escrow ri-nanjun-levies)
 =>
 	(release-escrow food)
@@ -184,7 +343,7 @@
 ; Upgrade Jiangjun
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
-	(goal upgrade-military-line 1)
+	(goal upgrade-military-lines 1)
 	(can-research-with-escrow ri-elite-jiangjun)
 =>
 	(release-escrow food)
@@ -205,7 +364,7 @@
 ; Upgrade Xiaowei
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
-	(goal upgrade-military-line 1)
+	(goal upgrade-military-lines 1)
 	(can-research-with-escrow ri-elite-xiaowei)
 =>
 	(release-escrow food)
@@ -227,7 +386,7 @@
 ; Upgrade Zhuge-nu
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
-	(goal upgrade-military-line 1)
+	(goal upgrade-military-lines 1)
 	(can-research-with-escrow ri-elite-zhuge-nu)
 =>
 	(release-escrow wood)
@@ -239,7 +398,7 @@
 ; Upgrade Spearmen to Halberdiers
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
-	(goal upgrade-military-line 1)
+	(goal upgrade-military-lines 1)
 	(can-research-with-escrow ri-halberdier)
 =>
 	(release-escrow food)
@@ -299,7 +458,7 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
-	(sea-game 0)
+	(goal sea-game 0)
 	(can-train-with-escrow ut-jing-nu)
 =>
 	(release-escrow wood)
@@ -312,7 +471,7 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
-	(sea-game 1)
+	(goal sea-game 1)
 	(can-train-with-escrow ut-louchuan)
 =>
 	(release-escrow wood)
