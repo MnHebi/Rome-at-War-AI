@@ -1,0 +1,269 @@
+(defrule
+	(up-timer-status farm-check-timer != timer-running)
+=>
+	(enable-timer farm-check-timer 30)
+)
+
+(defrule
+	(and
+		(current-age-time < 60)
+		(goal current-phase 1)
+	)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 80)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 10)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 0)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
+)
+
+(defrule
+	(and
+		(current-age-time > 60)
+		(and
+			(goal current-phase 1)
+			(wood-amount < 150)
+		)
+	)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 40)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 60)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 0)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
+)
+
+(defrule
+	(and
+		(current-age-time > 60)
+		(and
+			(goal current-phase 1)
+			(wood-amount < 150)
+		)
+	)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 80)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 20)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 0)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
+)
+
+(defrule
+	(goal current-phase 2)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 50)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 40)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
+)
+
+(defrule
+	(and
+		(goal current-phase 3)
+		(and
+			(goal age-up-finished EARLY-ANTIQUITY)
+			(and
+				(goal age-up-started EARLY-ANTIQUITY)
+				(and
+					(building-type-count-total market == 0)
+					(building-type-count-total blacksmith == 0)
+				)
+			)
+		)
+	)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 20)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 80)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 0)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
+)
+
+(defrule
+	(and
+		(goal current-phase 3)
+		(and
+			(goal age-up-finished EARLY-ANTIQUITY)
+			(and
+				(goal age-up-started EARLY-ANTIQUITY)
+				(and
+					(building-type-count-total market > 0)
+					(building-type-count-total blacksmith > 0)
+				)
+			)
+		)
+	)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 60)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 20)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 20)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
+)
+
+(defrule
+	(and
+		(goal current-phase 3)
+		(and
+			(goal age-up-finished EARLY-ANTIQUITY)
+			(and
+				(goal age-up-started MIDDLE-ANTIQUITY)
+				(and
+					(building-type-count-total market > 0)
+					(building-type-count-total blacksmith > 0)
+				)
+			)
+		)
+	)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 40)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 40)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 10)
+)
+
+(defrule
+	(goal current-phase 4)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 40)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 45)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 5)
+)
+
+(defrule
+	(goal current-phase 5)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 40)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 45)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 5)
+)
+
+
+(defrule
+(or	(strategic-number sn-food-gatherer-percentage >= 1)
+(or	(strategic-number sn-wood-gatherer-percentage >= 1)
+(or	(strategic-number sn-gold-gatherer-percentage >= 1)
+	(strategic-number sn-stone-gatherer-percentage >= 1))))
+=>
+	(set-strategic-number sn-maximum-hunt-drop-distance 30)
+	(set-strategic-number sn-mill-max-distance 30)
+	(set-strategic-number sn-lumber-camp-max-distance 30)
+	(set-strategic-number sn-mining-camp-max-distance 30)
+	(set-strategic-number sn-maximum-food-drop-distance 12) 
+	(set-strategic-number sn-maximum-wood-drop-distance 20)
+	(set-strategic-number sn-maximum-gold-drop-distance 20)
+	(set-strategic-number sn-maximum-stone-drop-distance 20)
+)
+
+(defrule
+	(up-compare-goal mill-max-distance != 0)
+=>
+	(up-modify-sn sn-mill-max-distance g:= mill-max-distance)
+)
+
+(defrule
+	(up-compare-goal lumbercamp-max-distance != 0)
+=>
+	(up-modify-sn sn-lumber-camp-max-distance g:= lumbercamp-max-distance)
+)
+
+(defrule
+	(up-compare-goal miningcamp-max-distance != 0)
+=>
+	(up-modify-sn sn-mining-camp-max-distance g:= miningcamp-max-distance)
+)
+
+;run once, timer handles it afterwards
+(defrule
+	(and
+		(building-type-count-total mill >= 1)
+		(and
+			(dropsite-min-distance hunting <= 15)
+			(dropsite-min-distance food <= 15)
+		)
+	)
+=>
+	(set-goal dependent-farms 1)
+	(chat-local-to-self "Disable farms, food is near")
+	(disable-self)
+)
+
+(defrule
+	(and
+		(goal dependent-farms 0)
+		(building-type-count-total mill == 0)
+	)
+=>
+	(set-goal dependent-farms 1)
+	(chat-local-to-self "Disable farms, no mill")
+)
+
+(defrule
+	(timer-triggered farm-check-timer)
+	(and
+		(building-type-count-total mill >= 1)
+		(and
+			(dropsite-min-distance hunting <= 15)
+			(dropsite-min-distance food <= 15)
+		)
+	)
+=>
+	(set-goal dependent-farms 1)
+	(chat-local-to-self "Disable farms, food is near")
+)
+
+(defrule
+	(timer-triggered farm-check-timer)
+	(and
+		(building-type-count-total mill >= 1)
+		(or
+			(dropsite-min-distance food > 15)
+			(dropsite-min-distance hunting > 15)
+		)
+	)
+=>
+	(set-goal dependent-farms 0)
+	(chat-local-to-self "Enable farms, food is not near")
+)
+
+(defrule
+	(unit-type-count-total villager g:< desired-number-villagers)
+	(can-train villager)
+=>
+	(train villager)
+)
+
+(defrule
+	(unit-type-count-total fishing-ship g:< desired-number-fishing)
+	(cc-players-unit-type-count 0 ocean-fish-class >= 1)
+	(wood-amount > 180)
+	(can-train fishing-ship)
+=>
+	(train fishing-ship)
+)
+
+(defrule
+	(unit-type-count-total trade-cart g:< desired-number-carts)
+(or	(players-building-type-count any-ally market >= 1)
+	(players-building-type-count any-neutral market >= 1))
+	(can-train trade-cart)
+=>
+	(train trade-cart)
+)
+
+(defrule
+	(unit-type-count-total trade-cog g:< desired-number-cogs)
+	(wood-amount > 200)
+	(or	
+		(players-building-type-count any-ally dock >= 1)
+		(players-building-type-count any-neutral dock >= 1)
+	)
+	(can-train trade-cog)
+=>
+	(train trade-cog)
+)
+
+(defrule
+	(unit-type-count-total construction-ship == 0)
+	(can-train construction-ship)
+=>
+	(train construction-ship)
+)

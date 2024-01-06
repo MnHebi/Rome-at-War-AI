@@ -1,0 +1,84 @@
+
+;civ specific structure preferences
+
+(defrule
+	(true)
+=>
+	(up-modify-goal phase2-farm-cap c:= 10)
+	(up-modify-goal phase3-farm-cap c:= 16)
+	(up-modify-goal phase4-farm-cap c:= 29)
+	(up-modify-goal phase5-farm-cap c:= 40)
+	
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(up-modify-goal phase2-barracks-cap c:= 2)
+	(up-modify-goal phase3-barracks-cap c:= 2)
+	(up-modify-goal phase3-range-cap c:= 2)
+	(up-modify-goal phase3-stable-cap c:= 2)
+	(up-modify-goal phase4-barracks-cap c:= 2)
+	(up-modify-goal phase4-range-cap c:= 4)
+	(up-modify-goal phase4-stable-cap c:= 4)
+	(up-modify-goal phase5-barracks-cap c:= 2)
+	(up-modify-goal phase5-range-cap c:= 6)
+	(up-modify-goal phase5-stable-cap c:= 8)
+	
+	(disable-self)
+)
+
+;copy of the hunting rules for Scythians so they hunt deer from the start of the game
+(defrule
+    (dropsite-min-distance live-boar s:> sn-maximum-hunt-drop-distance)
+	(unit-type-count villager >= 8)
+(or	(research-completed ri-loom)
+    (dropsite-min-distance live-boar < 15))
+=>
+   (set-strategic-number sn-enable-boar-hunting 1)
+   (set-strategic-number sn-minimum-boar-lure-group-size 1)
+   (set-strategic-number sn-minimum-boar-hunt-group-size 1)
+   (set-strategic-number sn-minimum-number-hunters 1)
+)
+
+(defrule
+	(food-amount > 200)
+	(wood-amount > 200)
+	(dropsite-min-distance hunting s:< sn-maximum-hunt-drop-distance)
+	(unit-type-count-total hc-deer g:< gl-five-percent)
+	(can-train hc-deer)
+=>
+	(train hc-deer)
+)
+
+(defrule
+	(goal current-phase 5)
+	(and
+		(unit-type-count-total kurgan-bound-chief g:< desired-number-uniqueunitone)
+		(unit-type-count-total elite-kurgan-bound-chief g:< desired-number-uniqueunitone)
+	)
+	(or
+		(can-train kurgan-bound-chief)
+		(can-train elite-kurgan-bound-chief)
+	)
+=>
+	(train kurgan-bound-chief)
+	(train elite-kurgan-bound-chief)
+)
+
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-siege 1)
+	(or
+		(unit-type-count-total amazon g:< desired-number-antisiege)
+		(unit-type-count-total elite-amazon g:< desired-number-antisiege)
+	)
+	(or
+		(can-train amazon)
+		(can-train elite-amazon)
+	)
+=>
+	(train amazon)
+	(train elite-amazon)
+)

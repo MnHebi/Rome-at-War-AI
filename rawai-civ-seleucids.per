@@ -1,0 +1,31 @@
+
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-infantry 1)
+	(and
+		(unit-type-count-total agema g:< desired-number-antiinfantry)
+		(unit-type-count-total elite-agema g:< desired-number-antiinfantry)
+	)
+	(or
+		(can-train agema)
+		(can-train elite-agema)
+	)
+=>
+	(train agema)
+	(train elite-agema)
+)
+
+(defrule
+	(goal current-phase 5)
+	(and
+		(unit-type-count-total imitation-legionary g:< desired-number-uniqueunittwo)
+		(unit-type-count-total elite-imitation-legionary g:< desired-number-uniqueunittwo)
+	)
+	(or
+		(can-train imitation-legionary)
+		(can-train elite-imitation-legionary)
+	)
+=>
+	(train imitation-legionary)
+	(train elite-imitation-legionary)
+)
