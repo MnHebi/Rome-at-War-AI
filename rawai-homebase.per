@@ -9,6 +9,7 @@
 )
 
 (defrule
+	(building-type-count-total town-center > 0)
 	(goal allow-houses 1)
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
@@ -75,7 +76,7 @@
 )
 
 (defrule
-	(resource-found wood)
+	(up-gaia-type-count-total c: wood >= 10)
 	(up-pending-objects c: lumber-camp >= 1)
 =>
 	(up-full-reset-search)
@@ -85,13 +86,13 @@
 	(up-get-point position-object 509)
 	(up-set-target-point 509)
 	(up-reset-filters)
-	(up-filter-distance c: -1 c: 4)
+	(up-filter-distance c: -1 s: 8)
 	(up-find-resource c: wood c: 3)
 	(up-get-search-state local-total)
 )
 
 (defrule
-	(resource-found wood)
+	(up-gaia-type-count-total c: wood >= 10)
 	(up-pending-objects c: lumber-camp >= 1)
 	(up-compare-goal local-total >= 1)
 	(up-compare-goal remote-total <= 2)
@@ -104,8 +105,10 @@
 )
 
 (defrule
-(or	(resource-found gold)
-	(resource-found stone))
+	(or	
+		(up-gaia-type-count-total c: gold >= 5)
+		(up-gaia-type-count-total c: stone >= 5)
+	)
 	(up-pending-objects c: mining-camp >= 1)
 =>
 	(up-full-reset-search)
@@ -125,8 +128,10 @@
 )
 
 (defrule
-(or	(resource-found gold)
-	(resource-found stone))
+	(or	
+		(up-gaia-type-count-total c: gold >= 5)
+		(up-gaia-type-count-total c: stone >= 5)
+	)
 	(up-pending-objects c: mining-camp >= 1) 
 	(up-compare-goal local-total >= 1)
 	(up-compare-goal remote-total <= 0)
@@ -140,34 +145,36 @@
 
 (defrule
 	(building-type-count-total lumber-camp g:< desired-number-lumbercamps)
-	(up-pending-objects c: lumber-camp <= 0)
-	(strategic-number sn-wood-gatherer-percentage >= 1)
-	(resource-found wood)
-(or	(dropsite-min-distance wood > 4)
-	(building-type-count-total lumber-camp < 1))
+	(or
+		(up-gaia-type-count-total c: wood >= 10)
+		(or
+			(dropsite-min-distance wood > 4)
+			(building-type-count-total lumber-camp == 0)
+		)
+	)
 	(dropsite-min-distance wood g:< map-size)
 	(can-afford-building lumber-camp)
-	(can-build lumber-camp)
+	(up-pending-objects c: lumber-camp <= 0)
+	(up-can-build 0 c: lumber-camp)
 =>
-	(build lumber-camp)
+	(up-build place-normal 0 c: lumber-camp)
 )
 
 (defrule
 	(or	
-		(resource-found food)
+		(up-gaia-type-count-total c: food >= 5)
 		(and	
 			(building-type-count-total farm g:< desired-number-farms)
 			(building-type-count-total mill < 1)
 		)
 	)
-	(up-pending-objects c: mill <= 0)
-	(strategic-number sn-food-gatherer-percentage >= 1)
 	(building-type-count-total lumber-camp >= 1)
 	(building-type-count-total mill g:< desired-number-mills)
 	(can-afford-building mill)
-	(can-build mill)
+	(up-pending-objects c: mill <= 0)
+	(up-can-build 0 c: mill)
 =>
-	(build mill)
+	(up-build place-normal 0 c: mill)
 )
 
 (defrule
@@ -203,6 +210,7 @@
 	(up-jump-rule 17)
 
 )
+
 (defrule
 	(true)
 =>
@@ -331,6 +339,7 @@
 
 (defrule
 	(goal dependent-farms 1)
+	(building-type-count mill >= 1)
 	(up-compare-goal point3-x >= 0)
 	(up-can-build-line 0 point3-x c: farm)
 	(can-build farm);
@@ -367,6 +376,7 @@
 (defrule
 	(wood-amount > 150)
 	(goal dependent-farms 1)
+	(building-type-count mill >= 1)
 	(can-build farm)
 	(up-can-build 0 c: farm)
 =>
@@ -440,6 +450,7 @@
 (defrule
 	(up-object-type-count-total c: town-center > 0)
 	(up-object-type-count-total c: mill == 0)
+	(up-pending-objects c: mill <= 0)
 	(up-can-build gl-escrow c: mill)
 =>
 	(set-goal gl-escrow with-escrow)
@@ -449,6 +460,7 @@
 (defrule
 	(up-object-type-count-total c: town-center > 0)
 	(up-object-type-count-total c: lumber-camp == 0)
+	(up-pending-objects c: lumber-camp <= 0)
 	(can-build-with-escrow lumber-camp)
 =>
 	(release-escrow wood)
@@ -472,7 +484,7 @@
 	(building-type-count-total lumber-camp >= 1)
 	(up-pending-objects c: mining-camp <= 0)
 	(strategic-number sn-gold-gatherer-percentage >= 1)
-	(resource-found gold)
+	(up-gaia-type-count-total c: gold >= 5)
 	(dropsite-min-distance gold > 5)
 	(dropsite-min-distance gold g:< map-size)
 	(can-afford-building mining-camp)
@@ -486,7 +498,7 @@
 	(building-type-count-total lumber-camp >= 1)
 	(up-pending-objects c: mining-camp <= 0)
 	(strategic-number sn-stone-gatherer-percentage >= 1)
-	(resource-found stone)
+	(up-gaia-type-count-total c: stone >= 5)
 	(dropsite-min-distance stone > 5)
 	(dropsite-min-distance stone g:< map-size)
 	(can-build mining-camp)
@@ -502,6 +514,7 @@
 
 (defrule
 	(current-age >= feudal-age)
+	(building-type-count-total barracks > 0)
 	(building-type-count-total archery-range g:< desired-number-ranges)
 	(can-build archery-range)
 =>
@@ -509,6 +522,7 @@
 
 (defrule
 	(current-age >= feudal-age)
+	(building-type-count-total barracks > 0)
 	(building-type-count-total stable g:< desired-number-stables)
 	(can-build stable)
 =>
