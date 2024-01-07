@@ -144,9 +144,6 @@
 	(strategic-number sn-stone-gatherer-percentage >= 1))))
 =>
 	(set-strategic-number sn-maximum-hunt-drop-distance 30)
-	(set-strategic-number sn-mill-max-distance 30)
-	(set-strategic-number sn-lumber-camp-max-distance 30)
-	(set-strategic-number sn-mining-camp-max-distance 30)
 	(set-strategic-number sn-maximum-food-drop-distance 12) 
 	(set-strategic-number sn-maximum-wood-drop-distance 20)
 	(set-strategic-number sn-maximum-gold-drop-distance 20)
@@ -194,6 +191,20 @@
 =>
 	(set-goal dependent-farms 1)
 	(chat-local-to-self "Disable farms, no mill")
+)
+
+(defrule
+	(current-age == feudal-age)
+	(and
+		(goal dependent-farms 0)
+		(and
+			(building-type-count-total market == 0)
+			(building-type-count-total blacksmith == 0)
+		)
+	)
+=>
+	(set-goal dependent-farms 1)
+	(chat-local-to-self "Disable farms, middle antiquity age up structures missing")
 )
 
 (defrule

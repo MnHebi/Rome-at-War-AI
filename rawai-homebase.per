@@ -1,6 +1,7 @@
 ; Straight from AiBuilder files.
 
 (defrule
+	(current-age >= castle-age)
 	(building-type-count-total town-center g:< desired-number-towncenters)
 	(can-build town-center)
 =>
@@ -346,10 +347,9 @@
 	(building-type-count-total shipyard < 1)
 =>
 	(up-full-reset-search)
-	(up-filter-status c: status-gather c: list-active)
-	(up-find-resource c: 905 c: 1)
-	(up-find-resource c: 933 c: 1)
-	(up-set-target-object search-remote c: 0)
+	(up-clean-search search-local object-data-id search-order-desc)
+	(up-find-local c: dock c: 10)
+	(up-set-target-object search-local c: 0)
 	(up-get-point position-object gl-shipyard-x)
 	(set-goal temporary-goals3 15)
 	(chat-local-to-self "shipyard placement, locate fish")
@@ -387,8 +387,15 @@
 )
 
 (defrule
-	(building-type-count-total town-center > 0)
-	(building-type-count-total mill == 0)
+	(building-type-count-total town-center == 0)
+	(can-build town-center)
+=>
+	(build town-center)
+)
+
+(defrule
+	(up-object-type-count-total c: town-center > 0)
+	(up-object-type-count-total c: mill == 0)
 	(up-can-build gl-escrow c: mill)
 =>
 	(set-goal gl-escrow with-escrow)
@@ -396,11 +403,11 @@
 )
 
 (defrule
-	(building-type-count-total town-center > 0)
-	(building-type-count-total lumber-camp == 0)
-	(can-afford-building lumber-camp)
-	(can-build lumber-camp)
+	(up-object-type-count-total c: town-center > 0)
+	(up-object-type-count-total c: lumber-camp == 0)
+	(can-build-with-escrow lumber-camp)
 =>
+	(release-escrow wood)
 	(build lumber-camp)
 )
 
