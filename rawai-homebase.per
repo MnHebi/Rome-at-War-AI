@@ -87,7 +87,9 @@
 	(up-reset-filters)
 	(up-filter-distance c: -1 c: 4)
 	(up-find-resource c: wood c: 3)
-	(up-get-search-state local-total))
+	(up-get-search-state local-total)
+)
+
 (defrule
 	(resource-found wood)
 	(up-pending-objects c: lumber-camp >= 1)
@@ -98,7 +100,9 @@
 	(up-target-point 0 action-delete -1 -1)
 	(up-reset-placement c: lumber-camp)
 	(set-strategic-number sn-allow-adjacent-dropsites 1)
-	(up-modify-sn sn-camp-max-distance c:+ 1))
+	(up-modify-sn sn-camp-max-distance c:+ 1)
+)
+
 (defrule
 (or	(resource-found gold)
 	(resource-found stone))
@@ -117,7 +121,9 @@
 	(up-find-remote c: 66 c: 1)
 	(up-find-remote c: 102 c: 1)
 	(up-modify-sn sn-focus-player-number g:= 508)
-	(up-get-search-state local-total))
+	(up-get-search-state local-total)
+)
+
 (defrule
 (or	(resource-found gold)
 	(resource-found stone))
@@ -129,7 +135,8 @@
 	(up-target-point 0 action-delete -1 -1)
 	(up-reset-placement c: mining-camp)
 	(set-strategic-number sn-allow-adjacent-dropsites 1)
-	(up-modify-sn sn-camp-max-distance c:+ 1))
+	(up-modify-sn sn-camp-max-distance c:+ 1)
+)
 
 (defrule
 	(building-type-count-total lumber-camp g:< desired-number-lumbercamps)
@@ -142,7 +149,8 @@
 	(can-afford-building lumber-camp)
 	(can-build lumber-camp)
 =>
-	(build lumber-camp))
+	(build lumber-camp)
+)
 
 (defrule
 	(or	
@@ -176,20 +184,25 @@
 	(up-modify-goal 510 c:+ 2);
 	(up-modify-goal desired-number-farms g:min 510)
 )
+
 (defrule
 	(wood-amount < 160)
 	(dropsite-min-distance wood >= 5)
 	(building-type-count-total lumber-camp g:< desired-number-lumbercamps)
 	(strategic-number sn-wood-gatherer-percentage >= 1)
 =>
-	(up-jump-rule 18))
+	(up-jump-rule 18)
+)
+
 (defrule
 (or	(up-compare-goal desired-number-farms <= 0)
 (or	(building-type-count-total farm g:>= desired-number-farms)
 (or	(up-pending-placement c: farm)
 	(not (up-can-build 0 c: farm)))))
 =>
-	(up-jump-rule 17))
+	(up-jump-rule 17)
+
+)
 (defrule
 	(true)
 =>
@@ -199,7 +212,9 @@
 	(up-modify-goal temporary-goal5 s:min sn-maximum-town-size)
 	(set-goal temporary-goal8 0)
 	(up-modify-goal temporary-goal9 g:= map-size)
-	(set-goal temporary-goal10 0))
+	(set-goal temporary-goal10 0)
+)
+
 (defrule
 	(true)
 =>
@@ -208,11 +223,15 @@
 	(up-full-reset-search)
 	(up-find-local g: temporary-goal c: 12)
 	(up-remove-objects search-local object-data-distance g:> temporary-goal5)
-	(up-clean-search search-local object-data-distance search-order-asc))
+	(up-clean-search search-local object-data-distance search-order-asc)
+)
+
 (defrule; end neg jump
 (not	(up-set-target-object search-local g: temporary-goal4))
 =>
-	(up-jump-rule 12))
+	(up-jump-rule 12)
+)
+
 (defrule
 	(up-set-target-object search-local g: temporary-goal4)
 	(up-object-data object-data-type == town-center)
@@ -220,7 +239,9 @@
 	(set-goal temporary-goal2 2)
 	(set-goal temporary-goal3 3)
 	(set-goal temporary-goal6 4)
-	(set-goal temporary-goal7 1))
+	(set-goal temporary-goal7 1)
+)
+
 (defrule
 	(up-set-target-object search-local g: temporary-goal4)
 	(up-object-data object-data-type == mill)
@@ -228,14 +249,18 @@
 	(set-goal temporary-goal2 1)
 	(set-goal temporary-goal3 2)
 	(set-goal temporary-goal6 4)
-	(set-goal temporary-goal7 1))
+	(set-goal temporary-goal7 1)
+)
+
 (defrule
 	(goal temporary-goal10 1)
 	(goal point3-x -1)
 =>
 	(up-modify-goal temporary-goal2 c:+ 1)
 	(up-modify-goal temporary-goal3 c:+ 1)
-	(up-modify-goal temporary-goal6 c:+ 1))
+	(up-modify-goal temporary-goal6 c:+ 1)
+)
+
 (defrule
 	(up-set-target-object search-local g: temporary-goal4)
 =>
@@ -244,20 +269,26 @@
 	(up-modify-goal point2-x c:+ 40)
 	(up-modify-goal point2-y c:+ 40)
 	(up-modify-goal point-x g:+ temporary-goal2)
-	(up-modify-goal point-y g:+ temporary-goal3))
+	(up-modify-goal point-y g:+ temporary-goal3)
+)
+
 (defrule
 	(up-compare-goal point-x >= 0)
 	(up-can-build-line 0 point-x c: farm)
 	(up-point-distance point2-x point-x g:< temporary-goal9)
 =>
 	(up-get-point-distance point2-x point-x temporary-goal9)
-	(up-copy-point point3-x point-x))
+	(up-copy-point point3-x point-x)
+)
+
 (defrule
 	(up-compare-goal temporary-goal6 >= 2)
 =>
 	(up-modify-goal point-x g:- temporary-goal7)
 	(up-modify-goal temporary-goal6 c:- 1)
-	(up-jump-rule -2))
+	(up-jump-rule -2)
+)
+
 (defrule
 	(up-compare-goal temporary-goal6 == 1)
 	(up-set-target-object search-local g: temporary-goal4)
@@ -265,13 +296,17 @@
 	(up-get-point position-object point-x)
 	(up-modify-goal point-x g:+ temporary-goal3)
 	(up-modify-goal point-y g:+ temporary-goal3)
-	(set-goal temporary-goal6 -7))
+	(set-goal temporary-goal6 -7)
+)
+
 (defrule
 	(up-compare-goal temporary-goal6 <= -2)
 =>
 	(up-modify-goal point-y g:- temporary-goal7)
 	(up-modify-goal temporary-goal6 c:+ 1)
-	(up-jump-rule -4))
+	(up-jump-rule -4)
+)
+
 (defrule
 	(goal temporary-goal8 0)
 =>
@@ -282,14 +317,18 @@
 	(up-modify-goal temporary-goal3 c:* -1)
 	(up-modify-goal temporary-goal7 c:* -1)
 	(set-goal temporary-goal8 1)
-	(up-jump-rule -6))
+	(up-jump-rule -6)
+)
+
 (defrule
 	(goal temporary-goal10 0)
 	(goal point3-x -1)
 =>
 	(set-goal temporary-goal8 0)
 	(set-goal temporary-goal10 1)
-	(up-jump-rule -10))
+	(up-jump-rule -10)
+)
+
 (defrule
 	(goal dependent-farms 1)
 	(up-compare-goal point3-x >= 0)
@@ -299,7 +338,9 @@
 =>
 ;	(chat-to-player my-player-number "Manual farm.")
 	(up-build-line point3-x point3-x c: farm)
-	(up-jump-rule 3))
+	(up-jump-rule 3)
+)
+
 (defrule
 	(up-set-target-object search-local g: temporary-goal4)
 =>
@@ -307,7 +348,7 @@
 	(set-goal temporary-goal8 0)
 	(set-goal temporary-goal10 0)
 	(up-jump-rule -13)
-); end jump
+)
 
 (defrule
 (not	(up-set-target-object search-local g: temporary-goal4))
@@ -320,7 +361,9 @@
 	(set-goal temporary-goal4 0)
 	(set-goal temporary-goal8 0)
 	(set-goal temporary-goal10 0)
-	(up-jump-rule -14))
+	(up-jump-rule -14)
+)
+
 (defrule
 	(wood-amount > 150)
 	(goal dependent-farms 1)
@@ -329,7 +372,7 @@
 =>
 ;	(chat-to-player my-player-number "Normal farm.")
 	(build farm)
-); end jump
+)
 
 (defrule
 	(true)
@@ -385,6 +428,7 @@
 	(chat-local-to-self "shipyard placement, loop")
 	(up-jump-rule -3)
 )
+;jumps end
 
 (defrule
 	(building-type-count-total town-center == 0)
