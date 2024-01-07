@@ -144,12 +144,11 @@
 )
 
 (defrule
-	(building-type-count-total lumber-camp g:< desired-number-lumbercamps)
-	(or
+	(and
 		(up-gaia-type-count-total c: wood >= 10)
 		(or
 			(dropsite-min-distance wood > 4)
-			(building-type-count-total lumber-camp == 0)
+			(building-type-count-total lumber-camp g:< desired-number-lumbercamps)
 		)
 	)
 	(dropsite-min-distance wood g:< map-size)
@@ -161,15 +160,14 @@
 )
 
 (defrule
-	(or	
+	(and	
 		(up-gaia-type-count-total c: food >= 5)
-		(and	
+		(or	
 			(building-type-count-total farm g:< desired-number-farms)
-			(building-type-count-total mill < 1)
+			(building-type-count-total mill g:< desired-number-mills)
 		)
 	)
 	(building-type-count-total lumber-camp >= 1)
-	(building-type-count-total mill g:< desired-number-mills)
 	(can-afford-building mill)
 	(up-pending-objects c: mill <= 0)
 	(up-can-build 0 c: mill)
