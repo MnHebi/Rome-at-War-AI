@@ -8,10 +8,10 @@
 	(up-modify-goal phase3-stable-cap c:= 2)
 	(up-modify-goal phase4-barracks-cap c:= 3)
 	(up-modify-goal phase4-range-cap c:= 2)
-	(up-modify-goal phase4-stable-cap c:= 3)
+	(up-modify-goal phase4-stable-cap c:= 2)
 	(up-modify-goal phase5-barracks-cap c:= 5)
-	(up-modify-goal phase5-range-cap c:= 3)
-	(up-modify-goal phase5-stable-cap c:= 3)
+	(up-modify-goal phase5-range-cap c:= 2)
+	(up-modify-goal phase5-stable-cap c:= 2)
 	(up-modify-goal phase5-workshop-cap c:= 4)
 	
 	(disable-self)
@@ -26,7 +26,7 @@
 	(train militiaman-line)
 )
 
-;Always have some Spearmen/Halberdier
+;Always have some Spearmen
 (defrule
 	(goal current-phase 5)
 	(unit-type-count-total spearman-line g:< gl-one-percent)
@@ -94,7 +94,7 @@
 			(goal train-anti-cavalryarcher 1)
 		)
 	)
-	(unit-type-count-total scorpion-line g:< desired-number-antielephant)
+	(unit-type-count-total scorpion-line g:< desired-number-antiinfantry)
 	(can-train scorpion-line)
 =>
 	(train scorpion-line)
@@ -193,31 +193,109 @@
 
 (defrule
 	(goal current-phase 5)
-	(and
-		(unit-type-count-total legionary g:< desired-number-uniqueunittwo)
-		(unit-type-count-total elite-legionary g:< desired-number-uniqueunittwo)
-	)
-	(or
-		(can-train legionary)
-		(can-train elite-legionary)
-	)
+	(unit-type-count-total legionary-melee-line g:< desired-number-uniqueunittwo)
+	(can-train legionary-melee-line)
 =>
-	(train legionary)
-	(train elite-legionary)
+	(train legionary-melee-line)
 )
 
 (defrule
 	(goal current-phase 5)
 	(goal train-anti-infantry 1)
-	(and
-		(unit-type-count-total praetorian-guard g:< desired-number-antiinfantry)
-		(unit-type-count-total elite-praetorian-guard g:< desired-number-antiinfantry)
-	)
-	(or
-		(can-train praetorian-guard)
-		(can-train elite-praetorian-guard)
-	)
+	(unit-type-count-total praetorian-guard-line g:< desired-number-antiinfantry)
+	(can-train praetorian-guard-line)
 =>
-	(train praetorian-guard)
-	(train elite-praetorian-guard)
+	(train praetorian-guard-line)
+)
+
+;unique technologies
+
+;Testudo for Team Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 1)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-testudo)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-testudo)
+	(chat-local-to-self "research testudo(UT)")
+)
+
+;Testudo for Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(goal team-game 0)
+	(can-train-with-escrow ut-testudo)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-testudo)
+	(chat-local-to-self "research testudo(UT)")
+)
+
+;Manipular Pilae for Team Games, will not be done in Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 0)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-manipular-pilae)
+=>
+	(release-escrow wood)
+	(release-escrow gold)
+	(train ut-manipular-pilae)
+	(chat-local-to-self "research manipular pilae(UT)")
+)
+
+;Marian Reforms for Team Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 1)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-testudo)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-testudo)
+	(chat-local-to-self "research marian reforms(UT)")
+)
+
+;Marian Reforms for Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(goal team-game 0)
+	(can-train-with-escrow ut-marian-reforms)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-marian-reforms)
+	(chat-local-to-self "research marian reforms(UT)")
+)
+
+;Principate for Team Games, will not be done in Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 0)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-principate)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-principate)
+	(chat-local-to-self "research principate(UT)")
 )
