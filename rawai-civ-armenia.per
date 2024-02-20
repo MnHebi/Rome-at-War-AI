@@ -1,15 +1,251 @@
 
+;civ specific structure preferences
+
+(defrule
+	(true)
+=>
+	(up-modify-goal phase2-barracks-cap c:= 2)
+	(up-modify-goal phase3-barracks-cap c:= 2)
+	(up-modify-goal phase3-range-cap c:= 2)
+	(up-modify-goal phase3-stable-cap c:= 2)
+	(up-modify-goal phase4-barracks-cap c:= 2)
+	(up-modify-goal phase4-range-cap c:= 3)
+	(up-modify-goal phase4-stable-cap c:= 3)
+	(up-modify-goal phase5-barracks-cap c:= 2)
+	(up-modify-goal phase5-range-cap c:= 4)
+	(up-modify-goal phase5-stable-cap c:= 4)
+	(up-modify-goal phase5-workshop-cap c:= 2)
+	
+	(disable-self)
+)
+
+;Always have some Spearmen
 (defrule
 	(goal current-phase 5)
-	(and
-		(unit-type-count-total ayrudzi g:< gl-five-percent)
-		(unit-type-count-total elite-ayrudzi g:< gl-five-percent)
-	)
-	(or
-		(can-train ayrudzi)
-		(can-train elite-ayrudzi)
-	)
+	(unit-type-count-total spearman-line g:< gl-one-percent)
+	(can-train spearman-line)
 =>
-	(train ayrudzi)
-	(train elite-ayrudzi)
+	(train spearman-line)
+)
+
+;Otherwise, train them to counter Cavalry and Cavalry Archers
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-cavalry 1)
+		(goal train-anti-cavalryarcher 1)
+	)
+	(unit-type-count-total spearman-line g:< desired-number-anticavalrytrash)
+	(can-train spearman-line)
+=>
+	(train spearman-line)
+)
+
+;Use Cavalry Archers against Cavalry
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-cavalry 1)
+	(unit-type-count-total cavalry-archer-line g:< desired-number-anticavalry)
+	(can-train cavalry-archer-line)
+=>
+	(train cavalry-archer-line)
+)
+
+;Use Composite Bowmen against Infantry
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-infantry 1)
+	(unit-type-count-total bowman-line g:< desired-number-antiinfantry)
+	(can-train bowman-line)
+=>
+	(train bowman-line)
+)
+
+;Use Skirmishers against Archers & Cavalry Archers
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-archer 1)
+		(goal train-anti-cavalryarcher 1)
+	)
+	(unit-type-count-total skirmisher-line g:< desired-number-antiarchertrash)
+	(can-train skirmisher-line)
+=>
+	(train skirmisher-line)
+)
+
+;Use Mangonels against Archers(but not Cavalry Archers) in addition to Skirmishers
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-archer 1)
+	(unit-type-count-total mangonel-line g:< desired-number-antiarcher)
+	(can-train mangonel-line)
+=>
+	(train mangonel-line)
+)
+
+;Scorpions are used to counter infantry, archers, cav archers
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-infantry 1)
+		(or
+			(goal train-anti-archer 1)
+			(goal train-anti-cavalryarcher 1)
+		)
+	)
+	(unit-type-count-total scorpion-line g:< desired-number-antiarcher)
+	(can-train scorpion-line)
+=>
+	(train scorpion-line)
+)
+
+;Armenians wield Cavalry against Infantry, Archers, and Siege
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-infantry 1)
+		(or
+			(goal train-anti-archer 1)
+			(goal train-anti-siege 1)
+		)
+	)
+	(unit-type-count-total cavalry-line g:< desired-number-antisiege)
+	(can-train cavalry-line)
+=>
+	(train cavalry-line)
+)
+
+;Scout/Light Cavalry are also as anti-priest & anti-siege trash
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-priest 1)
+		(goal train-anti-siege 1)
+	)
+	(unit-type-count-total scout-cavalry-line g:< gl-one-percent)
+	(can-train scout-cavalry-line)
+=>
+	(train scout-cavalry-line)
+)
+
+;Navy, generic train rules that affect <x>reme etc training are in military-units-common.per
+
+;Train Juggernauts
+(defrule
+	(goal current-phase 5)
+	(wood-amount > 250)
+	(unit-type-count-total juggernaut-line g:< desired-number-juggernauts)
+	(can-train juggernaut-line)
+=>
+	(train juggernaut-line)
+)
+
+(defrule
+	(goal current-phase 5)
+	(research-completed ut-civitates-foederate)
+	(unit-type-count-total legionary-ranged-line g:< desired-number-uniqueunitone)
+	(can-train legionary-ranged-line)
+=>
+	(train legionary-ranged-line)
+)
+
+(defrule
+	(goal current-phase 5)
+	(unit-type-count-total ayrudzi-melee-line g:< desired-number-uniqueunittwo)
+	(can-train ayrudzi-melee-line)
+=>
+	(train ayrudzi-melee-line)
+)
+
+;unique technologies
+
+;Civitates Foederate for Team Games, will not be done in Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 0)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-civitates-foederate)
+=>
+	(release-escrow wood)
+	(release-escrow gold)
+	(train ut-civitates-foederate)
+	(chat-local-to-self "research civitates foederate(UT)")
+)
+
+;Marzpanate for Team Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 1)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-marzpanate)
+=>
+	(release-escrow food)
+	(release-escrow wood)
+	(train ut-marzpanate)
+	(chat-local-to-self "research marzpanate(UT)")
+)
+
+;Marzapanate for Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(goal team-game 0)
+	(can-train-with-escrow ut-marzpanate)
+=>
+	(release-escrow food)
+	(release-escrow wood)
+	(train ut-marzpanate)
+	(chat-local-to-self "research marzpanate(UT)")
+)
+
+;Khvarenah for Team Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 1)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-khvarenah)
+=>
+	(release-escrow wood)
+	(release-escrow gold)
+	(train ut-khvarenah)
+	(chat-local-to-self "research khvarenah(UT)")
+)
+
+;Khvarenah for Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(goal team-game 0)
+	(can-train-with-escrow ut-khvarenah)
+=>
+	(release-escrow wood)
+	(release-escrow gold)
+	(train ut-khvarenah)
+	(chat-local-to-self "research khvarenah(UT)")
+)
+
+;Baptism for Team Games, will not be done in Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 0)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-baptism)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-baptism)
+	(chat-local-to-self "research baptism(UT)")
 )
