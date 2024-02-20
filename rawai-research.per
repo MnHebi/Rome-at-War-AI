@@ -42,13 +42,11 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-lines 1)
-	(unit-type-count militiaman > 3)
+	(unit-type-count militiaman-line > 3)
 	(can-research-with-escrow ri-man-at-arms)
 =>
-	(release-escrow wood)
 	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
 	(research ri-man-at-arms)
 	(chat-local-to-self "research man-at-arms")
 )
@@ -59,53 +57,58 @@
 	(unit-type-count eagle-warrior > 3)
 	(can-research-with-escrow ri-elite-eagle-warrior)
 =>
-	(release-escrow wood)
 	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
 	(research ri-elite-eagle-warrior)
 	(chat-local-to-self "research elite eagle warrior")
 )
 
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-lines 1)
+	(unit-type-count militiaman-line > 2)
+	(can-research-with-escrow ri-short-swordsman)
+=>
+	(release-escrow wood)
+	(release-escrow food)
+	(release-escrow gold)
+	(release-escrow stone)
+    (research ri-short-swordsman)
+	(chat-local-to-self "research short swordsman ")
+)
 
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-lines 1)
-	(unit-type-count man-at-arms > 6)
+	(unit-type-count militiaman-line > 2)
+	(can-research-with-escrow ri-broad-swordsman)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+    (research ri-broad-swordsman)
+	(chat-local-to-self "research broad swordsman ")
+)
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-lines 1)
+	(unit-type-count militiaman-line > 2)
 	(can-research-with-escrow ri-long-swordsman)
 =>
-	(release-escrow wood)
 	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
     (research ri-long-swordsman)
-	(chat-local-to-self "research long swordsman ")
+	(chat-local-to-self "research long swordsman")
 )
 
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-lines 1)
-	(unit-type-count long-swordsman > 6)
-	(can-research-with-escrow ri-two-handed-swordsman)
-=>
-	(release-escrow wood)
-	(release-escrow food)
-	(release-escrow gold)
-	(release-escrow stone)
-    (research ri-two-handed-swordsman)
-	(chat-local-to-self "research two-handed-swordsman")
-)
-
-(defrule
-	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
-	(goal upgrade-military-lines 1)
-	(unit-type-count two-handed-swordsman > 6)
+	(unit-type-count militiaman-line > 2)
 	(can-research-with-escrow ri-champion)
 =>
-	(release-escrow wood)
 	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
     (research ri-champion)
 	(chat-local-to-self "research champion")
 )
@@ -113,13 +116,11 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-lines 1)
-	(unit-type-count-total spearman > 2)
+	(unit-type-count-total spearman-line > 2)
 	(can-research-with-escrow ri-pikeman)
 =>
-	(release-escrow wood)
 	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
     (research ri-pikeman)
 	(chat-local-to-self "research pike")
 )
@@ -127,27 +128,83 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-lines 1)
-	(unit-type-count-total pikeman > 2)
-	(can-research-with-escrow ri-halberdier)
+	(unit-type-count-total spearman-line > 2)
+	(can-research-with-escrow ri-auxiliary-spearman)
 =>
-	(release-escrow wood)
 	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
-    (research ri-halberdier)
-	(chat-local-to-self "research halberd")
+    (research ri-auxiliary-spearman)
+	(chat-local-to-self "research auxiliary spearman")
 )
 
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-lines 1)
-	(unit-type-count-total scout-cavalry > 2)
-	(can-research-with-escrow ri-light-cavalry)
+	(unit-type-count-total spearman-line > 2)
+	(can-research-with-escrow ri-hoplite)
 =>
-	(release-escrow wood)
 	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
+    (research ri-hoplite)
+	(chat-local-to-self "research hoplite")
+)
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-lines 1)
+	(unit-type-count-total spearman-line > 2)
+	(can-research-with-escrow ri-halberdier)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+    (research ri-halberdier)
+	(chat-local-to-self "research halberd")
+)
+
+; Upgrade Empire Legionaries
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-lines 1)
+	(can-research-with-escrow ri-empire-elite-legionary)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(research ri-empire-elite-legionary)
+	(chat-local-to-self "research elite legionary")
+)
+
+; Upgrade Republic Legionaries
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-lines 1)
+	(can-research-with-escrow ri-republic-elite-legionary)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(research ri-republic-elite-legionary)
+	(chat-local-to-self "research elite legionary")
+)
+
+; Upgrade Imitation Legionaries
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-lines 1)
+	(can-research-with-escrow ri-elite-imitation-legionary)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(research ri-elite-imitation-legionary)
+	(chat-local-to-self "research elite legionary")
+)
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-lines 1)
+	(unit-type-count-total scout-cavalry-line > 2)
+	(can-research-with-escrow ri-light-cavalry)
+=>
+	(release-escrow food)
+	(release-escrow gold)
 	(research ri-light-cavalry)
 	(chat-local-to-self "research light-cavalry")
 )
@@ -155,13 +212,23 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-lines 1)
-	(unit-type-count-total light-cavalry > 3)
-	(can-research-with-escrow ri-hussar)
+	(unit-type-count-total scout-cavalry-line > 2)
+	(can-research-with-escrow ri-auxiliary-cavalry)
 =>
-	(release-escrow wood)
 	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
+	(research ri-auxiliary-cavalry)
+	(chat-local-to-self "research auxiliary cavalry")
+)
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-lines 1)
+	(unit-type-count-total scout-cavalry-line > 3)
+	(can-research-with-escrow ri-hussar)
+=>
+	(release-escrow food)
+	(release-escrow gold)
 	(research ri-hussar)
 	(chat-local-to-self "research hussar")
 )
