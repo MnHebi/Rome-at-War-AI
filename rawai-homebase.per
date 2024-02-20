@@ -538,10 +538,38 @@
 	(building-type-count-total blacksmith g:< desired-number-blacksmiths)
 	(can-build blacksmith)
 =>
-	(build blacksmith))
+	(build blacksmith)
+)
 
 (defrule
 	(current-age >= feudal-age)
+	(building-type-count-total market == 0)
+	(can-build market)
+=>
+	(build market)
+)
+
+(defrule
+	(current-age >= castle-age)
+=>
+	(up-get-point position-corner gl-market-placement)
+	(disable-self)
+)
+
+(defrule
+	(current-age >= castle-age)
+	(building-type-count-total market >= 1)
+	(can-build market)
+=>
+	(delete-building market)
+	
+	(up-set-placement-data my-player-number -1 g: gl-market-placement)
+	
+	(up-build place-control 0 c: market)
+)
+
+(defrule
+	(current-age == imperial-age)
 	(building-type-count-total market g:< desired-number-markets)
 	(can-build market)
 =>

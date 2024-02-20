@@ -236,3 +236,24 @@
 )
 
 #end-if
+
+#load-if-defined UP-POCKET-POSITION
+;set flank position goal, since we are flank player
+(defrule
+	(true)
+=>
+	(set-goal flank-position 1)
+	
+	(disable-self)
+)
+
+#end-if
+
+;check if you have allies, if you do then set team game goal
+(defrule
+	(up-players-in-game ally > 1)
+=>
+	(set-goal team-game 1)
+	
+	(disable-self)
+)
