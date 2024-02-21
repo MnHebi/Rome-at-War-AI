@@ -104,7 +104,7 @@
 ; Train a few Militia to counter Infantry rushes
 (defrule
 	(up-compare-goal current-phase >= 2)
-	(unit-type-count-total militiaman-line < 5)
+	(unit-type-count-total militiaman-line < 2)
 	(can-train militiaman-line)
 =>
 	(train militiaman-line)
@@ -113,7 +113,7 @@
 ; Train a few Spearmen to counter Cavalry rushes
 (defrule
 	(goal current-phase 2)
-	(unit-type-count-total spearman-line < 5)
+	(unit-type-count-total spearman-line < 2)
 	(can-train spearman-line)
 =>
 	(train spearman-line)
@@ -135,7 +135,7 @@
 (defrule
 	(goal current-phase 2)
 	(goal train-anti-archer 1)
-	(unit-type-count-total skirmisher-line g:< desired-number-antiarchertrash)
+	(unit-type-count-total skirmisher-line < 2)
 	(can-train skirmisher-line)
 =>
 	(train skirmisher-line)
@@ -144,7 +144,7 @@
 (defrule
 	(goal current-phase 2)
 	(goal train-anti-cavalryarcher 1)
-	(unit-type-count-total skirmisher-line g:< desired-number-anticavalryarchertrash)
+	(unit-type-count-total skirmisher-line < 2)
 	(can-train skirmisher-line)
 =>
 	(train skirmisher-line)
@@ -159,7 +159,7 @@
 (defrule
 	(goal current-phase 3)
 	(goal train-anti-infantry 1)
-	(unit-type-count-total bowman-line g:< desired-number-antiinfantry)
+	(unit-type-count-total bowman-line < 4)
 	(and
 		(not
 			(can-train cavalry-archer-line)
@@ -174,7 +174,7 @@
 (defrule
 	(goal current-phase 3)
 	(goal train-anti-cavalry 1)
-	(unit-type-count-total spearman-line g:< desired-number-anticavalrytrash)
+	(unit-type-count-total spearman-line < 4)
 	(can-train spearman-line)
 =>
 	(train spearman-line)
@@ -186,7 +186,7 @@
 (defrule
 	(goal current-phase 3)
 	(goal train-anti-archer 1)
-	(unit-type-count-total skirmisher-line g:< desired-number-antiarchertrash)
+	(unit-type-count-total skirmisher-line < 4)
 	(can-train skirmisher-line)
 =>
 	(train skirmisher-line)
@@ -195,7 +195,7 @@
 (defrule
 	(goal current-phase 3)
 	(goal train-anti-cavalryarcher 1)
-	(unit-type-count-total skirmisher-line g:< desired-number-anticavalryarchertrash)
+	(unit-type-count-total skirmisher-line < 4)
 	(can-train skirmisher-line)
 =>
 	(train skirmisher-line)
@@ -207,7 +207,7 @@
 (defrule
 	(goal current-phase 4)
 	(goal train-anti-priest 1)
-	(unit-type-count-total scout-cavalry-line g:< desired-number-antiinfantrytrash)
+	(unit-type-count-total scout-cavalry-line < 10)
 	(can-train scout-cavalry-line)
 =>
 	(train scout-cavalry-line)
@@ -217,7 +217,7 @@
 (defrule
 	(goal current-phase 4)
 	(goal train-anti-cavalry 1)
-	(unit-type-count-total spearman-line g:< desired-number-anticavalrytrash)
+	(unit-type-count-total spearman-line < 10)
 	(and
 		(not
 			(can-train camel-line)
@@ -232,7 +232,7 @@
 (defrule
 	(goal current-phase 4)
 	(goal train-anti-cavalry 1)
-	(unit-type-count-total camel-line g:< desired-number-anticavalrytrash)
+	(unit-type-count-total camel-line < 10)
 	(can-train camel-line)
 =>
 	(train camel-line)
@@ -244,7 +244,7 @@
 (defrule
 	(goal current-phase 4)
 	(goal train-anti-infantry 1)
-	(unit-type-count-total bowman-line g:< desired-number-antiinfantry)
+	(unit-type-count-total bowman-line < 10)
 	(and
 		(not
 			(can-train cavalry-archer-line)
@@ -258,7 +258,7 @@
 (defrule
 	(goal current-phase 4)
 	(goal train-anti-infantry 1)
-	(unit-type-count-total archer-line g:< desired-number-antiinfantry)
+	(unit-type-count-total archer-line < 10)
 	(can-train cavalry-archer-line)
 =>
 	(train cavalry-archer-line)
@@ -269,17 +269,11 @@
 
 (defrule
 	(goal current-phase 4)
-	(goal train-anti-archer 1)
-	(unit-type-count-total skirmisher-line g:< desired-number-antiarchertrash)
-	(can-train skirmisher-line)
-=>
-	(train skirmisher-line)
-)
-
-(defrule
-	(goal current-phase 4)
-	(goal train-anti-cavalryarcher 1)
-	(unit-type-count-total skirmisher-line g:< desired-number-anticavalryarchertrash)
+	(or
+		(goal train-anti-archer 1)
+		(goal train-anti-cavalryarcher 1)
+	)
+	(unit-type-count-total skirmisher-line < 10)
 	(can-train skirmisher-line)
 =>
 	(train skirmisher-line)
