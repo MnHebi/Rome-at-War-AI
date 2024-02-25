@@ -1,15 +1,321 @@
 
+;civ specific structure preferences
+
+(defrule
+	(true)
+=>
+	(up-modify-goal phase2-barracks-cap c:= 2)
+	(up-modify-goal phase3-barracks-cap c:= 2)
+	(up-modify-goal phase3-range-cap c:= 2)
+	(up-modify-goal phase3-stable-cap c:= 2)
+	(up-modify-goal phase4-barracks-cap c:= 3)
+	(up-modify-goal phase4-range-cap c:= 3)
+	(up-modify-goal phase4-stable-cap c:= 3)
+	(up-modify-goal phase5-barracks-cap c:= 5)
+	(up-modify-goal phase5-range-cap c:= 4)
+	(up-modify-goal phase5-stable-cap c:= 4)
+	(up-modify-goal phase5-workshop-cap c:= 2)
+	
+	(disable-self)
+)
+
+;Always Train Militia/Swordsmen if Kopis is researched
 (defrule
 	(goal current-phase 5)
-	(and
-		(unit-type-count-total medjay-warrior g:< gl-five-percent)
-		(unit-type-count-total elite-medjay-warrior g:< gl-five-percent)
-	)
-	(or
-		(can-train medjay-warrior)
-		(can-train elite-medjay-warrior)
-	)
+	(research-completed ri-ut-kopis)
+	(unit-type-count-total militiaman-line g:< gl-one-percent)
+	(can-train militiaman-line)
 =>
-	(train medjay-warrior)
-	(train elite-medjay-warrior)
+	(train militiaman-line)
+)
+
+;Always have some Spearmen
+(defrule
+	(goal current-phase 5)
+	(unit-type-count-total spearman-line g:< gl-one-percent)
+	(can-train spearman-line)
+=>
+	(train spearman-line)
+)
+
+;Otherwise, train them to counter Cavalry and Cavalry Archers
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-cavalry 1)
+		(goal train-anti-cavalryarcher 1)
+	)
+	(unit-type-count-total spearman-line g:< desired-number-anticavalrytrash)
+	(can-train spearman-line)
+=>
+	(train spearman-line)
+)
+
+;Use Horus Scouts/Warriors against Priests & Archers
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-priest 1)
+		(goal train-anti-archer 1)
+	)
+	(unit-type-count-total horus-scout-line g:< desired-number-antiarcher)
+	(can-train horus-scout-line)
+=>
+	(train horus-scout-line)
+)
+
+;Use Camel Archers against Cavalry Archers & Cavalry
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-cavalryarcher 1)
+		(goal train-anti-cavalry 1)
+	)
+	(unit-type-count-total camel-archer-line g:< desired-number-anticavalryarcher)
+	(can-train camel-archer-line)
+=>
+	(train camel-archer-line)
+)
+
+;Use Chariot Archers against Infantry
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-infantry 1)
+	(unit-type-count-total chariot-archer g:< desired-number-antiinfantry)
+	(can-train chariot-archer)
+=>
+	(train chariot-archer)
+)
+
+;Use Archers against Infantry if you cannot afford Chariot Archers
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-infantry 1)
+	(not
+		(can-afford-unit chariot-archer)
+	)
+	(unit-type-count-total bowman-line g:< desired-number-antiinfantry)
+	(can-train bowman-line)
+=>
+	(train bowman-line)
+)
+
+;Use Skirmishers against Archers & Cavalry Archers
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-archer 1)
+		(goal train-anti-cavalryarcher 1)
+	)
+	(unit-type-count-total skirmisher-line g:< desired-number-antiarchertrash)
+	(can-train skirmisher-line)
+=>
+	(train skirmisher-line)
+)
+
+;Use Mangonels against Archers(but not Cavalry Archers) in addition to Skirmishers
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-archer 1)
+	(unit-type-count-total mangonel-line g:< desired-number-antiarcher)
+	(can-train mangonel-line)
+=>
+	(train mangonel-line)
+)
+
+;Scorpions are used to counter infantry, archers, cav archers
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-infantry 1)
+		(or
+			(goal train-anti-archer 1)
+			(goal train-anti-cavalryarcher 1)
+		)
+	)
+	(unit-type-count-total scorpion-line g:< desired-number-antiarcher)
+	(can-train scorpion-line)
+=>
+	(train scorpion-line)
+)
+
+;Use Scout Cavalry against Siege
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-siege 1)
+	(unit-type-count-total scout-cavalry-line g:< desired-number-antisiegetrash)
+	(can-train scout-cavalry-line)
+=>
+	(train scout-cavalry-line)
+)
+
+;Use Camel Riders against Cavalry & Siege
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-cavalry 1)
+		(goal train-anti-siege 1)
+	)
+	(unit-type-count-total camel-rider-line g:< desired-number-anticavalry)
+	(can-train camel-rider-line)
+=>
+	(train camel-rider-line)
+)
+
+;Use Chariots against Infantry
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-infantry 1)
+	(unit-type-count-total chariot-line g:< desired-number-antiinfantry)
+	(can-train chariot-line)
+=>
+	(train chariot-line)
+)
+
+;Navy, generic train rules that affect <x>reme etc training are in military-units-common.per
+
+;Train Juggernauts if you cannot afford Octeres
+(defrule
+	(goal current-phase 5)
+	(not
+		(can-afford-unit octeres)
+	)
+	(wood-amount > 250)
+	(unit-type-count-total juggernaut-line g:< desired-number-juggernauts)
+	(can-train juggernaut-line)
+=>
+	(train juggernaut-line)
+)
+
+;Else train Octeres
+(defrule
+	(goal current-phase 5)
+	(wood-amount > 350)
+	(unit-type-count-total octeres g:< desired-number-octeres)
+	(can-train octeres)
+=>
+	(train octeres)
+)
+
+;Train one Tessarakonteres
+(defrule
+	(goal current-phase 5)
+	(wood-amount > 350)
+	(unit-type-count-total tessarakonteres == 0)
+	(can-train tessarakonteres)
+=>
+	(train tessarakonteres)
+)
+
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-infantry 1)
+	(unit-type-count-total medjay-warrior-line g:< desired-number-antiinfantry)
+	(can-train medjay-warrior-line)
+=>
+	(train medjay-warrior-line)
+)
+
+; Upgrade Medjay Warrior
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-lines 1)
+	(can-research-with-escrow ri-elite-medjay-warrior)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(research ri-elite-medjay-warrior)
+	(chat-local-to-self "research elite medjay warrior")
+)
+
+;unique technologies
+
+;Kopis for Team Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 1)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-kopis)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-kopis)
+	(chat-local-to-self "research kopis(UT)")
+)
+
+;Kopis for Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(goal team-game 0)
+	(can-train-with-escrow ut-kopis)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-kopis)
+	(chat-local-to-self "research kopis(UT)")
+)
+
+;Maryannu for Team Games, will not be done in Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 0)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-maryannu)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-maryannu)
+	(chat-local-to-self "research maryannu(UT)")
+)
+
+;Great Library for Team Games, will not be done in Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 0)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-great-library)
+=>
+	(release-escrow food)
+	(release-escrow wood)
+	(train ut-great-library)
+	(chat-local-to-self "research great library(UT)")
+)
+
+;Aegyptiaca for Team Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 1)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-aegyptiaca)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-aegyptiaca)
+	(chat-local-to-self "research aegyptiaca(UT)")
+)
+
+;Aegyptiaca for Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(goal team-game 0)
+	(can-train-with-escrow ut-aegyptiaca)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-aegyptiaca)
+	(chat-local-to-self "research aegyptiaca(UT)")
 )

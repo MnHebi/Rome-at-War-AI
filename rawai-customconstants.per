@@ -89,17 +89,17 @@
 (defconst phase4-cog-cap 7)
 (defconst phase5-cog-cap 10)
 
-(defconst phase1-mill-distance 12)
+(defconst phase1-mill-distance 6)
 (defconst phase2-mill-distance 16)
 (defconst phase3-mill-distance 18)
 (defconst phase4-mill-distance 30)
 (defconst phase5-mill-distance 30)
-(defconst phase1-lumbercamp-distance 12)
+(defconst phase1-lumbercamp-distance 6)
 (defconst phase2-lumbercamp-distance 16)
 (defconst phase3-lumbercamp-distance 18)
 (defconst phase4-lumbercamp-distance 60)
 (defconst phase5-lumbercamp-distance 60)
-(defconst phase1-miningcamp-distance 12)
+(defconst phase1-miningcamp-distance 6)
 (defconst phase2-miningcamp-distance 16)
 (defconst phase3-miningcamp-distance 18)
 (defconst phase4-miningcamp-distance 60)
@@ -746,11 +746,12 @@
 	(set-strategic-number sn-total-number-explorers 0)
 	(set-strategic-number sn-minimum-town-size 0)
 	(set-strategic-number sn-maximum-town-size 0)
-	(disable-self))
+	(disable-self)
+)
+
 (defrule
 	(true)
 =>
-	(set-strategic-number sn-mill-max-distance 30)
 	(up-get-point position-map-size temporary-goal2)
 	(up-modify-goal map-size g:= temporary-goal2)
     (set-strategic-number sn-enable-boar-hunting 1)
@@ -759,14 +760,17 @@
 	(set-strategic-number sn-easiest-reaction-percentage 20)
 	(set-strategic-number sn-easier-reaction-percentage 60)
 	(up-get-point position-object position-self-x)
-	(disable-self))
+	(disable-self)
+)
+
 (defrule
 	(building-type-count town-center >= 1)
 =>
 	(up-full-reset-search)
 	(up-find-local c: town-center c: 1)
 	(up-set-target-object search-local c: 0)
-	(up-get-point position-object position-self-x))
+	(up-get-point position-object position-self-x)
+)
 #load-if-not-defined DIFFICULTY-EASIEST
 #load-if-not-defined DIFFICULTY-EASY
 (defrule
