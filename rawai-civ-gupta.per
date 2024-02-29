@@ -109,13 +109,10 @@
 	(train catapult)
 )
 
-;Gupta wield Cavalry against Archers, and Siege
+;Gupta wield Cavalry against Siege
 (defrule
 	(goal current-phase 5)
-	(or
-		(goal train-anti-archer 1)
-		(goal train-anti-siege 1)
-	)
+	(goal train-anti-siege 1)
 	(unit-type-count-total cavalry-line g:< desired-number-antisiege)
 	(can-train cavalry-line)
 =>
@@ -125,14 +122,21 @@
 ;Gupta wield Ratha against Infantry
 (defrule
 	(goal current-phase 5)
-	(or
-		(goal train-anti-archer 1)
-		(goal train-anti-siege 1)
-	)
+	(goal train-anti-infantry 1)
 	(unit-type-count-total ratha-melee-line g:< desired-number-antiinfantry)
 	(can-train ratha-melee-line)
 =>
 	(train ratha-melee-line)
+)
+
+;Gupta wield Battle-Elephants against Archers
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-archer 1)
+	(unit-type-count-total battle-elephant-line g:< desired-number-antiarcher)
+	(can-train battle-elephant-line)
+=>
+	(train battle-elephant-line)
 )
 
 ;Scout/Light Cavalry are also used as anti-priest & anti-siege trash
@@ -184,21 +188,21 @@
 	(train maharaja-line)
 )
 
-; Upgrade Unique Unit
+; Upgrade Maharaja
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-lines 1)
-	(can-research-with-escrow ri-elite-unique-unit)
+	(can-research-with-escrow ri-elite-maharaja)
 =>
 	(release-escrow food)
 	(release-escrow gold)
-	(research ri-elite-unique-unit)
-	(chat-local-to-self "research elite unique unit")
+	(research ri-elite-maharaja)
+	(chat-local-to-self "research elite maharaja")
 )
 
 ;unique technologies
 
-;Unique Tech1 for Team Games
+;Chaturanga for Team Games
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
@@ -206,28 +210,28 @@
 		(goal flank-position 1)
 		(goal team-game 1)
 	)
-	(can-train-with-escrow ut-unique-tech1)
+	(can-train-with-escrow ut-chaturanga)
 =>
-	(release-escrow food)
+	(release-escrow wood)
 	(release-escrow gold)
-	(train ut-unique-tech1)
-	(chat-local-to-self "research unique tech1(UT)")
+	(train ut-chaturanga)
+	(chat-local-to-self "research chaturanga(UT)")
 )
 
-;Unique Tech1 for Solo Games
+;Chaturanga for Solo Games
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
 	(goal team-game 0)
-	(can-train-with-escrow ut-unique-tech1)
+	(can-train-with-escrow ut-chaturanga)
 =>
-	(release-escrow food)
+	(release-escrow wood)
 	(release-escrow gold)
-	(train ut-unique-tech1)
-	(chat-local-to-self "research unique tech1(UT)")
+	(train ut-chaturanga)
+	(chat-local-to-self "research chaturanga(UT)")
 )
 
-;Unique Tech2 for Team Games, will not be done in Solo Games
+;Navaratna for Team Games, will not be done in Solo Games
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
@@ -235,10 +239,55 @@
 		(goal flank-position 0)
 		(goal team-game 1)
 	)
-	(can-train-with-escrow ut-unique-tech2)
+	(can-train-with-escrow ut-navaratna)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-navaratna)
+	(chat-local-to-self "research navaratna(UT)")
+)
+
+;Senapati for Team Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 1)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-senapati)
 =>
 	(release-escrow wood)
 	(release-escrow gold)
-	(train ut-unique-tech2)
-	(chat-local-to-self "research unique tech2(UT)")
+	(train ut-senapati)
+	(chat-local-to-self "research senapati(UT)")
+)
+
+;Senapati for Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(goal team-game 0)
+	(can-train-with-escrow ut-senapati)
+=>
+	(release-escrow wood)
+	(release-escrow gold)
+	(train ut-senapati)
+	(chat-local-to-self "research senapati(UT)")
+)
+
+;Steel Longbows for Team Games, will not be done in Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 0)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-steel-longbows)
+=>
+	(release-escrow wood)
+	(release-escrow gold)
+	(train ut-steel-longbows)
+	(chat-local-to-self "research steel longbows(UT)")
 )
