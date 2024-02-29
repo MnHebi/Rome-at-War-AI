@@ -1,4 +1,3 @@
-
 ;civ specific structure preferences
 
 (defrule
@@ -16,7 +15,6 @@
 	(up-modify-goal phase5-stable-cap c:= 4)
 	(up-modify-goal phase5-workshop-cap c:= 4)
 	
-	(disable-self)
 )
 
 ;Always Train Militia/Swordsmen
@@ -50,24 +48,24 @@
 	(train spearman-line)
 )
 
-;Use Cavalry Archers against Cavalry
+;Use Archers against Cavalry
 (defrule
 	(goal current-phase 5)
 	(goal train-anti-cavalry 1)
-	(unit-type-count-total cavalry-archer-line g:< desired-number-anticavalry)
-	(can-train cavalry-archer-line)
-=>
-	(train cavalry-archer-line)
-)
-
-;Use Archers against Infantry
-(defrule
-	(goal current-phase 5)
-	(goal train-anti-infantry 1)
-	(unit-type-count-total bowman-line g:< desired-number-antiinfantry)
+	(unit-type-count-total bowman-line g:< desired-number-anticavalry)
 	(can-train bowman-line)
 =>
 	(train bowman-line)
+)
+
+;Use Crossbowmen against Infantry
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-infantry 1)
+	(unit-type-count-total crossbowman g:< desired-number-antiinfantry)
+	(can-train crossbowman)
+=>
+	(train crossbowman)
 )
 
 ;Use Skirmishers against Archers & Cavalry Archers
@@ -119,7 +117,52 @@
 	(train catapult)
 )
 
-;Gauls wield Cavalry against Infantry, Archers, and Siege
+;use this if civ has shit cavalry
+;Scout/Light Cavalry are used as anti-siege trash if anti-siege units cannot be afforded
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-siege 1)
+	(and
+		(not
+			(can-afford-unit cavalry-line)
+		)
+		(and
+			(not
+				(can-afford-unit scorpion-line)
+			)
+			(not
+				(can-afford-unit catapult)
+			)
+		)
+	)
+	(unit-type-count-total scout-cavalry-line g:< desired-number-antisiegetrash)
+	(can-train scout-cavalry-line)
+=>
+	(train scout-cavalry-line)
+)
+
+;Cavalry are used in addition to other anti-siege measures as anti-siege units
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-siege 1)
+	(unit-type-count-total cavalry-line g:< desired-number-antisiege)
+	(can-train cavalry-line)
+=>
+	(train cavalry-line)
+)
+
+;Scout/Light Cavalry are also as anti-priest trash
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-priest 1)
+	(unit-type-count-total scout-cavalry-line g:< gl-one-percent)
+	(can-train scout-cavalry-line)
+=>
+	(train scout-cavalry-line)
+)
+
+;use this if civ has even half decent Cavalry
+;CivX wield Cavalry against Infantry, Archers, and Siege
 (defrule
 	(goal current-phase 5)
 	(or
@@ -149,10 +192,26 @@
 )
 
 ;Navy, generic train rules that affect <x>reme etc training are in military-units-common.per
+;Train Quadriremes/Quinqueremes to complement our <x>remes and Hemiolia
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-remes 1)
+		(goal train-hemiolia 1)
+	)
+	(wood-amount > 300)
+	(unit-type-count-total quadrireme-line g:< desired-number-qremes)
+	(can-train quadrireme-line)
+=>
+	(train quadrireme-line)
+)
 
 ;Train Juggernauts if you cannot afford Octeres
 (defrule
 	(goal current-phase 5)
+	(not
+		(can-afford-unit octeres)
+	)
 	(wood-amount > 250)
 	(unit-type-count-total juggernaut-line g:< desired-number-juggernauts)
 	(can-train juggernaut-line)
@@ -160,34 +219,31 @@
 	(train juggernaut-line)
 )
 
-
+;Else train Octeres
 (defrule
 	(goal current-phase 5)
-	(or
-		(goal train-anti-infantry 1)
-		(goal train-anti-archer 1)
-	)
-	(unit-type-count-total ambaxtoi-line g:< desired-number-uniqueunittwo)
-	(can-train ambaxtoi-line)
+	(wood-amount > 350)
+	(unit-type-count-total octeres g:< desired-number-octeres)
+	(can-train octeres)
 =>
-	(train ambaxtoi-line)
+	(train octeres)
 )
 
-; Upgrade Ambaxtoi
+; Upgrade Unique Unit
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-lines 1)
-	(can-research-with-escrow ri-elite-ambaxtoi)
+	(can-research-with-escrow ri-elite-unique-unit)
 =>
 	(release-escrow food)
 	(release-escrow gold)
-	(research ri-elite-ambaxtoi)
-	(chat-local-to-self "research elite ambaxtoi")
+	(research ri-elite-unique-unit)
+	(chat-local-to-self "research elite unique unit")
 )
 
 ;unique technologies
 
-;Tribal Remedies for Team Games
+;Unique Tech1 for Team Games
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
@@ -195,28 +251,28 @@
 		(goal flank-position 1)
 		(goal team-game 1)
 	)
-	(can-train-with-escrow ut-tribal-remedies)
+	(can-train-with-escrow ut-unique-tech1)
 =>
 	(release-escrow food)
 	(release-escrow gold)
-	(train ut-tribal-remedies)
-	(chat-local-to-self "research tribal remedies(UT)")
+	(train ut-unique-tech1)
+	(chat-local-to-self "research unique tech1(UT)")
 )
 
-;Tribal Remedies for Solo Games
+;Unique Tech1 for Solo Games
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
 	(goal team-game 0)
-	(can-train-with-escrow ut-tribal-remedies)
+	(can-train-with-escrow ut-unique-tech1)
 =>
 	(release-escrow food)
 	(release-escrow gold)
-	(train ut-tribal-remedies)
-	(chat-local-to-self "research tribal remedies(UT)")
+	(train ut-unique-tech1)
+	(chat-local-to-self "research unique tech1(UT)")
 )
 
-;Oppida for Team Games, will not be done in Solo Games
+;Unique Tech2 for Team Games, will not be done in Solo Games
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
@@ -224,55 +280,10 @@
 		(goal flank-position 0)
 		(goal team-game 1)
 	)
-	(can-train-with-escrow ut-oppida)
+	(can-train-with-escrow ut-unique-tech2)
 =>
 	(release-escrow wood)
-	(release-escrow stone)
-	(train ut-oppida)
-	(chat-local-to-self "research oppida(UT)")
-)
-
-;Furor Celtica for Team Games
-(defrule
-	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
-	(goal upgrade-other 1)
-	(and
-		(goal flank-position 1)
-		(goal team-game 1)
-	)
-	(can-train-with-escrow ut-furor-celtica)
-=>
-	(release-escrow food)
 	(release-escrow gold)
-	(train ut-furor-celtica)
-	(chat-local-to-self "research furor celtica(UT)")
-)
-
-;Furor Celtica for Solo Games
-(defrule
-	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
-	(goal upgrade-other 1)
-	(goal team-game 0)
-	(can-train-with-escrow ut-furor-celtica)
-=>
-	(release-escrow food)
-	(release-escrow gold)
-	(train ut-furor-celtica)
-	(chat-local-to-self "research furor celtica(UT)")
-)
-
-;Gallia Lugdunensis for Team Games, will not be done in Solo Games
-(defrule
-	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
-	(goal upgrade-other 1)
-	(and
-		(goal flank-position 0)
-		(goal team-game 1)
-	)
-	(can-train-with-escrow ut-gallia-lugdunensis)
-=>
-	(release-escrow food)
-	(release-escrow gold)
-	(train ut-gallia-lugdunensis)
-	(chat-local-to-self "research gallia lugdunensis(UT)")
+	(train ut-unique-tech2)
+	(chat-local-to-self "research unique tech2(UT)")
 )

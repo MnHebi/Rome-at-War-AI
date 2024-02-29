@@ -6,8 +6,11 @@
 
 (defrule
 	(and
-		(current-age-time < 60)
 		(goal current-phase 1)
+		(and
+			(up-object-type-count c: lumber-camp == 0)
+			(up-object-type-count c: mill == 0)
+		)
 	)
 =>
 	(up-modify-sn sn-food-gatherer-percentage c:= 80)
@@ -18,10 +21,10 @@
 
 (defrule
 	(and
-		(current-age-time > 60)
+		(goal current-phase 1)
 		(and
-			(goal current-phase 1)
-			(wood-amount < 150)
+			(up-object-type-count c: lumber-camp >= 1)
+			(up-object-type-count c: mill == 0)
 		)
 	)
 =>
@@ -33,15 +36,15 @@
 
 (defrule
 	(and
-		(current-age-time > 60)
+		(goal current-phase 1)
 		(and
-			(goal current-phase 1)
-			(wood-amount < 150)
+			(up-object-type-count c: lumber-camp >= 1)
+			(up-object-type-count c: mill >= 1)
 		)
 	)
 =>
-	(up-modify-sn sn-food-gatherer-percentage c:= 80)
-	(up-modify-sn sn-wood-gatherer-percentage c:= 20)
+	(up-modify-sn sn-food-gatherer-percentage c:= 90)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 10)
 	(up-modify-sn sn-gold-gatherer-percentage c:= 0)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
 )
@@ -91,9 +94,9 @@
 		)
 	)
 =>
-	(up-modify-sn sn-food-gatherer-percentage c:= 60)
-	(up-modify-sn sn-wood-gatherer-percentage c:= 20)
-	(up-modify-sn sn-gold-gatherer-percentage c:= 20)
+	(up-modify-sn sn-food-gatherer-percentage c:= 80)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 10)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
 )
 
@@ -119,7 +122,28 @@
 )
 
 (defrule
-	(goal current-phase 4)
+	(and
+		(current-age-time < 120)
+		(and
+			(goal current-phase 4)
+			(wood-amount < 150)
+		)
+	)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 10)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 80)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 5)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 5)
+)
+
+(defrule
+	(and
+		(current-age-time > 120)
+		(and
+			(goal current-phase 4)
+			(wood-amount > 150)
+		)
+	)
 =>
 	(up-modify-sn sn-food-gatherer-percentage c:= 40)
 	(up-modify-sn sn-wood-gatherer-percentage c:= 45)
@@ -136,35 +160,52 @@
 	(up-modify-sn sn-stone-gatherer-percentage c:= 5)
 )
 
-
 (defrule
-	(true)
-=>
-	(set-strategic-number sn-maximum-hunt-drop-distance 30)
-	(set-strategic-number sn-maximum-food-drop-distance 12) 
-	(set-strategic-number sn-maximum-wood-drop-distance 20)
-	(set-strategic-number sn-maximum-gold-drop-distance 20)
-	(set-strategic-number sn-maximum-stone-drop-distance 20)
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal mill-max-distance == 0)
+	(up-compare-sn mill-max-distance != mill-max-distance)
 =>
 	(up-modify-sn sn-mill-max-distance g:= mill-max-distance)
 )
 
 (defrule
-	(up-compare-goal lumbercamp-max-distance == 0)
+	(up-compare-sn sn-lumber-camp-max-distance != lumbercamp-max-distance)
 =>
 	(up-modify-sn sn-lumber-camp-max-distance g:= lumbercamp-max-distance)
 )
 
 (defrule
-	(up-compare-goal miningcamp-max-distance == 0)
+	(up-compare-sn sn-mining-camp-max-distance != miningcamp-max-distance)
 =>
 	(up-modify-sn sn-mining-camp-max-distance g:= miningcamp-max-distance)
+)
+
+(defrule
+	(up-compare-sn sn-maximum-hunt-drop-distance != max-hunt-distance)
+=>
+	(up-modify-sn sn-maximum-hunt-drop-distance g:= max-hunt-distance)
+)
+
+(defrule
+	(up-compare-sn sn-maximum-food-drop-distance != max-food-distance)
+=>
+	(up-modify-sn sn-maximum-food-drop-distance g:= max-food-distance)
+)
+
+(defrule
+	(up-compare-sn sn-maximum-wood-drop-distance != max-wood-distance)
+=>
+	(up-modify-sn sn-maximum-wood-drop-distance g:= max-wood-distance)
+)
+
+(defrule
+	(up-compare-sn sn-maximum-stone-drop-distance != max-stone-distance)
+=>
+	(up-modify-sn sn-maximum-stone-drop-distance g:= max-stone-distance)
+)
+
+(defrule
+	(up-compare-sn sn-maximum-gold-drop-distance != max-gold-distance)
+=>
+	(up-modify-sn sn-maximum-gold-drop-distance g:= max-gold-distance)
 )
 
 ;run once, timer handles it afterwards
@@ -276,4 +317,36 @@
 	(can-train construction-ship)
 =>
 	(train construction-ship)
+)
+
+;resource dropoff deletions so the AI can keep up with diminishing resources
+(defrule
+	(dropsite-min-distance wood > 8)
+=>
+	(set-goal delete-wood-dropoff 1)
+)
+
+(defrule
+	(goal delete-wood-dropoff 1)
+	(building-type-count-total lumber-camp g:>= desired-number-lumbercamps)
+=>
+	(delete-building lumber-camp)
+	(set-goal delete-wood-dropoff 0)
+)
+
+(defrule
+	(or
+		(dropsite-min-distance stone > 8)
+		(dropsite-min-distance gold > 8)
+	)
+=>
+	(set-goal delete-mining-dropoff 1)
+)
+
+(defrule
+	(goal delete-mining-dropoff 1)
+	(building-type-count-total mining-camp g:>= desired-number-miningcamps)
+=>
+	(delete-building mining-camp)
+	(set-goal delete-mining-dropoff 0)
 )

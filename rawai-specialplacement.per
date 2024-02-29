@@ -1,0 +1,65 @@
+
+(defrule
+	(and
+		(building-type-count-total port > 0)
+		(can-build shipyard)
+	)
+=> 
+	(up-filter-status c: status-ready c: list-active)
+	(chat-local-to-self "shipyard placement, initiate")
+	(up-jump-rule 1)
+)
+
+;	(or
+;		(up-find-resource c: 905 c: 1)
+;		(up-find-resource c: 933 c: 1)
+;	)
+
+(defrule
+	(and
+		(current-age >= feudal-age)
+		(building-type-count-total 903 > 0)
+	)
+	(up-find-local c: 903 c: 1)
+	(building-type-count-total shipyard g:< desired-number-shipyards)
+=>
+	(up-full-reset-search)
+	(up-clean-search search-local object-data-id search-order-desc)
+	(up-find-local c: 903 c: 10)
+	(up-set-target-object search-local c: 0)
+	(up-get-point position-object gl-shipyard-x)
+	(set-goal temporary-goals3 15)
+	(chat-local-to-self "shipyard placement, locate docks")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(and
+		(building-type-count-total 903 > 0)
+		(building-type-count-total shipyard g:< desired-number-shipyards)
+	)
+	(up-can-build-line 0 gl-shipyard-x c: shipyard)
+=>
+	(up-build-line gl-shipyard-x gl-shipyard-x c: shipyard)
+	(chat-local-to-self "shipyard placement, try placing shipyard")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(building-type-count-total 903 > 0)
+	(building-type-count-total shipyard g:< desired-number-shipyards)
+	(up-compare-goal gl-shipyard-x != -1)
+	(up-compare-goal temporary-goals3 > 0)
+=>
+	(generate-random-number 5)
+	(up-get-fact random-number 0 temporary-goals1)
+	(generate-random-number 5)
+	(up-get-fact random-number 0 temporary-goals2)
+	(up-modify-goal gl-shipyard-x g:+ temporary-goals1)
+	(up-modify-goal gl-shipyard-y g:+ temporary-goals2)
+	(up-modify-goal gl-shipyard-x c:- 3)
+	(up-modify-goal gl-shipyard-y c:- 3)
+	(up-modify-goal temporary-goals3 c:- 1)
+	(chat-local-to-self "shipyard placement, loop")
+	(up-jump-rule -3)
+)

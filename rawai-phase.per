@@ -100,7 +100,6 @@
 	(disable-self))
 
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 1)
 =>
 	(up-modify-goal desired-military-explorers g:= phase1-military-explorers)
@@ -115,9 +114,10 @@
 	(up-modify-goal desired-ageup-villagers g:= phase1-age-villager-requirement)
 	(up-modify-goal desired-number-carts g:= phase1-cart-cap)
 	(up-modify-goal desired-number-cogs g:= phase1-cog-cap)
-	(up-modify-goal desired-number-transports g:= phase1-transport-cap))
+	(up-modify-goal desired-number-transports g:= phase1-transport-cap)
+	(chat-local-to-self "Phase 1 civilian caps setup.")
+)
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 1)
 =>
 	(up-modify-goal desired-number-towncenters g:= phase1-towncenter-cap)
@@ -134,9 +134,10 @@
 	(up-modify-goal desired-number-markets g:= phase1-market-cap)
 	(up-modify-goal desired-number-docks g:= phase1-dock-cap)
 	(up-modify-goal desired-number-universities g:= phase1-university-cap)
-	(up-modify-goal desired-number-monasteries g:= phase1-monastery-cap))
+	(up-modify-goal desired-number-monasteries g:= phase1-monastery-cap)
+	(chat-local-to-self "Phase 1 building caps setup.")
+)
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 1)
 =>
 	(up-modify-goal desired-number-castles g:= phase1-castle-cap)
@@ -146,9 +147,10 @@
 	(up-modify-goal desired-number-shipyards g:= phase1-shipyard-cap)
 	(up-modify-goal mill-max-distance g:= phase1-mill-distance)
 	(up-modify-goal lumbercamp-max-distance g:= phase1-lumbercamp-distance)
-	(up-modify-goal miningcamp-max-distance g:= phase1-miningcamp-distance))
+	(up-modify-goal miningcamp-max-distance g:= phase1-miningcamp-distance)
+	(chat-local-to-self "Phase 1 fortification caps & dropoff distance setup.")
+)
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 1)
 =>
 	(set-goal upgrade-military-lines phase1-upgrade-military-line)
@@ -162,11 +164,12 @@
 	(set-goal upgrade-navy phase1-upgrade-navy)
 	(set-goal upgrade-navy-villager-requirement phase1-upgrade-navy-villager-requirement)
 	(set-goal upgrade-other phase1-upgrade-other)
-	(set-goal upgrade-other-villager-requirement phase1-upgrade-other-villager-requirement))
+	(set-goal upgrade-other-villager-requirement phase1-upgrade-other-villager-requirement)
+	(chat-local-to-self "Phase 1 upgrade requirements setup.")
+)
 #load-if-not-defined DIFFICULTY-MODERATE
 #load-if-not-defined DIFFICULTY-HARD
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 1)
 =>
 	(set-goal desired-number-villagers phase1-villager-cap-easy))
@@ -187,7 +190,7 @@
 	(set-goal desired-number-antielephanttrash gl-one-percent)
 	(set-goal desired-number-antisiege gl-one-percent)
 	(set-goal desired-number-antisiegetrash gl-one-percent)
-	(set-goal desired-number-palintonon gl-one-percent)
+	(set-goal desired-number-palintonon 0)
 	(set-goal desired-number-siegetowers gl-one-percent)
 	(set-goal desired-number-batteringrams gl-one-percent)
 	(set-goal desired-number-scorpions gl-one-percent)
@@ -199,7 +202,6 @@
 	(set-goal desired-number-uniqueunitone gl-one-percent)
 	(set-goal desired-number-uniqueunittwo gl-one-percent))
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 1)
 =>
 	(set-goal desired-number-uniqueunitthree gl-one-percent)
@@ -221,12 +223,10 @@
 #end-if
 #load-if-defined DIFFICULTY-MODERATE
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 1)
 =>
 	(set-goal desired-number-villagers phase1-villager-cap-moderate))
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 1)
 =>
 	(set-goal desired-number-antiinfantry gl-one-percent)
@@ -242,7 +242,7 @@
 	(set-goal desired-number-antielephanttrash gl-one-percent)
 	(set-goal desired-number-antisiege gl-one-percent)
 	(set-goal desired-number-antisiegetrash gl-one-percent)
-	(set-goal desired-number-palintonon gl-one-percent)
+	(set-goal desired-number-palintonon 0)
 	(set-goal desired-number-siegetowers gl-one-percent)
 	(set-goal desired-number-batteringrams gl-one-percent)
 	(set-goal desired-number-scorpions gl-one-percent)
@@ -255,7 +255,6 @@
 	(set-goal desired-number-uniqueunittwo gl-one-percent)
 	(set-strategic-number sn-consecutive-idle-unit-limit 5))
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 1)
 =>
 	(set-goal desired-number-uniqueunitthree gl-one-percent)
@@ -275,12 +274,10 @@
 #end-if
 #load-if-defined DIFFICULTY-HARD
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 1)
 =>
 	(set-goal desired-number-villagers phase1-villager-cap-hard))
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 1)
 =>
 	(set-goal desired-number-antiinfantry gl-one-percent)
@@ -296,7 +293,7 @@
 	(set-goal desired-number-antielephanttrash gl-one-percent)
 	(set-goal desired-number-antisiege gl-one-percent)
 	(set-goal desired-number-antisiegetrash gl-one-percent)
-	(set-goal desired-number-palintonon gl-one-percent)
+	(set-goal desired-number-palintonon 0)
 	(set-goal desired-number-siegetowers gl-one-percent)
 	(set-goal desired-number-batteringrams gl-one-percent)
 	(set-goal desired-number-scorpions gl-one-percent)
@@ -308,7 +305,6 @@
 	(set-goal desired-number-uniqueunitone gl-one-percent)
 	(set-goal desired-number-uniqueunittwo gl-one-percent))
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 1)
 =>
 	(set-goal desired-number-uniqueunitthree gl-one-percent)
@@ -328,7 +324,6 @@
 	(set-strategic-number sn-consecutive-idle-unit-limit 1))
 #end-if
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 1)
 =>
 	(set-goal military-spread-time phase1-spread-time)
@@ -347,7 +342,6 @@
 	(set-goal naval-attack-requirement phase1-naval-attack-requirement)
 	(set-goal naval-attack-percentage phase1-naval-attack-percentage))
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 1)
 =>
 	(set-goal scale-military-training phase1-scale-military-training)
@@ -441,7 +435,7 @@
 	(set-goal desired-number-antielephanttrash gl-one-percent)
 	(set-goal desired-number-antisiege gl-one-percent)
 	(set-goal desired-number-antisiegetrash gl-one-percent)
-	(set-goal desired-number-palintonon gl-one-percent)
+	(set-goal desired-number-palintonon 0)
 	(set-goal desired-number-siegetowers gl-one-percent)
 	(set-goal desired-number-batteringrams gl-one-percent)
 	(set-goal desired-number-scorpions gl-one-percent)
@@ -496,7 +490,7 @@
 	(set-goal desired-number-antielephanttrash gl-one-percent)
 	(set-goal desired-number-antisiege gl-one-percent)
 	(set-goal desired-number-antisiegetrash gl-one-percent)
-	(set-goal desired-number-palintonon gl-one-percent)
+	(set-goal desired-number-palintonon 0)
 	(set-goal desired-number-siegetowers gl-one-percent)
 	(set-goal desired-number-batteringrams gl-one-percent)
 	(set-goal desired-number-scorpions gl-one-percent)
@@ -550,7 +544,7 @@
 	(set-goal desired-number-antielephanttrash gl-one-percent)
 	(set-goal desired-number-antisiege gl-one-percent)
 	(set-goal desired-number-antisiegetrash gl-one-percent)
-	(set-goal desired-number-palintonon gl-one-percent)
+	(set-goal desired-number-palintonon 0)
 	(set-goal desired-number-siegetowers gl-one-percent)
 	(set-goal desired-number-batteringrams gl-one-percent)
 	(set-goal desired-number-scorpions gl-one-percent)
@@ -695,7 +689,7 @@
 	(set-goal desired-number-antielephanttrash gl-one-percent)
 	(set-goal desired-number-antisiege gl-one-percent)
 	(set-goal desired-number-antisiegetrash gl-one-percent)
-	(set-goal desired-number-palintonon gl-one-percent)
+	(set-goal desired-number-palintonon 0)
 	(set-goal desired-number-siegetowers gl-one-percent)
 	(set-goal desired-number-batteringrams gl-one-percent)
 	(set-goal desired-number-scorpions gl-one-percent)
@@ -750,7 +744,7 @@
 	(set-goal desired-number-antielephanttrash gl-one-percent)
 	(set-goal desired-number-antisiege gl-one-percent)
 	(set-goal desired-number-antisiegetrash gl-one-percent)
-	(set-goal desired-number-palintonon gl-one-percent)
+	(set-goal desired-number-palintonon 0)
 	(set-goal desired-number-siegetowers gl-one-percent)
 	(set-goal desired-number-batteringrams gl-one-percent)
 	(set-goal desired-number-scorpions gl-one-percent)
@@ -804,7 +798,7 @@
 	(set-goal desired-number-antielephanttrash gl-one-percent)
 	(set-goal desired-number-antisiege gl-one-percent)
 	(set-goal desired-number-antisiegetrash gl-one-percent)
-	(set-goal desired-number-palintonon gl-one-percent)
+	(set-goal desired-number-palintonon 0)
 	(set-goal desired-number-siegetowers gl-one-percent)
 	(set-goal desired-number-batteringrams gl-one-percent)
 	(set-goal desired-number-scorpions gl-one-percent)
@@ -949,7 +943,7 @@
 	(set-goal desired-number-antielephanttrash gl-one-percent)
 	(set-goal desired-number-antisiege gl-one-percent)
 	(set-goal desired-number-antisiegetrash gl-one-percent)
-	(set-goal desired-number-palintonon gl-one-percent)
+	(set-goal desired-number-palintonon 4)
 	(set-goal desired-number-siegetowers gl-one-percent)
 	(set-goal desired-number-batteringrams gl-one-percent)
 	(set-goal desired-number-scorpions gl-one-percent)
@@ -1004,7 +998,7 @@
 	(set-goal desired-number-antielephanttrash gl-one-percent)
 	(set-goal desired-number-antisiege gl-one-percent)
 	(set-goal desired-number-antisiegetrash gl-one-percent)
-	(set-goal desired-number-palintonon gl-one-percent)
+	(set-goal desired-number-palintonon 4)
 	(set-goal desired-number-siegetowers gl-one-percent)
 	(set-goal desired-number-batteringrams gl-one-percent)
 	(set-goal desired-number-scorpions gl-one-percent)
@@ -1058,7 +1052,7 @@
 	(set-goal desired-number-antielephanttrash gl-one-percent)
 	(set-goal desired-number-antisiege gl-one-percent)
 	(set-goal desired-number-antisiegetrash gl-one-percent)
-	(set-goal desired-number-palintonon gl-one-percent)
+	(set-goal desired-number-palintonon 4)
 	(set-goal desired-number-siegetowers gl-one-percent)
 	(set-goal desired-number-batteringrams gl-one-percent)
 	(set-goal desired-number-scorpions gl-one-percent)
@@ -1203,7 +1197,7 @@
 	(set-goal desired-number-antielephanttrash gl-one-percent)
 	(set-goal desired-number-antisiege gl-one-percent)
 	(set-goal desired-number-antisiegetrash gl-one-percent)
-	(set-goal desired-number-palintonon gl-one-percent)
+	(set-goal desired-number-palintonon 6)
 	(set-goal desired-number-siegetowers gl-one-percent)
 	(set-goal desired-number-batteringrams gl-one-percent)
 	(set-goal desired-number-scorpions gl-one-percent)
@@ -1258,7 +1252,7 @@
 	(set-goal desired-number-antielephanttrash gl-one-percent)
 	(set-goal desired-number-antisiege gl-one-percent)
 	(set-goal desired-number-antisiegetrash gl-one-percent)
-	(set-goal desired-number-palintonon gl-one-percent)
+	(set-goal desired-number-palintonon 6)
 	(set-goal desired-number-siegetowers gl-one-percent)
 	(set-goal desired-number-batteringrams gl-one-percent)
 	(set-goal desired-number-scorpions gl-one-percent)
@@ -1312,7 +1306,7 @@
 	(set-goal desired-number-antielephanttrash gl-one-percent)
 	(set-goal desired-number-antisiege gl-one-percent)
 	(set-goal desired-number-antisiegetrash gl-one-percent)
-	(set-goal desired-number-palintonon gl-one-percent)
+	(set-goal desired-number-palintonon 6)
 	(set-goal desired-number-siegetowers gl-one-percent)
 	(set-goal desired-number-batteringrams gl-one-percent)
 	(set-goal desired-number-scorpions gl-one-percent)

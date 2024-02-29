@@ -10,6 +10,7 @@
 
 (defrule
 	(building-type-count-total town-center > 0)
+	(building-type-count-total house == 0)
 	(goal allow-houses 1)
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
@@ -17,6 +18,19 @@
 	(can-build house)
 =>
 	(build house)
+)
+
+(defrule
+	(building-type-count-total town-center > 0)
+	(building-type-count-total house > 0)
+	(goal allow-houses 1)
+	(up-pending-objects c: house <= 0)
+	(population-headroom > 0)
+	(housing-headroom < 5)
+	(up-can-build 0 c: house)
+=>
+	(up-set-placement-data my-player-number -1 c: -10)
+	(up-build place-control 0 c: house)
 )
 
 (defrule
@@ -146,7 +160,7 @@
 (defrule
 	(and
 		(up-gaia-type-count-total c: wood >= 10)
-		(or
+		(and
 			(dropsite-min-distance wood > 4)
 			(building-type-count-total lumber-camp g:< desired-number-lumbercamps)
 		)
@@ -162,12 +176,14 @@
 (defrule
 	(and	
 		(up-gaia-type-count-total c: food >= 5)
-		(or	
-			(building-type-count-total farm g:< desired-number-farms)
-			(building-type-count-total mill g:< desired-number-mills)
+		(and
+			(building-type-count-total lumber-camp >= 1)
+			(and
+				(building-type-count-total farm g:< desired-number-farms)
+				(building-type-count-total mill g:< desired-number-mills)
+			)
 		)
 	)
-	(building-type-count-total lumber-camp >= 1)
 	(can-afford-building mill)
 	(up-pending-objects c: mill <= 0)
 	(up-can-build 0 c: mill)
@@ -371,6 +387,8 @@
 	(up-jump-rule -14)
 )
 
+;jumps end
+
 (defrule
 	(wood-amount > 150)
 	(goal dependent-farms 1)
@@ -383,62 +401,6 @@
 )
 
 (defrule
-	(true)
-=> 
-	(up-filter-status c: status-gather c: list-active)
-	(up-jump-rule 1)
-)
-
-(defrule
-	(or
-		(up-find-resource c: 905 c: 1)
-		(up-find-resource c: 933 c: 1)
-	)
-	(building-type-count-total dock > 0)
-	(building-type-count-total shipyard < 1)
-=>
-	(up-full-reset-search)
-	(up-clean-search search-local object-data-id search-order-desc)
-	(up-find-local c: dock c: 10)
-	(up-set-target-object search-local c: 0)
-	(up-get-point position-object gl-shipyard-x)
-	(set-goal temporary-goals3 15)
-	(chat-local-to-self "shipyard placement, locate fish")
-)
-
-(defrule
-	(and
-		(building-type-count-total dock >= 1)
-		(building-type-count-total shipyard g:< desired-number-shipyards)
-	)
-	(up-can-build-line 0 gl-shipyard-x c: shipyard)
-=>
-	(up-build-line gl-shipyard-x gl-shipyard-x c: shipyard)
-	(chat-local-to-self "shipyard placement, try placing shipyard")
-	(up-jump-rule 1)
-)
-
-(defrule
-	(building-type-count-total dock > 0)
-	(building-type-count-total shipyard < 1)
-	(up-compare-goal gl-shipyard-x != -1)
-	(up-compare-goal temporary-goals3 > 0)
-=>
-	(generate-random-number 5)
-	(up-get-fact random-number 0 temporary-goals1)
-	(generate-random-number 5)
-	(up-get-fact random-number 0 temporary-goals2)
-	(up-modify-goal gl-shipyard-x g:+ temporary-goals1)
-	(up-modify-goal gl-shipyard-y g:+ temporary-goals2)
-	(up-modify-goal gl-shipyard-x c:- 3)
-	(up-modify-goal gl-shipyard-y c:- 3)
-	(up-modify-goal temporary-goals3 c:- 1)
-	(chat-local-to-self "shipyard placement, loop")
-	(up-jump-rule -3)
-)
-;jumps end
-
-(defrule
 	(building-type-count-total town-center == 0)
 	(can-build town-center)
 =>
@@ -447,6 +409,7 @@
 
 (defrule
 	(up-object-type-count-total c: town-center > 0)
+	(up-object-type-count-total c: lumber-camp > 0)
 	(up-object-type-count-total c: mill == 0)
 	(up-pending-objects c: mill <= 0)
 	(up-can-build gl-escrow c: mill)
@@ -543,28 +506,17 @@
 
 (defrule
 	(current-age >= feudal-age)
-	(building-type-count-total market == 0)
-	(can-build market)
-=>
-	(build market)
-)
-
-(defrule
-	(current-age >= castle-age)
 =>
 	(up-get-point position-corner gl-market-placement)
 	(disable-self)
 )
 
 (defrule
-	(current-age >= castle-age)
-	(building-type-count-total market >= 1)
+	(current-age == feudal-age)
+	(building-type-count-total market == 0)
 	(can-build market)
 =>
-	(delete-building market)
-	
 	(up-set-placement-data my-player-number -1 g: gl-market-placement)
-	
 	(up-build place-control 0 c: market)
 )
 
@@ -650,16 +602,66 @@
 (defrule
 	(current-age >= feudal-age)
 	(building-type-count-total sea-tower g:< desired-number-seatowers)
-	(can-build sea-tower)
 	(up-pending-objects c: sea-tower < 1)
-=>	
-	(up-build place-normal 0 c: sea-tower)
+	(up-can-build 0 c: sea-tower)
+=>
+	(up-set-placement-data my-player-number 903 c: 15)
+	(up-build place-control 0 c: sea-tower)
 )
 
-;(defrule
-;	(building-type-count-total fish-trap <= 10)
-;	(cc-players-unit-type-count 0 ocean-fish-class == 0)
-;	(can-build fish-trap)
-;=>
-;	(build fish-trap)
-;)
+(defrule
+	(building-type-count-total fish-trap <= 10)
+	(cc-players-unit-type-count 0 ocean-fish-class == 0)
+	(up-can-build 0 c: fish-trap)
+=>
+	(up-set-placement-data my-player-number 903 c: 10)
+	(up-build place-control 0 c: fish-trap)
+)
+
+(defrule
+	(and
+		(current-age >= feudal-age)
+		(goal flank-position 1)
+	)
+=>
+	(enable-wall-placement 2)
+	(set-strategic-number sn-gate-type-for-wall 1)
+	(chat-local-to-self "Enable walls for flank position")
+	(disable-self)
+)
+
+(defrule
+	(and
+		(current-age >= feudal-age)
+		(goal flank-position 1)
+	)
+	(can-build-wall 2 palisade-wall)
+;	(can-afford-complete-wall 2 palisade-wall)
+	(wall-completed-percentage 2 < 100)
+=>
+	(build-wall 2 palisade-wall)
+)
+
+(defrule
+	(and
+		(current-age >= feudal-age)
+		(goal flank-position 1)
+	)
+	(can-build-wall 2 fortified-palisade-wall)
+	(can-afford-complete-wall 2 fortified-palisade-wall)
+	(wall-completed-percentage 2 < 100)
+=>
+	(build-wall 2 fortified-palisade-wall)
+)
+
+
+(defrule
+	(and
+		(current-age >= feudal-age)
+		(goal flank-position 1)
+	)
+	(can-build-gate 2)
+=>
+	(build-gate 2)
+)
+
