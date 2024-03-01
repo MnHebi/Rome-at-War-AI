@@ -37,6 +37,7 @@
 
 ;rule 4
 (defrule
+	(goal military-superiority >= 2)
 	(players-building-count any-enemy >= 1)
 =>
 	(up-find-player enemy find-closest temporary-goal)
@@ -45,6 +46,7 @@
 
 ;rule 5
 (defrule
+	(goal military-superiority >= 2)
 	(or	
 		(up-compare-goal preferred-target-player <= 0)
 		(up-compare-goal preferred-target-player >= 9)
@@ -55,7 +57,7 @@
 
 ;rule 6
 (defrule
-	(true)
+	(goal military-superiority >= 2)
 =>
 	(up-modify-goal temporary-goal s:= sn-target-player-number)
 	(up-modify-sn sn-target-player-number g:= preferred-target-player)
@@ -63,6 +65,7 @@
 
 ;rule 7
 (defrule
+	(goal military-superiority >= 2)
 	(players-building-count target-player >= 1)
 	(player-in-game target-player)
 (not	
@@ -74,14 +77,14 @@
 
 ;rule 8
 (defrule
-	(true)
+	(goal military-superiority >= 2)
 =>
 	(up-modify-sn sn-target-player-number g:= temporary-goal)
 )
 
 ;rule 9
 (defrule
-	(true)
+	(goal military-superiority >= 2)
 =>
 	(up-modify-sn sn-focus-player-number s:= sn-target-player-number)
 )
@@ -98,7 +101,6 @@
 
 ;rule 11
 (defrule
-	(up-compare-goal military-superiority == 2)
 	(up-compare-goal land-attack-delay >= 0)
 	(up-compare-goal land-attack-percentage >= 1)
 	(up-compare-goal gl-game-time g:>= land-attack-delay)
@@ -115,7 +117,6 @@
 
 ;rule 12
 (defrule
-	(up-compare-goal naval-superiority >= 1)
 	(up-compare-goal naval-attack-delay >= 0)
 	(up-compare-goal naval-attack-percentage >= 1)
 	(up-compare-goal gl-game-time g:>= naval-attack-delay)
@@ -131,169 +132,200 @@
 ;end of rule jumps
 
 ;military superiority system, atm very rudimentary just to get it to stop attacking ALL THE TIME.
-;0 means inferior, 1 is equal, 2 is superior
+;0 means inferior, 1 is good enough to defend, 2 is equal, 3 is superior.
 
 (defrule
-	(and
-		(military-population c:<= gl-one-percent)
-		(players-military-population any-enemy c:>= gl-one-percent)
-	)
+	(up-timer-status mil-pop-check-timer == timer-disabled)
 =>
-	(up-modify-goal military-superiority c:= 0)
+	(enable-timer mil-pop-check-timer 60)
+	(chat-local-to-self "start military population check timer")
+)
+
+(defrule
+	(up-timer-status mil-pop-check-timer == timer-triggered)
+=>
+	(disable-timer mil-pop-check-timer)
+	(set-goal check-mil-pop YES)
+	(set-goal milcheck-concluded BEGAN)
+	(up-modify-goal gl-team-combined-mil-pop c:= 0)
+	(chat-local-to-self "start checking military populations")
 )
 
 (defrule
 	(and
-		(military-population c:>= gl-two-percent)
-		(players-military-population any-enemy c:>= gl-one-percent)
+		(goal check-mil-pop YES)
+		(goal milcheck-concluded BEGAN)
 	)
 =>
-	(up-modify-goal military-superiority c:= 1)
+	(up-get-fact military-population 0 gl-own-military-population)
+	(up-get-fact-sum any-ally military-population 0 gl-team-military-population)
+	(up-modify-goal gl-team-combined-mil-pop g:+ gl-own-military-population)
+	(up-modify-goal gl-team-combined-mil-pop g:+ gl-team-military-population)
+	(set-goal milcheck-concluded OWN)
+	(chat-local-to-self "military population check, own team done")
 )
 
 (defrule
 	(and
-		(military-population c:>= gl-three-percent)
-		(players-military-population any-enemy c:<= gl-one-percent)
+		(goal check-mil-pop YES)
+		(goal milcheck-concluded OWN)
 	)
 =>
-	(up-modify-goal military-superiority c:= 2)
+	(up-get-fact-sum any-enemy military-population 0 gl-enemy-team-military-population)
+	(up-get-fact-sum any-enemy military-population 0 gl-enemy-team-mil-pop-divided)
+	(set-goal milcheck-concluded ENEMY)
+	(chat-local-to-self "military population check, enemy team done")
 )
 
 (defrule
 	(and
-		(military-population c:<= gl-five-percent)
-		(players-military-population any-enemy c:>= gl-five-percent)
+		(goal check-mil-pop YES)
+		(goal milcheck-concluded ENEMY)
 	)
 =>
-	(up-modify-goal military-superiority c:= 0)
+	(up-modify-goal gl-enemy-team-mil-pop-divided c:z/ 2)
+	(set-goal milcheck-concluded COMPARISONS)
+	(chat-local-to-self "military population check, comparisons done")
 )
 
 (defrule
 	(and
-		(military-population c:>= gl-five-percent)
-		(players-military-population any-enemy c:>= gl-five-percent)
+		(goal team-game NO)
+		(and
+			(goal check-mil-pop YES)
+			(goal milcheck-concluded COMPARISONS)
+		)
 	)
+	(up-compare-goal gl-own-military-population g:< gl-enemy-team-military-population)
 =>
-	(up-modify-goal military-superiority c:= 1)
+	(set-goal military-superiority INFERIOR)
+	(set-goal milcheck-concluded CONCLUDED)
+	(set-goal land-attack-percentage 10)
+	(up-modify-sn sn-target-player-number c:= -1)
+	(chat-local-to-self "military-superiority INFERIOR")
 )
 
 (defrule
 	(and
-		(military-population c:>= gl-six-percent)
-		(players-military-population any-enemy c:<= gl-five-percent)
+		(goal team-game YES)
+		(and
+			(goal check-mil-pop YES)
+			(goal milcheck-concluded COMPARISONS)
+		)
 	)
+	(up-compare-goal gl-team-combined-mil-pop g:< gl-enemy-team-military-population)
 =>
-	(up-modify-goal military-superiority c:= 2)
+	(set-goal military-superiority INFERIOR)
+	(set-goal milcheck-concluded CONCLUDED)
+	(set-goal land-attack-percentage 10)
+	(up-modify-sn sn-target-player-number c:= -1)
+	(chat-local-to-self "military-superiority INFERIOR")
 )
 
 (defrule
 	(and
-		(military-population c:<= gl-ten-percent)
-		(players-military-population any-enemy c:>= gl-ten-percent)
+		(goal team-game NO)
+		(and
+			(goal check-mil-pop YES)
+			(goal milcheck-concluded COMPARISONS)
+		)
 	)
+	(up-compare-goal gl-own-military-population g:== gl-enemy-team-mil-pop-divided)
 =>
-	(up-modify-goal military-superiority c:= 0)
+	(set-goal military-superiority TOLERABLE)
+	(set-goal milcheck-concluded CONCLUDED)
+	(set-goal land-attack-percentage 30)
+	(up-modify-sn sn-target-player-number c:= -1)
+	(chat-local-to-self "military-superiority TOLERABLE")
 )
 
 (defrule
 	(and
-		(military-population c:>= gl-ten-percent)
-		(players-military-population any-enemy c:>= gl-ten-percent)
+		(goal team-game YES)
+		(and
+			(goal check-mil-pop YES)
+			(goal milcheck-concluded COMPARISONS)
+		)
 	)
+	(up-compare-goal gl-team-combined-mil-pop g:== gl-enemy-team-mil-pop-divided)
 =>
-	(up-modify-goal military-superiority c:= 1)
+	(set-goal military-superiority TOLERABLE)
+	(set-goal milcheck-concluded CONCLUDED)
+	(set-goal land-attack-percentage 30)
+	(up-modify-sn sn-target-player-number c:= -1)
+	(chat-local-to-self "military-superiority TOLERABLE")
 )
 
 (defrule
 	(and
-		(military-population c:>= gl-fifteen-percent)
-		(players-military-population any-enemy c:<= gl-ten-percent)
+		(goal team-game NO)
+		(and
+			(goal check-mil-pop YES)
+			(goal milcheck-concluded COMPARISONS)
+		)
 	)
+	(up-compare-goal gl-own-military-population g:== gl-enemy-team-military-population)
 =>
-	(up-modify-goal military-superiority c:= 2)
+	(set-goal military-superiority EQUAL)
+	(set-goal milcheck-concluded CONCLUDED)
+	(set-goal land-attack-percentage 50)
+	(chat-local-to-self "military-superiority EQUAL")
 )
 
 (defrule
 	(and
-		(military-population c:<= gl-fifteen-percent)
-		(players-military-population any-enemy c:>= gl-fifteen-percent)
+		(goal team-game YES)
+		(and
+			(goal check-mil-pop YES)
+			(goal milcheck-concluded COMPARISONS)
+		)
 	)
+	(up-compare-goal gl-team-combined-mil-pop g:== gl-enemy-team-military-population)
 =>
-	(up-modify-goal military-superiority c:= 0)
+	(set-goal military-superiority EQUAL)
+	(set-goal milcheck-concluded CONCLUDED)
+	(set-goal land-attack-percentage 50)
+	(chat-local-to-self "military-superiority EQUAL")
 )
 
 (defrule
 	(and
-		(military-population c:>= gl-fifteen-percent)
-		(players-military-population any-enemy c:>= gl-fifteen-percent)
+		(goal team-game NO)
+		(and
+			(goal check-mil-pop YES)
+			(goal milcheck-concluded COMPARISONS)
+		)
 	)
+	(up-compare-goal gl-own-military-population g:> gl-enemy-team-military-population)
 =>
-	(up-modify-goal military-superiority c:= 1)
+	(set-goal military-superiority SUPERIOR)
+	(set-goal milcheck-concluded CONCLUDED)
+	(set-goal land-attack-percentage 80)
+	(chat-local-to-self "military-superiority SUPERIOR")
 )
 
 (defrule
 	(and
-		(military-population c:>= gl-twenty-percent)
-		(players-military-population any-enemy c:<= gl-fifteen-percent)
+		(goal team-game YES)
+		(and
+			(goal check-mil-pop YES)
+			(goal milcheck-concluded COMPARISONS)
+		)
 	)
+	(up-compare-goal gl-team-combined-mil-pop g:> gl-enemy-team-military-population)
 =>
-	(up-modify-goal military-superiority c:= 2)
+	(set-goal military-superiority SUPERIOR)
+	(set-goal milcheck-concluded CONCLUDED)
+	(set-goal land-attack-percentage 80)
+	(chat-local-to-self "military-superiority SUPERIOR")
 )
 
 (defrule
-	(and
-		(military-population c:<= gl-twenty-percent)
-		(players-military-population any-enemy c:>= gl-twenty-percent)
-	)
+	(goal milcheck-concluded CONCLUDED)
 =>
-	(up-modify-goal military-superiority c:= 0)
+	(set-goal milcheck-concluded RESET)
 )
 
-(defrule
-	(and
-		(military-population c:>= gl-twenty-percent)
-		(players-military-population any-enemy c:>= gl-twenty-percent)
-	)
-=>
-	(up-modify-goal military-superiority c:= 1)
-)
-
-(defrule
-	(and
-		(military-population c:>= gl-twentyfive-percent)
-		(players-military-population any-enemy c:<= gl-twenty-percent)
-	)
-=>
-	(up-modify-goal military-superiority c:= 2)
-)
-
-(defrule
-	(and
-		(military-population c:<= gl-twentyfive-percent)
-		(players-military-population any-enemy c:>= gl-twentyfive-percent)
-	)
-=>
-	(up-modify-goal military-superiority c:= 0)
-)
-
-(defrule
-	(and
-		(military-population c:>= gl-twentyfive-percent)
-		(players-military-population any-enemy c:>= gl-twentyfive-percent)
-	)
-=>
-	(up-modify-goal military-superiority c:= 1)
-)
-
-(defrule
-	(and
-		(military-population c:>= gl-thirty-percent)
-		(players-military-population any-enemy c:<= gl-twentyfive-percent)
-	)
-=>
-	(up-modify-goal military-superiority c:= 2)
-)
 
 ;counter unit system begin
 
@@ -346,8 +378,8 @@
 
 (defrule
 	(and
-		(players-unit-type-count every-enemy archer-line == 0)
-		(players-unit-type-count every-enemy hand-cannoneer == 0)
+		(players-unit-type-count every-enemy bowman-line == 0)
+		(players-unit-type-count every-enemy crossbowman == 0)
 	)
 =>
 	(set-goal train-anti-archer 0)

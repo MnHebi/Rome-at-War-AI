@@ -10,22 +10,17 @@
 	(up-jump-rule 1)
 )
 
-;	(or
-;		(up-find-resource c: 905 c: 1)
-;		(up-find-resource c: 933 c: 1)
-;	)
-
 (defrule
 	(and
 		(current-age >= feudal-age)
-		(building-type-count-total 903 > 0)
+		(building-type-count-total port > 0)
 	)
-	(up-find-local c: 903 c: 1)
+	(up-find-local c: port c: 1)
 	(building-type-count-total shipyard g:< desired-number-shipyards)
 =>
 	(up-full-reset-search)
 	(up-clean-search search-local object-data-id search-order-desc)
-	(up-find-local c: 903 c: 10)
+	(up-find-local c: port c: 10)
 	(up-set-target-object search-local c: 0)
 	(up-get-point position-object gl-shipyard-x)
 	(set-goal temporary-goals3 15)
@@ -35,7 +30,7 @@
 
 (defrule
 	(and
-		(building-type-count-total 903 > 0)
+		(building-type-count-total port > 0)
 		(building-type-count-total shipyard g:< desired-number-shipyards)
 	)
 	(up-can-build-line 0 gl-shipyard-x c: shipyard)
@@ -46,7 +41,7 @@
 )
 
 (defrule
-	(building-type-count-total 903 > 0)
+	(building-type-count-total port > 0)
 	(building-type-count-total shipyard g:< desired-number-shipyards)
 	(up-compare-goal gl-shipyard-x != -1)
 	(up-compare-goal temporary-goals3 > 0)

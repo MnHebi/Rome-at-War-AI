@@ -605,16 +605,17 @@
 	(up-pending-objects c: sea-tower < 1)
 	(up-can-build 0 c: sea-tower)
 =>
-	(up-set-placement-data my-player-number 903 c: 15)
+	(up-set-placement-data my-player-number port c: 15)
 	(up-build place-control 0 c: sea-tower)
 )
 
 (defrule
+	(current-age >= feudal-age)
 	(building-type-count-total fish-trap <= 10)
 	(cc-players-unit-type-count 0 ocean-fish-class == 0)
 	(up-can-build 0 c: fish-trap)
 =>
-	(up-set-placement-data my-player-number 903 c: 10)
+	(up-set-placement-data my-player-number port c: 10)
 	(up-build place-control 0 c: fish-trap)
 )
 
@@ -641,19 +642,6 @@
 =>
 	(build-wall 2 palisade-wall)
 )
-
-(defrule
-	(and
-		(current-age >= feudal-age)
-		(goal flank-position 1)
-	)
-	(can-build-wall 2 fortified-palisade-wall)
-	(can-afford-complete-wall 2 fortified-palisade-wall)
-	(wall-completed-percentage 2 < 100)
-=>
-	(build-wall 2 fortified-palisade-wall)
-)
-
 
 (defrule
 	(and
