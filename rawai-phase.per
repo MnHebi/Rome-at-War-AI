@@ -3,16 +3,8 @@
 	(up-compare-goal current-phase <= 0)
 =>
 	(chat-local-to-self "Entering Phase 1.")
-	(set-goal current-phase 1)
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase <= 0)
-	(up-compare-const phase1-always-enabled == 1)
-=>
-	(chat-local-to-self "Entering Phase 1.")
-	(set-goal current-phase IRON-AGE)
+	(up-modify-goal current-phase c:= IRON-AGE)
+	(up-modify-goal previous-phase c:= START)
 	(disable-self)
 )
 
@@ -28,81 +20,113 @@
 	)
 =>
 	(chat-local-to-self "Entering Phase 2.")
-	(set-goal current-phase AGING-EARLY-ANTIQUITY)
+	(up-modify-goal current-phase c:= AGING-EARLY-ANTIQUITY)
+	(up-modify-goal previous-phase c:= IRON-AGE)
 	(disable-self)
 )
 
 (defrule
-	(goal current-phase 1)
-	(current-age == feudal-age)
+	(and
+		(goal current-phase 1)
+		(current-age == feudal-age)
+	)
 =>
 	(chat-local-to-self "Entering Phase 2.")
-	(set-goal current-phase AGING-EARLY-ANTIQUITY)
+	(up-modify-goal current-phase c:= AGING-EARLY-ANTIQUITY)
+	(up-modify-goal previous-phase c:= IRON-AGE)
 	(disable-self)
 )
 
 (defrule
-	(goal current-phase AGING-EARLY-ANTIQUITY)
-	(current-age == feudal-age)
+	(and
+		(goal current-phase AGING-EARLY-ANTIQUITY)
+		(current-age == feudal-age)
+	)
 =>
 	(chat-local-to-self "Entering Phase 3.")
-	(set-goal current-phase EARLY-ANTIQUITY-AGE)
+	(up-modify-goal current-phase c:= EARLY-ANTIQUITY-AGE)
+	(up-modify-goal previous-phase c:= AGING-EARLY-ANTIQUITY)
 	(disable-self)
 )
 
 (defrule
-	(goal current-phase EARLY-ANTIQUITY-AGE)
-	(current-age == castle-age)
+	(and
+		(goal current-phase EARLY-ANTIQUITY-AGE)
+		(current-age == castle-age)
+	)
 =>
 	(chat-local-to-self "Entering Phase 4.")
-	(set-goal current-phase MIDDLE-ANTIQUITY-AGE)
+	(up-modify-goal current-phase c:= MIDDLE-ANTIQUITY-AGE)
+	(up-modify-goal previous-phase c:= EARLY-ANTIQUITY-AGE)
 	(disable-self)
 )
 
 (defrule
-	(goal current-phase MIDDLE-ANTIQUITY-AGE)
-	(current-age == imperial-age)
+	(and
+		(goal current-phase MIDDLE-ANTIQUITY-AGE)
+		(current-age == imperial-age)
+	)
 =>
 	(chat-local-to-self "Entering Phase 5.")
-	(set-goal current-phase IMPERIAL-AGE)
+	(up-modify-goal current-phase c:= IMPERIAL-AGE)
+	(up-modify-goal previous-phase c:= MIDDLE-ANTIQUITY-AGE)
 	(disable-self)
 )
 
 (defrule
-	(up-compare-goal current-phase < 1)
-	(event-detected trigger phase1-aisignal)
+	(and
+		(up-compare-goal current-phase < 1)
+		(event-detected trigger phase1-aisignal)
+	)
 =>
-	(chat-local-to-self "Entering Phase 1.")
-	(set-goal current-phase 1)
-	(disable-self))
+	(chat-local-to-self "Entering Phase 1 via trigger.")
+	(up-modify-goal current-phase c:= 1)
+	(disable-self)
+)
+
 (defrule
-	(up-compare-goal current-phase < 2)
-	(event-detected trigger phase2-aisignal)
+	(and
+		(up-compare-goal current-phase < 2)
+		(event-detected trigger phase2-aisignal)
+	)
 =>
-	(chat-local-to-self "Entering Phase 2.")
-	(set-goal current-phase 2)
-	(disable-self))
+	(chat-local-to-self "Entering Phase 2 via trigger.")
+	(up-modify-goal current-phase c:= 2)
+	(disable-self)
+)
+	
 (defrule
-	(up-compare-goal current-phase < 3)
-	(event-detected trigger phase3-aisignal)
+	(and
+		(up-compare-goal current-phase < 3)
+		(event-detected trigger phase3-aisignal)
+	)
 =>
-	(chat-local-to-self "Entering Phase 3.")
-	(set-goal current-phase 3)
-	(disable-self))
+	(chat-local-to-self "Entering Phase 3 via trigger.")
+	(up-modify-goal current-phase c:= 3)
+	(disable-self)
+)
+
 (defrule
-	(up-compare-goal current-phase < 4)
-	(event-detected trigger phase4-aisignal)
+	(and
+		(up-compare-goal current-phase < 4)
+		(event-detected trigger phase4-aisignal)
+	)
 =>
-	(chat-local-to-self "Entering Phase 4.")
-	(set-goal current-phase 4)
-	(disable-self))
+	(chat-local-to-self "Entering Phase 4 via trigger.")
+	(up-modify-goal current-phase c:= 4)
+	(disable-self)
+)
+
 (defrule
-	(up-compare-goal current-phase < 5)
-	(event-detected trigger phase5-aisignal)
+	(and
+		(up-compare-goal current-phase < 5)
+		(event-detected trigger phase5-aisignal)
+	)
 =>
-	(chat-local-to-self "Entering Phase 5.")
-	(set-goal current-phase 5)
-	(disable-self))
+	(chat-local-to-self "Entering Phase 5 via trigger.")
+	(up-modify-goal current-phase c:= 5)
+	(disable-self)
+)
 
 (defrule
 	(goal current-phase 1)
@@ -122,6 +146,7 @@
 	(up-modify-goal desired-number-transports g:= phase1-transport-cap)
 	(chat-local-to-self "Phase 1 civilian caps setup.")
 )
+
 (defrule
 	(goal current-phase 1)
 =>
@@ -142,6 +167,7 @@
 	(up-modify-goal desired-number-monasteries g:= phase1-monastery-cap)
 	(chat-local-to-self "Phase 1 building caps setup.")
 )
+
 (defrule
 	(goal current-phase 1)
 =>
@@ -155,6 +181,7 @@
 	(up-modify-goal miningcamp-max-distance g:= phase1-miningcamp-distance)
 	(chat-local-to-self "Phase 1 fortification caps & dropoff distance setup.")
 )
+
 (defrule
 	(goal current-phase 1)
 =>
@@ -172,6 +199,7 @@
 	(set-goal upgrade-other-villager-requirement phase1-upgrade-other-villager-requirement)
 	(chat-local-to-self "Phase 1 upgrade requirements setup.")
 )
+
 #load-if-not-defined DIFFICULTY-MODERATE
 #load-if-not-defined DIFFICULTY-HARD
 (defrule
@@ -1387,8 +1415,3 @@
 =>
 	(up-modify-goal naval-attack-interval g:* scale-attack-timer)
 	(up-modify-goal naval-attack-interval c:/ 100))
-
-(defrule
-	(up-compare-goal current-phase g:!= previous-phase)
-=>
-	(up-modify-goal previous-phase g:= current-phase))
