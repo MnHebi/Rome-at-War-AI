@@ -1,6 +1,22 @@
 ; Straight from AiBuilder files.
 
 (defrule
+	(goal allow-houses YES)
+	(building-type-count-total town-center == 0)
+=>
+	(set-goal allow-houses NO)
+	(chat-local-to-self "allow-houses NO")
+)
+
+(defrule
+	(goal allow-houses NO)
+	(building-type-count-total town-center > 0)
+=>
+	(set-goal allow-houses YES)
+	(chat-local-to-self "allow-houses YES")
+)
+
+(defrule
 	(current-age >= castle-age)
 	(building-type-count-total town-center g:< desired-number-towncenters)
 	(can-build town-center)
@@ -9,9 +25,8 @@
 )
 
 (defrule
-	(building-type-count-total town-center > 0)
-	(building-type-count-total house == 0)
 	(goal allow-houses 1)
+	(building-type-count-total house == 0)
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
@@ -21,9 +36,8 @@
 )
 
 (defrule
-	(building-type-count-total town-center > 0)
-	(building-type-count-total house > 0)
 	(goal allow-houses 1)
+	(building-type-count-total house > 0)
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)

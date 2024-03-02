@@ -1,135 +1,99 @@
 
-;start of rule jumping, do not add rules before rule jumping ends
 
-;rule 1
 (defrule
-	(up-compare-goal military-spread-time <= 0)
+	(up-compare-goal current-phase g:!= previous-phase)
+	(goal current-phase 1)
 =>
-	(up-jump-rule 3))
-(defrule
-	(goal spread-units 0)
-	(up-timer-status unit-spread-timer != timer-running)
-=>
-	(up-set-timer c: unit-spread-timer g: military-spread-interval)
-	(up-jump-rule 2)
+	(set-goal military-spread-time 1)
+	(set-goal military-spread-interval 100)
+	(set-goal preferred-target-player -1)
+	(set-goal allow-wall-targeting 1)
+	(set-goal smart-wall-targeting 1)
+	(set-goal land-attack-delay 300)
+	(set-goal land-attack-interval 120)
+	(set-goal land-attack-requirement 6)
+	(set-goal naval-attack-delay 300)
+	(set-goal naval-attack-interval 120)
+	(set-goal naval-attack-requirement 6)
+	
 	(disable-self)
 )
 
-;rule 2
 (defrule
-	(goal spread-units 1)
-	(timer-triggered unit-spread-timer)
+	(up-compare-goal current-phase g:!= previous-phase)
+	(goal current-phase 2)
 =>
-	(set-strategic-number sn-task-ungrouped-soldiers 0)
-	(set-goal spread-units 0); sn-task-ungrouped-soldiers always 1 as a fact
-	(up-set-timer c: unit-spread-timer g: military-spread-interval)
+	(set-goal military-spread-time 1)
+	(set-goal military-spread-interval 100)
+	(set-goal preferred-target-player -1)
+	(set-goal allow-wall-targeting 1)
+	(set-goal smart-wall-targeting 1)
+	(set-goal land-attack-delay 300)
+	(set-goal land-attack-interval 120)
+	(set-goal land-attack-requirement 6)
+	(set-goal naval-attack-delay 300)
+	(set-goal naval-attack-interval 120)
+	(set-goal naval-attack-requirement 6)
+	
+	(disable-self)
 )
 
-;rule 3
 (defrule
-	(goal spread-units 0)
-	(up-timer-status unit-spread-timer != timer-running)
+	(up-compare-goal current-phase g:!= previous-phase)
+	(goal current-phase 3)
 =>
-	(set-strategic-number sn-task-ungrouped-soldiers 1)
-	(set-goal spread-units 1)
-	(up-set-timer c: unit-spread-timer g: military-spread-time)
+	(set-goal military-spread-time 1)
+	(set-goal military-spread-interval 100)
+	(set-goal preferred-target-player -1)
+	(set-goal allow-wall-targeting 1)
+	(set-goal smart-wall-targeting 1)
+	(set-goal land-attack-delay 300)
+	(set-goal land-attack-interval 120)
+	(set-goal land-attack-requirement 6)
+	(set-goal naval-attack-delay 300)
+	(set-goal naval-attack-interval 120)
+	(set-goal naval-attack-requirement 6)
+	
+	(disable-self)
 )
 
-;rule 4
 (defrule
-	(up-compare-goal military-superiority >= 2)
-	(players-building-count any-enemy >= 1)
+	(up-compare-goal current-phase g:!= previous-phase)
+	(goal current-phase 4)
 =>
-	(up-find-player enemy find-closest temporary-goal)
-	(up-modify-sn sn-target-player-number g:= temporary-goal)
+	(set-goal military-spread-time 1)
+	(set-goal military-spread-interval 100)
+	(set-goal preferred-target-player -1)
+	(set-goal allow-wall-targeting 1)
+	(set-goal smart-wall-targeting 1)
+	(set-goal land-attack-delay 300)
+	(set-goal land-attack-interval 120)
+	(set-goal land-attack-requirement 6)
+	(set-goal naval-attack-delay 300)
+	(set-goal naval-attack-interval 120)
+	(set-goal naval-attack-requirement 6)
+	
+	(disable-self)
 )
 
-;rule 5
 (defrule
-	(up-compare-goal military-superiority >= 2)
-	(or	
-		(up-compare-goal preferred-target-player <= 0)
-		(up-compare-goal preferred-target-player >= 9)
-	)
+	(up-compare-goal current-phase g:!= previous-phase)
+	(goal current-phase 5)
 =>
-	(up-jump-rule 3)
+	(set-goal military-spread-time 1)
+	(set-goal military-spread-interval 100)
+	(set-goal preferred-target-player -1)
+	(set-goal allow-wall-targeting 1)
+	(set-goal smart-wall-targeting 1)
+	(set-goal land-attack-delay 300)
+	(set-goal land-attack-interval 120)
+	(set-goal land-attack-requirement 6)
+	(set-goal naval-attack-delay 300)
+	(set-goal naval-attack-interval 120)
+	(set-goal naval-attack-requirement 6)
+	
+	(disable-self)
 )
-
-;rule 6
-(defrule
-	(up-compare-goal military-superiority >= 2)
-=>
-	(up-modify-goal temporary-goal s:= sn-target-player-number)
-	(up-modify-sn sn-target-player-number g:= preferred-target-player)
-)
-
-;rule 7
-(defrule
-	(up-compare-goal military-superiority >= 2)
-	(players-building-count target-player >= 1)
-	(player-in-game target-player)
-(not	
-	(stance-toward target-player ally)
-)
-=>
-	(up-jump-rule 1)
-)
-
-;rule 8
-(defrule
-	(up-compare-goal military-superiority >= 2)
-=>
-	(up-modify-sn sn-target-player-number g:= temporary-goal)
-)
-
-;rule 9
-(defrule
-	(up-compare-goal military-superiority >= 2)
-=>
-	(up-modify-sn sn-focus-player-number s:= sn-target-player-number)
-)
-
-;rule 10
-(defrule
-(or	
-	(goal allow-wall-targeting 0)
-	(goal allow-wall-targeting 1)
-)
-=>
-	(up-modify-sn sn-wall-targeting-mode g:= allow-wall-targeting)
-)
-
-;rule 11
-(defrule
-	(up-compare-goal land-attack-delay >= 0)
-	(up-compare-goal land-attack-percentage >= 1)
-	(up-compare-goal gl-game-time g:>= land-attack-delay)
-	(defend-soldier-count g:>= land-attack-requirement)
-	(up-timer-status land-attack-timer != timer-running)
-=>
-	(chat-local-to-self "land attack")
-	(up-modify-sn sn-percent-attack-soldiers g:= land-attack-percentage)
-	(set-strategic-number sn-percent-attack-boats 0)
-	(attack-now)
-	(up-set-timer c: land-attack-timer g: land-attack-interval)
-	(up-jump-rule 1)
-)
-
-;rule 12
-(defrule
-	(up-compare-goal naval-attack-delay >= 0)
-	(up-compare-goal naval-attack-percentage >= 1)
-	(up-compare-goal gl-game-time g:>= naval-attack-delay)
-	(warboat-count > 0)
-	(up-timer-status naval-attack-timer != timer-running)
-=>
-	(chat-local-to-self "naval attack")
-	(up-modify-sn sn-percent-attack-boats g:= naval-attack-percentage)
-	(set-strategic-number sn-percent-attack-soldiers 0)
-	(attack-now)
-	(up-set-timer c: naval-attack-timer g: naval-attack-interval)
-)
-;end of rule jumps
 
 ;military superiority system, atm very rudimentary just to get it to stop attacking ALL THE TIME.
 ;0 means inferior, 1 is good enough to defend, 2 is equal, 3 is superior.
@@ -336,10 +300,13 @@
 		(or
 			(players-unit-type-count any-enemy spearman-line >= 1)
 			(or
-				(players-unit-type-count any-enemy legionary-ranged-line >= 1)
+				(players-unit-type-count any-enemy caetratus-line >= 1)
 				(or
-					(players-unit-type-count any-enemy legionary-melee-line >= 1)
-					(players-unit-type-count any-enemy imitation-legionary-line >= 1)
+					(players-unit-type-count any-enemy legionary-ranged-line >= 1)
+					(or
+						(players-unit-type-count any-enemy legionary-melee-line >= 1)
+						(players-unit-type-count any-enemy imitation-legionary-line >= 1)
+					)
 				)
 			)
 		)
@@ -354,10 +321,13 @@
 		(and
 			(players-unit-type-count every-enemy spearman-line == 0)
 			(and
-				(players-unit-type-count every-enemy legionary-ranged-line == 0)
+				(players-unit-type-count every-enemy caetratus-line == 1)
 				(and
-					(players-unit-type-count every-enemy legionary-melee-line == 0)
-					(players-unit-type-count every-enemy imitation-legionary-line == 0)
+					(players-unit-type-count every-enemy legionary-ranged-line == 0)
+					(and
+						(players-unit-type-count every-enemy legionary-melee-line == 0)
+						(players-unit-type-count every-enemy imitation-legionary-line == 0)
+					)
 				)
 			)
 		)
@@ -661,3 +631,201 @@
 	(set-goal train-advanced-warship-counter 0)
 )
 ;counter unit system end
+
+#load-if-not-defined DIFFICULTY-MODERATE
+#load-if-not-defined DIFFICULTY-HARD
+#load-if-not-defined DIFFICULTY-HARDEST
+#load-if-not-defined DIFFICULTY-EXTREME
+
+(defrule
+	(true)
+=>
+	(set-goal scale-attack-timer 200)
+	
+	(disable-self)
+)
+
+#end-if
+#end-if
+#end-if
+#end-if
+
+#load-if-defined DIFFICULTY-MODERATE
+
+(defrule
+	(true)
+=>
+	(set-goal scale-attack-timer 100)
+	
+	(disable-self)
+)
+
+#end-if
+
+#load-if-defined DIFFICULTY-HARD
+
+(defrule
+	(true)
+=>
+	(set-goal scale-attack-timer 50)
+	
+	(disable-self)
+)
+
+#end-if
+
+#load-if-defined DIFFICULTY-HARDEST
+
+(defrule
+	(true)
+=>
+	(set-goal scale-attack-timer 25)
+	
+	(disable-self)
+)
+
+#end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+
+(defrule
+	(true)
+=>
+	(set-goal scale-attack-timer 12)
+	
+	(disable-self)
+)
+
+#end-if
+
+;start of rule jumping, do not add rules before rule jumping ends
+
+;rule 1
+(defrule
+	(up-compare-goal military-spread-time <= 0)
+=>
+	(up-jump-rule 3))
+(defrule
+	(goal spread-units 0)
+	(up-timer-status unit-spread-timer != timer-running)
+=>
+	(up-set-timer c: unit-spread-timer g: military-spread-interval)
+	(up-jump-rule 2)
+	(disable-self)
+)
+
+;rule 2
+(defrule
+	(goal spread-units 1)
+	(timer-triggered unit-spread-timer)
+=>
+	(set-strategic-number sn-task-ungrouped-soldiers 0)
+	(set-goal spread-units 0); sn-task-ungrouped-soldiers always 1 as a fact
+	(up-set-timer c: unit-spread-timer g: military-spread-interval)
+)
+
+;rule 3
+(defrule
+	(goal spread-units 0)
+	(up-timer-status unit-spread-timer != timer-running)
+=>
+	(set-strategic-number sn-task-ungrouped-soldiers 1)
+	(set-goal spread-units 1)
+	(up-set-timer c: unit-spread-timer g: military-spread-time)
+)
+
+;rule 4
+(defrule
+	(up-compare-goal military-superiority >= 2)
+	(players-building-count any-enemy >= 1)
+=>
+	(up-find-player enemy find-closest temporary-goal)
+	(up-modify-sn sn-target-player-number g:= temporary-goal)
+)
+
+;rule 5
+(defrule
+	(up-compare-goal military-superiority >= 2)
+	(or	
+		(up-compare-goal preferred-target-player <= 0)
+		(up-compare-goal preferred-target-player >= 9)
+	)
+=>
+	(up-jump-rule 3)
+)
+
+;rule 6
+(defrule
+	(up-compare-goal military-superiority >= 2)
+=>
+	(up-modify-goal temporary-goal s:= sn-target-player-number)
+	(up-modify-sn sn-target-player-number g:= preferred-target-player)
+)
+
+;rule 7
+(defrule
+	(up-compare-goal military-superiority >= 2)
+	(players-building-count target-player >= 1)
+	(player-in-game target-player)
+(not	
+	(stance-toward target-player ally)
+)
+=>
+	(up-jump-rule 1)
+)
+
+;rule 8
+(defrule
+	(up-compare-goal military-superiority >= 2)
+=>
+	(up-modify-sn sn-target-player-number g:= temporary-goal)
+)
+
+;rule 9
+(defrule
+	(up-compare-goal military-superiority >= 2)
+=>
+	(up-modify-sn sn-focus-player-number s:= sn-target-player-number)
+)
+
+;rule 10
+(defrule
+(or	
+	(goal allow-wall-targeting 0)
+	(goal allow-wall-targeting 1)
+)
+=>
+	(up-modify-sn sn-wall-targeting-mode g:= allow-wall-targeting)
+)
+
+;rule 11
+(defrule
+	(up-compare-goal land-attack-delay >= 0)
+	(up-compare-goal land-attack-percentage >= 1)
+	(up-compare-goal gl-game-time g:>= land-attack-delay)
+	(defend-soldier-count g:>= land-attack-requirement)
+	(up-timer-status land-attack-timer != timer-running)
+=>
+	(chat-local-to-self "land attack")
+	(up-modify-sn sn-percent-attack-soldiers g:= land-attack-percentage)
+	(set-strategic-number sn-percent-attack-boats 0)
+	(attack-now)
+	(up-set-timer c: land-attack-timer g: land-attack-interval)
+	(up-jump-rule 1)
+)
+
+;rule 12
+(defrule
+	(up-compare-goal naval-attack-delay >= 0)
+	(up-compare-goal naval-attack-percentage >= 1)
+	(up-compare-goal gl-game-time g:>= naval-attack-delay)
+	(warboat-count > 0)
+	(up-timer-status naval-attack-timer != timer-running)
+=>
+	(chat-local-to-self "naval attack")
+	(up-modify-sn sn-percent-attack-boats g:= naval-attack-percentage)
+	(set-strategic-number sn-percent-attack-soldiers 0)
+	(attack-now)
+	(up-set-timer c: naval-attack-timer g: naval-attack-interval)
+)
+;end of rule jumps

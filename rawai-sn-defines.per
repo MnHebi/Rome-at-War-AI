@@ -3,11 +3,12 @@
 	(true)
 =>
 	(set-strategic-number sn-dock-avoidance-factor -10000)
-	(set-strategic-number sn-dock-proximity-factor -1000)
+	(set-strategic-number sn-dock-proximity-factor 1000)
 	(set-strategic-number sn-dock-placement-mode -1)
 	(set-strategic-number sn-dock-training-filter 2)
 	(set-strategic-number sn-minimum-dropsite-buffer 50)
 	(set-strategic-number sn-mule-cart-dropsite-placement mining-camp)
+	(set-strategic-number sn-do-not-scale-for-difficulty-level 1)
 
 	
 	(disable-self)
@@ -40,3 +41,71 @@
 		(set-strategic-number sn-preferred-mill-placement 1)
 		(disable-self)
 )
+
+#load-if-not-defined DIFFICULTY-MODERATE
+#load-if-not-defined DIFFICULTY-HARD
+#load-if-not-defined DIFFICULTY-HARDEST
+#load-if-not-defined DIFFICULTY-EXTREME
+
+(defrule
+	(true)
+=>
+	(set-strategic-number sn-consecutive-idle-unit-limit 10)
+	
+	(disable-self)
+)
+
+#end-if
+#end-if
+#end-if
+#end-if
+
+#load-if-defined DIFFICULTY-MODERATE
+
+(defrule
+	(true)
+=>
+	(set-strategic-number sn-consecutive-idle-unit-limit 0)
+	
+	(disable-self)
+)
+
+#end-if
+
+#load-if-defined DIFFICULTY-HARD
+
+(defrule
+	(true)
+=>
+	(set-strategic-number sn-consecutive-idle-unit-limit 0)
+	
+	(disable-self)
+)
+
+#end-if
+
+#load-if-defined DIFFICULTY-HARDEST
+
+(defrule
+	(true)
+=>
+	(set-strategic-number sn-consecutive-idle-unit-limit 0)
+	
+	(disable-self)
+)
+
+#end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+
+(defrule
+	(true)
+=>
+	(set-strategic-number sn-consecutive-idle-unit-limit 0)
+	
+	(disable-self)
+)
+
+#end-if
+
+
