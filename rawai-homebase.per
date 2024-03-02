@@ -35,18 +35,40 @@
 
 (defrule
 	(up-timer-status town-size-timer != timer-running)
-(or	(up-pending-placement c: town-center)
-(or	(up-pending-placement c: farm)
-(or	(up-pending-placement c: house)
-(or	(up-pending-placement c: barracks)
-(or	(up-pending-placement c: archery-range)
-(or	(up-pending-placement c: stable)
-(or	(up-pending-placement c: siege-workshop)
-(or	(up-pending-placement c: blacksmith)
-(or	(up-pending-placement c: market)
-(or	(up-pending-placement c: dock)
-(or	(up-pending-placement c: university)
-	(up-pending-placement c: monastery))))))))))))
+	(or	
+		(up-pending-placement c: town-center)
+		(or	
+			(up-pending-placement c: farm)
+			(or	
+				(up-pending-placement c: house)
+				(or	
+					(up-pending-placement c: barracks)
+					(or	
+						(up-pending-placement c: archery-range)
+						(or	
+							(up-pending-placement c: stable)
+							(or	
+								(up-pending-placement c: siege-workshop)
+								(or	
+									(up-pending-placement c: blacksmith)
+									(or	
+										(up-pending-placement c: market)
+										(or	
+											(up-pending-placement c: dock)
+											(or	
+												(up-pending-placement c: university)
+												(up-pending-placement c: monastery)
+											)
+										)
+									)
+								)
+							)
+						)
+					)
+				)
+			)
+		)
+	)
 =>
 	(up-modify-sn sn-maximum-town-size c:+ 1)
 	(up-modify-sn sn-maximum-town-size c:max 8)
@@ -57,13 +79,22 @@
 
 (defrule
 	(up-timer-status town-size-timer != timer-running)
-(or	(up-pending-placement c: castle)
-(or	(up-pending-placement c: feitoria)
-(or	(up-pending-placement c: krepost)
-(or	(up-pending-placement c: bombard-tower)
-(or	(up-pending-placement c: watch-tower)
-(or	(up-pending-placement c: shipyard)
-	(up-pending-placement c: outpost)))))))
+	(or	
+		(up-pending-placement c: castle)
+		(or	
+			(up-pending-placement c: krepost)
+			(or	
+				(up-pending-placement c: bombard-tower)
+				(or	
+					(up-pending-placement c: watch-tower)
+					(or	
+						(up-pending-placement c: shipyard)
+						(up-pending-placement c: outpost)
+					)
+				)
+			)
+		)
+	)
 =>
 	(up-modify-sn sn-maximum-town-size c:+ 1)
 	(up-modify-sn sn-maximum-town-size c:max 8)

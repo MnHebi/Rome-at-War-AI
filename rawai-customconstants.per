@@ -319,11 +319,6 @@
 (defconst phase3-land-attack-requirement 6)
 (defconst phase4-land-attack-requirement 6)
 (defconst phase5-land-attack-requirement 6)
-(defconst phase1-land-attack-percentage 80)
-(defconst phase2-land-attack-percentage 80)
-(defconst phase3-land-attack-percentage 80)
-(defconst phase4-land-attack-percentage 80)
-(defconst phase5-land-attack-percentage 80)
 
 (defconst phase1-transport-x 60)
 (defconst phase2-transport-x 60)
@@ -687,6 +682,39 @@
 (defconst imperial-rusher 191)
 
 (defconst custom-map 192)
+(defconst gl-own-military-population 193)
+(defconst gl-team-military-population 194)
+(defconst gl-team-combined-mil-pop 195)
+(defconst gl-enemy-team-military-population 196)
+(defconst gl-enemy-team-mil-pop-divided 197)
+(defconst gl-own-navy 198)
+(defconst gl-team-navy 199)
+(defconst gl-enemy-team-navy 200)
+(defconst gl-enemy-team-navy-divided 201)
+(defconst check-mil-pop 202)
+(defconst milcheck-concluded 203)
+
+(defconst iron-min-townsize 204)
+(defconst iron-safe-townsize 205)
+(defconst iron-max-townsize 206)
+(defconst e-antiquity-min-townsize 207)
+(defconst e-antiquity-safe-townsize 208)
+(defconst e-antiquity-max-townsize 209)
+(defconst m-antiquity-min-townsize 210)
+(defconst m-antiquity-safe-townsize 211)
+(defconst m-antiquity-max-townsize 212)
+(defconst imperial-min-townsize 213)
+(defconst imperial-safe-townsize 214)
+(defconst imperial-max-townsize 215)
+
+(defconst resource-check 216)
+(defconst forage-present 217)
+(defconst deer-present 218)
+(defconst boar-present 219)
+(defconst fish-present 220)
+(defconst wood-present 221)
+(defconst gold-present 222)
+(defconst stone-present 223)
 
 (defconst temporary-goals1 477)
 (defconst temporary-goals2 478)
@@ -735,11 +763,36 @@
 (defconst MIDDLE-ANTIQUITY 3)
 (defconst IMPERIAL 4)
 
+;current-phase
+(defconst START 0)
+(defconst IRON-AGE 1)
+(defconst AGING-EARLY-ANTIQUITY 2)
+(defconst EARLY-ANTIQUITY-AGE 3)
+(defconst MIDDLE-ANTIQUITY-AGE 4)
+(defconst IMPERIAL-AGE 5)
+
+;milcheck-concluded
+(defconst BEGAN 0)
+(defconst OWN 1)
+(defconst ENEMY 2)
+(defconst COMPARISONS 3)
+(defconst CONCLUDED 4)
+(defconst RESET 5)
+
 ;military-superiority & naval-superiority
 (defconst INFERIOR 0)
 (defconst TOLERABLE 1)
 (defconst EQUAL 2)
 (defconst SUPERIOR 3)
+
+;resource-check
+(defconst SEARCH-BEGIN 0)
+(defconst FOOD-SEARCH 1)
+(defconst WOOD-SEARCH 2)
+(defconst GOLD-SEARCH 3)
+(defconst STONE-SEARCH 4)
+(defconst SEARCH-END 5)
+
 
 ;sea-game
 (defconst LAND 0)
@@ -756,6 +809,8 @@
 (defconst land-attack-timer 3)
 (defconst naval-attack-timer 4)
 (defconst farm-check-timer 5)
+(defconst mil-pop-check-timer 6)
+(defconst resource-check-timer 7)
 
 (defrule
 	(true)
@@ -791,7 +846,7 @@
 	(up-get-point position-map-size temporary-goal2)
 	(up-modify-goal map-size g:= temporary-goal2)
     (set-strategic-number sn-enable-boar-hunting 1)
-	(set-goal spread-units 1)
+	(set-goal spread-units 0)
 	(set-strategic-number sn-wall-targeting-mode 0)
 	(set-strategic-number sn-easiest-reaction-percentage 20)
 	(set-strategic-number sn-easier-reaction-percentage 60)

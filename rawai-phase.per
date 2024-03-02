@@ -12,12 +12,12 @@
 	(up-compare-const phase1-always-enabled == 1)
 =>
 	(chat-local-to-self "Entering Phase 1.")
-	(set-goal current-phase 1)
+	(set-goal current-phase IRON-AGE)
 	(disable-self)
 )
 
 (defrule
-	(goal current-phase 1)
+	(goal current-phase IRON-AGE)
 	(and
 		(current-age == dark-age)
 		(goal age-up-started EARLY-ANTIQUITY)
@@ -28,7 +28,7 @@
 	)
 =>
 	(chat-local-to-self "Entering Phase 2.")
-	(set-goal current-phase 2)
+	(set-goal current-phase AGING-EARLY-ANTIQUITY)
 	(disable-self)
 )
 
@@ -37,32 +37,37 @@
 	(current-age == feudal-age)
 =>
 	(chat-local-to-self "Entering Phase 2.")
-	(set-goal current-phase 2)
+	(set-goal current-phase AGING-EARLY-ANTIQUITY)
 	(disable-self)
 )
 
 (defrule
-	(goal current-phase 2)
+	(goal current-phase AGING-EARLY-ANTIQUITY)
 	(current-age == feudal-age)
 =>
 	(chat-local-to-self "Entering Phase 3.")
-	(set-goal current-phase 3)
+	(set-goal current-phase EARLY-ANTIQUITY-AGE)
 	(disable-self)
 )
+
 (defrule
-	(goal current-phase 3)
+	(goal current-phase EARLY-ANTIQUITY-AGE)
 	(current-age == castle-age)
 =>
 	(chat-local-to-self "Entering Phase 4.")
-	(set-goal current-phase 4)
-	(disable-self))
+	(set-goal current-phase MIDDLE-ANTIQUITY-AGE)
+	(disable-self)
+)
+
 (defrule
-	(goal current-phase 4)
+	(goal current-phase MIDDLE-ANTIQUITY-AGE)
 	(current-age == imperial-age)
 =>
 	(chat-local-to-self "Entering Phase 5.")
-	(set-goal current-phase 5)
-	(disable-self))
+	(set-goal current-phase IMPERIAL-AGE)
+	(disable-self)
+)
+
 (defrule
 	(up-compare-goal current-phase < 1)
 	(event-detected trigger phase1-aisignal)
@@ -334,7 +339,6 @@
 	(set-goal land-attack-delay phase1-land-attack-delay)
 	(set-goal land-attack-interval phase1-land-attack-interval)
 	(set-goal land-attack-requirement phase1-land-attack-requirement)
-	(set-goal land-attack-percentage phase1-land-attack-percentage)
 	(set-goal transport-destination-x phase1-transport-x)
 	(set-goal transport-destination-y phase1-transport-y)
 	(set-goal naval-attack-delay phase1-naval-attack-delay)
@@ -587,7 +591,6 @@
 	(set-goal land-attack-delay phase2-land-attack-delay)
 	(set-goal land-attack-interval phase2-land-attack-interval)
 	(set-goal land-attack-requirement phase2-land-attack-requirement)
-	(set-goal land-attack-percentage phase2-land-attack-percentage)
 	(set-goal transport-destination-x phase2-transport-x)
 	(set-goal transport-destination-y phase2-transport-y)
 	(set-goal naval-attack-delay phase2-naval-attack-delay)
@@ -841,7 +844,6 @@
 	(set-goal land-attack-delay phase3-land-attack-delay)
 	(set-goal land-attack-interval phase3-land-attack-interval)
 	(set-goal land-attack-requirement phase3-land-attack-requirement)
-	(set-goal land-attack-percentage phase3-land-attack-percentage)
 	(set-goal transport-destination-x phase3-transport-x)
 	(set-goal transport-destination-y phase3-transport-y)
 	(set-goal naval-attack-delay phase3-naval-attack-delay)
@@ -1095,7 +1097,6 @@
 	(set-goal land-attack-delay phase4-land-attack-delay)
 	(set-goal land-attack-interval phase4-land-attack-interval)
 	(set-goal land-attack-requirement phase4-land-attack-requirement)
-	(set-goal land-attack-percentage phase4-land-attack-percentage)
 	(set-goal transport-destination-x phase4-transport-x)
 	(set-goal transport-destination-y phase4-transport-y)
 	(set-goal naval-attack-delay phase4-naval-attack-delay)
@@ -1349,7 +1350,6 @@
 	(set-goal land-attack-delay phase5-land-attack-delay)
 	(set-goal land-attack-interval phase5-land-attack-interval)
 	(set-goal land-attack-requirement phase5-land-attack-requirement)
-	(set-goal land-attack-percentage phase5-land-attack-percentage)
 	(set-goal transport-destination-x phase5-transport-x)
 	(set-goal transport-destination-y phase5-transport-y)
 	(set-goal naval-attack-delay phase5-naval-attack-delay)

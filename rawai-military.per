@@ -37,7 +37,7 @@
 
 ;rule 4
 (defrule
-	(goal military-superiority >= 2)
+	(up-compare-goal military-superiority >= 2)
 	(players-building-count any-enemy >= 1)
 =>
 	(up-find-player enemy find-closest temporary-goal)
@@ -46,7 +46,7 @@
 
 ;rule 5
 (defrule
-	(goal military-superiority >= 2)
+	(up-compare-goal military-superiority >= 2)
 	(or	
 		(up-compare-goal preferred-target-player <= 0)
 		(up-compare-goal preferred-target-player >= 9)
@@ -57,7 +57,7 @@
 
 ;rule 6
 (defrule
-	(goal military-superiority >= 2)
+	(up-compare-goal military-superiority >= 2)
 =>
 	(up-modify-goal temporary-goal s:= sn-target-player-number)
 	(up-modify-sn sn-target-player-number g:= preferred-target-player)
@@ -65,7 +65,7 @@
 
 ;rule 7
 (defrule
-	(goal military-superiority >= 2)
+	(up-compare-goal military-superiority >= 2)
 	(players-building-count target-player >= 1)
 	(player-in-game target-player)
 (not	
@@ -77,14 +77,14 @@
 
 ;rule 8
 (defrule
-	(goal military-superiority >= 2)
+	(up-compare-goal military-superiority >= 2)
 =>
 	(up-modify-sn sn-target-player-number g:= temporary-goal)
 )
 
 ;rule 9
 (defrule
-	(goal military-superiority >= 2)
+	(up-compare-goal military-superiority >= 2)
 =>
 	(up-modify-sn sn-focus-player-number s:= sn-target-player-number)
 )

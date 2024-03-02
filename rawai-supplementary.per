@@ -4,3 +4,179 @@
 	(up-modify-sn sn-minimum-town-size c:= 8)
 	(up-modify-sn sn-maximum-town-size c:= 15)
 )
+
+;resource detection logic
+
+;run once right on game start
+(defrule
+	(true)
+=>
+	(enable-timer resource-check-timer 1)
+	
+	(disable-self)
+)
+
+(defrule
+	(up-timer-status resource-check-timer == timer-disabled)
+=>
+	(enable-timer resource-check-timer 60)
+	(chat-local-to-self "start resource check timer")
+)
+
+(defrule
+	(and
+		(up-timer-status resource-check-timer == timer-triggered)
+		(goal resource-check SEARCH-END)
+	)
+=>
+	(set-goal resource-check SEARCH-BEGIN)
+	(disable-timer resource-check-timer)
+	(chat-local-to-self "start checking resources")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal resource-check SEARCH-BEGIN)
+=>
+	(set-goal resource-check FOOD-SEARCH)
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal resource-check FOOD-SEARCH)
+	(up-gaia-type-count c: forage-class < 5)
+=>
+	(set-goal forage-present NO)
+	(chat-local-to-self "forage-present NO")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal resource-check FOOD-SEARCH)
+	(up-gaia-type-count c: forage-class >= 5)
+=>
+	(set-goal forage-present YES)
+	(chat-local-to-self "forage-present YES")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal resource-check FOOD-SEARCH)
+	(up-gaia-type-count c: prey-animal-class < 5)
+=>
+	(set-goal deer-present NO)
+	(chat-local-to-self "deer-present NO")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal resource-check FOOD-SEARCH)
+	(up-gaia-type-count c: prey-animal-class >= 5)
+=>
+	(set-goal deer-present YES)
+	(chat-local-to-self "deer-present YES")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal resource-check FOOD-SEARCH)
+	(up-gaia-type-count c: predator-animal-class == 0)
+=>
+	(set-goal boar-present NO)
+	(chat-local-to-self "boar-present NO")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal resource-check FOOD-SEARCH)
+	(up-gaia-type-count c: predator-animal-class >= 1)
+=>
+	(set-goal boar-present YES)
+	(chat-local-to-self "boar-present YES")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal resource-check FOOD-SEARCH)
+	(or
+		(up-gaia-type-count c: ocean-fish-class < 5)
+		(up-gaia-type-count c: shore-fish-class < 5)
+	)
+=>
+	(set-goal fish-present NO)
+	(set-goal resource-check WOOD-SEARCH)
+	(chat-local-to-self "fish-present NO")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal resource-check FOOD-SEARCH)
+	(or
+		(up-gaia-type-count c: ocean-fish-class >= 5)
+		(up-gaia-type-count c: shore-fish-class >= 5)
+	)
+=>
+	(set-goal fish-present YES)
+	(set-goal resource-check WOOD-SEARCH)
+	(chat-local-to-self "fish-present YES")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal resource-check WOOD-SEARCH)
+	(up-gaia-type-count c: wood < 10)
+=>
+	(set-goal wood-present NO)
+	(set-goal resource-check GOLD-SEARCH)
+	(chat-local-to-self "wood-present NO")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal resource-check WOOD-SEARCH)
+	(up-gaia-type-count c: wood >= 10)
+=>
+	(set-goal wood-present YES)
+	(set-goal resource-check GOLD-SEARCH)
+	(chat-local-to-self "wood-present YES")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal resource-check GOLD-SEARCH)
+	(up-gaia-type-count c: gold < 5)
+=>
+	(set-goal gold-present NO)
+	(set-goal resource-check STONE-SEARCH)
+	(chat-local-to-self "gold-present NO")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal resource-check GOLD-SEARCH)
+	(up-gaia-type-count c: gold >= 5)
+=>
+	(set-goal gold-present YES)
+	(set-goal resource-check STONE-SEARCH)
+	(chat-local-to-self "gold-present YES")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal resource-check STONE-SEARCH)
+	(up-gaia-type-count c: stone < 5)
+=>
+	(set-goal stone-present NO)
+	(set-goal resource-check SEARCH-END)
+	(chat-local-to-self "stone-present NO, end resource check")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal resource-check STONE-SEARCH)
+	(up-gaia-type-count c: stone >= 5)
+=>
+	(set-goal stone-present YES)
+	(set-goal resource-check SEARCH-END)
+	(chat-local-to-self "stone-present YES, end resource check")
+)

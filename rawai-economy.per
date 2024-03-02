@@ -1,5 +1,5 @@
 (defrule
-	(up-timer-status farm-check-timer != timer-running)
+	(up-timer-status farm-check-timer == timer-disabled)
 =>
 	(enable-timer farm-check-timer 30)
 )
@@ -258,6 +258,7 @@
 	)
 =>
 	(set-goal dependent-farms 1)
+	(disable-timer farm-check-timer)
 	(chat-local-to-self "Disable farms, food is near")
 )
 
@@ -272,6 +273,7 @@
 	)
 =>
 	(set-goal dependent-farms 0)
+	(disable-timer farm-check-timer)
 	(chat-local-to-self "Enable farms, food is not near")
 )
 
@@ -284,7 +286,16 @@
 
 (defrule
 	(unit-type-count-total fishing-ship g:< desired-number-fishing)
-	(cc-players-unit-type-count 0 ocean-fish-class >= 1)
+	(goal fish-present YES)
+	(wood-amount > 180)
+	(can-train fishing-ship)
+=>
+	(train fishing-ship)
+)
+
+(defrule
+	(unit-type-count-total fishing-ship < 5)
+	(building-type-count-total fish-trap > 0)
 	(wood-amount > 180)
 	(can-train fishing-ship)
 =>
@@ -293,8 +304,10 @@
 
 (defrule
 	(unit-type-count-total trade-cart g:< desired-number-carts)
-(or	(players-building-type-count any-ally market >= 1)
-	(players-building-type-count any-neutral market >= 1))
+	(or	
+		(players-building-type-count any-ally market >= 1)
+		(players-building-type-count any-neutral market >= 1)
+	)
 	(can-train trade-cart)
 =>
 	(train trade-cart)
@@ -320,21 +333,31 @@
 )
 
 ;resource dropoff deletions so the AI can keep up with diminishing resources
+;also, delete fishing ships once fish are gone
 (defrule
-	(dropsite-min-distance wood > 8)
+	(and
+		(goal wood-present YES)
+		(dropsite-min-distance wood > 8)
+	)
 =>
 	(set-goal delete-wood-dropoff 1)
 )
 
 (defrule
-	(goal delete-wood-dropoff 1)
-	(building-type-count-total lumber-camp g:>= desired-number-lumbercamps)
+	(and
+		(goal delete-wood-dropoff 1)
+		(building-type-count-total lumber-camp g:>= desired-number-lumbercamps)
+	)
 =>
 	(delete-building lumber-camp)
 	(set-goal delete-wood-dropoff 0)
 )
 
 (defrule
+	(and
+		(goal gold-present YES)
+		(goal stone-present YES)
+	)
 	(or
 		(dropsite-min-distance stone > 8)
 		(dropsite-min-distance gold > 8)
@@ -344,9 +367,20 @@
 )
 
 (defrule
-	(goal delete-mining-dropoff 1)
-	(building-type-count-total mining-camp g:>= desired-number-miningcamps)
+	(and
+		(goal delete-mining-dropoff 1)
+		(building-type-count-total mining-camp g:>= desired-number-miningcamps)
+	)
 =>
 	(delete-building mining-camp)
 	(set-goal delete-mining-dropoff 0)
+)
+
+(defrule
+	(and
+		(goal fish-present NO)
+		(unit-type-count fishing-ship > 5)
+	)
+=>
+	(delete-unit fishing-ship)
 )
