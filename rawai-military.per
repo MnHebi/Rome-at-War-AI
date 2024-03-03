@@ -1,4 +1,16 @@
 
+;Respond to requests for help etc here
+
+(defrule
+	(taunt-detected any-ally 48)
+	(military-population > 1)
+=>
+	(acknowledge-taunt this-any-ally 48)
+	(up-modify-sn sn-target-player-number c:= -1)
+	(set-goal land-attack-percentage 90)
+	(attack-now)
+	(chat-to-allies "1 I will send whatever troops I can spare!")
+)
 
 (defrule
 	(up-compare-goal current-phase g:!= previous-phase)
@@ -68,7 +80,7 @@
 	(set-goal smart-wall-targeting 1)
 	(set-goal land-attack-delay 300)
 	(set-goal land-attack-interval 120)
-	(set-goal land-attack-requirement 6)
+	(set-goal land-attack-requirement 10)
 	(set-goal naval-attack-delay 300)
 	(set-goal naval-attack-interval 120)
 	(set-goal naval-attack-requirement 6)
@@ -87,7 +99,7 @@
 	(set-goal smart-wall-targeting 1)
 	(set-goal land-attack-delay 300)
 	(set-goal land-attack-interval 120)
-	(set-goal land-attack-requirement 6)
+	(set-goal land-attack-requirement 10)
 	(set-goal naval-attack-delay 300)
 	(set-goal naval-attack-interval 120)
 	(set-goal naval-attack-requirement 6)
@@ -112,6 +124,7 @@
 	(set-goal check-mil-pop YES)
 	(set-goal milcheck-concluded BEGAN)
 	(up-modify-goal gl-team-combined-mil-pop c:= 0)
+	(up-modify-goal gl-team-combined-navy c:= 0)
 	(chat-local-to-self "start checking military populations")
 )
 
@@ -122,9 +135,13 @@
 	)
 =>
 	(up-get-fact military-population 0 gl-own-military-population)
+	(up-get-fact warboat-count 0 gl-own-navy)
 	(up-get-fact-sum any-ally military-population 0 gl-team-military-population)
+	(up-get-fact-sum any-ally warboat-count 0 gl-team-navy)
 	(up-modify-goal gl-team-combined-mil-pop g:+ gl-own-military-population)
+	(up-modify-goal gl-team-combined-navy g:+ gl-own-navy)
 	(up-modify-goal gl-team-combined-mil-pop g:+ gl-team-military-population)
+	(up-modify-goal gl-team-combined-navy g:+ gl-team-navy)
 	(set-goal milcheck-concluded OWN)
 	(chat-local-to-self "military population check, own team done")
 )
@@ -136,7 +153,9 @@
 	)
 =>
 	(up-get-fact-sum any-enemy military-population 0 gl-enemy-team-military-population)
+	(up-get-fact-sum any-enemy warboat-count 0 gl-enemy-team-navy)
 	(up-get-fact-sum any-enemy military-population 0 gl-enemy-team-mil-pop-divided)
+	(up-get-fact-sum any-enemy warboat-count 0 gl-enemy-team-navy-divided)
 	(set-goal milcheck-concluded ENEMY)
 	(chat-local-to-self "military population check, enemy team done")
 )
@@ -148,9 +167,12 @@
 	)
 =>
 	(up-modify-goal gl-enemy-team-mil-pop-divided c:z/ 2)
+	(up-modify-goal gl-enemy-team-navy-divided c:z/ 2)
 	(set-goal milcheck-concluded COMPARISONS)
 	(chat-local-to-self "military population check, comparisons done")
 )
+
+;land check
 
 (defrule
 	(and
@@ -163,9 +185,8 @@
 	(up-compare-goal gl-own-military-population g:< gl-enemy-team-military-population)
 =>
 	(set-goal military-superiority INFERIOR)
-	(set-goal milcheck-concluded CONCLUDED)
+	(set-goal milcheck-concluded CONCLUDED-LAND)
 	(set-goal land-attack-percentage 10)
-	(up-modify-sn sn-target-player-number c:= -1)
 	(chat-local-to-self "military-superiority INFERIOR")
 )
 
@@ -180,9 +201,8 @@
 	(up-compare-goal gl-team-combined-mil-pop g:< gl-enemy-team-military-population)
 =>
 	(set-goal military-superiority INFERIOR)
-	(set-goal milcheck-concluded CONCLUDED)
+	(set-goal milcheck-concluded CONCLUDED-LAND)
 	(set-goal land-attack-percentage 10)
-	(up-modify-sn sn-target-player-number c:= -1)
 	(chat-local-to-self "military-superiority INFERIOR")
 )
 
@@ -197,9 +217,8 @@
 	(up-compare-goal gl-own-military-population g:== gl-enemy-team-mil-pop-divided)
 =>
 	(set-goal military-superiority TOLERABLE)
-	(set-goal milcheck-concluded CONCLUDED)
+	(set-goal milcheck-concluded CONCLUDED-LAND)
 	(set-goal land-attack-percentage 30)
-	(up-modify-sn sn-target-player-number c:= -1)
 	(chat-local-to-self "military-superiority TOLERABLE")
 )
 
@@ -214,9 +233,8 @@
 	(up-compare-goal gl-team-combined-mil-pop g:== gl-enemy-team-mil-pop-divided)
 =>
 	(set-goal military-superiority TOLERABLE)
-	(set-goal milcheck-concluded CONCLUDED)
+	(set-goal milcheck-concluded CONCLUDED-LAND)
 	(set-goal land-attack-percentage 30)
-	(up-modify-sn sn-target-player-number c:= -1)
 	(chat-local-to-self "military-superiority TOLERABLE")
 )
 
@@ -231,7 +249,7 @@
 	(up-compare-goal gl-own-military-population g:== gl-enemy-team-military-population)
 =>
 	(set-goal military-superiority EQUAL)
-	(set-goal milcheck-concluded CONCLUDED)
+	(set-goal milcheck-concluded CONCLUDED-LAND)
 	(set-goal land-attack-percentage 50)
 	(chat-local-to-self "military-superiority EQUAL")
 )
@@ -247,7 +265,7 @@
 	(up-compare-goal gl-team-combined-mil-pop g:== gl-enemy-team-military-population)
 =>
 	(set-goal military-superiority EQUAL)
-	(set-goal milcheck-concluded CONCLUDED)
+	(set-goal milcheck-concluded CONCLUDED-LAND)
 	(set-goal land-attack-percentage 50)
 	(chat-local-to-self "military-superiority EQUAL")
 )
@@ -263,7 +281,7 @@
 	(up-compare-goal gl-own-military-population g:> gl-enemy-team-military-population)
 =>
 	(set-goal military-superiority SUPERIOR)
-	(set-goal milcheck-concluded CONCLUDED)
+	(set-goal milcheck-concluded CONCLUDED-LAND)
 	(set-goal land-attack-percentage 80)
 	(chat-local-to-self "military-superiority SUPERIOR")
 )
@@ -279,13 +297,145 @@
 	(up-compare-goal gl-team-combined-mil-pop g:> gl-enemy-team-military-population)
 =>
 	(set-goal military-superiority SUPERIOR)
-	(set-goal milcheck-concluded CONCLUDED)
+	(set-goal milcheck-concluded CONCLUDED-LAND)
 	(set-goal land-attack-percentage 80)
 	(chat-local-to-self "military-superiority SUPERIOR")
 )
 
+;navy check
+
 (defrule
-	(goal milcheck-concluded CONCLUDED)
+	(and
+		(goal team-game NO)
+		(and
+			(goal check-mil-pop YES)
+			(goal milcheck-concluded CONCLUDED-LAND)
+		)
+	)
+	(up-compare-goal gl-own-navy g:< gl-enemy-team-navy)
+=>
+	(set-goal naval-superiority INFERIOR)
+	(set-goal milcheck-concluded CONCLUDED-NAVY)
+	(set-goal naval-attack-percentage 10)
+	(chat-local-to-self "naval-superiority INFERIOR")
+)
+
+(defrule
+	(and
+		(goal team-game YES)
+		(and
+			(goal check-mil-pop YES)
+			(goal milcheck-concluded CONCLUDED-LAND)
+		)
+	)
+	(up-compare-goal gl-team-combined-navy g:< gl-enemy-team-navy)
+=>
+	(set-goal naval-superiority INFERIOR)
+	(set-goal milcheck-concluded CONCLUDED-NAVY)
+	(set-goal naval-attack-percentage 10)
+	(chat-local-to-self "naval-superiority INFERIOR")
+)
+
+(defrule
+	(and
+		(goal team-game NO)
+		(and
+			(goal check-mil-pop YES)
+			(goal milcheck-concluded CONCLUDED-LAND)
+		)
+	)
+	(up-compare-goal gl-own-navy g:== gl-enemy-team-navy-divided)
+=>
+	(set-goal naval-superiority TOLERABLE)
+	(set-goal milcheck-concluded CONCLUDED-NAVY)
+	(set-goal naval-attack-percentage 30)
+	(chat-local-to-self "naval-superiority TOLERABLE")
+)
+
+(defrule
+	(and
+		(goal team-game YES)
+		(and
+			(goal check-mil-pop YES)
+			(goal milcheck-concluded CONCLUDED-LAND)
+		)
+	)
+	(up-compare-goal gl-team-combined-navy g:== gl-enemy-team-navy-divided)
+=>
+	(set-goal naval-superiority TOLERABLE)
+	(set-goal milcheck-concluded CONCLUDED-NAVY)
+	(set-goal naval-attack-percentage 30)
+	(chat-local-to-self "naval-superiority TOLERABLE")
+)
+
+(defrule
+	(and
+		(goal team-game NO)
+		(and
+			(goal check-mil-pop YES)
+			(goal milcheck-concluded CONCLUDED-LAND)
+		)
+	)
+	(up-compare-goal gl-own-navy g:== gl-enemy-team-navy)
+=>
+	(set-goal naval-superiority EQUAL)
+	(set-goal milcheck-concluded CONCLUDED-NAVY)
+	(set-goal naval-attack-percentage 50)
+	(chat-local-to-self "naval-superiority EQUAL")
+)
+
+(defrule
+	(and
+		(goal team-game YES)
+		(and
+			(goal check-mil-pop YES)
+			(goal milcheck-concluded CONCLUDED-LAND)
+		)
+	)
+	(up-compare-goal gl-team-combined-navy g:== gl-enemy-team-navy)
+=>
+	(set-goal naval-superiority EQUAL)
+	(set-goal milcheck-concluded CONCLUDED-NAVY)
+	(set-goal naval-attack-percentage 50)
+	(chat-local-to-self "naval-superiority EQUAL")
+)
+
+(defrule
+	(and
+		(goal team-game NO)
+		(and
+			(goal check-mil-pop YES)
+			(goal milcheck-concluded CONCLUDED-LAND)
+		)
+	)
+	(up-compare-goal gl-own-navy g:> gl-enemy-team-navy)
+=>
+	(set-goal naval-superiority SUPERIOR)
+	(set-goal milcheck-concluded CONCLUDED-NAVY)
+	(set-goal naval-attack-percentage 80)
+	(chat-local-to-self "naval-superiority SUPERIOR")
+)
+
+(defrule
+	(and
+		(goal team-game YES)
+		(and
+			(goal check-mil-pop YES)
+			(goal milcheck-concluded CONCLUDED-LAND)
+		)
+	)
+	(up-compare-goal gl-team-combined-navy g:> gl-enemy-team-navy)
+=>
+	(set-goal naval-superiority SUPERIOR)
+	(set-goal milcheck-concluded CONCLUDED-NAVY)
+	(set-goal naval-attack-percentage 80)
+	(chat-local-to-self "naval-superiority SUPERIOR")
+)
+
+;reset
+
+(defrule
+	(goal milcheck-concluded CONCLUDED-NAVY)
 =>
 	(set-goal milcheck-concluded RESET)
 )
@@ -302,10 +452,22 @@
 			(or
 				(players-unit-type-count any-enemy caetratus-line >= 1)
 				(or
-					(players-unit-type-count any-enemy legionary-ranged-line >= 1)
+					(players-unit-type-count any-enemy hippeus-line >= 1)
 					(or
-						(players-unit-type-count any-enemy legionary-melee-line >= 1)
-						(players-unit-type-count any-enemy imitation-legionary-line >= 1)
+						(players-unit-type-count any-enemy praetorian-guard-line >= 1)
+						(or
+							(players-unit-type-count any-enemy woad-raider-line >= 1)
+							(or
+								(players-unit-type-count any-enemy immortal-line >= 1)
+								(or
+									(players-unit-type-count any-enemy legionary-ranged-line >= 1)
+									(or
+										(players-unit-type-count any-enemy legionary-melee-line >= 1)
+										(players-unit-type-count any-enemy imitation-legionary-line >= 1)
+									)
+								)
+							)
+						)
 					)
 				)
 			)
@@ -321,12 +483,24 @@
 		(and
 			(players-unit-type-count every-enemy spearman-line == 0)
 			(and
-				(players-unit-type-count every-enemy caetratus-line == 1)
+				(players-unit-type-count every-enemy caetratus-line == 0)
 				(and
-					(players-unit-type-count every-enemy legionary-ranged-line == 0)
+					(players-unit-type-count every-enemy hippeus-line == 0)
 					(and
-						(players-unit-type-count every-enemy legionary-melee-line == 0)
-						(players-unit-type-count every-enemy imitation-legionary-line == 0)
+						(players-unit-type-count every-enemy praetorian-guard-line == 0)
+						(and
+							(players-unit-type-count every-enemy woad-raider-line == 0)
+							(and
+								(players-unit-type-count every-enemy immortal-line == 0)
+								(and
+									(players-unit-type-count every-enemy legionary-ranged-line == 0)
+									(and
+										(players-unit-type-count every-enemy legionary-melee-line == 0)
+										(players-unit-type-count every-enemy imitation-legionary-line == 0)
+									)
+								)
+							)
+						)
 					)
 				)
 			)
@@ -339,8 +513,17 @@
 ;counter archers, not finished, need to map all the archer units in the mod
 (defrule
 	(or
-		(players-unit-type-count any-enemy bowman-line >= 1)
-		(players-unit-type-count any-enemy crossbowman >= 1)
+		(players-unit-type-count any-enemy chakram-thrower-line >= 1)
+		(or
+			(players-unit-type-count any-enemy peltast-line >= 1)
+			(or
+				(players-unit-type-count any-enemy balearic-slinger-line >= 1)
+				(or
+					(players-unit-type-count any-enemy bowman-line >= 1)
+					(players-unit-type-count any-enemy crossbowman >= 1)
+				)
+			)
+		)
 	)
 =>
 	(set-goal train-anti-archer 1)
@@ -348,8 +531,17 @@
 
 (defrule
 	(and
-		(players-unit-type-count every-enemy bowman-line == 0)
-		(players-unit-type-count every-enemy crossbowman == 0)
+		(players-unit-type-count every-enemy chakram-thrower-line == 0)
+		(and
+			(players-unit-type-count every-enemy peltast-line == 0)
+			(and
+				(players-unit-type-count every-enemy balearic-slinger-line == 0)
+				(and
+					(players-unit-type-count every-enemy bowman-line == 0)
+					(players-unit-type-count every-enemy crossbowman == 0)
+				)
+			)
+		)
 	)
 =>
 	(set-goal train-anti-archer 0)
@@ -360,7 +552,7 @@
 	(or
 		(players-unit-type-count any-enemy amazon-line >= 1)
 		(or
-			(players-unit-type-count any-enemy aphraktos >= 1)
+			(players-unit-type-count any-enemy elephant-archer-line >= 1)
 			(or
 				(players-unit-type-count any-enemy cavalry-archer-line >= 1)
 				(players-unit-type-count any-enemy camel-archer-line >= 1)
@@ -375,7 +567,7 @@
 	(and
 		(players-unit-type-count every-enemy amazon-line == 0)
 		(and
-			(players-unit-type-count every-enemy aphraktos == 0)
+			(players-unit-type-count every-enemy elephant-archer-line == 0)
 			(and
 				(players-unit-type-count every-enemy cavalry-archer-line == 0)
 				(players-unit-type-count every-enemy camel-archer-line == 0)
@@ -393,10 +585,31 @@
 		(or
 			(players-unit-type-count any-enemy cavalry-line >= 1)
 			(or
-				(players-unit-type-count any-enemy camel-line >= 1)
+				(players-unit-type-count any-enemy chariot-line >= 1)
 				(or
-					(players-unit-type-count any-enemy war-elephant-line >= 1)
-					(players-unit-type-count any-enemy battle-elephant-line >= 1)
+					(players-unit-type-count any-enemy ratha-melee-line >= 1)
+					(or
+						(players-unit-type-count any-enemy agema-line >= 1)
+						(or
+							(players-unit-type-count any-enemy kurgan-bound-chief-line >= 1)
+							(or
+								(players-unit-type-count any-enemy praetorian-prefect-line >= 1)
+								(or
+									(players-unit-type-count any-enemy cataphract-line >= 1)
+									(or
+										(players-unit-type-count any-enemy grivpanvar-line >= 1)
+										(or
+											(players-unit-type-count any-enemy camel-line >= 1)
+											(or
+												(players-unit-type-count any-enemy war-elephant-line >= 1)
+												(players-unit-type-count any-enemy battle-elephant-line >= 1)
+											)
+										)
+									)
+								)
+							)
+						)
+					)
 				)
 			)
 		)
@@ -411,10 +624,31 @@
 		(and
 			(players-unit-type-count every-enemy cavalry-line == 0)
 			(and
-				(players-unit-type-count every-enemy camel-line == 0)
+				(players-unit-type-count every-enemy chariot-line == 0)
 				(and
-					(players-unit-type-count every-enemy war-elephant-line == 0)
-					(players-unit-type-count every-enemy battle-elephant-line == 0)
+					(players-unit-type-count every-enemy ratha-melee-line == 0)
+					(and
+						(players-unit-type-count every-enemy agema-line == 0)
+						(and
+							(players-unit-type-count every-enemy kurgan-bound-chief-line == 0)
+							(and
+								(players-unit-type-count every-enemy praetorian-prefect-line == 0)
+								(and
+									(players-unit-type-count every-enemy cataphract-line == 0)
+									(and
+										(players-unit-type-count every-enemy grivpanvar-line == 0)
+										(and
+											(players-unit-type-count every-enemy camel-line == 0)
+											(and
+												(players-unit-type-count every-enemy war-elephant-line == 0)
+												(players-unit-type-count every-enemy battle-elephant-line == 0)
+											)
+										)
+									)
+								)
+							)
+						)
+					)
 				)
 			)
 		)

@@ -75,20 +75,16 @@
 (defconst land-attack-requirement 56)
 (defconst land-attack-percentage 57)
 
-;what on earth are these two for ??? Values for these are never set.
-;reuse and rename later
-(defconst transport-destination-x 58)
-(defconst transport-destination-y 59)
+(defconst pop-limits-set 58)
+(defconst dont-spam-requests 59)
 
 (defconst naval-attack-delay 60)
 (defconst naval-attack-interval 61)
 (defconst naval-attack-requirement 62)
 (defconst naval-attack-percentage 63)
 
-;these two goals are useless, what on earth were they even intended for ???
-;reuse & rename when needed
-(defconst scale-military-training 64)
-(defconst scale-civilian-training 65)
+(defconst town-size-attack 64)
+(defconst dont-spam-taunts 65)
 
 (defconst mill-max-distance 66)
 (defconst lumbercamp-max-distance 67)
@@ -248,32 +244,69 @@
 (defconst gl-enemy-team-mil-pop-divided 197)
 (defconst gl-own-navy 198)
 (defconst gl-team-navy 199)
-(defconst gl-enemy-team-navy 200)
-(defconst gl-enemy-team-navy-divided 201)
-(defconst check-mil-pop 202)
-(defconst milcheck-concluded 203)
+(defconst gl-team-combined-navy 200)
+(defconst gl-enemy-team-navy 201)
+(defconst gl-enemy-team-navy-divided 202)
+(defconst check-mil-pop 203)
+(defconst milcheck-concluded 204)
 
-(defconst iron-min-townsize 204)
-(defconst iron-safe-townsize 205)
-(defconst iron-max-townsize 206)
-(defconst e-antiquity-min-townsize 207)
-(defconst e-antiquity-safe-townsize 208)
-(defconst e-antiquity-max-townsize 209)
-(defconst m-antiquity-min-townsize 210)
-(defconst m-antiquity-safe-townsize 211)
-(defconst m-antiquity-max-townsize 212)
-(defconst imperial-min-townsize 213)
-(defconst imperial-safe-townsize 214)
-(defconst imperial-max-townsize 215)
+(defconst iron-min-townsize 205)
+(defconst iron-safe-townsize 206)
+(defconst iron-max-townsize 207)
+(defconst e-antiquity-min-townsize 208)
+(defconst e-antiquity-safe-townsize 209)
+(defconst e-antiquity-max-townsize 210)
+(defconst m-antiquity-min-townsize 211)
+(defconst m-antiquity-safe-townsize 212)
+(defconst m-antiquity-max-townsize 213)
+(defconst imperial-min-townsize 214)
+(defconst imperial-safe-townsize 215)
+(defconst imperial-max-townsize 216)
 
-(defconst resource-check 216)
-(defconst forage-present 217)
-(defconst deer-present 218)
-(defconst boar-present 219)
-(defconst fish-present 220)
-(defconst wood-present 221)
-(defconst gold-present 222)
-(defconst stone-present 223)
+(defconst resource-check 217)
+(defconst forage-present 218)
+(defconst deer-present 219)
+(defconst boar-present 220)
+(defconst fish-present 221)
+(defconst wood-present 222)
+(defconst gold-present 223)
+(defconst stone-present 224)
+
+(defconst resign-state 225)
+
+(defconst gl-fishtrap-x 226)
+(defconst gl-fishtrap-y 227)
+(defconst gl-seatower-x 228)
+(defconst gl-seatower-y 229)
+(defconst gl-seawall-x 230)
+(defconst gl-seawall-y 231)
+(defconst gl-seagate-x 232)
+(defconst gl-seagate-y 233)
+(defconst gl-port-x 234)
+(defconst gl-port-y 235)
+
+(defconst seatower-tries 236)
+(defconst fishtrap-tries 237)
+(defconst seawall-tries 238)
+(defconst seagate-tries 239)
+
+(defconst extreme-cheats 240)
+
+(defconst gl-seatower-bound-x 240)
+(defconst gl-seatower-bound-y 241)
+(defconst gl-fishtrap-bound-x 242)
+(defconst gl-fishtrap-bound-y 243)
+(defconst gl-seawall-bound-x 244)
+(defconst gl-seawall-bound-y 245)
+(defconst gl-seagate-bound-x 246)
+(defconst gl-seagate-bound-y 247)
+(defconst gl-shipyard-bound-x 248)
+(defconst gl-shipyard-bound-y 249)
+
+(defconst seatower-randomnr1 473)
+(defconst seatower-randomnr2 474)
+(defconst fishtrap-randomnr1 475)
+(defconst fishtrap-randomnr2 476)
 
 (defconst temporary-goals1 477)
 (defconst temporary-goals2 478)
@@ -330,19 +363,30 @@
 (defconst MIDDLE-ANTIQUITY-AGE 4)
 (defconst IMPERIAL-AGE 5)
 
+;extreme-cheats
+(defconst GIVE 2)
+(defconst FINISHED 3)
+
 ;milcheck-concluded
 (defconst BEGAN 0)
 (defconst OWN 1)
 (defconst ENEMY 2)
 (defconst COMPARISONS 3)
-(defconst CONCLUDED 4)
-(defconst RESET 5)
+(defconst CONCLUDED-LAND 4)
+(defconst CONCLUDED-NAVY 5)
+(defconst RESET 6)
 
 ;military-superiority & naval-superiority
 (defconst INFERIOR 0)
 (defconst TOLERABLE 1)
 (defconst EQUAL 2)
 (defconst SUPERIOR 3)
+
+;pop-limits-set
+(defconst PARTONE 2)
+(defconst PARTTWO 3)
+(defconst PARTTHREE 4)
+(defconst PARTFOUR 5)
 
 ;resource-check
 (defconst SEARCH-BEGIN 0)
@@ -370,6 +414,9 @@
 (defconst farm-check-timer 5)
 (defconst mil-pop-check-timer 6)
 (defconst resource-check-timer 7)
+(defconst taunt-spam-timer 8)
+(defconst request-spam-timer 9)
+(defconst extreme-cheats-timer 10)
 
 (defrule
 	(true)

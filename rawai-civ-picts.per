@@ -1,3 +1,287 @@
+;civ specific structure preferences
+
+(defrule
+	(goal current-phase 1)
+=>
+	(up-modify-goal desired-number-towncenters c:= 1)
+	(up-modify-goal desired-number-barracks c:= 1)
+	(up-modify-goal desired-number-ranges c:= 0)
+	(up-modify-goal desired-number-stables c:= 0)
+	(up-modify-goal desired-number-workshops c:= 0)
+	(up-modify-goal desired-number-blacksmiths c:= 0)
+	(up-modify-goal desired-number-markets c:= 0)
+	(up-modify-goal desired-number-docks c:= 1)
+	(up-modify-goal desired-number-universities c:= 0)
+	(up-modify-goal desired-number-monasteries c:= 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 1)
+=>
+	(up-modify-goal desired-number-castles c:= 0)
+	(up-modify-goal desired-number-outposts c:= 0)
+	(up-modify-goal desired-number-watchtowers c:= 0)
+	(up-modify-goal desired-number-seatowers c:= 0)
+	(up-modify-goal desired-number-shipyards c:= 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 2)
+=>
+	(up-modify-goal desired-number-towncenters c:= 1)
+	(up-modify-goal desired-number-barracks c:= 1)
+	(up-modify-goal desired-number-ranges c:= 1)
+	(up-modify-goal desired-number-stables c:= 1)
+	(up-modify-goal desired-number-workshops c:= 0)
+	(up-modify-goal desired-number-blacksmiths c:= 1)
+	(up-modify-goal desired-number-markets c:= 1)
+	(up-modify-goal desired-number-docks c:= 1)
+	(up-modify-goal desired-number-universities c:= 1)
+	(up-modify-goal desired-number-monasteries c:= 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 2)
+=>
+	(up-modify-goal desired-number-castles c:= 0)
+	(up-modify-goal desired-number-outposts c:= 0)
+	(up-modify-goal desired-number-watchtowers c:= 0)
+	(up-modify-goal desired-number-seatowers c:= 0)
+	(up-modify-goal desired-number-shipyards c:= 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 3)
+=>
+	(up-modify-goal desired-number-towncenters c:= 1)
+	(up-modify-goal desired-number-barracks c:= 1)
+	(up-modify-goal desired-number-ranges c:= 1)
+	(up-modify-goal desired-number-stables c:= 1)
+	(up-modify-goal desired-number-workshops c:= 0)
+	(up-modify-goal desired-number-blacksmiths c:= 1)
+	(up-modify-goal desired-number-markets c:= 1)
+	(up-modify-goal desired-number-docks c:= 2)
+	(up-modify-goal desired-number-universities c:= 1)
+	(up-modify-goal desired-number-monasteries c:= 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 3)
+=>
+	(up-modify-goal desired-number-castles c:= 0)
+	(up-modify-goal desired-number-outposts c:= 2)
+	(up-modify-goal desired-number-watchtowers c:= 4)
+	(up-modify-goal desired-number-seatowers c:= 4)
+	(up-modify-goal desired-number-shipyards c:= 8)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 4)
+=>
+	(up-modify-goal desired-number-towncenters c:= 4)
+	(up-modify-goal desired-number-barracks c:= 1)
+	(up-modify-goal desired-number-ranges c:= 1)
+	(up-modify-goal desired-number-stables c:= 1)
+	(up-modify-goal desired-number-workshops c:= 1)
+	(up-modify-goal desired-number-blacksmiths c:= 1)
+	(up-modify-goal desired-number-markets c:= 1)
+	(up-modify-goal desired-number-docks c:= 2)
+	(up-modify-goal desired-number-universities c:= 1)
+	(up-modify-goal desired-number-monasteries c:= 1)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 4)
+=>
+	(up-modify-goal desired-number-castles c:= 1)
+	(up-modify-goal desired-number-outposts c:= 4)
+	(up-modify-goal desired-number-watchtowers c:= 10)
+	(up-modify-goal desired-number-seatowers c:= 5)
+	(up-modify-goal desired-number-shipyards c:= 8)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 5)
+=>
+	(up-modify-goal desired-number-towncenters c:= 8)
+	(up-modify-goal desired-number-barracks c:= 5)
+	(up-modify-goal desired-number-ranges c:= 2)
+	(up-modify-goal desired-number-stables c:= 2)
+	(up-modify-goal desired-number-workshops c:= 4)
+	(up-modify-goal desired-number-blacksmiths c:= 1)
+	(up-modify-goal desired-number-markets c:= 2)
+	(up-modify-goal desired-number-docks c:= 2)
+	(up-modify-goal desired-number-universities c:= 1)
+	(up-modify-goal desired-number-monasteries c:= 1)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 5)
+=>
+	(up-modify-goal desired-number-castles c:= 4)
+	(up-modify-goal desired-number-outposts c:= 6)
+	(up-modify-goal desired-number-watchtowers c:= 10)
+	(up-modify-goal desired-number-seatowers c:= 5)
+	(up-modify-goal desired-number-shipyards c:= 8)
+	
+	(disable-self)
+)
+
+;Always Train Militia/Swordsmen
+(defrule
+	(goal current-phase 5)
+	(unit-type-count-total militiaman-line g:< desired-number-antiinfantry)
+	(can-train militiaman-line)
+=>
+	(train militiaman-line)
+)
+
+;Always have some Spearmen
+(defrule
+	(goal current-phase 5)
+	(unit-type-count-total spearman-line g:< gl-one-percent)
+	(can-train spearman-line)
+=>
+	(train spearman-line)
+)
+
+;Otherwise, train them to counter Cavalry and Cavalry Archers
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-cavalry 1)
+		(goal train-anti-cavalryarcher 1)
+	)
+	(unit-type-count-total spearman-line g:< desired-number-anticavalrytrash)
+	(can-train spearman-line)
+=>
+	(train spearman-line)
+)
+
+;Use Archers against Cavalry & Infantry
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-cavalry 1)
+		(goal train-anti-infantry 1)
+	)
+	(unit-type-count-total bowman-line g:< desired-number-anticavalry)
+	(can-train bowman-line)
+=>
+	(train bowman-line)
+)
+
+;Use Skirmishers against Archers & Cavalry Archers
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-archer 1)
+		(goal train-anti-cavalryarcher 1)
+	)
+	(unit-type-count-total skirmisher-line g:< desired-number-antiarchertrash)
+	(can-train skirmisher-line)
+=>
+	(train skirmisher-line)
+)
+
+;Use Mangonels against Archers(but not Cavalry Archers) in addition to Skirmishers
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-archer 1)
+	(unit-type-count-total mangonel-line g:< desired-number-antiarcher)
+	(can-train mangonel-line)
+=>
+	(train mangonel-line)
+)
+
+;Scorpions are used to counter infantry, archers, cav archers
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-infantry 1)
+		(or
+			(goal train-anti-archer 1)
+			(goal train-anti-cavalryarcher 1)
+		)
+	)
+	(unit-type-count-total scorpion-line g:< desired-number-antiarcher)
+	(can-train scorpion-line)
+=>
+	(train scorpion-line)
+)
+
+;Scout/Light Cavalry are used as anti-siege trash if anti-siege units cannot be afforded
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-siege 1)
+	(and
+		(not
+			(can-afford-unit cavalry-line)
+		)
+		(and
+			(not
+				(can-afford-unit scorpion-line)
+			)
+			(not
+				(can-afford-unit catapult)
+			)
+		)
+	)
+	(unit-type-count-total scout-cavalry-line g:< desired-number-antisiegetrash)
+	(can-train scout-cavalry-line)
+=>
+	(train scout-cavalry-line)
+)
+
+;Cavalry are used in addition to other anti-siege measures as anti-siege units
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-siege 1)
+	(unit-type-count-total cavalry-line g:< desired-number-antisiege)
+	(can-train cavalry-line)
+=>
+	(train cavalry-line)
+)
+
+;Scout/Light Cavalry are also as anti-priest trash
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-priest 1)
+	(unit-type-count-total scout-cavalry-line g:< gl-one-percent)
+	(can-train scout-cavalry-line)
+=>
+	(train scout-cavalry-line)
+)
+
+;Navy, generic train rules that affect <x>reme etc training are in military-units-common.per
+
+;Train Juggernauts
+(defrule
+	(goal current-phase 5)
+	(wood-amount > 250)
+	(unit-type-count-total juggernaut-line g:< desired-number-juggernauts)
+	(can-train juggernaut-line)
+=>
+	(train juggernaut-line)
+)
 
 (defrule
 	(goal current-phase 5)
@@ -5,15 +289,112 @@
 		(goal train-anti-infantry 1)
 		(goal train-anti-siege 1)
 	)
-	(and
-		(unit-type-count-total woad-raider g:< desired-number-antiinfantry)
-		(unit-type-count-total elite-woad-raider g:< desired-number-antiinfantry)
-	)
-	(or
-		(can-train woad-raider)
-		(can-train elite-woad-raider)
-	)
+	(unit-type-count-total woad-raider-line g:< desired-number-uniqueunittwo)
+	(can-train woad-raider-line)
 =>
-	(train woad-raider)
-	(train elite-woad-raider)
+	(train woad-raider-line)
+)
+
+; Upgrade Woad Raider
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-lines 1)
+	(can-research-with-escrow ri-elite-woad-raider)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(research ri-elite-woad-raider)
+	(chat-local-to-self "research elite woad raider")
+)
+
+;unique technologies
+
+;Hill Forts for Team Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 1)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-hill-forts)
+=>
+	(release-escrow food)
+	(release-escrow wood)
+	(train ut-hill-forts)
+	(chat-local-to-self "research hill forts(UT)")
+)
+
+;Hill Forts for Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(goal team-game 0)
+	(can-train-with-escrow ut-hill-forts)
+=>
+	(release-escrow food)
+	(release-escrow wood)
+	(train ut-hill-forts)
+	(chat-local-to-self "research hill forts(UT)")
+)
+
+;Brochs for Team Games, will not be done in Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 0)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-brochs)
+=>
+	(release-escrow wood)
+	(release-escrow gold)
+	(train ut-brochs)
+	(chat-local-to-self "research brochs(UT)")
+)
+
+;Great Conspiracy for Team Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 1)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-great-conspiracy)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-great-conspiracy)
+	(chat-local-to-self "research great conspiracy(UT)")
+)
+
+;Great Conspiracy for Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(goal team-game 0)
+	(can-train-with-escrow ut-great-conspiracy)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-great-conspiracy)
+	(chat-local-to-self "research great conspiracy(UT)")
+)
+
+;Souterrains for Team Games, will not be done in Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 0)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-souterrains)
+=>
+	(release-escrow wood)
+	(release-escrow gold)
+	(train ut-souterrains)
+	(chat-local-to-self "research souterrains(UT)")
 )

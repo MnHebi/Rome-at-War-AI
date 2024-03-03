@@ -289,7 +289,7 @@
 	(unit-type-count bowman-line > 4)
 	(can-research-with-escrow ri-improved-bowman)
 =>
-	(release-escrow food)
+	(release-escrow wood)
 	(release-escrow gold)
     (research ri-improved-bowman)
 	(chat-local-to-self "research improved bowman")
@@ -301,7 +301,7 @@
 	(unit-type-count bowman-line > 5)
 	(can-research-with-escrow ri-composite-bowman)
 =>
-	(release-escrow food)
+	(release-escrow wood)
 	(release-escrow gold)
     (research ri-composite-bowman)
 	(chat-local-to-self "research composite bowman")
@@ -1306,31 +1306,20 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
-	(or
-		(cc-players-unit-type-count any-enemy priest > 1)
-        (unit-type-count-total war-elephant-line > 2)
-	)
 	(can-research-with-escrow ri-faith)
 =>
-	(release-escrow wood)
 	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
 	(research ri-faith)
 	(chat-local-to-self "research faith")
 )
 
 (defrule
-	(difficulty <= moderate)
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
-	(cc-players-unit-type-count any-enemy priest > 1)
 	(can-research-with-escrow ri-heresy)
 =>
-	(release-escrow wood)
-	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
 	(research ri-heresy)
 	(chat-local-to-self "research heresy")
 )
@@ -1338,13 +1327,9 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
-    (cc-players-unit-type-count any-enemy priest > 2)
 	(can-research-with-escrow ri-atonement)
 =>
-	(release-escrow wood)
-	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
 	(research ri-atonement)
 	(chat-local-to-self "research atonement")
 )
@@ -1352,13 +1337,9 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
-	(unit-type-count-total priest > 2)
 	(can-research-with-escrow ri-block-printing)
 =>
-	(release-escrow wood)
-	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
 	(research ri-block-printing)
 	(chat-local-to-self "research block printing")
 )
@@ -1366,13 +1347,9 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
-	(unit-type-count-total priest > 2)
 	(can-research-with-escrow ri-illumination)
 =>
-	(release-escrow wood)
-	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
 	(research ri-illumination)
 	(chat-local-to-self "research illumination")
 )
@@ -1380,13 +1357,9 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
-	(unit-type-count-total priest > 2)
 	(can-research-with-escrow ri-fervor)
 =>
-	(release-escrow wood)
-	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
 	(research ri-fervor)
 	(chat-local-to-self "research fervor")
 )
@@ -1394,13 +1367,9 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
-	(unit-type-count-total priest > 2)
 	(can-research-with-escrow ri-redemption)
 =>
-	(release-escrow wood)
-	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
 	(research ri-redemption)
 	(chat-local-to-self "research redemption")
 )
@@ -1408,13 +1377,9 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
-	(unit-type-count-total priest > 2)
 	(can-research-with-escrow ri-sanctity)
 =>
-	(release-escrow wood)
-	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
 	(research ri-sanctity)
 	(chat-local-to-self "research sanctity")
 )
@@ -1422,13 +1387,9 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
-	(unit-type-count-total priest > 3)
 	(can-research-with-escrow ri-theocracy)
 =>
-	(release-escrow wood)
-	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
 	(research ri-theocracy)
 	(chat-local-to-self "research theocracy")
 )
@@ -1439,13 +1400,21 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-fortifications-villager-requirement)
 	(goal upgrade-fortifications 1)
-	(building-type-count-total watch-tower > 1)
+	(can-research-with-escrow ri-sentry-tower)
+=>
+	(release-escrow food)
+	(release-escrow wood)
+    (research ri-sentry-tower)
+	(chat-local-to-self "research sentry tower")
+)
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-fortifications-villager-requirement)
+	(goal upgrade-fortifications 1)
 	(can-research-with-escrow ri-guard-tower)
 =>
-	(release-escrow wood)
 	(release-escrow food)
-	(release-escrow gold)
-	(release-escrow stone)
+	(release-escrow wood)
     (research ri-guard-tower)
 	(chat-local-to-self "research guard tower")
 )
@@ -1453,43 +1422,11 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-fortifications-villager-requirement)
 	(goal upgrade-fortifications 1)
-	(building-type-count-total guard-tower > 1)
-	(can-research-with-escrow ri-keep)
-=>
-	(release-escrow wood)
-	(release-escrow food)
-	(release-escrow gold)
-	(release-escrow stone)
-    (research ri-keep)
-	(chat-local-to-self "research keep")
-)
-
-(defrule
-	(up-compare-goal villager-count g:>= upgrade-fortifications-villager-requirement)
-	(goal upgrade-fortifications 1)
-	(research-available ri-bombard-tower)
-	(can-research-with-escrow ri-bombard-tower)
-=>
-	(release-escrow wood)
-	(release-escrow food)
-	(release-escrow gold)
-	(release-escrow stone)
-    (research ri-bombard-tower)
-	(chat-local-to-self "research bombard-tower")
-)
-
-(defrule
-	(up-compare-goal villager-count g:>= upgrade-fortifications-villager-requirement)
-	(goal upgrade-fortifications 1)
-(or	(building-type-count-total watch-tower > 3)
-	(building-type-count-total castle > 3))
 	(can-research-with-escrow ri-heated-shot)
 =>
-	(release-escrow wood)
 	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
-     (research ri-heated-shot)
+    (research ri-heated-shot)
 	(chat-local-to-self "research heated-shot")
 )
 
@@ -1501,14 +1438,12 @@
 		(building-type-count-total castle > 0)
 		(building-type-count-total watch-tower > 2)
 	)
-	(can-research-with-escrow ri-murder-holes)
+	(can-research-with-escrow ri-arrowslits)
 =>
-	(release-escrow wood)
 	(release-escrow food)
-	(release-escrow gold)
-	(release-escrow stone)
-	(research ri-murder-holes)
-	(chat-local-to-self "research murder-holes")
+	(release-escrow wood)
+	(research ri-arrowslits)
+	(chat-local-to-self "research arrowslits")
 )
 
 (defrule
@@ -1520,10 +1455,8 @@
 	)
 	(can-research-with-escrow ri-fortified-wall)
 =>
-	(release-escrow wood)
 	(release-escrow food)
-	(release-escrow gold)
-	(release-escrow stone)
+	(release-escrow wood)
 	(research ri-fortified-wall)
 	(chat-local-to-self "research fortifications")
 )

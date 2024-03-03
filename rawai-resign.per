@@ -1,0 +1,56 @@
+
+(defrule
+	(goal team-game 0)
+	(game-time > 300)
+	(goal military-superiority INFERIOR)
+	(building-type-count-total town-center == 0)
+	(building-type-count-total wonder == 0)
+	(unit-type-count villager < 5)
+=>
+	(set-goal resign-state YES)
+	(chat-to-enemies-using-range 22300 26)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal team-game 1)
+	(game-time > 300)
+	(goal military-superiority INFERIOR)
+	(building-type-count-total town-center == 0)
+	(building-type-count-total wonder == 0)
+	(unit-type-count villager == 0)
+=>
+	(set-goal resign-state YES)
+	(chat-to-all-using-range 22300 26)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal team-game 0)
+	(goal resign-state YES)
+=>
+	(resign)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal team-game 1)
+	(goal resign-state YES)
+	(player-in-game any-ally)
+=>
+	(release-escrow food)
+	(release-escrow wood)
+	(release-escrow gold)
+	(release-escrow stone)
+	(tribute-to-player this-any-ally food 10000)
+	(tribute-to-player this-any-ally wood 10000)
+	(tribute-to-player this-any-ally gold 10000)
+	(tribute-to-player this-any-ally stone 10000)
+	
+	(resign)
+	
+	(disable-self)
+)

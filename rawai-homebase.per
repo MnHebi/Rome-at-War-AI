@@ -96,16 +96,10 @@
 	(or	
 		(up-pending-placement c: castle)
 		(or	
-			(up-pending-placement c: krepost)
+			(up-pending-placement c: watch-tower)
 			(or	
-				(up-pending-placement c: bombard-tower)
-				(or	
-					(up-pending-placement c: watch-tower)
-					(or	
-						(up-pending-placement c: shipyard)
-						(up-pending-placement c: outpost)
-					)
-				)
+				(up-pending-placement c: shipyard)
+				(up-pending-placement c: outpost)
 			)
 		)
 	)
@@ -645,26 +639,6 @@
 )
 
 (defrule
-	(current-age >= feudal-age)
-	(building-type-count-total sea-tower g:< desired-number-seatowers)
-	(up-pending-objects c: sea-tower < 1)
-	(up-can-build 0 c: sea-tower)
-=>
-	(up-set-placement-data my-player-number port c: 15)
-	(up-build place-control 0 c: sea-tower)
-)
-
-(defrule
-	(current-age >= feudal-age)
-	(building-type-count-total fish-trap <= 10)
-	(cc-players-unit-type-count 0 ocean-fish-class == 0)
-	(up-can-build 0 c: fish-trap)
-=>
-	(up-set-placement-data my-player-number port c: 10)
-	(up-build place-control 0 c: fish-trap)
-)
-
-(defrule
 	(and
 		(current-age >= feudal-age)
 		(goal flank-position 1)
@@ -681,11 +655,13 @@
 		(current-age >= feudal-age)
 		(goal flank-position 1)
 	)
-	(can-build-wall 2 palisade-wall)
 ;	(can-afford-complete-wall 2 palisade-wall)
 	(wall-completed-percentage 2 < 100)
+	(can-build-wall-with-escrow 2 palisade-wall)
 =>
+	(release-escrow wood)
 	(build-wall 2 palisade-wall)
+	(chat-local-to-self "Place walls")
 )
 
 (defrule
@@ -693,8 +669,10 @@
 		(current-age >= feudal-age)
 		(goal flank-position 1)
 	)
+	(building-type-count-total gate < 4)
 	(can-build-gate 2)
 =>
 	(build-gate 2)
+	(chat-local-to-self "Place gates")
 )
 

@@ -196,7 +196,7 @@
 	(up-modify-sn sn-wood-gatherer-percentage c:= 45)
 	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 5)
-	(up-modify-goal desired-number-farms c:= 13)
+	(up-modify-goal desired-number-farms g:= gl-fourty-percent)
 	(up-modify-goal desired-number-lumbercamps c:= 4)
 	(up-modify-goal desired-number-mills c:= 4)
 	(up-modify-goal desired-number-miningcamps c:= 4)
@@ -209,7 +209,7 @@
 	(up-modify-sn sn-wood-gatherer-percentage c:= 45)
 	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 5)
-	(up-modify-goal desired-number-farms c:= 45)
+	(up-modify-goal desired-number-farms g:= gl-fourty-percent)
 	(up-modify-goal desired-number-lumbercamps c:= 5)
 	(up-modify-goal desired-number-mills c:= 5)
 	(up-modify-goal desired-number-miningcamps c:= 5)
@@ -435,7 +435,7 @@
 )
 
 (defrule
-	(unit-type-count-total villager g:< desired-number-villagers)
+	(up-object-type-count-total c: villager g:< desired-number-villagers)
 	(can-train villager)
 =>
 	(train villager)
@@ -482,12 +482,13 @@
 	(train trade-cog)
 )
 
-(defrule
-	(unit-type-count-total construction-ship == 0)
-	(can-train construction-ship)
-=>
-	(train construction-ship)
-)
+;Fish traps and sea towers need work before these are useful, atm they just stop villagers from doing construction projects
+;(defrule
+;	(unit-type-count-total construction-ship == 0)
+;	(can-train construction-ship)
+;=>
+;	(train construction-ship)
+;)
 
 ;resource dropoff deletions so the AI can keep up with diminishing resources
 ;also, delete fishing ships once fish are gone

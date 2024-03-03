@@ -1,0 +1,66 @@
+
+(defrule
+	(up-timer-status extreme-cheats-timer == timer-disabled)
+=>
+	(enable-timer extreme-cheats-timer 30)
+	(chat-local-to-self "start extreme cheats timer start")
+)
+
+(defrule
+	(up-timer-status extreme-cheats-timer == timer-triggered)
+=>
+	(disable-timer extreme-cheats-timer)
+	(set-goal extreme-cheats YES)
+	(chat-local-to-self "start extreme cheats timer triggered, disable")
+)
+
+(defrule
+	(goal extreme-cheats YES)
+=>
+	(set-goal extreme-cheats GIVE)
+)
+
+(defrule
+	(goal extreme-cheats GIVE)
+	(current-age == dark-age)
+	(up-object-type-count-total c: villager g:< desired-number-villagers)
+=>
+	(cc-add-resource food 25)
+	(set-goal extreme-cheats FINISHED)
+	(chat-local-to-self "food for iron age workers cheat")
+)
+
+(defrule
+	(research-completed feudal-age)
+=>
+	(cc-add-resource wood 500)
+	(chat-local-to-self "reached feudal age wood cheat")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed castle-age)
+=>
+	(cc-add-resource wood 1000)
+	(cc-add-resource stone 700)
+	(chat-local-to-self "reached castle age wood & stone cheat")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed imperial-age)
+=>
+	(cc-add-resource wood 2000)
+	(cc-add-resource stone 1000)
+	(chat-local-to-self "reached imperial age wood & stone cheat")
+	
+	(disable-self)
+)
+
+(defrule
+	(goal extreme-cheats FINISHED)
+=>
+	(set-goal extreme-cheats NO)
+)

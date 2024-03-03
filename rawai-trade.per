@@ -1,3 +1,19 @@
+
+(defrule
+	(up-timer-status request-spam-timer == timer-disabled)
+=>
+	(enable-timer request-spam-timer 120)
+	(chat-local-to-self "start request spam timer")
+)
+
+(defrule
+	(up-timer-status request-spam-timer == timer-triggered)
+=>
+	(disable-timer request-spam-timer)
+	(set-goal dont-spam-requests NO)
+	(chat-local-to-self "reset dont-spam-requests")
+)
+
 ; ///////////////////////// FEUDAL
 
 (defrule
@@ -129,7 +145,7 @@
 
 (defrule
 	(current-age == castle-age)
-	(wood-amount >= 1000)
+	(wood-amount >= 1200)
 	(or
 		(gold-amount < 200)
 		(food-amount < 200)
@@ -156,7 +172,7 @@
 
 (defrule
 	(current-age == castle-age)
-	(stone-amount >= 1000)
+	(stone-amount >= 1200)
 	(or
 		(gold-amount < 200)
 		(wood-amount < 200)
@@ -241,4 +257,174 @@
 =>
 	(chat-local-to-self "excess stone")
 	(sell-commodity stone)
+)
+
+;request resources
+(defrule
+	(goal dont-spam-requests NO)
+	(players-building-type-count any-ally market >= 1)
+	(food-amount < 100)
+=>
+	(chat-to-allies "3 I need food, please send me 100 food")
+	(set-goal dont-spam-requests YES)
+)
+
+(defrule
+	(goal dont-spam-requests NO)
+	(players-building-type-count any-ally market >= 1)
+	(wood-amount < 100)
+=>
+	(chat-to-allies "4 I need wood, please send me 100 wood")
+	(set-goal dont-spam-requests YES)
+)
+
+(defrule
+	(goal dont-spam-requests NO)
+	(players-building-type-count any-ally market >= 1)
+	(gold-amount < 100)
+=>
+	(chat-to-allies "5 I need gold, please send me 100 gold")
+	(set-goal dont-spam-requests YES)
+)
+
+(defrule
+	(goal dont-spam-requests NO)
+	(players-building-type-count any-ally market >= 1)
+	(stone-amount < 100)
+=>
+	(chat-to-allies "6 I need stone, please send me 100 stone")
+	(set-goal dont-spam-requests YES)
+)
+
+;send resources
+(defrule
+	(current-age == feudal-age)
+	(taunt-detected any-ally 3)
+	(building-type-count market > 0)
+	(food-amount >= 1000)
+=>
+	(acknowledge-taunt this-any-ally 3)
+	(tribute-to-player this-any-ally food 100)
+	(chat-to-allies "1 I'll send you 100 food")
+)
+
+(defrule
+	(current-age == castle-age)
+	(taunt-detected any-ally 3)
+	(building-type-count market > 0)
+	(food-amount >= 1200)
+=>
+	(acknowledge-taunt this-any-ally 3)
+	(tribute-to-player this-any-ally food 100)
+	(chat-to-allies "1 I'll send you 100 food")
+)
+
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected any-ally 3)
+	(building-type-count market > 0)
+	(food-amount >= 1500)
+=>
+	(acknowledge-taunt this-any-ally 3)
+	(tribute-to-player this-any-ally food 100)
+	(chat-to-allies "1 I'll send you 100 food")
+)
+
+(defrule
+	(current-age == feudal-age)
+	(taunt-detected any-ally 4)
+	(building-type-count market > 0)
+	(wood-amount >= 1000)
+=>
+	(acknowledge-taunt this-any-ally 4)
+	(tribute-to-player this-any-ally wood 100)
+	(chat-to-allies "1 I'll send you 100 wood")
+)
+
+(defrule
+	(current-age == castle-age)
+	(taunt-detected any-ally 4)
+	(building-type-count market > 0)
+	(wood-amount >= 1200)
+=>
+	(acknowledge-taunt this-any-ally 4)
+	(tribute-to-player this-any-ally wood 100)
+	(chat-to-allies "1 I'll send you 100 wood")
+)
+
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected any-ally 4)
+	(building-type-count market > 0)
+	(wood-amount >= 1500)
+=>
+	(acknowledge-taunt this-any-ally 4)
+	(tribute-to-player this-any-ally wood 100)
+	(chat-to-allies "1 I'll send you 100 wood")
+)
+
+(defrule
+	(current-age == feudal-age)
+	(taunt-detected any-ally 5)
+	(building-type-count market > 0)
+	(gold-amount >= 500)
+=>
+	(acknowledge-taunt this-any-ally 5)
+	(tribute-to-player this-any-ally gold 100)
+	(chat-to-allies "1 I'll send you 100 gold")
+)
+
+(defrule
+	(current-age == castle-age)
+	(taunt-detected any-ally 5)
+	(building-type-count market > 0)
+	(gold-amount >= 500)
+=>
+	(acknowledge-taunt this-any-ally 5)
+	(tribute-to-player this-any-ally gold 100)
+	(chat-to-allies "1 I'll send you 100 gold")
+)
+
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected any-ally 5)
+	(building-type-count market > 0)
+	(gold-amount >= 500)
+=>
+	(acknowledge-taunt this-any-ally 5)
+	(tribute-to-player this-any-ally gold 100)
+	(chat-to-allies "1 I'll send you 100 gold")
+)
+
+(defrule
+	(current-age == feudal-age)
+	(taunt-detected any-ally 6)
+	(building-type-count market > 0)
+	(stone-amount >= 1000)
+=>
+	(acknowledge-taunt this-any-ally 6)
+	(tribute-to-player this-any-ally stone 100)
+	(chat-to-allies "1 I'll send you 100 stone")
+)
+
+(defrule
+	(current-age == castle-age)
+	(taunt-detected any-ally 6)
+	(building-type-count market > 0)
+	(stone-amount >= 1200)
+=>
+	(acknowledge-taunt this-any-ally 6)
+	(tribute-to-player this-any-ally stone 100)
+	(chat-to-allies "1 I'll send you 100 stone")
+)
+
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected any-ally 6)
+	(building-type-count market > 0)
+	(stone-amount >= 1500)
+=>
+	(acknowledge-taunt this-any-ally 6)
+	(tribute-to-player this-any-ally stone 100)
+	(chat-to-allies "1 I'll send you 100 stone")
 )

@@ -1,16 +1,405 @@
 
+;civ specific structure preferences
+
+(defrule
+	(goal current-phase 1)
+=>
+	(up-modify-goal desired-number-towncenters c:= 1)
+	(up-modify-goal desired-number-barracks c:= 1)
+	(up-modify-goal desired-number-ranges c:= 0)
+	(up-modify-goal desired-number-stables c:= 0)
+	(up-modify-goal desired-number-workshops c:= 0)
+	(up-modify-goal desired-number-blacksmiths c:= 0)
+	(up-modify-goal desired-number-markets c:= 0)
+	(up-modify-goal desired-number-docks c:= 1)
+	(up-modify-goal desired-number-universities c:= 0)
+	(up-modify-goal desired-number-monasteries c:= 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 1)
+=>
+	(up-modify-goal desired-number-castles c:= 0)
+	(up-modify-goal desired-number-outposts c:= 0)
+	(up-modify-goal desired-number-watchtowers c:= 0)
+	(up-modify-goal desired-number-seatowers c:= 0)
+	(up-modify-goal desired-number-shipyards c:= 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 2)
+=>
+	(up-modify-goal desired-number-towncenters c:= 1)
+	(up-modify-goal desired-number-barracks c:= 1)
+	(up-modify-goal desired-number-ranges c:= 1)
+	(up-modify-goal desired-number-stables c:= 1)
+	(up-modify-goal desired-number-workshops c:= 0)
+	(up-modify-goal desired-number-blacksmiths c:= 1)
+	(up-modify-goal desired-number-markets c:= 1)
+	(up-modify-goal desired-number-docks c:= 1)
+	(up-modify-goal desired-number-universities c:= 1)
+	(up-modify-goal desired-number-monasteries c:= 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 2)
+=>
+	(up-modify-goal desired-number-castles c:= 0)
+	(up-modify-goal desired-number-outposts c:= 0)
+	(up-modify-goal desired-number-watchtowers c:= 0)
+	(up-modify-goal desired-number-seatowers c:= 0)
+	(up-modify-goal desired-number-shipyards c:= 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 3)
+=>
+	(up-modify-goal desired-number-towncenters c:= 1)
+	(up-modify-goal desired-number-barracks c:= 1)
+	(up-modify-goal desired-number-ranges c:= 1)
+	(up-modify-goal desired-number-stables c:= 1)
+	(up-modify-goal desired-number-workshops c:= 0)
+	(up-modify-goal desired-number-blacksmiths c:= 1)
+	(up-modify-goal desired-number-markets c:= 1)
+	(up-modify-goal desired-number-docks c:= 2)
+	(up-modify-goal desired-number-universities c:= 1)
+	(up-modify-goal desired-number-monasteries c:= 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 3)
+=>
+	(up-modify-goal desired-number-castles c:= 0)
+	(up-modify-goal desired-number-outposts c:= 2)
+	(up-modify-goal desired-number-watchtowers c:= 4)
+	(up-modify-goal desired-number-seatowers c:= 4)
+	(up-modify-goal desired-number-shipyards c:= 8)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 4)
+=>
+	(up-modify-goal desired-number-towncenters c:= 4)
+	(up-modify-goal desired-number-barracks c:= 1)
+	(up-modify-goal desired-number-ranges c:= 1)
+	(up-modify-goal desired-number-stables c:= 1)
+	(up-modify-goal desired-number-workshops c:= 1)
+	(up-modify-goal desired-number-blacksmiths c:= 1)
+	(up-modify-goal desired-number-markets c:= 1)
+	(up-modify-goal desired-number-docks c:= 2)
+	(up-modify-goal desired-number-universities c:= 1)
+	(up-modify-goal desired-number-monasteries c:= 1)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 4)
+=>
+	(up-modify-goal desired-number-castles c:= 1)
+	(up-modify-goal desired-number-outposts c:= 4)
+	(up-modify-goal desired-number-watchtowers c:= 10)
+	(up-modify-goal desired-number-seatowers c:= 5)
+	(up-modify-goal desired-number-shipyards c:= 8)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 5)
+=>
+	(up-modify-goal desired-number-towncenters c:= 8)
+	(up-modify-goal desired-number-barracks c:= 2)
+	(up-modify-goal desired-number-ranges c:= 4)
+	(up-modify-goal desired-number-stables c:= 5)
+	(up-modify-goal desired-number-workshops c:= 4)
+	(up-modify-goal desired-number-blacksmiths c:= 1)
+	(up-modify-goal desired-number-markets c:= 2)
+	(up-modify-goal desired-number-docks c:= 2)
+	(up-modify-goal desired-number-universities c:= 1)
+	(up-modify-goal desired-number-monasteries c:= 1)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 5)
+=>
+	(up-modify-goal desired-number-castles c:= 4)
+	(up-modify-goal desired-number-outposts c:= 6)
+	(up-modify-goal desired-number-watchtowers c:= 10)
+	(up-modify-goal desired-number-seatowers c:= 5)
+	(up-modify-goal desired-number-shipyards c:= 8)
+	
+	(disable-self)
+)
+
+;Always have some Spearmen
+(defrule
+	(goal current-phase 5)
+	(unit-type-count-total spearman-line g:< gl-one-percent)
+	(can-train spearman-line)
+=>
+	(train spearman-line)
+)
+
+;Otherwise, train them to counter Cavalry and Cavalry Archers
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-cavalry 1)
+		(goal train-anti-cavalryarcher 1)
+	)
+	(unit-type-count-total spearman-line g:< desired-number-anticavalrytrash)
+	(can-train spearman-line)
+=>
+	(train spearman-line)
+)
+
+;Use Camel Archers against Cavalry Archers & Cavalry
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-cavalryarcher 1)
+		(goal train-anti-cavalry 1)
+	)
+	(unit-type-count-total camel-archer-line g:< desired-number-anticavalryarcher)
+	(can-train camel-archer-line)
+=>
+	(train camel-archer-line)
+)
+
+;Use Cavalry Archers against Infantry
 (defrule
 	(goal current-phase 5)
 	(goal train-anti-infantry 1)
-	(and
-		(unit-type-count-total grivpanvar g:< desired-number-antiinfantry)
-		(unit-type-count-total elite-grivpanvar g:< desired-number-antiinfantry)
-	)
-	(or
-		(can-train grivpanvar)
-		(can-train elite-grivpanvar)
-	)
+	(unit-type-count-total cavalry-archer-line g:< desired-number-antiinfantry)
+	(can-train cavalry-archer-line)
 =>
-	(train grivpanvar)
-	(train elite-grivpanvar)
+	(train cavalry-archer-line)
+)
+
+;Use Skirmishers against Archers & Cavalry Archers
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-archer 1)
+		(goal train-anti-cavalryarcher 1)
+	)
+	(unit-type-count-total skirmisher-line g:< desired-number-antiarchertrash)
+	(can-train skirmisher-line)
+=>
+	(train skirmisher-line)
+)
+
+;Use Mangonels against Archers(but not Cavalry Archers) in addition to Skirmishers
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-archer 1)
+	(unit-type-count-total mangonel-line g:< desired-number-antiarcher)
+	(can-train mangonel-line)
+=>
+	(train mangonel-line)
+)
+
+;Scorpions are used to counter infantry, archers, cav archers
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-infantry 1)
+		(or
+			(goal train-anti-archer 1)
+			(goal train-anti-cavalryarcher 1)
+		)
+	)
+	(unit-type-count-total scorpion-line g:< desired-number-antiarcher)
+	(can-train scorpion-line)
+=>
+	(train scorpion-line)
+)
+
+;Catapults are used when there are enemy siege weapons present
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-siege 1)
+	(unit-type-count-total catapult g:< desired-number-antisiege)
+	(can-train catapult)
+=>
+	(train catapult)
+)
+
+;Parthians wield Cavalry against Infantry, Archers, and Siege
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-infantry 1)
+		(or
+			(goal train-anti-archer 1)
+			(goal train-anti-siege 1)
+		)
+	)
+	(unit-type-count-total cavalry-line g:< desired-number-antisiege)
+	(can-train cavalry-line)
+=>
+	(train cavalry-line)
+)
+
+;Use Camel Riders against Cavalry
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-cavalry 1)
+	(unit-type-count-total camel-rider-line g:< desired-number-anticavalry)
+	(can-train camel-rider-line)
+=>
+	(train camel-rider-line)
+)
+
+;Scout/Light Cavalry are also used as anti-priest & anti-siege trash
+(defrule
+	(goal current-phase 5)
+	(or
+		(goal train-anti-priest 1)
+		(goal train-anti-siege 1)
+	)
+	(unit-type-count-total scout-cavalry-line g:< gl-one-percent)
+	(can-train scout-cavalry-line)
+=>
+	(train scout-cavalry-line)
+)
+
+;Navy, generic train rules that affect <x>reme etc training are in military-units-common.per
+
+;Train Juggernauts
+(defrule
+	(goal current-phase 5)
+	(wood-amount > 250)
+	(unit-type-count-total juggernaut-line g:< desired-number-juggernauts)
+	(can-train juggernaut-line)
+=>
+	(train juggernaut-line)
+)
+
+(defrule
+	(goal current-phase 5)
+	(goal train-anti-infantry 1)
+	(unit-type-count-total grivpanvar-line g:< desired-number-uniqueunittwo)
+	(can-train grivpanvar-line)
+=>
+	(train grivpanvar-line)
+)
+
+; Upgrade Grivpanvar
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-lines 1)
+	(can-research-with-escrow ri-elite-grivpanvar)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(research ri-elite-grivpanvar)
+	(chat-local-to-self "research elite grivpanvar")
+)
+
+;unique technologies
+
+;Horn Bow for Team Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 1)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-horn-bow)
+=>
+	(release-escrow wood)
+	(release-escrow gold)
+	(train ut-horn-bow)
+	(chat-local-to-self "research horn bow(UT)")
+)
+
+;Horn Bow for Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(goal team-game 0)
+	(can-train-with-escrow ut-horn-bow)
+=>
+	(release-escrow wood)
+	(release-escrow gold)
+	(train ut-horn-bow)
+	(chat-local-to-self "research horn bow(UT)")
+)
+
+;Camelry Corps for Team Games, will not be done in Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 0)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-camelry-corps)
+=>
+	(release-escrow wood)
+	(release-escrow gold)
+	(train ut-camelry-corps)
+	(chat-local-to-self "research camelry corps(UT)")
+)
+
+;Nisean Horse Breeding for Team Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 1)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-nisean-horse-breeding)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-nisean-horse-breeding)
+	(chat-local-to-self "research nisean horse breeding(UT)")
+)
+
+;Nisean Horse Breeding for Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(goal team-game 0)
+	(can-train-with-escrow ut-nisean-horse-breeding)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(train ut-nisean-horse-breeding)
+	(chat-local-to-self "research nisean horse breeding(UT)")
+)
+
+;Sagittari Mercenaries for Team Games, will not be done in Solo Games
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(and
+		(goal flank-position 0)
+		(goal team-game 1)
+	)
+	(can-train-with-escrow ut-sagittari-mercenaries)
+=>
+	(release-escrow wood)
+	(release-escrow gold)
+	(train ut-sagittari-mercenaries)
+	(chat-local-to-self "research sagittari mercenaries(UT)")
 )
