@@ -193,3 +193,19 @@
 	(set-goal resource-check SEARCH-END)
 	(chat-local-to-self "stone-present YES, end resource check")
 )
+
+;resources depleted check
+(defrule
+	(game-time > 300)
+	(and
+		(goal wood-present NO)
+		(and
+			(goal gold-present NO)
+			(goal stone-present NO)
+		)
+	)
+=>
+	(set-goal resources-depleted YES)
+	(chat-local-to-self "map resources depleted")
+	(disable-self)
+)

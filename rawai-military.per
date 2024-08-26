@@ -1,15 +1,68 @@
 
-;Respond to requests for help etc here
+(defrule
+	(up-timer-status attack-type-timer != timer-running)
+=>
+	(enable-timer attack-type-timer 30)
+)
 
 (defrule
-	(taunt-detected any-ally 48)
-	(military-population > 1)
+	(up-timer-status retreat-timer != timer-running)
 =>
-	(acknowledge-taunt this-any-ally 48)
-	(up-modify-sn sn-target-player-number c:= -1)
-	(set-goal land-attack-percentage 90)
-	(attack-now)
-	(chat-to-allies "1 I will send whatever troops I can spare!")
+	(enable-timer retreat-timer 300)
+)
+
+;rule jumps, do not add rules here
+;dictate which method to attack with, TSA or Group handler
+(defrule
+	(up-timer-status attack-type-timer == timer-triggered)
+	(soldier-count g:< gl-twenty-percent)
+=>
+	(set-goal attack-type-land TOWN-SIZE)
+	(up-jump-rule 1)
+)
+
+(defrule
+	(soldier-count g:>= gl-twenty-percent)
+=>
+	(set-goal attack-type-land GROUP)
+	(up-jump-rule 1)
+)
+
+(defrule
+	(warboat-count g:< gl-twenty-percent)
+=>
+	(set-goal attack-type-sea TOWN-SIZE)
+	(up-jump-rule 1)
+)
+
+(defrule
+	(warboat-count g:>= gl-twenty-percent)
+=>
+	(set-goal attack-type-sea GROUP)
+)
+;rule jumps end
+
+;retreat when forces are too dwindled
+(defrule
+	(up-timer-status retreat-timer == timer-triggered)
+	(current-age >= feudal-age)
+	(goal attack-type-land TOWN-SIZE)
+	(soldier-count g:< gl-five-percent)
+=>
+	(up-reset-attack-now)
+	(up-reset-unit c: -1)
+	(up-retreat-now)
+)
+
+(defrule
+	(up-timer-status retreat-timer == timer-triggered)
+	(current-age >= feudal-age)
+	(goal attack-type-land GROUP)
+	(soldier-count g:< gl-twenty-percent)
+=>
+	(up-reset-attack-now)
+	(up-reset-unit c: -1)
+	(up-retreat-now)
 )
 
 (defrule
@@ -134,9 +187,9 @@
 		(goal milcheck-concluded BEGAN)
 	)
 =>
-	(up-get-fact military-population 0 gl-own-military-population)
+	(up-get-fact soldier-count 0 gl-own-military-population)
 	(up-get-fact warboat-count 0 gl-own-navy)
-	(up-get-fact-sum any-ally military-population 0 gl-team-military-population)
+	(up-get-fact-sum any-ally soldier-count 0 gl-team-military-population)
 	(up-get-fact-sum any-ally warboat-count 0 gl-team-navy)
 	(up-modify-goal gl-team-combined-mil-pop g:+ gl-own-military-population)
 	(up-modify-goal gl-team-combined-navy g:+ gl-own-navy)
@@ -152,9 +205,9 @@
 		(goal milcheck-concluded OWN)
 	)
 =>
-	(up-get-fact-sum any-enemy military-population 0 gl-enemy-team-military-population)
+	(up-get-fact-sum any-enemy soldier-count 0 gl-enemy-team-military-population)
 	(up-get-fact-sum any-enemy warboat-count 0 gl-enemy-team-navy)
-	(up-get-fact-sum any-enemy military-population 0 gl-enemy-team-mil-pop-divided)
+	(up-get-fact-sum any-enemy soldier-count 0 gl-enemy-team-mil-pop-divided)
 	(up-get-fact-sum any-enemy warboat-count 0 gl-enemy-team-navy-divided)
 	(set-goal milcheck-concluded ENEMY)
 	(chat-local-to-self "military population check, enemy team done")
@@ -1034,32 +1087,53 @@
 
 ;rule 11
 (defrule
+	(up-compare-goal attack-type-land c:= 0)
 	(up-compare-goal land-attack-delay >= 0)
-	(up-compare-goal land-attack-percentage >= 1)
 	(up-compare-goal gl-game-time g:>= land-attack-delay)
 	(defend-soldier-count g:>= land-attack-requirement)
 	(up-timer-status land-attack-timer != timer-running)
 =>
 	(chat-local-to-self "land attack")
 	(up-modify-sn sn-percent-attack-soldiers g:= land-attack-percentage)
-	(set-strategic-number sn-percent-attack-boats 0)
+	(up-modify-sn sn-maximum-town-size c:= 250)
 	(attack-now)
+	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+	(set-strategic-number sn-percent-attack-soldiers 0)
 	(up-set-timer c: land-attack-timer g: land-attack-interval)
 	(up-jump-rule 1)
 )
 
 ;rule 12
 (defrule
+	(up-compare-goal attack-type-sea c:= 0)
 	(up-compare-goal naval-attack-delay >= 0)
-	(up-compare-goal naval-attack-percentage >= 1)
 	(up-compare-goal gl-game-time g:>= naval-attack-delay)
-	(warboat-count > 0)
+	(defend-warboat-count g:>= naval-attack-requirement)
 	(up-timer-status naval-attack-timer != timer-running)
 =>
 	(chat-local-to-self "naval attack")
 	(up-modify-sn sn-percent-attack-boats g:= naval-attack-percentage)
-	(set-strategic-number sn-percent-attack-soldiers 0)
+	(up-modify-sn sn-maximum-town-size c:= 250)
 	(attack-now)
+	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+	(set-strategic-number sn-percent-attack-boats 0)
 	(up-set-timer c: naval-attack-timer g: naval-attack-interval)
 )
 ;end of rule jumps
+
+;periodic attacks
+(defrule
+	(game-time > 300)
+	(up-timer-status periodic-attack-timer != timer-running)
+=>
+	(chat-local-to-self "periodic attack")
+	(up-modify-sn sn-percent-attack-soldiers g:= land-attack-percentage)
+	(up-modify-sn sn-percent-attack-boats g:= naval-attack-percentage)
+	(up-modify-sn sn-maximum-town-size c:= 250)
+	(attack-now)
+	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+	(set-strategic-number sn-percent-attack-soldiers 0)
+	(set-strategic-number sn-percent-attack-boats 0)
+	(up-set-timer c: periodic-attack-timer g: periodic-attack-interval)
+)
+

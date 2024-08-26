@@ -1230,14 +1230,10 @@
 )
 
 (defrule
-	(up-compare-goal villager-count g:>= upgrade-economy-villager-requirement)
-	(goal upgrade-economy 1)
 	(can-research-with-escrow ri-loom)
 =>
-	(release-escrow wood)
 	(release-escrow food)
 	(release-escrow gold)
-	(release-escrow stone)
 	(research ri-loom)
 	(chat-local-to-self "research loom")
 )
@@ -1400,6 +1396,17 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-fortifications-villager-requirement)
 	(goal upgrade-fortifications 1)
+	(can-research-with-escrow ri-murder-holes)
+=>
+	(release-escrow food)
+	(release-escrow wood)
+    (research ri-murder-holes)
+	(chat-local-to-self "research murder holes")
+)
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-fortifications-villager-requirement)
+	(goal upgrade-fortifications 1)
 	(can-research-with-escrow ri-sentry-tower)
 =>
 	(release-escrow food)
@@ -1459,4 +1466,17 @@
 	(release-escrow wood)
 	(research ri-fortified-wall)
 	(chat-local-to-self "research fortifications")
+)
+
+;MISC
+
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
+	(goal upgrade-other 1)
+	(can-research-with-escrow ri-sappers)
+=>
+	(release-escrow food)
+	(release-escrow wood)
+    (research ri-sappers)
+	(chat-local-to-self "research sappers")
 )

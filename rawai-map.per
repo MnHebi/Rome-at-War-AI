@@ -1,4 +1,14 @@
 
+;determine own position
+
+(defrule
+	(game-time > 30)
+=>
+	(up-get-point position-self gl-my-position-x)
+	
+	(disable-self)
+)
+
 #load-if-defined TINY-MAP
 
 (defrule
@@ -6,6 +16,33 @@
 =>
 	(up-modify-goal map-size c:= 120)
 	
+	(disable-self)
+)
+
+;determine map side for shipyard placement
+(defrule
+	(game-time > 30)
+=>
+	(up-modify-goal gl-my-position-combined g:+ gl-my-position-x)
+	(up-modify-goal gl-my-position-combined g:+ gl-my-position-y)
+	(disable-self)
+)
+
+(defrule
+	(game-time > 30)
+	(up-compare-goal gl-my-position-combined < 120)	
+=>
+	(set-goal map-left-side YES)
+	(up-chat-data-to-all "Im left! %d" g: gl-my-position-combined)
+	(disable-self)
+)
+
+(defrule
+	(game-time > 30)
+	(up-compare-goal gl-my-position-combined > 120)
+=>
+	(set-goal map-right-side YES)
+	(up-chat-data-to-all "Im right! %d" g: gl-my-position-combined)
 	(disable-self)
 )
 
@@ -18,15 +55,15 @@
 	
 	(up-modify-goal e-antiquity-min-townsize c:= 12)
 	(up-modify-goal e-antiquity-safe-townsize c:= 16)
-	(up-modify-goal e-antiquity-max-townsize c:= 24)
+	(up-modify-goal e-antiquity-max-townsize c:= 19)
 	
 	(up-modify-goal m-antiquity-min-townsize c:= 16)
 	(up-modify-goal m-antiquity-safe-townsize c:= 18)
-	(up-modify-goal m-antiquity-max-townsize c:= 32)
+	(up-modify-goal m-antiquity-max-townsize c:= 21)
 	
 	(up-modify-goal imperial-min-townsize c:= 18)
 	(up-modify-goal imperial-safe-townsize c:= 20)
-	(up-modify-goal imperial-max-townsize c:= 42)
+	(up-modify-goal imperial-max-townsize c:= 23)
 
 	(disable-self)
 )
@@ -82,7 +119,7 @@
 	(up-modify-goal mill-max-distance c:= 18)
 	(up-modify-goal lumbercamp-max-distance c:= 32)
 	(up-modify-goal miningcamp-max-distance c:= 32)
-	(up-modify-goal max-hunt-distance c:= 37)
+	(up-modify-goal max-hunt-distance c:= 25)
 	(up-modify-goal max-food-distance c:= 14)
 	(up-modify-goal max-wood-distance c:= 14)
 	(up-modify-goal max-gold-distance c:= 14)
@@ -97,7 +134,7 @@
 	(up-modify-goal mill-max-distance c:= 20)
 	(up-modify-goal lumbercamp-max-distance c:= 60)
 	(up-modify-goal miningcamp-max-distance c:= 60)
-	(up-modify-goal max-hunt-distance c:= 65)
+	(up-modify-goal max-hunt-distance c:= 30)
 	(up-modify-goal max-food-distance c:= 16)
 	(up-modify-goal max-wood-distance c:= 16)
 	(up-modify-goal max-gold-distance c:= 16)
@@ -118,6 +155,33 @@
 	(disable-self)
 )
 
+;determine map side for shipyard placement
+(defrule
+	(game-time > 30)
+=>
+	(up-modify-goal gl-my-position-combined g:+ gl-my-position-x)
+	(up-modify-goal gl-my-position-combined g:+ gl-my-position-y)
+	(disable-self)
+)
+
+(defrule
+	(game-time > 30)
+	(up-compare-goal gl-my-position-combined < 144)	
+=>
+	(set-goal map-left-side YES)
+	(up-chat-data-to-all "Im left! %d" g: gl-my-position-combined)
+	(disable-self)
+)
+
+(defrule
+	(game-time > 30)
+	(up-compare-goal gl-my-position-combined > 144)
+=>
+	(set-goal map-right-side YES)
+	(up-chat-data-to-all "Im right! %d" g: gl-my-position-combined)
+	(disable-self)
+)
+
 (defrule
 	(true)
 =>
@@ -127,15 +191,15 @@
 	
 	(up-modify-goal e-antiquity-min-townsize c:= 12)
 	(up-modify-goal e-antiquity-safe-townsize c:= 16)
-	(up-modify-goal e-antiquity-max-townsize c:= 28)
+	(up-modify-goal e-antiquity-max-townsize c:= 20)
 	
 	(up-modify-goal m-antiquity-min-townsize c:= 16)
 	(up-modify-goal m-antiquity-safe-townsize c:= 18)
-	(up-modify-goal m-antiquity-max-townsize c:= 43)
+	(up-modify-goal m-antiquity-max-townsize c:= 22)
 	
 	(up-modify-goal imperial-min-townsize c:= 18)
 	(up-modify-goal imperial-safe-townsize c:= 20)
-	(up-modify-goal imperial-max-townsize c:= 57)
+	(up-modify-goal imperial-max-townsize c:= 24)
 
 	(disable-self)
 )
@@ -161,7 +225,7 @@
 	(up-modify-goal mill-max-distance c:= 20)
 	(up-modify-goal lumbercamp-max-distance c:= 20)
 	(up-modify-goal miningcamp-max-distance c:= 20)
-	(up-modify-goal max-hunt-distance c:= 15)
+	(up-modify-goal max-hunt-distance c:= 17)
 	(up-modify-goal max-food-distance c:= 14)
 	(up-modify-goal max-wood-distance c:= 14)
 	(up-modify-goal max-gold-distance c:= 14)
@@ -176,7 +240,7 @@
 	(up-modify-goal mill-max-distance c:= 22)
 	(up-modify-goal lumbercamp-max-distance c:= 22)
 	(up-modify-goal miningcamp-max-distance c:= 22)
-	(up-modify-goal max-hunt-distance c:= 27)
+	(up-modify-goal max-hunt-distance c:= 22)
 	(up-modify-goal max-food-distance c:= 16)
 	(up-modify-goal max-wood-distance c:= 16)
 	(up-modify-goal max-gold-distance c:= 16)
@@ -191,7 +255,7 @@
 	(up-modify-goal mill-max-distance c:= 34)
 	(up-modify-goal lumbercamp-max-distance c:= 34)
 	(up-modify-goal miningcamp-max-distance c:= 34)
-	(up-modify-goal max-hunt-distance c:= 39)
+	(up-modify-goal max-hunt-distance c:= 26)
 	(up-modify-goal max-food-distance c:= 18)
 	(up-modify-goal max-wood-distance c:= 18)
 	(up-modify-goal max-gold-distance c:= 18)
@@ -206,7 +270,7 @@
 	(up-modify-goal mill-max-distance c:= 34)
 	(up-modify-goal lumbercamp-max-distance c:= 72)
 	(up-modify-goal miningcamp-max-distance c:= 72)
-	(up-modify-goal max-hunt-distance c:= 77)
+	(up-modify-goal max-hunt-distance c:= 31)
 	(up-modify-goal max-food-distance c:= 20)
 	(up-modify-goal max-wood-distance c:= 20)
 	(up-modify-goal max-gold-distance c:= 20)
@@ -227,6 +291,33 @@
 	(disable-self)
 )
 
+;determine map side for shipyard placement
+(defrule
+	(game-time > 30)
+=>
+	(up-modify-goal gl-my-position-combined g:+ gl-my-position-x)
+	(up-modify-goal gl-my-position-combined g:+ gl-my-position-y)
+	(disable-self)
+)
+
+(defrule
+	(game-time > 30)
+	(up-compare-goal gl-my-position-combined < 168)	
+=>
+	(set-goal map-left-side YES)
+	(up-chat-data-to-all "Im left! %d" g: gl-my-position-combined)
+	(disable-self)
+)
+
+(defrule
+	(game-time > 30)
+	(up-compare-goal gl-my-position-combined > 168)
+=>
+	(set-goal map-right-side YES)
+	(up-chat-data-to-all "Im right! %d" g: gl-my-position-combined)
+	(disable-self)
+)
+
 (defrule
 	(true)
 =>
@@ -236,15 +327,15 @@
 	
 	(up-modify-goal e-antiquity-min-townsize c:= 12)
 	(up-modify-goal e-antiquity-safe-townsize c:= 16)
-	(up-modify-goal e-antiquity-max-townsize c:= 33)
+	(up-modify-goal e-antiquity-max-townsize c:= 20)
 	
 	(up-modify-goal m-antiquity-min-townsize c:= 16)
 	(up-modify-goal m-antiquity-safe-townsize c:= 18)
-	(up-modify-goal m-antiquity-max-townsize c:= 50)
+	(up-modify-goal m-antiquity-max-townsize c:= 22)
 	
 	(up-modify-goal imperial-min-townsize c:= 18)
 	(up-modify-goal imperial-safe-townsize c:= 20)
-	(up-modify-goal imperial-max-townsize c:= 67)
+	(up-modify-goal imperial-max-townsize c:= 24)
 
 	(disable-self)
 )
@@ -270,7 +361,7 @@
 	(up-modify-goal mill-max-distance c:= 20)
 	(up-modify-goal lumbercamp-max-distance c:= 20)
 	(up-modify-goal miningcamp-max-distance c:= 20)
-	(up-modify-goal max-hunt-distance c:= 25)
+	(up-modify-goal max-hunt-distance c:= 17)
 	(up-modify-goal max-food-distance c:= 16)
 	(up-modify-goal max-wood-distance c:= 16)
 	(up-modify-goal max-gold-distance c:= 16)
@@ -285,7 +376,7 @@
 	(up-modify-goal mill-max-distance c:= 24)
 	(up-modify-goal lumbercamp-max-distance c:= 24)
 	(up-modify-goal miningcamp-max-distance c:= 24)
-	(up-modify-goal max-hunt-distance c:= 29)
+	(up-modify-goal max-hunt-distance c:= 21)
 	(up-modify-goal max-food-distance c:= 18)
 	(up-modify-goal max-wood-distance c:= 18)
 	(up-modify-goal max-gold-distance c:= 18)
@@ -300,7 +391,7 @@
 	(up-modify-goal mill-max-distance c:= 38)
 	(up-modify-goal lumbercamp-max-distance c:= 38)
 	(up-modify-goal miningcamp-max-distance c:= 38)
-	(up-modify-goal max-hunt-distance c:= 43)
+	(up-modify-goal max-hunt-distance c:= 26)
 	(up-modify-goal max-food-distance c:= 20)
 	(up-modify-goal max-wood-distance c:= 20)
 	(up-modify-goal max-gold-distance c:= 20)
@@ -336,6 +427,33 @@
 	(disable-self)
 )
 
+;determine map side for shipyard placement
+(defrule
+	(game-time > 30)
+=>
+	(up-modify-goal gl-my-position-combined g:+ gl-my-position-x)
+	(up-modify-goal gl-my-position-combined g:+ gl-my-position-y)
+	(disable-self)
+)
+
+(defrule
+	(game-time > 30)
+	(up-compare-goal gl-my-position-combined < 200)	
+=>
+	(set-goal map-left-side YES)
+	(up-chat-data-to-all "Im left! %d" g: gl-my-position-combined)
+	(disable-self)
+)
+
+(defrule
+	(game-time > 30)
+	(up-compare-goal gl-my-position-combined > 200)
+=>
+	(set-goal map-right-side YES)
+	(up-chat-data-to-all "Im right! %d" g: gl-my-position-combined)
+	(disable-self)
+)
+
 (defrule
 	(true)
 =>
@@ -345,15 +463,15 @@
 	
 	(up-modify-goal e-antiquity-min-townsize c:= 12)
 	(up-modify-goal e-antiquity-safe-townsize c:= 16)
-	(up-modify-goal e-antiquity-max-townsize c:= 40)
+	(up-modify-goal e-antiquity-max-townsize c:= 21)
 	
 	(up-modify-goal m-antiquity-min-townsize c:= 16)
 	(up-modify-goal m-antiquity-safe-townsize c:= 18)
-	(up-modify-goal m-antiquity-max-townsize c:= 60)
+	(up-modify-goal m-antiquity-max-townsize c:= 23)
 	
 	(up-modify-goal imperial-min-townsize c:= 18)
 	(up-modify-goal imperial-safe-townsize c:= 20)
-	(up-modify-goal imperial-max-townsize c:= 80)
+	(up-modify-goal imperial-max-townsize c:= 24)
 
 	(disable-self)
 )
@@ -379,7 +497,7 @@
 	(up-modify-goal mill-max-distance c:= 26)
 	(up-modify-goal lumbercamp-max-distance c:= 26)
 	(up-modify-goal miningcamp-max-distance c:= 26)
-	(up-modify-goal max-hunt-distance c:= 30)
+	(up-modify-goal max-hunt-distance c:= 17)
 	(up-modify-goal max-food-distance c:= 18)
 	(up-modify-goal max-wood-distance c:= 18)
 	(up-modify-goal max-gold-distance c:= 18)
@@ -394,7 +512,7 @@
 	(up-modify-goal mill-max-distance c:= 28)
 	(up-modify-goal lumbercamp-max-distance c:= 28)
 	(up-modify-goal miningcamp-max-distance c:= 28)
-	(up-modify-goal max-hunt-distance c:= 30)
+	(up-modify-goal max-hunt-distance c:= 22)
 	(up-modify-goal max-food-distance c:= 20)
 	(up-modify-goal max-wood-distance c:= 20)
 	(up-modify-goal max-gold-distance c:= 20)
@@ -409,7 +527,7 @@
 	(up-modify-goal mill-max-distance c:= 20)
 	(up-modify-goal lumbercamp-max-distance c:= 50)
 	(up-modify-goal miningcamp-max-distance c:= 50)
-	(up-modify-goal max-hunt-distance c:= 30)
+	(up-modify-goal max-hunt-distance c:= 27)
 	(up-modify-goal max-food-distance c:= 22)
 	(up-modify-goal max-wood-distance c:= 22)
 	(up-modify-goal max-gold-distance c:= 22)
@@ -424,7 +542,7 @@
 	(up-modify-goal mill-max-distance c:= 20)
 	(up-modify-goal lumbercamp-max-distance c:= 100)
 	(up-modify-goal miningcamp-max-distance c:= 100)
-	(up-modify-goal max-hunt-distance c:= 30)
+	(up-modify-goal max-hunt-distance c:= 31)
 	(up-modify-goal max-food-distance c:= 24)
 	(up-modify-goal max-wood-distance c:= 24)
 	(up-modify-goal max-gold-distance c:= 24)
@@ -445,6 +563,33 @@
 	(disable-self)
 )
 
+;determine map side for shipyard placement
+(defrule
+	(game-time > 30)
+=>
+	(up-modify-goal gl-my-position-combined g:+ gl-my-position-x)
+	(up-modify-goal gl-my-position-combined g:+ gl-my-position-y)
+	(disable-self)
+)
+
+(defrule
+	(game-time > 30)
+	(up-compare-goal gl-my-position-combined < 220)	
+=>
+	(set-goal map-left-side YES)
+	(up-chat-data-to-all "Im left! %d" g: gl-my-position-combined)
+	(disable-self)
+)
+
+(defrule
+	(game-time > 30)
+	(up-compare-goal gl-my-position-combined > 220)
+=>
+	(set-goal map-right-side YES)
+	(up-chat-data-to-all "Im right! %d" g: gl-my-position-combined)
+	(disable-self)
+)
+
 (defrule
 	(true)
 =>
@@ -454,15 +599,15 @@
 	
 	(up-modify-goal e-antiquity-min-townsize c:= 12)
 	(up-modify-goal e-antiquity-safe-townsize c:= 16)
-	(up-modify-goal e-antiquity-max-townsize c:= 40)
+	(up-modify-goal e-antiquity-max-townsize c:= 20)
 	
 	(up-modify-goal m-antiquity-min-townsize c:= 16)
 	(up-modify-goal m-antiquity-safe-townsize c:= 18)
-	(up-modify-goal m-antiquity-max-townsize c:= 60)
+	(up-modify-goal m-antiquity-max-townsize c:= 22)
 	
 	(up-modify-goal imperial-min-townsize c:= 18)
 	(up-modify-goal imperial-safe-townsize c:= 20)
-	(up-modify-goal imperial-max-townsize c:= 80)
+	(up-modify-goal imperial-max-townsize c:= 24)
 
 	(disable-self)
 )
@@ -488,7 +633,7 @@
 	(up-modify-goal mill-max-distance c:= 20)
 	(up-modify-goal lumbercamp-max-distance c:= 20)
 	(up-modify-goal miningcamp-max-distance c:= 20)
-	(up-modify-goal max-hunt-distance c:= 30)
+	(up-modify-goal max-hunt-distance c:= 17)
 	(up-modify-goal max-food-distance c:= 20)
 	(up-modify-goal max-wood-distance c:= 20)
 	(up-modify-goal max-gold-distance c:= 20)
@@ -503,7 +648,7 @@
 	(up-modify-goal mill-max-distance c:= 30)
 	(up-modify-goal lumbercamp-max-distance c:= 20)
 	(up-modify-goal miningcamp-max-distance c:= 20)
-	(up-modify-goal max-hunt-distance c:= 30)
+	(up-modify-goal max-hunt-distance c:= 22)
 	(up-modify-goal max-food-distance c:= 22)
 	(up-modify-goal max-wood-distance c:= 22)
 	(up-modify-goal max-gold-distance c:= 22)
@@ -518,7 +663,7 @@
 	(up-modify-goal mill-max-distance c:= 18)
 	(up-modify-goal lumbercamp-max-distance c:= 30)
 	(up-modify-goal miningcamp-max-distance c:= 30)
-	(up-modify-goal max-hunt-distance c:= 30)
+	(up-modify-goal max-hunt-distance c:= 27)
 	(up-modify-goal max-food-distance c:= 24)
 	(up-modify-goal max-wood-distance c:= 24)
 	(up-modify-goal max-gold-distance c:= 24)
@@ -533,7 +678,7 @@
 	(up-modify-goal mill-max-distance c:= 20)
 	(up-modify-goal lumbercamp-max-distance c:= 110)
 	(up-modify-goal miningcamp-max-distance c:= 110)
-	(up-modify-goal max-hunt-distance c:= 30)
+	(up-modify-goal max-hunt-distance c:= 32)
 	(up-modify-goal max-food-distance c:= 26)
 	(up-modify-goal max-wood-distance c:= 26)
 	(up-modify-goal max-gold-distance c:= 26)
@@ -554,6 +699,33 @@
 	(disable-self)
 )
 
+;determine map side for shipyard placement
+(defrule
+	(game-time > 30)
+=>
+	(up-modify-goal gl-my-position-combined g:+ gl-my-position-x)
+	(up-modify-goal gl-my-position-combined g:+ gl-my-position-y)
+	(disable-self)
+)
+
+(defrule
+	(game-time > 30)
+	(up-compare-goal gl-my-position-combined < 240)	
+=>
+	(set-goal map-left-side YES)
+	(up-chat-data-to-all "Im left! %d" g: gl-my-position-combined)
+	(disable-self)
+)
+
+(defrule
+	(game-time > 30)
+	(up-compare-goal gl-my-position-combined > 240)
+=>
+	(set-goal map-right-side YES)
+	(up-chat-data-to-all "Im right! %d" g: gl-my-position-combined)
+	(disable-self)
+)
+
 (defrule
 	(true)
 =>
@@ -563,15 +735,15 @@
 	
 	(up-modify-goal e-antiquity-min-townsize c:= 12)
 	(up-modify-goal e-antiquity-safe-townsize c:= 16)
-	(up-modify-goal e-antiquity-max-townsize c:= 40)
+	(up-modify-goal e-antiquity-max-townsize c:= 21)
 	
 	(up-modify-goal m-antiquity-min-townsize c:= 16)
 	(up-modify-goal m-antiquity-safe-townsize c:= 18)
-	(up-modify-goal m-antiquity-max-townsize c:= 60)
+	(up-modify-goal m-antiquity-max-townsize c:= 23)
 	
 	(up-modify-goal imperial-min-townsize c:= 18)
 	(up-modify-goal imperial-safe-townsize c:= 20)
-	(up-modify-goal imperial-max-townsize c:= 80)
+	(up-modify-goal imperial-max-townsize c:= 25)
 
 	(disable-self)
 )
@@ -597,7 +769,7 @@
 	(up-modify-goal mill-max-distance c:= 20)
 	(up-modify-goal lumbercamp-max-distance c:= 20)
 	(up-modify-goal miningcamp-max-distance c:= 20)
-	(up-modify-goal max-hunt-distance c:= 30)
+	(up-modify-goal max-hunt-distance c:= 22)
 	(up-modify-goal max-food-distance c:= 22)
 	(up-modify-goal max-wood-distance c:= 22)
 	(up-modify-goal max-gold-distance c:= 22)
@@ -612,7 +784,7 @@
 	(up-modify-goal mill-max-distance c:= 20)
 	(up-modify-goal lumbercamp-max-distance c:= 20)
 	(up-modify-goal miningcamp-max-distance c:= 20)
-	(up-modify-goal max-hunt-distance c:= 30)
+	(up-modify-goal max-hunt-distance c:= 24)
 	(up-modify-goal max-food-distance c:= 24)
 	(up-modify-goal max-wood-distance c:= 24)
 	(up-modify-goal max-gold-distance c:= 24)
@@ -627,7 +799,7 @@
 	(up-modify-goal mill-max-distance c:= 30)
 	(up-modify-goal lumbercamp-max-distance c:= 30)
 	(up-modify-goal miningcamp-max-distance c:= 30)
-	(up-modify-goal max-hunt-distance c:= 30)
+	(up-modify-goal max-hunt-distance c:= 26)
 	(up-modify-goal max-food-distance c:= 26)
 	(up-modify-goal max-wood-distance c:= 26)
 	(up-modify-goal max-gold-distance c:= 26)
@@ -662,6 +834,33 @@
 	(disable-self)
 )
 
+;determine map side for shipyard placement
+(defrule
+	(true)
+=>
+	(up-modify-goal gl-my-position-combined g:+ gl-my-position-x)
+	(up-modify-goal gl-my-position-combined g:+ gl-my-position-y)
+	(disable-self)
+)
+
+(defrule
+	(game-time > 30)
+	(up-compare-goal gl-my-position-combined < 480)	
+=>
+	(set-goal map-left-side YES)
+	(up-chat-data-to-all "Im left! %d" g: gl-my-position-combined)
+	(disable-self)
+)
+
+(defrule
+	(game-time > 30)
+	(up-compare-goal gl-my-position-combined > 480)
+=>
+	(set-goal map-right-side YES)
+	(up-chat-data-to-all "Im right! %d" g: gl-my-position-combined)
+	(disable-self)
+)
+
 (defrule
 	(true)
 =>
@@ -671,15 +870,15 @@
 	
 	(up-modify-goal e-antiquity-min-townsize c:= 12)
 	(up-modify-goal e-antiquity-safe-townsize c:= 16)
-	(up-modify-goal e-antiquity-max-townsize c:= 40)
+	(up-modify-goal e-antiquity-max-townsize c:= 25)
 	
 	(up-modify-goal m-antiquity-min-townsize c:= 16)
 	(up-modify-goal m-antiquity-safe-townsize c:= 18)
-	(up-modify-goal m-antiquity-max-townsize c:= 60)
+	(up-modify-goal m-antiquity-max-townsize c:= 28)
 	
 	(up-modify-goal imperial-min-townsize c:= 18)
 	(up-modify-goal imperial-safe-townsize c:= 20)
-	(up-modify-goal imperial-max-townsize c:= 80)
+	(up-modify-goal imperial-max-townsize c:= 34)
 
 	(disable-self)
 )
@@ -705,7 +904,7 @@
 	(up-modify-goal mill-max-distance c:= 20)
 	(up-modify-goal lumbercamp-max-distance c:= 20)
 	(up-modify-goal miningcamp-max-distance c:= 20)
-	(up-modify-goal max-hunt-distance c:= 30)
+	(up-modify-goal max-hunt-distance c:= 23)
 	(up-modify-goal max-food-distance c:= 24)
 	(up-modify-goal max-wood-distance c:= 24)
 	(up-modify-goal max-gold-distance c:= 24)
@@ -720,7 +919,7 @@
 	(up-modify-goal mill-max-distance c:= 20)
 	(up-modify-goal lumbercamp-max-distance c:= 20)
 	(up-modify-goal miningcamp-max-distance c:= 20)
-	(up-modify-goal max-hunt-distance c:= 30)
+	(up-modify-goal max-hunt-distance c:= 28)
 	(up-modify-goal max-food-distance c:= 26)
 	(up-modify-goal max-wood-distance c:= 26)
 	(up-modify-goal max-gold-distance c:= 26)
@@ -735,7 +934,7 @@
 	(up-modify-goal mill-max-distance c:= 30)
 	(up-modify-goal lumbercamp-max-distance c:= 30)
 	(up-modify-goal miningcamp-max-distance c:= 30)
-	(up-modify-goal max-hunt-distance c:= 30)
+	(up-modify-goal max-hunt-distance c:= 33)
 	(up-modify-goal max-food-distance c:= 28)
 	(up-modify-goal max-wood-distance c:= 28)
 	(up-modify-goal max-gold-distance c:= 28)
@@ -750,7 +949,7 @@
 	(up-modify-goal mill-max-distance c:= 20)
 	(up-modify-goal lumbercamp-max-distance c:= 240)
 	(up-modify-goal miningcamp-max-distance c:= 240)
-	(up-modify-goal max-hunt-distance c:= 30)
+	(up-modify-goal max-hunt-distance c:= 35)
 	(up-modify-goal max-food-distance c:= 30)
 	(up-modify-goal max-wood-distance c:= 30)
 	(up-modify-goal max-gold-distance c:= 30)
@@ -766,18 +965,23 @@
 (defrule
 	(true)
 =>
-	(set-goal flank-position 1)
+	(set-goal flank-position 0)
+	(chat-local-to-self "Center position")
 	
 	(disable-self)
 )
 
 #end-if
 
+#load-if-defined UP-ALLY-In-GAME
+
 ;check if you have allies, if you do then set team game goal
 (defrule
-	(up-players-in-game ally > 1)
+	(true)
 =>
 	(set-goal team-game 1)
 	
 	(disable-self)
 )
+
+#end-if

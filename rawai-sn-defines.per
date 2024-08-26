@@ -10,8 +10,20 @@
 	(set-strategic-number sn-mule-cart-dropsite-placement mining-camp)
 	(set-strategic-number sn-do-not-scale-for-difficulty-level 1)
 
-	
 	(disable-self)
+)
+
+(defrule
+	(up-timer-status sn-timer != timer-running)
+=>
+	(enable-timer sn-timer 15)
+)
+
+(defrule
+	(up-timer-status sn-timer == timer-triggered)
+=>
+	(up-modify-sn sn-safe-town-size g:= safe-townsize)
+	(up-modify-sn sn-minimum-town-size g:= inner-townsize)
 )
 
 (defrule
@@ -107,5 +119,37 @@
 )
 
 #end-if
+
+(defrule
+	(goal attack-type-land TOWN-SIZE)
+=>
+	(up-modify-sn sn-minimum-attack-group-size c:= 0)
+	(up-modify-sn sn-maximum-attack-group-size c:= 0)
+	(up-modify-sn sn-number-attack-groups c:= 0)
+)
+
+(defrule
+	(goal attack-type-land GROUP)
+=>
+	(up-modify-sn sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize)
+	(up-modify-sn sn-maximum-attack-group-size g:= gl-pop-atkgrp-maxsize)
+	(up-modify-sn sn-number-attack-groups g:= gl-pop-number-groups)
+)
+
+(defrule
+	(goal attack-type-sea TOWN-SIZE)
+=>
+	(up-modify-sn sn-minimum-boat-attack-group-size c:= 0)
+	(up-modify-sn sn-maximum-boat-attack-group-size c:= 0)
+	(up-modify-sn sn-number-boat-attack-groups c:= 0)
+)
+
+(defrule
+	(goal attack-type-sea GROUP)
+=>
+	(up-modify-sn sn-minimum-boat-attack-group-size g:= gl-pop-atkgrp-minsize)
+	(up-modify-sn sn-maximum-boat-attack-group-size g:= gl-pop-atkgrp-maxsize)
+	(up-modify-sn sn-number-boat-attack-groups g:= gl-pop-number-groups)
+)
 
 

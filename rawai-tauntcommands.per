@@ -1,0 +1,181 @@
+;31 "Attack an enemy now"
+(defrule
+	(taunt-detected any-ally 31)
+=>
+	(acknowledge-taunt this-any-ally 31)
+	(chat-local-to-self "land attack, response to taunt 36")
+	(up-modify-sn sn-percent-attack-soldiers g:= land-attack-percentage)
+	(up-modify-sn sn-percent-attack-boats g:= naval-attack-percentage)
+	(up-modify-sn sn-maximum-town-size c:= 250)
+	(attack-now)
+	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+	(set-strategic-number sn-percent-attack-soldiers 0)
+	(set-strategic-number sn-percent-attack-boats 0)
+	(chat-to-allies "39 Yes my liege, attacking now")
+)
+
+;45 "Retreat now!"
+
+(defrule
+	(taunt-detected any-ally 45)
+=>
+	(acknowledge-taunt this-any-ally 45)
+	(up-reset-attack-now)
+	(up-reset-unit c: -1)
+	(up-retreat-now)
+	(chat-to-allies "39 Yes my liege, my forces are in full retreat!")
+)
+
+;48 "I'm being attacked, please help!"
+(defrule
+	(taunt-detected any-ally 48)
+	(military-population > 1)
+=>
+	(acknowledge-taunt this-any-ally 48)
+	(up-modify-sn sn-target-player-number c:= -1)
+	(set-goal land-attack-percentage 90)
+	(up-modify-sn sn-maximum-town-size c:= 120)
+	(attack-now)
+	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+	(chat-to-allies "39 I will send whatever troops I can spare!")
+)
+
+;55 "Build a wall around your town"
+(defrule
+	(taunt-detected any-ally 55)
+=>
+	(acknowledge-taunt this-any-ally 55)
+	(enable-wall-placement 2)
+	(set-strategic-number sn-gate-type-for-wall 0)
+	(chat-local-to-self "Enable walls, response to taunt")
+	(set-goal taunt-wall YES)
+	(chat-to-allies "39 Very well, I will build a wall around my base.")
+	(disable-self)
+)
+
+;61 "Attack player 1!"
+(defrule
+	(taunt-detected any-ally 61)
+=>
+	(acknowledge-taunt this-any-ally 61)
+	(up-modify-sn sn-target-player-number c:= 1)
+	(set-goal land-attack-percentage 90)
+	(up-modify-sn sn-maximum-town-size c:= 120)
+	(attack-now)
+	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+	(chat-to-allies "39 Yes, I will attack blue!")
+)
+
+;62 "Attack player 2!"
+
+(defrule
+	(taunt-detected any-ally 62)
+=>
+	(acknowledge-taunt this-any-ally 62)
+	(up-modify-sn sn-target-player-number c:= 2)
+	(set-goal land-attack-percentage 90)
+	(up-modify-sn sn-maximum-town-size c:= 120)
+	(attack-now)
+	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+	(chat-to-allies "39 Yes, I will attack red!")
+)
+
+;63 "Attack player 3!"
+
+(defrule
+	(taunt-detected any-ally 63)
+=>
+	(acknowledge-taunt this-any-ally 63)
+	(up-modify-sn sn-target-player-number c:= 3)
+	(set-goal land-attack-percentage 90)
+	(up-modify-sn sn-maximum-town-size c:= 120)
+	(attack-now)
+	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+	(chat-to-allies "39 Yes, I will attack green!")
+)
+
+;64 "Attack player 4!"
+
+(defrule
+	(taunt-detected any-ally 64)
+=>
+	(acknowledge-taunt this-any-ally 64)
+	(up-modify-sn sn-target-player-number c:= 4)
+	(set-goal land-attack-percentage 90)
+	(up-modify-sn sn-maximum-town-size c:= 120)
+	(attack-now)
+	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+	(chat-to-allies "39 Yes, I will attack yellow!")
+)
+
+;65 "Attack player 5!"
+
+(defrule
+	(taunt-detected any-ally 65)
+=>
+	(acknowledge-taunt this-any-ally 65)
+	(up-modify-sn sn-target-player-number c:= 5)
+	(set-goal land-attack-percentage 90)
+	(up-modify-sn sn-maximum-town-size c:= 120)
+	(attack-now)
+	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+	(chat-to-allies "39 Yes, I will attack cyan!")
+)
+
+;66 "Attack player 6!"
+
+(defrule
+	(taunt-detected any-ally 66)
+=>
+	(acknowledge-taunt this-any-ally 66)
+	(up-modify-sn sn-target-player-number c:= 6)
+	(set-goal land-attack-percentage 90)
+	(up-modify-sn sn-maximum-town-size c:= 120)
+	(attack-now)
+	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+	(chat-to-allies "39 Yes, I will attack purple!")
+)
+
+;67 "Attack player 7!"
+
+(defrule
+	(taunt-detected any-ally 67)
+=>
+	(acknowledge-taunt this-any-ally 67)
+	(up-modify-sn sn-target-player-number c:= 7)
+	(set-goal land-attack-percentage 90)
+	(up-modify-sn sn-maximum-town-size c:= 120)
+	(attack-now)
+	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+	(chat-to-allies "39 Yes, I will attack gray!")
+)
+
+;68 "Attack player 8!"
+
+(defrule
+	(taunt-detected any-ally 68)
+=>
+	(acknowledge-taunt this-any-ally 68)
+	(up-modify-sn sn-target-player-number c:= 8)
+	(set-goal land-attack-percentage 90)
+	(up-modify-sn sn-maximum-town-size c:= 120)
+	(attack-now)
+	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+	(chat-to-allies "39 Yes, I will attack orange!")
+)
+
+;104 "Don't resign!"
+(defrule
+	(taunt-detected any-ally 104)
+=>
+	(acknowledge-taunt this-any-ally 104)
+	(set-goal prevent-resign YES)
+)
+
+;105 "You can resign again."
+(defrule
+	(taunt-detected any-ally 105)
+=>
+	(acknowledge-taunt this-any-ally 105)
+	(set-goal prevent-resign YES)
+)

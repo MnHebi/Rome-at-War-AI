@@ -5,6 +5,7 @@
 )
 
 (defrule
+	(goal resources-depleted NO)
 	(and
 		(goal current-phase 1)
 		(and
@@ -27,6 +28,7 @@
 )
 
 (defrule
+	(goal resources-depleted NO)
 	(and
 		(goal current-phase 1)
 		(and
@@ -49,6 +51,7 @@
 )
 
 (defrule
+	(goal resources-depleted NO)
 	(and
 		(goal current-phase 1)
 		(and
@@ -71,6 +74,7 @@
 )
 
 (defrule
+	(goal resources-depleted NO)
 	(and
 		(goal current-phase 2)
 		(goal age-up-started EARLY-ANTIQUITY)
@@ -90,6 +94,7 @@
 )
 
 (defrule
+	(goal resources-depleted NO)
 	(and
 		(goal current-phase 3)
 		(and
@@ -115,6 +120,7 @@
 )
 
 (defrule
+	(goal resources-depleted NO)
 	(and
 		(goal current-phase 3)
 		(and
@@ -140,6 +146,7 @@
 )
 
 (defrule
+	(goal resources-depleted NO)
 	(and
 		(goal current-phase 3)
 		(and
@@ -165,6 +172,7 @@
 )
 
 (defrule
+	(goal resources-depleted NO)
 	(and
 		(current-age-time < 120)
 		(and
@@ -184,6 +192,7 @@
 )
 
 (defrule
+	(goal resources-depleted NO)
 	(and
 		(current-age-time > 120)
 		(and
@@ -203,6 +212,7 @@
 )
 
 (defrule
+	(goal resources-depleted NO)
 	(goal current-phase 5)
 =>
 	(up-modify-sn sn-food-gatherer-percentage c:= 40)
@@ -213,6 +223,15 @@
 	(up-modify-goal desired-number-lumbercamps c:= 5)
 	(up-modify-goal desired-number-mills c:= 5)
 	(up-modify-goal desired-number-miningcamps c:= 5)
+)
+
+(defrule
+	(goal resources-depleted YES)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 100)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 0)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 0)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
 )
 
 (defrule
@@ -273,7 +292,7 @@
 	(set-goal upgrade-military-smith 0)
 	(set-goal upgrade-military-generic 0)
 	(set-goal upgrade-military-villager-requirement 24)
-	(set-goal upgrade-economy 1)
+	(set-goal upgrade-economy 0)
 	(set-goal upgrade-economy-villager-requirement 24)
 	(set-goal upgrade-fortifications 0)
 	(set-goal upgrade-fortifications-villager-requirement 24)
@@ -293,7 +312,7 @@
 	(set-goal upgrade-military-smith 0)
 	(set-goal upgrade-military-generic 0)
 	(set-goal upgrade-military-villager-requirement 24)
-	(set-goal upgrade-economy 1)
+	(set-goal upgrade-economy 0)
 	(set-goal upgrade-economy-villager-requirement 24)
 	(set-goal upgrade-fortifications 0)
 	(set-goal upgrade-fortifications-villager-requirement 24)
@@ -313,7 +332,7 @@
 	(set-goal upgrade-military-smith 0)
 	(set-goal upgrade-military-generic 0)
 	(set-goal upgrade-military-villager-requirement 27)
-	(set-goal upgrade-economy 1)
+	(set-goal upgrade-economy 0)
 	(set-goal upgrade-economy-villager-requirement 27)
 	(set-goal upgrade-fortifications 0)
 	(set-goal upgrade-fortifications-villager-requirement 27)
@@ -435,10 +454,36 @@
 )
 
 (defrule
+	(goal resources-depleted NO)
 	(up-object-type-count-total c: villager g:< desired-number-villagers)
 	(can-train villager)
 =>
 	(train villager)
+)
+
+(defrule
+	(goal resources-depleted YES)
+	(up-object-type-count-total c: villager g:< desired-number-farms)
+	(can-train villager)
+=>
+	(train villager)
+)
+
+;delete excess villagers, start with idle ones
+(defrule
+	(goal resources-depleted YES)
+	(up-object-type-count-total c: villager g:> desired-number-farms)
+=>
+	(up-delete-idle-units idle-type-villager)
+	(disable-self)
+)
+
+(defrule
+	(goal resources-depleted YES)
+	(up-idle-unit-count idle-type-villager < 5)
+	(up-object-type-count-total c: villager g:> desired-number-farms)
+=>
+	(delete-unit villager)
 )
 
 (defrule
