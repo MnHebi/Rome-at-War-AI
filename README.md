@@ -4,5 +4,5 @@ Built upon the AIBuilder AI in AoE2: DE Files.
 
 Special Thanks:
 Leif Ericson from AI Scripters Discord</br>
-Promiskuitiv and Archon, Shipyard placement code was lifted from The Definitive Edition AI
+Promiskuitiv and Archon, Shipyard placement code was lifted from The Definitive Edition AI</br>
 Promiskuitiv, help with taunt commands
