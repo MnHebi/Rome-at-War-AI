@@ -1,23 +1,23 @@
 
 (defrule
-	(up-timer-status extreme-cheats-timer == timer-disabled)
+	(up-timer-status extreme-cheats-timer != timer-running)
 =>
 	(enable-timer extreme-cheats-timer 30)
-	(chat-local-to-self "start extreme cheats timer start")
-)
-
-(defrule
-	(up-timer-status extreme-cheats-timer == timer-triggered)
-=>
-	(disable-timer extreme-cheats-timer)
 	(set-goal extreme-cheats YES)
-	(chat-local-to-self "start extreme cheats timer triggered, disable")
+	(chat-local-to-self "start extreme cheats timer start")
 )
 
 (defrule
 	(goal extreme-cheats YES)
 =>
 	(set-goal extreme-cheats GIVE)
+)
+
+(defrule
+	(true)
+=>
+	(cc-add-resource wood 150)
+	(disable-self)
 )
 
 (defrule
@@ -31,10 +31,125 @@
 )
 
 (defrule
+	(current-age >= feudal-age)
+	(goal extreme-cheats GIVE)
+=>
+	(set-goal extreme-cheats FOOD-GIVE)
+)
+
+(defrule
+	(goal extreme-cheats FOOD-GIVE)
+	(current-age == feudal-age)
+	(up-object-type-count-total c: villager g:< desired-number-villagers)
+=>
+	(cc-add-resource food 50)
+	(chat-local-to-self "food for early antiquity age workers cheat")
+	(set-goal extreme-cheats WOOD-GIVE)
+)
+
+(defrule
+	(goal extreme-cheats FOOD-GIVE)
+	(current-age == feudal-age)
+	(up-object-type-count-total c: villager g:>= desired-number-villagers)
+=>
+	(set-goal extreme-cheats WOOD-GIVE)
+)
+
+(defrule
+	(goal extreme-cheats WOOD-GIVE)
+	(current-age == feudal-age)
+	(and
+		(up-object-type-count-total c: market g:> 0)
+		(up-object-type-count-total c: market g:> 0)
+	)
+=>
+	(set-goal extreme-cheats FINISHED)
+)
+
+(defrule
+	(goal extreme-cheats WOOD-GIVE)
+	(current-age == feudal-age)
+	(or
+		(up-object-type-count-total c: market g:< desired-number-markets)
+		(up-object-type-count-total c: market g:< desired-number-blacksmiths)
+	)
+=>
+	(cc-add-resource wood 200)
+	(set-goal extreme-cheats FINISHED)
+	(chat-local-to-self "wood for early antiquity tech up requirement buildings")
+)
+
+(defrule
+	(goal extreme-cheats FOOD-GIVE)
+	(current-age >= castle-age)
+	(up-object-type-count-total c: villager g:< desired-number-villagers)
+=>
+	(cc-add-resource food 75)
+	(chat-local-to-self "food for middle antiquity & imperial workers cheat")
+	(set-goal extreme-cheats WOOD-GIVE)
+)
+
+(defrule
+	(goal extreme-cheats FOOD-GIVE)
+	(current-age >= castle-age)
+	(up-object-type-count-total c: villager g:>= desired-number-villagers)
+=>
+	(set-goal extreme-cheats WOOD-GIVE)
+)
+
+(defrule
+	(goal extreme-cheats WOOD-GIVE)
+	(current-age ==  castle-age)
+	(and
+		(up-object-type-count-total c: farm g:>= desired-number-farms)
+		(and
+			(up-object-type-count-total c: monastery g:> 0)
+			(up-object-type-count-total c: university g:> 0)
+		)
+	)
+=>
+	(set-goal extreme-cheats STONE-GIVE)
+)
+
+(defrule
+	(goal extreme-cheats WOOD-GIVE)
+	(current-age == castle-age)
+	(or
+		(up-object-type-count-total c: monastery g:< desired-number-monasteries)
+		(up-object-type-count-total c: university g:< desired-number-universities)
+	)
+=>
+	(cc-add-resource wood 200)
+	(chat-local-to-self "wood for middle antiquity tech up requirement buildings")
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal extreme-cheats WOOD-GIVE)
+	(current-age == castle-age)
+	(up-object-type-count-total c: farm g:< desired-number-farms)
+=>
+	(cc-add-resource wood 200)
+	(chat-local-to-self "wood for middle antiquity farms")
+	(set-goal extreme-cheats STONE-GIVE)
+)
+
+(defrule
+	(goal extreme-cheats STONE-GIVE)
+	(current-age >= castle-age)
+	(up-object-type-count-total c: castle g:< desired-number-castles)
+=>
+	(cc-add-resource stone 325)
+	(chat-local-to-self "stone for castle")
+	(set-goal extreme-cheats FINISHED)
+)
+
+(defrule
 	(research-completed feudal-age)
 =>
 	(cc-add-resource wood 500)
-	(chat-local-to-self "reached feudal age wood cheat")
+	(cc-add-resource gold 100)
+	(chat-local-to-self "reached early antiquity age wood cheat")
 	
 	(disable-self)
 )
@@ -43,8 +158,9 @@
 	(research-completed castle-age)
 =>
 	(cc-add-resource wood 1000)
+	(cc-add-resource gold 400)
 	(cc-add-resource stone 700)
-	(chat-local-to-self "reached castle age wood & stone cheat")
+	(chat-local-to-self "reached middle antiquity wood & stone cheat")
 	
 	(disable-self)
 )

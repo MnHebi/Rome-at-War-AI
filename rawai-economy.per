@@ -126,10 +126,13 @@
 		(and
 			(goal age-up-finished EARLY-ANTIQUITY)
 			(and
-				(goal age-up-started EARLY-ANTIQUITY)
+				(food-amount < 800)
 				(and
-					(building-type-count-total market > 0)
-					(building-type-count-total blacksmith > 0)
+					(goal age-up-started EARLY-ANTIQUITY)
+					(and
+						(building-type-count-total market > 0)
+						(building-type-count-total blacksmith > 0)
+					)
 				)
 			)
 		)
@@ -138,6 +141,35 @@
 	(up-modify-sn sn-food-gatherer-percentage c:= 80)
 	(up-modify-sn sn-wood-gatherer-percentage c:= 10)
 	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
+	(up-modify-goal desired-number-farms c:= 19)
+	(up-modify-goal desired-number-lumbercamps c:= 3)
+	(up-modify-goal desired-number-mills c:= 3)
+	(up-modify-goal desired-number-miningcamps c:= 3)
+)
+
+(defrule
+	(goal resources-depleted NO)
+	(and
+		(goal current-phase 3)
+		(and
+			(goal age-up-finished EARLY-ANTIQUITY)
+			(and
+				(food-amount > 800)
+				(and
+					(goal age-up-started EARLY-ANTIQUITY)
+					(and
+						(building-type-count-total market > 0)
+						(building-type-count-total blacksmith > 0)
+					)
+				)
+			)
+		)
+	)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 40)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 20)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 40)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
 	(up-modify-goal desired-number-farms c:= 19)
 	(up-modify-goal desired-number-lumbercamps c:= 3)
@@ -194,7 +226,7 @@
 (defrule
 	(goal resources-depleted NO)
 	(and
-		(current-age-time > 120)
+		(current-age-time < 120)
 		(and
 			(goal current-phase 4)
 			(wood-amount > 150)
@@ -203,7 +235,59 @@
 =>
 	(up-modify-sn sn-food-gatherer-percentage c:= 40)
 	(up-modify-sn sn-wood-gatherer-percentage c:= 45)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 5)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 5)
+	(up-modify-goal desired-number-farms c:= 3)
+	(up-modify-goal desired-number-lumbercamps c:= 4)
+	(up-modify-goal desired-number-mills c:= 4)
+	(up-modify-goal desired-number-miningcamps c:= 4)
+)
+
+(defrule
+	(goal resources-depleted NO)
+	(and
+		(current-age-time > 120)
+		(and
+			(goal current-phase 4)
+			(and
+				(building-type-count-total university == 0)
+				(and
+					(building-type-count-total monastery == 0)
+					(building-type-count-total siege-workshop == 0)
+				)
+			)
+		)
+	)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 20)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 65)
 	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 5)
+	(up-modify-goal desired-number-farms g:= gl-fourty-percent)
+	(up-modify-goal desired-number-lumbercamps c:= 4)
+	(up-modify-goal desired-number-mills c:= 4)
+	(up-modify-goal desired-number-miningcamps c:= 4)
+)
+
+(defrule
+	(goal resources-depleted NO)
+	(and
+		(current-age-time > 120)
+		(and
+			(goal current-phase 4)
+			(and
+				(building-type-count-total university > 0)
+				(or
+					(building-type-count-total monastery > 0)
+					(building-type-count-total siege-workshop > 0)
+				)
+			)
+		)
+	)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 40)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 15)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 40)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 5)
 	(up-modify-goal desired-number-farms g:= gl-fourty-percent)
 	(up-modify-goal desired-number-lumbercamps c:= 4)
@@ -525,6 +609,15 @@
 	(can-train trade-cog)
 =>
 	(train trade-cog)
+)
+
+;Increase trade carts massively after resources are depleted.
+(defrule
+	(goal resources-depleted YES)
+=>
+	(up-modify-goal desired-number-carts g:= gl-thirty-percent)
+	
+	(disable-self)
 )
 
 ;Fish traps and sea towers need work before these are useful, atm they just stop villagers from doing construction projects

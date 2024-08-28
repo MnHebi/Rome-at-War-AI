@@ -14,7 +14,7 @@
 ;rule jumps, do not add rules here
 ;dictate which method to attack with, TSA or Group handler
 (defrule
-	(up-timer-status attack-type-timer == timer-triggered)
+	(up-timer-status attack-type-timer <= timer-triggered)
 	(soldier-count g:< gl-twenty-percent)
 =>
 	(set-goal attack-type-land TOWN-SIZE)
@@ -44,7 +44,7 @@
 
 ;retreat when forces are too dwindled
 (defrule
-	(up-timer-status retreat-timer == timer-triggered)
+	(up-timer-status retreat-timer <= timer-triggered)
 	(current-age >= feudal-age)
 	(goal attack-type-land TOWN-SIZE)
 	(soldier-count g:< gl-five-percent)
@@ -55,7 +55,7 @@
 )
 
 (defrule
-	(up-timer-status retreat-timer == timer-triggered)
+	(up-timer-status retreat-timer <= timer-triggered)
 	(current-age >= feudal-age)
 	(goal attack-type-land GROUP)
 	(soldier-count g:< gl-twenty-percent)

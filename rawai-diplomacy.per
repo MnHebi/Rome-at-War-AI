@@ -1,17 +1,10 @@
 
 (defrule
-	(up-timer-status taunt-spam-timer == timer-disabled)
+	(up-timer-status taunt-spam-timer != timer-running)
 =>
 	(enable-timer taunt-spam-timer 120)
-	(chat-local-to-self "start taunt spam timer")
-)
-
-(defrule
-	(up-timer-status taunt-spam-timer == timer-triggered)
-=>
-	(disable-timer taunt-spam-timer)
 	(set-goal dont-spam-taunts NO)
-	(chat-local-to-self "start reset dont-spam-taunts")
+	(chat-local-to-self "start taunt spam timer")
 )
 
 (defrule

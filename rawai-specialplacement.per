@@ -1,7 +1,9 @@
 
+;start shipyard placement
 ;placement for left side of map
 (defrule
 	(goal map-left-side YES)
+	(can-afford-building shipyard)
     (and
         (building-type-count-total port > 0)
         (can-build shipyard)
@@ -15,6 +17,7 @@
 
 (defrule
 	(goal map-left-side YES)
+	(can-afford-building shipyard)
     (and
         (current-age >= feudal-age)
         (building-type-count-total port > 0)
@@ -34,6 +37,7 @@
 
 (defrule
 	(goal map-left-side YES)
+	(can-afford-building shipyard)
     (building-type-count-total port > 0)
     (building-type-count-total shipyard g:< desired-number-shipyards)
     (up-compare-goal gl-shipyard-x != -1)
@@ -52,6 +56,7 @@
 
 (defrule
 	(goal map-left-side YES)
+	(can-afford-building shipyard)
     (up-compare-goal gl-shipyard-x != -1)
 	(up-point-terrain gl-shipyard-x != terrain-water)
 =>
@@ -63,6 +68,7 @@
 
 (defrule
 	(goal map-left-side YES)
+	(can-afford-building shipyard)
     (and
         (building-type-count-total port > 0)
         (building-type-count-total shipyard g:< desired-number-shipyards)
@@ -77,6 +83,7 @@
 ;placement for right side of map
 (defrule
 	(goal map-right-side YES)
+	(can-afford-building shipyard)
     (and
         (building-type-count-total port > 0)
         (can-build shipyard)
@@ -90,6 +97,7 @@
 
 (defrule
 	(goal map-right-side YES)
+	(can-afford-building shipyard)
     (and
         (current-age >= feudal-age)
         (building-type-count-total port > 0)
@@ -109,6 +117,7 @@
 
 (defrule
 	(goal map-right-side YES)
+	(can-afford-building shipyard)
     (building-type-count-total port > 0)
     (building-type-count-total shipyard g:< desired-number-shipyards)
     (up-compare-goal gl-shipyard-x != -1)
@@ -127,6 +136,7 @@
 
 (defrule
 	(goal map-right-side YES)
+	(can-afford-building shipyard)
     (up-compare-goal gl-shipyard-x != -1)
 	(up-point-terrain gl-shipyard-x != terrain-water)
 =>
@@ -138,6 +148,7 @@
 
 (defrule
 	(goal map-right-side YES)
+	(can-afford-building shipyard)
     (and
         (building-type-count-total port > 0)
         (building-type-count-total shipyard g:< desired-number-shipyards)
@@ -148,3 +159,15 @@
     (chat-local-to-self "shipyard placement, try placing shipyard")
     (up-jump-rule -4)
 )
+;end shipyard placement
+
+;build market in response to taunt 52
+;(defrule
+;	(goal place-flare-market YES)
+;	(can-build market)
+;=>
+;	(up-set-target-point gl-flared-market-x)
+;	(up-build place-point 0 c: market)
+;	(set-goal place-flare-market NO)
+;	(chat-to-allies "39 Placed the Market you requested.")
+;)

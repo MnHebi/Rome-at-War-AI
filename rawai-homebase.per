@@ -1,47 +1,12 @@
 
-;make a common name for all the townsizes so we can just refer to that instead of having to do
-;a ton of specific references
-(defrule
-	(current-age == dark-age)
-=>
-	(up-modify-goal outer-townsize g:= iron-max-townsize)
-	(up-modify-goal safe-townsize g:= iron-safe-townsize)
-	(up-modify-goal inner-townsize g:= iron-min-townsize)
-	(disable-self)
-)
-
-(defrule
-	(current-age == feudal-age)
-=>
-	(up-modify-goal outer-townsize g:= e-antiquity-max-townsize)
-	(up-modify-goal safe-townsize g:= e-antiquity-safe-townsize)
-	(up-modify-goal inner-townsize g:= e-antiquity-min-townsize)
-	(disable-self)
-)
-
-(defrule
-	(current-age == castle-age)
-=>
-	(up-modify-goal outer-townsize g:= m-antiquity-max-townsize)
-	(up-modify-goal safe-townsize g:= m-antiquity-safe-townsize)
-	(up-modify-goal inner-townsize g:= m-antiquity-min-townsize)
-	(disable-self)
-)
-
-(defrule
-	(current-age == imperial-age)
-=>
-	(up-modify-goal outer-townsize g:= imperial-max-townsize)
-	(up-modify-goal safe-townsize g:= imperial-safe-townsize)
-	(up-modify-goal inner-townsize g:= imperial-min-townsize)
-	(disable-self)
-)
-
 ; Straight from AiBuilder files. Now extensively modified.
 
 (defrule
 	(current-age == dark-age)
-	(up-compare-sn sn-maximum-town-size g:< outer-townsize)
+	(and
+		(up-compare-sn sn-maximum-town-size c:> 0)
+		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
+	)
 	(up-timer-status town-size-timer != timer-running)
 	(or
 		(up-pending-placement c: town-center)
@@ -59,13 +24,17 @@
 =>
 	(up-modify-sn sn-maximum-town-size c:+ 1)
 	(up-modify-sn sn-maximum-town-size g:<= outer-townsize)
-	(up-chat-data-to-self "sn-maximum-town-size: %d" s: sn-maximum-town-size)
+	(up-modify-sn sn-maximum-town-size g:> 0)
+	(up-chat-data-to-self "pending placement resize sn-maximum-town-size: %d" s: sn-maximum-town-size)
 	(enable-timer town-size-timer 6)
 )
 
 (defrule
 	(current-age == feudal-age)
-	(up-compare-sn sn-maximum-town-size g:< outer-townsize)
+	(and
+		(up-compare-sn sn-maximum-town-size c:> 0)
+		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
+	)
 	(up-timer-status town-size-timer != timer-running)
 	(or	
 		(up-pending-placement c: town-center)
@@ -85,13 +54,7 @@
 									(up-pending-placement c: blacksmith)
 									(or	
 										(up-pending-placement c: market)
-										(or
-											(up-pending-placement c: watch-tower)
-											(or
-												(up-pending-placement c: dock)
-												(up-pending-placement c: shipyard)
-											)
-										)
+										(up-pending-placement c: watch-tower)
 									)
 								)
 							)
@@ -103,14 +66,35 @@
 	)
 =>
 	(up-modify-sn sn-maximum-town-size c:+ 1)
-	(up-modify-sn sn-maximum-town-size g:<= outer-townsize)
-	(up-chat-data-to-self "sn-maximum-town-size: %d" s: sn-maximum-town-size)
+	(up-modify-sn sn-maximum-town-size c:> 0)
+	(up-modify-sn sn-maximum-town-size g:< outer-townsize)
+	(up-chat-data-to-self "pending placement resize sn-maximum-town-size: %d" s: sn-maximum-town-size)
 	(enable-timer town-size-timer 6)
 )
 
 (defrule
+	(current-age == feudal-age)
+	(and
+		(up-compare-sn sn-maximum-town-size c:> 0)
+		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
+	)
+	(or
+		(up-pending-placement c: dock)
+		(up-pending-placement c: shipyard)
+	)
+=>
+	(up-modify-sn sn-maximum-town-size c:+ 1)
+	(up-modify-sn sn-maximum-town-size c:> 0)
+	(up-modify-sn sn-maximum-town-size g:< outer-townsize)
+	(up-chat-data-to-self "pending placement resize sn-maximum-town-size: %d" s: sn-maximum-town-size)
+)
+
+(defrule
 	(current-age >= castle-age)
-	(up-compare-sn sn-maximum-town-size g:< outer-townsize)
+	(and
+		(up-compare-sn sn-maximum-town-size c:> 0)
+		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
+	)
 	(up-timer-status town-size-timer != timer-running)
 	(or	
 		(up-pending-placement c: town-center)
@@ -145,16 +129,19 @@
 	)
 =>
 	(up-modify-sn sn-maximum-town-size c:+ 1)
-	(up-modify-sn sn-maximum-town-size g:<= outer-townsize)
-	(up-chat-data-to-self "sn-maximum-town-size: %d" s: sn-maximum-town-size)
+	(up-modify-sn sn-maximum-town-size c:> 0)
+	(up-modify-sn sn-maximum-town-size g:< outer-townsize)
+	(up-chat-data-to-self "pending placement resize sn-maximum-town-size: %d" s: sn-maximum-town-size)
 	(enable-timer town-size-timer 6)
 	(up-jump-rule 1)
 )
 
 (defrule
 	(current-age >= castle-age)
-	(up-compare-sn sn-maximum-town-size g:< outer-townsize)
-	(up-timer-status town-size-timer != timer-running)
+	(and
+		(up-compare-sn sn-maximum-town-size c:> 0)
+		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
+	)
 	(or
 		(up-pending-placement c: monastery)
 		(or
@@ -170,18 +157,20 @@
 	)
 =>
 	(up-modify-sn sn-maximum-town-size c:+ 1)
-	(up-modify-sn sn-maximum-town-size g:<= outer-townsize)
-	(up-chat-data-to-self "sn-maximum-town-size: %d" s: sn-maximum-town-size)
-	(enable-timer town-size-timer 6)
+	(up-modify-sn sn-maximum-town-size c:> 0)
+	(up-modify-sn sn-maximum-town-size g:< outer-townsize)
+	(up-chat-data-to-self "pending placement resize sn-maximum-town-size: %d" s: sn-maximum-town-size)
 )
 
 (defrule
 	(enemy-buildings-in-town)
+	(up-compare-sn sn-maximum-town-size g:>= safe-townsize)
 	(up-compare-sn sn-maximum-town-size g:<= outer-townsize)
 =>
 	(up-modify-sn sn-maximum-town-size c:- 1)
 	(up-modify-sn sn-maximum-town-size g:> safe-townsize)
-	(up-chat-data-to-self "sn-maximum-town-size: %d" s: sn-maximum-town-size)
+	(up-modify-sn sn-maximum-town-size g:< outer-townsize)
+	(up-chat-data-to-self "resize due to enemy buildings in town sn-maximum-town-size: %d" s: sn-maximum-town-size)
 )
 
 (defrule
@@ -209,10 +198,11 @@
 
 (defrule
 	(current-age >= castle-age)
+	(can-afford-building town-center)
 	(building-type-count-total town-center g:< desired-number-towncenters)
-	(can-build town-center)
+	(up-can-build 0 c: town-center)
 =>
-	(build town-center)
+	(up-build place-normal 0 c: town-center)
 )
 
 (defrule
@@ -221,9 +211,10 @@
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
-	(can-build house)
+	(can-afford-building house)
+	(up-can-build 0 c: house)
 =>
-	(build house)
+	(up-build place-normal 0 c: house)
 )
 
 (defrule
@@ -232,6 +223,7 @@
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
+	(can-afford-building house)
 	(up-can-build 0 c: house)
 =>
 	(up-set-placement-data my-player-number -1 c: -10)
@@ -517,7 +509,6 @@
 	(building-type-count mill >= 1)
 	(up-compare-goal point3-x >= 0)
 	(up-can-build-line 0 point3-x c: farm)
-	(can-build farm);
 	(up-can-build 0 c: farm)
 =>
 ;	(chat-to-player my-player-number "Manual farm.")
@@ -535,7 +526,9 @@
 )
 
 (defrule
-(not	(up-set-target-object search-local g: temporary-goal4))
+	(not	
+		(up-set-target-object search-local g: temporary-goal4)
+	)
 	(goal temporary-goal town-center)
 	(building-type-count mill >= 1)
 =>
@@ -554,18 +547,18 @@
 	(wood-amount > 150)
 	(goal dependent-farms 1)
 	(building-type-count mill >= 1)
-	(can-build farm)
 	(up-can-build 0 c: farm)
 =>
 ;	(chat-to-player my-player-number "Normal farm.")
-	(build farm)
+	(up-build place-normal 0 c: farm)
 )
 
 (defrule
+	(can-afford-building town-center)
 	(building-type-count-total town-center == 0)
-	(can-build town-center)
+	(up-can-build 0 c: town-center)
 =>
-	(build town-center)
+	(up-build place-normal 0 c: town-center)
 )
 
 (defrule
@@ -595,9 +588,9 @@
 	(building-type-count-total lumber-camp > 0)
 	(building-type-count-total mining-camp == 0)
 	(can-afford-building mining-camp)
-	(can-build mining-camp)
+	(up-can-build 0 c: mining-camp)
 =>
-	(build mining-camp)
+	(up-build place-normal 0 c: mining-camp)
 )
 
 (defrule
@@ -610,9 +603,9 @@
 	(dropsite-min-distance gold > 5)
 	(dropsite-min-distance gold g:< map-size)
 	(can-afford-building mining-camp)
-	(can-build mining-camp)
+	(up-can-build 0 c: mining-camp)
 =>
-	(build mining-camp))
+	(up-build place-normal 0 c: mining-camp))
 
 (defrule
 	(current-age >= feudal-age)
@@ -623,52 +616,59 @@
 	(up-gaia-type-count-total c: stone >= 5)
 	(dropsite-min-distance stone > 5)
 	(dropsite-min-distance stone g:< map-size)
-	(can-build mining-camp)
+	(can-afford-building mining-camp)
+	(up-can-build 0 c: mining-camp)
 =>
-	(build mining-camp))
+	(up-build place-normal 0 c: mining-camp))
 
 (defrule
+	(can-afford-building barracks)
 	(building-type-count-total barracks g:< desired-number-barracks)
 	(building-type-count-total lumber-camp >= 1)
-	(can-build barracks)
+	(up-can-build 0 c: barracks)
 =>
-	(build barracks))
+	(up-build place-normal 0 c: barracks))
 
 (defrule
 	(current-age >= feudal-age)
+	(can-afford-building archery-range)
 	(building-type-count-total barracks > 0)
 	(building-type-count-total archery-range g:< desired-number-ranges)
-	(can-build archery-range)
+	(up-can-build 0 c: archery-range)
 =>
-	(build archery-range))
+	(up-build place-normal 0 c: archery-range))
 
 (defrule
 	(current-age >= feudal-age)
+	(can-afford-building stable)
 	(building-type-count-total barracks > 0)
 	(building-type-count-total stable g:< desired-number-stables)
-	(can-build stable)
+	(up-can-build 0 c: stable)
 =>
-	(build stable))
+	(up-build place-normal 0 c: stable))
 
 (defrule
 	(current-age >= castle-age)
+	(can-afford-building siege-workshop)
 	(building-type-count-total siege-workshop g:< desired-number-workshops)
-	(can-build siege-workshop)
+	(up-can-build 0 c: siege-workshop)
 =>
-	(build siege-workshop))
+	(up-build place-normal 0 c: siege-workshop))
 
 (defrule
 	(current-age >= feudal-age)
+	(can-afford-building blacksmith)
 	(building-type-count-total blacksmith g:< desired-number-blacksmiths)
-	(can-build blacksmith)
+	(up-can-build 0 c: blacksmith)
 =>
-	(build blacksmith)
+	(up-build place-normal 0 c: blacksmith)
 )
 
 (defrule
 	(current-age == feudal-age)
+	(can-afford-building market)
 	(building-type-count-total market == 0)
-	(can-build market)
+	(up-can-build 0 c: market)
 =>
 	(up-set-placement-data my-player-number -1 c: -20)
 	(up-build place-control 0 c: market)
@@ -676,8 +676,9 @@
 
 (defrule
 	(current-age == castle-age)
+	(can-afford-building market)
 	(building-type-count-total market == 0)
-	(can-build market)
+	(up-can-build 0 c: market)
 =>
 	(up-set-placement-data my-player-number -1 c: -20)
 	(up-build place-control 0 c: market)
@@ -685,8 +686,9 @@
 
 (defrule
 	(current-age == imperial-age)
+	(can-afford-building market)
 	(building-type-count-total market g:< desired-number-markets)
-	(can-build market)
+	(up-can-build 0 c: market)
 =>
 	(up-get-fact building-type-count market gl-number-markets)
 	
@@ -700,31 +702,35 @@
 )
 
 (defrule
+	(can-afford-building dock)
 	(building-type-count-total dock g:< desired-number-docks)
 	(building-type-count-total lumber-camp >= 1)
-	(can-build dock)
+	(up-can-build 0 c: dock)
 =>
-	(build dock)
+	(up-build place-normal 0 c: dock)
 )
 
 (defrule
 	(current-age >= castle-age)
+	(can-afford-building university)
 	(building-type-count-total university g:< desired-number-universities)
-	(can-build university)
+	(up-can-build 0 c: university)
 =>
-	(build university))
+	(up-build place-normal 0 c: university))
 
 (defrule
 	(current-age >= castle-age)
+	(can-afford-building monastery)
 	(building-type-count-total monastery g:< desired-number-monasteries)
-	(can-build monastery)
+	(up-can-build 0 c: monastery)
 =>
-	(build monastery))
+	(up-build place-normal 0 c: monastery))
 
 (defrule
 	(current-age >= castle-age)
+	(can-afford-building castle)
 	(building-type-count-total castle g:< desired-number-castles)
-	(can-build castle)
+	(up-can-build 0 c: castle)
 =>
 ;	(up-get-fact building-type-count castle gl-number-castles)	
 ;	(up-modify-goal gl-castle-placement c:= 10)
@@ -738,15 +744,17 @@
 
 (defrule
 	(current-age >= castle-age)
+	(can-afford-building outpost)
 	(building-type-count-total outpost g:< desired-number-outposts)
-	(can-build outpost)
+	(up-can-build 0 c: outpost)
 =>
-	(build outpost))
+	(up-build place-normal 0 c: outpost))
 
 (defrule
 	(current-age >= feudal-age)
+	(can-afford-building watch-tower)
 	(building-type-count-total watch-tower g:< desired-number-watchtowers)
-	(can-build watch-tower)
+	(up-can-build 0 c: watch-tower)
 	(up-pending-objects c: watch-tower < 1)
 =>
 	(up-get-fact building-type-count watch-tower gl-number-watchtowers)
@@ -760,6 +768,8 @@
 	(up-build place-control 0 c: watch-tower)
 )
 
+;does not function
+;cause unknown
 (defrule
 	(and
 		(current-age >= feudal-age)
@@ -778,7 +788,6 @@
 		(goal flank-position 1)
 	)
 	(wall-completed-percentage 2 < 100)
-	(wall-invisible-percentage 2 == 0)
 	(can-build-wall-with-escrow 2 palisade-wall)
 =>
 	(release-escrow wood)
@@ -792,8 +801,9 @@
 		(goal flank-position 1)
 	)
 	(building-type-count-total gate < 4)
-	(can-build-gate 2)
+	(can-build-gate-with-escrow 2)
 =>
+	(release-escrow wood)
 	(build-gate 2)
 	(chat-local-to-self "Place gates")
 )
@@ -802,7 +812,6 @@
 	(goal taunt-wall YES)
 	(current-age >= feudal-age)
 	(wall-completed-percentage 2 < 100)
-	(wall-invisible-percentage 2 == 0)
 	(can-build-wall-with-escrow 2 stone-wall-line)
 =>
 	(release-escrow stone)
@@ -814,8 +823,9 @@
 	(goal taunt-wall YES)
 	(current-age >= feudal-age)
 	(building-type-count-total gate < 4)
-	(can-build-gate 2)
+	(can-build-gate-with-escrow 2)
 =>
+	(release-escrow stone)
 	(build-gate 2)
 	(chat-local-to-self "Place gates")
 )

@@ -40,6 +40,42 @@
 	(chat-to-allies "39 I will send whatever troops I can spare!")
 )
 
+;52 "Build a market at the flared location."
+(defrule
+	(goal target-action NO)
+	(taunt-detected any-ally 52)
+=>
+	(acknowledge-taunt this-any-ally 52)
+	(set-goal target-action YES)
+	(set-goal market-flare YES)
+	(up-jump-rule 1)
+)
+
+(defrule
+	(goal market-flare YES)
+	(unit-type-count flare > 0)
+	(can-build market)
+=>
+	(up-find-player-flare any-ally gl-flared-market-x)
+	(up-set-target-point gl-flared-market-x)
+	(up-build place-point 0 c: market)
+	;(set-goal place-flare-market YES)
+	(set-goal market-flare NO)
+	(set-goal target-action NO)
+	(chat-to-allies "39 Placed the Market you requested.")
+)
+
+(defrule
+	(goal market-flare YES)
+	(unit-type-count flare == 0)
+=>
+	(set-goal market-flare NO)
+	(set-goal target-action NO)
+	(chat-local-to-self "No flare detected to place market")
+)
+
+;nonfunctional, cause unknown
+;ordinary wall building also broken
 ;55 "Build a wall around your town"
 (defrule
 	(taunt-detected any-ally 55)
@@ -164,9 +200,77 @@
 	(chat-to-allies "39 Yes, I will attack orange!")
 )
 
+;69 "Delete the object on the flared location."
+(defrule
+	(goal target-action NO)
+	(taunt-detected any-ally 69)
+=>
+	(acknowledge-taunt this-any-ally 69)
+	(chat-to-player-using-id every-ally 22153); "39 At once, sire!"
+	(set-goal deletion-flare YES)
+	(set-goal target-action YES)
+	(up-jump-rule 1)
+)
+	
+(defrule
+	(and
+		(goal target-action YES)
+		(goal deletion-flare YES)
+	)
+	(unit-type-count flare > 0)
+=>
+	(up-find-player-flare any-human-ally gl-flared-delete-x)
+	(up-set-target-point gl-flared-delete-x)	
+    (up-full-reset-search)
+    (up-filter-distance c: -1 c: 2)
+    (up-find-local c: building-class c: 1)
+    (up-find-local c: tower-class c: 1)
+    (up-find-local c: wall-class c: 1)
+    (up-find-local c: gate-class c: 1)
+    (up-filter-status c: status-pending c: list-active)
+    (up-find-status-local c: building-class c: 1)
+    (up-find-status-local c: tower-class c: 1)
+    (up-find-status-local c: wall-class c: 1)
+    (up-find-status-local c: gate-class c: 1)
+	(up-jump-rule 1)
+)
+
+(defrule
+	(and
+		(goal target-action YES)
+		(goal deletion-flare YES)
+	)
+    (cc-players-unit-type-count any-human-ally flare >= 1)
+=>
+    (up-clean-search search-local object-data-distance search-order-asc)
+    (up-find-local c: all-units-class c: 1)
+    (up-remove-objects search-local object-data-index >= 1)
+    (up-target-point 0 action-delete -1 -1)
+   	(set-goal deletion-flare NO)
+	(set-goal target-action NO)
+)
+
+(defrule
+	(and
+		(goal target-action YES)
+		(goal deletion-flare YES)
+	)
+	(unit-type-count flare == 0)
+=>
+	(set-goal target-action NO)
+	(set-goal deletion-flare NO)
+	(chat-local-to-self "No flare detected for structure deletion")
+)
+
 ;104 "Don't resign!"
 (defrule
-	(taunt-detected any-ally 104)
+	(or
+		(taunt-detected any-neutral 104)
+		(or
+			(taunt-detected any-enemy 104)
+			(taunt-detected any-ally 104)
+		)
+	)
 =>
 	(acknowledge-taunt this-any-ally 104)
 	(set-goal prevent-resign YES)
@@ -174,7 +278,13 @@
 
 ;105 "You can resign again."
 (defrule
-	(taunt-detected any-ally 105)
+	(or
+		(taunt-detected any-neutral 105)
+		(or
+			(taunt-detected any-enemy 105)
+			(taunt-detected any-ally 105)
+		)
+	)
 =>
 	(acknowledge-taunt this-any-ally 105)
 	(set-goal prevent-resign YES)
