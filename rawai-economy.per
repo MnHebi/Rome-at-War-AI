@@ -512,8 +512,8 @@
 	(and
 		(building-type-count-total mill >= 1)
 		(and
-			(dropsite-min-distance hunting <= 15)
-			(dropsite-min-distance food <= 15)
+			(dropsite-min-distance hunting <= 8)
+			(dropsite-min-distance food <= 8)
 		)
 	)
 =>
@@ -527,8 +527,8 @@
 	(and
 		(building-type-count-total mill >= 1)
 		(or
-			(dropsite-min-distance food > 15)
-			(dropsite-min-distance hunting > 15)
+			(dropsite-min-distance food > 8)
+			(dropsite-min-distance hunting > 8)
 		)
 	)
 =>
@@ -618,6 +618,16 @@
 	(up-modify-goal desired-number-carts g:= gl-thirty-percent)
 	
 	(disable-self)
+)
+
+;Cow trainable from Mill due to Pict team bonus
+(defrule
+	(food-amount > 50)
+	(wood-amount > 50)
+	(unit-type-count-total mill-cow g:< gl-one-percent)
+	(can-train mill-cow)
+=>
+	(train mill-cow)
 )
 
 ;Fish traps and sea towers need work before these are useful, atm they just stop villagers from doing construction projects
