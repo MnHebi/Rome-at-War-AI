@@ -23,6 +23,26 @@
 )
 
 (defrule
+	(current-age == feudal-age)
+	(and
+		(building-type-count-total market == 0)
+		(building-type-count-total blacksmith == 0)
+	)
+=>
+	(set-goal wait-techup-requirements YES)
+)
+
+(defrule
+	(current-age == feudal-age)
+	(and
+		(building-type-count-total market > 0)
+		(building-type-count-total blacksmith > 0)
+	)
+=>
+	(set-goal wait-techup-requirements NO)
+)
+
+(defrule
 	(or
 		(up-compare-goal villager-count g:>= desired-ageup-villagers)
 		(current-age-time >= 300)
@@ -43,6 +63,26 @@
 	(chat-local-to-self "finished aging up to middle antiquity")
 	
 	(disable-self)
+)
+
+(defrule
+	(current-age == castle-age)
+	(and
+		(building-type-count-total university == 0)
+		(building-type-count-total monastery == 0)
+	)
+=>
+	(set-goal wait-techup-requirements YES)
+)
+
+(defrule
+	(current-age == castle-age)
+	(and
+		(building-type-count-total university > 0)
+		(building-type-count-total monastery > 0)
+	)
+=>
+	(set-goal wait-techup-requirements NO)
 )
 
 (defrule

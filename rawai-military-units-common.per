@@ -6,16 +6,19 @@
 ; Train Scout Galleys
 
 (defrule
-	(up-compare-goal current-phase >= 2)
+	(and
+		(up-compare-goal current-phase >= 2)
+		(up-compare-goal current-phase < 5)
+	)
 	(wood-amount > 200)
-	(unit-type-count-total scout-galley-line == 0)
+	(unit-type-count-total scout-galley-line g:< desired-number-scoutships)
 	(can-train scout-galley-line)
 =>
 	(train scout-galley-line)
 )
 
 (defrule
-	(up-compare-goal current-phase >= 2)
+	(up-compare-goal current-phase == 2)
 	(goal train-scoutships 1)
 	(wood-amount > 200)
 	(unit-type-count-total scout-galley-line g:< desired-number-scoutships)
@@ -27,7 +30,7 @@
 ;Train Remes
 
 (defrule
-	(up-compare-goal current-phase >= 2)
+	(up-compare-goal current-phase == 5)
 	(wood-amount > 200)
 	(unit-type-count-total monoreme-line == 0)
 	(can-train monoreme-line)
@@ -36,7 +39,7 @@
 )
 
 (defrule
-	(up-compare-goal current-phase >= 2)
+	(up-compare-goal current-phase == 5)
 	(goal train-remes 1)
 	(wood-amount > 200)
 	(unit-type-count-total monoreme-line g:< desired-number-reme)
@@ -48,7 +51,7 @@
 ;Train Fire Ships
 
 (defrule
-	(up-compare-goal current-phase >= 2)
+	(up-compare-goal current-phase == 5)
 	(wood-amount > 200)
 	(unit-type-count-total fire-ship-line == 0)
 	(can-train fire-ship-line)
@@ -57,7 +60,7 @@
 )
 
 (defrule
-	(up-compare-goal current-phase >= 2)
+	(up-compare-goal current-phase == 5)
 	(goal train-fireships 1)
 	(wood-amount > 200)
 	(unit-type-count-total fire-ship-line g:< desired-number-fireships)
@@ -69,7 +72,7 @@
 ;Train Hemiolia
 
 (defrule
-	(up-compare-goal current-phase >= 2)
+	(up-compare-goal current-phase == 5)
 	(wood-amount > 200)
 	(unit-type-count-total hemiolia-line == 0)
 	(can-train hemiolia-line)
@@ -78,7 +81,7 @@
 )
 
 (defrule
-	(up-compare-goal current-phase >= 2)
+	(up-compare-goal current-phase == 5)
 	(goal train-hemiolia 1)
 	(wood-amount > 200)
 	(unit-type-count-total hemiolia-line g:< desired-number-hemiolia)
@@ -285,6 +288,15 @@
 	(train priest)
 )
 
+; Train 1 Battering ram
+(defrule
+	(goal current-phase 5)
+	(unit-type-count-total battering-ram-line < 1)
+	(can-train battering-ram-line)
+=>
+	(train battering-ram-line)
+)
+
 ; Phase 5
 ;Certain units that are trained by ALL civs will be here cause repeating these train commands over and over again does not make sense
 
@@ -302,6 +314,15 @@
 	(can-train brahmin)
 =>
 	(train brahmin)
+)
+
+(defrule
+	(goal current-phase 5)
+	(goal train-boardingships 1)
+	(unit-type-count-total boarding-ship g:< desired-number-boardingships)
+	(can-train boarding-ship)
+=>
+	(train boarding-ship)
 )
 
 (defrule

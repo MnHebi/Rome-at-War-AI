@@ -251,10 +251,7 @@
 			(goal current-phase 4)
 			(and
 				(building-type-count-total university == 0)
-				(and
-					(building-type-count-total monastery == 0)
-					(building-type-count-total siege-workshop == 0)
-				)
+				(building-type-count-total monastery == 0)
 			)
 		)
 	)
@@ -276,10 +273,36 @@
 		(and
 			(goal current-phase 4)
 			(and
-				(building-type-count-total university > 0)
-				(or
+				(building-type-count-total farm g:<= desired-number-farms)
+				(and
+					(building-type-count-total university > 0)
 					(building-type-count-total monastery > 0)
-					(building-type-count-total siege-workshop > 0)
+				)
+			)
+		)
+	)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 20)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 35)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 40)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 5)
+	(up-modify-goal desired-number-farms g:= gl-fourty-percent)
+	(up-modify-goal desired-number-lumbercamps c:= 4)
+	(up-modify-goal desired-number-mills c:= 4)
+	(up-modify-goal desired-number-miningcamps c:= 4)
+)
+
+(defrule
+	(goal resources-depleted NO)
+	(and
+		(current-age-time > 120)
+		(and
+			(goal current-phase 4)
+			(and
+				(building-type-count-total farm g:>= desired-number-farms)
+				(and
+					(building-type-count-total university > 0)
+					(building-type-count-total monastery > 0)
 				)
 			)
 		)
@@ -572,16 +595,11 @@
 
 (defrule
 	(unit-type-count-total fishing-ship g:< desired-number-fishing)
-	(goal fish-present YES)
-	(wood-amount > 180)
-	(can-train fishing-ship)
-=>
-	(train fishing-ship)
-)
-
-(defrule
-	(unit-type-count-total fishing-ship < 5)
-	(building-type-count-total fish-trap > 0)
+	(goal wait-techup-requirements NO)
+	(or
+		(goal fish-present YES)
+		(building-type-count-total fish-trap > 0)
+	)
 	(wood-amount > 180)
 	(can-train fishing-ship)
 =>
@@ -590,6 +608,7 @@
 
 (defrule
 	(unit-type-count-total trade-cart g:< desired-number-carts)
+	(goal wait-techup-requirements NO)
 	(or	
 		(players-building-type-count any-ally market >= 1)
 		(players-building-type-count any-neutral market >= 1)
@@ -601,6 +620,7 @@
 
 (defrule
 	(unit-type-count-total trade-cog g:< desired-number-cogs)
+	(goal wait-techup-requirements NO)
 	(wood-amount > 200)
 	(or	
 		(players-building-type-count any-ally dock >= 1)
