@@ -18,34 +18,34 @@
 
 (defrule
 	(current-age == feudal-age)
-	(gold-amount >= 500)
+	(gold-amount >= 900)
 	(wood-amount <= 100)
 	(commodity-buying-price wood <= 100)
 	(can-buy-commodity wood)
 =>
-	(chat-local-to-self "Wood panic")
+	(chat-local-to-self "buy wood")
 	(buy-commodity wood)
 )
 
 (defrule
 	(current-age == feudal-age)
-	(gold-amount >= 500)
+	(gold-amount >= 900)
 	(food-amount <= 100)
 	(commodity-buying-price food <= 100)
 	(can-buy-commodity food)
 =>
-	(chat-local-to-self "Food panic")
+	(chat-local-to-self "buy food")
 	(buy-commodity food)
 )
 
 (defrule
 	(current-age == feudal-age)
-	(gold-amount >= 600)
+	(gold-amount >= 900)
 	(stone-amount <= 100)
 	(commodity-buying-price stone <= 200)
 	(can-buy-commodity stone)
 =>
-	(chat-local-to-self "need stone")
+	(chat-local-to-self "buy stone")
 	(buy-commodity stone)
 )
 
@@ -72,21 +72,8 @@
 	)
 	(can-sell-commodity food)
 =>
-	(chat-local-to-self "excess food")
+	(chat-local-to-self "sell food")
 	(sell-commodity food)
-)
-
-(defrule
-	(current-age == feudal-age)
-	(stone-amount >= 1000)
-	(or
-		(gold-amount < 100)
-		(wood-amount < 100)
-	)
-	(can-sell-commodity stone)
-=>
-	(chat-local-to-self "excess stone")
-	(sell-commodity stone)
 )
 
 ;****************************CASTLE
@@ -107,7 +94,7 @@
 	(wood-amount <= 100)
 	(can-buy-commodity wood)
 =>
-	(chat-local-to-self "Wood panic")
+	(chat-local-to-self "buy wood")
 	(buy-commodity wood)
 )
 
@@ -124,72 +111,41 @@
 
 (defrule
 	(current-age == castle-age)
-	(gold-amount >= 500)
+	(gold-amount >= 1000)
 	(food-amount <= 100)
 	(can-buy-commodity food)
 =>
-	(chat-local-to-self "Food panic")
+	(chat-local-to-self "buy food")
 	(buy-commodity food)
 )
 
 (defrule
 	(current-age == castle-age)
-	(gold-amount >= 1200)
+	(gold-amount >= 1000)
 	(stone-amount <= 200)
 	(commodity-buying-price stone <= 200)
 	(can-buy-commodity stone)
 =>
-	(chat-local-to-self "need stone")
+	(chat-local-to-self "buy stone")
 	(buy-commodity stone)
 )
 
 (defrule
 	(current-age == castle-age)
-	(wood-amount >= 1200)
-	(or
-		(gold-amount < 200)
-		(food-amount < 200)
-	)
-	(commodity-selling-price wood >= 25)
-	(can-sell-commodity wood)
-=>
-	(chat-local-to-self "Gold panic; sell wood")
-	(sell-commodity wood)
-)
-
-(defrule
-	(current-age == castle-age)
 	(food-amount >= 1200)
-	(or
-		(gold-amount < 200)
-		(wood-amount < 200)
-	)
+	(gold-amount < 200)
 	(can-sell-commodity food)
 =>
-	(chat-local-to-self "excess food")
+	(chat-local-to-self "sell food")
 	(sell-commodity food)
 )
-
-(defrule
-	(current-age == castle-age)
-	(stone-amount >= 1200)
-	(or
-		(gold-amount < 200)
-		(wood-amount < 200)
-	)
-	(can-sell-commodity stone)
-=>
-	(chat-local-to-self "excess stone")
-	(sell-commodity stone)
-)
-
 
 ;****************************
 ;imperial age
 
 (defrule
 	(current-age == imperial-age)
-	(gold-amount >= 1500)
+	(gold-amount >= 1000)
 	(wood-amount <= 200)
 	(can-buy-commodity wood)
 =>
@@ -199,7 +155,7 @@
 
 (defrule
 	(current-age == imperial-age)
-	(gold-amount >= 1500)
+	(gold-amount >= 1000)
 	(food-amount <= 200)
 	(can-buy-commodity food)
 =>
@@ -209,7 +165,7 @@
 
 (defrule
 	(current-age == imperial-age)
-	(gold-amount >= 1500)
+	(gold-amount >= 1000)
 	(stone-amount <= 200)
 	(can-buy-commodity stone)
 =>
@@ -219,44 +175,12 @@
 
 (defrule
 	(current-age == imperial-age)
-	(wood-amount >= 1500)
-	(or
-		(gold-amount < 200)
-		(food-amount < 200)
-	)
-	(can-sell-commodity wood)
-=>
-	(chat-local-to-self "Gold panic; sell wood")
-	(sell-commodity wood)
-)
-
-(defrule
-	(current-age == imperial-age)
-	(food-amount >= 1500)
-	(or
-		(gold-amount < 200)
-		(wood-amount < 200)
-	)
+	(food-amount >= 1000)
+	(gold-amount < 200)
 	(can-sell-commodity food)
 =>
-	(chat-local-to-self "excess food")
+	(chat-local-to-self "sell food")
 	(sell-commodity food)
-)
-
-(defrule
-	(current-age == imperial-age)
-	(stone-amount >= 1500)
-	(or
-		(or
-			(gold-amount < 200)
-			(wood-amount < 200)
-		)
-		(food-amount < 200)
-	)
-	(can-sell-commodity stone)
-=>
-	(chat-local-to-self "excess stone")
-	(sell-commodity stone)
 )
 
 ;request resources

@@ -333,12 +333,30 @@
 )
 
 (defrule
+	(and
+		(goal gold-present NO)
+		(goal stone-present NO)
+	)
+	(goal current-phase 5)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 50)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 50)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 0)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
+	(up-modify-goal desired-number-farms g:= gl-thirty-percent)
+	(up-modify-goal desired-number-lumbercamps c:= 5)
+	(up-modify-goal desired-number-mills c:= 5)
+	(up-modify-goal desired-number-miningcamps c:= 0)
+)
+
+(defrule
 	(goal resources-depleted YES)
 =>
 	(up-modify-sn sn-food-gatherer-percentage c:= 100)
 	(up-modify-sn sn-wood-gatherer-percentage c:= 0)
 	(up-modify-sn sn-gold-gatherer-percentage c:= 0)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
+	(up-modify-goal desired-number-farms g:= gl-thirty-percent)
 )
 
 (defrule
@@ -536,7 +554,7 @@
 		(building-type-count-total mill >= 1)
 		(and
 			(dropsite-min-distance hunting <= 8)
-			(dropsite-min-distance food <= 8)
+			(sheep-and-forage-too-far)
 		)
 	)
 =>
@@ -549,8 +567,8 @@
 	(timer-triggered farm-check-timer)
 	(and
 		(building-type-count-total mill >= 1)
-		(or
-			(dropsite-min-distance food > 8)
+		(and
+			(sheep-and-forage-too-far)
 			(dropsite-min-distance hunting > 8)
 		)
 	)

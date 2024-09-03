@@ -218,6 +218,7 @@
 )
 
 (defrule
+	(current-age <= feudal-age)
 	(goal allow-houses 1)
 	(building-type-count-total house > 0)
 	(up-pending-objects c: house <= 0)
@@ -228,6 +229,19 @@
 =>
 	(up-set-placement-data my-player-number -1 c: -10)
 	(up-build place-control 0 c: house)
+)
+
+(defrule
+	(current-age >= castle-age)
+	(goal allow-houses 1)
+	(building-type-count-total house > 0)
+	(up-pending-objects c: house <= 0)
+	(population-headroom > 0)
+	(housing-headroom < 5)
+	(can-afford-building house)
+	(up-can-build 0 c: house)
+=>
+	(up-build place-normal 0 c: house)
 )
 
 (defrule

@@ -1,5 +1,14 @@
 
 (defrule
+	(true)
+=>
+	(enable-timer land-attack-timer 600)
+	(enable-timer naval-attack-timer 600)
+	
+	(disable-self)
+)
+
+(defrule
 	(up-timer-status attack-type-timer != timer-running)
 =>
 	(enable-timer attack-type-timer 30)
@@ -1125,6 +1134,23 @@
 (defrule
 	(game-time > 300)
 	(goal flank-position 0)
+	(up-timer-status periodic-attack-timer != timer-running)
+=>
+	(chat-local-to-self "periodic attack")
+	(up-modify-sn sn-percent-attack-soldiers g:= land-attack-percentage)
+	(up-modify-sn sn-percent-attack-boats g:= naval-attack-percentage)
+	(up-modify-sn sn-maximum-town-size c:= 250)
+	(attack-now)
+	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+	(set-strategic-number sn-percent-attack-soldiers 0)
+	(set-strategic-number sn-percent-attack-boats 0)
+	(up-set-timer c: periodic-attack-timer g: periodic-attack-interval)
+)
+
+;periodic attacks, for solo games
+(defrule
+	(game-time > 300)
+	(goal team-game NO)
 	(up-timer-status periodic-attack-timer != timer-running)
 =>
 	(chat-local-to-self "periodic attack")

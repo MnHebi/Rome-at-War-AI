@@ -100,10 +100,18 @@
 )
 
 (defrule
-	(research-completed castle-age)
+	(research-completed imperial-age)
 =>
 	(set-goal age-up-finished IMPERIAL)
 	(chat-local-to-self "finished aging up to imperial")
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(set-goal wait-techup-requirements NO)
 	
 	(disable-self)
 )
