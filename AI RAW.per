@@ -21,10 +21,16 @@
 
 (load "rawai-supplementary")
 
-#load-if-defined DIFFICULTY-EXTREME
+#load-if-not-defined DIFFICULTY-EASIEST
+#load-if-not-defined DIFFICULTY-EASY
+#load-if-not-defined DIFFICULTY-MODERATE
+#load-if-not-defined DIFFICULTY-HARD
 
 (load "rawai-cheats")
 
+#end-if
+#end-if
+#end-if
 #end-if
 
 (load "rawai-age-advancement")
@@ -47,7 +53,45 @@
 
 (load "rawai-diplomacy")
 
+#load-if-not-defined DIFFICULTY-HARD
+#load-if-not-defined DIFFICULTY-HARDEST
+#load-if-not-defined DIFFICULTY-EXTREME
 (load "rawai-military-units-common")
+
+(defrule
+	(true)
+=>
+	(chat-local-to-self "loaded military-units-common for <= moderate")
+	(disable-self)
+)
+#end-if
+#end-if
+#end-if
+
+#load-if-not-defined DIFFICULTY-EASIEST
+#load-if-not-defined DIFFICULTY-EASY
+
+(load "rawai-mrush")
+
+#end-if
+#end-if
+
+#load-if-not-defined DIFFICULTY-EASIEST
+#load-if-not-defined DIFFICULTY-EASY
+#load-if-not-defined DIFFICULTY-MODERATE
+
+(load "rawai-military-units-common-hard")
+(load "rawai-rush")
+
+(defrule
+	(true)
+=>
+	(chat-local-to-self "loaded military-units-common for >= hard")
+	(disable-self)
+)
+#end-if
+#end-if
+#end-if
 
 (load "rawai-resign")
 
@@ -59,8 +103,25 @@
 ;add civ loads here
 
 #load-if-defined BERBERS-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests YES)
+	(set-goal good-navy NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith YES)
+	(set-goal has-heresy YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-armenia")
+
 #end-if
+
 #load-if-defined LITHUANIANS-CIV
 (load "rawai-civ-athenians")
 #end-if
