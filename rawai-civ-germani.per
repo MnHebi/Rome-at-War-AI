@@ -1,4 +1,302 @@
 
+;define civ specialties
+(defrule
+	(true)
+=>
+	(set-goal civ-specialty1 SPE-INFANTRY)
+	(set-goal civ-specialty2 SPE-NONE)
+	(set-goal civ-specialty3 SPE-NONE)
+	
+	(disable-self)
+)
+
+;Define unique unit properties
+;Unique Unit 1-2 are trained from Castle
+;Unique Unit 3-4 are trained from Barracks
+;Unique Unit 5-6 are trained from Stable
+;Unique Unit 7-8 are trained from Archery Range
+;Unique Unit 9-10 are trained from Siege Workshop
+;Unique Unit 11-12 are trained from Shipyard
+;Unique Unit 13-14 are trained from Town Center
+
+(defrule
+	(true)
+=>
+	(set-goal uu1-type CAVALRY-UU)
+	(set-goal uu2-type NO-UU)
+	(set-goal uu3-type NO-UU)
+	(set-goal uu4-type NO-UU)
+	(set-goal uu5-type NO-UU)
+	(set-goal uu6-type NO-UU)
+	(set-goal uu7-type NO-UU)
+	(set-goal uu8-type NO-UU)
+	(set-goal uu9-type NO-UU)
+	(set-goal uu10-type NO-UU)
+	(set-goal uu11-type NO-UU)
+	(set-goal uu12-type NO-UU)
+	(set-goal uu13-type NO-UU)
+	(set-goal uu14-type NO-UU)
+	
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(set-goal uu1-anti ANTI-NONE)
+	(set-goal uu2-anti ANTI-NONE)
+	(set-goal uu3-anti ANTI-NONE)
+	(set-goal uu4-anti ANTI-NONE)
+	(set-goal uu5-anti ANTI-NONE)
+	(set-goal uu7-anti ANTI-NONE)
+	(set-goal uu8-anti ANTI-NONE)
+	(set-goal uu9-anti ANTI-NONE)
+	(set-goal uu10-anti ANTI-NONE)
+	(set-goal uu11-anti ANTI-NONE)
+	(set-goal uu12-anti ANTI-NONE)
+	(set-goal uu13-anti ANTI-NONE)
+	(set-goal uu14-anti ANTI-NONE)
+	
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(set-goal uu1-weak WEAK-NO)
+	(set-goal uu2-weak WEAK-NONE)
+	(set-goal uu3-weak WEAK-NONE)
+	(set-goal uu4-weak WEAK-NONE)
+	(set-goal uu5-weak WEAK-NONE)
+	(set-goal uu7-weak WEAK-NONE)
+	(set-goal uu8-weak WEAK-NONE)
+	(set-goal uu9-weak WEAK-NONE)
+	(set-goal uu10-weak WEAK-NONE)
+	(set-goal uu11-weak WEAK-NONE)
+	(set-goal uu12-weak WEAK-NONE)
+	(set-goal uu13-weak WEAK-NONE)
+	(set-goal uu14-weak WEAK-NONE)
+	
+	(disable-self)
+)
+
+;Define unit preferences & strategies depending on enemy civ so we counter them properly
+
+;unit affinity
+;if unit has 5 upgrades, affinity goes up by 20% each step
+;if unit has 3 upgrades, affinity goes up by 33% each step
+;if unit has 2 upgrades, affinity goes up by 50% each step
+;if unit is not available or not desired, affinity is 0%
+; so 99% and 100% are equal affinities all things considered
+; 66%, and 50% are equal affinities all things considered
+; 33%, and 20% are equal affinities all things considered
+; for Priests, and Brahmin affinities are
+; 25% is added if Redemption is available for civ
+; 25% is added if Block Printing is available for civ
+; 25% is added if Faith is available for civ
+; 25% is added if Illumination is available for civ
+; For ships Juggernauts do not have affinity, they will always be built if they are available
+
+(defrule
+	(true)
+=>
+	(set-goal champion-affinity 0) ;80 if Civitates Foederate is researched
+	(set-goal spearman-affinity 0) ;90 if Civitates Foederate is researched
+	(set-goal horus-affinity 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>	
+	(set-goal archer-affinity 99)
+	(set-goal skirmisher-affinity 50)
+	(set-goal cavarcher-affinity 100)
+	(set-goal camarcher-affinity 50)
+	(set-goal elearcher-affinity 0)
+	(set-goal chrarcher-affinity 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>	
+	(set-goal scavalry-affinity 99)
+	(set-goal cavalry-affinity 99)
+	(set-goal crider-affinity 50)
+	(set-goal belephant-affinity 0)
+	(set-goal chariot-affinity 0)
+	
+	(disable-self)
+)
+	
+(defrule
+	(true)
+=>
+	(set-goal ram-affinity 99)
+	(set-goal mangonel-affinity 66)
+	(set-goal scorpion-affinity 50)
+	(set-goal catapult-affinity 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal has-redemption YES)
+=>
+	(up-modify-goal priest-affinity c:+ 25)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal has-blockprinting YES)
+=>
+	(up-modify-goal priest-affinity c:+ 25)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal has-faith YES)
+=>
+	(up-modify-goal priest-affinity c:+ 25)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal has-illumination YES)
+=>
+	(up-modify-goal priest-affinity c:+ 25)
+	
+	(disable-self)
+)
+	
+(defrule
+	(true)
+=>
+	(set-goal sship-affinity 99)
+	(set-goal rship-affinity 66)
+	(set-goal fship-affinity 66)
+	(set-goal dship-affinity 99)
+	(set-goal hship-affinity 99)
+	(set-goal qship-affinity 0)
+	(set-goal oship-affinity 0)
+	(set-goal bship-affinity 33)
+	
+	(disable-self)
+)
+
+;enemy civs will alter rush affinities
+;unit affinities will only be altered if it is highly beneficial or enemy has perfect unit to counter that unit in that matchup
+;some techs might only be researched in certain matchups
+#load-if-defined UP-BERBERS-CIV-ENEMY ; Armenians
+
+
+#end-if
+#load-if-defined UP-LITHUANIANS-CIV-ENEMY ; Athenians
+
+#end-if
+#load-if-defined UP-BRITON-CIV-ENEMY ; Britons
+
+#end-if
+#load-if-defined UP-PORTUGUESE-CIV-ENEMY ; Carthagians
+
+#end-if
+#load-if-defined UP-VIETNAMESE-CIV-ENEMY ; Cretans
+
+#end-if
+#load-if-defined UP-ETHIOPIANS-CIV-ENEMY ; Dacians
+
+#end-if
+#load-if-defined UP-AZTEC-CIV-ENEMY ; Egyptians
+
+#end-if
+#load-if-defined UP-FRANKISH-CIV-ENEMY ; Gauls
+
+#end-if
+#load-if-defined UP-TEUTONIC-CIV-ENEMY ; Germani
+
+#end-if
+#load-if-defined UP-GOTHIC-CIV-ENEMY ; Goths
+
+#end-if
+#load-if-defined UP-GURJARAS-CIV-ENEMY ; Gupta 
+
+#end-if
+#load-if-defined UP-CHINESE-CIV-ENEMY ; Han
+
+#end-if
+#load-if-defined UP-HUN-CIV-ENEMY ; Huns
+
+#end-if
+#load-if-defined UP-SPANISH-CIV-ENEMY ; Iberians
+
+#end-if
+#load-if-defined UP-BULGARIANS-CIV-ENEMY ; Illyrians
+
+#end-if
+#load-if-defined UP-SARACEN-CIV-ENEMY ; Judeans
+
+#end-if
+#load-if-defined UP-INDIAN-CIV-ENEMY ; Kushans
+
+#end-if
+#load-if-defined UP-KOREAN-CIV-ENEMY ; Macedonians
+
+#end-if
+#load-if-defined UP-BENGALIS-CIV-ENEMY ; Mauryans
+
+#end-if
+#load-if-defined UP-DRAVIDIANS-CIV-ENEMY ; Nanda
+
+#end-if
+#load-if-defined UP-MAYAN-CIV-ENEMY ; Nubians
+
+#end-if
+#load-if-defined UP-INCAN-CIV-ENEMY ; Numidians
+
+#end-if
+#load-if-defined UP-TURKISH-CIV-ENEMY ; Parthians
+
+#end-if
+#load-if-defined UP-PERSIAN-CIV-ENEMY ; Persians
+
+#end-if
+#load-if-defined UP-MONGOL-CIV-ENEMY ; Phoenicians
+
+#end-if
+#load-if-defined UP-CELTIC-CIV-ENEMY ; Picts
+
+#end-if
+#load-if-defined UP-KHMER-CIV-ENEMY ; Pontus
+
+#end-if
+#load-if-defined UP-BYZANTINE-CIV-ENEMY ; Roman Empire
+
+#end-if
+#load-if-defined UP-ITALIAN-CIV-ENEMY ; Roman Republic
+
+#end-if
+#load-if-defined UP-CUMANS-CIV-ENEMY ; Scythians
+
+#end-if
+#load-if-defined UP-BURMESE-CIV-ENEMY ; Seleucids
+
+#end-if
+#load-if-defined UP-JAPANESE-CIV-ENEMY ; Spartans
+
+#end-if
+#load-if-defined UP-MALAY-CIV-ENEMY ; Syracusans
+
+#end-if
+#load-if-defined UP-MALIAN-CIV-ENEMY ; Thracians
+
+#end-if
+
 ;civ specific structure preferences
 
 (defrule
