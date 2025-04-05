@@ -1,9 +1,219 @@
+;define rush state
+;for rushing YES means it will be considered if we are ahead in age, and already have the required structures
+;MAYBE means it will be considered if we are ahead in age
+;ASSURED means it will be done
+
+(defrule
+	(and
+		(up-compare-goal drush-affinity c:<= 0)
+		(and
+			(up-compare-goal fcast-affinity c:<= 0)
+			(and
+				(up-compare-goal trush-affinity c:<= 0)
+				(and
+					(up-compare-goal hrush-affinity c:<= 0)
+					(and
+						(up-compare-goal krush-affinity c:<= 0)
+						(and
+							(up-compare-goal mush-affinity c:<= 0)
+							(and
+								(up-compare-goal sprush-affinity c:<= 0)
+								(and
+									(up-compare-goal scush-affinity c:<= 0)
+									(or
+										(up-compare-goal skrush-affinity c:<= 0)
+										(or
+											(up-compare-goal sgush-affinity c:<= 0)
+											(or
+												(up-compare-goal cush-affinity c:<= 0)
+												(or
+													(up-compare-goal lush-affinity c:<= 0)
+													(or
+														(up-compare-goal ilush-affinity c:<= 0)
+														(up-compare-goal fc-affinity c:<= 0)
+													)
+												)
+											)
+										)
+									)
+								)
+							)
+						)
+					)
+				)
+			)
+		)
+	)
+=>
+	(set-goal rush-rushing NO)
+	
+	(disable-self)
+)
+
+(defrule
+	(or
+		(up-compare-goal drush-affinity c:== 1)
+		(or
+			(up-compare-goal fcast-affinity c:== 1)
+			(or
+				(up-compare-goal trush-affinity c:== 1)
+				(or
+					(up-compare-goal hrush-affinity c:== 1)
+					(or
+						(up-compare-goal krush-affinity c:== 1)
+						(or
+							(up-compare-goal mush-affinity c:== 1)
+							(or
+								(up-compare-goal sprush-affinity c:== 1)
+								(or
+									(up-compare-goal scush-affinity c:== 1)
+									(or
+										(up-compare-goal skrush-affinity c:== 1)
+										(or
+											(up-compare-goal sgush-affinity c:== 1)
+											(or
+												(up-compare-goal cush-affinity c:== 1)
+												(or
+													(up-compare-goal lush-affinity c:== 1)
+													(or
+														(up-compare-goal ilush-affinity c:== 1)
+														(up-compare-goal fc-affinity c:== 1)
+													)
+												)
+											)
+										)
+									)
+								)
+							)
+						)
+					)
+				)
+			)
+		)
+	)
+=>
+	(set-goal rush-rushing YES)
+	
+	(disable-self)
+)
+
+(defrule
+	(or
+		(up-compare-goal drush-affinity c:== 2)
+		(or
+			(up-compare-goal fcast-affinity c:== 2)
+			(or
+				(up-compare-goal trush-affinity c:== 2)
+				(or
+					(up-compare-goal hrush-affinity c:== 2)
+					(or
+						(up-compare-goal krush-affinity c:== 2)
+						(or
+							(up-compare-goal mush-affinity c:== 2)
+							(or
+								(up-compare-goal sprush-affinity c:== 2)
+								(or
+									(up-compare-goal scush-affinity c:== 2)
+									(or
+										(up-compare-goal skrush-affinity c:== 2)
+										(or
+											(up-compare-goal sgush-affinity c:== 2)
+											(or
+												(up-compare-goal cush-affinity c:== 2)
+												(or
+													(up-compare-goal lush-affinity c:== 2)
+													(or
+														(up-compare-goal ilush-affinity c:== 2)
+														(up-compare-goal fc-affinity c:== 2)
+													)
+												)
+											)
+										)
+									)
+								)
+							)
+						)
+					)
+				)
+			)
+		)
+	)
+=>
+	(set-goal rush-rushing MAYBE)
+	
+	(disable-self)
+)
+
+(defrule
+	(or
+		(up-compare-goal drush-affinity c:>= 4)
+		(or
+			(up-compare-goal fcast-affinity c:>= 4)
+			(or
+				(up-compare-goal trush-affinity c:>= 4)
+				(or
+					(up-compare-goal hrush-affinity c:>= 4)
+					(or
+						(up-compare-goal krush-affinity c:>= 4)
+						(or
+							(up-compare-goal mush-affinity c:>= 4)
+							(or
+								(up-compare-goal sprush-affinity c:>= 4)
+								(or
+									(up-compare-goal scush-affinity c:>= 4)
+									(or
+										(up-compare-goal skrush-affinity c:>= 4)
+										(or
+											(up-compare-goal sgush-affinity c:>= 4)
+											(or
+												(up-compare-goal cush-affinity c:>= 4)
+												(or
+													(up-compare-goal lush-affinity c:>= 4)
+													(or
+														(up-compare-goal ilush-affinity c:>= 4)
+														(up-compare-goal fc-affinity c:>= 4)
+													)
+												)
+											)
+										)
+									)
+								)
+							)
+						)
+					)
+				)
+			)
+		)
+	)
+=>
+	(set-goal rush-rushing ASSURED)
+	
+	(disable-self)
+)
 
 ;drush
 (defrule
 	(goal rush-drush YES)
 	(unit-type-count-total militiaman-line c:< 3)
-	(can-train militiaman-line)
+	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
-	(train militiaman-line)
+	(up-train gl-unitescrow-state c: militiaman-line)
+)
+
+;krush
+
+(defrule
+	(goal rush-krush YES)
+	(building-type-count-total stable c:< 2)
+	(up-can-build gl-buildingescrow-state c: stable)
+=>
+	(up-build place-normal gl-buildingescrow-state c: stable)
+)
+
+(defrule
+	(goal rush-krush YES)
+	(unit-type-count-total cavalry-line c:< 5)
+	(up-can-train gl-unitescrow-state c: cavalry-line)
+=>
+	(up-train gl-unitescrow-state c: cavalry-line)
 )

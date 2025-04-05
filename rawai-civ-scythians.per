@@ -461,130 +461,15 @@
 	(food-amount > 200)
 	(wood-amount > 200)
 	(dropsite-min-distance hunting s:< sn-maximum-hunt-drop-distance)
-	(unit-type-count-total hc-deer g:< gl-one-percent)
+	(up-gaia-type-count c: livestock-class g:< gl-no-percent)
 	(can-train hc-deer)
 =>
 	(train hc-deer)
 )
 
-;Always have some Spearmen
 (defrule
 	(goal current-phase 5)
-	(unit-type-count-total spearman-line g:< gl-one-percent)
-	(can-train spearman-line)
-=>
-	(train spearman-line)
-)
-
-;Otherwise, train them to counter Cavalry and Cavalry Archers
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-cavalry 1)
-		(goal train-anti-cavalryarcher 1)
-	)
-	(unit-type-count-total spearman-line g:< desired-number-anticavalrytrash)
-	(can-train spearman-line)
-=>
-	(train spearman-line)
-)
-
-;Use Archers against Infantry & Cavalry
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-infantry 1)
-		(goal train-anti-cavalry 1)
-	)
-	(unit-type-count-total bowman-line g:< desired-number-antiinfantry)
-	(can-train bowman-line)
-=>
-	(train bowman-line)
-)
-
-;Use Skirmishers against Archers & Cavalry Archers
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-archer 1)
-		(goal train-anti-cavalryarcher 1)
-	)
-	(unit-type-count-total skirmisher-line g:< desired-number-antiarchertrash)
-	(can-train skirmisher-line)
-=>
-	(train skirmisher-line)
-)
-
-;Use Mangonels against Archers(but not Cavalry Archers) in addition to Skirmishers
-(defrule
-	(goal current-phase 5)
-	(goal train-anti-archer 1)
-	(unit-type-count-total mangonel-line g:< desired-number-antiarcher)
-	(can-train mangonel-line)
-=>
-	(train mangonel-line)
-)
-
-;Scorpions are used to counter infantry, archers, cav archers
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-infantry 1)
-		(or
-			(goal train-anti-archer 1)
-			(goal train-anti-cavalryarcher 1)
-		)
-	)
-	(unit-type-count-total scorpion-line g:< desired-number-antielephant)
-	(can-train scorpion-line)
-=>
-	(train scorpion-line)
-)
-
-;Scythians wield Cavalry against Infantry, Archers, and Siege
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-infantry 1)
-		(or
-			(goal train-anti-archer 1)
-			(goal train-anti-siege 1)
-		)
-	)
-	(unit-type-count-total cavalry-line g:< desired-number-antisiege)
-	(can-train cavalry-line)
-=>
-	(train cavalry-line)
-)
-
-;Scout/Light Cavalry are also used as anti-priest & anti-siege trash
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-priest 1)
-		(goal train-anti-siege 1)
-	)
-	(unit-type-count-total scout-cavalry-line g:< gl-one-percent)
-	(can-train scout-cavalry-line)
-=>
-	(train scout-cavalry-line)
-)
-
-;Navy, generic train rules that affect <x>reme etc training are in military-units-common.per
-
-;Train Juggernauts
-(defrule
-	(goal current-phase 5)
-	(wood-amount > 250)
-	(unit-type-count-total juggernaut-line g:< desired-number-juggernauts)
-	(can-train juggernaut-line)
-=>
-	(train juggernaut-line)
-)
-
-(defrule
-	(goal current-phase 5)
-	(unit-type-count-total kurgan-bound-chief-line g:< desired-number-uniqueunittwo)
+	(unit-type-count-total kurgan-bound-chief-line g:< gl-five-percent)
 	(can-train kurgan-bound-chief-line)
 =>
 	(train kurgan-bound-chief-line)
@@ -606,7 +491,7 @@
 (defrule
 	(goal current-phase 5)
 	(goal train-anti-siege 1)
-	(unit-type-count-total amazon-line g:< desired-number-antisiege)
+	(unit-type-count-total amazon-line g:< gl-two-percent)
 	(can-train amazon-line)
 =>
 	(train amazon-line)

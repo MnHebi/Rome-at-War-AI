@@ -100,52 +100,37 @@
 (defconst cheat-amount-percentage 75)
 (defconst scale-attack-timer 76)
 
-(defconst desired-number-antiinfantry 77)
-(defconst desired-number-antiinfantrytrash 78)
+(defconst gl-no-percent 77)
 
-(defconst desired-number-antiarcher 79)
-(defconst desired-number-antiarchertrash 80)
+(defconst gl-my-vill-count 78)
+(defconst gl-my-vill-past-count 79)
+(defconst gl-ally-vill-count 80)
+(defconst gl-ally-vill-past-count 81)
+(defconst gl-enemy-vill-count 82)
+(defconst gl-enemy-vill-past-count 83)
 
-(defconst desired-number-anticavalryarcher 81)
-(defconst desired-number-anticavalryarchertrash 82)
+(defconst gl-my-civilian-cost-food 84)
+(defconst gl-my-civilian-cost-wood 85)
+(defconst gl-my-civilian-cost-stone 86)
+(defconst gl-my-civilian-cost-gold 87)
 
-(defconst desired-number-skirmishers 83)
+(defconst gl-my-shipping-cost-food 88)
+(defconst gl-my-shipping-cost-wood 89)
+(defconst gl-my-shipping-cost-stone 90)
+(defconst gl-my-shipping-cost-gold 91)
 
-(defconst desired-number-anticavalry 84)
-(defconst desired-number-anticavalrytrash 85)
+(defconst gl-my-military-cost-food 92)
+(defconst gl-my-military-cost-wood 93)
+(defconst gl-my-military-cost-stone 94)
+(defconst gl-my-military-cost-gold 95)
 
-(defconst desired-number-antielephant 86)
-(defconst desired-number-antielephanttrash 87)
+(defconst gl-my-navy-cost-food 96)
+(defconst gl-my-navy-cost-wood 97)
+(defconst gl-my-navy-cost-stone 98)
+(defconst gl-my-navy-cost-gold 99)
 
-(defconst desired-number-antisiege 88)
-(defconst desired-number-antisiegetrash 89)
-
-(defconst desired-number-palintonon 90)
-(defconst desired-number-siegetowers 91)
-(defconst desired-number-batteringrams 92)
-(defconst desired-number-scorpions 93)
-(defconst desired-number-mangonels 94)
-(defconst desired-number-catapults 95)
-
-(defconst desired-number-priests 96)
-(defconst desired-number-brahmin 97)
-
-(defconst desired-number-uniqueunitone 98)
-(defconst desired-number-uniqueunittwo 99)
-(defconst desired-number-uniqueunitthree 100)
-(defconst desired-number-uniqueunitfour 101)
-(defconst desired-number-uniqueunitfive 102)
-
-(defconst desired-number-scoutships 103)
-(defconst desired-number-reme 104)
-(defconst desired-number-fireships 105)
-(defconst desired-number-demoships 106)
-(defconst desired-number-hemiolia 107)
-(defconst desired-number-boardingships 108)
-(defconst desired-number-juggernauts 109)
-(defconst desired-number-qremes 110)
-(defconst desired-number-octeres 111)
-(defconst desired-number-transports 112)
+(defconst train-type 100)
+(defconst ship-train 101)
 
 ;goals for unit countering
 (defconst train-anti-infantry 113)
@@ -213,7 +198,7 @@
 
 (defconst team-game 172)
 (defconst flank-position 173)
-(defconst sea-game 174)
+(defconst map-type 174)
 (defconst military-superiority 175)
 (defconst naval-superiority 176)
 
@@ -368,9 +353,9 @@
 (defconst train-bowman 303)
 (defconst train-skirmisher 304)
 (defconst train-cavarcher 305) ;includes Amazigh Raider
-(defconst train-camelarcher 306)
-(defconst train-elephantarcher 307)
-(defconst train-chariotarcher 308)
+(defconst train-cmlarcher 306)
+(defconst train-elearcher 307)
+(defconst train-chrarcher 308)
 
 (defconst train-ram 309) ;includes armored elephants
 (defconst train-onager 310)
@@ -382,7 +367,7 @@
 (defconst has-illumination 314)
 
 (defconst rush-drush 317) ;iron age militia rush
-(defconst rush-fcast 318) ;build-forward castle at the enemy, usually combined with fcast
+(defconst rush-fcast 318) ;fast forward castle, combined with rush-fc
 (defconst rush-trush 319) ;build-forward tower at the enemy
 (defconst rush-hrush 320) ;self explanatory, do horus warrior rush, middle antiquity age
 (defconst rush-krush 321) ;cavalry rush, middle antiquity
@@ -594,11 +579,20 @@
 (defconst gl-dip-numenemies 684)
 (defconst gl-dip-numneutral 685)
 
+(defconst primary-support-unit 686)
+(defconst secondary-support-unit 687)
+
+(defconst gl-unitescrow-state 688)
+(defconst gl-buildingescrow-state 689)
+(defconst gl-researchescrow-state 690)
+
 ; Goal Values
 
 ;Generic
 (defconst NO 0)
 (defconst YES 1)
+(defconst MAYBE 2)
+(defconst ASSURED 3)
 
 ;Age-up goals
 (defconst IRON 1)
@@ -652,12 +646,14 @@
 (defconst SEARCH-END 5)
 
 
-;sea-game
+;map-type
 (defconst LAND 0)
 (defconst LAKE 1)
 (defconst RIVERS 2)
 (defconst ISLANDS 3)
-(defconst SEA 4)
+(defconst TEAM-ISLANDS 4)
+(defconst MEGARANDOM 5)
+(defconst UNKNOWN 11)
 
 ;attack-type-land and attack-type-sea
 (defconst TOWN-SIZE 0)
@@ -745,13 +741,19 @@
 (defconst ARCHER 4)
 (defconst SKIRMISHER 5)
 (defconst CAVARCHER 6)
-(defconst SCAVALRY 7)
-(defconst CAVALRY 8)
-(defconst ELEPHANT 9)
-(defconst PRIEST 10)
-(defconst SIEGE 11)
-(defconst SHIP 12)
-(defconst UNIQUE 13)
+(defconst CMLARCHER 7)
+(defconst ELEARCHER 8)
+(defconst CHRARCHER 9)
+(defconst SCAVALRY 10)
+(defconst CAVALRY 11)
+(defconst RATHA 12)
+(defconst CAMEL 13)
+(defconst CHARIOT 14)
+(defconst ELEPHANT 15)
+(defconst PRIEST 16)
+(defconst SIEGE 17)
+(defconst SHIP 18)
+(defconst UNIQUE 19)
 
 ;civ specialties
 (defconst SPE-NONE 0)
@@ -786,23 +788,43 @@
 (defconst PLR-SEVEN 7)
 (defconst PLR-EIGHT 8)
 
+;train type
+(defconst TRASH 0)
+(defconst MAIN 1)
+
+;ship train
+(defconst SCOUTSHIP 0)
+(defconst POLYREME 1)
+(defconst FIRESHIP 2)
+(defconst DEMOSHIP 3)
+(defconst HEMIOLIA 4)
+(defconst BOARDINGSHIP 5)
+(defconst Q-REME 6)
+(defconst OCTERES 7)
+(defconst JUGGERNAUT 8)
+
 
 ; Timers
 
-(defconst town-size-timer 1)
-(defconst unit-spread-timer 2)
-(defconst land-attack-timer 3)
-(defconst naval-attack-timer 4)
-(defconst farm-check-timer 5)
-(defconst mil-pop-check-timer 6)
-(defconst resource-check-timer 7)
-(defconst taunt-spam-timer 8)
-(defconst request-spam-timer 9)
-(defconst extreme-cheats-timer 10)
-(defconst sn-timer 11)
-(defconst attack-type-timer 12)
-(defconst periodic-attack-timer 13)
-(defconst retreat-timer 14)
+(defconst t-town-size 1)
+(defconst t-unit-spread 2)
+(defconst t-land-attack 3)
+(defconst t-naval-attack 4)
+(defconst t-farm-check 5)
+(defconst t-mil-pop-check 6)
+(defconst t-resource-check 7)
+(defconst t-taunt-spam 8)
+(defconst t-request-spam 9)
+(defconst t-cheats 10)
+(defconst t-strategicnumber 11)
+(defconst t-attack-type 12)
+(defconst t-periodic-attack 13)
+(defconst t-retreat 14)
+(defconst t-unit-type 15)
+(defconst t-ship-train 16)
+(defconst t-check-vills 17)
+(defconst t-check-mil 18)
+(defconst t-check-navy 19)
 
 (defrule
 	(true)

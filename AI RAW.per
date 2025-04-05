@@ -11,6 +11,8 @@
 
 (load "rawai-map")
 
+(load "rawai-maptypes")
+
 (load "rawai-sn-defines")
 
 (load "rawai-difficulty")
@@ -53,52 +55,9 @@
 
 (load "rawai-diplomacy")
 
-#load-if-not-defined DIFFICULTY-HARD
-#load-if-not-defined DIFFICULTY-HARDEST
-#load-if-not-defined DIFFICULTY-EXTREME
-(load "rawai-military-units-common")
-
-(defrule
-	(true)
-=>
-	(chat-local-to-self "loaded military-units-common for <= moderate")
-	(disable-self)
-)
-#end-if
-#end-if
-#end-if
-
-#load-if-not-defined DIFFICULTY-EASIEST
-#load-if-not-defined DIFFICULTY-EASY
-
-(load "rawai-mrush")
-
-#end-if
-#end-if
-
-#load-if-not-defined DIFFICULTY-EASIEST
-#load-if-not-defined DIFFICULTY-EASY
-#load-if-not-defined DIFFICULTY-MODERATE
-
-(load "rawai-military-units-common-hard")
-(load "rawai-rush")
-
-(defrule
-	(true)
-=>
-	(chat-local-to-self "loaded military-units-common for >= hard")
-	(disable-self)
-)
-#end-if
-#end-if
-#end-if
-
 (load "rawai-resign")
 
-(load "rawai-debug")
-
 (load "rawai-tauntcommands")
-
 
 ;add civ loads here
 
@@ -124,23 +83,86 @@
 #end-if
 
 #load-if-defined LITHUANIANS-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests YES)
+	(set-goal good-navy NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement NO)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith YES)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-athenians")
+
 #end-if
+
 #load-if-defined BRITON-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests YES)
+	(set-goal good-navy NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith NO)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-britons")
+
 #end-if
+
 #load-if-defined PORTUGUESE-CIV
+
 (load "rawai-civ-carthagians")
+
 #end-if
+
 #load-if-defined VIETNAMESE-CIV
+
 (load "rawai-civ-cretans")
+
 #end-if
+
 #load-if-defined ETHIOPIANS-CIV
+
 (load "rawai-civ-dacians")
+
 #end-if
+
 #load-if-defined AZTEC-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests YES)
+	(set-goal good-navy NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith YES)
+	(set-goal has-heresy NO)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-egyptians")
+
 #end-if
+
 #load-if-defined FRANKISH-CIV
 (load "rawai-civ-gauls")
 #end-if
@@ -240,3 +262,59 @@
 (load "rawai-civ-thracians")
 
 #end-if
+
+#load-if-not-defined DIFFICULTY-HARD
+#load-if-not-defined DIFFICULTY-HARDEST
+#load-if-not-defined DIFFICULTY-EXTREME
+(load "rawai-military-units-common")
+
+(defrule
+	(true)
+=>
+	(chat-local-to-self "loaded military-units-common for <= moderate")
+	(disable-self)
+)
+#end-if
+#end-if
+#end-if
+
+#load-if-not-defined DIFFICULTY-EXTREME
+#load-if-not-defined DIFFICULTY-HARDEST
+#load-if-not-defined DIFFICULTY-HARD
+#load-if-not-defined DIFFICULTY-EASIEST
+#load-if-not-defined DIFFICULTY-EASY
+
+(load "rawai-mrush")
+
+(defrule
+	(true)
+=>
+	(chat-local-to-self "loaded rush for moderate")
+	(disable-self)
+)
+
+#end-if
+#end-if
+#end-if
+#end-if
+#end-if
+
+#load-if-not-defined DIFFICULTY-EASIEST
+#load-if-not-defined DIFFICULTY-EASY
+#load-if-not-defined DIFFICULTY-MODERATE
+
+(load "rawai-military-units-common-hard")
+(load "rawai-rush")
+
+(defrule
+	(true)
+=>
+	(chat-local-to-self "loaded military-units-common & rush for >= hard")
+	(disable-self)
+)
+#end-if
+#end-if
+#end-if
+
+(load "rawai-debug")
+

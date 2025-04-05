@@ -444,252 +444,6 @@
 	(disable-self)
 )
 
-;Always Train Militia/Swordsmen
-(defrule
-	(goal current-phase 5)
-	(unit-type-count-total militiaman-line g:< desired-number-antiinfantry)
-	(can-train militiaman-line)
-=>
-	(train militiaman-line)
-)
-
-;These were removed in 13/07/2024 balance patch
-;Train some Caetratus if Xanthippian Reforms is researched
-;(defrule
-;	(goal current-phase 5)
-;	(not
-;		(can-train carthagian-elite-caetratus)
-;	)
-;	(unit-type-count-total carthagian-caetratus g:< gl-one-percent)
-;	(can-train carthagian-caetratus)
-;=>
-;	(train carthagian-caetratus)
-;)
-
-;(defrule
-;	(goal current-phase 5)
-;	(unit-type-count-total carthagian-elite-caetratus g:< gl-one-percent)
-;	(can-train carthagian-elite-caetratus)
-;=>
-;	(train carthagian-elite-caetratus)
-;)
-
-;Always have some Spearmen
-(defrule
-	(goal current-phase 5)
-	(unit-type-count-total spearman-line g:< gl-one-percent)
-	(can-train spearman-line)
-=>
-	(train spearman-line)
-)
-
-;Otherwise, train them to counter Cavalry and Cavalry Archers
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-cavalry 1)
-		(goal train-anti-cavalryarcher 1)
-	)
-	(unit-type-count-total spearman-line g:< desired-number-anticavalrytrash)
-	(can-train spearman-line)
-=>
-	(train spearman-line)
-)
-
-;Use Archers against Cavalry
-(defrule
-	(goal current-phase 5)
-	(goal train-anti-cavalry 1)
-	(unit-type-count-total bowman-line g:< desired-number-anticavalry)
-	(can-train bowman-line)
-=>
-	(train bowman-line)
-)
-
-;Use Crossbowmen against Infantry
-(defrule
-	(goal current-phase 5)
-	(goal train-anti-infantry 1)
-	(unit-type-count-total crossbowman g:< desired-number-antiinfantry)
-	(can-train crossbowman)
-=>
-	(train crossbowman)
-)
-
-(defrule
-	(goal current-phase 5)
-	(goal train-anti-infantry 1)
-	(not
-		(can-train carthagian-balearic-slinger)
-	)
-	(unit-type-count-total crossbowman g:< desired-number-antiinfantry)
-	(can-train crossbowman)
-=>
-	(train crossbowman)
-)
-
-;These were removed in 13/07/2024 balance patch
-;Use Balearic Slingers instead if Xanthippian Reforms is researched
-;
-;(defrule
-;	(goal current-phase 5)
-;	(goal train-anti-infantry 1)
-;	(not
-;		(can-train carthagian-elite-balearic-slinger)
-;	)
-;	(unit-type-count-total carthagian-balearic-slinger g:< desired-number-antiinfantry)
-;	(can-train carthagian-balearic-slinger)
-;=>
-;	(train carthagian-balearic-slinger)
-;)
-
-;(defrule
-;	(goal current-phase 5)
-;	(goal train-anti-infantry 1)
-;	(unit-type-count-total carthagian-elite-balearic-slinger g:< desired-number-antiinfantry)
-;	(can-train carthagian-elite-balearic-slinger)
-;=>
-;	(train carthagian-elite-balearic-slinger)
-;)
-
-;Use Skirmishers against Archers & Cavalry Archers
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-archer 1)
-		(goal train-anti-cavalryarcher 1)
-	)
-	(unit-type-count-total skirmisher-line g:< desired-number-antiarchertrash)
-	(can-train skirmisher-line)
-=>
-	(train skirmisher-line)
-)
-
-;Use Mangonels against Archers(but not Cavalry Archers) in addition to Skirmishers
-(defrule
-	(goal current-phase 5)
-	(goal train-anti-archer 1)
-	(unit-type-count-total mangonel-line g:< desired-number-antiarcher)
-	(can-train mangonel-line)
-=>
-	(train mangonel-line)
-)
-
-;Scorpions are used to counter infantry, archers, cav archers
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-infantry 1)
-		(or
-			(goal train-anti-archer 1)
-			(goal train-anti-cavalryarcher 1)
-		)
-	)
-	(unit-type-count-total scorpion-line g:< desired-number-antiarcher)
-	(can-train scorpion-line)
-=>
-	(train scorpion-line)
-)
-
-;Catapults are used when there are enemy siege weapons present
-(defrule
-	(goal current-phase 5)
-	(goal train-anti-siege 1)
-	(unit-type-count-total catapult g:< desired-number-antisiege)
-	(can-train catapult)
-=>
-	(train catapult)
-)
-
-;Carthagians wield Cavalry against Infantry, Archers, and Siege
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-infantry 1)
-		(or
-			(goal train-anti-archer 1)
-			(goal train-anti-siege 1)
-		)
-	)
-	(unit-type-count-total cavalry-line g:< desired-number-antisiege)
-	(can-train cavalry-line)
-=>
-	(train cavalry-line)
-)
-
-;Scout/Light Cavalry are also used as anti-priest & anti-siege trash
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-priest 1)
-		(goal train-anti-siege 1)
-	)
-	(unit-type-count-total scout-cavalry-line g:< desired-number-antisiegetrash)
-	(can-train scout-cavalry-line)
-=>
-	(train scout-cavalry-line)
-)
-
-;Train some Amazigh if Xanthippian Reforms is researched
-(defrule
-	(goal current-phase 5)
-	(goal train-anti-siege 1)
-	(not
-		(can-train carthagian-elite-amazigh)
-	)
-	(unit-type-count-total carthagian-amazigh g:< gl-one-percent)
-	(can-train carthagian-amazigh)
-=>
-	(train carthagian-amazigh)
-)
-
-(defrule
-	(goal current-phase 5)
-	(goal train-anti-siege 1)
-	(unit-type-count-total carthagian-elite-amazigh g:< gl-one-percent)
-	(can-train carthagian-elite-amazigh)
-=>
-	(train carthagian-elite-amazigh)
-)
-
-;Navy, generic train rules that affect <x>reme etc training are in military-units-common.per
-;Train Quadriremes/Quinqueremes to complement our <x>remes and Hemiolia
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-remes 1)
-		(goal train-hemiolia 1)
-	)
-	(wood-amount > 300)
-	(unit-type-count-total quadrireme-line g:< desired-number-qremes)
-	(can-train quadrireme-line)
-=>
-	(train quadrireme-line)
-)
-
-;Train Juggernauts if you cannot afford Octeres
-(defrule
-	(goal current-phase 5)
-	(not
-		(can-afford-unit octeres)
-	)
-	(wood-amount > 250)
-	(unit-type-count-total juggernaut-line g:< desired-number-juggernauts)
-	(can-train juggernaut-line)
-=>
-	(train juggernaut-line)
-)
-
-;Else train Octeres
-(defrule
-	(goal current-phase 5)
-	(wood-amount > 350)
-	(unit-type-count-total octeres g:< desired-number-octeres)
-	(can-train octeres)
-=>
-	(train octeres)
-)
-
 (defrule
 	(goal current-phase 5)
 	(unit-type-count-total war-elephant-line g:< gl-five-percent)
@@ -761,7 +515,7 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
-	(goal sea-game 0)
+	(goal map-type LAND)
 	(can-research-with-escrow ut-council-of-onehundredfour)
 =>
 	(release-escrow food)
@@ -774,7 +528,13 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
-	(goal sea-game 1)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(goal map-type ISLANDS)
+		)
+	)
 	(can-research-with-escrow ut-mega-shipyard-engineering)
 =>
 	(release-escrow wood)

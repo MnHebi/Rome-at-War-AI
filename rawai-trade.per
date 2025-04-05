@@ -1,15 +1,15 @@
 
 (defrule
-	(up-timer-status request-spam-timer == timer-disabled)
+	(up-timer-status t-request-spam == timer-disabled)
 =>
-	(enable-timer request-spam-timer 120)
+	(enable-timer t-request-spam 120)
 	(chat-local-to-self "start request spam timer")
 )
 
 (defrule
-	(up-timer-status request-spam-timer == timer-triggered)
+	(up-timer-status t-request-spam == timer-triggered)
 =>
-	(disable-timer request-spam-timer)
+	(disable-timer t-request-spam)
 	(set-goal dont-spam-requests NO)
 	(chat-local-to-self "reset dont-spam-requests")
 )

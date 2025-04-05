@@ -1,8 +1,8 @@
 
 (defrule
-	(up-timer-status extreme-cheats-timer != timer-running)
+	(up-timer-status t-cheats != timer-running)
 =>
-	(enable-timer extreme-cheats-timer 30)
+	(enable-timer t-cheats 30)
 	(set-goal extreme-cheats YES)
 	(chat-local-to-self "start extreme cheats timer start")
 )
@@ -121,7 +121,6 @@
 =>
 	(cc-add-resource wood 200)
 	(chat-local-to-self "wood for middle antiquity tech up requirement buildings")
-	(up-jump-rule 1)
 )
 
 (defrule
@@ -132,6 +131,14 @@
 	(set-goal extreme-cheats STONE-GIVE)
 	(cc-add-resource wood 200)
 	(chat-local-to-self "wood for middle antiquity farms")
+)
+
+(defrule
+	(goal extreme-cheats WOOD-GIVE)
+	(current-age == castle-age)
+	(up-object-type-count-total c: farm g:>= desired-number-farms)
+=>
+	(set-goal extreme-cheats STONE-GIVE)
 )
 
 (defrule

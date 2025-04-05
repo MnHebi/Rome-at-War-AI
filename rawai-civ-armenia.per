@@ -89,18 +89,47 @@
 ; so 99% and 100% are equal affinities all things considered
 ; 66%, and 50% are equal affinities all things considered
 ; 33%, and 20% are equal affinities all things considered
+; Where unit would ordinarily have 5 upgrades, but their affinity is either 80% or 60% will use these units only in rushes
+; If civ has good bonuses then 80% affinity units will be used as quaternary units.
 ; for Priests, and Brahmin affinities are
 ; 25% is added if Redemption is available for civ
 ; 25% is added if Block Printing is available for civ
 ; 25% is added if Faith is available for civ
 ; 25% is added if Illumination is available for civ
+; 25% is added if civ has Good Priests trait set
 ; For ships Juggernauts do not have affinity, they will always be built if they are available
 
 (defrule
-	(true)
+	(up-compare-goal current-phase < 4)
 =>
-	(set-goal champion-affinity 0) ;80 if Civitates Foederate is researched
-	(set-goal spearman-affinity 0) ;90 if Civitates Foederate is researched
+	(set-goal champion-affinity 80)
+	(set-goal spearman-affinity 99)
+	(set-goal horus-affinity 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(and
+		(up-compare-goal current-phase >= 4)
+		(up-research-status c: ut-civitates-foederate != research-complete)
+	)
+=>
+	(set-goal champion-affinity 0)
+	(set-goal spearman-affinity 0)
+	(set-goal horus-affinity 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(and
+		(up-compare-goal current-phase >= 4)
+		(up-research-status c: ut-civitates-foederate == research-complete)
+	)
+=>
+	(set-goal champion-affinity 80)
+	(set-goal spearman-affinity 99)
 	(set-goal horus-affinity 0)
 	
 	(disable-self)
@@ -173,6 +202,14 @@
 	
 	(disable-self)
 )
+
+(defrule
+	(goal good-priests YES)
+=>
+	(up-modify-goal priest-affinity c:+ 25)
+	
+	(disable-self)
+)
 	
 (defrule
 	(true)
@@ -189,11 +226,55 @@
 	(disable-self)
 )
 
+;default rush affinities
+
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 1)
+	(up-modify-goal fcast-affinity c:+ 0)
+	(up-modify-goal trush-affinity c:+ 0)
+	(up-modify-goal hrush-affinity c:+ 0)
+	(up-modify-goal krush-affinity c:+ 2)
+	(up-modify-goal mush-affinity c:+ 0)
+	(up-modify-goal sprush-affinity c:+ 0)
+	(up-modify-goal scush-affinity c:+ 0)
+	(up-modify-goal skrush-affinity c:+ 0)
+	(up-modify-goal sgush-affinity c:+ 0)
+	(up-modify-goal cush-affinity c:+ 0)
+	(up-modify-goal lush-affinity c:+ 0)
+	(up-modify-goal ilush-affinity c:+ 0)
+	(up-modify-goal fc-affinity c:+ 0)
+	
+	(disable-self)
+)
+
 ;enemy civs will alter rush affinities
 ;unit affinities will only be altered if it is highly beneficial or enemy has perfect unit to counter that unit in that matchup
 ;some techs might only be researched in certain matchups
 #load-if-defined UP-BERBERS-CIV-ENEMY ; Armenians
 
+;mirror matchup
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:+ 0)
+	(up-modify-goal fcast-affinity c:+ 0)
+	(up-modify-goal trush-affinity c:+ 0)
+	(up-modify-goal hrush-affinity c:+ 0)
+	(up-modify-goal krush-affinity c:- 2) ; don't krush, not useful in mirror
+	(up-modify-goal mush-affinity c:+ 0)
+	(up-modify-goal sprush-affinity c:+ 0)
+	(up-modify-goal scush-affinity c:+ 0)
+	(up-modify-goal skrush-affinity c:+ 0)
+	(up-modify-goal sgush-affinity c:+ 0)
+	(up-modify-goal cush-affinity c:+ 0)
+	(up-modify-goal lush-affinity c:+ 0)
+	(up-modify-goal ilush-affinity c:+ 0)
+	(up-modify-goal fc-affinity c:+ 0)
+	
+	(disable-self)
+)
 
 #end-if
 #load-if-defined UP-LITHUANIANS-CIV-ENEMY ; Athenians
@@ -295,6 +376,122 @@
 #load-if-defined UP-MALIAN-CIV-ENEMY ; Thracians
 
 #end-if
+
+;civ specific unit preferences
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(and
+		(not
+			(goal primary-unit SCAVALRY)
+		)
+		(up-compare-goal scavalry-affinity >= 99)
+	)
+=>
+	(set-goal primary-unit SCAVALRY)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(and
+		(not
+			(goal secondary-unit SPEARMAN)
+		)
+		(up-compare-goal spearman-affinity >= 99)
+	)
+=>
+	(set-goal secondary-unit SPEARMAN)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(and
+		(not
+			(goal tertiary-unit SKIRMISHER)
+		)
+		(up-compare-goal skirmisher-affinity >= 50)
+	)
+=>
+	(set-goal tertiary-unit SKIRMISHER)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(and
+		(not
+			(goal tertiary-unit ARCHER)
+		)
+		(up-compare-goal archer-affinity >= 99)
+	)
+=>
+	(set-goal tertiary-unit ARCHER)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(and
+		(not
+			(goal primary-unit CAVALRY)
+		)
+		(up-compare-goal cavalry-affinity >= 99)
+	)
+=>
+	(set-goal primary-unit CAVALRY)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(and
+		(not
+			(goal secondary-unit CAMEL)
+		)
+		(up-compare-goal crider-affinity >= 50)
+	)
+=>
+	(set-goal secondary-unit CAMEL)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(and
+		(not
+			(goal tertiary-unit CAVARCHER)
+		)
+		(up-compare-goal cavarcher-affinity >= 100)
+	)
+=>
+	(set-goal tertiary-unit CAVARCHER)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(and
+		(not
+			(goal quaternary-unit PRIEST)
+		)
+		(up-compare-goal priest-affinity >= 100)
+	)
+=>
+	(set-goal quaternary-unit PRIEST)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(not
+		(goal primary-support-unit SIEGE)
+	)
+=>
+	(set-goal primary-support-unit SIEGE)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(not
+		(goal secondary-support-unit SIEGE)
+	)
+=>
+	(set-goal secondary-support-unit SIEGE)
+)
 
 ;civ specific structure preferences
 
@@ -443,140 +640,9 @@
 	(disable-self)
 )
 
-;Always have some Spearmen
 (defrule
 	(goal current-phase 5)
-	(unit-type-count-total spearman-line g:< gl-one-percent)
-	(can-train spearman-line)
-=>
-	(train spearman-line)
-)
-
-;Otherwise, train them to counter Cavalry and Cavalry Archers
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-cavalry 1)
-		(goal train-anti-cavalryarcher 1)
-	)
-	(unit-type-count-total spearman-line g:< desired-number-anticavalrytrash)
-	(can-train spearman-line)
-=>
-	(train spearman-line)
-)
-
-;Use Cavalry Archers against Cavalry
-(defrule
-	(goal current-phase 5)
-	(goal train-anti-cavalry 1)
-	(unit-type-count-total cavalry-archer-line g:< desired-number-anticavalry)
-	(can-train cavalry-archer-line)
-=>
-	(train cavalry-archer-line)
-)
-
-;Use Composite Bowmen against Infantry
-(defrule
-	(goal current-phase 5)
-	(goal train-anti-infantry 1)
-	(unit-type-count-total bowman-line g:< desired-number-antiinfantry)
-	(can-train bowman-line)
-=>
-	(train bowman-line)
-)
-
-;Use Skirmishers against Archers & Cavalry Archers
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-archer 1)
-		(goal train-anti-cavalryarcher 1)
-	)
-	(unit-type-count-total skirmisher-line g:< desired-number-antiarchertrash)
-	(can-train skirmisher-line)
-=>
-	(train skirmisher-line)
-)
-
-;Use Mangonels against Archers(but not Cavalry Archers) in addition to Skirmishers
-(defrule
-	(goal current-phase 5)
-	(goal train-anti-archer 1)
-	(unit-type-count-total mangonel-line g:< desired-number-antiarcher)
-	(can-train mangonel-line)
-=>
-	(train mangonel-line)
-)
-
-;Scorpions are used to counter infantry, archers, cav archers
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-infantry 1)
-		(or
-			(goal train-anti-archer 1)
-			(goal train-anti-cavalryarcher 1)
-		)
-	)
-	(unit-type-count-total scorpion-line g:< desired-number-antiarcher)
-	(can-train scorpion-line)
-=>
-	(train scorpion-line)
-)
-
-;Armenians wield Cavalry against Infantry, Archers, and Siege
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-infantry 1)
-		(or
-			(goal train-anti-archer 1)
-			(goal train-anti-siege 1)
-		)
-	)
-	(unit-type-count-total cavalry-line g:< desired-number-antisiege)
-	(can-train cavalry-line)
-=>
-	(train cavalry-line)
-)
-
-;Scout/Light Cavalry are also used as anti-priest & anti-siege trash
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-priest 1)
-		(goal train-anti-siege 1)
-	)
-	(unit-type-count-total scout-cavalry-line g:< gl-one-percent)
-	(can-train scout-cavalry-line)
-=>
-	(train scout-cavalry-line)
-)
-
-;Navy, generic train rules that affect <x>reme etc training are in military-units-common.per
-
-;Train Juggernauts
-(defrule
-	(goal current-phase 5)
-	(wood-amount > 250)
-	(unit-type-count-total juggernaut-line g:< desired-number-juggernauts)
-	(can-train juggernaut-line)
-=>
-	(train juggernaut-line)
-)
-
-(defrule
-	(goal current-phase 5)
-	(research-completed ut-civitates-foederate)
-	(unit-type-count-total legionary-ranged-line g:< desired-number-uniqueunitone)
-	(can-train legionary-ranged-line)
-=>
-	(train legionary-ranged-line)
-)
-
-(defrule
-	(goal current-phase 5)
-	(unit-type-count-total ayrudzi-melee-line g:< desired-number-uniqueunittwo)
+	(unit-type-count-total ayrudzi-melee-line g:< gl-five-percent)
 	(can-train ayrudzi-melee-line)
 =>
 	(train ayrudzi-melee-line)

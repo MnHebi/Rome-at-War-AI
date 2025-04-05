@@ -100,9 +100,9 @@
 (defrule
 	(true)
 =>
-	(set-goal champion-affinity 0) ;80 if Civitates Foederate is researched
-	(set-goal spearman-affinity 0) ;90 if Civitates Foederate is researched
-	(set-goal horus-affinity 0)
+	(set-goal champion-affinity 80)
+	(set-goal spearman-affinity 66) 
+	(set-goal horus-affinity 100)
 	
 	(disable-self)
 )
@@ -123,11 +123,11 @@
 (defrule
 	(true)
 =>	
-	(set-goal scavalry-affinity 99)
-	(set-goal cavalry-affinity 99)
-	(set-goal crider-affinity 50)
+	(set-goal scavalry-affinity 33)
+	(set-goal cavalry-affinity 0)
+	(set-goal crider-affinity 100)
 	(set-goal belephant-affinity 0)
-	(set-goal chariot-affinity 0)
+	(set-goal chariot-affinity 100)
 	
 	(disable-self)
 )
@@ -135,8 +135,8 @@
 (defrule
 	(true)
 =>
-	(set-goal ram-affinity 99)
-	(set-goal mangonel-affinity 66)
+	(set-goal ram-affinity 66)
+	(set-goal mangonel-affinity 99)
 	(set-goal scorpion-affinity 50)
 	(set-goal catapult-affinity 0)
 	
@@ -169,6 +169,14 @@
 
 (defrule
 	(goal has-illumination YES)
+=>
+	(up-modify-goal priest-affinity c:+ 25)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal good-priests YES)
 =>
 	(up-modify-goal priest-affinity c:+ 25)
 	
@@ -296,6 +304,23 @@
 #load-if-defined UP-MALIAN-CIV-ENEMY ; Thracians
 
 #end-if
+
+;civ specific unit preferences
+
+(defrule
+	(up-compare-goal current-phase > 4)
+	(and
+		(not
+			(goal primary-unit HORUS)
+		)
+		(up-compare-goal horus-affinity >= 99)
+	)
+=>
+	(set-goal primary-unit HORUS)
+	
+	(disable-self)
+)
+	
 
 ;civ specific structure preferences
 
@@ -444,190 +469,18 @@
 	(disable-self)
 )
 
-;Always Train Militia/Swordsmen if Kopis is researched
-(defrule
-	(goal current-phase 5)
-	(research-completed ri-ut-kopis)
-	(unit-type-count-total militiaman-line g:< gl-one-percent)
-	(can-train militiaman-line)
-=>
-	(train militiaman-line)
-)
-
-;Always have some Spearmen
-(defrule
-	(goal current-phase 5)
-	(unit-type-count-total spearman-line g:< gl-one-percent)
-	(can-train spearman-line)
-=>
-	(train spearman-line)
-)
-
-;Otherwise, train them to counter Cavalry and Cavalry Archers
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-cavalry 1)
-		(goal train-anti-cavalryarcher 1)
-	)
-	(unit-type-count-total spearman-line g:< desired-number-anticavalrytrash)
-	(can-train spearman-line)
-=>
-	(train spearman-line)
-)
-
-;Use Horus Scouts/Warriors against Priests & Archers
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-priest 1)
-		(goal train-anti-archer 1)
-	)
-	(unit-type-count-total horus-scout-line g:< desired-number-antiarcher)
-	(can-train horus-scout-line)
-=>
-	(train horus-scout-line)
-)
-
-;Use Camel Archers against Cavalry Archers & Cavalry
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-cavalryarcher 1)
-		(goal train-anti-cavalry 1)
-	)
-	(unit-type-count-total camel-archer-line g:< desired-number-anticavalryarcher)
-	(can-train camel-archer-line)
-=>
-	(train camel-archer-line)
-)
-
-;Use Chariot Archers against Infantry & Siege
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-infantry 1)
-		(goal train-anti-siege 1)
-	)
-	(unit-type-count-total chariot-archer g:< desired-number-antiinfantry)
-	(can-train chariot-archer)
-=>
-	(train chariot-archer)
-)
-
-;Use Archers against Infantry if you cannot afford Chariot Archers
-(defrule
-	(goal current-phase 5)
-	(goal train-anti-infantry 1)
-	(not
-		(can-afford-unit chariot-archer)
-	)
-	(unit-type-count-total bowman-line g:< desired-number-antiinfantry)
-	(can-train bowman-line)
-=>
-	(train bowman-line)
-)
-
-;Use Skirmishers against Archers & Cavalry Archers
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-archer 1)
-		(goal train-anti-cavalryarcher 1)
-	)
-	(unit-type-count-total skirmisher-line g:< desired-number-antiarchertrash)
-	(can-train skirmisher-line)
-=>
-	(train skirmisher-line)
-)
-
-;Use Mangonels against Archers(but not Cavalry Archers) in addition to Skirmishers
-(defrule
-	(goal current-phase 5)
-	(goal train-anti-archer 1)
-	(unit-type-count-total mangonel-line g:< desired-number-antiarcher)
-	(can-train mangonel-line)
-=>
-	(train mangonel-line)
-)
-
-;Scorpions are used to counter infantry, archers, cav archers
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-infantry 1)
-		(or
-			(goal train-anti-archer 1)
-			(goal train-anti-cavalryarcher 1)
-		)
-	)
-	(unit-type-count-total scorpion-line g:< desired-number-antiarcher)
-	(can-train scorpion-line)
-=>
-	(train scorpion-line)
-)
-
-;Use Scout Cavalry against Siege
-(defrule
-	(goal current-phase 5)
-	(goal train-anti-siege 1)
-	(unit-type-count-total scout-cavalry-line g:< desired-number-antisiegetrash)
-	(can-train scout-cavalry-line)
-=>
-	(train scout-cavalry-line)
-)
-
-;Use Camel Riders against Cavalry & Siege
-(defrule
-	(goal current-phase 5)
-	(or
-		(goal train-anti-cavalry 1)
-		(goal train-anti-siege 1)
-	)
-	(unit-type-count-total camel-rider-line g:< desired-number-anticavalry)
-	(can-train camel-rider-line)
-=>
-	(train camel-rider-line)
-)
-
-;Use Chariots against Infantry
-(defrule
-	(goal current-phase 5)
-	(goal train-anti-infantry 1)
-	(unit-type-count-total chariot-line g:< desired-number-antiinfantry)
-	(can-train chariot-line)
-=>
-	(train chariot-line)
-)
-
-;Navy, generic train rules that affect <x>reme etc training are in military-units-common.per
-
-;Train Juggernauts if you cannot afford Octeres
-(defrule
-	(goal current-phase 5)
-	(not
-		(can-afford-unit octeres)
-	)
-	(wood-amount > 250)
-	(unit-type-count-total juggernaut-line g:< desired-number-juggernauts)
-	(can-train juggernaut-line)
-=>
-	(train juggernaut-line)
-)
-
-;Else train Octeres
-(defrule
-	(goal current-phase 5)
-	(wood-amount > 350)
-	(unit-type-count-total octeres g:< desired-number-octeres)
-	(can-train octeres)
-=>
-	(train octeres)
-)
-
 ;Train one Tessarakonteres
 (defrule
-	(goal current-phase 5)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
 	(wood-amount > 350)
 	(unit-type-count-total tessarakonteres == 0)
 	(can-train tessarakonteres)
@@ -638,7 +491,7 @@
 (defrule
 	(goal current-phase 5)
 	(goal train-anti-infantry 1)
-	(unit-type-count-total medjay-warrior-line g:< desired-number-antiinfantry)
+	(unit-type-count-total medjay-warrior-line g:< gl-five-percent)
 	(can-train medjay-warrior-line)
 =>
 	(train medjay-warrior-line)

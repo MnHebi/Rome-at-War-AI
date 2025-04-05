@@ -7,7 +7,7 @@
 		(up-compare-sn sn-maximum-town-size c:> 0)
 		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
 	)
-	(up-timer-status town-size-timer != timer-running)
+	(up-timer-status t-town-size != timer-running)
 	(or
 		(up-pending-placement c: town-center)
 		(or
@@ -26,7 +26,7 @@
 	(up-modify-sn sn-maximum-town-size g:<= outer-townsize)
 	(up-modify-sn sn-maximum-town-size g:> 0)
 	(up-chat-data-to-self "pending placement resize sn-maximum-town-size; %d" s: sn-maximum-town-size)
-	(enable-timer town-size-timer 6)
+	(enable-timer t-town-size 6)
 )
 
 (defrule
@@ -35,7 +35,7 @@
 		(up-compare-sn sn-maximum-town-size c:> 0)
 		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
 	)
-	(up-timer-status town-size-timer != timer-running)
+	(up-timer-status t-town-size != timer-running)
 	(or	
 		(up-pending-placement c: town-center)
 		(or	
@@ -69,7 +69,7 @@
 	(up-modify-sn sn-maximum-town-size c:> 0)
 	(up-modify-sn sn-maximum-town-size g:< outer-townsize)
 	(up-chat-data-to-self "pending placement resize sn-maximum-town-size; %d" s: sn-maximum-town-size)
-	(enable-timer town-size-timer 6)
+	(enable-timer t-town-size 6)
 )
 
 (defrule
@@ -95,7 +95,7 @@
 		(up-compare-sn sn-maximum-town-size c:> 0)
 		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
 	)
-	(up-timer-status town-size-timer != timer-running)
+	(up-timer-status t-town-size != timer-running)
 	(or	
 		(up-pending-placement c: town-center)
 		(or	
@@ -132,7 +132,7 @@
 	(up-modify-sn sn-maximum-town-size c:> 0)
 	(up-modify-sn sn-maximum-town-size g:< outer-townsize)
 	(up-chat-data-to-self "pending placement resize sn-maximum-town-size; %d" s: sn-maximum-town-size)
-	(enable-timer town-size-timer 6)
+	(enable-timer t-town-size 6)
 	(up-jump-rule 1)
 )
 
@@ -789,6 +789,9 @@
 
 ;does not function
 ;cause unknown
+
+#load-if-not-defined CHINESE-CIV
+
 (defrule
 	(and
 		(current-age >= feudal-age)
@@ -844,9 +847,45 @@
 	(building-type-count-total gate < 4)
 	(can-build-gate-with-escrow 2)
 =>
+	(set-strategic-number sn-gate-type-for-wall 0)
 	(release-escrow stone)
 	(build-gate 2)
 	(chat-local-to-self "Place gates")
 )
+
+#end-if
+
+#load-if-defined CHINESE-CIV
+
+(defrule
+	(true)
+=>
+	(enable-wall-placement 2)
+	(set-strategic-number sn-gate-type-for-wall 0)
+	(chat-local-to-self "Enable walls for Chinese")
+	(disable-self)
+)
+
+(defrule
+	(goal age-up-started EARLY-ANTIQUITY)
+	(wall-completed-percentage 2 < 100)
+	(can-build-wall-with-escrow 2 stone-wall-line)
+=>
+	(release-escrow stone)
+	(build-wall 2 stone-wall-line)
+	(chat-local-to-self "Place walls")
+)
+
+(defrule
+	(goal age-up-started EARLY-ANTIQUITY)
+	(building-type-count-total gate < 4)
+	(can-build-gate-with-escrow 2)
+=>
+	(release-escrow stone)
+	(build-gate 2)
+	(chat-local-to-self "Place gates")
+)
+
+#end-if
 
 

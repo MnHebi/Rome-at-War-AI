@@ -5,26 +5,26 @@
 (defrule
 	(true)
 =>
-	(enable-timer resource-check-timer 1)
+	(enable-timer t-resource-check 1)
 	
 	(disable-self)
 )
 
 (defrule
-	(up-timer-status resource-check-timer == timer-disabled)
+	(up-timer-status t-resource-check == timer-disabled)
 =>
-	(enable-timer resource-check-timer 60)
+	(enable-timer t-resource-check 60)
 	(chat-local-to-self "start resource check timer")
 )
 
 (defrule
 	(and
-		(up-timer-status resource-check-timer == timer-triggered)
+		(up-timer-status t-resource-check == timer-triggered)
 		(goal resource-check SEARCH-END)
 	)
 =>
 	(set-goal resource-check SEARCH-BEGIN)
-	(disable-timer resource-check-timer)
+	(disable-timer t-resource-check)
 	(chat-local-to-self "start checking resources")
 )
 

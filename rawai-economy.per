@@ -1,7 +1,7 @@
 (defrule
-	(up-timer-status farm-check-timer == timer-disabled)
+	(up-timer-status t-farm-check == timer-disabled)
 =>
-	(enable-timer farm-check-timer 30)
+	(enable-timer t-farm-check 30)
 )
 
 (defrule
@@ -549,7 +549,7 @@
 )
 
 (defrule
-	(timer-triggered farm-check-timer)
+	(timer-triggered t-farm-check)
 	(and
 		(building-type-count-total mill >= 1)
 		(and
@@ -559,12 +559,12 @@
 	)
 =>
 	(set-goal dependent-farms 1)
-	(disable-timer farm-check-timer)
+	(disable-timer t-farm-check)
 	(chat-local-to-self "Disable farms, food is near")
 )
 
 (defrule
-	(timer-triggered farm-check-timer)
+	(timer-triggered t-farm-check)
 	(and
 		(building-type-count-total mill >= 1)
 		(and
@@ -574,7 +574,7 @@
 	)
 =>
 	(set-goal dependent-farms 0)
-	(disable-timer farm-check-timer)
+	(disable-timer t-farm-check)
 	(chat-local-to-self "Enable farms, food is not near")
 )
 
@@ -625,6 +625,13 @@
 )
 
 (defrule
+	(or
+		(goal map-type TEAM-ISLANDS)
+		(or
+			(goal map-type LAND)
+			(goal map-type RIVERS)
+		)
+	)
 	(unit-type-count-total trade-cart g:< desired-number-carts)
 	(goal wait-techup-requirements NO)
 	(or	
@@ -637,6 +644,10 @@
 )
 
 (defrule
+	(or
+		(goal map-type LAKE)
+		(goal map-type ISLANDS)
+	)
 	(unit-type-count-total trade-cog g:< desired-number-cogs)
 	(goal wait-techup-requirements NO)
 	(wood-amount > 200)
