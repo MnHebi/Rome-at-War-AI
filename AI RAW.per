@@ -9,6 +9,8 @@
 
 (load "rawai-init-goals")
 
+(load "rawai-timers")
+
 (load "rawai-map")
 
 (load "rawai-maptypes")
@@ -68,6 +70,7 @@
 =>
 	(set-goal good-priests YES)
 	(set-goal good-navy NO)
+	(set-goal has-horus NO)
 	(set-goal has-redemption YES)
 	(set-goal has-atonement YES)
 	(set-goal has-blockprinting YES)
@@ -88,7 +91,8 @@
 	(true)
 =>
 	(set-goal good-priests YES)
-	(set-goal good-navy NO)
+	(set-goal good-navy YES)
+	(set-goal has-horus NO)
 	(set-goal has-redemption YES)
 	(set-goal has-atonement NO)
 	(set-goal has-blockprinting YES)
@@ -110,6 +114,7 @@
 =>
 	(set-goal good-priests YES)
 	(set-goal good-navy NO)
+	(set-goal has-horus NO)
 	(set-goal has-redemption YES)
 	(set-goal has-atonement YES)
 	(set-goal has-blockprinting YES)
@@ -126,17 +131,65 @@
 
 #load-if-defined PORTUGUESE-CIV
 
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy YES)
+	(set-goal has-horus NO)
+	(set-goal has-redemption NO)
+	(set-goal has-atonement NO)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith NO)
+	(set-goal has-heresy NO)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-carthagians")
 
 #end-if
 
 #load-if-defined VIETNAMESE-CIV
 
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy YES)
+	(set-goal has-horus NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement NO)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith YES)
+	(set-goal has-heresy NO)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-cretans")
 
 #end-if
 
 #load-if-defined ETHIOPIANS-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement NO)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith NO)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
 
 (load "rawai-civ-dacians")
 
@@ -149,6 +202,7 @@
 =>
 	(set-goal good-priests YES)
 	(set-goal good-navy NO)
+	(set-goal has-horus YES)
 	(set-goal has-redemption YES)
 	(set-goal has-atonement YES)
 	(set-goal has-blockprinting YES)
@@ -164,83 +218,577 @@
 #end-if
 
 #load-if-defined FRANKISH-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement NO)
+	(set-goal has-blockprinting NO)
+	(set-goal has-faith YES)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination NO)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-gauls")
+
 #end-if
+
 #load-if-defined TEUTONIC-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement NO)
+	(set-goal has-blockprinting NO)
+	(set-goal has-faith NO)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination NO)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-germani")
+
 #end-if
+
 #load-if-defined GOTHIC-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption NO)
+	(set-goal has-atonement NO)
+	(set-goal has-blockprinting NO)
+	(set-goal has-faith YES)
+	(set-goal has-heresy NO)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-goths")
+
 #end-if
+
 #load-if-defined GURJARAS-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption NO)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting NO)
+	(set-goal has-faith YES)
+	(set-goal has-heresy NO)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-gupta")
+
 #end-if
+
 #load-if-defined CHINESE-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption NO)
+	(set-goal has-atonement NO)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith NO)
+	(set-goal has-heresy NO)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-han")
+
 #end-if
+
 #load-if-defined HUN-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption NO)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting NO)
+	(set-goal has-faith NO)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-huns")
+
 #end-if
+
 #load-if-defined SPANISH-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption NO)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting NO)
+	(set-goal has-faith NO)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-iberians")
+
 #end-if
+
 #load-if-defined BULGARIANS-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy YES)
+	(set-goal has-horus NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith NO)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-illyrians")
+
 #end-if
+
 #load-if-defined SARACEN-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests YES)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith YES)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-judeans")
+
 #end-if
+
 #load-if-defined INDIAN-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests YES)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith YES)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-kushans")
+
 #end-if
+
 #load-if-defined KOREAN-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy YES)
+	(set-goal has-horus NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith YES)
+	(set-goal has-heresy NO)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-macedonians")
+
 #end-if
+
 #load-if-defined BENGALIS-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests YES)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement NO)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith YES)
+	(set-goal has-heresy NO)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-mauryans")
+
 #end-if
+
 #load-if-defined DRAVIDIANS-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith YES)
+	(set-goal has-heresy NO)
+	(set-goal has-illumination NO)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-nanda")
+
 #end-if
+
 #load-if-defined MAYAN-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests YES)
+	(set-goal good-navy NO)
+	(set-goal has-horus YES)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting NO)
+	(set-goal has-faith YES)
+	(set-goal has-heresy NO)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-nubians")
+
 #end-if
+
 #load-if-defined INCAN-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption NO)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting NO)
+	(set-goal has-faith YES)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination NO)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-numidians")
+
 #end-if
+
 #load-if-defined TURKISH-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption NO)
+	(set-goal has-atonement NO)
+	(set-goal has-blockprinting NO)
+	(set-goal has-faith YES)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination NO)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-parthians")
+
 #end-if
+
 #load-if-defined PERSIAN-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests YES)
+	(set-goal good-navy YES)
+	(set-goal has-horus NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith NO)
+	(set-goal has-heresy NO)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-persians")
+
 #end-if
+
 #load-if-defined MONGOL-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests YES)
+	(set-goal good-navy YES)
+	(set-goal has-horus NO)
+	(set-goal has-redemption NO)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith NO)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-phoenicians")
+
 #end-if
+
 #load-if-defined CELTIC-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption NO)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith NO)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination NO)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-picts")
+
 #end-if
+
 #load-if-defined KHMER-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy YES)
+	(set-goal has-horus NO)
+	(set-goal has-redemption NO)
+	(set-goal has-atonement NO)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith YES)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-pontus")
+
 #end-if
+
 #load-if-defined BYZANTINE-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement NO)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith YES)
+	(set-goal has-heresy NO)
+	(set-goal has-illumination NO)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-romeemp")
+
 #end-if
+
 #load-if-defined ITALIAN-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy YES)
+	(set-goal has-horus NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting NO)
+	(set-goal has-faith YES)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-romerep")
+
 #end-if
+
 #load-if-defined CUMANS-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption NO)
+	(set-goal has-atonement NO)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith NO)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination NO)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-scythians")
+
 #end-if
+
 #load-if-defined BURMESE-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption NO)
+	(set-goal has-atonement NO)
+	(set-goal has-blockprinting YES)
+	(set-goal has-faith YES)
+	(set-goal has-heresy NO)
+	(set-goal has-illumination NO)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-seleucids")
+
 #end-if
+
 #load-if-defined JAPANESE-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy NO)
+	(set-goal has-horus NO)
+	(set-goal has-redemption YES)
+	(set-goal has-atonement NO)
+	(set-goal has-blockprinting NO)
+	(set-goal has-faith YES)
+	(set-goal has-heresy YES)
+	(set-goal has-illumination NO)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-spartans")
+
 #end-if
+
 #load-if-defined MALAY-CIV
+
+(defrule
+	(true)
+=>
+	(set-goal good-priests NO)
+	(set-goal good-navy YES)
+	(set-goal has-horus NO)
+	(set-goal has-redemption NO)
+	(set-goal has-atonement YES)
+	(set-goal has-blockprinting NO)
+	(set-goal has-faith YES)
+	(set-goal has-heresy NO)
+	(set-goal has-illumination YES)
+	
+	(disable-self)
+)
+
 (load "rawai-civ-syracusans")
+
 #end-if
+
 #load-if-defined MALIAN-CIV
 
 (defrule
@@ -248,6 +796,7 @@
 =>
 	(set-goal good-priests NO)
 	(set-goal good-navy NO)
+	(set-goal has-horus NO)
 	(set-goal has-redemption YES)
 	(set-goal has-atonement YES)
 	(set-goal has-blockprinting NO)

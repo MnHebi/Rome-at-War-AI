@@ -1,8 +1,74 @@
 
+;error removal in case advancing phases goes wonky for some reason so we don't get stuck
+
 (defrule
+	(up-timer-status t-check-error != timer-running)
 	(up-compare-goal current-phase <= 0)
 =>
 	(chat-local-to-self "Entering Phase 1.")
+	(up-modify-goal current-phase c:= IRON-AGE)
+	(up-modify-goal previous-phase c:= START)
+	(disable-self)
+)
+
+(defrule
+	(up-timer-status t-check-error != timer-running)
+	(and
+		(current-age == dark-age)
+		(current-age-time >= 60)
+	)
+=>
+	(chat-local-to-self "Entering Phase 1.")
+	(up-modify-goal current-phase c:= IRON-AGE)
+	(up-modify-goal previous-phase c:= START)
+	(disable-self)
+)
+
+(defrule
+	(up-timer-status t-check-error != timer-running)
+	(and
+		(current-age == feudal-age)
+		(current-age-time >= 60)
+	)
+=>
+	(chat-local-to-self "Entering Phase 3.")
+	(up-modify-goal current-phase c:= EARLY-ANTIQUITY-AGE)
+	(up-modify-goal previous-phase c:= AGING-EARLY-ANTIQUITY)
+	(disable-self)
+)
+
+(defrule
+	(up-timer-status t-check-error != timer-running)
+	(and
+		(current-age == castle-age)
+		(current-age-time >= 60)
+	)
+=>
+	(chat-local-to-self "Entering Phase 5.")
+	(up-modify-goal current-phase c:= MIDDLE-ANTIQUITY-AGE)
+	(up-modify-goal previous-phase c:= AGING-MIDDLE-ANTIQUITY)
+	(disable-self)
+)
+
+(defrule
+	(up-timer-status t-check-error != timer-running)
+	(and
+		(current-age == imperial-age)
+		(current-age-time >= 60)
+	)
+=>
+	(chat-local-to-self "Entering Phase 7.")
+	(up-modify-goal current-phase c:= IMPERIAL-AGE)
+	(up-modify-goal previous-phase c:= AGING-IMPERIAL-AGE)
+	(disable-self)
+)
+
+;advance phases as we start aging up, and actually age up
+
+(defrule
+	(current-age == dark-age)
+=>
+	(chat-local-to-self "Started in Dark Age.")
 	(up-modify-goal current-phase c:= IRON-AGE)
 	(up-modify-goal previous-phase c:= START)
 	(disable-self)
@@ -14,10 +80,6 @@
 		(current-age == dark-age)
 		(goal age-up-started EARLY-ANTIQUITY)
 	)
-	(and
-		(building-type-count-total mill > 0)
-		(building-type-count-total barracks > 0)
-	)
 =>
 	(chat-local-to-self "Entering Phase 2.")
 	(up-modify-goal current-phase c:= AGING-EARLY-ANTIQUITY)
@@ -26,21 +88,10 @@
 )
 
 (defrule
+	(goal current-phase AGING-EARLY-ANTIQUITY)
 	(and
-		(goal current-phase 1)
 		(current-age == feudal-age)
-	)
-=>
-	(chat-local-to-self "Entering Phase 2.")
-	(up-modify-goal current-phase c:= AGING-EARLY-ANTIQUITY)
-	(up-modify-goal previous-phase c:= IRON-AGE)
-	(disable-self)
-)
-
-(defrule
-	(and
-		(goal current-phase AGING-EARLY-ANTIQUITY)
-		(current-age == feudal-age)
+		(goal age-up-finished EARLY-ANTIQUITY)
 	)
 =>
 	(chat-local-to-self "Entering Phase 3.")
@@ -50,28 +101,58 @@
 )
 
 (defrule
+	(goal current-phase EARLY-ANTIQUITY-AGE)
 	(and
-		(goal current-phase EARLY-ANTIQUITY-AGE)
-		(current-age == castle-age)
+		(current-age == feudal-age)
+		(goal age-up-started MIDDLE-ANTIQUITY)
 	)
 =>
 	(chat-local-to-self "Entering Phase 4.")
-	(up-modify-goal current-phase c:= MIDDLE-ANTIQUITY-AGE)
+	(up-modify-goal current-phase c:= AGING-MIDDLE-ANTIQUITY)
 	(up-modify-goal previous-phase c:= EARLY-ANTIQUITY-AGE)
 	(disable-self)
 )
 
 (defrule
+	(goal current-phase AGING-MIDDLE-ANTIQUITY)
 	(and
-		(goal current-phase MIDDLE-ANTIQUITY-AGE)
-		(current-age == imperial-age)
+		(current-age == castle-age)
+		(goal age-up-finished MIDDLE-ANTIQUITY)
 	)
 =>
 	(chat-local-to-self "Entering Phase 5.")
-	(up-modify-goal current-phase c:= IMPERIAL-AGE)
+	(up-modify-goal current-phase c:= MIDDLE-ANTIQUITY-AGE)
+	(up-modify-goal previous-phase c:= AGING-MIDDLE-ANTIQUITY)
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase MIDDLE-ANTIQUITY-AGE)
+	(and
+		(current-age == castle-age)
+		(goal age-up-started IMPERIAL)
+	)
+=>
+	(chat-local-to-self "Entering Phase 6.")
+	(up-modify-goal current-phase c:= AGING-IMPERIAL-AGE)
 	(up-modify-goal previous-phase c:= MIDDLE-ANTIQUITY-AGE)
 	(disable-self)
 )
+
+(defrule
+	(goal current-phase AGING-IMPERIAL-AGE)
+	(and
+		(current-age == imperial-age)
+		(goal age-up-finished IMPERIAL)
+	)
+=>
+	(chat-local-to-self "Entering Phase 7.")
+	(up-modify-goal current-phase c:= IMPERIAL-AGE)
+	(up-modify-goal previous-phase c:= AGING-IMPERIAL-AGE)
+	(disable-self)
+)
+
+
 
 (defrule
 	(up-compare-goal current-phase g:!= previous-phase)

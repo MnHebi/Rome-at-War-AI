@@ -1,5 +1,18 @@
 ;-----Escrow-----
 
+;default state regardless of age so we don't get situations where the AI fails to tech up cause we can't figure out our current age for some reason
+(defrule
+	(true)
+=>
+	(set-escrow-percentage wood 5)
+	(set-escrow-percentage food 5)
+	(set-escrow-percentage gold 5)
+	(set-escrow-percentage stone 5)
+	(set-goal gl-researchescrow-state with-escrow)
+	
+	(disable-self)
+)
+
 (defrule
 	(current-age == dark-age)
 =>

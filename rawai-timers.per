@@ -1,0 +1,33 @@
+
+(defrule
+	(true)
+=>
+	(enable-timer t-land-attack 600)
+	(enable-timer t-naval-attack 600)
+	
+	(disable-self)
+)
+
+(defrule
+	(up-timer-status t-attack-type != timer-running)
+=>
+	(enable-timer t-attack-type 30)
+)
+
+(defrule
+	(up-timer-status t-retreat != timer-running)
+=>
+	(enable-timer t-retreat 300)
+)
+
+(defrule
+	(up-timer-status t-unit-type != timer-running)
+=>
+	(enable-timer t-unit-type 15)
+)
+
+(defrule
+	(up-timer-status t-check-error != timer-running)
+=>
+	(enable-timer t-check-error 60)
+)

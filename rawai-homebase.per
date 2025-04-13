@@ -722,6 +722,13 @@
 (defrule
 	(can-afford-building dock)
 	(goal wait-techup-requirements NO)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(goal map-type ISLANDS)
+		)
+	)
 	(building-type-count-total dock g:< desired-number-docks)
 	(building-type-count-total lumber-camp >= 1)
 	(up-can-build 0 c: dock)
