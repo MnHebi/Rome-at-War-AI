@@ -9,6 +9,11 @@
 	(set-strategic-number sn-minimum-dropsite-buffer 50)
 	(set-strategic-number sn-mule-cart-dropsite-placement mining-camp)
 	(set-strategic-number sn-do-not-scale-for-difficulty-level 1)
+	(set-strategic-number sn-dropsite-separation-distance 4)
+	(set-strategic-number sn-scale-minimum-attack-group-size 0)
+	(set-strategic-number sn-zero-priority-distance 255)
+	(set-strategic-number sn-initial-exploration-required 0)
+	(set-strategic-number sn-cap-civilian-builders 200)
 
 	(disable-self)
 )
@@ -27,21 +32,21 @@
 )
 
 (defrule
-		(current-age == dark-age)
+		(current-age == iron-age)
 =>
 		(set-strategic-number sn-preferred-mill-placement 0)
 		(disable-self)
 )
 
 (defrule
-		(current-age == feudal-age)
+		(current-age == early-antiquity-age)
 =>
 		(set-strategic-number sn-preferred-mill-placement 1)
 		(disable-self)
 )
 
 (defrule
-		(current-age == castle-age)
+		(current-age == middle-antiquity-age)
 =>
 		(set-strategic-number sn-preferred-mill-placement 1)
 		(disable-self)
@@ -82,6 +87,54 @@
 	(disable-self)
 )
 
+(defrule
+	(true)
+=>
+	(set-strategic-number sn-attack-intelligence 1)
+	(set-strategic-number sn-allow-civilian-defense 2)
+	(set-strategic-number sn-attack-winning-player 1)
+	(set-strategic-number sn-attack-winning-player-factor 32767)
+	(set-strategic-number sn-coop-share-information 1)
+	(set-strategic-number sn-enable-training-queue 2)
+	(set-strategic-number sn-enable-research-queue 1)
+	(set-strategic-number sn-enable-offensive-priority 1)
+	(set-strategic-number sn-enable-patrol-attack 1)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == iron-age)
+=>
+	(set-strategic-number sn-disable-tower-priority 1)
+
+	(disable-self)
+)
+
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(set-strategic-number sn-disable-tower-priority 1)
+
+	(disable-self)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+=>
+	(set-strategic-number sn-disable-tower-priority 0)
+
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(set-strategic-number sn-disable-tower-priority 0)
+
+	(disable-self)
+)
+
 #end-if
 
 #load-if-defined DIFFICULTY-HARD
@@ -91,6 +144,54 @@
 =>
 	(set-strategic-number sn-consecutive-idle-unit-limit 0)
 	
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(set-strategic-number sn-attack-intelligence 1)
+	(set-strategic-number sn-allow-civilian-defense 2)
+	(set-strategic-number sn-attack-winning-player 1)
+	(set-strategic-number sn-attack-winning-player-factor 32767)
+	(set-strategic-number sn-coop-share-information 1)
+	(set-strategic-number sn-enable-training-queue 2)
+	(set-strategic-number sn-enable-research-queue 1)
+	(set-strategic-number sn-enable-offensive-priority 1)
+	(set-strategic-number sn-enable-patrol-attack 1)
+
+	(disable-self)
+)
+
+(defrule
+	(current-age == iron-age)
+=>
+	(set-strategic-number sn-disable-tower-priority 1)
+
+	(disable-self)
+)
+
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(set-strategic-number sn-disable-tower-priority 1)
+
+	(disable-self)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+=>
+	(set-strategic-number sn-disable-tower-priority 0)
+
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(set-strategic-number sn-disable-tower-priority 0)
+
 	(disable-self)
 )
 
@@ -106,6 +207,54 @@
 	(disable-self)
 )
 
+(defrule
+	(true)
+=>
+	(set-strategic-number sn-attack-intelligence 1)
+	(set-strategic-number sn-allow-civilian-defense 2)
+	(set-strategic-number sn-attack-winning-player 1)
+	(set-strategic-number sn-attack-winning-player-factor 32767)
+	(set-strategic-number sn-coop-share-information 1)
+	(set-strategic-number sn-enable-training-queue 2)
+	(set-strategic-number sn-enable-research-queue 1)
+	(set-strategic-number sn-enable-offensive-priority 1)
+	(set-strategic-number sn-enable-patrol-attack 1)
+
+	(disable-self)
+)
+
+(defrule
+	(current-age == iron-age)
+=>
+	(set-strategic-number sn-disable-tower-priority 1)
+
+	(disable-self)
+)
+
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(set-strategic-number sn-disable-tower-priority 1)
+
+	(disable-self)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+=>
+	(set-strategic-number sn-disable-tower-priority 0)
+
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(set-strategic-number sn-disable-tower-priority 0)
+
+	(disable-self)
+)
+
 #end-if
 
 #load-if-defined DIFFICULTY-EXTREME
@@ -118,10 +267,68 @@
 	(disable-self)
 )
 
+(defrule
+	(true)
+=>
+	(set-strategic-number sn-attack-intelligence 1)
+	(set-strategic-number sn-allow-civilian-defense 2)
+	(set-strategic-number sn-attack-winning-player 1)
+	(set-strategic-number sn-attack-winning-player-factor 32767)
+	(set-strategic-number sn-coop-share-information 1)
+	(set-strategic-number sn-enable-training-queue 2)
+	(set-strategic-number sn-enable-research-queue 1)
+	(set-strategic-number sn-enable-offensive-priority 1)
+	(set-strategic-number sn-enable-patrol-attack 1)
+
+	(disable-self)
+)
+
+(defrule
+	(current-age == iron-age)
+=>
+	(set-strategic-number sn-disable-tower-priority 1)
+
+	(disable-self)
+)
+
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(set-strategic-number sn-disable-tower-priority 1)
+
+	(disable-self)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+=>
+	(set-strategic-number sn-disable-tower-priority 0)
+
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(set-strategic-number sn-disable-tower-priority 0)
+
+	(disable-self)
+)
+
 #end-if
 
 (defrule
-	(goal attack-type-land TOWN-SIZE)
+	(or
+		(goal attack-type-land TOWN-SIZE)
+		(goal attack-type-land PERCENTAGE)
+	)
+	(and
+		(up-compare-sn sn-minimum-attack-group-size c:> 0)
+		(and
+			(up-compare-sn sn-maximum-attack-group-size c:> 0)
+			(up-compare-sn sn-number-attack-groups c:> 0)
+		)
+	)
 =>
 	(up-modify-sn sn-minimum-attack-group-size c:= 0)
 	(up-modify-sn sn-maximum-attack-group-size c:= 0)
@@ -130,6 +337,13 @@
 
 (defrule
 	(goal attack-type-land GROUP)
+	(and
+		(up-compare-sn sn-minimum-attack-group-size g:< gl-pop-atkgrp-minsize)
+		(and
+			(up-compare-sn sn-maximum-attack-group-size g:< gl-pop-atkgrp-maxsize)
+			(up-compare-sn sn-number-attack-groups g:< gl-pop-number-groups)
+		)
+	)
 =>
 	(up-modify-sn sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize)
 	(up-modify-sn sn-maximum-attack-group-size g:= gl-pop-atkgrp-maxsize)
@@ -137,7 +351,17 @@
 )
 
 (defrule
-	(goal attack-type-sea TOWN-SIZE)
+	(or
+		(goal attack-type-land TOWN-SIZE)
+		(goal attack-type-land PERCENTAGE)
+	)
+	(and
+		(up-compare-sn sn-minimum-boat-attack-group-size c:> 0)
+		(and
+			(up-compare-sn sn-maximum-boat-attack-group-size c:> 0)
+			(up-compare-sn sn-number-boat-attack-groups c:> 0)
+		)
+	)
 =>
 	(up-modify-sn sn-minimum-boat-attack-group-size c:= 0)
 	(up-modify-sn sn-maximum-boat-attack-group-size c:= 0)
@@ -146,6 +370,13 @@
 
 (defrule
 	(goal attack-type-sea GROUP)
+	(and
+		(up-compare-sn sn-minimum-boat-attack-group-size g:< gl-pop-atkgrp-minsize)
+		(and
+			(up-compare-sn sn-maximum-boat-attack-group-size g:< gl-pop-atkgrp-maxsize)
+			(up-compare-sn sn-number-boat-attack-groups g:< gl-pop-number-groups)
+		)
+	)
 =>
 	(up-modify-sn sn-minimum-boat-attack-group-size g:= gl-pop-atkgrp-minsize)
 	(up-modify-sn sn-maximum-boat-attack-group-size g:= gl-pop-atkgrp-maxsize)

@@ -3,9 +3,17 @@
 ;dictate which method to attack with, TSA or Group handler
 (defrule
 	(up-timer-status t-attack-type <= timer-triggered)
-	(soldier-count g:< gl-twenty-percent)
+	(soldier-count g:< gl-five-percent)
 =>
 	(set-goal attack-type-land TOWN-SIZE)
+	(up-jump-rule 1)
+)
+
+(defrule
+	(up-timer-status t-attack-type <= timer-triggered)
+	(soldier-count g:> gl-five-percent)
+=>
+	(set-goal attack-type-land PERCENTAGE)
 	(up-jump-rule 1)
 )
 
@@ -17,9 +25,16 @@
 )
 
 (defrule
-	(warboat-count g:< gl-twenty-percent)
+	(warboat-count g:< gl-five-percent)
 =>
 	(set-goal attack-type-sea TOWN-SIZE)
+	(up-jump-rule 1)
+)
+
+(defrule
+	(warboat-count g:> gl-five-percent)
+=>
+	(set-goal attack-type-sea PERCENTAGE)
 	(up-jump-rule 1)
 )
 
@@ -33,24 +48,29 @@
 ;retreat when forces are too dwindled
 (defrule
 	(up-timer-status t-retreat <= timer-triggered)
-	(current-age >= feudal-age)
-	(goal attack-type-land TOWN-SIZE)
-	(soldier-count g:< gl-five-percent)
+	(current-age >= early-antiquity-age)
+	(or
+		(up-compare-goal gl-current-soldier-losses > gl-five-percent)
+		(up-compare-goal gl-current-warboat-losses > gl-five-percent)
+	)
 =>
 	(up-reset-attack-now)
 	(up-reset-unit c: -1)
+	(up-modify-sn sn-minimum-attack-group-size c:= 0)
+	(up-modify-sn sn-maximum-attack-group-size c:= 0)
+	(up-modify-sn sn-number-attack-groups c:= 0)
 	(up-retreat-now)
+	(up-modify-sn sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize)
+	(up-modify-sn sn-maximum-attack-group-size g:= gl-pop-atkgrp-maxsize)
+	(up-modify-sn sn-number-attack-groups g:= gl-pop-number-groups)
+	(set-goal current-action ACTION-RETREAT)
 )
 
 (defrule
 	(up-timer-status t-retreat <= timer-triggered)
-	(current-age >= feudal-age)
-	(goal attack-type-land GROUP)
-	(soldier-count g:< gl-twenty-percent)
+	(goal current-action ACTION-RETREAT)
 =>
-	(up-reset-attack-now)
-	(up-reset-unit c: -1)
-	(up-retreat-now)
+	(set-goal current-action ACTION-WAIT)
 )
 
 (defrule
@@ -628,6 +648,7 @@
 	(up-compare-goal military-superiority >= 2)
 =>
 	(up-modify-sn sn-target-player-number g:= temporary-goal)
+	(up-jump-rule 1)
 )
 
 ;rule 9
@@ -636,6 +657,8 @@
 =>
 	(up-modify-sn sn-focus-player-number s:= sn-target-player-number)
 )
+
+;end of rule jumping
 
 ;rule 10
 (defrule
@@ -647,41 +670,111 @@
 	(up-modify-sn sn-wall-targeting-mode g:= allow-wall-targeting)
 )
 
+(defrule
+	(up-timer-status t-land-attack == timer-triggered)
+	(nor
+		(goal current-action ACTION-ATTACK)
+		(goal current-action ACTION-RETREAT)
+	)
+=>
+	(set-goal current-action ACTION-ATTACK)
+)
+
+(defrule
+	(up-timer-status t-naval-attack == timer-triggered)
+	(nor
+		(goal current-action ACTION-ATTACK)
+		(goal current-action ACTION-RETREAT)
+	)
+=>
+	(set-goal current-action ACTION-ATTACK)
+)
+
 ;rule 11
 (defrule
-	(up-compare-goal attack-type-land c:= 0)
-	(up-compare-goal land-attack-delay >= 0)
-	(up-compare-goal gl-game-time g:>= land-attack-delay)
-	(defend-soldier-count g:>= land-attack-requirement)
-	(up-timer-status t-land-attack != timer-running)
+	(up-compare-goal current-action c:= ACTION-ATTACK)
+	(and
+		(up-compare-goal attack-type-land c:= PERCENTAGE)
+		(and
+			(up-compare-goal land-attack-delay >= 0)
+			(and
+				(up-compare-goal gl-game-time g:>= land-attack-delay)
+				(defend-soldier-count g:>= land-attack-requirement)
+			)
+		)
+	)
 =>
 	(chat-local-to-self "land attack")
 	(up-modify-sn sn-percent-attack-soldiers g:= land-attack-percentage)
-	(up-modify-sn sn-maximum-town-size c:= 250)
 	(attack-now)
-	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
 	(set-strategic-number sn-percent-attack-soldiers 0)
 	(up-set-timer c: t-land-attack g: land-attack-interval)
-	(up-jump-rule 1)
 )
 
 ;rule 12
 (defrule
-	(up-compare-goal attack-type-sea c:= 0)
-	(up-compare-goal naval-attack-delay >= 0)
-	(up-compare-goal gl-game-time g:>= naval-attack-delay)
-	(defend-warboat-count g:>= naval-attack-requirement)
-	(up-timer-status t-naval-attack != timer-running)
+	(up-compare-goal current-action c:= ACTION-ATTACK)
+	(and
+		(up-compare-goal attack-type-sea c:= PERCENTAGE)
+		(and
+			(up-compare-goal naval-attack-delay >= 0)
+			(and
+				(up-compare-goal gl-game-time g:>= naval-attack-delay)
+				(and
+					(defend-warboat-count g:>= naval-attack-requirement)
+					(up-timer-status t-naval-attack != timer-running)
+				)
+			)
+		)
+	)
 =>
 	(chat-local-to-self "naval attack")
 	(up-modify-sn sn-percent-attack-boats g:= naval-attack-percentage)
+	(attack-now)
+	(set-strategic-number sn-percent-attack-boats 0)
+)
+
+(defrule
+	(up-compare-goal current-action c:= ACTION-ATTACK)
+	(and
+		(up-compare-goal attack-type-land c:= TOWN-SIZE)
+		(and
+			(up-compare-goal land-attack-delay >= 0)
+			(and
+				(up-compare-goal gl-game-time g:>= land-attack-delay)
+				(defend-soldier-count g:>= land-attack-requirement)
+			)
+		)
+	)
+=>
+	(chat-local-to-self "land attack")
 	(up-modify-sn sn-maximum-town-size c:= 250)
 	(attack-now)
 	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
-	(set-strategic-number sn-percent-attack-boats 0)
-	(up-set-timer c: t-naval-attack g: naval-attack-interval)
+	(up-set-timer c: t-land-attack g: land-attack-interval)
 )
-;end of rule jumps
+
+(defrule
+	(up-compare-goal current-action c:= ACTION-ATTACK)
+	(and
+		(up-compare-goal attack-type-sea c:= TOWN-SIZE)
+		(and
+			(up-compare-goal naval-attack-delay >= 0)
+			(and
+				(up-compare-goal gl-game-time g:>= naval-attack-delay)
+				(and
+					(defend-warboat-count g:>= naval-attack-requirement)
+					(up-timer-status t-naval-attack != timer-running)
+				)
+			)
+		)
+	)
+=>
+	(chat-local-to-self "naval attack")
+	(up-modify-sn sn-maximum-town-size c:= 250)
+	(attack-now)
+	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+)
 
 ;periodic attacks, if not flank player
 (defrule

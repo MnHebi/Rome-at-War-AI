@@ -9,6 +9,27 @@
 )
 
 (defrule
+	(up-timer-status t-land-attack != timer-running)
+=>
+	(chat-local-to-self "refresh land attack timer")
+	(up-set-timer c: t-land-attack g: land-attack-interval)
+)
+
+(defrule
+	(up-timer-status t-naval-attack != timer-running)
+=>
+	(chat-local-to-self "refresh naval attack timer")
+	(up-set-timer c: t-naval-attack g: naval-attack-interval)
+)
+
+(defrule
+	(up-timer-status t-periodic-attack != timer-running)
+=>
+	(chat-local-to-self "refresh periodic attack timer")
+	(up-set-timer c: t-periodic-attack g: periodic-attack-interval)
+)
+
+(defrule
 	(up-timer-status t-attack-type != timer-running)
 =>
 	(enable-timer t-attack-type 30)

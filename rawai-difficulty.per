@@ -1,32 +1,682 @@
 
+#load-if-defined DIFFICULTY-EASIEST
+#load-if-defined DIFFICULTY-EASY
+
+;easy, easiest
 (defrule
-	(difficulty >= easy)
+	(true)
 =>
 	(set-difficulty-parameter ability-to-maintain-distance 90)
 	(set-difficulty-parameter ability-to-dodge-missiles 90)
 	(up-modify-goal periodic-attack-interval c:= 2700)
-	(disable-self))
+	(disable-self)
+)
+
+#end-if
+#end-if
+
+#load-if-not-defined DIFFICULTY-EASIEST
+#load-if-not-defined DIFFICULTY-EASY
+
+;setup offensive priorities, do priority at a time with one rule each for each age
+;done once for each age, town centers climb in priority once siege weapons are available
+
+;iron age
 (defrule
-	(difficulty == moderate)
+	(current-age == iron-age)
 =>
-	(set-difficulty-parameter ability-to-maintain-distance 75)
-	(set-difficulty-parameter ability-to-dodge-missiles 75)
-	(up-modify-goal periodic-attack-interval c:= 1800)
-	(disable-self))
+	(up-set-offense-priority c: villager-class c: 11)
+	(up-set-offense-priority c: fishing-ship-class c: 11)
+	(up-set-offense-priority c: transport-ship-class c: 11)
+	(up-set-offense-priority c: monk-with-relic-class c: 11)
+	(up-set-offense-priority c: king-class c: 11)
+	(up-set-offense-priority c: mining-camp c: 11)
+	(up-set-offense-priority c: monument-class c: 11)
+	(up-set-offense-priority c: wonder c: 11)
+	(up-set-offense-priority c: monastery c: 11)
+	
+	(disable-self)
+)
+
 (defrule
-	(difficulty <= hard)
+	(current-age == iron-age)
+=>
+	(up-set-offense-priority c: monastery-class c: 10)
+	(up-set-offense-priority c: lumber-camp c: 10)
+	(up-set-offense-priority c: mill c: 10)
+	(up-set-offense-priority c: port c: 10)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == iron-age)
+=>
+	(up-set-offense-priority c: farm-class c: 9)
+	(up-set-offense-priority c: warship-class c: 9)
+	(up-set-offense-priority c: trade-cog-class c: 9)
+	(up-set-offense-priority c: trade-cart-class c: 9)
+	(up-set-offense-priority c: market c: 9)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == iron-age)
+=>
+	(up-set-offense-priority c: livestock-class c: 8)
+	(up-set-offense-priority c: archery-class c: 8)
+	(up-set-offense-priority c: archery-cannon-class c: 8)
+	(up-set-offense-priority c: cavalry-cannon-class c: 8)
+	(up-set-offense-priority c: cavalry-archer-class c: 8)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == iron-age)
+=>
+	(up-set-offense-priority c: cavalry-class c: 7)
+	(up-set-offense-priority c: scout-cavalry-class c: 7)
+	(up-set-offense-priority c: infantry-class c: 7)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == iron-age)
+=>
+	(up-set-offense-priority c: siege-weapon-class c: 6)
+	(up-set-offense-priority c: scorpion-class c: 6)
+	(up-set-offense-priority c: packed-trebuchet-class c: 6)
+	(up-set-offense-priority c: unpacked-trebuchet-class c: 6)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == iron-age)
+=>
+	(up-set-offense-priority c: gate-class c: 5)
+	(up-set-offense-priority c: wall-class c: 5)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == iron-age)
+=>
+	(up-set-offense-priority c: petard-class c: 4)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == iron-age)
+=>
+	(up-set-offense-priority c: blacksmith c: 3)
+	(up-set-offense-priority c: university c: 3)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == iron-age)
+=>
+	(up-set-offense-priority c: siege-workshop c: 2)
+	(up-set-offense-priority c: archery-range c: 2)
+	(up-set-offense-priority c: stable c: 2)
+	(up-set-offense-priority c: barracks c: 2)
+	(up-set-offense-priority c: shipyard c: 2)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == iron-age)
+=>
+	(up-set-offense-priority c: outpost c: 1)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == iron-age)
+=>
+	(up-set-offense-priority c: building-class c: 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == iron-age)
+=>
+	(up-set-offense-priority c: tower-class c: -1)
+	(up-set-offense-priority c: town-center c: -1)
+	(up-set-offense-priority c: castle c: -1)
+	
+	(disable-self)
+)
+
+;early antiquity age
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(up-set-offense-priority c: villager-class c: 11)
+	(up-set-offense-priority c: fishing-ship-class c: 11)
+	(up-set-offense-priority c: transport-ship-class c: 11)
+	(up-set-offense-priority c: monk-with-relic-class c: 11)
+	(up-set-offense-priority c: king-class c: 11)
+	(up-set-offense-priority c: mining-camp c: 11)
+	(up-set-offense-priority c: monument-class c: 11)
+	(up-set-offense-priority c: wonder c: 11)
+	(up-set-offense-priority c: monastery c: 11)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(up-set-offense-priority c: monastery-class c: 10)
+	(up-set-offense-priority c: lumber-camp c: 10)
+	(up-set-offense-priority c: mill c: 10)
+	(up-set-offense-priority c: port c: 10)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(up-set-offense-priority c: farm-class c: 9)
+	(up-set-offense-priority c: warship-class c: 9)
+	(up-set-offense-priority c: trade-cog-class c: 9)
+	(up-set-offense-priority c: trade-cart-class c: 9)
+	(up-set-offense-priority c: market c: 9)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(up-set-offense-priority c: livestock-class c: 8)
+	(up-set-offense-priority c: archery-class c: 8)
+	(up-set-offense-priority c: archery-cannon-class c: 8)
+	(up-set-offense-priority c: cavalry-cannon-class c: 8)
+	(up-set-offense-priority c: cavalry-archer-class c: 8)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(up-set-offense-priority c: cavalry-class c: 7)
+	(up-set-offense-priority c: scout-cavalry-class c: 7)
+	(up-set-offense-priority c: infantry-class c: 7)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(up-set-offense-priority c: siege-weapon-class c: 6)
+	(up-set-offense-priority c: scorpion-class c: 6)
+	(up-set-offense-priority c: packed-trebuchet-class c: 6)
+	(up-set-offense-priority c: unpacked-trebuchet-class c: 6)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(up-set-offense-priority c: gate-class c: 5)
+	(up-set-offense-priority c: wall-class c: 5)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(up-set-offense-priority c: petard-class c: 4)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(up-set-offense-priority c: blacksmith c: 3)
+	(up-set-offense-priority c: university c: 3)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(up-set-offense-priority c: siege-workshop c: 2)
+	(up-set-offense-priority c: archery-range c: 2)
+	(up-set-offense-priority c: stable c: 2)
+	(up-set-offense-priority c: barracks c: 2)
+	(up-set-offense-priority c: shipyard c: 2)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(up-set-offense-priority c: outpost c: 1)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(up-set-offense-priority c: building-class c: 0)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == early-antiquity-age)
+=>
+	(up-set-offense-priority c: tower-class c: -1)
+	(up-set-offense-priority c: town-center c: -1)
+	(up-set-offense-priority c: castle c: -1)
+	
+	(disable-self)
+)
+
+;middle antiquity age
+(defrule
+	(current-age == middle-antiquity-age)
+=>
+	(up-set-offense-priority c: villager-class c: 11)
+	(up-set-offense-priority c: fishing-ship-class c: 11)
+	(up-set-offense-priority c: transport-ship-class c: 11)
+	(up-set-offense-priority c: monk-with-relic-class c: 11)
+	(up-set-offense-priority c: king-class c: 11)
+	(up-set-offense-priority c: mining-camp c: 11)
+	(up-set-offense-priority c: monument-class c: 11)
+	(up-set-offense-priority c: wonder c: 11)
+	(up-set-offense-priority c: monastery c: 11)
+	(up-set-offense-priority c: castle c: 11)
+	(up-set-offense-priority c: town-center c: 11)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+=>
+	(up-set-offense-priority c: monastery-class c: 10)
+	(up-set-offense-priority c: lumber-camp c: 10)
+	(up-set-offense-priority c: mill c: 10)
+	(up-set-offense-priority c: port c: 10)
+	(up-set-offense-priority c: tower-class c: 11)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+=>
+	(up-set-offense-priority c: farm-class c: 9)
+	(up-set-offense-priority c: warship-class c: 9)
+	(up-set-offense-priority c: trade-cog-class c: 9)
+	(up-set-offense-priority c: trade-cart-class c: 9)
+	(up-set-offense-priority c: market c: 9)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+=>
+	(up-set-offense-priority c: livestock-class c: 8)
+	(up-set-offense-priority c: archery-class c: 8)
+	(up-set-offense-priority c: archery-cannon-class c: 8)
+	(up-set-offense-priority c: cavalry-cannon-class c: 8)
+	(up-set-offense-priority c: cavalry-archer-class c: 8)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+=>
+	(up-set-offense-priority c: cavalry-class c: 7)
+	(up-set-offense-priority c: scout-cavalry-class c: 7)
+	(up-set-offense-priority c: infantry-class c: 7)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+=>
+	(up-set-offense-priority c: siege-weapon-class c: 6)
+	(up-set-offense-priority c: scorpion-class c: 6)
+	(up-set-offense-priority c: packed-trebuchet-class c: 6)
+	(up-set-offense-priority c: unpacked-trebuchet-class c: 6)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+=>
+	(up-set-offense-priority c: gate-class c: 5)
+	(up-set-offense-priority c: wall-class c: 5)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+=>
+	(up-set-offense-priority c: petard-class c: 4)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+=>
+	(up-set-offense-priority c: blacksmith c: 3)
+	(up-set-offense-priority c: university c: 3)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+=>
+	(up-set-offense-priority c: siege-workshop c: 2)
+	(up-set-offense-priority c: archery-range c: 2)
+	(up-set-offense-priority c: stable c: 2)
+	(up-set-offense-priority c: barracks c: 2)
+	(up-set-offense-priority c: shipyard c: 2)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+=>
+	(up-set-offense-priority c: outpost c: 1)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+=>
+	(up-set-offense-priority c: building-class c: 0)
+	
+	(disable-self)
+)
+
+;imperial age
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(up-set-offense-priority c: villager-class c: 11)
+	(up-set-offense-priority c: fishing-ship-class c: 11)
+	(up-set-offense-priority c: transport-ship-class c: 11)
+	(up-set-offense-priority c: monk-with-relic-class c: 11)
+	(up-set-offense-priority c: king-class c: 11)
+	(up-set-offense-priority c: mining-camp c: 11)
+	(up-set-offense-priority c: monument-class c: 11)
+	(up-set-offense-priority c: wonder c: 11)
+	(up-set-offense-priority c: monastery c: 11)
+	(up-set-offense-priority c: castle c: 11)
+	(up-set-offense-priority c: town-center c: 11)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(up-set-offense-priority c: monastery-class c: 10)
+	(up-set-offense-priority c: lumber-camp c: 10)
+	(up-set-offense-priority c: mill c: 10)
+	(up-set-offense-priority c: port c: 10)
+	(up-set-offense-priority c: tower-class c: 11)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(up-set-offense-priority c: farm-class c: 9)
+	(up-set-offense-priority c: warship-class c: 9)
+	(up-set-offense-priority c: trade-cog-class c: 9)
+	(up-set-offense-priority c: trade-cart-class c: 9)
+	(up-set-offense-priority c: market c: 9)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(up-set-offense-priority c: livestock-class c: 8)
+	(up-set-offense-priority c: archery-class c: 8)
+	(up-set-offense-priority c: archery-cannon-class c: 8)
+	(up-set-offense-priority c: cavalry-cannon-class c: 8)
+	(up-set-offense-priority c: cavalry-archer-class c: 8)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(up-set-offense-priority c: cavalry-class c: 7)
+	(up-set-offense-priority c: scout-cavalry-class c: 7)
+	(up-set-offense-priority c: infantry-class c: 7)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(up-set-offense-priority c: siege-weapon-class c: 6)
+	(up-set-offense-priority c: scorpion-class c: 6)
+	(up-set-offense-priority c: packed-trebuchet-class c: 6)
+	(up-set-offense-priority c: unpacked-trebuchet-class c: 6)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(up-set-offense-priority c: gate-class c: 5)
+	(up-set-offense-priority c: wall-class c: 5)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(up-set-offense-priority c: petard-class c: 4)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(up-set-offense-priority c: blacksmith c: 3)
+	(up-set-offense-priority c: university c: 3)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(up-set-offense-priority c: siege-workshop c: 2)
+	(up-set-offense-priority c: archery-range c: 2)
+	(up-set-offense-priority c: stable c: 2)
+	(up-set-offense-priority c: barracks c: 2)
+	(up-set-offense-priority c: shipyard c: 2)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(up-set-offense-priority c: outpost c: 1)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+=>
+	(up-set-offense-priority c: building-class c: 0)
+	
+	(disable-self)
+)
+
+;setup defensive priorities, done once since these do not change with age
+
+(defrule
+	(true)
+=>
+	(up-set-defense-priority c: town-center c: 20000)
+	(up-set-defense-priority c: town-center-foundation c: 20000)
+
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-defense-priority c: wonder c: 10000)
+
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-defense-priority c: castle c: 5000)
+
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-defense-priority c: tower-class c: 4000)
+
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-defense-priority c: market c: 3000)
+	(up-set-defense-priority c: mill c: 3000)
+	(up-set-defense-priority c: lumber-camp c: 3000)
+	(up-set-defense-priority c: mining-camp c: 3000)
+	(up-set-defense-priority c: port c: 3000)
+
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-defense-priority c: blacksmith c: 2000)
+	(up-set-defense-priority c: university c: 2000)
+
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-defense-priority c: gate-class c: 1000)
+	(up-set-defense-priority c: wall-class c: 1000)
+
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-defense-priority c: farm-class c: 500)
+
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-defense-priority c: farm c: 400)
+
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-defense-priority c: house c: 300)
+
+	(disable-self)
+)
+
+#end-if
+#end-if
+
+#load-if-defined DIFFICULTY-MODERATE
+
+;moderate
+(defrule
+	(true)
 =>
 	(set-difficulty-parameter ability-to-maintain-distance 60)
 	(set-difficulty-parameter ability-to-dodge-missiles 60)
-	(set-strategic-number sn-attack-intelligence 1)
-	(set-strategic-number sn-allow-civilian-defense 2)
-	(set-strategic-number sn-attack-winning-player 1)
-	(set-strategic-number sn-attack-winning-player-factor 32767)
-	(set-strategic-number sn-coop-share-information 1)
-	(set-strategic-number sn-enable-training-queue 2)
-	(set-strategic-number sn-enable-research-queue 1)
-	(set-strategic-number sn-enable-offensive-priority 1)
-	(set-strategic-number sn-enable-patrol-attack 1)
+	(up-modify-goal periodic-attack-interval c:= 1800)
+	(disable-self)
+)
+
+#end-if
+
+#load-if-defined DIFFICULTY-HARD
+#load-if-defined DIFFICULTY-HARDEST
+#load-if-defined DIFFICULTY-EXTREME
+
+;hard and up
+(defrule
+	(true)
+=>
+	(set-difficulty-parameter ability-to-maintain-distance 60)
+	(set-difficulty-parameter ability-to-dodge-missiles 60)
 	(up-modify-goal periodic-attack-interval c:= 600)
 
-	(disable-self))
+	(disable-self)
+)
+
+#end-if
+#end-if
+#end-if

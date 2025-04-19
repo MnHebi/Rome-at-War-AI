@@ -14,7 +14,7 @@
 (defrule
 	(up-timer-status t-check-error != timer-running)
 	(and
-		(current-age == dark-age)
+		(current-age == iron-age)
 		(current-age-time >= 60)
 	)
 =>
@@ -27,7 +27,7 @@
 (defrule
 	(up-timer-status t-check-error != timer-running)
 	(and
-		(current-age == feudal-age)
+		(current-age == early-antiquity-age)
 		(current-age-time >= 60)
 	)
 =>
@@ -40,7 +40,7 @@
 (defrule
 	(up-timer-status t-check-error != timer-running)
 	(and
-		(current-age == castle-age)
+		(current-age == middle-antiquity-age)
 		(current-age-time >= 60)
 	)
 =>
@@ -66,7 +66,7 @@
 ;advance phases as we start aging up, and actually age up
 
 (defrule
-	(current-age == dark-age)
+	(current-age == iron-age)
 =>
 	(chat-local-to-self "Started in Dark Age.")
 	(up-modify-goal current-phase c:= IRON-AGE)
@@ -77,7 +77,7 @@
 (defrule
 	(goal current-phase IRON-AGE)
 	(and
-		(current-age == dark-age)
+		(current-age == iron-age)
 		(goal age-up-started EARLY-ANTIQUITY)
 	)
 =>
@@ -90,7 +90,7 @@
 (defrule
 	(goal current-phase AGING-EARLY-ANTIQUITY)
 	(and
-		(current-age == feudal-age)
+		(current-age == early-antiquity-age)
 		(goal age-up-finished EARLY-ANTIQUITY)
 	)
 =>
@@ -103,7 +103,7 @@
 (defrule
 	(goal current-phase EARLY-ANTIQUITY-AGE)
 	(and
-		(current-age == feudal-age)
+		(current-age == early-antiquity-age)
 		(goal age-up-started MIDDLE-ANTIQUITY)
 	)
 =>
@@ -116,7 +116,7 @@
 (defrule
 	(goal current-phase AGING-MIDDLE-ANTIQUITY)
 	(and
-		(current-age == castle-age)
+		(current-age == middle-antiquity-age)
 		(goal age-up-finished MIDDLE-ANTIQUITY)
 	)
 =>
@@ -129,7 +129,7 @@
 (defrule
 	(goal current-phase MIDDLE-ANTIQUITY-AGE)
 	(and
-		(current-age == castle-age)
+		(current-age == middle-antiquity-age)
 		(goal age-up-started IMPERIAL)
 	)
 =>
