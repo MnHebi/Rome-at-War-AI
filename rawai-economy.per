@@ -739,3 +739,37 @@
 =>
 	(delete-unit fishing-ship)
 )
+
+;count units for goals
+
+(defrule
+	(up-timer-status t-check-vills == timer-triggered)
+=>
+	(up-get-fact unit-type-count villager gl-current-villagers)
+	(up-modify-goal gl-past-villagers g:= gl-current-villagers)
+	(up-chat-data-to-self "previous villagers: %d." g: gl-previous-villagers)
+	(up-chat-data-to-self "current villagers: %d." g: gl-current-villagers)
+)
+
+(defrule
+	(up-timer-status t-check-vills == timer-triggered)
+	(up-compare-goal gl-current-villagers g:> gl-previous-villagers)
+=>
+	(up-modify-goal gl-villager-counter g:= gl-current-villagers)
+	(up-modify-goal gl-villager-counter g:- gl-previous-villagers)
+	(up-modify-goal gl-trained-villagers g:+ gl-villager-counter)
+	(up-modify-goal gl-villager-counter c:= 0)
+	(up-modify-goal gl-previous-villagers g:= gl-past-villagers)
+	(up-chat-data-to-self "starting villagers: %d." g: gl-starting-villagers)
+	(up-chat-data-to-self "trained villagers: %d." g: gl-trained-villagers)
+)
+
+(defrule
+	(up-timer-status t-check-vills == timer-triggered)
+	(up-compare-goal gl-trained-villagers c:> 0)
+=>
+	(up-modify-goal gl-trained-villagers g:- gl-starting-villagers)
+	(up-chat-data-to-self "removed starting villagers from trained villagers, trained villagers: %d." g: gl-trained-villagers)
+	
+	(disable-self)
+)

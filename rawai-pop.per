@@ -1,6 +1,19 @@
 ;**************************************************************
 
 (defrule
+	(true)
+=>
+	(up-get-fact resource-amount amount-starting-villagers gl-starting-villagers)
+	(up-get-fact unit-type-count villager gl-past-villagers)
+	(up-get-fact civilian-population 0 gl-past-civilian-count)
+	(up-get-fact soldier-count 0 gl-past-soldier-count)
+	(up-get-fact warboat-count 0 gl-past-warboat-count)
+	(up-chat-data-to-self "starting villagers: %d." g: gl-starting-villagers)
+
+	(disable-self)
+)
+
+(defrule
 		(population-cap == 25)
 =>
 		(set-goal gl-pop-atkgrp-minsize 1)

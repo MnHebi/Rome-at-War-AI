@@ -1,4 +1,13 @@
 
+;timer 10, cheats
+
+(defrule
+	(up-timer-status t-cheats != timer-running)
+=>
+	(up-set-timer c: t-cheats c: 60)
+	(chat-local-to-self "refresh cheats timer")
+)
+
 (defrule
 	(true)
 =>
@@ -32,23 +41,41 @@
 (defrule
 	(up-timer-status t-attack-type != timer-running)
 =>
+	(chat-local-to-self "refresh attack type timer")
 	(enable-timer t-attack-type 30)
 )
 
 (defrule
 	(up-timer-status t-retreat != timer-running)
 =>
+	(chat-local-to-self "refresh retreat timer")
 	(enable-timer t-retreat 300)
 )
 
 (defrule
 	(up-timer-status t-unit-type != timer-running)
 =>
+	(chat-local-to-self "refresh unit type timer")
 	(enable-timer t-unit-type 15)
+)
+
+(defrule
+	(up-timer-status t-check-vills != timer-running)
+=>
+	(chat-local-to-self "refresh check vills timer")
+	(up-set-timer c: t-check-vills c: 15)
 )
 
 (defrule
 	(up-timer-status t-check-error != timer-running)
 =>
+	(chat-local-to-self "refresh check errortimer")
 	(enable-timer t-check-error 60)
+)
+
+(defrule
+	(up-timer-status t-check-losses != timer-running)
+=>
+	(chat-local-to-self "refresh land attack timer")
+	(up-set-timer c: t-check-losses c: 60)
 )

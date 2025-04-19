@@ -383,4 +383,11 @@
 	(up-modify-sn sn-number-boat-attack-groups g:= gl-pop-number-groups)
 )
 
+;disable civilian defense if we incurring losses
+(defrule
+	(up-compare-goal gl-total-civilian-losses g:>= gl-one-percent)
+	(up-compare-sn sn-allow-civilian-defense c:> 0)
+=>
+	(up-modify-sn sn-allow-civilian-defense c:= 0)
+)
 

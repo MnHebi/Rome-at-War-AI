@@ -1,11 +1,8 @@
 
-(defrule
-	(up-timer-status t-cheats != timer-running)
-=>
-	(enable-timer t-cheats 30)
-	(set-goal extreme-cheats YES)
-	(chat-local-to-self "start extreme cheats timer start")
-)
+#load-if-not-defined DIFFICULTY-EASIEST
+#load-if-not-defined DIFFICULTY-EASY
+#load-if-not-defined DIFFICULTY-MODERATE
+#load-if-not-defined DIFFICULTY-HARD
 
 (defrule
 	(goal extreme-cheats YES)
@@ -21,13 +18,18 @@
 )
 
 (defrule
-	(goal extreme-cheats GIVE)
-	(current-age == iron-age)
-	(up-object-type-count-total c: villager g:< desired-number-villagers)
+	(game-time > 60)
+	(up-timer-status t-cheats == timer-triggered)
+	(up-compare-goal gl-trained-villagers c:> 0)
 =>
-	(set-goal extreme-cheats FINISHED)
-	(cc-add-resource food 25)
-	(chat-local-to-self "food for iron age workers cheat")
+	(up-modify-goal gl-refunded-food c:= 0)
+	(up-modify-goal gl-refund-food c:= 25)
+	(up-modify-goal gl-refund-food g:* gl-trained-villagers)
+	(up-modify-goal gl-trained-villagers c:= 0)
+	(up-cc-add-resource c: food g: gl-refund-food)
+	(up-modify-goal gl-refunded-food g:= gl-refund-food)
+	(up-modify-goal gl-refund-food c:= 0)
+	(up-chat-data-to-self "refunded villager food costs: %d." g: gl-refunded-food)
 )
 
 (defrule
@@ -187,3 +189,8 @@
 =>
 	(set-goal extreme-cheats NO)
 )
+
+#end-if
+#end-if
+#end-if
+#end-if

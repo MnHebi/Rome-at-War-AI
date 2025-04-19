@@ -47,11 +47,11 @@
 
 ;retreat when forces are too dwindled
 (defrule
-	(up-timer-status t-retreat <= timer-triggered)
+	(up-timer-status t-retreat == timer-triggered)
 	(current-age >= early-antiquity-age)
 	(or
-		(up-compare-goal gl-current-soldier-losses > gl-five-percent)
-		(up-compare-goal gl-current-warboat-losses > gl-five-percent)
+		(up-compare-goal gl-current-soldier-losses g:> gl-five-percent)
+		(up-compare-goal gl-current-warboat-losses g:> gl-five-percent)
 	)
 =>
 	(up-reset-attack-now)
@@ -67,7 +67,7 @@
 )
 
 (defrule
-	(up-timer-status t-retreat <= timer-triggered)
+	(up-timer-status t-retreat == timer-triggered)
 	(goal current-action ACTION-RETREAT)
 =>
 	(set-goal current-action ACTION-WAIT)
@@ -809,6 +809,62 @@
 	(set-strategic-number sn-percent-attack-boats 0)
 	(up-set-timer c: t-periodic-attack g: periodic-attack-interval)
 )
+
+;loss counter
+
+(defrule
+	(up-timer-status t-check-losses == timer-triggered)
+=>
+	(up-modify-goal gl-past-civilian-count g:= gl-current-civilian-count)
+	(up-get-fact civilian-population 0 gl-current-civilian-count)
+	(up-modify-goal gl-past-soldier-count g:= gl-current-soldier-count)
+	(up-get-fact soldier-count 0 gl-current-soldier-count)
+	(up-modify-goal gl-past-warboat-count g:= gl-current-warboat-count)
+	(up-get-fact warboat-count 0 gl-current-warboat-count)
+	(up-chat-data-to-self "current civilian count: %d." g: gl-current-civilian-count)
+	(up-chat-data-to-self "past civilian count: %d." g: gl-past-civilian-count)
+	(up-chat-data-to-self "current soldier count: %d." g: gl-current-soldier-count)
+	(up-chat-data-to-self "past soldier count: %d." g: gl-past-soldier-count)
+	(up-chat-data-to-self "current warboat count: %d." g: gl-current-warboat-count)
+	(up-chat-data-to-self "past warboat count: %d." g: gl-past-warboat-count)
+)
+
+(defrule
+	(up-timer-status t-check-losses == timer-triggered)
+	(up-compare-goal gl-past-civilian-count g:> gl-current-civilian-count)
+=>
+	(up-modify-goal gl-civilian-loss-counter g:= gl-past-civilian-count)
+	(up-modify-goal gl-civilian-loss-counter g:- gl-current-civilian-count)
+	(up-modify-goal gl-current-civilian-losses g:= gl-civilian-loss-counter)
+	(up-modify-goal gl-total-civilian-losses g:+ gl-civilian-loss-counter)
+	(up-chat-data-to-self "current civilian losses: %d." g: gl-current-civilian-losses)
+	(up-chat-data-to-self "total civilian losses: %d." g: gl-total-civilian-losses)
+)
+
+(defrule
+	(up-timer-status t-check-losses == timer-triggered)
+	(up-compare-goal gl-past-soldier-count g:> gl-current-soldier-count)
+=>
+	(up-modify-goal gl-soldier-loss-counter g:= gl-past-soldier-count)
+	(up-modify-goal gl-soldier-loss-counter g:- gl-current-soldier-count)
+	(up-modify-goal gl-current-soldier-losses g:= gl-soldier-loss-counter)
+	(up-modify-goal gl-total-soldier-losses g:+ gl-soldier-loss-counter)
+	(up-chat-data-to-self "current soldier losses: %d." g: gl-current-soldier-losses)
+	(up-chat-data-to-self "total soldier losses: %d." g: gl-total-soldier-losses)
+)
+
+(defrule
+	(up-timer-status t-check-losses == timer-triggered)
+	(up-compare-goal gl-past-warboat-count g:> gl-current-warboat-count)
+=>
+	(up-modify-goal gl-warboat-loss-counter g:= gl-past-warboat-count)
+	(up-modify-goal gl-warboat-loss-counter g:- gl-current-warboat-count)
+	(up-modify-goal gl-current-warboat-losses g:= gl-warboat-loss-counter)
+	(up-modify-goal gl-total-warboat-losses g:+ gl-warboat-loss-counter)
+	(up-chat-data-to-self "current warboat losses: %d." g: gl-current-warboat-losses)
+	(up-chat-data-to-self "total warboat losses: %d." g: gl-total-warboat-losses)
+)
+
 
 #load-if-not-defined DIFFICULTY-EASIEST
 #load-if-not-defined DIFFICULTY-EASY
