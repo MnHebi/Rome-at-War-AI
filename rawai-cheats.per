@@ -1,14 +1,543 @@
 
+#load-if-defined DIFFICULTY-MODERATE
+#load-if-defined DIFFICULTY-HARD
+
+(defrule
+	(game-time > 60)
+	(up-timer-status t-cheats == timer-triggered)
+	(up-compare-goal gl-trained-villagers c:> 0)
+=>
+	(up-modify-goal gl-refunded-food c:= 0)
+	(up-modify-goal gl-refund-food c:= 6)
+	(up-modify-goal gl-refund-food g:* gl-trained-villagers)
+	(up-modify-goal gl-trained-villagers c:= 0)
+	(up-cc-add-resource c: food g: gl-refund-food)
+	(up-modify-goal gl-refunded-food g:= gl-refund-food)
+	(up-modify-goal gl-refund-food c:= 0)
+	(up-chat-data-to-self "refunded villager food costs: %d." g: gl-refunded-food)
+)
+
+;research refunds
+
+(defrule
+	(research-completed ri-loom)
+=>
+	(up-modify-goal gl-refund-gold-bank c:+ 6)
+	(chat-local-to-self "refund loom research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-wheelbarrow)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 21)
+	(up-modify-goal gl-refund-wood-bank c:+ 6)
+	(chat-local-to-self "refund wheelbarrow research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-hand-cart)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 30)
+	(up-modify-goal gl-refund-wood-bank c:+ 24)
+	(chat-local-to-self "refund handcart research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-gillnets)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 18)
+	(up-modify-goal gl-refund-wood-bank c:+ 24)
+	(chat-local-to-self "refund gillnets research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-horse-collar)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 9)
+	(up-modify-goal gl-refund-wood-bank c:+ 9)
+	(chat-local-to-self "refund horse collar research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-heavy-plow)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 15)
+	(up-modify-goal gl-refund-wood-bank c:+ 15)
+	(chat-local-to-self "refund heavy plow research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-crop-rotation)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 30)
+	(up-modify-goal gl-refund-wood-bank c:+ 30)
+	(chat-local-to-self "refund crop rotation research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-double-bit-axe)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 12)
+	(up-modify-goal gl-refund-wood-bank c:+ 6)
+	(chat-local-to-self "refund double-bit axe research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-bow-saw)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 37)
+	(up-modify-goal gl-refund-wood-bank c:+ 12)
+	(chat-local-to-self "refund bow saw research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-two-man-saw)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 30)
+	(up-modify-goal gl-refund-wood-bank c:+ 24)
+	(chat-local-to-self "refund two-man saw research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-gold-mining)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 12)
+	(up-modify-goal gl-refund-wood-bank c:+ 18)
+	(chat-local-to-self "refund gold mining research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-gold-shaft-mining)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 43)
+	(up-modify-goal gl-refund-wood-bank c:+ 18)
+	(chat-local-to-self "refund gold shaft mining research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-stone-mining)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 12)
+	(up-modify-goal gl-refund-wood-bank c:+ 18)
+	(chat-local-to-self "refund stone mining research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-stone-shaft-mining)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 21)
+	(up-modify-goal gl-refund-wood-bank c:+ 18)
+	(chat-local-to-self "refund stone shaft mining research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-coinage)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 24)
+	(up-modify-goal gl-refund-gold-bank c:+ 12)
+	(chat-local-to-self "refund coinage research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-banking)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 30)
+	(up-modify-goal gl-refund-gold-bank c:+ 24)
+	(chat-local-to-self "refund banking research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-guilds)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 30)
+	(up-modify-goal gl-refund-gold-bank c:+ 24)
+	(chat-local-to-self "refund guilds research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-caravan)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 24)
+	(up-modify-goal gl-refund-gold-bank c:+ 24)
+	(chat-local-to-self "refund caravan research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-early-antiquity-age)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 60)
+	(chat-local-to-self "refund early antiquity research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-middle-antiquity-age)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 96)
+	(up-modify-goal gl-refund-gold-bank c:+ 24)
+	(chat-local-to-self "refund middle antiquity research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-imperial-age)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 120)
+	(up-modify-goal gl-refund-gold-bank c:+ 96)
+	(chat-local-to-self "refund imperial age research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-timer-status t-cheats == timer-triggered)
+=>
+	(up-cc-add-resource c: food g: gl-refund-food-bank)
+	(up-cc-add-resource c: wood g: gl-refund-wood-bank)
+	(up-cc-add-resource c: gold g: gl-refund-gold-bank)
+	(up-cc-add-resource c: stone g: gl-refund-stone-bank)
+	(up-chat-data-to-self "refund bank food costs: %d." g: gl-refund-food-bank)
+	(up-chat-data-to-self "refund bank wood costs: %d." g: gl-refund-wood-bank)
+	(up-chat-data-to-self "refund bank gold costs: %d." g: gl-refund-gold-bank)
+	(up-chat-data-to-self "refund bank stone costs: %d." g: gl-refund-stone-bank)
+	(up-modify-goal gl-refund-food-bank c:= 0)
+	(up-modify-goal gl-refund-wood-bank c:= 0)
+	(up-modify-goal gl-refund-gold-bank c:= 0)
+	(up-modify-goal gl-refund-stone-bank c:= 0)
+)
+
+
+#end-if
+#end-if
+
+#load-if-defined DIFFICULTY-HARDEST
+
+(defrule
+	(true)
+=>
+	(cc-add-resource wood 75)
+	(disable-self)
+)
+
+(defrule
+	(game-time > 60)
+	(up-timer-status t-cheats == timer-triggered)
+	(up-compare-goal gl-trained-villagers c:> 0)
+=>
+	(up-modify-goal gl-refunded-food c:= 0)
+	(up-modify-goal gl-refund-food c:= 12)
+	(up-modify-goal gl-refund-food g:* gl-trained-villagers)
+	(up-modify-goal gl-trained-villagers c:= 0)
+	(up-cc-add-resource c: food g: gl-refund-food)
+	(up-modify-goal gl-refunded-food g:= gl-refund-food)
+	(up-modify-goal gl-refund-food c:= 0)
+	(up-chat-data-to-self "refunded villager food costs: %d." g: gl-refunded-food)
+)
+
+(defrule
+	(up-timer-status t-cheats == timer-triggered)
+	(current-age == early-antiquity-age)
+=>
+	(cc-add-resource wood 150)
+	(chat-local-to-self "wood for early antiquity tech up requirement buildings")
+	
+	(disable-self)
+)
+
+
+(defrule
+	(up-timer-status t-cheats == timer-triggered)
+	(current-age == middle-antiquity-age)
+=>
+	(cc-add-resource wood 150)
+	(chat-local-to-self "wood for middle antiquity tech up requirement buildings")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-timer-status t-cheats == timer-triggered)
+	(current-age >= middle-antiquity-age)
+=>
+	(cc-add-resource stone 162)
+	(chat-local-to-self "stone for castle")
+	
+	(disable-self)
+)
+
+;research refunds
+
+(defrule
+	(research-completed ri-loom)
+=>
+	(up-modify-goal gl-refund-gold-bank c:+ 12)
+	(chat-local-to-self "refund loom research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-wheelbarrow)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 43)
+	(up-modify-goal gl-refund-wood-bank c:+ 12)
+	(chat-local-to-self "refund wheelbarrow research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-hand-cart)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 75)
+	(up-modify-goal gl-refund-wood-bank c:+ 50)
+	(chat-local-to-self "refund handcart research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-gillnets)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 37)
+	(up-modify-goal gl-refund-wood-bank c:+ 50)
+	(chat-local-to-self "refund gillnets research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-horse-collar)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 37)
+	(up-modify-goal gl-refund-wood-bank c:+ 37)
+	(chat-local-to-self "refund horse collar research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-heavy-plow)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 31)
+	(up-modify-goal gl-refund-wood-bank c:+ 31)
+	(chat-local-to-self "refund heavy plow research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-crop-rotation)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 62)
+	(up-modify-goal gl-refund-wood-bank c:+ 62)
+	(chat-local-to-self "refund crop rotation research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-double-bit-axe)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 25)
+	(up-modify-goal gl-refund-wood-bank c:+ 12)
+	(chat-local-to-self "refund double-bit axe research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-bow-saw)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 37)
+	(up-modify-goal gl-refund-wood-bank c:+ 25)
+	(chat-local-to-self "refund bow saw research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-two-man-saw)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 75)
+	(up-modify-goal gl-refund-wood-bank c:+ 50)
+	(chat-local-to-self "refund two-man saw research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-gold-mining)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 25)
+	(up-modify-goal gl-refund-wood-bank c:+ 37)
+	(chat-local-to-self "refund gold mining research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-gold-shaft-mining)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 43)
+	(up-modify-goal gl-refund-wood-bank c:+ 37)
+	(chat-local-to-self "refund gold shaft mining research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-stone-mining)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 25)
+	(up-modify-goal gl-refund-wood-bank c:+ 37)
+	(chat-local-to-self "refund stone mining research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-stone-shaft-mining)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 43)
+	(up-modify-goal gl-refund-wood-bank c:+ 37)
+	(chat-local-to-self "refund stone shaft mining research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-coinage)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 50)
+	(up-modify-goal gl-refund-gold-bank c:+ 25)
+	(chat-local-to-self "refund coinage research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-banking)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 75)
+	(up-modify-goal gl-refund-gold-bank c:+ 50)
+	(chat-local-to-self "refund banking research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-guilds)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 75)
+	(up-modify-goal gl-refund-gold-bank c:+ 50)
+	(chat-local-to-self "refund guilds research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-caravan)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 50)
+	(up-modify-goal gl-refund-gold-bank c:+ 50)
+	(chat-local-to-self "refund caravan esearch cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-early-antiquity-age)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 125)
+	(chat-local-to-self "refund early antiquity research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-middle-antiquity-age)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 200)
+	(up-modify-goal gl-refund-gold-bank c:+ 50)
+	(chat-local-to-self "refund middle antiquity research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-imperial-age)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 250)
+	(up-modify-goal gl-refund-gold-bank c:+ 200)
+	(chat-local-to-self "refund imperial age research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-timer-status t-cheats == timer-triggered)
+=>
+	(up-cc-add-resource c: food g: gl-refund-food-bank)
+	(up-cc-add-resource c: wood g: gl-refund-wood-bank)
+	(up-cc-add-resource c: gold g: gl-refund-gold-bank)
+	(up-cc-add-resource c: stone g: gl-refund-stone-bank)
+	(up-chat-data-to-self "refund bank food costs: %d." g: gl-refund-food-bank)
+	(up-chat-data-to-self "refund bank wood costs: %d." g: gl-refund-wood-bank)
+	(up-chat-data-to-self "refund bank gold costs: %d." g: gl-refund-gold-bank)
+	(up-chat-data-to-self "refund bank stone costs: %d." g: gl-refund-stone-bank)
+	(up-modify-goal gl-refund-food-bank c:= 0)
+	(up-modify-goal gl-refund-wood-bank c:= 0)
+	(up-modify-goal gl-refund-gold-bank c:= 0)
+	(up-modify-goal gl-refund-stone-bank c:= 0)
+)
+
+
+#end-if
+
 #load-if-not-defined DIFFICULTY-EASIEST
 #load-if-not-defined DIFFICULTY-EASY
 #load-if-not-defined DIFFICULTY-MODERATE
 #load-if-not-defined DIFFICULTY-HARD
-
-(defrule
-	(goal extreme-cheats YES)
-=>
-	(set-goal extreme-cheats GIVE)
-)
+#load-if-not-defined DIFFICULTY-HARDEST
 
 (defrule
 	(true)
@@ -23,7 +552,7 @@
 	(up-compare-goal gl-trained-villagers c:> 0)
 =>
 	(up-modify-goal gl-refunded-food c:= 0)
-	(up-modify-goal gl-refund-food c:= 25)
+	(up-modify-goal gl-refund-food c:= 37)
 	(up-modify-goal gl-refund-food g:* gl-trained-villagers)
 	(up-modify-goal gl-trained-villagers c:= 0)
 	(up-cc-add-resource c: food g: gl-refund-food)
@@ -33,163 +562,265 @@
 )
 
 (defrule
-	(current-age >= early-antiquity-age)
-	(goal extreme-cheats GIVE)
-=>
-	(set-goal extreme-cheats FOOD-GIVE)
-)
-
-(defrule
-	(goal extreme-cheats FOOD-GIVE)
+	(up-timer-status t-cheats == timer-triggered)
 	(current-age == early-antiquity-age)
-	(up-object-type-count-total c: villager g:< desired-number-villagers)
 =>
-	(set-goal extreme-cheats WOOD-GIVE)
-	(cc-add-resource food 50)
-	(chat-local-to-self "food for early antiquity age workers cheat")
-)
-
-(defrule
-	(goal extreme-cheats FOOD-GIVE)
-	(current-age == early-antiquity-age)
-	(up-object-type-count-total c: villager g:>= desired-number-villagers)
-=>
-	(set-goal extreme-cheats WOOD-GIVE)
-)
-
-(defrule
-	(goal extreme-cheats WOOD-GIVE)
-	(current-age == early-antiquity-age)
-	(and
-		(up-object-type-count-total c: market g:> 0)
-		(up-object-type-count-total c: market g:> 0)
-	)
-=>
-	(set-goal extreme-cheats FINISHED)
-)
-
-(defrule
-	(goal extreme-cheats WOOD-GIVE)
-	(current-age == early-antiquity-age)
-	(or
-		(up-object-type-count-total c: market g:< desired-number-markets)
-		(up-object-type-count-total c: market g:< desired-number-blacksmiths)
-	)
-=>
-	(set-goal extreme-cheats FINISHED)
-	(cc-add-resource wood 200)
+	(cc-add-resource wood 300)
 	(chat-local-to-self "wood for early antiquity tech up requirement buildings")
+	
+	(disable-self)
 )
 
-(defrule
-	(goal extreme-cheats FOOD-GIVE)
-	(current-age >= middle-antiquity-age)
-	(up-object-type-count-total c: villager g:< desired-number-villagers)
-=>
-	(set-goal extreme-cheats WOOD-GIVE)
-	(cc-add-resource food 75)
-	(chat-local-to-self "food for middle antiquity & imperial workers cheat")
-)
 
 (defrule
-	(goal extreme-cheats FOOD-GIVE)
-	(current-age >= middle-antiquity-age)
-	(up-object-type-count-total c: villager g:>= desired-number-villagers)
-=>
-	(set-goal extreme-cheats WOOD-GIVE)
-)
-
-(defrule
-	(goal extreme-cheats WOOD-GIVE)
-	(current-age ==  middle-antiquity-age)
-	(and
-		(up-object-type-count-total c: farm g:>= desired-number-farms)
-		(and
-			(up-object-type-count-total c: monastery g:> 0)
-			(up-object-type-count-total c: university g:> 0)
-		)
-	)
-=>
-	(set-goal extreme-cheats STONE-GIVE)
-)
-
-(defrule
-	(goal extreme-cheats WOOD-GIVE)
+	(up-timer-status t-cheats == timer-triggered)
 	(current-age == middle-antiquity-age)
-	(or
-		(up-object-type-count-total c: monastery g:< desired-number-monasteries)
-		(up-object-type-count-total c: university g:< desired-number-universities)
-	)
 =>
-	(cc-add-resource wood 200)
+	(cc-add-resource wood 300)
 	(chat-local-to-self "wood for middle antiquity tech up requirement buildings")
+	
+	(disable-self)
 )
 
 (defrule
-	(goal extreme-cheats WOOD-GIVE)
-	(current-age == middle-antiquity-age)
-	(up-object-type-count-total c: farm g:< desired-number-farms)
-=>
-	(set-goal extreme-cheats STONE-GIVE)
-	(cc-add-resource wood 200)
-	(chat-local-to-self "wood for middle antiquity farms")
-)
-
-(defrule
-	(goal extreme-cheats WOOD-GIVE)
-	(current-age == middle-antiquity-age)
-	(up-object-type-count-total c: farm g:>= desired-number-farms)
-=>
-	(set-goal extreme-cheats STONE-GIVE)
-)
-
-(defrule
-	(goal extreme-cheats STONE-GIVE)
+	(up-timer-status t-cheats == timer-triggered)
 	(current-age >= middle-antiquity-age)
-	(up-object-type-count-total c: castle g:< desired-number-castles)
 =>
-	(set-goal extreme-cheats FINISHED)
 	(cc-add-resource stone 325)
 	(chat-local-to-self "stone for castle")
+	
+	(disable-self)
 )
 
+;research refunds
+
 (defrule
-	(research-completed early-antiquity-age)
+	(research-completed ri-loom)
 =>
-	(cc-add-resource wood 500)
-	(cc-add-resource gold 100)
-	(chat-local-to-self "reached early antiquity age wood cheat")
+	(up-modify-goal gl-refund-gold-bank c:+ 50)
+	(chat-local-to-self "refund loom research cost")
 	
 	(disable-self)
 )
 
 (defrule
-	(research-completed middle-antiquity-age)
+	(research-completed ri-wheelbarrow)
 =>
-	(cc-add-resource wood 1000)
-	(cc-add-resource gold 400)
-	(cc-add-resource stone 700)
-	(chat-local-to-self "reached middle antiquity wood & stone cheat")
+	(up-modify-goal gl-refund-food-bank c:+ 175)
+	(up-modify-goal gl-refund-wood-bank c:+ 50)
+	(chat-local-to-self "refund wheelbarrow research cost")
 	
 	(disable-self)
 )
 
 (defrule
-	(research-completed imperial-age)
+	(research-completed ri-hand-cart)
 =>
-	(cc-add-resource wood 2000)
-	(cc-add-resource stone 1000)
-	(chat-local-to-self "reached imperial age wood & stone cheat")
+	(up-modify-goal gl-refund-food-bank c:+ 300)
+	(up-modify-goal gl-refund-wood-bank c:+ 200)
+	(chat-local-to-self "refund handcart research cost")
 	
 	(disable-self)
 )
 
 (defrule
-	(goal extreme-cheats FINISHED)
+	(research-completed ri-gillnets)
 =>
-	(set-goal extreme-cheats NO)
+	(up-modify-goal gl-refund-food-bank c:+ 150)
+	(up-modify-goal gl-refund-wood-bank c:+ 200)
+	(chat-local-to-self "refund gillnets research cost")
+	
+	(disable-self)
 )
 
+(defrule
+	(research-completed ri-horse-collar)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 75)
+	(up-modify-goal gl-refund-wood-bank c:+ 75)
+	(chat-local-to-self "refund horse collar research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-heavy-plow)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 125)
+	(up-modify-goal gl-refund-wood-bank c:+ 125)
+	(chat-local-to-self "refund heavy plow research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-crop-rotation)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 250)
+	(up-modify-goal gl-refund-wood-bank c:+ 250)
+	(chat-local-to-self "refund crop rotation research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-double-bit-axe)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 100)
+	(up-modify-goal gl-refund-wood-bank c:+ 50)
+	(chat-local-to-self "refund double-bit axe research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-bow-saw)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 150)
+	(up-modify-goal gl-refund-wood-bank c:+ 100)
+	(chat-local-to-self "refund bow saw research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-two-man-saw)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 300)
+	(up-modify-goal gl-refund-wood-bank c:+ 200)
+	(chat-local-to-self "refund two-man saw research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-gold-mining)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 100)
+	(up-modify-goal gl-refund-wood-bank c:+ 75)
+	(chat-local-to-self "refund gold mining research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-gold-shaft-mining)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 175)
+	(up-modify-goal gl-refund-wood-bank c:+ 75)
+	(chat-local-to-self "refund gold shaft mining research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-stone-mining)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 100)
+	(up-modify-goal gl-refund-wood-bank c:+ 75)
+	(chat-local-to-self "refund stone mining research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-stone-shaft-mining)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 175)
+	(up-modify-goal gl-refund-wood-bank c:+ 75)
+	(chat-local-to-self "refund stone shaft mining research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-coinage)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 200)
+	(up-modify-goal gl-refund-gold-bank c:+ 100)
+	(chat-local-to-self "refund coinage research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-banking)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 300)
+	(up-modify-goal gl-refund-gold-bank c:+ 200)
+	(chat-local-to-self "refund banking research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-guilds)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 300)
+	(up-modify-goal gl-refund-gold-bank c:+ 200)
+	(chat-local-to-self "refund guilds research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-caravan)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 200)
+	(up-modify-goal gl-refund-gold-bank c:+ 200)
+	(chat-local-to-self "refund caravan research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-early-antiquity-age)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 500)
+	(chat-local-to-self "refund early antiquity research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-middle-antiquity-age)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 800)
+	(up-modify-goal gl-refund-gold-bank c:+ 200)
+	(chat-local-to-self "refund middle antiquity research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(research-completed ri-imperial-age)
+=>
+	(up-modify-goal gl-refund-food-bank c:+ 1000)
+	(up-modify-goal gl-refund-gold-bank c:+ 800)
+	(chat-local-to-self "refund imperial age research cost")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-timer-status t-cheats == timer-triggered)
+=>
+	(up-cc-add-resource c: food g: gl-refund-food-bank)
+	(up-cc-add-resource c: wood g: gl-refund-wood-bank)
+	(up-cc-add-resource c: gold g: gl-refund-gold-bank)
+	(up-cc-add-resource c: stone g: gl-refund-stone-bank)
+	(up-chat-data-to-self "refund bank food costs: %d." g: gl-refund-food-bank)
+	(up-chat-data-to-self "refund bank wood costs: %d." g: gl-refund-wood-bank)
+	(up-chat-data-to-self "refund bank gold costs: %d." g: gl-refund-gold-bank)
+	(up-chat-data-to-self "refund bank stone costs: %d." g: gl-refund-stone-bank)
+	(up-modify-goal gl-refund-food-bank c:= 0)
+	(up-modify-goal gl-refund-wood-bank c:= 0)
+	(up-modify-goal gl-refund-gold-bank c:= 0)
+	(up-modify-goal gl-refund-stone-bank c:= 0)
+)
+
+
+#end-if
 #end-if
 #end-if
 #end-if

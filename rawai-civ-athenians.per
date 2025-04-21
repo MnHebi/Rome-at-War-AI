@@ -453,15 +453,6 @@
 (defrule
 	(up-compare-goal current-phase >= 4)
 	(not
-		(goal primary-support-unit SIEGE)
-	)
-=>
-	(set-goal primary-support-unit SIEGE)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 4)
-	(not
 		(goal secondary-support-unit SCAVALRY)
 	)
 =>
@@ -558,7 +549,13 @@
 )
 
 (defrule
-	(goal current-phase 4)
+	(or
+		(goal current-phase 4)
+		(or
+			(goal current-phase 5)
+			(goal current-phase 6)
+		)
+	)
 =>
 	(up-modify-goal desired-number-towncenters c:= 4)
 	(up-modify-goal desired-number-barracks c:= 3)
@@ -575,7 +572,13 @@
 )
 
 (defrule
-	(goal current-phase 4)
+	(or
+		(goal current-phase 4)
+		(or
+			(goal current-phase 5)
+			(goal current-phase 6)
+		)
+	)
 =>
 	(up-modify-goal desired-number-castles c:= 1)
 	(up-modify-goal desired-number-outposts c:= 4)
@@ -587,7 +590,7 @@
 )
 
 (defrule
-	(goal current-phase 5)
+	(goal current-phase 7)
 =>
 	(up-modify-goal desired-number-towncenters c:= 8)
 	(up-modify-goal desired-number-barracks c:= 5)
@@ -604,23 +607,40 @@
 )
 
 (defrule
-	(goal current-phase 5)
+	(goal current-phase 7)
 =>
 	(up-modify-goal desired-number-castles c:= 4)
 	(up-modify-goal desired-number-outposts c:= 6)
 	(up-modify-goal desired-number-watchtowers c:= 10)
 	(up-modify-goal desired-number-seatowers c:= 5)
 	(up-modify-goal desired-number-shipyards c:= 8)
+	(up-modify-goal desired-number-monasteries c:= 4)
 	
 	(disable-self)
 )
 
 (defrule
-	(goal current-phase 5)
+	(or
+		(goal current-phase 5)
+		(or
+			(goal current-phase 6)
+			(goal current-phase 7)
+		)
+	)
 	(unit-type-count-total taxiarch-line g:< gl-five-percent)
 	(can-train taxiarch-line)
 =>
 	(train taxiarch-line)
+)
+
+; Upgrade Taxiarch
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-lines 1)
+	(up-can-research gl-researchescrow-state c: ri-elite-taxiarch)
+=>
+	(up-research gl-researchescrow-state c: ri-elite-taxiarch)
+	(chat-local-to-self "research elite taxiarch")
 )
 
 ;unique technologies

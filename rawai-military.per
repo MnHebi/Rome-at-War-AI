@@ -11,7 +11,10 @@
 
 (defrule
 	(up-timer-status t-attack-type <= timer-triggered)
-	(soldier-count g:> gl-five-percent)
+	(and
+		(soldier-count g:> gl-five-percent)
+		(soldier-count g:< gl-twenty-percent)
+	)
 =>
 	(set-goal attack-type-land PERCENTAGE)
 	(up-jump-rule 1)
@@ -32,7 +35,10 @@
 )
 
 (defrule
-	(warboat-count g:> gl-five-percent)
+	(and
+		(warboat-count g:> gl-five-percent)
+		(warboat-count g:< gl-twenty-percent)
+	)
 =>
 	(set-goal attack-type-sea PERCENTAGE)
 	(up-jump-rule 1)
@@ -815,6 +821,12 @@
 (defrule
 	(up-timer-status t-check-losses == timer-triggered)
 =>
+	(up-modify-goal gl-previous-civilian-count g:= gl-past-civilian-count)
+	(up-modify-goal gl-previous-soldier-count g:= gl-past-soldier-count)
+	(up-modify-goal gl-previous-warboat-count g:= gl-past-warboat-count)
+	(up-modify-goal gl-past-civilian-count c:= 0)
+	(up-modify-goal gl-past-soldier-count c:= 0)
+	(up-modify-goal gl-past-warboat-count c:= 0)
 	(up-modify-goal gl-past-civilian-count g:= gl-current-civilian-count)
 	(up-get-fact civilian-population 0 gl-current-civilian-count)
 	(up-modify-goal gl-past-soldier-count g:= gl-current-soldier-count)
@@ -831,38 +843,570 @@
 
 (defrule
 	(up-timer-status t-check-losses == timer-triggered)
-	(up-compare-goal gl-past-civilian-count g:> gl-current-civilian-count)
+	(up-compare-goal gl-previous-civilian-count g:> gl-current-civilian-count)
 =>
-	(up-modify-goal gl-civilian-loss-counter g:= gl-past-civilian-count)
+	(up-modify-goal gl-previous-civilian-losses g:= gl-current-civilian-losses)
+	(up-modify-goal gl-civilian-loss-counter g:= gl-previous-civilian-count)
 	(up-modify-goal gl-civilian-loss-counter g:- gl-current-civilian-count)
 	(up-modify-goal gl-current-civilian-losses g:= gl-civilian-loss-counter)
 	(up-modify-goal gl-total-civilian-losses g:+ gl-civilian-loss-counter)
+	(up-chat-data-to-self "previous civilian losses: %d." g: gl-previous-civilian-losses)
 	(up-chat-data-to-self "current civilian losses: %d." g: gl-current-civilian-losses)
 	(up-chat-data-to-self "total civilian losses: %d." g: gl-total-civilian-losses)
 )
 
 (defrule
 	(up-timer-status t-check-losses == timer-triggered)
-	(up-compare-goal gl-past-soldier-count g:> gl-current-soldier-count)
+	(up-compare-goal gl-previous-soldier-count g:> gl-current-soldier-count)
 =>
-	(up-modify-goal gl-soldier-loss-counter g:= gl-past-soldier-count)
+	(up-modify-goal gl-previous-soldier-losses g:= gl-current-soldier-losses)
+	(up-modify-goal gl-soldier-loss-counter g:= gl-previous-soldier-count)
 	(up-modify-goal gl-soldier-loss-counter g:- gl-current-soldier-count)
 	(up-modify-goal gl-current-soldier-losses g:= gl-soldier-loss-counter)
 	(up-modify-goal gl-total-soldier-losses g:+ gl-soldier-loss-counter)
+	(up-chat-data-to-self "previous soldier losses: %d." g: gl-previous-soldier-losses)
 	(up-chat-data-to-self "current soldier losses: %d." g: gl-current-soldier-losses)
 	(up-chat-data-to-self "total soldier losses: %d." g: gl-total-soldier-losses)
 )
 
 (defrule
 	(up-timer-status t-check-losses == timer-triggered)
-	(up-compare-goal gl-past-warboat-count g:> gl-current-warboat-count)
+	(up-compare-goal gl-previous-warboat-count g:> gl-current-warboat-count)
 =>
-	(up-modify-goal gl-warboat-loss-counter g:= gl-past-warboat-count)
+	(up-modify-goal gl-previous-warboat-losses g:= gl-current-warboat-losses)
+	(up-modify-goal gl-warboat-loss-counter g:= gl-previous-warboat-count)
 	(up-modify-goal gl-warboat-loss-counter g:- gl-current-warboat-count)
 	(up-modify-goal gl-current-warboat-losses g:= gl-warboat-loss-counter)
 	(up-modify-goal gl-total-warboat-losses g:+ gl-warboat-loss-counter)
+	(up-chat-data-to-self "previous warboat losses: %d." g: gl-previous-warboat-losses)
 	(up-chat-data-to-self "current warboat losses: %d." g: gl-current-warboat-losses)
 	(up-chat-data-to-self "total warboat losses: %d." g: gl-total-warboat-losses)
+)
+
+;toggle allowed military units based on civ specialties, and current phase
+
+(defrule
+	(game-time >= 60)
+=>
+	(set-goal train-scoutships YES)
+	(chat-local-to-self "Allow Scout Ships for everyone from the beginning")
+	
+	(disable-self)
+)
+
+;aging up to early antiquity & middle antiquity allowed trains
+
+(defrule
+	(or
+		(up-compare-goal current-phase == 2)
+		(up-compare-goal current-phase == 4)
+	)
+	(and
+		(goal civ-specialty1 SPE-INFANTRY)
+		(goal has-horus NO)
+	)
+	(goal train-champion NO)
+	(goal train-spearman NO)
+	(goal train-skirmisher NO)
+=>
+	(set-goal train-champion YES)
+	(set-goal train-spearman YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Infantry Civilization that does not have Horus Scout/Warrior, allow Champion, Spearman, and Skirmisher training before Middle Antiquity Age")
+)
+
+(defrule
+	(or
+		(up-compare-goal current-phase == 2)
+		(up-compare-goal current-phase == 4)
+	)
+	(and
+		(goal civ-specialty1 SPE-INFANTRY)
+		(goal has-horus YES)
+	)
+	(goal train-horus NO)
+	(goal train-spearman NO)
+	(goal train-skirmisher NO)
+=>
+	(set-goal train-horus YES)
+	(set-goal train-spearman YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Infantry Civilization that has Horus Scout/Warrior, allow Horus Scout/Warrior, Spearman, and Skirmisher training before Middle Antiquity Age while aging up")
+)
+
+(defrule
+	(or
+		(up-compare-goal current-phase == 2)
+		(up-compare-goal current-phase == 4)
+	)
+	(goal civ-specialty1 SPE-NAVAL)
+	(goal train-spearman NO)
+	(goal train-skirmisher NO)
+=>
+	(set-goal train-spearman YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Naval Civilization, allow Spearman, and Skirmisher training before Middle Antiquity Age while aging up")
+)
+
+(defrule
+	(or
+		(up-compare-goal current-phase == 2)
+		(up-compare-goal current-phase == 4)
+	)
+	(goal civ-specialty1 SPE-SIEGE)
+	(goal train-spearman NO)
+	(goal train-skirmisher NO)
+=>
+	(set-goal train-spearman YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Siege Civilization, allow Spearman, and Skirmisher training before Middle Antiquity Age while aging up")
+)
+
+(defrule
+	(or
+		(up-compare-goal current-phase == 2)
+		(up-compare-goal current-phase == 4)
+	)
+	(goal civ-specialty1 SPE-PRIEST)
+	(goal train-spearman NO)
+	(goal train-skirmisher NO)
+=>
+	(set-goal train-spearman YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Priest Civilization, allow Spearman, and Skirmisher training before Middle Antiquity Age while aging up")
+)
+
+(defrule
+	(or
+		(up-compare-goal current-phase == 2)
+		(up-compare-goal current-phase == 4)
+	)
+	(goal civ-specialty1 SPE-ARCHER)
+	(goal train-bowman NO)
+	(goal train-spearman NO)
+	(goal train-skirmisher NO)
+=>
+	(set-goal train-bowman YES)
+	(set-goal train-spearman YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Archer Civilization, allow Bowman, Spearman, and Skirmisher training before Middle Antiquity Age while aging up")
+)
+
+(defrule
+	(or
+		(up-compare-goal current-phase == 2)
+		(up-compare-goal current-phase == 4)
+	)
+	(goal civ-specialty1 SPE-CAVARCHER)
+	(goal train-bowman NO)
+	(goal train-spearman NO)
+	(goal train-skirmisher NO)
+=>
+	(set-goal train-bowman YES)
+	(set-goal train-spearman YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Cavalry Archer Civilization, allow Bowman, Spearman, and Skirmisher training before Middle Antiquity Age while aging up")
+)
+
+(defrule
+	(or
+		(up-compare-goal current-phase == 2)
+		(up-compare-goal current-phase == 4)
+	)
+	(goal civ-specialty1 SPE-ADVWEAP)
+	(goal train-bowman NO)
+	(goal train-spearman NO)
+	(goal train-skirmisher NO)
+=>
+	(set-goal train-bowman YES)
+	(set-goal train-spearman YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Advanced Weaponry Civilization, allow Bowman, Spearman, and Skirmisher training before Middle Antiquity Age while aging up")
+)
+
+(defrule
+	(or
+		(up-compare-goal current-phase == 2)
+		(up-compare-goal current-phase == 4)
+	)
+	(goal civ-specialty1 SPE-CAVALRY)
+	(goal train-cavalry NO)
+	(goal train-scoutcav NO)
+	(goal train-skirmisher NO)
+=>
+	(set-goal train-cavalry YES)
+	(set-goal train-scoutcav YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Cavalry Civilization, allow Cavalry, Light Cavalry, and Skirmisher training before Middle Antiquity Age while aging up")
+)
+
+(defrule
+	(or
+		(up-compare-goal current-phase == 2)
+		(up-compare-goal current-phase == 4)
+	)
+	(goal civ-specialty1 SPE-ELEPHANT)
+	(goal train-cavalry NO)
+	(goal train-scoutcav NO)
+	(goal train-skirmisher NO)
+=>
+	(set-goal train-cavalry YES)
+	(set-goal train-scoutcav YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Elephant Civilization, allow Cavalry, Light Cavalry, and Skirmisher training before Middle Antiquity Age while aging up")
+)
+
+;early antiquity allowed trains
+
+;disable gold trains
+(defrule
+	(up-compare-goal current-phase == 3)
+=>
+	(set-goal train-champion NO)
+	(set-goal train-horus NO)
+	(set-goal train-bowman NO)
+	(set-goal train-cavalry NO)
+	(chat-local-to-self "Early Antiquity Age disallow gold costing units training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase == 3)
+	(and
+		(goal civ-specialty1 SPE-INFANTRY)
+		(goal has-horus NO)
+	)
+=>
+	(set-goal train-spearman YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Infantry Civilization that does not have Horus Scout/Warrior, Spearman, and Skirmisher training while in Early Antiquity Age")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase == 3)
+	(and
+		(goal civ-specialty1 SPE-INFANTRY)
+		(goal has-horus YES)
+	)
+=>
+	(set-goal train-spearman YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Infantry Civilization that has Horus Scout/Warrior, Spearman, and Skirmisher training while in Early Antiquity Age")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase == 3)
+	(goal civ-specialty1 SPE-NAVAL)
+=>
+	(set-goal train-spearman YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Naval Civilization, allow Spearman, and Skirmisher training while in Early Antiquity Age")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase == 3)
+	(goal civ-specialty1 SPE-SIEGE)
+=>
+	(set-goal train-spearman YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Siege Civilization, allow Spearman, and Skirmisher training while in Early Antiquity Age")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase == 3)
+	(goal civ-specialty1 SPE-PRIEST)
+=>
+	(set-goal train-spearman YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Priest Civilization, allow Spearman, and Skirmisher training while in Early Antiquity Age")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase == 3)
+	(goal civ-specialty1 SPE-ARCHER)
+=>
+	(set-goal train-spearman YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Archer Civilization, Spearman, and Skirmisher training while in Early Antiquity Age")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase == 3)
+	(goal civ-specialty1 SPE-CAVARCHER)
+=>
+	(set-goal train-spearman YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Cavalry Archer Civilization, Spearman, and Skirmisher training while in Early Antiquity Age")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase == 3)
+	(goal civ-specialty1 SPE-ADVWEAP)
+=>
+	(set-goal train-spearman YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Advanced Weaponry Civilization, Spearman, and Skirmisher training while in Early Antiquity Age")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase == 3)
+	(goal civ-specialty1 SPE-CAVALRY)
+=>
+	(set-goal train-scoutcav YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Cavalry Civilization, Light Cavalry, and Skirmisher training while in Early Antiquity Age")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase == 3)
+	(goal civ-specialty1 SPE-ELEPHANT)
+=>
+	(set-goal train-scoutcav YES)
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self "Elephant Civilization, Light Cavalry, and Skirmisher training while in Early Antiquity Age")
+	
+	(disable-self)
+)
+
+; middle antiquity age onward affinities define what units will be enabled
+
+;barracks
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal champion-affinity >= 80)
+=>
+	(set-goal train-champion YES)
+	(chat-local-to-self ">=Middle Antiquity, Champion affinity >= 80, enable Champion training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal spearman-affinity >= 66)
+=>
+	(set-goal train-spearman YES)
+	(chat-local-to-self ">=Middle Antiquity, Spearman affinity >= 66, enable Spearman training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal horus-affinity >= 50)
+=>
+	(set-goal train-horus YES)
+	(chat-local-to-self ">=Middle Antiquity, Horus affinity >= 50, enable Horus training")
+	
+	(disable-self)
+)
+
+;archery range
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal archer-affinity >= 99)
+=>
+	(set-goal train-bowman YES)
+	(chat-local-to-self ">=Middle Antiquity, Bowman affinity >= 99, enable Bowman training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal skirmisher-affinity >= 50)
+=>
+	(set-goal train-skirmisher YES)
+	(chat-local-to-self ">=Middle Antiquity, Skirmisher affinity >= 50, enable Skirmisher training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase == 7)
+	(unit-available crossbowman)
+=>
+	(set-goal train-crossbow YES)
+	(chat-local-to-self "Imperial Age, Crossbowman available, enable Crossbowman training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal cavarcher-affinity >= 100)
+=>
+	(set-goal train-cavarcher YES)
+	(chat-local-to-self ">=Middle Antiquity, Cavalry Archer affinity >= 100, enable Cavalry Archer training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal camarcher-affinity >= 100)
+=>
+	(set-goal train-cmlarcher YES)
+	(chat-local-to-self ">=Middle Antiquity, Camel Archer affinity >= 100, enable Camel Archer training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal elearcher-affinity >= 100)
+=>
+	(set-goal train-elearcher YES)
+	(chat-local-to-self ">=Middle Antiquity, Elephant Archer affinity >= 100, enable Elephant Archer training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal chrarcher-affinity >= 100)
+=>
+	(set-goal train-chrarcher YES)
+	(chat-local-to-self ">=Middle Antiquity, Chariot Archer affinity >= 100, enable Chariot Archer training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal chrarcher-affinity >= 100)
+=>
+	(set-goal train-bowman NO)
+	(chat-local-to-self ">=Middle Antiquity, Chariot Archer available, disable Bowman training")
+	
+	(disable-self)
+)
+
+;stable
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal scavalry-affinity >= 66)
+=>
+	(set-goal train-scoutcav YES)
+	(chat-local-to-self ">=Middle Antiquity, Scout Cavalry affinity >= 66, enable Scout Cavalry training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal cavalry-affinity >= 66)
+	(not
+		(unit-available ratha-melee-line)
+	)
+=>
+	(set-goal train-cavalry YES)
+	(chat-local-to-self ">=Middle Antiquity, Cavalry affinity >= 66, enable Cavalry training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal cavalry-affinity >= 100)
+	(unit-available ratha-melee-line)
+=>
+	(set-goal train-ratha YES)
+	(chat-local-to-self ">=Middle Antiquity, Cavalry affinity >= 100, enable Ratha training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal crider-affinity >= 100)
+=>
+	(set-goal train-camel YES)
+	(chat-local-to-self ">=Middle Antiquity, Camel affinity >= 100, enable Camel training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal chariot-affinity >= 100)
+=>
+	(set-goal train-chariot YES)
+	(chat-local-to-self ">=Middle Antiquity, Chariot affinity >= 100, enable Chariot training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal belephant-affinity >= 100)
+=>
+	(set-goal train-elephant YES)
+	(chat-local-to-self ">=Middle Antiquity, Battle Elephant affinity >= 100, enable Battle Elephant training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal ram-affinity >= 66)
+=>
+	(set-goal train-ram YES)
+	(chat-local-to-self ">=Middle Antiquity, Ram affinity >= 66, enable Ram training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal mangonel-affinity >= 66)
+=>
+	(set-goal train-onager YES)
+	(chat-local-to-self ">=Middle Antiquity, Mangonel affinity >= 66, enable Mangonel training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal catapult-affinity >= 100)
+=>
+	(set-goal train-onager YES)
+	(chat-local-to-self ">=Middle Antiquity, Catapult affinity >= 100, enable Catapult training")
+	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(or
+		(goal civ-specialty2 SPE-PRIEST)
+		(goal good-priests YES)
+	)
+=>
+	(set-goal train-priest YES)
+	(chat-local-to-self ">=Middle Antiquity, Good priests, enable priest training")
+	
+	(disable-self)
 )
 
 
@@ -1380,542 +1924,6 @@
 )
 
 ;bad navies end
-
-;toggle allowed military units based on civ specialties, and current phase
-
-(defrule
-	(game-time >= 60)
-=>
-	(set-goal train-scoutships YES)
-	(chat-local-to-self "Allow Scout Ships for everyone from the beginning")
-	
-	(disable-self)
-)
-
-;aging up to early antiquity & middle antiquity allowed trains
-
-(defrule
-	(or
-		(up-compare-goal current-phase == 2)
-		(up-compare-goal current-phase == 4)
-	)
-	(and
-		(goal civ-specialty1 SPE-INFANTRY)
-		(goal has-horus NO)
-	)
-	(goal train-champion NO)
-	(goal train-spearman NO)
-	(goal train-skirmisher NO)
-=>
-	(set-goal train-champion YES)
-	(set-goal train-spearman YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Infantry Civilization that does not have Horus Scout/Warrior, allow Champion, Spearman, and Skirmisher training before Middle Antiquity Age")
-)
-
-(defrule
-	(or
-		(up-compare-goal current-phase == 2)
-		(up-compare-goal current-phase == 4)
-	)
-	(and
-		(goal civ-specialty1 SPE-INFANTRY)
-		(goal has-horus YES)
-	)
-	(goal train-horus NO)
-	(goal train-spearman NO)
-	(goal train-skirmisher NO)
-=>
-	(set-goal train-horus YES)
-	(set-goal train-spearman YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Infantry Civilization that has Horus Scout/Warrior, allow Horus Scout/Warrior, Spearman, and Skirmisher training before Middle Antiquity Age while aging up")
-)
-
-(defrule
-	(or
-		(up-compare-goal current-phase == 2)
-		(up-compare-goal current-phase == 4)
-	)
-	(goal civ-specialty1 SPE-NAVAL)
-	(goal train-spearman NO)
-	(goal train-skirmisher NO)
-=>
-	(set-goal train-spearman YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Naval Civilization, allow Spearman, and Skirmisher training before Middle Antiquity Age while aging up")
-)
-
-(defrule
-	(or
-		(up-compare-goal current-phase == 2)
-		(up-compare-goal current-phase == 4)
-	)
-	(goal civ-specialty1 SPE-SIEGE)
-	(goal train-spearman NO)
-	(goal train-skirmisher NO)
-=>
-	(set-goal train-spearman YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Siege Civilization, allow Spearman, and Skirmisher training before Middle Antiquity Age while aging up")
-)
-
-(defrule
-	(or
-		(up-compare-goal current-phase == 2)
-		(up-compare-goal current-phase == 4)
-	)
-	(goal civ-specialty1 SPE-PRIEST)
-	(goal train-spearman NO)
-	(goal train-skirmisher NO)
-=>
-	(set-goal train-spearman YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Priest Civilization, allow Spearman, and Skirmisher training before Middle Antiquity Age while aging up")
-)
-
-(defrule
-	(or
-		(up-compare-goal current-phase == 2)
-		(up-compare-goal current-phase == 4)
-	)
-	(goal civ-specialty1 SPE-ARCHER)
-	(goal train-bowman NO)
-	(goal train-spearman NO)
-	(goal train-skirmisher NO)
-=>
-	(set-goal train-bowman YES)
-	(set-goal train-spearman YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Archer Civilization, allow Bowman, Spearman, and Skirmisher training before Middle Antiquity Age while aging up")
-)
-
-(defrule
-	(or
-		(up-compare-goal current-phase == 2)
-		(up-compare-goal current-phase == 4)
-	)
-	(goal civ-specialty1 SPE-CAVARCHER)
-	(goal train-bowman NO)
-	(goal train-spearman NO)
-	(goal train-skirmisher NO)
-=>
-	(set-goal train-bowman YES)
-	(set-goal train-spearman YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Cavalry Archer Civilization, allow Bowman, Spearman, and Skirmisher training before Middle Antiquity Age while aging up")
-)
-
-(defrule
-	(or
-		(up-compare-goal current-phase == 2)
-		(up-compare-goal current-phase == 4)
-	)
-	(goal civ-specialty1 SPE-ADVWEAP)
-	(goal train-bowman NO)
-	(goal train-spearman NO)
-	(goal train-skirmisher NO)
-=>
-	(set-goal train-bowman YES)
-	(set-goal train-spearman YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Advanced Weaponry Civilization, allow Bowman, Spearman, and Skirmisher training before Middle Antiquity Age while aging up")
-)
-
-(defrule
-	(or
-		(up-compare-goal current-phase == 2)
-		(up-compare-goal current-phase == 4)
-	)
-	(goal civ-specialty1 SPE-CAVALRY)
-	(goal train-cavalry NO)
-	(goal train-scoutcav NO)
-	(goal train-skirmisher NO)
-=>
-	(set-goal train-cavalry YES)
-	(set-goal train-scoutcav YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Cavalry Civilization, allow Cavalry, Light Cavalry, and Skirmisher training before Middle Antiquity Age while aging up")
-)
-
-(defrule
-	(or
-		(up-compare-goal current-phase == 2)
-		(up-compare-goal current-phase == 4)
-	)
-	(goal civ-specialty1 SPE-ELEPHANT)
-	(goal train-cavalry NO)
-	(goal train-scoutcav NO)
-	(goal train-skirmisher NO)
-=>
-	(set-goal train-cavalry YES)
-	(set-goal train-scoutcav YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Elephant Civilization, allow Cavalry, Light Cavalry, and Skirmisher training before Middle Antiquity Age while aging up")
-)
-
-;early antiquity allowed trains
-
-;disable gold trains
-(defrule
-	(up-compare-goal current-phase == 3)
-=>
-	(set-goal train-champion NO)
-	(set-goal train-horus NO)
-	(set-goal train-bowman NO)
-	(set-goal train-cavalry NO)
-	(chat-local-to-self "Early Antiquity Age disallow gold costing units training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase == 3)
-	(and
-		(goal civ-specialty1 SPE-INFANTRY)
-		(goal has-horus NO)
-	)
-=>
-	(set-goal train-spearman YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Infantry Civilization that does not have Horus Scout/Warrior, Spearman, and Skirmisher training while in Early Antiquity Age")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase == 3)
-	(and
-		(goal civ-specialty1 SPE-INFANTRY)
-		(goal has-horus YES)
-	)
-=>
-	(set-goal train-spearman YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Infantry Civilization that has Horus Scout/Warrior, Spearman, and Skirmisher training while in Early Antiquity Age")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase == 3)
-	(goal civ-specialty1 SPE-NAVAL)
-=>
-	(set-goal train-spearman YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Naval Civilization, allow Spearman, and Skirmisher training while in Early Antiquity Age")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase == 3)
-	(goal civ-specialty1 SPE-SIEGE)
-=>
-	(set-goal train-spearman YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Siege Civilization, allow Spearman, and Skirmisher training while in Early Antiquity Age")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase == 3)
-	(goal civ-specialty1 SPE-PRIEST)
-=>
-	(set-goal train-spearman YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Priest Civilization, allow Spearman, and Skirmisher training while in Early Antiquity Age")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase == 3)
-	(goal civ-specialty1 SPE-ARCHER)
-=>
-	(set-goal train-spearman YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Archer Civilization, Spearman, and Skirmisher training while in Early Antiquity Age")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase == 3)
-	(goal civ-specialty1 SPE-CAVARCHER)
-=>
-	(set-goal train-spearman YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Cavalry Archer Civilization, Spearman, and Skirmisher training while in Early Antiquity Age")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase == 3)
-	(goal civ-specialty1 SPE-ADVWEAP)
-=>
-	(set-goal train-spearman YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Advanced Weaponry Civilization, Spearman, and Skirmisher training while in Early Antiquity Age")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase == 3)
-	(goal civ-specialty1 SPE-CAVALRY)
-=>
-	(set-goal train-scoutcav YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Cavalry Civilization, Light Cavalry, and Skirmisher training while in Early Antiquity Age")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase == 3)
-	(goal civ-specialty1 SPE-ELEPHANT)
-=>
-	(set-goal train-scoutcav YES)
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self "Elephant Civilization, Light Cavalry, and Skirmisher training while in Early Antiquity Age")
-	
-	(disable-self)
-)
-
-; middle antiquity age onward affinities define what units will be enabled
-
-;barracks
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal champion-affinity >= 80)
-=>
-	(set-goal train-champion YES)
-	(chat-local-to-self ">=Middle Antiquity, Champion affinity >= 80, enable Champion training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal spearman-affinity >= 66)
-=>
-	(set-goal train-spearman YES)
-	(chat-local-to-self ">=Middle Antiquity, Spearman affinity >= 66, enable Spearman training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal horus-affinity >= 50)
-=>
-	(set-goal train-horus YES)
-	(chat-local-to-self ">=Middle Antiquity, Horus affinity >= 50, enable Horus training")
-	
-	(disable-self)
-)
-
-;archery range
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal archer-affinity >= 99)
-=>
-	(set-goal train-bowman YES)
-	(chat-local-to-self ">=Middle Antiquity, Bowman affinity >= 99, enable Bowman training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal skirmisher-affinity >= 50)
-=>
-	(set-goal train-skirmisher YES)
-	(chat-local-to-self ">=Middle Antiquity, Skirmisher affinity >= 50, enable Skirmisher training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase == 7)
-	(unit-available crossbowman)
-=>
-	(set-goal train-crossbow YES)
-	(chat-local-to-self "Imperial Age, Crossbowman available, enable Crossbowman training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase == 7)
-	(unit-available crossbowman)
-=>
-	(set-goal train-bowman NO)
-	(chat-local-to-self "Imperial Age, Crossbowman available, disable Bowman training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal cavarcher-affinity >= 100)
-=>
-	(set-goal train-cavarcher YES)
-	(chat-local-to-self ">=Middle Antiquity, Cavalry Archer affinity >= 100, enable Cavalry Archer training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal camarcher-affinity >= 100)
-=>
-	(set-goal train-cmlarcher YES)
-	(chat-local-to-self ">=Middle Antiquity, Camel Archer affinity >= 100, enable Camel Archer training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal elearcher-affinity >= 100)
-=>
-	(set-goal train-elearcher YES)
-	(chat-local-to-self ">=Middle Antiquity, Elephant Archer affinity >= 100, enable Elephant Archer training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal chrarcher-affinity >= 100)
-=>
-	(set-goal train-chrarcher YES)
-	(chat-local-to-self ">=Middle Antiquity, Chariot Archer affinity >= 100, enable Chariot Archer training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal chrarcher-affinity >= 100)
-=>
-	(set-goal train-bowman NO)
-	(chat-local-to-self ">=Middle Antiquity, Chariot Archer available, disable Bowman training")
-	
-	(disable-self)
-)
-
-;stable
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal scavalry-affinity >= 66)
-=>
-	(set-goal train-scoutcav YES)
-	(chat-local-to-self ">=Middle Antiquity, Scout Cavalry affinity >= 66, enable Scout Cavalry training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal cavalry-affinity >= 66)
-	(not
-		(unit-available ratha-melee-line)
-	)
-=>
-	(set-goal train-cavalry YES)
-	(chat-local-to-self ">=Middle Antiquity, Cavalry affinity >= 66, enable Cavalry training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal cavalry-affinity >= 100)
-	(unit-available ratha-melee-line)
-=>
-	(set-goal train-ratha YES)
-	(chat-local-to-self ">=Middle Antiquity, Cavalry affinity >= 100, enable Ratha training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal crider-affinity >= 100)
-=>
-	(set-goal train-camel YES)
-	(chat-local-to-self ">=Middle Antiquity, Camel affinity >= 100, enable Camel training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal chariot-affinity >= 100)
-=>
-	(set-goal train-chariot YES)
-	(chat-local-to-self ">=Middle Antiquity, Chariot affinity >= 100, enable Chariot training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal belephant-affinity >= 100)
-=>
-	(set-goal train-elephant YES)
-	(chat-local-to-self ">=Middle Antiquity, Battle Elephant affinity >= 100, enable Battle Elephant training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal ram-affinity >= 66)
-=>
-	(set-goal train-ram YES)
-	(chat-local-to-self ">=Middle Antiquity, Ram affinity >= 66, enable Ram training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal mangonel-affinity >= 66)
-=>
-	(set-goal train-onager YES)
-	(chat-local-to-self ">=Middle Antiquity, Mangonel affinity >= 66, enable Mangonel training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal catapult-affinity >= 100)
-=>
-	(set-goal train-onager YES)
-	(chat-local-to-self ">=Middle Antiquity, Catapult affinity >= 100, enable Catapult training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(or
-		(goal civ-specialty2 SPE-PRIEST)
-		(goal good-priests YES)
-	)
-=>
-	(set-goal train-priest YES)
-	(chat-local-to-self ">=Middle Antiquity, Good priests, enable priest training")
-	
-	(disable-self)
-)
 
 (defrule
 	(up-compare-goal current-phase >= 5)

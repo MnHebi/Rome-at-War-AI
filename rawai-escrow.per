@@ -21,6 +21,8 @@
 	(set-escrow-percentage gold 5)
 	(set-escrow-percentage stone 5)
 	(set-goal gl-researchescrow-state with-escrow)
+	
+	(disable-self)
 )
 
 (defrule
@@ -31,6 +33,8 @@
 	(set-escrow-percentage gold 15)
 	(set-escrow-percentage stone 15)
 	(set-goal gl-researchescrow-state with-escrow)
+	
+	(disable-self)
 )
 
 (defrule
@@ -41,6 +45,8 @@
 	(set-escrow-percentage gold 30)
 	(set-escrow-percentage stone 30)
 	(set-goal gl-researchescrow-state with-escrow)
+	
+	(disable-self)
 )
 
 (defrule
@@ -50,31 +56,11 @@
 	(set-escrow-percentage food 50)
 	(set-escrow-percentage gold 50)
 	(set-escrow-percentage stone 50)
+	(set-goal gl-unitescrow-state with-escrow)
+	(set-goal gl-buildingescrow-state with-escrow)
 	(set-goal gl-researchescrow-state with-escrow)
-)
-
-(defrule
-	(up-compare-goal villager-count g:< upgrade-military-villager-requirement)
-	(up-compare-goal villager-count g:< upgrade-economy-villager-requirement)
-	(up-compare-goal villager-count g:< upgrade-fortifications-villager-requirement)
-	(up-compare-goal villager-count g:< upgrade-navy-villager-requirement)
-	(up-compare-goal villager-count g:< upgrade-other-villager-requirement)
-	(up-compare-goal villager-count g:< desired-ageup-villagers)
-=>
-	(up-release-escrow)
-)
-
-(defrule
-	(up-compare-goal upgrade-military-lines != 1)
-	(up-compare-goal upgrade-military-smith != 1)
-	(up-compare-goal upgrade-military-generic != 1)
-	(up-compare-goal upgrade-economy != 1)
-	(up-compare-goal upgrade-fortifications != 1)
-	(up-compare-goal upgrade-navy != 1)
-	(up-compare-goal upgrade-other != 1)
-	(current-age g:>= desired-age)
-=>
-	(up-release-escrow)
+	
+	(disable-self)
 )
 
 (defrule

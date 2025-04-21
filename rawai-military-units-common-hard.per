@@ -52,6 +52,28 @@
 	(up-train gl-unitescrow-state c: militiaman-line)
 )
 
+(defrule
+	(and
+		(goal train-champion YES)
+		(goal primary-support-unit CHAMPION)
+	)
+	(unit-type-count-total militiaman-line g:< gl-one-percent)
+	(up-can-train gl-unitescrow-state c: militiaman-line)
+=>
+	(up-train gl-unitescrow-state c: militiaman-line)
+)
+
+(defrule
+	(and
+		(goal train-champion YES)
+		(goal secondary-support-unit CHAMPION)
+	)
+	(unit-type-count-total militiaman-line g:< gl-no-percent)
+	(up-can-train gl-unitescrow-state c: militiaman-line)
+=>
+	(up-train gl-unitescrow-state c: militiaman-line)
+)
+
 #end-if
 #end-if
 #end-if
@@ -263,7 +285,7 @@
 
 (defrule
 	(and
-		(goal train-champion YES)
+		(goal train-spearman YES)
 		(goal primary-unit SPEARMAN)
 	)
 	(unit-type-count-total spearman-line g:< gl-ten-percent)
@@ -274,7 +296,7 @@
 
 (defrule
 	(and
-		(goal train-champion YES)
+		(goal train-spearman YES)
 		(goal secondary-unit SPEARMAN)
 	)
 	(unit-type-count-total spearman-line g:< gl-five-percent)
@@ -285,7 +307,7 @@
 
 (defrule
 	(and
-		(goal train-champion YES)
+		(goal train-spearman YES)
 		(goal tertiary-unit SPEARMAN)
 	)
 	(unit-type-count-total spearman-line g:< gl-two-percent)
@@ -296,10 +318,32 @@
 
 (defrule
 	(and
-		(goal train-champion YES)
+		(goal train-spearman YES)
 		(goal quaternary-unit SPEARMAN)
 	)
 	(unit-type-count-total spearman-line g:< gl-one-percent)
+	(up-can-train gl-unitescrow-state c: spearman-line)
+=>
+	(up-train gl-unitescrow-state c: spearman-line)
+)
+
+(defrule
+	(and
+		(goal train-spearman YES)
+		(goal primary-support-unit SPEARMAN)
+	)
+	(unit-type-count-total spearman-line g:< gl-one-percent)
+	(up-can-train gl-unitescrow-state c: spearman-line)
+=>
+	(up-train gl-unitescrow-state c: spearman-line)
+)
+
+(defrule
+	(and
+		(goal train-spearman YES)
+		(goal secondary-support-unit SPEARMAN)
+	)
+	(unit-type-count-total spearman-line g:< gl-no-percent)
 	(up-can-train gl-unitescrow-state c: spearman-line)
 =>
 	(up-train gl-unitescrow-state c: spearman-line)
@@ -646,6 +690,28 @@
 		(goal quaternary-unit CMLARCHER)
 	)
 	(unit-type-count-total camel-archer-line g:< gl-one-percent)
+	(up-can-train gl-unitescrow-state c: camel-archer-line)
+=>
+	(up-train gl-unitescrow-state c: camel-archer-line)
+)
+
+(defrule
+	(and
+		(goal train-cmlarcher YES)
+		(goal primary-support-unit CMLARCHER)
+	)
+	(unit-type-count-total camel-archer-line g:< gl-one-percent)
+	(up-can-train gl-unitescrow-state c: camel-archer-line)
+=>
+	(up-train gl-unitescrow-state c: camel-archer-line)
+)
+
+(defrule
+	(and
+		(goal train-cmlarcher YES)
+		(goal secondary-support-unit CMLARCHER)
+	)
+	(unit-type-count-total camel-archer-line g:< gl-no-percent)
 	(up-can-train gl-unitescrow-state c: camel-archer-line)
 =>
 	(up-train gl-unitescrow-state c: camel-archer-line)

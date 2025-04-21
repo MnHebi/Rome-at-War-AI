@@ -100,33 +100,7 @@
 ; For ships Juggernauts do not have affinity, they will always be built if they are available
 
 (defrule
-	(up-compare-goal current-phase < 4)
-=>
-	(set-goal champion-affinity 80)
-	(set-goal spearman-affinity 99)
-	(set-goal horus-affinity 0)
-	
-	(disable-self)
-)
-
-(defrule
-	(and
-		(up-compare-goal current-phase >= 4)
-		(up-research-status c: ut-civitates-foederate != research-complete)
-	)
-=>
-	(set-goal champion-affinity 0)
-	(set-goal spearman-affinity 0)
-	(set-goal horus-affinity 0)
-	
-	(disable-self)
-)
-
-(defrule
-	(and
-		(up-compare-goal current-phase >= 4)
-		(up-research-status c: ut-civitates-foederate == research-complete)
-	)
+	(true)
 =>
 	(set-goal champion-affinity 80)
 	(set-goal spearman-affinity 99)
@@ -381,11 +355,8 @@
 
 (defrule
 	(up-compare-goal current-phase < 4)
-	(and
-		(not
-			(goal primary-unit SCAVALRY)
-		)
-		(up-compare-goal scavalry-affinity >= 99)
+	(not
+		(goal primary-unit SCAVALRY)
 	)
 =>
 	(set-goal primary-unit SCAVALRY)
@@ -393,11 +364,8 @@
 
 (defrule
 	(up-compare-goal current-phase < 4)
-	(and
-		(not
-			(goal secondary-unit SPEARMAN)
-		)
-		(up-compare-goal spearman-affinity >= 99)
+	(not
+		(goal secondary-unit SPEARMAN)
 	)
 =>
 	(set-goal secondary-unit SPEARMAN)
@@ -405,11 +373,8 @@
 
 (defrule
 	(up-compare-goal current-phase < 4)
-	(and
-		(not
-			(goal tertiary-unit SKIRMISHER)
-		)
-		(up-compare-goal skirmisher-affinity >= 50)
+	(not
+		(goal tertiary-unit SKIRMISHER)
 	)
 =>
 	(set-goal tertiary-unit SKIRMISHER)
@@ -417,11 +382,8 @@
 
 (defrule
 	(up-compare-goal current-phase < 4)
-	(and
-		(not
-			(goal quaternary-unit ARCHER)
-		)
-		(up-compare-goal archer-affinity >= 99)
+	(not
+		(goal quaternary-unit ARCHER)
 	)
 =>
 	(set-goal quaternary-unit ARCHER)
@@ -429,11 +391,8 @@
 
 (defrule
 	(up-compare-goal current-phase >= 4)
-	(and
-		(not
-			(goal primary-unit CAVALRY)
-		)
-		(up-compare-goal cavalry-affinity >= 99)
+	(not
+		(goal primary-unit CAVALRY)
 	)
 =>
 	(set-goal primary-unit CAVALRY)
@@ -441,11 +400,8 @@
 
 (defrule
 	(up-compare-goal current-phase >= 4)
-	(and
-		(not
-			(goal secondary-unit CAMEL)
-		)
-		(up-compare-goal crider-affinity >= 50)
+	(not
+		(goal secondary-unit CAMEL)
 	)
 =>
 	(set-goal secondary-unit CAMEL)
@@ -453,11 +409,8 @@
 
 (defrule
 	(up-compare-goal current-phase >= 4)
-	(and
-		(not
-			(goal tertiary-unit CAVARCHER)
-		)
-		(up-compare-goal cavarcher-affinity >= 100)
+	(not
+		(goal tertiary-unit CAVARCHER)
 	)
 =>
 	(set-goal tertiary-unit CAVARCHER)
@@ -465,32 +418,40 @@
 
 (defrule
 	(up-compare-goal current-phase >= 4)
-	(and
-		(not
-			(goal quaternary-unit PRIEST)
-		)
-		(up-compare-goal priest-affinity >= 100)
+	(not
+		(goal quaternary-unit PRIEST)
 	)
 =>
 	(set-goal quaternary-unit PRIEST)
 )
 
 (defrule
+	(up-research-status c: ut-civitates-foederate != research-complete)
 	(up-compare-goal current-phase >= 4)
 	(not
-		(goal primary-support-unit SIEGE)
+		(goal primary-support-unit SCAVALRY)
 	)
 =>
-	(set-goal primary-support-unit SIEGE)
+	(set-goal primary-support-unit SCAVALRY)
+)
+
+(defrule
+	(up-research-status c: ut-civitates-foederate == research-complete)
+	(up-compare-goal current-phase >= 4)
+	(not
+		(goal primary-support-unit SPEARMAN)
+	)
+=>
+	(set-goal primary-support-unit SPEARMAN)
 )
 
 (defrule
 	(up-compare-goal current-phase >= 4)
 	(not
-		(goal secondary-support-unit UNIQUE)
+		(goal secondary-support-unit CMLARCHER)
 	)
 =>
-	(set-goal secondary-support-unit UNIQUE)
+	(set-goal secondary-support-unit CMLARCHER)
 )
 
 ;civ specific structure preferences
@@ -583,7 +544,13 @@
 )
 
 (defrule
-	(goal current-phase 4)
+	(or
+		(goal current-phase 4)
+		(or
+			(goal current-phase 5)
+			(goal current-phase 6)
+		)
+	)
 =>
 	(up-modify-goal desired-number-towncenters c:= 4)
 	(up-modify-goal desired-number-barracks c:= 2)
@@ -600,7 +567,13 @@
 )
 
 (defrule
-	(goal current-phase 4)
+	(or
+		(goal current-phase 4)
+		(or
+			(goal current-phase 5)
+			(goal current-phase 6)
+		)
+	)
 =>
 	(up-modify-goal desired-number-castles c:= 1)
 	(up-modify-goal desired-number-outposts c:= 4)
@@ -612,14 +585,14 @@
 )
 
 (defrule
-	(goal current-phase 5)
+	(goal current-phase 7)
 =>
 	(up-modify-goal desired-number-towncenters c:= 8)
 	(up-modify-goal desired-number-barracks c:= 4)
 	(up-modify-goal desired-number-ranges c:= 4)
 	(up-modify-goal desired-number-stables c:= 5)
 	(up-modify-goal desired-number-workshops c:= 2)
-	(up-modify-goal desired-number-blacksmiths c:= 1)
+	(up-modify-goal desired-number-blacksmiths c:= 2)
 	(up-modify-goal desired-number-markets c:= 2)
 	(up-modify-goal desired-number-docks c:= 2)
 	(up-modify-goal desired-number-universities c:= 1)
@@ -629,23 +602,40 @@
 )
 
 (defrule
-	(goal current-phase 5)
+	(goal current-phase 7)
 =>
 	(up-modify-goal desired-number-castles c:= 4)
 	(up-modify-goal desired-number-outposts c:= 6)
 	(up-modify-goal desired-number-watchtowers c:= 10)
 	(up-modify-goal desired-number-seatowers c:= 5)
 	(up-modify-goal desired-number-shipyards c:= 8)
+	(up-modify-goal desired-number-monasteries c:= 4)
 	
 	(disable-self)
 )
 
 (defrule
-	(goal current-phase 5)
+	(or
+		(goal current-phase 5)
+		(or
+			(goal current-phase 6)
+			(goal current-phase 7)
+		)
+	)
 	(unit-type-count-total ayrudzi-melee-line g:< gl-five-percent)
 	(can-train ayrudzi-melee-line)
 =>
 	(train ayrudzi-melee-line)
+)
+
+; Upgrade Ayrudzi
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-lines 1)
+	(up-can-research gl-researchescrow-state c: ri-elite-ayrudzi)
+=>
+	(up-research gl-researchescrow-state c: ri-elite-ayrudzi)
+	(chat-local-to-self "research elite ayrudzi")
 )
 
 ;unique technologies
