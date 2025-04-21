@@ -22,7 +22,7 @@
 (defrule
 	(true)
 =>
-	(set-goal uu1-type CAVALRY-UU)
+	(set-goal uu1-type INFANTRY-UU)
 	(set-goal uu2-type NO-UU)
 	(set-goal uu3-type NO-UU)
 	(set-goal uu4-type NO-UU)
@@ -43,7 +43,7 @@
 (defrule
 	(true)
 =>
-	(set-goal uu1-anti ANTI-NONE)
+	(set-goal uu1-anti ANTI-INFANTRY)
 	(set-goal uu2-anti ANTI-NONE)
 	(set-goal uu3-anti ANTI-NONE)
 	(set-goal uu4-anti ANTI-NONE)
@@ -63,7 +63,7 @@
 (defrule
 	(true)
 =>
-	(set-goal uu1-weak WEAK-NO)
+	(set-goal uu1-weak WEAK-ARCHER)
 	(set-goal uu2-weak WEAK-NONE)
 	(set-goal uu3-weak WEAK-NONE)
 	(set-goal uu4-weak WEAK-NONE)
@@ -90,11 +90,14 @@
 ; so 99% and 100% are equal affinities all things considered
 ; 66%, and 50% are equal affinities all things considered
 ; 33%, and 20% are equal affinities all things considered
+; Where unit would ordinarily have 5 upgrades, but their affinity is either 80% or 60% will use these units only in rushes
+; If civ has good bonuses then 80% affinity units will be used as quaternary units.
 ; for Priests, and Brahmin affinities are
 ; 25% is added if Redemption is available for civ
 ; 25% is added if Block Printing is available for civ
 ; 25% is added if Faith is available for civ
 ; 25% is added if Illumination is available for civ
+; 25% is added if civ has Good Priests trait set
 ; For ships Juggernauts do not have affinity, they will always be built if they are available
 
 (defrule
@@ -111,9 +114,9 @@
 	(true)
 =>	
 	(set-goal archer-affinity 99)
-	(set-goal skirmisher-affinity 50)
-	(set-goal cavarcher-affinity 100)
-	(set-goal camarcher-affinity 50)
+	(set-goal skirmisher-affinity 100)
+	(set-goal cavarcher-affinity 0)
+	(set-goal camarcher-affinity 0)
 	(set-goal elearcher-affinity 0)
 	(set-goal chrarcher-affinity 0)
 	
@@ -186,14 +189,37 @@
 (defrule
 	(true)
 =>
-	(set-goal sship-affinity 99)
-	(set-goal rship-affinity 66)
-	(set-goal fship-affinity 66)
-	(set-goal dship-affinity 99)
-	(set-goal hship-affinity 99)
-	(set-goal qship-affinity 0)
-	(set-goal oship-affinity 0)
-	(set-goal bship-affinity 33)
+	(set-goal sship-affinity 66)
+	(set-goal rship-affinity 99)
+	(set-goal fship-affinity 99)
+	(set-goal dship-affinity 66)
+	(set-goal hship-affinity 66)
+	(set-goal qship-affinity 100)
+	(set-goal oship-affinity 100)
+	(set-goal bship-affinity 100)
+	
+	(disable-self)
+)
+
+;default rush affinities
+
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:+ 2)
+	(up-modify-goal fcast-affinity c:+ 0)
+	(up-modify-goal trush-affinity c:+ 0)
+	(up-modify-goal hrush-affinity c:+ 0)
+	(up-modify-goal krush-affinity c:+ 0)
+	(up-modify-goal mush-affinity c:+ 0)
+	(up-modify-goal sprush-affinity c:+ 0)
+	(up-modify-goal scush-affinity c:+ 0)
+	(up-modify-goal skrush-affinity c:+ 0)
+	(up-modify-goal sgush-affinity c:+ 0)
+	(up-modify-goal cush-affinity c:+ 0)
+	(up-modify-goal lush-affinity c:+ 0)
+	(up-modify-goal ilush-affinity c:+ 0)
+	(up-modify-goal fc-affinity c:+ 2)
 	
 	(disable-self)
 )
@@ -203,9 +229,30 @@
 ;some techs might only be researched in certain matchups
 #load-if-defined UP-BERBERS-CIV-ENEMY ; Armenians
 
-
 #end-if
 #load-if-defined UP-LITHUANIANS-CIV-ENEMY ; Athenians
+
+;mirror matchup
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2) ; don't drush in a mirror 
+	(up-modify-goal fcast-affinity c:+ 0)
+	(up-modify-goal trush-affinity c:+ 0)
+	(up-modify-goal hrush-affinity c:+ 0)
+	(up-modify-goal krush-affinity c:+ 0)
+	(up-modify-goal mush-affinity c:+ 0)
+	(up-modify-goal sprush-affinity c:+ 0)
+	(up-modify-goal scush-affinity c:+ 0)
+	(up-modify-goal skrush-affinity c:+ 0)
+	(up-modify-goal sgush-affinity c:+ 0)
+	(up-modify-goal cush-affinity c:+ 0)
+	(up-modify-goal lush-affinity c:+ 0)
+	(up-modify-goal ilush-affinity c:+ 0)
+	(up-modify-goal fc-affinity c:+ 0)
+	
+	(disable-self)
+)
 
 #end-if
 #load-if-defined UP-BRITON-CIV-ENEMY ; Britons
@@ -304,6 +351,122 @@
 #load-if-defined UP-MALIAN-CIV-ENEMY ; Thracians
 
 #end-if
+
+;civ specific unit preferences
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(and
+		(not
+			(goal primary-unit SPEARMAN)
+		)
+		(up-compare-goal spearman-affinity >= 99)
+	)
+=>
+	(set-goal primary-unit SPEARMAN)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(and
+		(not
+			(goal secondary-unit SKIRMISHER)
+		)
+		(up-compare-goal skirmisher-affinity >= 99)
+	)
+=>
+	(set-goal secondary-unit SKIRMISHER)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(and
+		(not
+			(goal tertiary-unit ARCHER)
+		)
+		(up-compare-goal archer-affinity >= 99)
+	)
+=>
+	(set-goal tertiary-unit ARCHER)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(and
+		(not
+			(goal quaternary-unit CHAMPION)
+		)
+		(up-compare-goal archer-affinity >= 99)
+	)
+=>
+	(set-goal quaternary-unit CHAMPION)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(and
+		(not
+			(goal primary-unit SPEARMAN)
+		)
+		(up-compare-goal spearman-affinity >= 99)
+	)
+=>
+	(set-goal primary-unit SPEARMAN)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(and
+		(not
+			(goal secondary-unit ARCHER)
+		)
+		(up-compare-goal archer-affinity >= 99)
+	)
+=>
+	(set-goal secondary-unit ARCHER)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(and
+		(not
+			(goal tertiary-unit SKIRMISHER)
+		)
+		(up-compare-goal skirmisher-affinity >= 99)
+	)
+=>
+	(set-goal tertiary-unit SKIRMISHER)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(and
+		(not
+			(goal quaternary-unit PRIEST)
+		)
+		(up-compare-goal priest-affinity >= 100)
+	)
+=>
+	(set-goal quaternary-unit PRIEST)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(not
+		(goal primary-support-unit SIEGE)
+	)
+=>
+	(set-goal primary-support-unit SIEGE)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(not
+		(goal secondary-support-unit SCAVALRY)
+	)
+=>
+	(set-goal secondary-support-unit SCAVALRY)
+)
 
 ;civ specific structure preferences
 

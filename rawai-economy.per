@@ -64,7 +64,7 @@
 	(up-modify-sn sn-wood-gatherer-percentage c:= 10)
 	(up-modify-sn sn-gold-gatherer-percentage c:= 0)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
-	(up-modify-goal desired-number-farms c:= 21)
+	(up-modify-goal desired-number-farms c:= gl-three-percent)
 	(up-modify-goal desired-number-lumbercamps c:= 1)
 	(up-modify-goal desired-number-mills c:= 1)
 	(up-modify-goal desired-number-miningcamps c:= 1)
@@ -84,7 +84,7 @@
 	(up-modify-sn sn-wood-gatherer-percentage c:= 40)
 	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
-	(up-modify-goal desired-number-farms c:= 12)
+	(up-modify-goal desired-number-farms c:= gl-three-percent)
 	(up-modify-goal desired-number-lumbercamps c:= 2)
 	(up-modify-goal desired-number-mills c:= 2)
 	(up-modify-goal desired-number-miningcamps c:= 2)
@@ -142,7 +142,7 @@
 	(up-modify-sn sn-wood-gatherer-percentage c:= 10)
 	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
-	(up-modify-goal desired-number-farms c:= 19)
+	(up-modify-goal desired-number-farms c:= gl-four-percent)
 	(up-modify-goal desired-number-lumbercamps c:= 3)
 	(up-modify-goal desired-number-mills c:= 3)
 	(up-modify-goal desired-number-miningcamps c:= 3)
@@ -171,7 +171,7 @@
 	(up-modify-sn sn-wood-gatherer-percentage c:= 20)
 	(up-modify-sn sn-gold-gatherer-percentage c:= 40)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
-	(up-modify-goal desired-number-farms c:= 19)
+	(up-modify-goal desired-number-farms c:= gl-four-percent)
 	(up-modify-goal desired-number-lumbercamps c:= 3)
 	(up-modify-goal desired-number-mills c:= 3)
 	(up-modify-goal desired-number-miningcamps c:= 3)
@@ -197,7 +197,7 @@
 	(up-modify-sn sn-wood-gatherer-percentage c:= 40)
 	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 10)
-	(up-modify-goal desired-number-farms c:= 11)
+	(up-modify-goal desired-number-farms c:= gl-two-percent)
 	(up-modify-goal desired-number-lumbercamps c:= 3)
 	(up-modify-goal desired-number-mills c:= 3)
 	(up-modify-goal desired-number-miningcamps c:= 3)
@@ -205,10 +205,24 @@
 
 (defrule
 	(goal resources-depleted NO)
+	(goal current-phase 4)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 40)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 45)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 5)
+	(up-modify-goal desired-number-farms g:= gl-twenty-percent)
+	(up-modify-goal desired-number-lumbercamps c:= 5)
+	(up-modify-goal desired-number-mills c:= 5)
+	(up-modify-goal desired-number-miningcamps c:= 5)
+)
+
+(defrule
+	(goal resources-depleted NO)
 	(and
 		(current-age-time < 120)
 		(and
-			(goal current-phase 4)
+			(goal current-phase 5)
 			(wood-amount < 150)
 		)
 	)
@@ -217,7 +231,7 @@
 	(up-modify-sn sn-wood-gatherer-percentage c:= 80)
 	(up-modify-sn sn-gold-gatherer-percentage c:= 5)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 5)
-	(up-modify-goal desired-number-farms c:= 3)
+	(up-modify-goal desired-number-farms c:= gl-one-percent)
 	(up-modify-goal desired-number-lumbercamps c:= 4)
 	(up-modify-goal desired-number-mills c:= 4)
 	(up-modify-goal desired-number-miningcamps c:= 4)
@@ -228,7 +242,7 @@
 	(and
 		(current-age-time < 120)
 		(and
-			(goal current-phase 4)
+			(goal current-phase 5)
 			(wood-amount > 150)
 		)
 	)
@@ -237,7 +251,7 @@
 	(up-modify-sn sn-wood-gatherer-percentage c:= 45)
 	(up-modify-sn sn-gold-gatherer-percentage c:= 5)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 5)
-	(up-modify-goal desired-number-farms c:= 3)
+	(up-modify-goal desired-number-farms c:= gl-five-percent)
 	(up-modify-goal desired-number-lumbercamps c:= 4)
 	(up-modify-goal desired-number-mills c:= 4)
 	(up-modify-goal desired-number-miningcamps c:= 4)
@@ -248,7 +262,7 @@
 	(and
 		(current-age-time > 120)
 		(and
-			(goal current-phase 4)
+			(goal current-phase 5)
 			(and
 				(building-type-count-total university == 0)
 				(building-type-count-total monastery == 0)
@@ -260,7 +274,7 @@
 	(up-modify-sn sn-wood-gatherer-percentage c:= 65)
 	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 5)
-	(up-modify-goal desired-number-farms g:= gl-fourty-percent)
+	(up-modify-goal desired-number-farms g:= gl-ten-percent)
 	(up-modify-goal desired-number-lumbercamps c:= 4)
 	(up-modify-goal desired-number-mills c:= 4)
 	(up-modify-goal desired-number-miningcamps c:= 4)
@@ -271,7 +285,7 @@
 	(and
 		(current-age-time > 120)
 		(and
-			(goal current-phase 4)
+			(goal current-phase 5)
 			(and
 				(building-type-count-total farm g:<= desired-number-farms)
 				(and
@@ -297,7 +311,7 @@
 	(and
 		(current-age-time > 120)
 		(and
-			(goal current-phase 4)
+			(goal current-phase 5)
 			(and
 				(building-type-count-total farm g:>= desired-number-farms)
 				(and
@@ -320,7 +334,21 @@
 
 (defrule
 	(goal resources-depleted NO)
-	(goal current-phase 5)
+	(goal current-phase 6)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 40)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 45)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 5)
+	(up-modify-goal desired-number-farms g:= gl-fourty-percent)
+	(up-modify-goal desired-number-lumbercamps c:= 5)
+	(up-modify-goal desired-number-mills c:= 5)
+	(up-modify-goal desired-number-miningcamps c:= 5)
+)
+
+(defrule
+	(goal resources-depleted NO)
+	(goal current-phase 7)
 =>
 	(up-modify-sn sn-food-gatherer-percentage c:= 40)
 	(up-modify-sn sn-wood-gatherer-percentage c:= 45)
@@ -337,7 +365,7 @@
 		(goal gold-present NO)
 		(goal stone-present NO)
 	)
-	(goal current-phase 5)
+	(goal current-phase 7)
 =>
 	(up-modify-sn sn-food-gatherer-percentage c:= 50)
 	(up-modify-sn sn-wood-gatherer-percentage c:= 50)
