@@ -1,13 +1,4 @@
 
-;timer 10, cheats
-
-(defrule
-	(up-timer-status t-cheats != timer-running)
-=>
-	(up-set-timer c: t-cheats c: 60)
-	(chat-local-to-self "refresh cheats timer")
-)
-
 (defrule
 	(true)
 =>
@@ -17,25 +8,51 @@
 	(disable-self)
 )
 
+;timer 3, land attack timer
+
 (defrule
 	(up-timer-status t-land-attack != timer-running)
 =>
 	(chat-local-to-self "refresh land attack timer")
 	(up-set-timer c: t-land-attack g: land-attack-interval)
+	(up-chat-data-to-self "current land attack interval: %d." g: land-attack-interval)
 )
+
+;timer 4, naval attack timer
 
 (defrule
 	(up-timer-status t-naval-attack != timer-running)
 =>
 	(chat-local-to-self "refresh naval attack timer")
 	(up-set-timer c: t-naval-attack g: naval-attack-interval)
+	(up-chat-data-to-self "current naval attack interval: %d." g: naval-attack-interval)
 )
+
+;timer 5, farms
+
+(defrule
+	(up-timer-status t-farm-check != timer-running)
+=>
+	(up-set-timer c: t-farm-check c: 30)
+	(chat-local-to-self "refresh farm check timer")
+)
+
+;timer 10, cheats
+
+(defrule
+	(up-timer-status t-cheats != timer-running)
+=>
+	(up-set-timer c: t-cheats c: 60)
+	(chat-local-to-self "refresh cheats timer")
+)
+
 
 (defrule
 	(up-timer-status t-periodic-attack != timer-running)
 =>
 	(chat-local-to-self "refresh periodic attack timer")
 	(up-set-timer c: t-periodic-attack g: periodic-attack-interval)
+	(up-chat-data-to-self "current periodic attack interval: %d." g: periodic-attack-interval)
 )
 
 (defrule
@@ -52,6 +69,8 @@
 	(enable-timer t-retreat 300)
 )
 
+;timer 15, check unit type timer
+
 (defrule
 	(up-timer-status t-unit-type != timer-running)
 =>
@@ -59,12 +78,16 @@
 	(enable-timer t-unit-type 15)
 )
 
+;timer 17, check villagers timer
+
 (defrule
 	(up-timer-status t-check-vills != timer-running)
 =>
 	(chat-local-to-self "refresh check vills timer")
 	(up-set-timer c: t-check-vills c: 15)
 )
+
+;timer 20, check errors timer
 
 (defrule
 	(up-timer-status t-check-error != timer-running)
@@ -76,6 +99,6 @@
 (defrule
 	(up-timer-status t-check-losses != timer-running)
 =>
-	(chat-local-to-self "refresh land attack timer")
+	(chat-local-to-self "refresh check losses timer")
 	(up-set-timer c: t-check-losses c: 60)
 )

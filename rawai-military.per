@@ -80,7 +80,29 @@
 )
 
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
+	(or
+		(up-timer-status t-land-attack == timer-triggered)
+		(up-timer-status t-naval-attack == timer-triggered)
+	)
+	(goal current-action ACTION-NONE)
+=>
+	(set-goal current-action ACTION-WAIT)
+)
+
+(defrule
+	(or
+		(up-timer-status t-land-attack == timer-triggered)
+		(up-timer-status t-naval-attack == timer-triggered)
+	)
+	(or
+		(goal current-action ACTION-RETREAT)
+		(goal current-action ACTION-ATTACK)
+	)
+=>
+	(set-goal current-action ACTION-WAIT)
+)
+
+(defrule
 	(goal current-phase 1)
 =>
 	(set-goal military-spread-time 1)
@@ -89,17 +111,16 @@
 	(set-goal allow-wall-targeting 1)
 	(set-goal smart-wall-targeting 1)
 	(set-goal land-attack-delay 300)
-	(set-goal land-attack-interval 120)
-	(set-goal land-attack-requirement 6)
+	(set-goal land-attack-interval 300)
+	(set-goal land-attack-requirement gl-two-percent)
 	(set-goal naval-attack-delay 300)
-	(set-goal naval-attack-interval 120)
-	(set-goal naval-attack-requirement 6)
+	(set-goal naval-attack-interval 300)
+	(set-goal naval-attack-requirement gl-two-percent)
 	
 	(disable-self)
 )
 
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 2)
 =>
 	(set-goal military-spread-time 1)
@@ -108,17 +129,16 @@
 	(set-goal allow-wall-targeting 1)
 	(set-goal smart-wall-targeting 1)
 	(set-goal land-attack-delay 300)
-	(set-goal land-attack-interval 120)
-	(set-goal land-attack-requirement 6)
+	(set-goal land-attack-interval 240)
+	(set-goal land-attack-requirement gl-two-percent)
 	(set-goal naval-attack-delay 300)
-	(set-goal naval-attack-interval 120)
-	(set-goal naval-attack-requirement 6)
+	(set-goal naval-attack-interval 240)
+	(set-goal naval-attack-requirement gl-two-percent)
 	
 	(disable-self)
 )
 
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 3)
 =>
 	(set-goal military-spread-time 1)
@@ -127,17 +147,16 @@
 	(set-goal allow-wall-targeting 1)
 	(set-goal smart-wall-targeting 1)
 	(set-goal land-attack-delay 300)
-	(set-goal land-attack-interval 120)
-	(set-goal land-attack-requirement 6)
+	(set-goal land-attack-interval 180)
+	(set-goal land-attack-requirement gl-two-percent)
 	(set-goal naval-attack-delay 300)
-	(set-goal naval-attack-interval 120)
-	(set-goal naval-attack-requirement 6)
+	(set-goal naval-attack-interval 180)
+	(set-goal naval-attack-requirement gl-two-percent)
 	
 	(disable-self)
 )
 
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 4)
 =>
 	(set-goal military-spread-time 1)
@@ -146,17 +165,16 @@
 	(set-goal allow-wall-targeting 1)
 	(set-goal smart-wall-targeting 1)
 	(set-goal land-attack-delay 300)
-	(set-goal land-attack-interval 120)
-	(set-goal land-attack-requirement 10)
+	(set-goal land-attack-interval 180)
+	(set-goal land-attack-requirement gl-two-percent)
 	(set-goal naval-attack-delay 300)
-	(set-goal naval-attack-interval 120)
-	(set-goal naval-attack-requirement 6)
+	(set-goal naval-attack-interval 180)
+	(set-goal naval-attack-requirement gl-two-percent)
 	
 	(disable-self)
 )
 
 (defrule
-	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 5)
 =>
 	(set-goal military-spread-time 1)
@@ -166,10 +184,46 @@
 	(set-goal smart-wall-targeting 1)
 	(set-goal land-attack-delay 300)
 	(set-goal land-attack-interval 120)
-	(set-goal land-attack-requirement 10)
+	(set-goal land-attack-requirement gl-one-percent)
 	(set-goal naval-attack-delay 300)
 	(set-goal naval-attack-interval 120)
-	(set-goal naval-attack-requirement 6)
+	(set-goal naval-attack-requirement gl-one-percent)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 6)
+=>
+	(set-goal military-spread-time 1)
+	(set-goal military-spread-interval 100)
+	(set-goal preferred-target-player -1)
+	(set-goal allow-wall-targeting 1)
+	(set-goal smart-wall-targeting 1)
+	(set-goal land-attack-delay 300)
+	(set-goal land-attack-interval 120)
+	(set-goal land-attack-requirement gl-one-percent)
+	(set-goal naval-attack-delay 300)
+	(set-goal naval-attack-interval 120)
+	(set-goal naval-attack-requirement gl-one-percent)
+	
+	(disable-self)
+)
+
+(defrule
+	(goal current-phase 7)
+=>
+	(set-goal military-spread-time 1)
+	(set-goal military-spread-interval 100)
+	(set-goal preferred-target-player -1)
+	(set-goal allow-wall-targeting 1)
+	(set-goal smart-wall-targeting 1)
+	(set-goal land-attack-delay 300)
+	(set-goal land-attack-interval 120)
+	(set-goal land-attack-requirement gl-one-percent)
+	(set-goal naval-attack-delay 300)
+	(set-goal naval-attack-interval 120)
+	(set-goal naval-attack-requirement gl-one-percent)
 	
 	(disable-self)
 )
@@ -677,6 +731,16 @@
 )
 
 (defrule
+	(or
+		(up-timer-status t-land-attack == timer-triggered)
+		(up-timer-status t-naval-attack == timer-triggered)
+	)
+	(goal current-action ACTION-WAIT)
+=>
+	(set-goal current-action ACTION-ATTACK)
+)
+
+(defrule
 	(up-timer-status t-land-attack == timer-triggered)
 	(nor
 		(goal current-action ACTION-ATTACK)
@@ -714,7 +778,6 @@
 	(up-modify-sn sn-percent-attack-soldiers g:= land-attack-percentage)
 	(attack-now)
 	(set-strategic-number sn-percent-attack-soldiers 0)
-	(up-set-timer c: t-land-attack g: land-attack-interval)
 )
 
 ;rule 12
@@ -757,7 +820,6 @@
 	(up-modify-sn sn-maximum-town-size c:= 250)
 	(attack-now)
 	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
-	(up-set-timer c: t-land-attack g: land-attack-interval)
 )
 
 (defrule
@@ -782,10 +844,9 @@
 	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
 )
 
-;periodic attacks, if not flank player
+;periodic attacks
 (defrule
 	(game-time > 300)
-	(goal flank-position 0)
 	(up-timer-status t-periodic-attack != timer-running)
 =>
 	(chat-local-to-self "periodic attack")
@@ -796,24 +857,6 @@
 	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
 	(set-strategic-number sn-percent-attack-soldiers 0)
 	(set-strategic-number sn-percent-attack-boats 0)
-	(up-set-timer c: t-periodic-attack g: periodic-attack-interval)
-)
-
-;periodic attacks, for solo games
-(defrule
-	(game-time > 300)
-	(goal team-game NO)
-	(up-timer-status t-periodic-attack != timer-running)
-=>
-	(chat-local-to-self "periodic attack")
-	(up-modify-sn sn-percent-attack-soldiers g:= land-attack-percentage)
-	(up-modify-sn sn-percent-attack-boats g:= naval-attack-percentage)
-	(up-modify-sn sn-maximum-town-size c:= 250)
-	(attack-now)
-	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
-	(set-strategic-number sn-percent-attack-soldiers 0)
-	(set-strategic-number sn-percent-attack-boats 0)
-	(up-set-timer c: t-periodic-attack g: periodic-attack-interval)
 )
 
 ;loss counter
@@ -1413,6 +1456,26 @@
 #load-if-not-defined DIFFICULTY-EASIEST
 #load-if-not-defined DIFFICULTY-EASY
 #load-if-not-defined DIFFICULTY-MODERATE
+
+;just do some attacks once you aged up to Castle Age, and Imperial Age
+
+(defrule
+	(current-age == middle-antiquity-age)
+	(current-age-time > 120)
+=>
+	(attack-now)
+	
+	(disable-self)
+)
+
+(defrule
+	(current-age == imperial-age)
+	(current-age-time > 120)
+=>
+	(attack-now)
+	
+	(disable-self)
+)
 
 (defrule
 	(and

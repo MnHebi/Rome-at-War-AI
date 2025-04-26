@@ -151,30 +151,3 @@
 	(up-modify-goal previous-phase c:= AGING-IMPERIAL-AGE)
 	(disable-self)
 )
-
-
-
-(defrule
-	(up-compare-goal current-phase g:!= previous-phase)
-	(up-compare-goal land-attack-delay >= 0)
-=>
-	(up-modify-goal land-attack-delay g:* scale-attack-timer)
-	(up-modify-goal land-attack-delay c:/ 100))
-(defrule
-	(up-compare-goal current-phase g:!= previous-phase)
-	(up-compare-goal land-attack-interval >= 0)
-=>
-	(up-modify-goal land-attack-interval g:* scale-attack-timer)
-	(up-modify-goal land-attack-interval c:/ 100))
-(defrule
-	(up-compare-goal current-phase g:!= previous-phase)
-	(up-compare-goal naval-attack-delay >= 0)
-=>
-	(up-modify-goal naval-attack-delay g:* scale-attack-timer)
-	(up-modify-goal naval-attack-delay c:/ 100))
-(defrule
-	(up-compare-goal current-phase g:!= previous-phase)
-	(up-compare-goal naval-attack-interval >= 0)
-=>
-	(up-modify-goal naval-attack-interval g:* scale-attack-timer)
-	(up-modify-goal naval-attack-interval c:/ 100))

@@ -896,4 +896,20 @@
 
 #end-if
 
+;farm fallback
+
+(defrule
+	(current-age >= early-antiquity-age)
+	(wood-amount > 150)
+	(and
+		(building-type-count mill >= 1)
+		(building-type-count farm == 0)
+	)
+	(building-type-count farm < desired-number-farms)
+	(up-can-build 0 c: farm)
+=>
+	(chat-local-to-self "fallback farm placement")
+	(up-build place-normal 0 c: farm)
+)
+
 
