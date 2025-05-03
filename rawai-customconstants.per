@@ -893,6 +893,7 @@
 (defconst t-check-navy 19)
 (defconst t-check-error 20)
 (defconst t-check-losses 21)
+(defconst t-update-facts 22)
 
 (defrule
 	(true)
@@ -956,6 +957,15 @@
 
 (defrule
 	(true)
+=>
+	(up-get-fact unit-type-count villager villager-count)
+	(up-get-fact game-time 0 gl-game-time)
+	
+	(disable-self)
+)
+
+(defrule
+	(up-timer-status t-update-facts == timer-triggered)
 =>
 	(up-get-fact unit-type-count villager villager-count)
 	(up-get-fact game-time 0 gl-game-time)

@@ -16,6 +16,7 @@
 	(chat-local-to-self "refresh land attack timer")
 	(up-set-timer c: t-land-attack g: land-attack-interval)
 	(up-chat-data-to-self "current land attack interval: %d." g: land-attack-interval)
+	(up-chat-data-to-self "current military-superiority: %d." g: military-superiority)
 )
 
 ;timer 4, naval attack timer
@@ -26,6 +27,7 @@
 	(chat-local-to-self "refresh naval attack timer")
 	(up-set-timer c: t-naval-attack g: naval-attack-interval)
 	(up-chat-data-to-self "current naval attack interval: %d." g: naval-attack-interval)
+	(up-chat-data-to-self "current naval-superiority: %d." g: naval-superiority)
 )
 
 ;timer 5, farms
@@ -101,4 +103,11 @@
 =>
 	(chat-local-to-self "refresh check losses timer")
 	(up-set-timer c: t-check-losses c: 60)
+)
+
+(defrule
+	(up-timer-status t-update-facts != timer-running)
+=>
+	(chat-local-to-self "refresh update facts timer")
+	(up-set-timer c: t-update-facts c: 15)
 )

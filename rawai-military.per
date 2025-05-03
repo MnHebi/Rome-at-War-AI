@@ -766,11 +766,8 @@
 	(and
 		(up-compare-goal attack-type-land c:= PERCENTAGE)
 		(and
-			(up-compare-goal land-attack-delay >= 0)
-			(and
-				(up-compare-goal gl-game-time g:>= land-attack-delay)
-				(defend-soldier-count g:>= land-attack-requirement)
-			)
+			(up-compare-goal gl-game-time g:>= land-attack-delay)
+			(soldier-count g:>= land-attack-requirement)
 		)
 	)
 =>
@@ -786,13 +783,10 @@
 	(and
 		(up-compare-goal attack-type-sea c:= PERCENTAGE)
 		(and
-			(up-compare-goal naval-attack-delay >= 0)
+			(up-compare-goal gl-game-time g:>= naval-attack-delay)
 			(and
-				(up-compare-goal gl-game-time g:>= naval-attack-delay)
-				(and
-					(defend-warboat-count g:>= naval-attack-requirement)
-					(up-timer-status t-naval-attack != timer-running)
-				)
+				(warboat-count g:>= naval-attack-requirement)
+				(up-timer-status t-naval-attack != timer-running)
 			)
 		)
 	)
@@ -808,11 +802,8 @@
 	(and
 		(up-compare-goal attack-type-land c:= TOWN-SIZE)
 		(and
-			(up-compare-goal land-attack-delay >= 0)
-			(and
-				(up-compare-goal gl-game-time g:>= land-attack-delay)
-				(defend-soldier-count g:>= land-attack-requirement)
-			)
+			(up-compare-goal gl-game-time g:>= land-attack-delay)
+			(soldier-count g:>= land-attack-requirement)
 		)
 	)
 =>
@@ -827,13 +818,10 @@
 	(and
 		(up-compare-goal attack-type-sea c:= TOWN-SIZE)
 		(and
-			(up-compare-goal naval-attack-delay >= 0)
+			(up-compare-goal gl-game-time g:>= naval-attack-delay)
 			(and
-				(up-compare-goal gl-game-time g:>= naval-attack-delay)
-				(and
-					(defend-warboat-count g:>= naval-attack-requirement)
-					(up-timer-status t-naval-attack != timer-running)
-				)
+				(warboat-count g:>= naval-attack-requirement)
+				(up-timer-status t-naval-attack != timer-running)
 			)
 		)
 	)

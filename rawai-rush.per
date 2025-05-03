@@ -210,6 +210,9 @@
 	(up-build place-normal gl-buildingescrow-state c: stable)
 )
 
+#load-if-not-defined BENGALIS-CIV
+#load-if-not-defined DRAVIDIANS-CIV
+
 (defrule
 	(goal rush-krush YES)
 	(unit-type-count-total cavalry-line c:< 5)
@@ -217,3 +220,30 @@
 =>
 	(up-train gl-unitescrow-state c: cavalry-line)
 )
+
+#end-if
+#end-if
+
+#load-if-defined BENGALIS-CIV
+
+(defrule
+	(goal rush-krush YES)
+	(unit-type-count-total ratha-melee-line c:< 5)
+	(up-can-train gl-unitescrow-state c: ratha-melee-line)
+=>
+	(up-train gl-unitescrow-state c: ratha-melee-line)
+)
+
+#end-if
+
+#load-if-defined DRAVIDIANS-CIV
+
+(defrule
+	(goal rush-krush YES)
+	(unit-type-count-total ratha-melee-line c:< 5)
+	(up-can-train gl-unitescrow-state c: ratha-melee-line)
+=>
+	(up-train gl-unitescrow-state c: ratha-melee-line)
+)
+
+#end-if
