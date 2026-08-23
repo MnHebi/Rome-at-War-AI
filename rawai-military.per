@@ -591,7 +591,7 @@
 	(up-set-target-object search-remote c: 0)
 =>
 	(up-bound-point gl-transport-route-left-x gl-transport-route-target-x)
-	(up-cross-tiles gl-transport-route-left-x gl-transport-route-origin-x c: 18)
+	(up-cross-tiles gl-transport-route-left-x gl-transport-route-origin-x c: 28)
 	(up-full-reset-search)
 	(up-set-target-point gl-transport-route-left-x)
 	(up-filter-distance c: -1 c: 12)
@@ -608,7 +608,7 @@
 =>
 	(up-modify-goal gl-transport-route-left-threats g:= remote-total)
 	(up-bound-point gl-transport-route-right-x gl-transport-route-target-x)
-	(up-cross-tiles gl-transport-route-right-x gl-transport-route-origin-x c: -18)
+	(up-cross-tiles gl-transport-route-right-x gl-transport-route-origin-x c: -28)
 	(up-full-reset-search)
 	(up-set-target-point gl-transport-route-right-x)
 	(up-filter-distance c: -1 c: 12)
@@ -627,6 +627,22 @@
 	(generate-random-number 2)
 	(up-get-fact random-number 0 gl-transport-route-random)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-APPLY)
+)
+
+;A least-dangerous landing is not necessarily a safe landing.  If both known
+;shore approaches are covered by static defenses, keep the loaded ship home.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-APPLY)
+	(up-compare-goal gl-transport-route-left-threats c:> 0)
+	(up-compare-goal gl-transport-route-right-threats c:> 0)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-target-point position-self-x action-move -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(chat-local-to-self "Transport held: no safe landing approach")
 )
 
 (defrule
@@ -706,6 +722,14 @@
 
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-APPLY)
+	(up-compare-goal gl-transport-route-corridor-left-threats c:> 0)
+	(up-compare-goal gl-transport-route-corridor-right-threats c:> 0)
+=>
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-WIDE-PREPARE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-APPLY)
 	(or
 		(up-compare-goal gl-transport-route-corridor-left-threats g:< gl-transport-route-corridor-right-threats)
 		(and
@@ -715,6 +739,105 @@
 	)
 =>
 	(up-bound-point gl-transport-route-waypoint-x gl-transport-route-waypoint-left-x)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
+)
+
+;If both ordinary corridors are covered, sample a much wider pair instead of
+;accepting the less dangerous route.  The transport departs only when one of
+;the wide corridors has no known Tower, Castle, Town Center, or Sea Tower.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-WIDE-PREPARE)
+=>
+	(up-bound-point gl-transport-route-waypoint-left-x gl-transport-route-landing-x)
+	(up-lerp-percent gl-transport-route-waypoint-left-x gl-transport-route-origin-x c: 50)
+	(up-cross-tiles gl-transport-route-waypoint-left-x gl-transport-route-origin-x c: 52)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-left-x)
+	(up-filter-distance c: -1 c: 24)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 10)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: town-center c: 10)
+	(up-get-search-state remote-total)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-WIDE-LEFT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-WIDE-LEFT)
+=>
+	(up-modify-goal gl-transport-route-corridor-left-threats g:= remote-total)
+	(up-bound-point gl-transport-route-waypoint-right-x gl-transport-route-landing-x)
+	(up-lerp-percent gl-transport-route-waypoint-right-x gl-transport-route-origin-x c: 50)
+	(up-cross-tiles gl-transport-route-waypoint-right-x gl-transport-route-origin-x c: -52)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-right-x)
+	(up-filter-distance c: -1 c: 24)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 10)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: town-center c: 10)
+	(up-get-search-state remote-total)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-WIDE-RIGHT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-WIDE-RIGHT)
+=>
+	(up-modify-goal gl-transport-route-corridor-right-threats g:= remote-total)
+	(generate-random-number 2)
+	(up-get-fact random-number 0 gl-transport-route-random)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-WIDE-APPLY)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-WIDE-APPLY)
+	(up-compare-goal gl-transport-route-corridor-left-threats c:> 0)
+	(up-compare-goal gl-transport-route-corridor-right-threats c:> 0)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-target-point position-self-x action-move -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(chat-local-to-self "Transport held: all known corridors are defended")
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-WIDE-APPLY)
+	(or
+		(up-compare-goal gl-transport-route-corridor-left-threats g:< gl-transport-route-corridor-right-threats)
+		(and
+			(up-compare-goal gl-transport-route-corridor-left-threats g:= gl-transport-route-corridor-right-threats)
+			(up-compare-goal gl-transport-route-random c:<= 1)
+		)
+	)
+=>
+	(up-bound-point gl-transport-route-waypoint-x gl-transport-route-waypoint-left-x)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-WIDE-APPLY)
+	(or
+		(up-compare-goal gl-transport-route-corridor-right-threats g:< gl-transport-route-corridor-left-threats)
+		(and
+			(up-compare-goal gl-transport-route-corridor-left-threats g:= gl-transport-route-corridor-right-threats)
+			(up-compare-goal gl-transport-route-random c:> 1)
+		)
+	)
+=>
+	(up-bound-point gl-transport-route-waypoint-x gl-transport-route-waypoint-right-x)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
@@ -3157,6 +3280,16 @@
 	(set-goal train-onager YES)
 	(chat-local-to-self ">=Middle Antiquity, Mangonel affinity >= 66, enable Mangonel training")
 	
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal scorpion-affinity >= 100)
+=>
+	(set-goal train-scorpion YES)
+	(chat-local-to-self ">=Middle Antiquity, Scorpion affinity >= 100, enable Scorpion training")
+
 	(disable-self)
 )
 

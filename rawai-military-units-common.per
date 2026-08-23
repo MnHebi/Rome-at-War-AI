@@ -157,10 +157,7 @@
 
 (defrule
 	(current-age >= middle-antiquity-age)
-	(and
-		(goal train-champion YES)
-		(goal primary-unit CHAMPION)
-	)
+	(goal train-champion YES)
 	(unit-type-count-total legionary-ranged-line g:< gl-ten-percent)
 	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: legionary-ranged-line)
@@ -168,43 +165,31 @@
 	(up-train gl-unitescrow-state c: legionary-ranged-line)
 )
 
+;Roman Imperial ranges switch completely from Improved Bowmen to the separate
+;Crossbowman unit required by the focus sheet.
 (defrule
-	(current-age >= middle-antiquity-age)
-	(and
-		(goal train-champion YES)
-		(goal secondary-unit CHAMPION)
-	)
-	(unit-type-count-total legionary-ranged-line g:< gl-five-percent)
-	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: legionary-ranged-line)
+	(up-compare-goal current-phase >= 7)
+	(goal train-bowman YES)
 =>
-	(up-train gl-unitescrow-state c: legionary-ranged-line)
+	(set-goal train-bowman NO)
 )
 
 (defrule
-	(current-age >= middle-antiquity-age)
-	(and
-		(goal train-champion YES)
-		(goal tertiary-unit CHAMPION)
-	)
-	(unit-type-count-total legionary-ranged-line g:< gl-two-percent)
-	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: legionary-ranged-line)
+	(up-compare-goal current-phase >= 7)
+	(goal train-crossbow NO)
+	(unit-available crossbowman)
 =>
-	(up-train gl-unitescrow-state c: legionary-ranged-line)
+	(set-goal train-crossbow YES)
 )
 
 (defrule
-	(current-age >= middle-antiquity-age)
-	(and
-		(goal train-champion YES)
-		(goal quaternary-unit CHAMPION)
-	)
-	(unit-type-count-total legionary-ranged-line g:< gl-one-percent)
+	(up-compare-goal current-phase >= 7)
+	(goal train-crossbow YES)
+	(unit-type-count-total crossbowman g:< gl-five-percent)
 	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: legionary-ranged-line)
+	(up-can-train gl-unitescrow-state c: crossbowman)
 =>
-	(up-train gl-unitescrow-state c: legionary-ranged-line)
+	(up-train gl-unitescrow-state c: crossbowman)
 )
 
 #end-if
@@ -1744,7 +1729,7 @@
 (defrule
 	(up-compare-goal current-phase >= 4)
 	(goal train-scorpion YES)
-	(unit-type-count-total scorpion-line g:< gl-one-percent)
+	(unit-type-count-total scorpion-line g:< gl-three-percent)
 	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: scorpion-line)
 =>
