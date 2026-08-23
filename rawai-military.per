@@ -217,8 +217,14 @@
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-LOADING)
+=>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-LOAD)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LOAD)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count >= 2)
 =>
@@ -236,14 +242,53 @@
 )
 
 (defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LOAD)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count < 2)
+=>
+	(set-goal gl-island-migration-state MIGRATION-LOADING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LOAD)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+(defrule
 	(goal gl-island-migration-state MIGRATION-SAILING)
+=>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count <= 0)
 	(up-object-data object-data-on-mainland == off-mainland)
 =>
 	(up-set-timer c: t-island-migration c: 180)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
+	(up-set-target-object search-local c: 0)
+	(or
+		(up-object-data object-data-garrison-count > 0)
+		(up-object-data object-data-on-mainland != off-mainland)
+	)
+=>
+	(set-goal gl-island-migration-state MIGRATION-SAILING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
+	(not (up-set-target-object search-local c: 0))
+=>
 	(set-goal gl-island-migration-state MIGRATION-IDLE)
 )
 

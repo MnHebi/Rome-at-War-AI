@@ -34,6 +34,13 @@ ENGINE_RESEARCH_CONSTANTS = {
 # one element for this limit.
 MAX_RULE_ELEMENTS = 32
 
+# These DUC commands mutate search state and are only valid on the action side
+# of a rule. AoE reports ERR2005 when one is accidentally used as a fact.
+ACTION_ONLY_RULE_COMMANDS = {
+    "up-add-object-by-id",
+    "up-full-reset-search",
+}
+
 
 def code_without_comments_or_strings(line: str) -> str:
     result = []
@@ -66,6 +73,7 @@ def validate_file(path: Path) -> list[dict[str, object]]:
     rule_depth: int | None = None
     rule_start_line = 0
     rule_element_count = 0
+    rule_in_actions = False
 
     for line_number, raw_line in enumerate(
         path.read_text(encoding="utf-8-sig").splitlines(), 1
@@ -81,8 +89,17 @@ def validate_file(path: Path) -> list[dict[str, object]]:
                     rule_depth = current_depth
                     rule_start_line = line_number
                     rule_element_count = 0
+                    rule_in_actions = False
                 elif rule_depth is not None and current_depth > rule_depth:
                     rule_element_count += 1
+                    if not rule_in_actions and keyword in ACTION_ONLY_RULE_COMMANDS:
+                        issues.append(
+                            {
+                                "kind": "action_used_as_fact",
+                                "name": keyword,
+                                "line": line_number,
+                            }
+                        )
             elif char == ")":
                 if parenthesis_stack:
                     if rule_depth is not None and len(parenthesis_stack) == rule_depth:
@@ -98,6 +115,7 @@ def validate_file(path: Path) -> list[dict[str, object]]:
                         rule_depth = None
                         rule_start_line = 0
                         rule_element_count = 0
+                        rule_in_actions = False
                     parenthesis_stack.pop()
                 else:
                     issues.append(
@@ -107,6 +125,9 @@ def validate_file(path: Path) -> list[dict[str, object]]:
                             "column": column,
                         }
                     )
+
+        if rule_depth is not None and "=>" in line:
+            rule_in_actions = True
 
         directive_parts = line.strip().split(maxsplit=1) if line.strip() else []
         directive = directive_parts[0] if directive_parts else ""
