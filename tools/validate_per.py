@@ -41,6 +41,15 @@ ACTION_ONLY_RULE_COMMANDS = {
     "up-full-reset-search",
 }
 
+# PER logical operators have fixed arity. In particular, `or` and `and` are
+# binary; additional alternatives must be expressed with nested operators.
+LOGICAL_OPERATOR_ARITY = {
+    "and": 2,
+    "nor": 2,
+    "not": 1,
+    "or": 2,
+}
+
 
 def code_without_comments_or_strings(line: str) -> str:
     result = []
@@ -68,6 +77,7 @@ def code_without_comments_or_strings(line: str) -> str:
 def validate_file(path: Path) -> list[dict[str, object]]:
     issues: list[dict[str, object]] = []
     parenthesis_stack: list[tuple[int, int]] = []
+    expression_stack: list[dict[str, object]] = []
     preprocessor_stack: list[tuple[int, str, bool]] = []
     defconst_lines: dict[str, int] = {}
     rule_depth: int | None = None
@@ -81,9 +91,20 @@ def validate_file(path: Path) -> list[dict[str, object]]:
         line = code_without_comments_or_strings(raw_line)
         for column, char in enumerate(line, 1):
             if char == "(":
-                parenthesis_stack.append((line_number, column))
                 keyword_match = re.match(r"\s*([^\s()]+)", line[column:])
                 keyword = keyword_match.group(1) if keyword_match else ""
+                if expression_stack:
+                    parent = expression_stack[-1]
+                    if parent["keyword"] in LOGICAL_OPERATOR_ARITY:
+                        parent["children"] = int(parent["children"]) + 1
+                expression_stack.append(
+                    {
+                        "keyword": keyword,
+                        "children": 0,
+                        "line": line_number,
+                    }
+                )
+                parenthesis_stack.append((line_number, column))
                 current_depth = len(parenthesis_stack)
                 if rule_depth is None and keyword == "defrule":
                     rule_depth = current_depth
@@ -102,6 +123,22 @@ def validate_file(path: Path) -> list[dict[str, object]]:
                         )
             elif char == ")":
                 if parenthesis_stack:
+                    expression = expression_stack.pop()
+                    logical_keyword = str(expression["keyword"])
+                    expected_arity = LOGICAL_OPERATOR_ARITY.get(logical_keyword)
+                    if (
+                        expected_arity is not None
+                        and int(expression["children"]) != expected_arity
+                    ):
+                        issues.append(
+                            {
+                                "kind": "logical_operator_arity",
+                                "name": logical_keyword,
+                                "line": int(expression["line"]),
+                                "operands": int(expression["children"]),
+                                "expected": expected_arity,
+                            }
+                        )
                     if rule_depth is not None and len(parenthesis_stack) == rule_depth:
                         if rule_element_count > MAX_RULE_ELEMENTS:
                             issues.append(
