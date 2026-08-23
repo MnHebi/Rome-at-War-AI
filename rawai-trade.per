@@ -132,6 +132,17 @@
 
 (defrule
 	(current-age == middle-antiquity-age)
+	(wood-amount >= 800)
+	(gold-amount < 250)
+	(commodity-selling-price wood >= 40)
+	(can-sell-commodity wood)
+=>
+	(chat-local-to-self "Gold shortage; sell excess wood")
+	(sell-commodity wood)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
 	(food-amount >= 1200)
 	(gold-amount < 200)
 	(can-sell-commodity food)
@@ -171,6 +182,17 @@
 =>
 	(chat-local-to-self "need stone")
 	(buy-commodity stone)
+)
+
+(defrule
+	(current-age == imperial-age)
+	(wood-amount >= 1200)
+	(gold-amount < 300)
+	(commodity-selling-price wood >= 30)
+	(can-sell-commodity wood)
+=>
+	(chat-local-to-self "Gold shortage; sell excess wood")
+	(sell-commodity wood)
 )
 
 (defrule

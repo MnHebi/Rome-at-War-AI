@@ -1,6 +1,20 @@
 
 ;========================BARRACKS BEGIN========================
 
+;Emergency Roman response to enemy Champions inside the town. This exact unit
+;request bypasses the normal Middle-Age legionary role mapping.
+#load-if-defined BYZANTINE-CIV
+(defrule
+	(goal gl-roman-champion-base-threat YES)
+	(current-age >= middle-antiquity-age)
+	(unit-type-count-total long-swordsman g:< gl-roman-champion-counter-target)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: long-swordsman)
+=>
+	(up-train gl-unitescrow-state c: long-swordsman)
+)
+#end-if
+
 ;========================CHAMPION BEGIN========================
 
 #load-if-not-defined BYZANTINE-CIV ; Roman Empire
@@ -14,6 +28,7 @@
 		(goal primary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -25,6 +40,7 @@
 		(goal secondary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -36,6 +52,7 @@
 		(goal tertiary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -47,6 +64,7 @@
 		(goal quaternary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -58,6 +76,7 @@
 		(goal primary-support-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -69,6 +88,7 @@
 		(goal secondary-support-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-no-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -90,6 +110,7 @@
 		(goal primary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -102,6 +123,7 @@
 		(goal secondary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -114,6 +136,7 @@
 		(goal tertiary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -126,6 +149,7 @@
 		(goal quaternary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -133,50 +157,39 @@
 
 (defrule
 	(current-age >= middle-antiquity-age)
-	(and
-		(goal train-champion YES)
-		(goal primary-unit CHAMPION)
-	)
+	(goal train-champion YES)
 	(unit-type-count-total legionary-ranged-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: legionary-ranged-line)
 =>
 	(up-train gl-unitescrow-state c: legionary-ranged-line)
 )
 
+;Roman Imperial ranges switch completely from Improved Bowmen to the separate
+;Crossbowman unit required by the focus sheet.
 (defrule
-	(current-age >= middle-antiquity-age)
-	(and
-		(goal train-champion YES)
-		(goal secondary-unit CHAMPION)
-	)
-	(unit-type-count-total legionary-ranged-line g:< gl-five-percent)
-	(up-can-train gl-unitescrow-state c: legionary-ranged-line)
+	(up-compare-goal current-phase >= 7)
+	(goal train-bowman YES)
 =>
-	(up-train gl-unitescrow-state c: legionary-ranged-line)
+	(set-goal train-bowman NO)
 )
 
 (defrule
-	(current-age >= middle-antiquity-age)
-	(and
-		(goal train-champion YES)
-		(goal tertiary-unit CHAMPION)
-	)
-	(unit-type-count-total legionary-ranged-line g:< gl-two-percent)
-	(up-can-train gl-unitescrow-state c: legionary-ranged-line)
+	(up-compare-goal current-phase >= 7)
+	(goal train-crossbow NO)
+	(unit-available crossbowman)
 =>
-	(up-train gl-unitescrow-state c: legionary-ranged-line)
+	(set-goal train-crossbow YES)
 )
 
 (defrule
-	(current-age >= middle-antiquity-age)
-	(and
-		(goal train-champion YES)
-		(goal quaternary-unit CHAMPION)
-	)
-	(unit-type-count-total legionary-ranged-line g:< gl-one-percent)
-	(up-can-train gl-unitescrow-state c: legionary-ranged-line)
+	(up-compare-goal current-phase >= 7)
+	(goal train-crossbow YES)
+	(unit-type-count-total crossbowman g:< gl-five-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: crossbowman)
 =>
-	(up-train gl-unitescrow-state c: legionary-ranged-line)
+	(up-train gl-unitescrow-state c: crossbowman)
 )
 
 #end-if
@@ -192,6 +205,7 @@
 		(goal primary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -204,6 +218,7 @@
 		(goal secondary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -216,6 +231,7 @@
 		(goal tertiary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -228,6 +244,7 @@
 		(goal quaternary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -240,6 +257,7 @@
 		(goal primary-unit CHAMPION)
 	)
 	(unit-type-count-total legionary-melee-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: legionary-melee-line)
 =>
 	(up-train gl-unitescrow-state c: legionary-melee-line)
@@ -252,6 +270,7 @@
 		(goal secondary-unit CHAMPION)
 	)
 	(unit-type-count-total legionary-melee-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: legionary-melee-line)
 =>
 	(up-train gl-unitescrow-state c: legionary-melee-line)
@@ -264,6 +283,7 @@
 		(goal tertiary-unit CHAMPION)
 	)
 	(unit-type-count-total legionary-melee-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: legionary-melee-line)
 =>
 	(up-train gl-unitescrow-state c: legionary-melee-line)
@@ -276,6 +296,7 @@
 		(goal quaternary-unit CHAMPION)
 	)
 	(unit-type-count-total legionary-melee-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: legionary-melee-line)
 =>
 	(up-train gl-unitescrow-state c: legionary-melee-line)
@@ -294,6 +315,7 @@
 		(goal primary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -306,6 +328,7 @@
 		(goal secondary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -318,6 +341,7 @@
 		(goal tertiary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -330,6 +354,7 @@
 		(goal quaternary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -342,6 +367,7 @@
 		(goal primary-unit CHAMPION)
 	)
 	(unit-type-count-total imitation-legionary-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: imitation-legionary-line)
 =>
 	(up-train gl-unitescrow-state c: imitation-legionary-line)
@@ -354,6 +380,7 @@
 		(goal secondary-unit CHAMPION)
 	)
 	(unit-type-count-total imitation-legionary-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: imitation-legionary-line)
 =>
 	(up-train gl-unitescrow-state c: imitation-legionary-line)
@@ -366,6 +393,7 @@
 		(goal tertiary-unit CHAMPION)
 	)
 	(unit-type-count-total imitation-legionary-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: imitation-legionary-line)
 =>
 	(up-train gl-unitescrow-state c: imitation-legionary-line)
@@ -378,6 +406,7 @@
 		(goal quaternary-unit CHAMPION)
 	)
 	(unit-type-count-total imitation-legionary-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: imitation-legionary-line)
 =>
 	(up-train gl-unitescrow-state c: imitation-legionary-line)
@@ -396,6 +425,7 @@
 		(goal primary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -408,6 +438,7 @@
 		(goal secondary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -420,6 +451,7 @@
 		(goal tertiary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -432,6 +464,7 @@
 		(goal quaternary-unit CHAMPION)
 	)
 	(unit-type-count-total militiaman-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: militiaman-line)
 =>
 	(up-train gl-unitescrow-state c: militiaman-line)
@@ -444,6 +477,7 @@
 		(goal primary-unit CHAMPION)
 	)
 	(unit-type-count-total imitation-legionary-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: imitation-legionary-line)
 =>
 	(up-train gl-unitescrow-state c: imitation-legionary-line)
@@ -456,6 +490,7 @@
 		(goal secondary-unit CHAMPION)
 	)
 	(unit-type-count-total imitation-legionary-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: imitation-legionary-line)
 =>
 	(up-train gl-unitescrow-state c: imitation-legionary-line)
@@ -468,6 +503,7 @@
 		(goal tertiary-unit CHAMPION)
 	)
 	(unit-type-count-total imitation-legionary-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: imitation-legionary-line)
 =>
 	(up-train gl-unitescrow-state c: imitation-legionary-line)
@@ -480,6 +516,7 @@
 		(goal quaternary-unit CHAMPION)
 	)
 	(unit-type-count-total imitation-legionary-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: imitation-legionary-line)
 =>
 	(up-train gl-unitescrow-state c: imitation-legionary-line)
@@ -496,7 +533,9 @@
 		(goal train-spearman YES)
 		(goal primary-unit SPEARMAN)
 	)
+	(goal gl-roman-champion-base-threat NO)
 	(unit-type-count-total spearman-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: spearman-line)
 =>
 	(up-train gl-unitescrow-state c: spearman-line)
@@ -507,7 +546,9 @@
 		(goal train-spearman YES)
 		(goal secondary-unit SPEARMAN)
 	)
+	(goal gl-roman-champion-base-threat NO)
 	(unit-type-count-total spearman-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: spearman-line)
 =>
 	(up-train gl-unitescrow-state c: spearman-line)
@@ -518,7 +559,9 @@
 		(goal train-spearman YES)
 		(goal tertiary-unit SPEARMAN)
 	)
+	(goal gl-roman-champion-base-threat NO)
 	(unit-type-count-total spearman-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: spearman-line)
 =>
 	(up-train gl-unitescrow-state c: spearman-line)
@@ -529,7 +572,9 @@
 		(goal train-spearman YES)
 		(goal quaternary-unit SPEARMAN)
 	)
+	(goal gl-roman-champion-base-threat NO)
 	(unit-type-count-total spearman-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: spearman-line)
 =>
 	(up-train gl-unitescrow-state c: spearman-line)
@@ -540,7 +585,9 @@
 		(goal train-spearman YES)
 		(goal primary-support-unit SPEARMAN)
 	)
+	(goal gl-roman-champion-base-threat NO)
 	(unit-type-count-total spearman-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: spearman-line)
 =>
 	(up-train gl-unitescrow-state c: spearman-line)
@@ -551,7 +598,9 @@
 		(goal train-spearman YES)
 		(goal secondary-support-unit SPEARMAN)
 	)
+	(goal gl-roman-champion-base-threat NO)
 	(unit-type-count-total spearman-line g:< gl-no-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: spearman-line)
 =>
 	(up-train gl-unitescrow-state c: spearman-line)
@@ -567,6 +616,7 @@
 		(goal secondary-unit HORUS)
 	)
 	(unit-type-count-total horus-scout-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: horus-scout-line)
 =>
 	(up-train gl-unitescrow-state c: horus-scout-line)
@@ -578,6 +628,7 @@
 		(goal tertiary-unit HORUS)
 	)
 	(unit-type-count-total horus-scout-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: horus-scout-line)
 =>
 	(up-train gl-unitescrow-state c: horus-scout-line)
@@ -589,6 +640,7 @@
 		(goal quaternary-unit HORUS)
 	)
 	(unit-type-count-total horus-scout-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: horus-scout-line)
 =>
 	(up-train gl-unitescrow-state c: horus-scout-line)
@@ -600,6 +652,7 @@
 		(goal primary-unit HORUS)
 	)
 	(unit-type-count-total horus-scout-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: horus-scout-line)
 =>
 	(up-train gl-unitescrow-state c: horus-scout-line)
@@ -619,6 +672,7 @@
 		(goal primary-unit ARCHER)
 	)
 	(unit-type-count-total bowman-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: bowman-line)
 =>
 	(up-train gl-unitescrow-state c: bowman-line)
@@ -630,6 +684,7 @@
 		(goal secondary-unit ARCHER)
 	)
 	(unit-type-count-total bowman-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: bowman-line)
 =>
 	(up-train gl-unitescrow-state c: bowman-line)
@@ -641,6 +696,7 @@
 		(goal tertiary-unit ARCHER)
 	)
 	(unit-type-count-total bowman-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: bowman-line)
 =>
 	(up-train gl-unitescrow-state c: bowman-line)
@@ -652,6 +708,7 @@
 		(goal quaternary-unit ARCHER)
 	)
 	(unit-type-count-total bowman-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: bowman-line)
 =>
 	(up-train gl-unitescrow-state c: bowman-line)
@@ -663,6 +720,7 @@
 		(goal primary-support-unit ARCHER)
 	)
 	(unit-type-count-total bowman-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: bowman-line)
 =>
 	(up-train gl-unitescrow-state c: bowman-line)
@@ -674,6 +732,7 @@
 		(goal secondary-support-unit ARCHER)
 	)
 	(unit-type-count-total bowman-line g:< gl-no-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: bowman-line)
 =>
 	(up-train gl-unitescrow-state c: bowman-line)
@@ -688,6 +747,7 @@
 		(goal primary-unit ARCHER)
 	)
 	(unit-type-count-total crossbowman g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: crossbowman)
 =>
 	(up-train gl-unitescrow-state c: crossbowman)
@@ -700,6 +760,7 @@
 		(goal secondary-unit ARCHER)
 	)
 	(unit-type-count-total crossbowman g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: crossbowman)
 =>
 	(up-train gl-unitescrow-state c: crossbowman)
@@ -712,6 +773,7 @@
 		(goal tertiary-unit ARCHER)
 	)
 	(unit-type-count-total crossbowman g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: crossbowman)
 =>
 	(up-train gl-unitescrow-state c: crossbowman)
@@ -724,6 +786,7 @@
 		(goal quaternary-unit ARCHER)
 	)
 	(unit-type-count-total crossbowman g:< gl-no-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: crossbowman)
 =>
 	(up-train gl-unitescrow-state c: crossbowman)
@@ -735,12 +798,30 @@
 
 #load-if-not-defined INCAN-CIV
 
+;Counter observed ranged mass even when Skirmishers are outside this
+;civilization's focus-sheet composition. The population cap keeps the response
+;proportional instead of replacing the historical core army.
+(defrule
+	(current-age >= early-antiquity-age)
+	(or
+		(players-unit-type-count any-enemy archery-class >= 3)
+		(players-unit-type-count any-enemy cavalry-archer-class >= 3)
+	)
+	(unit-type-count-total skirmisher-line g:< gl-five-percent)
+	(food-amount > 150)
+	(up-can-train gl-unitescrow-state c: skirmisher-line)
+=>
+	(set-goal train-skirmisher YES)
+	(up-train gl-unitescrow-state c: skirmisher-line)
+)
+
 (defrule
 	(and
 		(goal train-skirmisher YES)
 		(goal primary-unit SKIRMISHER)
 	)
 	(unit-type-count-total skirmisher-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: skirmisher-line)
 =>
 	(up-train gl-unitescrow-state c: skirmisher-line)
@@ -752,6 +833,7 @@
 		(goal secondary-unit SKIRMISHER)
 	)
 	(unit-type-count-total skirmisher-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: skirmisher-line)
 =>
 	(up-train gl-unitescrow-state c: skirmisher-line)
@@ -763,6 +845,7 @@
 		(goal tertiary-unit SKIRMISHER)
 	)
 	(unit-type-count-total skirmisher-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: skirmisher-line)
 =>
 	(up-train gl-unitescrow-state c: skirmisher-line)
@@ -774,6 +857,7 @@
 		(goal quaternary-unit SKIRMISHER)
 	)
 	(unit-type-count-total skirmisher-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: skirmisher-line)
 =>
 	(up-train gl-unitescrow-state c: skirmisher-line)
@@ -785,6 +869,7 @@
 		(goal primary-support-unit SKIRMISHER)
 	)
 	(unit-type-count-total skirmisher-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: skirmisher-line)
 =>
 	(up-train gl-unitescrow-state c: skirmisher-line)
@@ -796,6 +881,7 @@
 		(goal secondary-support-unit SKIRMISHER)
 	)
 	(unit-type-count-total skirmisher-line g:< gl-no-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: skirmisher-line)
 =>
 	(up-train gl-unitescrow-state c: skirmisher-line)
@@ -806,11 +892,26 @@
 #load-if-defined INCAN-CIV
 
 (defrule
+	(current-age >= early-antiquity-age)
+	(or
+		(players-unit-type-count any-enemy archery-class >= 3)
+		(players-unit-type-count any-enemy cavalry-archer-class >= 3)
+	)
+	(unit-type-count-total range-mounted-skirmisher-line g:< gl-five-percent)
+	(food-amount > 150)
+	(up-can-train gl-unitescrow-state c: range-mounted-skirmisher-line)
+=>
+	(set-goal train-skirmisher YES)
+	(up-train gl-unitescrow-state c: range-mounted-skirmisher-line)
+)
+
+(defrule
 	(and
 		(goal train-skirmisher YES)
 		(goal primary-unit SKIRMISHER)
 	)
 	(unit-type-count-total range-mounted-skirmisher-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: range-mounted-skirmisher-line)
 =>
 	(up-train gl-unitescrow-state c: range-mounted-skirmisher-line)
@@ -822,6 +923,7 @@
 		(goal secondary-unit SKIRMISHER)
 	)
 	(unit-type-count-total range-mounted-skirmisher-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: range-mounted-skirmisher-line)
 =>
 	(up-train gl-unitescrow-state c: range-mounted-skirmisher-line)
@@ -833,6 +935,7 @@
 		(goal tertiary-unit SKIRMISHER)
 	)
 	(unit-type-count-total range-mounted-skirmisher-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: range-mounted-skirmisher-line)
 =>
 	(up-train gl-unitescrow-state c: range-mounted-skirmisher-line)
@@ -844,6 +947,7 @@
 		(goal quaternary-unit SKIRMISHER)
 	)
 	(unit-type-count-total range-mounted-skirmisher-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: range-mounted-skirmisher-line)
 =>
 	(up-train gl-unitescrow-state c: range-mounted-skirmisher-line)
@@ -855,6 +959,7 @@
 		(goal primary-support-unit SKIRMISHER)
 	)
 	(unit-type-count-total range-mounted-skirmisher-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: range-mounted-skirmisher-line)
 =>
 	(up-train gl-unitescrow-state c: range-mounted-skirmisher-line)
@@ -866,6 +971,7 @@
 		(goal secondary-support-unit SKIRMISHER)
 	)
 	(unit-type-count-total range-mounted-skirmisher-line g:< gl-no-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: range-mounted-skirmisher-line)
 =>
 	(up-train gl-unitescrow-state c: range-mounted-skirmisher-line)
@@ -883,6 +989,7 @@
 		(goal primary-unit CAVARCHER)
 	)
 	(unit-type-count-total cavalry-archer-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: cavalry-archer-line)
 =>
 	(up-train gl-unitescrow-state c: cavalry-archer-line)
@@ -894,6 +1001,7 @@
 		(goal secondary-unit CAVARCHER)
 	)
 	(unit-type-count-total cavalry-archer-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: cavalry-archer-line)
 =>
 	(up-train gl-unitescrow-state c: cavalry-archer-line)
@@ -905,6 +1013,7 @@
 		(goal tertiary-unit CAVARCHER)
 	)
 	(unit-type-count-total cavalry-archer-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: cavalry-archer-line)
 =>
 	(up-train gl-unitescrow-state c: cavalry-archer-line)
@@ -916,6 +1025,7 @@
 		(goal quaternary-unit CAVARCHER)
 	)
 	(unit-type-count-total cavalry-archer-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: cavalry-archer-line)
 =>
 	(up-train gl-unitescrow-state c: cavalry-archer-line)
@@ -931,6 +1041,7 @@
 		(goal primary-unit CMLARCHER)
 	)
 	(unit-type-count-total camel-archer-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: camel-archer-line)
 =>
 	(up-train gl-unitescrow-state c: camel-archer-line)
@@ -942,6 +1053,7 @@
 		(goal secondary-unit CMLARCHER)
 	)
 	(unit-type-count-total camel-archer-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: camel-archer-line)
 =>
 	(up-train gl-unitescrow-state c: camel-archer-line)
@@ -953,6 +1065,7 @@
 		(goal tertiary-unit CMLARCHER)
 	)
 	(unit-type-count-total camel-archer-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: camel-archer-line)
 =>
 	(up-train gl-unitescrow-state c: camel-archer-line)
@@ -964,6 +1077,7 @@
 		(goal quaternary-unit CMLARCHER)
 	)
 	(unit-type-count-total camel-archer-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: camel-archer-line)
 =>
 	(up-train gl-unitescrow-state c: camel-archer-line)
@@ -975,6 +1089,7 @@
 		(goal primary-support-unit CMLARCHER)
 	)
 	(unit-type-count-total camel-archer-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: camel-archer-line)
 =>
 	(up-train gl-unitescrow-state c: camel-archer-line)
@@ -986,6 +1101,7 @@
 		(goal secondary-support-unit CMLARCHER)
 	)
 	(unit-type-count-total camel-archer-line g:< gl-no-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: camel-archer-line)
 =>
 	(up-train gl-unitescrow-state c: camel-archer-line)
@@ -1001,6 +1117,7 @@
 		(goal secondary-unit ELEARCHER)
 	)
 	(unit-type-count-total elephant-archer-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: elephant-archer-line)
 =>
 	(up-train gl-unitescrow-state c: elephant-archer-line)
@@ -1012,6 +1129,7 @@
 		(goal tertiary-unit ELEARCHER)
 	)
 	(unit-type-count-total elephant-archer-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: elephant-archer-line)
 =>
 	(up-train gl-unitescrow-state c: elephant-archer-line)
@@ -1023,6 +1141,7 @@
 		(goal quaternary-unit ELEARCHER)
 	)
 	(unit-type-count-total elephant-archer-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: elephant-archer-line)
 =>
 	(up-train gl-unitescrow-state c: elephant-archer-line)
@@ -1034,6 +1153,7 @@
 		(goal primary-unit ELEARCHER)
 	)
 	(unit-type-count-total elephant-archer-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: elephant-archer-line)
 =>
 	(up-train gl-unitescrow-state c: elephant-archer-line)
@@ -1045,6 +1165,7 @@
 		(goal primary-support-unit ELEARCHER)
 	)
 	(unit-type-count-total elephant-archer-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: elephant-archer-line)
 =>
 	(up-train gl-unitescrow-state c: elephant-archer-line)
@@ -1056,6 +1177,7 @@
 		(goal secondary-support-unit ELEARCHER)
 	)
 	(unit-type-count-total elephant-archer-line g:< gl-no-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: elephant-archer-line)
 =>
 	(up-train gl-unitescrow-state c: elephant-archer-line)
@@ -1072,6 +1194,7 @@
 		(goal secondary-unit CHRARCHER)
 	)
 	(unit-type-count-total chariot-archer g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: chariot-archer)
 =>
 	(up-train gl-unitescrow-state c: chariot-archer)
@@ -1083,6 +1206,7 @@
 		(goal tertiary-unit CHRARCHER)
 	)
 	(unit-type-count-total chariot-archer g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: chariot-archer)
 =>
 	(up-train gl-unitescrow-state c: chariot-archer)
@@ -1094,6 +1218,7 @@
 		(goal quaternary-unit CHRARCHER)
 	)
 	(unit-type-count-total chariot-archer g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: chariot-archer)
 =>
 	(up-train gl-unitescrow-state c: chariot-archer)
@@ -1105,6 +1230,7 @@
 		(goal primary-unit CHRARCHER)
 	)
 	(unit-type-count-total chariot-archer g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: chariot-archer)
 =>
 	(up-train gl-unitescrow-state c: chariot-archer)
@@ -1116,6 +1242,7 @@
 		(goal primary-support-unit CHRARCHER)
 	)
 	(unit-type-count-total chariot-archer g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: chariot-archer)
 =>
 	(up-train gl-unitescrow-state c: chariot-archer)
@@ -1127,6 +1254,7 @@
 		(goal secondary-support-unit CHRARCHER)
 	)
 	(unit-type-count-total chariot-archer g:< gl-no-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: chariot-archer)
 =>
 	(up-train gl-unitescrow-state c: chariot-archer)
@@ -1146,6 +1274,7 @@
 		(goal secondary-unit SCAVALRY)
 	)
 	(unit-type-count-total scout-cavalry-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: scout-cavalry-line)
 =>
 	(up-train gl-unitescrow-state c: scout-cavalry-line)
@@ -1157,6 +1286,7 @@
 		(goal tertiary-unit SCAVALRY)
 	)
 	(unit-type-count-total scout-cavalry-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: scout-cavalry-line)
 =>
 	(up-train gl-unitescrow-state c: scout-cavalry-line)
@@ -1168,6 +1298,7 @@
 		(goal quaternary-unit SCAVALRY)
 	)
 	(unit-type-count-total scout-cavalry-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: scout-cavalry-line)
 =>
 	(up-train gl-unitescrow-state c: scout-cavalry-line)
@@ -1179,6 +1310,7 @@
 		(goal primary-unit SCAVALRY)
 	)
 	(unit-type-count-total scout-cavalry-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: scout-cavalry-line)
 =>
 	(up-train gl-unitescrow-state c: scout-cavalry-line)
@@ -1190,6 +1322,7 @@
 		(goal primary-support-unit SCAVALRY)
 	)
 	(unit-type-count-total scout-cavalry-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: scout-cavalry-line)
 =>
 	(up-train gl-unitescrow-state c: scout-cavalry-line)
@@ -1201,6 +1334,7 @@
 		(goal secondary-support-unit SCAVALRY)
 	)
 	(unit-type-count-total scout-cavalry-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: scout-cavalry-line)
 =>
 	(up-train gl-unitescrow-state c: scout-cavalry-line)
@@ -1220,6 +1354,7 @@
 		(goal primary-unit CAVALRY)
 	)
 	(unit-type-count-total cavalry-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: cavalry-line)
 =>
 	(up-train gl-unitescrow-state c: cavalry-line)
@@ -1232,6 +1367,7 @@
 		(goal secondary-unit CAVALRY)
 	)
 	(unit-type-count-total cavalry-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: cavalry-line)
 =>
 	(up-train gl-unitescrow-state c: cavalry-line)
@@ -1244,6 +1380,7 @@
 		(goal tertiary-unit CAVALRY)
 	)
 	(unit-type-count-total cavalry-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: cavalry-line)
 =>
 	(up-train gl-unitescrow-state c: cavalry-line)
@@ -1256,6 +1393,7 @@
 		(goal quaternary-unit CAVALRY)
 	)
 	(unit-type-count-total cavalry-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: cavalry-line)
 =>
 	(up-train gl-unitescrow-state c: cavalry-line)
@@ -1267,6 +1405,7 @@
 		(goal primary-support-unit CAVALRY)
 	)
 	(unit-type-count-total cavalry-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: cavalry-line)
 =>
 	(up-train gl-unitescrow-state c: cavalry-line)
@@ -1278,6 +1417,7 @@
 		(goal secondary-support-unit CAVALRY)
 	)
 	(unit-type-count-total cavalry-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: cavalry-line)
 =>
 	(up-train gl-unitescrow-state c: cavalry-line)
@@ -1297,6 +1437,7 @@
 		(goal primary-unit RATHA)
 	)
 	(unit-type-count-total ratha-melee-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: ratha-melee-line)
 =>
 	(up-train gl-unitescrow-state c: ratha-melee-line)
@@ -1309,6 +1450,7 @@
 		(goal secondary-unit RATHA)
 	)
 	(unit-type-count-total ratha-melee-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: ratha-melee-line)
 =>
 	(up-train gl-unitescrow-state c: ratha-melee-line)
@@ -1321,6 +1463,7 @@
 		(goal tertiary-unit RATHA)
 	)
 	(unit-type-count-total ratha-melee-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: ratha-melee-line)
 =>
 	(up-train gl-unitescrow-state c: ratha-melee-line)
@@ -1333,6 +1476,7 @@
 		(goal quaternary-unit RATHA)
 	)
 	(unit-type-count-total ratha-melee-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: ratha-melee-line)
 =>
 	(up-train gl-unitescrow-state c: ratha-melee-line)
@@ -1344,6 +1488,7 @@
 		(goal primary-support-unit RATHA)
 	)
 	(unit-type-count-total ratha-melee-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: ratha-melee-line)
 =>
 	(up-train gl-unitescrow-state c: ratha-melee-line)
@@ -1355,6 +1500,7 @@
 		(goal secondary-support-unit RATHA)
 	)
 	(unit-type-count-total ratha-melee-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: ratha-melee-line)
 =>
 	(up-train gl-unitescrow-state c: ratha-melee-line)
@@ -1371,6 +1517,7 @@
 		(goal primary-unit CAMEL)
 	)
 	(unit-type-count-total camel-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: camel-line)
 =>
 	(up-train gl-unitescrow-state c: camel-line)
@@ -1383,6 +1530,7 @@
 		(goal secondary-unit CAMEL)
 	)
 	(unit-type-count-total camel-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: camel-line)
 =>
 	(up-train gl-unitescrow-state c: camel-line)
@@ -1395,6 +1543,7 @@
 		(goal tertiary-unit CAMEL)
 	)
 	(unit-type-count-total camel-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: camel-line)
 =>
 	(up-train gl-unitescrow-state c: camel-line)
@@ -1407,6 +1556,7 @@
 		(goal quaternary-unit CAMEL)
 	)
 	(unit-type-count-total camel-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: camel-line)
 =>
 	(up-train gl-unitescrow-state c: camel-line)
@@ -1418,6 +1568,7 @@
 		(goal primary-support-unit CAMEL)
 	)
 	(unit-type-count-total camel-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: camel-line)
 =>
 	(up-train gl-unitescrow-state c: camel-line)
@@ -1429,6 +1580,7 @@
 		(goal secondary-support-unit CAMEL)
 	)
 	(unit-type-count-total camel-line g:< gl-no-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: camel-line)
 =>
 	(up-train gl-unitescrow-state c: camel-line)
@@ -1445,6 +1597,7 @@
 		(goal primary-unit ELEPHANT)
 	)
 	(unit-type-count-total battle-elephant-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: battle-elephant-line)
 =>
 	(up-train gl-unitescrow-state c: battle-elephant-line)
@@ -1457,6 +1610,7 @@
 		(goal secondary-unit ELEPHANT)
 	)
 	(unit-type-count-total battle-elephant-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: battle-elephant-line)
 =>
 	(up-train gl-unitescrow-state c: battle-elephant-line)
@@ -1469,6 +1623,7 @@
 		(goal tertiary-unit ELEPHANT)
 	)
 	(unit-type-count-total battle-elephant-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: battle-elephant-line)
 =>
 	(up-train gl-unitescrow-state c: battle-elephant-line)
@@ -1481,6 +1636,7 @@
 		(goal quaternary-unit ELEPHANT)
 	)
 	(unit-type-count-total battle-elephant-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: battle-elephant-line)
 =>
 	(up-train gl-unitescrow-state c: battle-elephant-line)
@@ -1492,6 +1648,7 @@
 		(goal primary-support-unit ELEPHANT)
 	)
 	(unit-type-count-total battle-elephant-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: battle-elephant-line)
 =>
 	(up-train gl-unitescrow-state c: battle-elephant-line)
@@ -1503,6 +1660,7 @@
 		(goal secondary-support-unit ELEPHANT)
 	)
 	(unit-type-count-total battle-elephant-line g:< gl-no-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: battle-elephant-line)
 =>
 	(up-train gl-unitescrow-state c: battle-elephant-line)
@@ -1519,6 +1677,7 @@
 		(goal primary-unit CHARIOT)
 	)
 	(unit-type-count-total chariot-line g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: chariot-line)
 =>
 	(up-train gl-unitescrow-state c: chariot-line)
@@ -1531,6 +1690,7 @@
 		(goal secondary-unit CHARIOT)
 	)
 	(unit-type-count-total chariot-line g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: chariot-line)
 =>
 	(up-train gl-unitescrow-state c: chariot-line)
@@ -1543,6 +1703,7 @@
 		(goal tertiary-unit CHARIOT)
 	)
 	(unit-type-count-total chariot-line g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: chariot-line)
 =>
 	(up-train gl-unitescrow-state c: chariot-line)
@@ -1555,6 +1716,7 @@
 		(goal quaternary-unit CHARIOT)
 	)
 	(unit-type-count-total chariot-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: chariot-line)
 =>
 	(up-train gl-unitescrow-state c: chariot-line)
@@ -1566,6 +1728,7 @@
 		(goal primary-support-unit CHARIOT)
 	)
 	(unit-type-count-total chariot-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: chariot-line)
 =>
 	(up-train gl-unitescrow-state c: chariot-line)
@@ -1577,6 +1740,7 @@
 		(goal secondary-support-unit CHARIOT)
 	)
 	(unit-type-count-total chariot-line g:< gl-no-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: chariot-line)
 =>
 	(up-train gl-unitescrow-state c: chariot-line)
@@ -1594,6 +1758,7 @@
 	(up-compare-goal current-phase >= 4)
 	(goal train-ram YES)
 	(unit-type-count-total battering-ram-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: battering-ram-line)
 =>
 	(up-train gl-unitescrow-state c: battering-ram-line)
@@ -1607,6 +1772,7 @@
 	(up-compare-goal current-phase >= 4)
 	(goal train-ram YES)
 	(unit-type-count-total armored-elephant-line g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: armored-elephant-line)
 =>
 	(up-train gl-unitescrow-state c: armored-elephant-line)
@@ -1619,7 +1785,8 @@
 (defrule
 	(up-compare-goal current-phase >= 4)
 	(goal train-scorpion YES)
-	(unit-type-count-total scorpion-line g:< gl-one-percent)
+	(unit-type-count-total scorpion-line g:< gl-three-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: scorpion-line)
 =>
 	(up-train gl-unitescrow-state c: scorpion-line)
@@ -1627,12 +1794,27 @@
 
 ;========================SCORPION END========================
 
+;========================MANGONEL BEGIN========================
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(goal train-onager YES)
+	(unit-type-count-total mangonel-line g:< gl-one-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: mangonel-line)
+=>
+	(up-train gl-unitescrow-state c: mangonel-line)
+)
+
+;========================MANGONEL END========================
+
 ;========================CATAPULT BEGIN========================
 
 (defrule
 	(up-compare-goal current-phase >= 4)
 	(goal train-catapult YES)
 	(unit-type-count-total catapult g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: catapult)
 =>
 	(up-train gl-unitescrow-state c: catapult)
@@ -1661,6 +1843,7 @@
 ;train a lone priest for relics
 (defrule
 	(unit-type-count-total priest c:< 1)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: priest)
 =>
 	(up-train gl-unitescrow-state c: priest)
@@ -1669,6 +1852,7 @@
 (defrule
 	(goal train-priest YES)
 	(unit-type-count-total priest g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: priest)
 =>
 	(up-train gl-unitescrow-state c: priest)
@@ -1680,6 +1864,7 @@
 		(goal primary-unit PRIEST)
 	)
 	(unit-type-count-total priest g:< gl-ten-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: priest)
 =>
 	(up-train gl-unitescrow-state c: priest)
@@ -1691,6 +1876,7 @@
 		(goal secondary-unit PRIEST)
 	)
 	(unit-type-count-total priest g:< gl-five-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: priest)
 =>
 	(up-train gl-unitescrow-state c: priest)
@@ -1702,6 +1888,7 @@
 		(goal tertiary-unit PRIEST)
 	)
 	(unit-type-count-total priest g:< gl-two-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: priest)
 =>
 	(up-train gl-unitescrow-state c: priest)
@@ -1713,6 +1900,7 @@
 		(goal quaternary-unit PRIEST)
 	)
 	(unit-type-count-total priest g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: priest)
 =>
 	(up-train gl-unitescrow-state c: priest)
@@ -1726,6 +1914,7 @@
 	(up-compare-goal current-phase >= 5)
 	(goal train-priest YES)
 	(unit-type-count-total brahmin g:< gl-one-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: brahmin)
 =>
 	(up-train gl-unitescrow-state c: brahmin)
@@ -1737,11 +1926,106 @@
 
 ;========================SHIPYARD BEGIN========================
 
+;Maintain a credible mixed fleet even if the rotating ship selector or a
+;civilization focus flag cannot find a trainable choice. Availability checks
+;make these safe for civilizations that lack one of the later hulls.
+(defrule
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(wood-amount > 250)
+	(warboat-count g:< gl-five-percent)
+	(unit-type-count-total scout-galley-line g:< gl-one-percent)
+	(up-can-train gl-unitescrow-state c: scout-galley-line)
+=>
+	(up-train gl-unitescrow-state c: scout-galley-line)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 2)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(wood-amount > 250)
+	(gold-amount > 150)
+	(warboat-count g:< gl-five-percent)
+	(unit-type-count-total polyreme-line g:< gl-one-percent)
+	(up-can-train gl-unitescrow-state c: polyreme-line)
+=>
+	(up-train gl-unitescrow-state c: polyreme-line)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 2)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(wood-amount > 250)
+	(gold-amount > 150)
+	(warboat-count g:< gl-five-percent)
+	(unit-type-count-total fire-ship-line g:< gl-one-percent)
+	(up-can-train gl-unitescrow-state c: fire-ship-line)
+=>
+	(up-train gl-unitescrow-state c: fire-ship-line)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(wood-amount > 250)
+	(gold-amount > 150)
+	(warboat-count g:< gl-five-percent)
+	(unit-type-count-total juggernaut-line g:< gl-one-percent)
+	(up-can-train gl-unitescrow-state c: juggernaut-line)
+=>
+	(up-train gl-unitescrow-state c: juggernaut-line)
+)
+
 ;========================SCOUT SHIP BEGIN========================
 
 (defrule
 	(goal ship-train SCOUTSHIP)
 	(goal train-scoutships YES)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
 	(unit-type-count-total scout-galley-line g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: scout-galley-line)
 =>
@@ -1962,6 +2246,7 @@
 (defrule
 	(current-age >= middle-antiquity-age)
 	(up-object-type-count-total c: trebuchet-set g:< gl-no-percent)
+	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: palintonon-packed)
 =>
 	(up-train gl-unitescrow-state c: palintonon-packed)

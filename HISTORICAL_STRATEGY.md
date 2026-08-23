@@ -22,8 +22,73 @@ not selected by the focus workbook.
 Extreme composition, specialties, and unit-based rushes against
 `RAW AI unit focus spreadsheet.ods`; the historical profile is checked for valid
 unit and strategy constants but is intentionally not restricted by the workbook.
-The incomplete `RAW AI good units per civ.ods` is supporting guidance only; blank
-cells are not treated as evaluations.
+`RAW AI good units per civ.ods` is generated from the reviewable
+`good-unit-evaluations.json` knowledge artifact. `tools/evaluate_good_units.py`
+uses the external mod DAT and exported civilization trees to apply the strongest
+legal combination of a civilization's available upgrades, then records final
+HP, primary and role-weighted bonus damage, melee and pierce armor, range and
+minimum range, speed, reload, accuracy, resource cost, population use, and
+training time. Regional replacements such as
+Ratha may satisfy a generic category by final performance; castle/shipyard
+unique families remain listed separately in `UU Type`.
+
+The rating rubric is reproducible:
+
+- `No`: the family is unavailable;
+- `Excellent`: the final generic unit and all standard upgrades are available,
+  or missing upgrades are offset by final combat statistics at or above the
+  fully upgraded reference;
+- `Good`: at least 90% of reference even-number combat performance, or at least
+  full reference efficiency after a resource-cost or population advantage;
+- `Mediocre`: usable, but below those thresholds; and
+- `Bad`: below 72% of reference combat performance and still below 95% after
+  the best cost/population advantage.
+
+Range carries substantial weight for archers and siege. Missing Parthian Tactics
+adds an explicit mounted-archer penalty. Slower cavalry can still qualify through
+damage and durability. Priest affinity from `AI RAW.per` grants `Excellent`;
+other priests use a capability score for Sanctity, Fervor, Block Printing,
+Illumination, Redemption, Atonement, Theocracy, Heresy, and Faith. Navy uses the
+template naval affinity because boarding/fleet utility is not reducible to the
+ordinary land-unit damage model. The JSON records source hashes, every chosen
+unit and technology package, the final statistics, ratios, and an explanation
+for adversarial review.
+
+## Focus exceptions and historical scope
+
+The Extreme workbook constrains generic planned composition. It does not ban a
+civilization's own unique units: bounded direct unique-unit production remains
+available independently of the generic focus selection, with additional
+strategy or tactical gates where they are implemented. The military and naval
+families, source unit IDs, semantic AI lines, duplicate-line resolutions, and
+source hashes are recorded in `unique-unit-production.json`; validation requires
+every listed production copy to remain bounded, role-independent, and available
+on both Hardest and Extreme. Bounded reactive counter
+production is exempt for the same reason. In particular, a civilization may
+train Skirmishers against a detected concentration of enemy archery- or
+cavalry-archer-class units even when the workbook does not select its archer
+category. Reactive exceptions must remain situation-driven and neither type of
+exception may silently replace the workbook composition.
+
+The tech-tree export's Han Halberdier is a generic spear-line upgrade despite
+being tagged `UniqueUnit`. The Imperial Magistrate, Pict Cow, and Scythian Deer
+are civilian or economic objects rather than military-composition families.
+These classifications are recorded explicitly in the manifest instead of being
+silently treated as missing combat strategies.
+
+One data-mod defect remains explicit: the stable Elite Mounted Skirmisher
+technology (`1349`) costs 275 wood and 200 gold but has `effect_id = -1` in the
+current DAT. The AI trains the bounded stable copy but does not purchase that
+no-op research. The elite stable upgrade needs a corrected mod effect before it
+can be implemented reliably.
+
+The mod retains the civilization name `Britons` while giving it an Iceni
+background. The strategy model therefore treats it as a composite Iron Age
+British civilization: Iceni and Boudican evidence informs its identity and
+mass-infantry pressure, while Caesar's accounts of southern British chariot
+warfare and evidence from later Roman campaigning may inform mechanics the Iceni
+background alone does not specify. The sources are complementary abstractions,
+not a claim that every described force was Iceni or contemporary.
 
 ## Matchup and opening model
 
@@ -61,7 +126,7 @@ attack before the regular late-game periodic timer.
 | --- | --- |
 | Armenians | Armored cavalry, mounted missiles, and clergy |
 | Athenians | Spear line and missile support backed by a naval economy |
-| Britons / Iceni | Mobile chariot-style raiding and massed tribal infantry |
+| Britons (composite Iron Age British; Iceni background) | Mobile chariot-style raiding and massed tribal infantry |
 | Carthaginians | Cavalry-led combined arms, missile troops, and naval pressure |
 | Cretans | Stand-off archery and naval mobility |
 | Dacians | Aggressive falx infantry, light cavalry, and siege support |
@@ -108,6 +173,13 @@ biases and literary conventions with caution:
   <https://www.perseus.tufts.edu/hopper/text?doc=Perseus%3Atext%3A1999.02.0001%3Abook%3D4>
   and
   <https://www.perseus.tufts.edu/hopper/text?doc=Perseus%3Atext%3A1999.02.0001%3Abook%3D5>
+- Tacitus, *Annals* 14.34-37, for Boudica's coalition, Roman concentration, and
+  the massed but tactically constrained British attack:
+  <https://penelope.uchicago.edu/Thayer/e/roman/texts/tacitus/annals/14b%2A.html>
+- Tacitus, *Agricola* 25, for coordinated land-and-sea and fleet-supported Roman
+  operations in Britain; this informs Roman logistics against the composite
+  Briton opponent, not an Iceni unit claim:
+  <https://dcc.dickinson.edu/nl/tacitus-agricola/25>
 - Plutarch, *Life of Crassus*, for Parthian mounted archery and cataphract
   cooperation: <https://classics.mit.edu/Plutarch/crassus.html>
 - Herodotus, *Histories* 4, for Scythian mobility and avoidance of a forced

@@ -2,8 +2,16 @@
 (defrule
 	(true)
 =>
-	(enable-timer t-land-attack 600)
-	(enable-timer t-naval-attack 600)
+	(generate-random-number 121)
+	(up-get-fact random-number 0 gl-attack-timer-random)
+	(up-modify-goal gl-attack-timer-next g:= gl-attack-timer-random)
+	(up-modify-goal gl-attack-timer-next c:+ 540)
+	(up-set-timer c: t-land-attack g: gl-attack-timer-next)
+	(generate-random-number 121)
+	(up-get-fact random-number 0 gl-attack-timer-random)
+	(up-modify-goal gl-attack-timer-next g:= gl-attack-timer-random)
+	(up-modify-goal gl-attack-timer-next c:+ 540)
+	(up-set-timer c: t-naval-attack g: gl-attack-timer-next)
 	
 	(disable-self)
 )
@@ -14,8 +22,12 @@
 	(up-timer-status t-land-attack != timer-running)
 =>
 	(chat-local-to-self "refresh land attack timer")
-	(up-set-timer c: t-land-attack g: land-attack-interval)
-	(up-chat-data-to-self "current land attack interval: %d." g: land-attack-interval)
+	(generate-random-number 61)
+	(up-get-fact random-number 0 gl-attack-timer-random)
+	(up-modify-goal gl-attack-timer-next g:= land-attack-interval)
+	(up-modify-goal gl-attack-timer-next g:+ gl-attack-timer-random)
+	(up-set-timer c: t-land-attack g: gl-attack-timer-next)
+	(up-chat-data-to-self "current land attack interval: %d." g: gl-attack-timer-next)
 	(up-chat-data-to-self "current military-superiority: %d." g: military-superiority)
 )
 
@@ -25,8 +37,12 @@
 	(up-timer-status t-naval-attack != timer-running)
 =>
 	(chat-local-to-self "refresh naval attack timer")
-	(up-set-timer c: t-naval-attack g: naval-attack-interval)
-	(up-chat-data-to-self "current naval attack interval: %d." g: naval-attack-interval)
+	(generate-random-number 61)
+	(up-get-fact random-number 0 gl-attack-timer-random)
+	(up-modify-goal gl-attack-timer-next g:= naval-attack-interval)
+	(up-modify-goal gl-attack-timer-next g:+ gl-attack-timer-random)
+	(up-set-timer c: t-naval-attack g: gl-attack-timer-next)
+	(up-chat-data-to-self "current naval attack interval: %d." g: gl-attack-timer-next)
 	(up-chat-data-to-self "current naval-superiority: %d." g: naval-superiority)
 )
 
@@ -53,8 +69,12 @@
 	(up-timer-status t-periodic-attack != timer-running)
 =>
 	(chat-local-to-self "refresh periodic attack timer")
-	(up-set-timer c: t-periodic-attack g: periodic-attack-interval)
-	(up-chat-data-to-self "current periodic attack interval: %d." g: periodic-attack-interval)
+	(generate-random-number 121)
+	(up-get-fact random-number 0 gl-attack-timer-random)
+	(up-modify-goal gl-attack-timer-next g:= periodic-attack-interval)
+	(up-modify-goal gl-attack-timer-next g:+ gl-attack-timer-random)
+	(up-set-timer c: t-periodic-attack g: gl-attack-timer-next)
+	(up-chat-data-to-self "current periodic attack interval: %d." g: gl-attack-timer-next)
 )
 
 (defrule
@@ -110,4 +130,62 @@
 =>
 	(chat-local-to-self "refresh update facts timer")
 	(up-set-timer c: t-update-facts c: 15)
+)
+
+(defrule
+	(up-timer-status t-transport-escort != timer-running)
+=>
+	(up-set-timer c: t-transport-escort c: 20)
+)
+
+(defrule
+	(up-timer-status t-opportunistic-raid != timer-running)
+=>
+	(generate-random-number 31)
+	(up-get-fact random-number 0 gl-attack-timer-random)
+	(up-modify-goal gl-attack-timer-next g:= gl-attack-timer-random)
+	(up-modify-goal gl-attack-timer-next c:+ 44)
+	(up-set-timer c: t-opportunistic-raid g: gl-attack-timer-next)
+)
+
+(defrule
+	(up-timer-status t-transport-route != timer-running)
+=>
+	(up-set-timer c: t-transport-route c: 8)
+)
+
+(defrule
+	(up-timer-status t-defense-leash != timer-running)
+=>
+	(up-set-timer c: t-defense-leash c: 10)
+)
+
+(defrule
+	(up-timer-status t-island-migration != timer-running)
+=>
+	(up-set-timer c: t-island-migration c: 90)
+)
+
+(defrule
+	(up-timer-status t-transport-repair != timer-running)
+=>
+	(up-set-timer c: t-transport-repair c: 30)
+)
+
+(defrule
+	(up-timer-status t-transport-recovery != timer-running)
+=>
+	(up-set-timer c: t-transport-recovery c: 30)
+)
+
+(defrule
+	(up-timer-status t-relic-ferry != timer-running)
+=>
+	(up-set-timer c: t-relic-ferry c: 45)
+)
+
+(defrule
+	(up-timer-status t-fortification-scan != timer-running)
+=>
+	(up-set-timer c: t-fortification-scan c: 30)
 )

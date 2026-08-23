@@ -5,7 +5,8 @@
 	(set-strategic-number sn-dock-avoidance-factor -10000)
 	(set-strategic-number sn-dock-proximity-factor 1000)
 	(set-strategic-number sn-dock-placement-mode -1)
-	(set-strategic-number sn-dock-training-filter 2)
+	;Allow civilian and military ships to train at every deliberately placed port.
+	(set-strategic-number sn-dock-training-filter 0)
 	(set-strategic-number sn-minimum-dropsite-buffer 50)
 	(set-strategic-number sn-mule-cart-dropsite-placement mining-camp)
 	(set-strategic-number sn-do-not-scale-for-difficulty-level 1)
@@ -13,9 +14,15 @@
 	(set-strategic-number sn-scale-minimum-attack-group-size 0)
 	(set-strategic-number sn-zero-priority-distance 255)
 	(set-strategic-number sn-initial-exploration-required 0)
-	(set-strategic-number sn-cap-civilian-builders 200)
+	(set-strategic-number sn-disable-builder-assistance 0)
+	(set-strategic-number sn-percent-civilian-builders 15)
+	(set-strategic-number sn-cap-civilian-builders 8)
+	(set-strategic-number sn-percent-civilian-gatherers 85)
 	(set-strategic-number sn-attack-group-size-randomness 0)
-	(set-strategic-number sn-attack-group-gather-spacing 255)
+	(set-strategic-number sn-attack-separation-time-randomness 60)
+	(set-strategic-number sn-attack-group-gather-spacing 5)
+	(set-strategic-number sn-group-form-distance 32)
+	(set-strategic-number sn-garrison-rams 0)
 
 	(disable-self)
 )
@@ -339,6 +346,7 @@
 
 (defrule
 	(goal attack-type-land GROUP)
+	(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
 	(and
 		(up-compare-sn sn-minimum-attack-group-size g:< gl-pop-atkgrp-minsize)
 		(and
@@ -350,6 +358,24 @@
 	(up-modify-sn sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize)
 	(up-modify-sn sn-maximum-attack-group-size g:= gl-pop-atkgrp-maxsize)
 	(up-modify-sn sn-number-attack-groups g:= gl-pop-number-groups)
+)
+
+;Regrouping and siege buildup use explicit large attacks.  Keep the GROUP
+;scheduler from quietly recreating small autonomous attack groups meanwhile.
+(defrule
+	(goal attack-type-land GROUP)
+	(up-compare-goal gl-attack-escalation-state c:!= ATTACK-ESCALATION-NORMAL)
+	(or
+		(up-compare-sn sn-minimum-attack-group-size c:> 0)
+		(or
+			(up-compare-sn sn-maximum-attack-group-size c:> 0)
+			(up-compare-sn sn-number-attack-groups c:> 0)
+		)
+	)
+=>
+	(up-modify-sn sn-minimum-attack-group-size c:= 0)
+	(up-modify-sn sn-maximum-attack-group-size c:= 0)
+	(up-modify-sn sn-number-attack-groups c:= 0)
 )
 
 (defrule

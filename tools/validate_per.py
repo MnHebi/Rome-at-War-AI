@@ -29,6 +29,27 @@ ENGINE_RESEARCH_CONSTANTS = {
     "ri-wheel-barrow",
 }
 
+# Definitive Edition accepts at most 32 facts, actions, and logical operators
+# inside one defrule. Each parenthesized expression below the defrule itself is
+# one element for this limit.
+MAX_RULE_ELEMENTS = 32
+
+# These DUC commands mutate search state and are only valid on the action side
+# of a rule. AoE reports ERR2005 when one is accidentally used as a fact.
+ACTION_ONLY_RULE_COMMANDS = {
+    "up-add-object-by-id",
+    "up-full-reset-search",
+}
+
+# PER logical operators have fixed arity. In particular, `or` and `and` are
+# binary; additional alternatives must be expressed with nested operators.
+LOGICAL_OPERATOR_ARITY = {
+    "and": 2,
+    "nor": 2,
+    "not": 1,
+    "or": 2,
+}
+
 
 def code_without_comments_or_strings(line: str) -> str:
     result = []
@@ -53,21 +74,205 @@ def code_without_comments_or_strings(line: str) -> str:
     return "".join(result)
 
 
+def defrule_blocks(lines: list[str]) -> list[tuple[int, str]]:
+    """Return balanced, comment-free defrule blocks with start line numbers."""
+    text = "\n".join(code_without_comments_or_strings(line) for line in lines)
+    blocks: list[tuple[int, str]] = []
+    search_from = 0
+    while match := re.search(r"\(defrule\b", text[search_from:]):
+        start = search_from + match.start()
+        depth = 0
+        end = start
+        for end in range(start, len(text)):
+            if text[end] == "(":
+                depth += 1
+            elif text[end] == ")":
+                depth -= 1
+                if depth == 0:
+                    end += 1
+                    break
+        else:
+            break
+        start_line = text.count("\n", 0, start) + 1
+        blocks.append((start_line, text[start:end]))
+        search_from = end
+    return blocks
+
+
+def validate_command_domains(lines: list[str]) -> list[dict[str, object]]:
+    """Catch technology/unit operand swaps and guarded research mismatches."""
+    issues: list[dict[str, object]] = []
+    code = "\n".join(code_without_comments_or_strings(line) for line in lines)
+    technology_training_patterns = (
+        re.compile(
+            r"\((?P<command>can-train(?:-with-escrow)?|train)\s+"
+            r"(?P<name>(?:ut|ri)-[^\s)]+)",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\((?P<command>up-can-train|up-train)\s+\S+\s+c:\s*"
+            r"(?P<name>(?:ut|ri)-[^\s)]+)",
+            re.IGNORECASE,
+        ),
+    )
+    for pattern in technology_training_patterns:
+        for match in pattern.finditer(code):
+            issues.append(
+                {
+                    "kind": "technology_used_as_training_operand",
+                    "command": match.group("command"),
+                    "name": match.group("name"),
+                    "line": code.count("\n", 0, match.start()) + 1,
+                }
+            )
+
+    guard_patterns = (
+        re.compile(
+            r"\(can-research(?:-with-escrow)?\s+(?P<name>[^\s)]+)",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\(up-can-research\s+\S+\s+c:\s*(?P<name>[^\s)]+)",
+            re.IGNORECASE,
+        ),
+    )
+    action_patterns = (
+        re.compile(r"\(research\s+(?P<name>[^\s)]+)", re.IGNORECASE),
+        re.compile(
+            r"\(up-research\s+\S+\s+c:\s*(?P<name>[^\s)]+)",
+            re.IGNORECASE,
+        ),
+    )
+    for start_line, block in defrule_blocks(lines):
+        facts, separator, actions = block.partition("=>")
+        if not separator:
+            continue
+        guard_matches = [
+            match for pattern in guard_patterns for match in pattern.finditer(facts)
+        ]
+        guards = {
+            match.group("name").casefold(): match.group("name")
+            for match in guard_matches
+        }
+        if not guards:
+            continue
+        action_matches = [
+            match for pattern in action_patterns for match in pattern.finditer(actions)
+        ]
+        action_names = {
+            match.group("name").casefold(): match.group("name")
+            for match in action_matches
+        }
+        if len(guards) > 1:
+            first_action = action_matches[0] if action_matches else None
+            action_line = start_line + facts.count("\n")
+            if first_action:
+                action_line += actions.count("\n", 0, first_action.start())
+            issues.append(
+                {
+                    "kind": "ambiguous_multiple_research_guards",
+                    "guards": sorted(guards.values(), key=str.casefold),
+                    "actions": sorted(action_names.values(), key=str.casefold),
+                    "line": action_line,
+                }
+            )
+        for action in action_matches:
+            technology = action.group("name")
+            if technology.casefold() not in guards:
+                action_line = (
+                    start_line
+                    + facts.count("\n")
+                    + actions.count("\n", 0, action.start())
+                )
+                issues.append(
+                    {
+                        "kind": "research_guard_action_mismatch",
+                        "guards": sorted(guards.values(), key=str.casefold),
+                        "action": technology,
+                        "line": action_line,
+                    }
+                )
+    return issues
+
+
 def validate_file(path: Path) -> list[dict[str, object]]:
     issues: list[dict[str, object]] = []
     parenthesis_stack: list[tuple[int, int]] = []
+    expression_stack: list[dict[str, object]] = []
     preprocessor_stack: list[tuple[int, str, bool]] = []
     defconst_lines: dict[str, int] = {}
+    rule_depth: int | None = None
+    rule_start_line = 0
+    rule_element_count = 0
+    rule_in_actions = False
 
-    for line_number, raw_line in enumerate(
-        path.read_text(encoding="utf-8-sig").splitlines(), 1
-    ):
+    raw_lines = path.read_text(encoding="utf-8-sig").splitlines()
+    for line_number, raw_line in enumerate(raw_lines, 1):
         line = code_without_comments_or_strings(raw_line)
         for column, char in enumerate(line, 1):
             if char == "(":
+                keyword_match = re.match(r"\s*([^\s()]+)", line[column:])
+                keyword = keyword_match.group(1) if keyword_match else ""
+                if expression_stack:
+                    parent = expression_stack[-1]
+                    if parent["keyword"] in LOGICAL_OPERATOR_ARITY:
+                        parent["children"] = int(parent["children"]) + 1
+                expression_stack.append(
+                    {
+                        "keyword": keyword,
+                        "children": 0,
+                        "line": line_number,
+                    }
+                )
                 parenthesis_stack.append((line_number, column))
+                current_depth = len(parenthesis_stack)
+                if rule_depth is None and keyword == "defrule":
+                    rule_depth = current_depth
+                    rule_start_line = line_number
+                    rule_element_count = 0
+                    rule_in_actions = False
+                elif rule_depth is not None and current_depth > rule_depth:
+                    rule_element_count += 1
+                    if not rule_in_actions and keyword in ACTION_ONLY_RULE_COMMANDS:
+                        issues.append(
+                            {
+                                "kind": "action_used_as_fact",
+                                "name": keyword,
+                                "line": line_number,
+                            }
+                        )
             elif char == ")":
                 if parenthesis_stack:
+                    expression = expression_stack.pop()
+                    logical_keyword = str(expression["keyword"])
+                    expected_arity = LOGICAL_OPERATOR_ARITY.get(logical_keyword)
+                    if (
+                        expected_arity is not None
+                        and int(expression["children"]) != expected_arity
+                    ):
+                        issues.append(
+                            {
+                                "kind": "logical_operator_arity",
+                                "name": logical_keyword,
+                                "line": int(expression["line"]),
+                                "operands": int(expression["children"]),
+                                "expected": expected_arity,
+                            }
+                        )
+                    if rule_depth is not None and len(parenthesis_stack) == rule_depth:
+                        if rule_element_count > MAX_RULE_ELEMENTS:
+                            issues.append(
+                                {
+                                    "kind": "rule_too_long",
+                                    "line": rule_start_line,
+                                    "elements": rule_element_count,
+                                    "maximum": MAX_RULE_ELEMENTS,
+                                }
+                            )
+                        rule_depth = None
+                        rule_start_line = 0
+                        rule_element_count = 0
+                        rule_in_actions = False
                     parenthesis_stack.pop()
                 else:
                     issues.append(
@@ -77,6 +282,9 @@ def validate_file(path: Path) -> list[dict[str, object]]:
                             "column": column,
                         }
                     )
+
+        if rule_depth is not None and "=>" in line:
+            rule_in_actions = True
 
         directive_parts = line.strip().split(maxsplit=1) if line.strip() else []
         directive = directive_parts[0] if directive_parts else ""
@@ -131,6 +339,7 @@ def validate_file(path: Path) -> list[dict[str, object]]:
         )
     for line_number, _symbol, _is_defined in preprocessor_stack:
         issues.append({"kind": "unclosed_load_if", "line": line_number})
+    issues.extend(validate_command_domains(raw_lines))
     return issues
 
 

@@ -15,7 +15,7 @@
 
 #end-if
 
-;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+;Extreme: generic max-return profile constrained by RAW AI unit focus spreadsheet.ods; unique units and bounded reactive counters are exempt.
 #load-if-defined DIFFICULTY-EXTREME
 
 (defrule
@@ -249,7 +249,7 @@
 
 #end-if
 
-;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+;Extreme: generic max-return profile constrained by RAW AI unit focus spreadsheet.ods; unique units and bounded reactive counters are exempt.
 #load-if-defined DIFFICULTY-EXTREME
 
 ;Opening priorities derived from doctrine: disciplined legion-and-spear advance with crossbows and siege.
@@ -326,7 +326,7 @@
 
 #load-if-defined UP-BRITON-CIV-ENEMY ; Britons
 
-;Respond to enemy doctrine: mobile chariot-style raiding backed by massed tribal infantry.
+;Respond to enemy doctrine: composite Iron Age British chariot-style raiding backed by massed tribal infantry.
 (defrule
 	(true)
 =>
@@ -1187,19 +1187,19 @@
 (defrule
 	(up-compare-goal current-phase >= 4)
 	(not
-		(goal secondary-unit SPEARMAN)
+		(goal secondary-unit ARCHER)
 	)
 =>
-	(set-goal secondary-unit SPEARMAN)
+	(set-goal secondary-unit ARCHER)
 )
 
 (defrule
 	(up-compare-goal current-phase >= 4)
 	(not
-		(goal tertiary-unit ARCHER)
+		(goal tertiary-unit SPEARMAN)
 	)
 =>
-	(set-goal tertiary-unit ARCHER)
+	(set-goal tertiary-unit SPEARMAN)
 )
 
 (defrule
@@ -1259,16 +1259,16 @@
 
 (defrule
 	(up-compare-goal current-phase >= 4)
-	(goal train-spearman NO)
+	(goal train-bowman NO)
 =>
-	(set-goal train-spearman YES)
+	(set-goal train-bowman YES)
 )
 
 (defrule
 	(up-compare-goal current-phase >= 4)
-	(goal train-bowman NO)
+	(goal train-spearman NO)
 =>
-	(set-goal train-bowman YES)
+	(set-goal train-spearman YES)
 )
 
 (defrule
@@ -1287,7 +1287,7 @@
 
 #end-if
 
-;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+;Extreme: generic max-return profile constrained by RAW AI unit focus spreadsheet.ods; unique units and bounded reactive counters are exempt.
 #load-if-defined DIFFICULTY-EXTREME
 
 ;Doctrine: disciplined legion-and-spear advance with crossbows and siege.
@@ -1340,19 +1340,19 @@
 (defrule
 	(up-compare-goal current-phase >= 4)
 	(not
-		(goal secondary-unit SPEARMAN)
+		(goal secondary-unit ARCHER)
 	)
 =>
-	(set-goal secondary-unit SPEARMAN)
+	(set-goal secondary-unit ARCHER)
 )
 
 (defrule
 	(up-compare-goal current-phase >= 4)
 	(not
-		(goal tertiary-unit ARCHER)
+		(goal tertiary-unit SPEARMAN)
 	)
 =>
-	(set-goal tertiary-unit ARCHER)
+	(set-goal tertiary-unit SPEARMAN)
 )
 
 (defrule
@@ -1405,16 +1405,16 @@
 
 (defrule
 	(up-compare-goal current-phase >= 4)
-	(goal train-spearman NO)
+	(goal train-bowman NO)
 =>
-	(set-goal train-spearman YES)
+	(set-goal train-bowman YES)
 )
 
 (defrule
 	(up-compare-goal current-phase >= 4)
-	(goal train-bowman NO)
+	(goal train-spearman NO)
 =>
-	(set-goal train-bowman YES)
+	(set-goal train-spearman YES)
 )
 
 (defrule
@@ -1593,9 +1593,21 @@
 		)
 	)
 	(unit-type-count-total praetorian-prefect-line g:< gl-five-percent)
+	(food-amount > 180)
 	(can-train praetorian-prefect-line)
 =>
 	(train praetorian-prefect-line)
+)
+
+;Legionaries are unique and keep a bounded baseline even when Champion is not
+;part of the generic focus-sheet composition.
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(unit-type-count-total legionary-ranged-line g:< gl-five-percent)
+	(food-amount > 180)
+	(can-train legionary-ranged-line)
+=>
+	(train legionary-ranged-line)
 )
 
 ; Upgrade Praetorian Prefect
@@ -1667,7 +1679,7 @@
 =>
 	(release-escrow food)
 	(release-escrow gold)
-	(research ut-siege-ballistae)
+	(research ut-pax-romana)
 	(chat-local-to-self "research pax romana(UT)")
 )
 
@@ -1676,7 +1688,7 @@
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
 	(goal team-game NO)
-	(can-research-with-escrow ut-siege-ballistae)
+	(can-research-with-escrow ut-pax-romana)
 =>
 	(release-escrow food)
 	(release-escrow gold)
@@ -1694,8 +1706,8 @@
 	)
 	(can-research-with-escrow ut-diocletian-reforms)
 =>
-	(release-escrow wood)
-	(release-escrow stone)
+	(release-escrow food)
+	(release-escrow gold)
 	(research ut-diocletian-reforms)
 	(chat-local-to-self "research diocletian reforms(UT)")
 )

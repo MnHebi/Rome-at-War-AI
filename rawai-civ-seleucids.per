@@ -15,7 +15,7 @@
 
 #end-if
 
-;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+;Extreme: generic max-return profile constrained by RAW AI unit focus spreadsheet.ods; unique units and bounded reactive counters are exempt.
 #load-if-defined DIFFICULTY-EXTREME
 
 (defrule
@@ -249,7 +249,7 @@
 
 #end-if
 
-;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+;Extreme: generic max-return profile constrained by RAW AI unit focus spreadsheet.ods; unique units and bounded reactive counters are exempt.
 #load-if-defined DIFFICULTY-EXTREME
 
 ;Opening priorities derived from doctrine: pike and imitation-legion center with heavy cavalry and elephants.
@@ -323,7 +323,7 @@
 
 #load-if-defined UP-BRITON-CIV-ENEMY ; Britons
 
-;Respond to enemy doctrine: mobile chariot-style raiding backed by massed tribal infantry.
+;Respond to enemy doctrine: composite Iron Age British chariot-style raiding backed by massed tribal infantry.
 (defrule
 	(true)
 =>
@@ -1233,7 +1233,7 @@
 
 #end-if
 
-;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+;Extreme: generic max-return profile constrained by RAW AI unit focus spreadsheet.ods; unique units and bounded reactive counters are exempt.
 #load-if-defined DIFFICULTY-EXTREME
 
 ;Doctrine: pike and imitation-legion center with heavy cavalry and elephants.
@@ -1574,6 +1574,27 @@
 	(train agema-line)
 )
 
+;Both additional Seleucid unique families remain available independently of
+;the generic Champion and Cavalry Archer focus categories.
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(unit-type-count-total imitation-legionary-line g:< gl-two-percent)
+	(food-amount > 180)
+	(can-train imitation-legionary-line)
+=>
+	(train imitation-legionary-line)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 7)
+	(unit-type-count-total aphraktos g:< gl-two-percent)
+	(wood-amount > 200)
+	(gold-amount > 150)
+	(can-train aphraktos)
+=>
+	(train aphraktos)
+)
+
 ; Upgrade Agema
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
@@ -1582,6 +1603,18 @@
 =>
 	(up-research gl-researchescrow-state c: ri-elite-agema)
 	(chat-local-to-self "research elite agema")
+)
+
+;Aphraktos replaces the end of the Seleucid cavalry-archer line in Imperial.
+(defrule
+	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
+	(goal upgrade-military-lines 1)
+	(can-research-with-escrow ri-aphraktos)
+=>
+	(release-escrow food)
+	(release-escrow gold)
+	(research ri-aphraktos)
+	(chat-local-to-self "research aphraktos")
 )
 
 ;unique technologies

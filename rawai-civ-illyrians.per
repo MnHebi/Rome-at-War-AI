@@ -15,7 +15,7 @@
 
 #end-if
 
-;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+;Extreme: generic max-return profile constrained by RAW AI unit focus spreadsheet.ods; unique units and bounded reactive counters are exempt.
 #load-if-defined DIFFICULTY-EXTREME
 
 (defrule
@@ -238,7 +238,7 @@
 
 #end-if
 
-;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+;Extreme: generic max-return profile constrained by RAW AI unit focus spreadsheet.ods; unique units and bounded reactive counters are exempt.
 #load-if-defined DIFFICULTY-EXTREME
 
 ;Opening priorities derived from doctrine: hard infantry and missile troops operating from a maritime base.
@@ -316,7 +316,7 @@
 #load-if-defined UP-BRITON-CIV-ENEMY ; Britons
 
 #load-if-not-defined DIFFICULTY-EXTREME
-;Respond to enemy doctrine: mobile chariot-style raiding backed by massed tribal infantry.
+;Respond to enemy doctrine: composite Iron Age British chariot-style raiding backed by massed tribal infantry.
 (defrule
 	(true)
 =>
@@ -328,7 +328,7 @@
 #end-if
 
 #load-if-defined DIFFICULTY-EXTREME
-;Respond to enemy doctrine: mobile chariot-style raiding backed by massed tribal infantry.
+;Respond to enemy doctrine: composite Iron Age British chariot-style raiding backed by massed tribal infantry.
 (defrule
 	(true)
 =>
@@ -1269,7 +1269,7 @@
 
 #end-if
 
-;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+;Extreme: generic max-return profile constrained by RAW AI unit focus spreadsheet.ods; unique units and bounded reactive counters are exempt.
 #load-if-defined DIFFICULTY-EXTREME
 
 ;Doctrine: hard infantry and missile troops operating from a maritime base.
@@ -1553,7 +1553,7 @@
 )
 
 (defrule
-	(goal current-phase 5)
+	(up-compare-goal current-phase >= 5)
 	(unit-type-count-total liburna-line g:< gl-five-percent)
 	(can-train liburna-line)
 =>
@@ -1573,7 +1573,7 @@
 )
 
 (defrule
-	(goal current-phase 5)
+	(up-compare-goal current-phase >= 5)
 	(unit-type-count-total polydynastus-line g:< gl-five-percent)
 	(can-train polydynastus-line)
 =>
@@ -1615,7 +1615,7 @@
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
 	(goal team-game NO)
-	(can-train-with-escrow ut-dynasteia)
+	(can-research-with-escrow ut-dynasteia)
 =>
 	(release-escrow food)
 	(release-escrow gold)

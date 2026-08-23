@@ -18,6 +18,7 @@ if not AI_ROOT.is_dir():
     AI_ROOT = ROOT
 CONFIG_PATH = AI_ROOT / "civ-strategy-data.json"
 HISTORICAL_CONFIG_PATH = AI_ROOT / "civ-strategy-historical-overrides.json"
+UNIQUE_MANIFEST_PATH = AI_ROOT / "unique-unit-production.json"
 FOCUS_PATH = ROOT / "RAW AI unit focus spreadsheet.ods"
 RUSH_GOALS = [
     "drush",
@@ -361,7 +362,7 @@ def gated_block(
             "",
             "#end-if",
             "",
-            ";Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.",
+            ";Extreme: generic max-return profile constrained by RAW AI unit focus spreadsheet.ods; unique units and bounded reactive counters are exempt.",
             "#load-if-defined DIFFICULTY-EXTREME",
             "",
             extreme_body.rstrip(),
@@ -654,6 +655,15 @@ def validate_config(
             f"extra={sorted(set(ENEMY_CIV_SYMBOLS) - actual)}"
         )
 
+    unique_manifest = json.loads(UNIQUE_MANIFEST_PATH.read_text(encoding="utf-8"))
+    manifest_civs = set(unique_manifest.get("civs", {}))
+    if manifest_civs != actual:
+        raise ValueError(
+            "strategy/unique-manifest mismatch: "
+            f"missing={sorted(actual - manifest_civs)}, "
+            f"extra={sorted(manifest_civs - actual)}"
+        )
+
     constants = available_constants()
     focus_rows = read_focus_rows()
     expected_sheet_rows = set(CIV_SHEET_NAMES.values())
@@ -678,6 +688,9 @@ def validate_config(
                         f"{unknown_trainers}"
                     )
         civ_focus = focus_rows[CIV_SHEET_NAMES[civ]]
+        # These generated arrays contain generic production roles. Civilization-
+        # specific unique units and bounded threat-triggered counters live in
+        # direct PER rules, so they are intentionally outside category checks.
         for key in ("early", "late", "support"):
             values = strategy[key]
             assert isinstance(values, list)
@@ -733,6 +746,47 @@ def replace_once(pattern: str, replacement: str, text: str, label: str) -> str:
     if count != 1:
         raise ValueError(f"expected one {label} block, found {count}")
     return updated
+
+
+def unique_train_units(civ: str) -> set[str]:
+    manifest = json.loads(UNIQUE_MANIFEST_PATH.read_text(encoding="utf-8"))
+    families = manifest["civs"][civ]["families"]
+    return {
+        str(unit)
+        for family in families
+        for unit in family.get("train_units", [])
+    }
+
+
+def normalize_unique_phase_gates(text: str, civ: str) -> str:
+    """Keep bounded unique-unit production active after Middle Antiquity.
+
+    Older civ files commonly guarded their unique production with an exact
+    phase-5 test, so it stopped while aging and throughout Imperial. Rewrite
+    only manifest-listed production rules; other phase-5 behavior is untouched.
+    """
+    expected_units = unique_train_units(civ)
+    rule_pattern = re.compile(r"(?ms)^\(defrule\b.*?^\)\s*$")
+    ranges: list[tuple[int, int, str]] = []
+    for match in rule_pattern.finditer(text):
+        block = match.group(0)
+        trains_expected = any(
+            re.search(rf"\(train\s+{re.escape(unit)}\s*\)", block)
+            for unit in expected_units
+        )
+        if not trains_expected or "(goal current-phase 5)" not in block:
+            continue
+        if "(goal current-phase 6)" in block or "(goal current-phase 7)" in block:
+            continue
+        updated = block.replace(
+            "(goal current-phase 5)",
+            "(up-compare-goal current-phase >= 5)",
+            1,
+        )
+        ranges.append((match.start(), match.end(), updated))
+    for start, end, replacement in reversed(ranges):
+        text = text[:start] + replacement + text[end:]
+    return text
 
 
 def update_civ_file(
@@ -797,6 +851,8 @@ def update_civ_file(
         if marker not in text:
             raise ValueError(f"{path.name}: missing structure-preference marker")
         text = text.replace(marker, preferences + marker, 1)
+
+    text = normalize_unique_phase_gates(text, civ)
 
     output = text.replace("\n", newline)
     changed = output != raw

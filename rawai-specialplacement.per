@@ -1,242 +1,122 @@
+;Shipyard placement uses an explicit state machine so placement stages cannot
+;run out of order. Candidates are built at the checked point, not anywhere on
+;a line back to the Port, and completed naval buildings receive a clear radius.
 
-;start shipyard placement
-;placement for left side of map
+;Hybrid maps do not need the eight-Shipyard late-game island target.
 (defrule
-	(goal map-left-side YES)
-	(goal wait-techup-requirements NO)
 	(or
 		(goal map-type LAKE)
-		(or
-			(goal map-type RIVERS)
-			(goal map-type ISLANDS)
-		)
+		(goal map-type RIVERS)
 	)
-	(can-afford-building shipyard)
-    (and
-        (building-type-count-total port > 0)
-        (can-build shipyard)
-    )
-    (building-type-count-total shipyard g:< desired-number-shipyards)
-=> 
-    (up-filter-status c: status-ready c: list-active)
-    (chat-local-to-self "shipyard placement, initiate")
-    (up-jump-rule 1)
+	(up-compare-goal desired-number-shipyards > 3)
+=>
+	(up-modify-goal desired-number-shipyards c:= 3)
 )
 
 (defrule
-	(goal map-left-side YES)
+	(goal shipyard-placement-state SHIPYARD-IDLE)
 	(goal wait-techup-requirements NO)
 	(or
 		(goal map-type LAKE)
 		(or
 			(goal map-type RIVERS)
-			(goal map-type ISLANDS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
 		)
 	)
 	(can-afford-building shipyard)
-    (and
-        (current-age >= early-antiquity-age)
-        (building-type-count-total port > 0)
-    )
-    (up-find-local c: port c: 1)
-    (building-type-count-total shipyard g:< desired-number-shipyards)
+	(building-type-count port > 0)
+	(building-type-count-total shipyard g:< desired-number-shipyards)
+	(up-pending-objects c: shipyard <= 0)
+	(can-build shipyard)
 =>
-    (up-full-reset-search)
-    (up-clean-search search-local object-data-id search-order-desc)
-    (up-find-local c: port c: 10)
-    (up-set-target-object search-local c: 0)
-    (up-get-point position-object gl-shipyard-x)
+	(set-goal shipyard-placement-state SHIPYARD-ANCHOR)
+)
+
+;Use the newest completed Port or Shipyard as an anchor so a naval base can
+;spread along the coast instead of repeatedly filling the Port entrance.
+(defrule
+	(goal shipyard-placement-state SHIPYARD-ANCHOR)
+=>
+	(up-full-reset-search)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-local c: port c: 20)
+	(up-find-local c: shipyard c: 20)
+	(up-clean-search search-local object-data-id search-order-desc)
+	(up-set-target-object search-local c: 0)
+	(up-get-point position-object gl-shipyard-x)
 	(up-get-point position-object gl-port-x)
-    (chat-local-to-self "shipyard placement, locate docks")
-    (up-jump-rule 1)
+	(set-goal shipyard-placement-state SHIPYARD-OFFSET)
 )
 
+;Try a point up to fourteen tiles around the selected anchor. Invalid or
+;crowded candidates reset cleanly and choose a fresh point on the next pass.
 (defrule
-	(goal map-left-side YES)
-	(goal wait-techup-requirements NO)
-	(or
-		(goal map-type LAKE)
-		(or
-			(goal map-type RIVERS)
-			(goal map-type ISLANDS)
-		)
-	)
-	(can-afford-building shipyard)
-    (building-type-count-total port > 0)
-    (building-type-count-total shipyard g:< desired-number-shipyards)
-    (up-compare-goal gl-shipyard-x != -1)
+	(goal shipyard-placement-state SHIPYARD-OFFSET)
 =>
-    (generate-random-number 18)
-    (up-get-fact random-number 0 temporary-goals1)
-    (generate-random-number 18)
-    (up-get-fact random-number 0 temporary-goals2)
-    (up-modify-goal gl-shipyard-x g:+ temporary-goals1)
-    (up-modify-goal gl-shipyard-y g:+ temporary-goals2)
-    (up-modify-goal gl-shipyard-x c:- 3)
-    (up-modify-goal gl-shipyard-y c:- 3)
-    (chat-local-to-self "shipyard placement, modify position")
-    (up-jump-rule 1)
+	(generate-random-number 29)
+	(up-get-fact random-number 0 temporary-goals1)
+	(generate-random-number 29)
+	(up-get-fact random-number 0 temporary-goals2)
+	(up-modify-goal gl-shipyard-x g:+ temporary-goals1)
+	(up-modify-goal gl-shipyard-y g:+ temporary-goals2)
+	(up-modify-goal gl-shipyard-x c:- 14)
+	(up-modify-goal gl-shipyard-y c:- 14)
+	(set-goal shipyard-placement-state SHIPYARD-CLEARANCE)
 )
 
 (defrule
-	(goal map-left-side YES)
-	(goal wait-techup-requirements NO)
-	(or
-		(goal map-type LAKE)
-		(or
-			(goal map-type RIVERS)
-			(goal map-type ISLANDS)
-		)
-	)
-	(can-afford-building shipyard)
-    (up-compare-goal gl-shipyard-x != -1)
-	(up-point-terrain gl-shipyard-x != terrain-water)
+	(goal shipyard-placement-state SHIPYARD-CLEARANCE)
+	(up-can-build-line 0 gl-shipyard-x c: shipyard)
 =>
-    (up-modify-goal gl-shipyard-x c:+ 1)
-    (up-modify-goal gl-shipyard-y c:+ 1)
-    (chat-local-to-self "shipyard placement, terrain check")
-    (up-jump-rule 1)
+	(up-full-reset-search)
+	(up-set-target-point gl-shipyard-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-filter-distance c: -1 c: 7)
+	(up-find-local c: port c: 20)
+	(up-find-local c: shipyard c: 20)
+	(up-get-search-state local-total)
+	(set-goal shipyard-placement-state SHIPYARD-BUILD)
 )
 
 (defrule
-	(goal map-left-side YES)
-	(goal wait-techup-requirements NO)
-	(or
-		(goal map-type LAKE)
-		(or
-			(goal map-type RIVERS)
-			(goal map-type ISLANDS)
-		)
-	)
-	(can-afford-building shipyard)
-    (and
-        (building-type-count-total port > 0)
-        (building-type-count-total shipyard g:< desired-number-shipyards)
-    )
-    (up-can-build-line 0 gl-shipyard-x c: shipyard)
+	(goal shipyard-placement-state SHIPYARD-CLEARANCE)
+	(not (up-can-build-line 0 gl-shipyard-x c: shipyard))
 =>
-    (up-build-line gl-port-x gl-shipyard-x c: shipyard)
-    (chat-local-to-self "shipyard placement, try placing shipyard")
-    (up-jump-rule -4)
-)
-
-;placement for right side of map
-(defrule
-	(goal map-right-side YES)
-	(goal wait-techup-requirements NO)
-	(or
-		(goal map-type LAKE)
-		(or
-			(goal map-type RIVERS)
-			(goal map-type ISLANDS)
-		)
-	)
-	(can-afford-building shipyard)
-    (and
-        (building-type-count-total port > 0)
-        (can-build shipyard)
-    )
-    (building-type-count-total shipyard g:< desired-number-shipyards)
-=> 
-    (up-filter-status c: status-ready c: list-active)
-    (chat-local-to-self "shipyard placement, initiate")
-    (up-jump-rule 1)
+	(set-goal gl-shipyard-x -1)
+	(set-goal gl-shipyard-y -1)
+	(set-goal shipyard-placement-state SHIPYARD-IDLE)
 )
 
 (defrule
-	(goal map-right-side YES)
-	(goal wait-techup-requirements NO)
-	(or
-		(goal map-type LAKE)
-		(or
-			(goal map-type RIVERS)
-			(goal map-type ISLANDS)
-		)
-	)
-	(can-afford-building shipyard)
-    (and
-        (current-age >= early-antiquity-age)
-        (building-type-count-total port > 0)
-    )
-    (up-find-local c: port c: 1)
-    (building-type-count-total shipyard g:< desired-number-shipyards)
+	(goal shipyard-placement-state SHIPYARD-BUILD)
+	(up-compare-goal local-total <= 0)
+	(building-type-count-total shipyard g:< desired-number-shipyards)
+	(up-pending-objects c: shipyard <= 0)
+	(up-can-build-line 0 gl-shipyard-x c: shipyard)
 =>
-    (up-full-reset-search)
-    (up-clean-search search-local object-data-id search-order-desc)
-    (up-find-local c: port c: 10)
-    (up-set-target-object search-local c: 0)
-    (up-get-point position-object gl-shipyard-x)
-	(up-get-point position-object gl-port-x)
-    (chat-local-to-self "shipyard placement, locate docks")
-    (up-jump-rule 1)
+	(up-build-line gl-shipyard-x gl-shipyard-x c: shipyard)
+	(set-goal gl-shipyard-x -1)
+	(set-goal gl-shipyard-y -1)
+	(set-goal shipyard-placement-state SHIPYARD-IDLE)
 )
 
 (defrule
-	(goal map-right-side YES)
-	(goal wait-techup-requirements NO)
+	(goal shipyard-placement-state SHIPYARD-BUILD)
 	(or
-		(goal map-type LAKE)
+		(up-compare-goal local-total > 0)
 		(or
-			(goal map-type RIVERS)
-			(goal map-type ISLANDS)
+			(up-pending-objects c: shipyard >= 1)
+			(or
+				(building-type-count-total shipyard g:>= desired-number-shipyards)
+				(not (up-can-build-line 0 gl-shipyard-x c: shipyard))
+			)
 		)
 	)
-	(can-afford-building shipyard)
-    (building-type-count-total port > 0)
-    (building-type-count-total shipyard g:< desired-number-shipyards)
-    (up-compare-goal gl-shipyard-x != -1)
 =>
-    (generate-random-number 6)
-    (up-get-fact random-number 0 temporary-goals1)
-    (generate-random-number 6)
-    (up-get-fact random-number 0 temporary-goals2)
-    (up-modify-goal gl-shipyard-x g:+ temporary-goals1)
-    (up-modify-goal gl-shipyard-y g:+ temporary-goals2)
-    (up-modify-goal gl-shipyard-x c:- 3)
-    (up-modify-goal gl-shipyard-y c:- 3)
-    (chat-local-to-self "shipyard placement, modify position")
-    (up-jump-rule 1)
+	(set-goal gl-shipyard-x -1)
+	(set-goal gl-shipyard-y -1)
+	(set-goal shipyard-placement-state SHIPYARD-IDLE)
 )
-
-(defrule
-	(goal map-right-side YES)
-	(goal wait-techup-requirements NO)
-	(or
-		(goal map-type LAKE)
-		(or
-			(goal map-type RIVERS)
-			(goal map-type ISLANDS)
-		)
-	)
-	(can-afford-building shipyard)
-    (up-compare-goal gl-shipyard-x != -1)
-	(up-point-terrain gl-shipyard-x != terrain-water)
-=>
-    (up-modify-goal gl-shipyard-x c:+ 1)
-    (up-modify-goal gl-shipyard-y c:+ 1)
-    (chat-local-to-self "shipyard placement, terrain check")
-    (up-jump-rule 1)
-)
-
-(defrule
-	(goal map-right-side YES)
-	(goal wait-techup-requirements NO)
-	(or
-		(goal map-type LAKE)
-		(or
-			(goal map-type RIVERS)
-			(goal map-type ISLANDS)
-		)
-	)
-	(can-afford-building shipyard)
-    (and
-        (building-type-count-total port > 0)
-        (building-type-count-total shipyard g:< desired-number-shipyards)
-    )
-    (up-can-build-line 0 gl-shipyard-x c: shipyard)
-=>
-    (up-build-line gl-port-x gl-shipyard-x c: shipyard)
-    (chat-local-to-self "shipyard placement, try placing shipyard")
-    (up-jump-rule -4)
-)
-;end shipyard placement

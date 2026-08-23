@@ -204,6 +204,9 @@
 	(set-goal map-right-side NO)
 	(set-goal map-left-side NO)
 	(set-goal map-middle NO)
+	(set-goal shipyard-placement-state SHIPYARD-IDLE)
+	(set-goal gl-shipyard-x -1)
+	(set-goal gl-shipyard-y -1)
 	(set-goal attack-type-land TOWN-SIZE)
 	(set-goal attack-type-sea TOWN-SIZE)
 	(set-goal taunt-wall NO)
@@ -288,28 +291,104 @@
 	(set-goal hrush-affinity 0)
 	(set-goal krush-affinity 0)
 	(set-goal mush-affinity 0)
+
+	(disable-self)
+)
+
+;Adaptive attack state is isolated from the larger transport initializer so
+;both startup rules stay comfortably below the engine expression limit.
+(defrule
+	(true)
+=>
+	(set-goal gl-failed-attack-streak 0)
+	(set-goal gl-attack-recovery-streak 0)
+	(set-goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
+	(set-goal gl-known-fortifications 0)
+	(set-goal gl-fortification-scan-state FORTIFICATION-SCAN-IDLE)
+	(set-goal gl-fortification-scan-focus 0)
+	(set-goal gl-fortification-scan-player 0)
+	(set-goal have-siege NO)
+
+	(disable-self)
+)
+
+;Route-corridor and close-combat response state are initialized separately to
+;keep the transport startup blocks below the engine's 32-expression limit.
+(defrule
+	(true)
+=>
+	(set-goal gl-transport-route-landing-x 0)
+	(set-goal gl-transport-route-landing-y 0)
+	(set-goal gl-transport-route-waypoint-left-x 0)
+	(set-goal gl-transport-route-waypoint-left-y 0)
+	(set-goal gl-transport-route-waypoint-right-x 0)
+	(set-goal gl-transport-route-waypoint-right-y 0)
+	(set-goal gl-transport-route-waypoint-x 0)
+	(set-goal gl-transport-route-waypoint-y 0)
+	(set-goal gl-transport-route-corridor-left-threats 0)
+	(set-goal gl-transport-route-corridor-right-threats 0)
+	(set-goal gl-local-response-state LOCAL-RESPONSE-IDLE)
+	(set-goal gl-local-response-focus 0)
+	(set-goal gl-local-response-player 0)
+	(set-goal gl-local-response-target-x 0)
+	(set-goal gl-local-response-target-y 0)
+	(set-goal gl-local-response-threats 0)
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
 	(set-goal slinger-affinity 0)
 	(set-goal boomer-affinity 0)
 	(set-goal fishboom-affinity 0)
 	(set-goal sprush-affinity 0)
 	(set-goal scush-affinity 0)
 	(set-goal skrush-affinity 0)
+
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
 	(set-goal sgush-affinity 0)
 	(set-goal cush-affinity 0)
 	(set-goal lush-affinity 0)
 	(set-goal ilush-affinity 0)
+
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
 	(set-goal rush-drush NO)
 	(set-goal rush-fcast NO)
 	(set-goal rush-trush NO)
 	(set-goal rush-hrush NO)
 	(set-goal rush-krush NO)
 	(set-goal rush-mush NO)
+
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
 	(set-goal rush-sprush NO)
 	(set-goal rush-scush NO)
 	(set-goal rush-skrush NO)
 	(set-goal rush-sgush NO)
 	(set-goal rush-cush NO)
 	(set-goal rush-lush NO)
+
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
 	(set-goal rush-ilush NO)
 	(set-goal rush-fc NO)
 	(set-goal rush-threshold 4)
@@ -349,6 +428,94 @@
 	(set-goal gl-unitescrow-state without-escrow)
 	(set-goal gl-buildingescrow-state without-escrow)
 	(set-goal gl-researchescrow-state without-escrow)
-	
+
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(set-goal gl-transport-escort-count 0)
+	(set-goal gl-transport-escort-targets 0)
+	(set-goal gl-transport-escort-limit 0)
+	(set-goal gl-transport-escort-focus-player 0)
+	(set-goal gl-transport-escort-state ESCORT-IDLE)
+
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(set-goal gl-raid-group-size 0)
+	(set-goal gl-raid-focus-player 0)
+	(set-goal gl-raid-target-player 0)
+	(set-goal gl-raid-state RAID-IDLE)
+
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(set-goal gl-attack-timer-random 0)
+	(set-goal gl-attack-timer-next 0)
+	(set-goal gl-home-defense-state NO)
+	(set-goal gl-transport-min-load 5)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(set-goal gl-transport-route-focus 0)
+	(set-goal gl-transport-route-left-threats 0)
+	(set-goal gl-transport-route-right-threats 0)
+	(set-goal gl-transport-route-random 0)
+	(set-goal gl-transport-route-id -1)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+	(set-goal gl-island-migration-transport-id -1)
+	(set-goal gl-island-migration-focus 0)
+	(set-goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
+	(set-goal gl-transport-repair-id -1)
+	(set-goal gl-transport-repair-hp 0)
+	(set-goal gl-transport-repair-maxhp 1)
+	(set-goal gl-transport-repair-percent 100)
+	(set-goal gl-transport-repair-focus 0)
+	(up-set-timer c: t-ship-train c: 12)
+	(generate-random-number 121)
+	(up-get-fact random-number 0 gl-age-attack-delay)
+	(up-modify-goal gl-age-attack-delay c:+ 120)
+	(generate-random-number 121)
+	(up-get-fact random-number 0 gl-rush-attack-delay)
+	(up-modify-goal gl-rush-attack-delay c:+ 300)
+
+	(disable-self)
+)
+
+;Keep the larger transport state machines out of the rule above so startup
+;remains below the engine's per-rule expression limit.
+(defrule
+	(true)
+=>
+	(set-goal gl-transport-capacity 5)
+	(set-goal gl-transport-capacity-upgrade 0)
+	(set-goal gl-transport-required 1)
+	(set-goal gl-transport-route-target-x 0)
+	(set-goal gl-transport-route-target-y 0)
+	(set-goal gl-island-migration-target-x 0)
+	(set-goal gl-island-migration-target-y 0)
+	(set-goal gl-island-migration-anchor-id -1)
+	(set-goal gl-island-migration-load-target 0)
+	(set-goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+	(set-goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
+	(set-goal gl-transport-recovery-unit-id -1)
+	(set-goal gl-transport-recovery-transport-id -1)
+	(set-goal gl-transport-recovery-load-target 0)
+	(set-goal gl-roman-champion-base-threat NO)
+	(set-goal gl-champion-threat-scan-state CHAMPION-THREAT-SCAN-IDLE)
+	(set-goal gl-champion-threat-scan-focus 0)
+	(set-goal gl-champion-threat-player 0)
+	(set-goal gl-roman-champion-counter-target 0)
+	(set-goal gl-relic-ferry-state RELIC-FERRY-IDLE)
+	(set-goal gl-relic-ferry-transport-id -1)
+	(set-goal gl-relic-ferry-unit-id -1)
+	(set-goal gl-relic-ferry-target-id -1)
+	(set-goal gl-relic-ferry-direction 0)
 	(disable-self)
 )

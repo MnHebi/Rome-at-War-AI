@@ -121,7 +121,8 @@
 		(and
 			(goal age-up-finished EARLY-ANTIQUITY)
 			(and
-				(food-amount < 800)
+				;Keep a buffer between the food recovery and gold-heavy modes.
+				(food-amount < 700)
 				(and
 					(goal age-up-started EARLY-ANTIQUITY)
 					(and
@@ -150,7 +151,7 @@
 		(and
 			(goal age-up-finished EARLY-ANTIQUITY)
 			(and
-				(food-amount > 800)
+				(food-amount > 900)
 				(and
 					(goal age-up-started EARLY-ANTIQUITY)
 					(and
@@ -218,7 +219,8 @@
 		(current-age-time < 120)
 		(and
 			(goal current-phase 5)
-			(wood-amount < 150)
+			;Hysteresis prevents villagers bouncing at a single wood threshold.
+			(wood-amount < 125)
 		)
 	)
 =>
@@ -238,7 +240,7 @@
 		(current-age-time < 120)
 		(and
 			(goal current-phase 5)
-			(wood-amount > 150)
+			(wood-amount > 200)
 		)
 	)
 =>
@@ -282,7 +284,8 @@
 		(and
 			(goal current-phase 5)
 			(and
-				(building-type-count-total farm g:<= desired-number-farms)
+				;Do not overlap the following >= rule when the counts are equal.
+				(building-type-count-total farm g:< desired-number-farms)
 				(and
 					(building-type-count-total university > 0)
 					(building-type-count-total monastery > 0)
@@ -370,6 +373,25 @@
 	(up-modify-goal desired-number-lumbercamps c:= 5)
 	(up-modify-goal desired-number-mills c:= 5)
 	(up-modify-goal desired-number-miningcamps c:= 0)
+)
+
+;Hybrid and island economies must keep extending their wood line instead of
+;letting the five oldest camps satisfy the late-game building target forever.
+;The larger drop distance remains confined to water-separated maps.
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(goal wood-present YES)
+	(or
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
+=>
+	(up-modify-goal desired-number-lumbercamps c:max 7)
+	(up-modify-goal lumbercamp-max-distance c:max 120)
+	(up-modify-goal max-wood-distance c:max 36)
 )
 
 (defrule
@@ -604,17 +626,17 @@
 (defrule
 	(goal resources-depleted NO)
 	(up-object-type-count-total c: villager g:< desired-number-villagers)
-	(can-train villager)
+	(up-can-train gl-unitescrow-state c: villager)
 =>
-	(train villager)
+	(up-train gl-unitescrow-state c: villager)
 )
 
 (defrule
 	(goal resources-depleted YES)
 	(up-object-type-count-total c: villager g:< desired-number-farms)
-	(can-train villager)
+	(up-can-train gl-unitescrow-state c: villager)
 =>
-	(train villager)
+	(up-train gl-unitescrow-state c: villager)
 )
 
 ;delete excess villagers, start with idle ones
@@ -634,17 +656,108 @@
 	(delete-unit villager)
 )
 
+;Seed an aquatic economy even before the periodic resource scan has seen fish.
+;The first boats explore their water body and reveal additional fishing grounds.
 (defrule
-	(unit-type-count-total fishing-ship g:< desired-number-fishing)
-	(goal wait-techup-requirements NO)
+	(game-time < 600)
+	(unit-type-count-total fishing-ship < 2)
 	(or
-		(goal fish-present YES)
-		(building-type-count-total fish-trap > 0)
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
 	)
-	(wood-amount > 180)
 	(can-train fishing-ship)
 =>
 	(train fishing-ship)
+)
+
+(defrule
+	(goal fish-present YES)
+	(unit-type-count-total fishing-ship < 2)
+	(wood-amount > 140)
+	(can-train fishing-ship)
+=>
+	(train fishing-ship)
+)
+
+;Scale the fishing fleet to the fishing grounds that are still visible. This
+;prevents a small inland sea from consuming the same population as open water.
+(defrule
+	(or
+		(cc-players-unit-type-count 0 ocean-fish-class >= 4)
+		(or
+			(cc-players-unit-type-count 0 shore-fish-class >= 4)
+			(building-type-count-total fish-trap > 0)
+		)
+	)
+	(unit-type-count-total fishing-ship < 4)
+	(wood-amount > 220)
+	(can-train fishing-ship)
+=>
+	(train fishing-ship)
+)
+
+(defrule
+	(or
+		(cc-players-unit-type-count 0 ocean-fish-class >= 10)
+		(cc-players-unit-type-count 0 shore-fish-class >= 10)
+	)
+	(unit-type-count-total fishing-ship < 6)
+	(wood-amount > 320)
+	(can-train fishing-ship)
+=>
+	(train fishing-ship)
+)
+
+;Budget one full lift for the current army plus one utility hull for villagers,
+;relic carriers, rescue work, or replacing a transport that is already sailing.
+(defrule
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+=>
+	(up-get-fact soldier-count 0 gl-transport-required)
+	(up-modify-goal gl-transport-required g:+ gl-transport-capacity)
+	(up-modify-goal gl-transport-required c:- 1)
+	(up-modify-goal gl-transport-required g:/ gl-transport-capacity)
+	(up-modify-goal gl-transport-required c:+ 1)
+)
+
+(defrule
+	(up-compare-goal gl-transport-required c:> 16)
+=>
+	(set-goal gl-transport-required 16)
+)
+
+(defrule
+	(current-age >= early-antiquity-age)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(wood-amount > 160)
+	(unit-type-count-total transport-ship g:< gl-transport-required)
+	(can-train transport-ship)
+=>
+	(train transport-ship)
 )
 
 (defrule
@@ -711,7 +824,7 @@
 ;)
 
 ;resource dropoff deletions so the AI can keep up with diminishing resources
-;also, delete fishing ships once fish are gone
+;also, trim fishing fleets when their fishing grounds shrink
 (defrule
 	(and
 		(goal wood-present YES)
@@ -757,8 +870,34 @@
 (defrule
 	(and
 		(goal fish-present NO)
-		(unit-type-count fishing-ship > 5)
+		(building-type-count-total fish-trap <= 0)
 	)
+	(up-timer-status t-update-facts == timer-triggered)
+	(unit-type-count fishing-ship > 0)
+=>
+	(delete-unit fishing-ship)
+)
+
+(defrule
+	(goal fish-present YES)
+	(cc-players-unit-type-count 0 ocean-fish-class < 4)
+	(cc-players-unit-type-count 0 shore-fish-class < 4)
+	(up-timer-status t-update-facts == timer-triggered)
+	(unit-type-count fishing-ship > 2)
+=>
+	(delete-unit fishing-ship)
+)
+
+(defrule
+	(goal fish-present YES)
+	(cc-players-unit-type-count 0 ocean-fish-class < 10)
+	(cc-players-unit-type-count 0 shore-fish-class < 10)
+	(or
+		(cc-players-unit-type-count 0 ocean-fish-class >= 4)
+		(cc-players-unit-type-count 0 shore-fish-class >= 4)
+	)
+	(up-timer-status t-update-facts == timer-triggered)
+	(unit-type-count fishing-ship > 4)
 =>
 	(delete-unit fishing-ship)
 )
