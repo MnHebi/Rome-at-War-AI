@@ -29,6 +29,11 @@ ENGINE_RESEARCH_CONSTANTS = {
     "ri-wheel-barrow",
 }
 
+# Definitive Edition accepts at most 32 facts, actions, and logical operators
+# inside one defrule. Each parenthesized expression below the defrule itself is
+# one element for this limit.
+MAX_RULE_ELEMENTS = 32
+
 
 def code_without_comments_or_strings(line: str) -> str:
     result = []
@@ -58,6 +63,9 @@ def validate_file(path: Path) -> list[dict[str, object]]:
     parenthesis_stack: list[tuple[int, int]] = []
     preprocessor_stack: list[tuple[int, str, bool]] = []
     defconst_lines: dict[str, int] = {}
+    rule_depth: int | None = None
+    rule_start_line = 0
+    rule_element_count = 0
 
     for line_number, raw_line in enumerate(
         path.read_text(encoding="utf-8-sig").splitlines(), 1
@@ -66,8 +74,30 @@ def validate_file(path: Path) -> list[dict[str, object]]:
         for column, char in enumerate(line, 1):
             if char == "(":
                 parenthesis_stack.append((line_number, column))
+                keyword_match = re.match(r"\s*([^\s()]+)", line[column:])
+                keyword = keyword_match.group(1) if keyword_match else ""
+                current_depth = len(parenthesis_stack)
+                if rule_depth is None and keyword == "defrule":
+                    rule_depth = current_depth
+                    rule_start_line = line_number
+                    rule_element_count = 0
+                elif rule_depth is not None and current_depth > rule_depth:
+                    rule_element_count += 1
             elif char == ")":
                 if parenthesis_stack:
+                    if rule_depth is not None and len(parenthesis_stack) == rule_depth:
+                        if rule_element_count > MAX_RULE_ELEMENTS:
+                            issues.append(
+                                {
+                                    "kind": "rule_too_long",
+                                    "line": rule_start_line,
+                                    "elements": rule_element_count,
+                                    "maximum": MAX_RULE_ELEMENTS,
+                                }
+                            )
+                        rule_depth = None
+                        rule_start_line = 0
+                        rule_element_count = 0
                     parenthesis_stack.pop()
                 else:
                     issues.append(
