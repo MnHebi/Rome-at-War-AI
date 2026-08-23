@@ -54,6 +54,22 @@ fixtures.
   constraint for Extreme difficulty. Do not revise that agreement solely from
   a replay or inferred efficiency; surface a proposed change for explicit
   approval.
+- Apply the Extreme focus categories to generic planned composition, not to a
+  civilization's own unique units. Civilization-specific unique units are
+  globally exempt and may use bounded direct production independently of the
+  generic focus selection; strategy-specific conditions may further gate them.
+- Maintain `unique-unit-production.json` as the audited AI-side manifest of
+  military and naval unique families. Keep its source hashes and ambiguity
+  notes synchronized with the authoritative DAT/tech-tree exports, and require
+  every listed production copy to have a persistent role-independent bound.
+- Reactive counter production is also exempt from the Extreme focus categories
+  when it answers observed enemy composition. Skirmishers are the established
+  example; keep such production threat-gated and bounded rather than treating
+  the exemption as an unrestricted alternate composition.
+- Model the in-mod `Britons` as a composite Iron Age British civilization. Its
+  Iceni background is an important identity and calibration source, but it does
+  not limit the AI to Iceni-only evidence or doctrine. Label evidence from
+  different British peoples and periods instead of silently conflating it.
 - Treat `RAW AI good units per civ.ods` as a working evaluation artifact. It is
   expected to be completed and maintained from validated mod data, testing, and
   documented analysis.

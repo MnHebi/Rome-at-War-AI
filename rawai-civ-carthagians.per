@@ -15,7 +15,7 @@
 
 #end-if
 
-;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+;Extreme: generic max-return profile constrained by RAW AI unit focus spreadsheet.ods; unique units and bounded reactive counters are exempt.
 #load-if-defined DIFFICULTY-EXTREME
 
 (defrule
@@ -249,7 +249,7 @@
 
 #end-if
 
-;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+;Extreme: generic max-return profile constrained by RAW AI unit focus spreadsheet.ods; unique units and bounded reactive counters are exempt.
 #load-if-defined DIFFICULTY-EXTREME
 
 ;Opening priorities derived from doctrine: cavalry-led combined arms with missile troops and naval pressure.
@@ -324,7 +324,7 @@
 
 #load-if-defined UP-BRITON-CIV-ENEMY ; Britons
 
-;Respond to enemy doctrine: mobile chariot-style raiding backed by massed tribal infantry.
+;Respond to enemy doctrine: composite Iron Age British chariot-style raiding backed by massed tribal infantry.
 (defrule
 	(true)
 =>
@@ -1197,7 +1197,7 @@
 
 #end-if
 
-;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+;Extreme: generic max-return profile constrained by RAW AI unit focus spreadsheet.ods; unique units and bounded reactive counters are exempt.
 #load-if-defined DIFFICULTY-EXTREME
 
 ;Doctrine: cavalry-led combined arms with missile troops and naval pressure.
@@ -1516,7 +1516,9 @@
 			(goal current-phase 7)
 		)
 	)
-	(unit-type-count-total war-elephant-line g:< gl-no-percent)
+	(unit-type-count-total war-elephant-line g:< gl-two-percent)
+	(food-amount > 400)
+	(gold-amount > 150)
 	(can-train war-elephant-line)
 =>
 	(train war-elephant-line)

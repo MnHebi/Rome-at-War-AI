@@ -15,7 +15,7 @@
 
 #end-if
 
-;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+;Extreme: generic max-return profile constrained by RAW AI unit focus spreadsheet.ods; unique units and bounded reactive counters are exempt.
 #load-if-defined DIFFICULTY-EXTREME
 
 (defrule
@@ -224,7 +224,7 @@
 ;Below Extreme: historical and broad combined-arms profile.
 #load-if-not-defined DIFFICULTY-EXTREME
 
-;Opening priorities derived from doctrine: mobile chariot-style raiding backed by massed tribal infantry.
+;Opening priorities derived from doctrine: composite Iron Age British chariot-style raiding backed by massed tribal infantry.
 (defrule
 	(true)
 =>
@@ -249,10 +249,10 @@
 
 #end-if
 
-;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+;Extreme: generic max-return profile constrained by RAW AI unit focus spreadsheet.ods; unique units and bounded reactive counters are exempt.
 #load-if-defined DIFFICULTY-EXTREME
 
-;Opening priorities derived from doctrine: mobile chariot-style raiding backed by massed tribal infantry.
+;Opening priorities derived from doctrine: composite Iron Age British chariot-style raiding backed by massed tribal infantry.
 (defrule
 	(true)
 =>
@@ -324,7 +324,7 @@
 
 #load-if-defined UP-BRITON-CIV-ENEMY ; Britons
 
-;Respond to enemy doctrine: mobile chariot-style raiding backed by massed tribal infantry.
+;Respond to enemy doctrine: composite Iron Age British chariot-style raiding backed by massed tribal infantry.
 (defrule
 	(true)
 =>
@@ -1015,7 +1015,7 @@
 ;Below Extreme: historical and broad combined-arms profile.
 #load-if-not-defined DIFFICULTY-EXTREME
 
-;Doctrine: mobile chariot-style raiding backed by massed tribal infantry.
+;Doctrine: composite Iron Age British chariot-style raiding backed by massed tribal infantry.
 
 (defrule
 	(up-compare-goal current-phase < 4)
@@ -1165,10 +1165,10 @@
 
 #end-if
 
-;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+;Extreme: generic max-return profile constrained by RAW AI unit focus spreadsheet.ods; unique units and bounded reactive counters are exempt.
 #load-if-defined DIFFICULTY-EXTREME
 
-;Doctrine: mobile chariot-style raiding backed by massed tribal infantry.
+;Doctrine: composite Iron Age British chariot-style raiding backed by massed tribal infantry.
 
 (defrule
 	(up-compare-goal current-phase < 4)
@@ -1510,15 +1510,15 @@
 		(goal flank-position 0)
 		(goal team-game YES)
 	)
-	(can-train-with-escrow ut-ovates)
+	(can-research-with-escrow ut-ovates)
 =>
 	(release-escrow food)
 	(release-escrow gold)
-	(train ut-ovates)
+	(research ut-ovates)
 	(chat-local-to-self "research ovates(UT)")
 )
 
-;Warrior Priests for Team Games
+;Warrior Druids for Team Games
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
@@ -1526,25 +1526,25 @@
 		(goal flank-position 1)
 		(goal team-game YES)
 	)
-	(can-train-with-escrow ut-warrior-priests)
+	(can-research-with-escrow ut-warrior-druids)
 =>
 	(release-escrow food)
 	(release-escrow gold)
-	(train ut-warrior-priests)
-	(chat-local-to-self "research warrior priests(UT)")
+	(research ut-warrior-druids)
+	(chat-local-to-self "research warrior druids(UT)")
 )
 
-;Warrior Priests for Solo Games
+;Warrior Druids for Solo Games
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-other-villager-requirement)
 	(goal upgrade-other 1)
 	(goal team-game NO)
-	(can-research-with-escrow ut-warrior-priests)
+	(can-research-with-escrow ut-warrior-druids)
 =>
 	(release-escrow food)
 	(release-escrow gold)
-	(research ut-warrior-priests)
-	(chat-local-to-self "research warrior priests(UT)")
+	(research ut-warrior-druids)
+	(chat-local-to-self "research warrior druids(UT)")
 )
 
 ;Carnyx for Team Games
@@ -1573,7 +1573,7 @@
 	(release-escrow food)
 	(release-escrow gold)
 	(research ut-carnyx)
-	(chat-local-to-self "research warrior priests(UT)")
+	(chat-local-to-self "research carnyx(UT)")
 )
 
 ;Exmoor Covines for Team Games, will not be done in Solo Games
