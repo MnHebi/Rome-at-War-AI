@@ -140,6 +140,123 @@
 	(up-reset-group c: transport-escort-group)
 )
 
+;Keep the main army available for decisive attacks while a small detachment raids
+;known economy and production targets outside the nearest enemy Town Center.
+(defrule
+	(up-timer-status t-opportunistic-raid == timer-triggered)
+	(goal gl-raid-state RAID-IDLE)
+	(up-compare-goal military-superiority c:>= EQUAL)
+	(soldier-count >= 12)
+	(players-building-count any-enemy >= 1)
+=>
+	(up-get-fact soldier-count 0 gl-raid-group-size)
+	(up-modify-goal gl-raid-group-size c:/ 4)
+	(up-modify-goal gl-raid-focus-player s:= sn-focus-player-number)
+	(up-find-player enemy find-closest gl-raid-target-player)
+	(up-modify-group-flag 0 c: opportunistic-raid-group)
+	(up-reset-group c: opportunistic-raid-group)
+	(up-full-reset-search)
+	(up-modify-sn sn-focus-player-number g:= gl-raid-target-player)
+	(up-set-target-point position-self-x)
+	(up-find-remote c: town-center c: 8)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-get-search-state local-total)
+	(set-goal gl-raid-state RAID-FIND-TOWN)
+)
+
+(defrule
+	(goal gl-raid-state RAID-FIND-TOWN)
+	(up-compare-goal gl-raid-group-size c:< 4)
+=>
+	(set-goal gl-raid-group-size 4)
+)
+
+(defrule
+	(goal gl-raid-state RAID-FIND-TOWN)
+	(up-compare-goal gl-raid-group-size c:> 10)
+=>
+	(set-goal gl-raid-group-size 10)
+)
+
+(defrule
+	(goal gl-raid-state RAID-FIND-TOWN)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-point position-object point-x)
+	(up-full-reset-search)
+	(up-set-target-point point-x)
+	(up-filter-distance c: 12 c: -1)
+	(up-find-remote c: villager-class c: 20)
+	(up-find-remote c: trade-cart-class c: 5)
+	(up-find-remote c: lumber-camp c: 5)
+	(up-find-remote c: mining-camp c: 5)
+	(up-find-remote c: mill c: 5)
+	(up-find-remote c: market c: 5)
+	(up-find-remote c: barracks c: 5)
+	(up-find-remote c: archery-range c: 5)
+	(up-find-remote c: stable c: 5)
+	(up-find-remote c: siege-workshop c: 5)
+	(up-clean-search search-remote -1 search-order-asc)
+	(up-set-target-point position-self-x)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-get-search-state local-total)
+	(set-goal gl-raid-state RAID-FIND-TARGET)
+)
+
+;If no enemy Town Center has been sighted, use the best vulnerable target known.
+(defrule
+	(goal gl-raid-state RAID-FIND-TOWN)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-find-remote c: villager-class c: 20)
+	(up-find-remote c: trade-cart-class c: 5)
+	(up-find-remote c: lumber-camp c: 5)
+	(up-find-remote c: mining-camp c: 5)
+	(up-find-remote c: mill c: 5)
+	(up-find-remote c: market c: 5)
+	(up-find-remote c: barracks c: 5)
+	(up-find-remote c: archery-range c: 5)
+	(up-find-remote c: stable c: 5)
+	(up-find-remote c: siege-workshop c: 5)
+	(up-clean-search search-remote -1 search-order-asc)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-get-search-state local-total)
+	(set-goal gl-raid-state RAID-FIND-TARGET)
+)
+
+(defrule
+	(goal gl-raid-state RAID-FIND-TARGET)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-point position-object point2-x)
+	(up-reset-search 1 1 0 0)
+	(up-set-target-point point2-x)
+	(up-find-local c: scout-cavalry-class c: 10)
+	(up-find-local c: cavalry-archer-class c: 10)
+	(up-find-local c: cavalry-class c: 10)
+	(up-find-local c: infantry-class c: 10)
+	(up-find-local c: archery-class c: 10)
+	(up-clean-search search-local -1 search-order-asc)
+	(up-remove-objects search-local object-data-action == actionid-retreat)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index g:>= gl-raid-group-size)
+	(up-create-group 0 0 c: opportunistic-raid-group)
+	(up-modify-group-flag 1 c: opportunistic-raid-group)
+	(up-target-objects 1 action-default -1 stance-aggressive)
+	(up-modify-sn sn-focus-player-number g:= gl-raid-focus-player)
+	(set-goal gl-raid-state RAID-IDLE)
+)
+
+(defrule
+	(goal gl-raid-state RAID-FIND-TARGET)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-raid-focus-player)
+	(set-goal gl-raid-state RAID-IDLE)
+)
+
 ;retreat when forces are too dwindled
 (defrule
 	(up-timer-status t-retreat == timer-triggered)
