@@ -640,6 +640,7 @@
 ;Seed an aquatic economy even before the periodic resource scan has seen fish.
 ;The first boats explore their water body and reveal additional fishing grounds.
 (defrule
+	(game-time < 600)
 	(unit-type-count-total fishing-ship < 2)
 	(or
 		(goal map-type LAKE)
@@ -657,12 +658,38 @@
 )
 
 (defrule
-	(unit-type-count-total fishing-ship g:< desired-number-fishing)
+	(goal fish-present YES)
+	(unit-type-count-total fishing-ship < 2)
+	(wood-amount > 140)
+	(can-train fishing-ship)
+=>
+	(train fishing-ship)
+)
+
+;Scale the fishing fleet to the fishing grounds that are still visible. This
+;prevents a small inland sea from consuming the same population as open water.
+(defrule
 	(or
-		(goal fish-present YES)
-		(building-type-count-total fish-trap > 0)
+		(cc-players-unit-type-count 0 ocean-fish-class >= 4)
+		(or
+			(cc-players-unit-type-count 0 shore-fish-class >= 4)
+			(building-type-count-total fish-trap > 0)
+		)
 	)
-	(wood-amount > 180)
+	(unit-type-count-total fishing-ship < 4)
+	(wood-amount > 220)
+	(can-train fishing-ship)
+=>
+	(train fishing-ship)
+)
+
+(defrule
+	(or
+		(cc-players-unit-type-count 0 ocean-fish-class >= 10)
+		(cc-players-unit-type-count 0 shore-fish-class >= 10)
+	)
+	(unit-type-count-total fishing-ship < 6)
+	(wood-amount > 320)
 	(can-train fishing-ship)
 =>
 	(train fishing-ship)
@@ -769,7 +796,7 @@
 ;)
 
 ;resource dropoff deletions so the AI can keep up with diminishing resources
-;also, delete fishing ships once fish are gone
+;also, trim fishing fleets when their fishing grounds shrink
 (defrule
 	(and
 		(goal wood-present YES)
@@ -815,8 +842,34 @@
 (defrule
 	(and
 		(goal fish-present NO)
-		(unit-type-count fishing-ship > 5)
+		(building-type-count-total fish-trap <= 0)
 	)
+	(up-timer-status t-update-facts == timer-triggered)
+	(unit-type-count fishing-ship > 0)
+=>
+	(delete-unit fishing-ship)
+)
+
+(defrule
+	(goal fish-present YES)
+	(cc-players-unit-type-count 0 ocean-fish-class < 4)
+	(cc-players-unit-type-count 0 shore-fish-class < 4)
+	(up-timer-status t-update-facts == timer-triggered)
+	(unit-type-count fishing-ship > 2)
+=>
+	(delete-unit fishing-ship)
+)
+
+(defrule
+	(goal fish-present YES)
+	(cc-players-unit-type-count 0 ocean-fish-class < 10)
+	(cc-players-unit-type-count 0 shore-fish-class < 10)
+	(or
+		(cc-players-unit-type-count 0 ocean-fish-class >= 4)
+		(cc-players-unit-type-count 0 shore-fish-class >= 4)
+	)
+	(up-timer-status t-update-facts == timer-triggered)
+	(unit-type-count fishing-ship > 4)
 =>
 	(delete-unit fishing-ship)
 )

@@ -150,6 +150,220 @@
 )
 #end-if
 
+;Use otherwise idle villagers to establish a second economy off the home
+;island. A partially loaded civilian transport stays below the military-route
+;controller's minimum load, so the two systems cannot issue competing orders.
+(defrule
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-home-defense-state NO)
+	(current-age >= middle-antiquity-age)
+	(up-idle-unit-count idle-type-villager >= 4)
+	(unit-type-count transport-ship >= 1)
+	(or
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
+=>
+	(up-modify-goal gl-island-migration-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-find-remote c: transport-ship c: 5)
+	(up-remove-objects search-remote object-data-garrison-count > 0)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-set-timer c: t-island-migration c: 90)
+	(set-goal gl-island-migration-state MIGRATION-FIND-TRANSPORT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-FIND-TRANSPORT)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-island-migration-transport-id)
+	(up-get-point position-object point-x)
+	(set-goal gl-island-migration-state MIGRATION-BOARDING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-FIND-TRANSPORT)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-BOARDING)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
+	(up-set-target-object search-remote c: 0)
+	(up-get-point position-object point-x)
+	(up-set-target-point point-x)
+	(up-find-local c: villager-class c: 40)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-on-mainland != on-mainland)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 3)
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-state MIGRATION-LOADING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-LOADING)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count >= 2)
+=>
+	(up-modify-goal gl-island-migration-focus s:= sn-focus-player-number)
+	(up-modify-sn sn-focus-player-number s:= sn-target-player-number)
+	(up-get-point position-focus point3-x)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(up-get-point position-self point4-x)
+	(up-lerp-percent point4-x point3-x c: 60)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(up-target-point point4-x action-unload -1 stance-no-attack)
+	(up-set-timer c: t-island-migration c: 180)
+	(set-goal gl-island-migration-state MIGRATION-SAILING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-SAILING)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count <= 0)
+	(up-object-data object-data-on-mainland == off-mainland)
+=>
+	(up-set-timer c: t-island-migration c: 180)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+;Recover a failed boarding or landing attempt instead of reserving the
+;Transport Ship permanently.
+(defrule
+	(up-timer-status t-island-migration == timer-triggered)
+	(not (goal gl-island-migration-state MIGRATION-IDLE))
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(up-target-point position-self-x action-unload -1 stance-no-attack)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+;Return empty damaged transports to the nearest naval production site and use
+;idle villagers for repairs. Repairers keep working to full health after the
+;initial order, while the 75 percent threshold avoids wasteful minor repairs.
+(defrule
+	(up-timer-status t-transport-repair == timer-triggered)
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
+	(wood-amount > 80)
+	(up-idle-unit-count idle-type-villager >= 1)
+	(unit-type-count transport-ship >= 1)
+=>
+	(up-modify-goal gl-transport-repair-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-find-local c: transport-ship c: 5)
+	(up-remove-objects search-local object-data-garrison-count > 0)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-clean-search search-local object-data-hitpoints search-order-asc)
+	(up-set-timer c: t-transport-repair c: 30)
+	(set-goal gl-transport-repair-state TRANSPORT-REPAIR-ASSESS)
+)
+
+(defrule
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-ASSESS)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-transport-repair-id)
+	(up-get-object-data object-data-hitpoints gl-transport-repair-hp)
+	(up-get-object-data object-data-maxhp gl-transport-repair-maxhp)
+	(up-get-point position-object point-x)
+	(up-modify-goal gl-transport-repair-percent g:= gl-transport-repair-hp)
+	(up-modify-goal gl-transport-repair-percent c:* 100)
+	(up-modify-goal gl-transport-repair-percent g:/ gl-transport-repair-maxhp)
+	(set-goal gl-transport-repair-state TRANSPORT-REPAIR-FIND-PORT)
+)
+
+(defrule
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-ASSESS)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-transport-repair-focus)
+	(set-goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
+)
+
+(defrule
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-FIND-PORT)
+	(up-compare-goal gl-transport-repair-percent >= 75)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-transport-repair-focus)
+	(set-goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
+)
+
+(defrule
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-FIND-PORT)
+	(up-compare-goal gl-transport-repair-percent < 75)
+=>
+	(up-full-reset-search)
+	(up-set-target-point point-x)
+	(up-find-local c: port c: 10)
+	(up-find-local c: shipyard c: 10)
+	(up-clean-search search-local object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-FIND-PORT)
+	(up-compare-goal gl-transport-repair-percent < 75)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-point position-object point3-x)
+	(set-goal gl-transport-repair-state TRANSPORT-REPAIR-MOVE)
+)
+
+(defrule
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-FIND-PORT)
+	(up-compare-goal gl-transport-repair-percent < 75)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-transport-repair-focus)
+	(set-goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
+)
+
+(defrule
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-MOVE)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-repair-id)
+	(up-target-point point3-x action-move -1 stance-no-attack)
+	(set-goal gl-transport-repair-state TRANSPORT-REPAIR-TASK)
+)
+
+(defrule
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-TASK)
+=>
+	(up-full-reset-search)
+	(up-set-target-point point3-x)
+	(up-filter-distance c: -1 c: 12)
+	(up-find-local c: villager-class c: 20)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 2)
+	(up-add-object-by-id search-remote g: gl-transport-repair-id)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-repair-focus)
+	(set-goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
+)
+
 ;A fully loaded outbound transport keeps its escort but shifts its landing to
 ;the less-defended side when the original route ends under static-defense fire.
 (defrule
@@ -1870,6 +2084,96 @@
 	(disable-self)
 )
 
+;Keep one ship choice stable long enough for the Shipyard rules to queue it.
+;The former selector could cascade through several choices in one update and
+;good naval civilizations could remain stuck on the first Scout Ship state.
+(defrule
+	(up-timer-status t-ship-train != timer-running)
+	(goal ship-train SCOUTSHIP)
+=>
+	(set-goal ship-train POLYREME)
+	(up-set-timer c: t-ship-train c: 12)
+)
+
+(defrule
+	(up-timer-status t-ship-train != timer-running)
+	(goal ship-train POLYREME)
+=>
+	(set-goal ship-train FIRESHIP)
+	(up-set-timer c: t-ship-train c: 12)
+)
+
+(defrule
+	(up-timer-status t-ship-train != timer-running)
+	(goal ship-train FIRESHIP)
+	(goal good-navy YES)
+=>
+	(set-goal ship-train HEMIOLIA)
+	(up-set-timer c: t-ship-train c: 12)
+)
+
+(defrule
+	(up-timer-status t-ship-train != timer-running)
+	(goal ship-train FIRESHIP)
+	(goal good-navy NO)
+=>
+	(set-goal ship-train DEMOSHIP)
+	(up-set-timer c: t-ship-train c: 12)
+)
+
+(defrule
+	(up-timer-status t-ship-train != timer-running)
+	(or
+		(goal ship-train HEMIOLIA)
+		(goal ship-train DEMOSHIP)
+	)
+=>
+	(set-goal ship-train BOARDINGSHIP)
+	(up-set-timer c: t-ship-train c: 12)
+)
+
+(defrule
+	(up-timer-status t-ship-train != timer-running)
+	(goal ship-train BOARDINGSHIP)
+	(goal good-navy YES)
+=>
+	(set-goal ship-train Q-REME)
+	(up-set-timer c: t-ship-train c: 12)
+)
+
+(defrule
+	(up-timer-status t-ship-train != timer-running)
+	(goal ship-train BOARDINGSHIP)
+	(goal good-navy NO)
+=>
+	(set-goal ship-train JUGGERNAUT)
+	(up-set-timer c: t-ship-train c: 12)
+)
+
+(defrule
+	(up-timer-status t-ship-train != timer-running)
+	(goal ship-train Q-REME)
+=>
+	(set-goal ship-train OCTERES)
+	(up-set-timer c: t-ship-train c: 12)
+)
+
+(defrule
+	(up-timer-status t-ship-train != timer-running)
+	(goal ship-train OCTERES)
+=>
+	(set-goal ship-train JUGGERNAUT)
+	(up-set-timer c: t-ship-train c: 12)
+)
+
+(defrule
+	(up-timer-status t-ship-train != timer-running)
+	(goal ship-train JUGGERNAUT)
+=>
+	(set-goal ship-train SCOUTSHIP)
+	(up-set-timer c: t-ship-train c: 12)
+)
+
 
 #load-if-not-defined DIFFICULTY-EASIEST
 #load-if-not-defined DIFFICULTY-EASY
@@ -1935,7 +2239,7 @@
 (defrule
 	(and
 		(goal train-scoutships NO)
-		(wood-amount > 500)
+		(wood-amount > 200)
 	)
 =>
 	(chat-local-to-self "allow scout ship training")
@@ -1945,8 +2249,8 @@
 
 (defrule
 	(and
-		(wood-amount > 500)
-		(gold-amount > 500)
+		(wood-amount > 250)
+		(gold-amount > 150)
 	)
 	(or
 		(goal train-remes NO)
@@ -1975,7 +2279,7 @@
 (defrule
 	(and
 		(goal train-scoutships YES)
-		(wood-amount < 500)
+		(wood-amount < 120)
 	)
 =>
 	(chat-local-to-self "disallow scout ship training")
@@ -1983,9 +2287,9 @@
 )
 
 (defrule
-	(and
-		(wood-amount < 500)
-		(gold-amount < 500)
+	(or
+		(wood-amount < 150)
+		(gold-amount < 80)
 	)
 	(or
 		(goal train-remes YES)
@@ -2008,6 +2312,10 @@
 	(set-goal train-hemiolia NO)
 	(set-goal train-boardingships NO)
 )
+
+;Retained only as reference for older AI builds. The stable selector above
+;supersedes this cascading selector.
+#load-if-defined RAWAI-LEGACY-NAVY-SWITCHER
 
 ;good navies begin
 
@@ -2408,6 +2716,8 @@
 
 ;bad navies end
 
+#end-if
+
 (defrule
 	(up-compare-goal current-phase >= 5)
 	(or
@@ -2457,7 +2767,7 @@
 (defrule
 	(and
 		(goal train-scoutships NO)
-		(wood-amount > 250)
+		(wood-amount > 140)
 	)
 =>
 	(chat-local-to-self "allow scout ship training")
@@ -2467,8 +2777,8 @@
 
 (defrule
 	(and
-		(wood-amount > 250)
-		(gold-amount > 250)
+		(wood-amount > 180)
+		(gold-amount > 100)
 	)
 	(or
 		(goal train-remes NO)
@@ -2497,7 +2807,7 @@
 (defrule
 	(and
 		(goal train-scoutships YES)
-		(wood-amount < 500)
+		(wood-amount < 90)
 	)
 =>
 	(chat-local-to-self "disallow scout ship training")
@@ -2505,9 +2815,9 @@
 )
 
 (defrule
-	(and
-		(wood-amount < 250)
-		(gold-amount < 250)
+	(or
+		(wood-amount < 120)
+		(gold-amount < 60)
 	)
 	(or
 		(goal train-remes YES)
@@ -2530,6 +2840,10 @@
 	(set-goal train-hemiolia NO)
 	(set-goal train-boardingships NO)
 )
+
+;Retained only as reference for older AI builds. The stable selector above
+;supersedes this cascading selector.
+#load-if-defined RAWAI-LEGACY-NAVY-SWITCHER
 
 ;just go through ship types in order...
 
@@ -2596,6 +2910,8 @@
 	(chat-local-to-self "ship type switch to JUGGERNAUT")
 	(set-goal ship-train JUGGERNAUT)
 )
+
+#end-if
 
 #end-if
 #end-if

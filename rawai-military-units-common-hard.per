@@ -1742,6 +1742,16 @@
 (defrule
 	(goal ship-train SCOUTSHIP)
 	(goal train-scoutships YES)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
 	(unit-type-count-total scout-galley-line g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: scout-galley-line)
 =>
