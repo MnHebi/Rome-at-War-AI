@@ -587,7 +587,7 @@
 	(up-add-object-by-id search-local g: gl-transport-route-id)
 	(up-target-point gl-transport-route-target-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
-	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-WAIT)
 )
 
 (defrule
@@ -648,7 +648,7 @@
 	(up-add-object-by-id search-local g: gl-transport-route-id)
 	(up-target-point gl-transport-route-left-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
-	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-WAIT)
 )
 
 (defrule
@@ -666,6 +666,40 @@
 	(up-add-object-by-id search-local g: gl-transport-route-id)
 	(up-target-point gl-transport-route-right-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-WAIT)
+)
+
+;Do not leave an empty attack transport exposed on the landing shoreline. Wait
+;until unloading is complete, then withdraw it toward the home water zone.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-WAIT)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-CHECK)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count <= 0)
+=>
+	(up-target-point position-self-x action-move -1 stance-no-attack)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+=>
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-CHECK)
+	(not (up-set-target-object search-local c: 0))
+=>
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 )
 
