@@ -668,6 +668,43 @@
 	(train fishing-ship)
 )
 
+;Keep enough transports available for the engine's cross-water attack routing.
+(defrule
+	(current-age >= early-antiquity-age)
+	(soldier-count >= 6)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(unit-type-count-total transport-ship < 1)
+	(can-train transport-ship)
+=>
+	(train transport-ship)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(soldier-count >= 15)
+	(or
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
+	(wood-amount > 200)
+	(unit-type-count-total transport-ship < 2)
+	(can-train transport-ship)
+=>
+	(train transport-ship)
+)
+
 (defrule
 	(or
 		(goal map-type TEAM-ISLANDS)
