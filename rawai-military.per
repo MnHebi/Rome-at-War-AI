@@ -1159,6 +1159,71 @@
 	(set-goal gl-relic-ferry-state RELIC-FERRY-IDLE)
 )
 
+;Roman Spearmen should not remain the default answer to swordsmen inside the
+;base. Confirm that a known enemy Champion is within the town perimeter before
+;enabling the emergency Long Swordsman production override.
+#load-if-defined BYZANTINE-CIV
+(defrule
+	(up-timer-status t-defense-leash == timer-triggered)
+	(goal gl-champion-threat-scan-state CHAMPION-THREAT-SCAN-IDLE)
+	(players-unit-type-count any-enemy champion >= 1)
+=>
+	(up-modify-goal gl-champion-threat-scan-focus s:= sn-focus-player-number)
+	(up-find-player enemy find-closest gl-champion-threat-player)
+	(up-modify-sn sn-focus-player-number g:= gl-champion-threat-player)
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-filter-distance c: -1 c: 32)
+	(up-find-remote c: champion c: 20)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-get-search-state remote-total)
+	(set-goal gl-champion-threat-scan-state CHAMPION-THREAT-SCAN-CHECK)
+)
+
+(defrule
+	(goal gl-champion-threat-scan-state CHAMPION-THREAT-SCAN-CHECK)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-goal gl-roman-champion-base-threat YES)
+	(up-modify-goal gl-roman-champion-counter-target g:= remote-total)
+	(up-modify-goal gl-roman-champion-counter-target c:+ 3)
+	(up-modify-sn sn-focus-player-number g:= gl-champion-threat-scan-focus)
+	(set-goal gl-champion-threat-scan-state CHAMPION-THREAT-SCAN-IDLE)
+)
+
+(defrule
+	(goal gl-roman-champion-base-threat YES)
+	(up-compare-goal gl-roman-champion-counter-target c:< 4)
+=>
+	(set-goal gl-roman-champion-counter-target 4)
+)
+
+(defrule
+	(goal gl-roman-champion-base-threat YES)
+	(up-compare-goal gl-roman-champion-counter-target c:> 12)
+=>
+	(set-goal gl-roman-champion-counter-target 12)
+)
+
+(defrule
+	(goal gl-champion-threat-scan-state CHAMPION-THREAT-SCAN-CHECK)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-roman-champion-base-threat NO)
+	(set-goal gl-roman-champion-counter-target 0)
+	(up-modify-sn sn-focus-player-number g:= gl-champion-threat-scan-focus)
+	(set-goal gl-champion-threat-scan-state CHAMPION-THREAT-SCAN-IDLE)
+)
+
+(defrule
+	(goal gl-roman-champion-base-threat YES)
+	(players-unit-type-count any-enemy champion <= 0)
+=>
+	(set-goal gl-roman-champion-base-threat NO)
+	(set-goal gl-roman-champion-counter-target 0)
+)
+#end-if
+
 ;If an enemy reaches the town while an outbound attack is still assembling near
 ;home, cancel that attack and hold reinforcements until the incursion is cleared.
 (defrule

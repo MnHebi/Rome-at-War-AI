@@ -1,6 +1,19 @@
 
 ;========================BARRACKS BEGIN========================
 
+;Emergency Roman response to enemy Champions inside the town. This exact unit
+;request bypasses the normal Middle-Age legionary role mapping.
+#load-if-defined BYZANTINE-CIV
+(defrule
+	(goal gl-roman-champion-base-threat YES)
+	(current-age >= middle-antiquity-age)
+	(unit-type-count-total long-swordsman g:< gl-roman-champion-counter-target)
+	(up-can-train gl-unitescrow-state c: long-swordsman)
+=>
+	(up-train gl-unitescrow-state c: long-swordsman)
+)
+#end-if
+
 ;========================CHAMPION BEGIN========================
 
 #load-if-not-defined BYZANTINE-CIV ; Roman Empire
@@ -496,6 +509,7 @@
 		(goal train-spearman YES)
 		(goal primary-unit SPEARMAN)
 	)
+	(goal gl-roman-champion-base-threat NO)
 	(unit-type-count-total spearman-line g:< gl-ten-percent)
 	(up-can-train gl-unitescrow-state c: spearman-line)
 =>
@@ -507,6 +521,7 @@
 		(goal train-spearman YES)
 		(goal secondary-unit SPEARMAN)
 	)
+	(goal gl-roman-champion-base-threat NO)
 	(unit-type-count-total spearman-line g:< gl-five-percent)
 	(up-can-train gl-unitescrow-state c: spearman-line)
 =>
@@ -518,6 +533,7 @@
 		(goal train-spearman YES)
 		(goal tertiary-unit SPEARMAN)
 	)
+	(goal gl-roman-champion-base-threat NO)
 	(unit-type-count-total spearman-line g:< gl-two-percent)
 	(up-can-train gl-unitescrow-state c: spearman-line)
 =>
@@ -529,6 +545,7 @@
 		(goal train-spearman YES)
 		(goal quaternary-unit SPEARMAN)
 	)
+	(goal gl-roman-champion-base-threat NO)
 	(unit-type-count-total spearman-line g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: spearman-line)
 =>
@@ -540,6 +557,7 @@
 		(goal train-spearman YES)
 		(goal primary-support-unit SPEARMAN)
 	)
+	(goal gl-roman-champion-base-threat NO)
 	(unit-type-count-total spearman-line g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: spearman-line)
 =>
@@ -551,6 +569,7 @@
 		(goal train-spearman YES)
 		(goal secondary-support-unit SPEARMAN)
 	)
+	(goal gl-roman-champion-base-threat NO)
 	(unit-type-count-total spearman-line g:< gl-no-percent)
 	(up-can-train gl-unitescrow-state c: spearman-line)
 =>
