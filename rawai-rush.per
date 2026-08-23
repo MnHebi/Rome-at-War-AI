@@ -1,249 +1,502 @@
-;define rush state
-;for rushing YES means it will be considered if we are ahead in age, and already have the required structures
-;MAYBE means it will be considered if we are ahead in age
-;ASSURED means it will be done
+;Rush selection and bounded opening execution.
+;The civilization profile establishes affinities, enemy matchup rules adjust them,
+;and this module activates every opening tied at the highest remaining tier.
+
+;Find the highest affinity tier after the profile and matchup rules have run.
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:== 4)
+	(up-compare-goal drush-affinity c:< 4)
+	(up-compare-goal fcast-affinity c:< 4)
+	(up-compare-goal trush-affinity c:< 4)
+	(up-compare-goal hrush-affinity c:< 4)
+	(up-compare-goal krush-affinity c:< 4)
+	(up-compare-goal mush-affinity c:< 4)
+	(up-compare-goal sprush-affinity c:< 4)
+	(up-compare-goal scush-affinity c:< 4)
+	(up-compare-goal skrush-affinity c:< 4)
+	(up-compare-goal sgush-affinity c:< 4)
+	(up-compare-goal cush-affinity c:< 4)
+	(up-compare-goal lush-affinity c:< 4)
+	(up-compare-goal ilush-affinity c:< 4)
+	(up-compare-goal fc-affinity c:< 4)
+=>
+	(set-goal rush-threshold 3)
+)
 
 (defrule
-	(and
-		(up-compare-goal drush-affinity c:<= 0)
-		(and
-			(up-compare-goal fcast-affinity c:<= 0)
-			(and
-				(up-compare-goal trush-affinity c:<= 0)
-				(and
-					(up-compare-goal hrush-affinity c:<= 0)
-					(and
-						(up-compare-goal krush-affinity c:<= 0)
-						(and
-							(up-compare-goal mush-affinity c:<= 0)
-							(and
-								(up-compare-goal sprush-affinity c:<= 0)
-								(and
-									(up-compare-goal scush-affinity c:<= 0)
-									(or
-										(up-compare-goal skrush-affinity c:<= 0)
-										(or
-											(up-compare-goal sgush-affinity c:<= 0)
-											(or
-												(up-compare-goal cush-affinity c:<= 0)
-												(or
-													(up-compare-goal lush-affinity c:<= 0)
-													(or
-														(up-compare-goal ilush-affinity c:<= 0)
-														(up-compare-goal fc-affinity c:<= 0)
-													)
-												)
-											)
-										)
-									)
-								)
-							)
-						)
-					)
-				)
-			)
-		)
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:== 3)
+	(up-compare-goal drush-affinity c:< 3)
+	(up-compare-goal fcast-affinity c:< 3)
+	(up-compare-goal trush-affinity c:< 3)
+	(up-compare-goal hrush-affinity c:< 3)
+	(up-compare-goal krush-affinity c:< 3)
+	(up-compare-goal mush-affinity c:< 3)
+	(up-compare-goal sprush-affinity c:< 3)
+	(up-compare-goal scush-affinity c:< 3)
+	(up-compare-goal skrush-affinity c:< 3)
+	(up-compare-goal sgush-affinity c:< 3)
+	(up-compare-goal cush-affinity c:< 3)
+	(up-compare-goal lush-affinity c:< 3)
+	(up-compare-goal ilush-affinity c:< 3)
+	(up-compare-goal fc-affinity c:< 3)
+=>
+	(set-goal rush-threshold 2)
+)
+
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:== 2)
+	(up-compare-goal drush-affinity c:< 2)
+	(up-compare-goal fcast-affinity c:< 2)
+	(up-compare-goal trush-affinity c:< 2)
+	(up-compare-goal hrush-affinity c:< 2)
+	(up-compare-goal krush-affinity c:< 2)
+	(up-compare-goal mush-affinity c:< 2)
+	(up-compare-goal sprush-affinity c:< 2)
+	(up-compare-goal scush-affinity c:< 2)
+	(up-compare-goal skrush-affinity c:< 2)
+	(up-compare-goal sgush-affinity c:< 2)
+	(up-compare-goal cush-affinity c:< 2)
+	(up-compare-goal lush-affinity c:< 2)
+	(up-compare-goal ilush-affinity c:< 2)
+	(up-compare-goal fc-affinity c:< 2)
+=>
+	(set-goal rush-threshold 1)
+)
+
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:== 1)
+	(up-compare-goal drush-affinity c:< 1)
+	(up-compare-goal fcast-affinity c:< 1)
+	(up-compare-goal trush-affinity c:< 1)
+	(up-compare-goal hrush-affinity c:< 1)
+	(up-compare-goal krush-affinity c:< 1)
+	(up-compare-goal mush-affinity c:< 1)
+	(up-compare-goal sprush-affinity c:< 1)
+	(up-compare-goal scush-affinity c:< 1)
+	(up-compare-goal skrush-affinity c:< 1)
+	(up-compare-goal sgush-affinity c:< 1)
+	(up-compare-goal cush-affinity c:< 1)
+	(up-compare-goal lush-affinity c:< 1)
+	(up-compare-goal ilush-affinity c:< 1)
+	(up-compare-goal fc-affinity c:< 1)
+=>
+	(set-goal rush-threshold 0)
+)
+
+;Expose the selected commitment level to attack timing and diagnostics.
+(defrule
+	(goal rush-affinities-ready YES)
+	(goal rush-threshold 0)
+	(not
+		(goal rush-rushing NO)
 	)
 =>
 	(set-goal rush-rushing NO)
-	
-	(disable-self)
 )
 
 (defrule
-	(or
-		(up-compare-goal drush-affinity c:== 1)
-		(or
-			(up-compare-goal fcast-affinity c:== 1)
-			(or
-				(up-compare-goal trush-affinity c:== 1)
-				(or
-					(up-compare-goal hrush-affinity c:== 1)
-					(or
-						(up-compare-goal krush-affinity c:== 1)
-						(or
-							(up-compare-goal mush-affinity c:== 1)
-							(or
-								(up-compare-goal sprush-affinity c:== 1)
-								(or
-									(up-compare-goal scush-affinity c:== 1)
-									(or
-										(up-compare-goal skrush-affinity c:== 1)
-										(or
-											(up-compare-goal sgush-affinity c:== 1)
-											(or
-												(up-compare-goal cush-affinity c:== 1)
-												(or
-													(up-compare-goal lush-affinity c:== 1)
-													(or
-														(up-compare-goal ilush-affinity c:== 1)
-														(up-compare-goal fc-affinity c:== 1)
-													)
-												)
-											)
-										)
-									)
-								)
-							)
-						)
-					)
-				)
-			)
-		)
+	(goal rush-affinities-ready YES)
+	(goal rush-threshold 1)
+	(not
+		(goal rush-rushing YES)
 	)
 =>
 	(set-goal rush-rushing YES)
-	
-	(disable-self)
 )
 
 (defrule
-	(or
-		(up-compare-goal drush-affinity c:== 2)
-		(or
-			(up-compare-goal fcast-affinity c:== 2)
-			(or
-				(up-compare-goal trush-affinity c:== 2)
-				(or
-					(up-compare-goal hrush-affinity c:== 2)
-					(or
-						(up-compare-goal krush-affinity c:== 2)
-						(or
-							(up-compare-goal mush-affinity c:== 2)
-							(or
-								(up-compare-goal sprush-affinity c:== 2)
-								(or
-									(up-compare-goal scush-affinity c:== 2)
-									(or
-										(up-compare-goal skrush-affinity c:== 2)
-										(or
-											(up-compare-goal sgush-affinity c:== 2)
-											(or
-												(up-compare-goal cush-affinity c:== 2)
-												(or
-													(up-compare-goal lush-affinity c:== 2)
-													(or
-														(up-compare-goal ilush-affinity c:== 2)
-														(up-compare-goal fc-affinity c:== 2)
-													)
-												)
-											)
-										)
-									)
-								)
-							)
-						)
-					)
-				)
-			)
-		)
+	(goal rush-affinities-ready YES)
+	(goal rush-threshold 2)
+	(not
+		(goal rush-rushing MAYBE)
 	)
 =>
 	(set-goal rush-rushing MAYBE)
-	
-	(disable-self)
 )
 
 (defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:>= 3)
+	(not
+		(goal rush-rushing ASSURED)
+	)
+=>
+	(set-goal rush-rushing ASSURED)
+)
+
+;Activate all tied openings. Ties intentionally form historical combined-arms rushes.
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:> 0)
+	(up-compare-goal drush-affinity g:>= rush-threshold)
+	(goal rush-drush NO)
+=>
+	(set-goal rush-drush YES)
+)
+
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:> 0)
+	(up-compare-goal fcast-affinity g:>= rush-threshold)
+	(goal rush-fcast NO)
+=>
+	(set-goal rush-fcast YES)
+)
+
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:> 0)
+	(up-compare-goal trush-affinity g:>= rush-threshold)
+	(goal rush-trush NO)
+=>
+	(set-goal rush-trush YES)
+)
+
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:> 0)
+	(up-compare-goal hrush-affinity g:>= rush-threshold)
+	(goal rush-hrush NO)
+=>
+	(set-goal rush-hrush YES)
+)
+
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:> 0)
+	(up-compare-goal krush-affinity g:>= rush-threshold)
+	(goal rush-krush NO)
+=>
+	(set-goal rush-krush YES)
+)
+
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:> 0)
+	(up-compare-goal mush-affinity g:>= rush-threshold)
+	(goal rush-mush NO)
+=>
+	(set-goal rush-mush YES)
+)
+
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:> 0)
+	(up-compare-goal sprush-affinity g:>= rush-threshold)
+	(goal rush-sprush NO)
+=>
+	(set-goal rush-sprush YES)
+)
+
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:> 0)
+	(up-compare-goal scush-affinity g:>= rush-threshold)
+	(goal rush-scush NO)
+=>
+	(set-goal rush-scush YES)
+)
+
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:> 0)
+	(up-compare-goal skrush-affinity g:>= rush-threshold)
+	(goal rush-skrush NO)
+=>
+	(set-goal rush-skrush YES)
+)
+
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:> 0)
+	(up-compare-goal sgush-affinity g:>= rush-threshold)
+	(goal rush-sgush NO)
+=>
+	(set-goal rush-sgush YES)
+)
+
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:> 0)
+	(up-compare-goal cush-affinity g:>= rush-threshold)
+	(goal rush-cush NO)
+=>
+	(set-goal rush-cush YES)
+)
+
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:> 0)
+	(up-compare-goal lush-affinity g:>= rush-threshold)
+	(goal rush-lush NO)
+=>
+	(set-goal rush-lush YES)
+)
+
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:> 0)
+	(up-compare-goal ilush-affinity g:>= rush-threshold)
+	(goal rush-ilush NO)
+=>
+	(set-goal rush-ilush YES)
+)
+
+(defrule
+	(goal rush-affinities-ready YES)
+	(up-compare-goal rush-threshold c:> 0)
+	(up-compare-goal fc-affinity g:>= rush-threshold)
+	(goal rush-fc NO)
+=>
+	(set-goal rush-fc YES)
+)
+
+;A forward-castle opening includes the fast-age timing.
+(defrule
+	(goal rush-fcast YES)
+	(goal rush-fc NO)
+=>
+	(set-goal rush-fc YES)
+)
+
+;Keep an assured opening from waiting for the normal periodic-attack clock.
+(defrule
+	(goal rush-rushing ASSURED)
+	(up-compare-goal periodic-attack-interval c:> 600)
+=>
+	(up-modify-goal periodic-attack-interval c:= 600)
+)
+
+;Production buildings required by the selected opening.
+(defrule
 	(or
-		(up-compare-goal drush-affinity c:>= 4)
+		(goal rush-drush YES)
 		(or
-			(up-compare-goal fcast-affinity c:>= 4)
+			(goal rush-hrush YES)
 			(or
-				(up-compare-goal trush-affinity c:>= 4)
+				(goal rush-sprush YES)
 				(or
-					(up-compare-goal hrush-affinity c:>= 4)
+					(goal rush-cush YES)
 					(or
-						(up-compare-goal krush-affinity c:>= 4)
-						(or
-							(up-compare-goal mush-affinity c:>= 4)
-							(or
-								(up-compare-goal sprush-affinity c:>= 4)
-								(or
-									(up-compare-goal scush-affinity c:>= 4)
-									(or
-										(up-compare-goal skrush-affinity c:>= 4)
-										(or
-											(up-compare-goal sgush-affinity c:>= 4)
-											(or
-												(up-compare-goal cush-affinity c:>= 4)
-												(or
-													(up-compare-goal lush-affinity c:>= 4)
-													(or
-														(up-compare-goal ilush-affinity c:>= 4)
-														(up-compare-goal fc-affinity c:>= 4)
-													)
-												)
-											)
-										)
-									)
-								)
-							)
-						)
+						(goal rush-lush YES)
+						(goal rush-ilush YES)
 					)
 				)
 			)
 		)
 	)
+	(building-type-count-total barracks c:< 1)
+	(up-can-build gl-buildingescrow-state c: barracks)
 =>
-	(set-goal rush-rushing ASSURED)
-	
-	(disable-self)
+	(up-build place-normal gl-buildingescrow-state c: barracks)
 )
 
-;drush
 (defrule
-	(goal rush-drush YES)
-	(unit-type-count-total militiaman-line c:< 3)
-	(up-can-train gl-unitescrow-state c: militiaman-line)
-=>
-	(up-train gl-unitescrow-state c: militiaman-line)
-)
-
-;krush
-
-(defrule
-	(goal rush-krush YES)
-	(building-type-count-total stable c:< 2)
+	(or
+		(goal rush-krush YES)
+		(goal rush-scush YES)
+	)
+	(current-age >= early-antiquity-age)
+	(building-type-count-total stable c:< 1)
 	(up-can-build gl-buildingescrow-state c: stable)
 =>
 	(up-build place-normal gl-buildingescrow-state c: stable)
 )
 
+(defrule
+	(goal rush-skrush YES)
+	(current-age >= early-antiquity-age)
+	(building-type-count-total archery-range c:< 1)
+	(up-can-build gl-buildingescrow-state c: archery-range)
+=>
+	(up-build place-normal gl-buildingescrow-state c: archery-range)
+)
+
+(defrule
+	(goal rush-mush YES)
+	(current-age >= middle-antiquity-age)
+	(building-type-count-total monastery c:< 1)
+	(up-can-build gl-buildingescrow-state c: monastery)
+=>
+	(up-build place-normal gl-buildingescrow-state c: monastery)
+)
+
+(defrule
+	(goal rush-sgush YES)
+	(building-type-count-total siege-workshop c:< 1)
+	(up-can-build gl-buildingescrow-state c: siege-workshop)
+=>
+	(up-build place-normal gl-buildingescrow-state c: siege-workshop)
+)
+
+;Unit rushes train a bounded opening force; the normal composition system takes over after it.
+(defrule
+	(goal rush-drush YES)
+	(unit-type-count-total militiaman-line c:< 3)
+	(up-can-train gl-unitescrow-state c: militiaman-line)
+=>
+	(set-goal train-champion YES)
+	(up-train gl-unitescrow-state c: militiaman-line)
+)
+
+(defrule
+	(goal rush-hrush YES)
+	(unit-type-count-total horus-scout-line c:< 5)
+	(up-can-train gl-unitescrow-state c: horus-scout-line)
+=>
+	(set-goal train-horus YES)
+	(up-train gl-unitescrow-state c: horus-scout-line)
+)
+
+(defrule
+	(goal rush-sprush YES)
+	(unit-type-count-total spearman-line c:< 6)
+	(up-can-train gl-unitescrow-state c: spearman-line)
+=>
+	(set-goal train-spearman YES)
+	(up-train gl-unitescrow-state c: spearman-line)
+)
+
+(defrule
+	(goal rush-scush YES)
+	(unit-type-count-total scout-cavalry-line c:< 5)
+	(up-can-train gl-unitescrow-state c: scout-cavalry-line)
+=>
+	(set-goal train-scoutcav YES)
+	(up-train gl-unitescrow-state c: scout-cavalry-line)
+)
+
+#load-if-not-defined INCAN-CIV
+(defrule
+	(goal rush-skrush YES)
+	(unit-type-count-total skirmisher-line c:< 6)
+	(up-can-train gl-unitescrow-state c: skirmisher-line)
+=>
+	(set-goal train-skirmisher YES)
+	(up-train gl-unitescrow-state c: skirmisher-line)
+)
+#end-if
+
+#load-if-defined INCAN-CIV
+(defrule
+	(goal rush-skrush YES)
+	(unit-type-count-total range-mounted-skirmisher-line c:< 6)
+	(up-can-train gl-unitescrow-state c: range-mounted-skirmisher-line)
+=>
+	(set-goal train-skirmisher YES)
+	(up-train gl-unitescrow-state c: range-mounted-skirmisher-line)
+)
+#end-if
+
+(defrule
+	(goal rush-mush YES)
+	(unit-type-count-total priest c:< 3)
+	(up-can-train gl-unitescrow-state c: priest)
+=>
+	(set-goal train-priest YES)
+	(up-train gl-unitescrow-state c: priest)
+)
+
+(defrule
+	(goal rush-sgush YES)
+	(unit-type-count-total battering-ram-line c:< 2)
+	(up-can-train gl-unitescrow-state c: battering-ram-line)
+=>
+	(set-goal train-ram YES)
+	(up-train gl-unitescrow-state c: battering-ram-line)
+)
+
+(defrule
+	(or
+		(goal rush-cush YES)
+		(or
+			(goal rush-lush YES)
+			(goal rush-ilush YES)
+		)
+	)
+	(unit-type-count-total militiaman-line c:< 5)
+	(up-can-train gl-unitescrow-state c: militiaman-line)
+=>
+	(set-goal train-champion YES)
+	(up-train gl-unitescrow-state c: militiaman-line)
+)
+
+;Cavalry rushes use Ratha for the two civilizations whose stable line is replaced.
 #load-if-not-defined BENGALIS-CIV
 #load-if-not-defined DRAVIDIANS-CIV
-
 (defrule
 	(goal rush-krush YES)
 	(unit-type-count-total cavalry-line c:< 5)
 	(up-can-train gl-unitescrow-state c: cavalry-line)
 =>
+	(set-goal train-cavalry YES)
 	(up-train gl-unitescrow-state c: cavalry-line)
 )
-
 #end-if
 #end-if
 
 #load-if-defined BENGALIS-CIV
-
 (defrule
 	(goal rush-krush YES)
 	(unit-type-count-total ratha-melee-line c:< 5)
 	(up-can-train gl-unitescrow-state c: ratha-melee-line)
 =>
+	(set-goal train-ratha YES)
 	(up-train gl-unitescrow-state c: ratha-melee-line)
 )
-
 #end-if
 
 #load-if-defined DRAVIDIANS-CIV
-
 (defrule
 	(goal rush-krush YES)
 	(unit-type-count-total ratha-melee-line c:< 5)
 	(up-can-train gl-unitescrow-state c: ratha-melee-line)
 =>
+	(set-goal train-ratha YES)
 	(up-train gl-unitescrow-state c: ratha-melee-line)
 )
-
 #end-if
+
+;Timing and forward-building openings.
+(defrule
+	(goal rush-fc YES)
+	(current-age <= early-antiquity-age)
+	(up-compare-goal desired-ageup-villagers c:> 20)
+=>
+	(up-modify-goal desired-ageup-villagers c:= 20)
+)
+
+(defrule
+	(goal rush-trush YES)
+	(current-age >= early-antiquity-age)
+	(building-type-count-total watch-tower c:< 2)
+	(can-build watch-tower)
+=>
+	(build-forward watch-tower)
+)
+
+(defrule
+	(goal rush-fcast YES)
+	(current-age >= middle-antiquity-age)
+	(building-type-count-total castle c:< 1)
+	(can-build castle)
+=>
+	(build-forward castle)
+)
+
+;Commit the opening force instead of waiting for the regular late-game attack cycle.
+(defrule
+	(not
+		(goal rush-rushing NO)
+	)
+	(game-time > 300)
+	(current-age <= middle-antiquity-age)
+	(soldier-count >= 4)
+=>
+	(attack-now)
+	(disable-self)
+)

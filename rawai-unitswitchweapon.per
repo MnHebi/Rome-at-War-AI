@@ -1,0 +1,15 @@
+;The current DAT exposes the Legionary production form through zero-cost
+;Barracks technologies. Roman Empire production uses the default ranged form;
+;Roman Republic production rules use the melee line and must enable it first.
+
+#load-if-defined ITALIAN-CIV
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(can-research-with-escrow ri-create-legionaries-melee)
+=>
+	(research ri-create-legionaries-melee)
+	(chat-local-to-self "create legionaries in melee form")
+)
+
+#end-if
