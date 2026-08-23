@@ -140,11 +140,230 @@
 	(up-reset-group c: transport-escort-group)
 )
 
+;Track the actual Transport Ship capacity used by the current civilization.
+#load-if-defined AZTEC-CIV
+(defrule
+	(true)
+=>
+	(up-modify-goal gl-transport-min-load c:+ 10)
+	(disable-self)
+)
+#end-if
+
+;A fully loaded outbound transport keeps its escort but shifts its landing to
+;the less-defended side when the original route ends under static-defense fire.
+(defrule
+	(up-timer-status t-transport-route == timer-triggered)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(goal gl-home-defense-state NO)
+	(or
+		(goal map-type LAKE)
+		(goal map-type RIVERS)
+		(goal map-type ISLANDS)
+		(goal map-type TEAM-ISLANDS)
+	)
+	(unit-type-count transport-ship >= 1)
+=>
+	(up-modify-goal gl-transport-route-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-find-remote c: transport-ship c: 5)
+	(up-remove-objects search-remote object-data-garrison-count g:< gl-transport-min-load)
+	(up-clean-search search-remote object-data-distance search-order-desc)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-FIND)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-FIND)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-transport-route-id)
+	(up-get-point position-object point-x)
+	(up-get-object-data object-data-move-x point2-x)
+	(up-get-object-data object-data-move-y point2-y)
+	(up-modify-sn sn-focus-player-number s:= sn-target-player-number)
+	(up-full-reset-search)
+	(up-set-target-point point2-x)
+	(up-filter-distance c: -1 c: 14)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 10)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: town-center c: 10)
+	(up-get-search-state local-total)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-THREAT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-FIND)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-THREAT)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-THREAT)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-bound-point point3-x point2-x)
+	(up-cross-tiles point3-x point-x c: 18)
+	(up-full-reset-search)
+	(up-set-target-point point3-x)
+	(up-filter-distance c: -1 c: 12)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 10)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: town-center c: 10)
+	(up-get-search-state local-total)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LEFT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LEFT)
+=>
+	(up-modify-goal gl-transport-route-left-threats g:= remote-total)
+	(up-bound-point point4-x point2-x)
+	(up-cross-tiles point4-x point-x c: -18)
+	(up-full-reset-search)
+	(up-set-target-point point4-x)
+	(up-filter-distance c: -1 c: 12)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 10)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: town-center c: 10)
+	(up-get-search-state local-total)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RIGHT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RIGHT)
+=>
+	(up-modify-goal gl-transport-route-right-threats g:= remote-total)
+	(generate-random-number 2)
+	(up-get-fact random-number 0 gl-transport-route-random)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-APPLY)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-APPLY)
+	(or
+		(up-compare-goal gl-transport-route-left-threats g:< gl-transport-route-right-threats)
+		(and
+			(up-compare-goal gl-transport-route-left-threats g:= gl-transport-route-right-threats)
+			(up-compare-goal gl-transport-route-random c:<= 1)
+		)
+	)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-target-point point3-x action-unload -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-APPLY)
+	(or
+		(up-compare-goal gl-transport-route-right-threats g:< gl-transport-route-left-threats)
+		(and
+			(up-compare-goal gl-transport-route-left-threats g:= gl-transport-route-right-threats)
+			(up-compare-goal gl-transport-route-random c:> 1)
+		)
+	)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-target-point point4-x action-unload -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+;If an enemy reaches the town while an outbound attack is still assembling near
+;home, cancel that attack and hold reinforcements until the incursion is cleared.
+(defrule
+	(up-timer-status t-defense-leash == timer-triggered)
+	(goal gl-home-defense-state NO)
+	(up-enemy-units-in-town c:>= 3)
+=>
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-filter-distance c: -1 c: 18)
+	(up-filter-include -1 actionid-attack -1 -1)
+	(up-find-local c: scout-cavalry-class c: 40)
+	(up-find-local c: cavalry-archer-class c: 40)
+	(up-find-local c: cavalry-class c: 40)
+	(up-find-local c: infantry-class c: 40)
+	(up-find-local c: archery-class c: 40)
+	(up-find-local c: siege-weapon-class c: 40)
+	(up-clean-search search-local -1 search-order-asc)
+	(up-get-search-state local-total)
+)
+
+(defrule
+	(up-timer-status t-defense-leash == timer-triggered)
+	(goal gl-home-defense-state NO)
+	(up-enemy-units-in-town c:>= 3)
+	(up-compare-goal local-total c:>= 4)
+=>
+	(up-reset-attack-now)
+	(up-retreat-now)
+	(set-goal gl-home-defense-state YES)
+	(set-goal current-action ACTION-RETREAT)
+	(up-set-timer c: t-home-defense-hold c: 45)
+)
+
+(defrule
+	(up-timer-status t-home-defense-hold == timer-triggered)
+	(goal gl-home-defense-state YES)
+	(up-enemy-units-in-town c:< 2)
+=>
+	(set-goal gl-home-defense-state NO)
+	(set-goal current-action ACTION-WAIT)
+)
+
+(defrule
+	(up-timer-status t-home-defense-hold == timer-triggered)
+	(goal gl-home-defense-state YES)
+	(up-enemy-units-in-town c:>= 2)
+=>
+	(up-set-timer c: t-home-defense-hold c: 30)
+)
+
+;Defend groups that chase past the town perimeter return under supporting fire.
+(defrule
+	(up-timer-status t-defense-leash == timer-triggered)
+=>
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-filter-distance c: 18 c: -1)
+	(up-filter-include -1 actionid-defend -1 -1)
+	(up-find-local c: scout-cavalry-class c: 40)
+	(up-find-local c: cavalry-archer-class c: 40)
+	(up-find-local c: cavalry-class c: 40)
+	(up-find-local c: infantry-class c: 40)
+	(up-find-local c: archery-class c: 40)
+	(up-find-local c: siege-weapon-class c: 40)
+	(up-clean-search search-local -1 search-order-asc)
+	(up-target-point position-self-x action-move -1 stance-defensive)
+)
+
 ;Keep the main army available for decisive attacks while a small detachment raids
 ;known economy and production targets outside the nearest enemy Town Center.
 (defrule
 	(up-timer-status t-opportunistic-raid == timer-triggered)
 	(goal gl-raid-state RAID-IDLE)
+	(goal gl-home-defense-state NO)
 	(up-compare-goal military-superiority c:>= EQUAL)
 	(soldier-count >= 12)
 	(players-building-count any-enemy >= 1)
@@ -969,6 +1188,7 @@
 ;rule 11
 (defrule
 	(up-compare-goal current-action c:= ACTION-ATTACK)
+	(goal gl-home-defense-state NO)
 	(and
 		(up-compare-goal attack-type-land c:= PERCENTAGE)
 		(and
@@ -986,6 +1206,7 @@
 ;rule 12
 (defrule
 	(up-compare-goal current-action c:= ACTION-ATTACK)
+	(goal gl-home-defense-state NO)
 	(and
 		(up-compare-goal attack-type-sea c:= PERCENTAGE)
 		(and
@@ -1005,6 +1226,7 @@
 
 (defrule
 	(up-compare-goal current-action c:= ACTION-ATTACK)
+	(goal gl-home-defense-state NO)
 	(and
 		(up-compare-goal attack-type-land c:= TOWN-SIZE)
 		(and
@@ -1021,6 +1243,7 @@
 
 (defrule
 	(up-compare-goal current-action c:= ACTION-ATTACK)
+	(goal gl-home-defense-state NO)
 	(and
 		(up-compare-goal attack-type-sea c:= TOWN-SIZE)
 		(and
@@ -1041,6 +1264,7 @@
 ;periodic attacks
 (defrule
 	(game-time > 300)
+	(goal gl-home-defense-state NO)
 	(up-timer-status t-periodic-attack != timer-running)
 =>
 	(chat-local-to-self "periodic attack")
@@ -1655,7 +1879,8 @@
 
 (defrule
 	(current-age == middle-antiquity-age)
-	(current-age-time > 120)
+	(current-age-time g:> gl-age-attack-delay)
+	(goal gl-home-defense-state NO)
 =>
 	(attack-now)
 	
@@ -1664,7 +1889,8 @@
 
 (defrule
 	(current-age == imperial-age)
-	(current-age-time > 120)
+	(current-age-time g:> gl-age-attack-delay)
+	(goal gl-home-defense-state NO)
 =>
 	(attack-now)
 	

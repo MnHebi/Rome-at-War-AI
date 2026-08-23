@@ -413,3 +413,26 @@
 
 	(disable-self)
 )
+
+(defrule
+	(true)
+=>
+	(set-goal gl-attack-timer-random 0)
+	(set-goal gl-attack-timer-next 0)
+	(set-goal gl-home-defense-state NO)
+	(set-goal gl-transport-min-load 5)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(set-goal gl-transport-route-focus 0)
+	(set-goal gl-transport-route-left-threats 0)
+	(set-goal gl-transport-route-right-threats 0)
+	(set-goal gl-transport-route-random 0)
+	(set-goal gl-transport-route-id -1)
+	(generate-random-number 121)
+	(up-get-fact random-number 0 gl-age-attack-delay)
+	(up-modify-goal gl-age-attack-delay c:+ 120)
+	(generate-random-number 121)
+	(up-get-fact random-number 0 gl-rush-attack-delay)
+	(up-modify-goal gl-rush-attack-delay c:+ 300)
+
+	(disable-self)
+)
