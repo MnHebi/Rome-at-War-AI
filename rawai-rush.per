@@ -96,6 +96,7 @@
 	)
 =>
 	(set-goal rush-rushing NO)
+	(disable-self)
 )
 
 (defrule
@@ -106,6 +107,7 @@
 	)
 =>
 	(set-goal rush-rushing YES)
+	(disable-self)
 )
 
 (defrule
@@ -116,6 +118,7 @@
 	)
 =>
 	(set-goal rush-rushing MAYBE)
+	(disable-self)
 )
 
 (defrule
@@ -126,6 +129,7 @@
 	)
 =>
 	(set-goal rush-rushing ASSURED)
+	(disable-self)
 )
 
 ;Activate all tied openings. Ties intentionally form historical combined-arms rushes.
@@ -499,5 +503,8 @@
 	(soldier-count >= 4)
 =>
 	(attack-now)
+	;The opening exemption ends once its force is committed. Selected rush unit
+	;goals remain bounded and active, but age-up preparation may resume.
+	(set-goal rush-rushing NO)
 	(disable-self)
 )

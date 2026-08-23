@@ -42,6 +42,22 @@
 	(set-goal wait-techup-requirements NO)
 )
 
+;On a normal strategy, start Middle Antiquity by 9:30 when resources permit.
+;Its 160-second research time then leaves a useful Imperial preparation window.
+(defrule
+	(current-age == early-antiquity-age)
+	(game-time >= 570)
+	(goal rush-rushing NO)
+	(up-compare-goal strategy c:!= BOOMER-STRATEGY)
+	(up-compare-goal boomer-affinity c:<= 0)
+	(up-compare-goal fishboom-affinity c:<= 0)
+	(up-can-research gl-researchescrow-state c: ri-middle-antiquity-age)
+=>
+	(up-research gl-researchescrow-state c: ri-middle-antiquity-age)
+	(set-goal age-up-started MIDDLE-ANTIQUITY)
+	(chat-local-to-self "normal timing: age up to middle antiquity")
+)
+
 (defrule
 	(current-age == early-antiquity-age)
 	(or
@@ -82,6 +98,22 @@
 	)
 =>
 	(set-goal wait-techup-requirements NO)
+)
+
+;Imperial takes 190 seconds in the current data mod. A 16:30 research deadline
+;therefore completes by 19:40 on the normal path, inside the 15-20 minute goal.
+(defrule
+	(current-age == middle-antiquity-age)
+	(game-time >= 990)
+	(goal rush-rushing NO)
+	(up-compare-goal strategy c:!= BOOMER-STRATEGY)
+	(up-compare-goal boomer-affinity c:<= 0)
+	(up-compare-goal fishboom-affinity c:<= 0)
+	(up-can-research gl-researchescrow-state c: ri-imperial-age)
+=>
+	(up-research gl-researchescrow-state c: ri-imperial-age)
+	(set-goal age-up-started IMPERIAL)
+	(chat-local-to-self "normal timing: age up to imperial")
 )
 
 (defrule

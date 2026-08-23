@@ -176,6 +176,47 @@ def validate_difficulty_matrix() -> list[str]:
     return errors
 
 
+def validate_age_timing() -> list[str]:
+    errors: list[str] = []
+    main_text = (AI_ROOT / "AI RAW.per").read_text(encoding="utf-8-sig")
+    if not re.search(r'\(load\s+"rawai-escrow"\s*\)', main_text):
+        errors.append("AI RAW.per: research escrow policy is not loaded")
+
+    exemptions = (
+        "(goal rush-rushing NO)",
+        "strategy c:!= BOOMER-STRATEGY",
+        "boomer-affinity c:<= 0",
+        "fishboom-affinity c:<= 0",
+    )
+    age_blocks = defrule_blocks(
+        (AI_ROOT / "rawai-age-advancement.per").read_text(encoding="utf-8-sig")
+    )
+    for technology, deadline in (
+        ("ri-middle-antiquity-age", 570),
+        ("ri-imperial-age", 990),
+    ):
+        matching = [
+            block
+            for block in age_blocks
+            if f"(game-time >= {deadline})" in block
+            and f"(up-research gl-researchescrow-state c: {technology})" in block
+        ]
+        if len(matching) != 1 or any(token not in matching[0] for token in exemptions):
+            errors.append(
+                f"rawai-age-advancement.per: invalid normal deadline for {technology}"
+            )
+
+    rush_blocks = defrule_blocks(
+        (AI_ROOT / "rawai-rush.per").read_text(encoding="utf-8-sig")
+    )
+    if not any(
+        "(attack-now)" in block and "(set-goal rush-rushing NO)" in block
+        for block in rush_blocks
+    ):
+        errors.append("rawai-rush.per: opening commitment never releases age exemption")
+    return errors
+
+
 def main() -> None:
     errors: list[str] = []
     extreme = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
@@ -265,6 +306,7 @@ def main() -> None:
         )
 
     errors.extend(validate_difficulty_matrix())
+    errors.extend(validate_age_timing())
     report = {
         "errors": errors,
         "historical_matchups_with_adjustments": historical_non_neutral,

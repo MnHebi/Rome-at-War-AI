@@ -63,6 +63,40 @@
 	(disable-self)
 )
 
+;Normal strategies reserve the next age's actual food and gold costs against
+;an absolute match clock. Rush and boom plans retain their flexible timings.
+(defrule
+	(current-age == early-antiquity-age)
+	(game-time >= 420)
+	(goal age-up-started EARLY-ANTIQUITY)
+	(goal rush-rushing NO)
+	(up-compare-goal strategy c:!= BOOMER-STRATEGY)
+	(up-compare-goal boomer-affinity c:<= 0)
+	(up-compare-goal fishboom-affinity c:<= 0)
+=>
+	(set-escrow-percentage wood 10)
+	(set-escrow-percentage food 65)
+	(set-escrow-percentage gold 40)
+	(set-escrow-percentage stone 0)
+	(set-goal gl-researchescrow-state with-escrow)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+	(game-time >= 720)
+	(goal age-up-started MIDDLE-ANTIQUITY)
+	(goal rush-rushing NO)
+	(up-compare-goal strategy c:!= BOOMER-STRATEGY)
+	(up-compare-goal boomer-affinity c:<= 0)
+	(up-compare-goal fishboom-affinity c:<= 0)
+=>
+	(set-escrow-percentage wood 5)
+	(set-escrow-percentage food 70)
+	(set-escrow-percentage gold 70)
+	(set-escrow-percentage stone 0)
+	(set-goal gl-researchescrow-state with-escrow)
+)
+
 (defrule
 	(or
 		(or
