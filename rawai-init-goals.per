@@ -295,6 +295,23 @@
 	(disable-self)
 )
 
+;Adaptive attack state is isolated from the larger transport initializer so
+;both startup rules stay comfortably below the engine expression limit.
+(defrule
+	(true)
+=>
+	(set-goal gl-failed-attack-streak 0)
+	(set-goal gl-attack-recovery-streak 0)
+	(set-goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
+	(set-goal gl-known-fortifications 0)
+	(set-goal gl-fortification-scan-state FORTIFICATION-SCAN-IDLE)
+	(set-goal gl-fortification-scan-focus 0)
+	(set-goal gl-fortification-scan-player 0)
+	(set-goal have-siege NO)
+
+	(disable-self)
+)
+
 ;Route-corridor and close-combat response state are initialized separately to
 ;keep the transport startup blocks below the engine's 32-expression limit.
 (defrule

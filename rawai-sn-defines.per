@@ -346,6 +346,7 @@
 
 (defrule
 	(goal attack-type-land GROUP)
+	(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
 	(and
 		(up-compare-sn sn-minimum-attack-group-size g:< gl-pop-atkgrp-minsize)
 		(and
@@ -357,6 +358,24 @@
 	(up-modify-sn sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize)
 	(up-modify-sn sn-maximum-attack-group-size g:= gl-pop-atkgrp-maxsize)
 	(up-modify-sn sn-number-attack-groups g:= gl-pop-number-groups)
+)
+
+;Regrouping and siege buildup use explicit large attacks.  Keep the GROUP
+;scheduler from quietly recreating small autonomous attack groups meanwhile.
+(defrule
+	(goal attack-type-land GROUP)
+	(up-compare-goal gl-attack-escalation-state c:!= ATTACK-ESCALATION-NORMAL)
+	(or
+		(up-compare-sn sn-minimum-attack-group-size c:> 0)
+		(or
+			(up-compare-sn sn-maximum-attack-group-size c:> 0)
+			(up-compare-sn sn-number-attack-groups c:> 0)
+		)
+	)
+=>
+	(up-modify-sn sn-minimum-attack-group-size c:= 0)
+	(up-modify-sn sn-maximum-attack-group-size c:= 0)
+	(up-modify-sn sn-number-attack-groups c:= 0)
 )
 
 (defrule
