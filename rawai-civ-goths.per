@@ -1,15 +1,34 @@
 
-;define civ specialties
+;define difficulty-specific civ specialties
+;Below Extreme: historical and broad combined-arms profile.
+#load-if-not-defined DIFFICULTY-EXTREME
+
 (defrule
 	(true)
 =>
 	(set-goal civ-specialty1 SPE-INFANTRY)
 	(set-goal civ-specialty2 SPE-CAVALRY)
-	(set-goal civ-specialty3 SPE-NONE)
-	
+	(set-goal civ-specialty3 SPE-UNIQUE)
+
 	(disable-self)
 )
 
+#end-if
+
+;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+#load-if-defined DIFFICULTY-EXTREME
+
+(defrule
+	(true)
+=>
+	(set-goal civ-specialty1 SPE-INFANTRY)
+	(set-goal civ-specialty2 SPE-CAVALRY)
+	(set-goal civ-specialty3 SPE-UNIQUE)
+
+	(disable-self)
+)
+
+#end-if
 ;Define unique unit properties
 ;Unique Unit 1-2 are trained from Castle
 ;Unique Unit 3-4 are trained from Barracks
@@ -190,113 +209,1085 @@
 	(disable-self)
 )
 
-;enemy civs will alter rush affinities
-;unit affinities will only be altered if it is highly beneficial or enemy has perfect unit to counter that unit in that matchup
-;some techs might only be researched in certain matchups
+;difficulty-specific rush affinities
+;Below Extreme: historical and broad combined-arms profile.
+#load-if-not-defined DIFFICULTY-EXTREME
+
+;Opening priorities derived from doctrine: sustained infantry pressure with cavalry pursuit.
+(defrule
+	(true)
+=>
+	(set-goal drush-affinity 4)
+	(set-goal fcast-affinity 0)
+	(set-goal trush-affinity 0)
+	(set-goal hrush-affinity 0)
+	(set-goal krush-affinity 0)
+	(set-goal mush-affinity 0)
+	(set-goal sprush-affinity 0)
+	(set-goal scush-affinity 0)
+	(set-goal skrush-affinity 0)
+	(set-goal sgush-affinity 0)
+	(set-goal cush-affinity 4)
+	(set-goal lush-affinity 0)
+	(set-goal ilush-affinity 0)
+	(set-goal fc-affinity 1)
+	(set-goal rush-affinities-ready YES)
+
+	(disable-self)
+)
+
+#end-if
+
+;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+#load-if-defined DIFFICULTY-EXTREME
+
+;Opening priorities derived from doctrine: sustained infantry pressure with cavalry pursuit.
+(defrule
+	(true)
+=>
+	(set-goal drush-affinity 4)
+	(set-goal fcast-affinity 0)
+	(set-goal trush-affinity 0)
+	(set-goal hrush-affinity 0)
+	(set-goal krush-affinity 0)
+	(set-goal mush-affinity 0)
+	(set-goal sprush-affinity 0)
+	(set-goal scush-affinity 0)
+	(set-goal skrush-affinity 0)
+	(set-goal sgush-affinity 0)
+	(set-goal cush-affinity 4)
+	(set-goal lush-affinity 0)
+	(set-goal ilush-affinity 0)
+	(set-goal fc-affinity 1)
+	(set-goal rush-affinities-ready YES)
+
+	(disable-self)
+)
+
+#end-if
+;enemy-specific opening adjustments
+;Only rushes configured for the active difficulty profile are adjusted.
+;Positive values exploit the enemy doctrine; negative values avoid its counters.
+
 #load-if-defined UP-BERBERS-CIV-ENEMY ; Armenians
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: armored cavalry supported by mounted missiles and clergy.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 1)
+	(up-modify-goal cush-affinity c:- 1)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+#end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: armored cavalry supported by mounted missiles and clergy.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:+ 1)
+
+	(disable-self)
+)
+#end-if
 
 #end-if
+
 #load-if-defined UP-LITHUANIANS-CIV-ENEMY ; Athenians
 
+;Respond to enemy doctrine: disciplined spear line with missile support and a strong naval economy.
+(defrule
+	(true)
+=>
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+
 #end-if
+
 #load-if-defined UP-BRITON-CIV-ENEMY ; Britons
 
+;Respond to enemy doctrine: mobile chariot-style raiding backed by massed tribal infantry.
+(defrule
+	(true)
+=>
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+
 #end-if
+
 #load-if-defined UP-PORTUGUESE-CIV-ENEMY ; Carthagians
 
+;Respond to enemy doctrine: cavalry-led combined arms with missile troops and naval pressure.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+
 #end-if
+
 #load-if-defined UP-VIETNAMESE-CIV-ENEMY ; Cretans
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: stand-off archery protected by light troops and naval mobility.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 1)
+	(up-modify-goal cush-affinity c:- 1)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
 #end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: stand-off archery protected by light troops and naval mobility.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 1)
+	(up-modify-goal cush-affinity c:- 1)
+	(up-modify-goal fc-affinity c:+ 1)
+
+	(disable-self)
+)
+#end-if
+
+#end-if
+
 #load-if-defined UP-ETHIOPIANS-CIV-ENEMY ; Dacians
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: aggressive falx infantry with light cavalry and siege support.
+(defrule
+	(true)
+=>
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
 #end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: aggressive falx infantry with light cavalry and siege support.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 1)
+	(up-modify-goal cush-affinity c:- 1)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+#end-if
+
+#end-if
+
 #load-if-defined UP-AZTEC-CIV-ENEMY ; Egyptians
 
+;Respond to enemy doctrine: chariot and bow maneuver warfare anchored by sacred infantry.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 1)
+	(up-modify-goal cush-affinity c:- 1)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+
 #end-if
+
 #load-if-defined UP-FRANKISH-CIV-ENEMY ; Gauls
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: fast massed infantry assaults with cavalry exploitation.
+(defrule
+	(true)
+=>
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
 #end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: fast massed infantry assaults with cavalry exploitation.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 1)
+	(up-modify-goal cush-affinity c:- 1)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+#end-if
+
+#end-if
+
 #load-if-defined UP-TEUTONIC-CIV-ENEMY ; Germani
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: close infantry cooperating with fast cavalry detachments.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 1)
+	(up-modify-goal cush-affinity c:- 1)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
 #end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: close infantry cooperating with fast cavalry detachments.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+#end-if
+
+#end-if
+
 #load-if-defined UP-GOTHIC-CIV-ENEMY ; Goths
 
-#end-if
-#load-if-defined UP-GURJARAS-CIV-ENEMY ; Gupta 
+;Respond to enemy doctrine: sustained infantry pressure with cavalry pursuit.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
 
 #end-if
+
+#load-if-defined UP-GURJARAS-CIV-ENEMY ; Gupta
+
+;Respond to enemy doctrine: mobile royal combined arms with cavalry, bows, and siege.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+
+#end-if
+
 #load-if-defined UP-CHINESE-CIV-ENEMY ; Han
 
+;Respond to enemy doctrine: layered infantry and crossbow forces with engineered siege support.
+(defrule
+	(true)
+=>
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+
 #end-if
+
 #load-if-defined UP-HUN-CIV-ENEMY ; Huns
 
+;Respond to enemy doctrine: relentless mounted raiding followed by cavalry concentration.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+
 #end-if
+
 #load-if-defined UP-SPANISH-CIV-ENEMY ; Iberians
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: hit-and-run cavalry and javelin pressure around a strong infantry core.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 1)
+	(up-modify-goal cush-affinity c:- 1)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
 #end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: hit-and-run cavalry and javelin pressure around a strong infantry core.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+#end-if
+
+#end-if
+
 #load-if-defined UP-BULGARIANS-CIV-ENEMY ; Illyrians
 
+;Respond to enemy doctrine: hard infantry and missile troops operating from a maritime base.
+(defrule
+	(true)
+=>
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+
 #end-if
+
 #load-if-defined UP-SARACEN-CIV-ENEMY ; Judeans
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Base opening retained; no configured rush has a decisive matchup edge.
 #end-if
-#load-if-defined UP-INDIAN-CIV-ENEMY ; Kushans
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: defensive missile warfare supported by priests and siege.
+(defrule
+	(true)
+=>
+	(up-modify-goal fc-affinity c:+ 2)
+
+	(disable-self)
+)
+#end-if
 
 #end-if
+
+#load-if-defined UP-INDIAN-CIV-ENEMY ; Kushan
+
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: mounted archery screened by light horse and sustained by clergy.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+#end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: mounted-archer pressure sustained by a strong clerical arm.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:+ 2)
+
+	(disable-self)
+)
+#end-if
+
+#end-if
+
 #load-if-defined UP-KOREAN-CIV-ENEMY ; Macedonians
 
+;Respond to enemy doctrine: phalanx anvil with cavalry hammer and ranged support.
+(defrule
+	(true)
+=>
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+
 #end-if
+
 #load-if-defined UP-BENGALIS-CIV-ENEMY ; Mauryans
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: four-arm combined force of elephants, cavalry, missiles, and priests.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:+ 1)
+
+	(disable-self)
+)
 #end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: four-arm combined force of elephants, cavalry, missiles, and priests.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:+ 2)
+
+	(disable-self)
+)
+#end-if
+
+#end-if
+
 #load-if-defined UP-DRAVIDIANS-CIV-ENEMY ; Nanda
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: elephant shock army protected by mounted and missile screens.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
 #end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: elephant shock army protected by mounted and missile screens.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:+ 1)
+
+	(disable-self)
+)
+#end-if
+
+#end-if
+
 #load-if-defined UP-MAYAN-CIV-ENEMY ; Nubians
 
+;Respond to enemy doctrine: archer and camel pressure with chariot mobility.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+
 #end-if
+
 #load-if-defined UP-INCAN-CIV-ENEMY ; Numidians
 
+;Respond to enemy doctrine: dispersed light cavalry skirmishing and rapid concentration.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+
 #end-if
+
 #load-if-defined UP-TURKISH-CIV-ENEMY ; Parthians
 
-#end-if
-#load-if-defined UP-PERSIAN-CIV-ENEMY ; Persians
+;Respond to enemy doctrine: horse-archer harassment followed by armored cavalry shock.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
 
 #end-if
+
+#load-if-defined UP-PERSIAN-CIV-ENEMY ; Persian
+
+;Respond to enemy doctrine: heavy cavalry and chariot attack with a broad missile screen.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+
+#end-if
+
 #load-if-defined UP-MONGOL-CIV-ENEMY ; Phoenicians
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: naval and siege pressure backed by archers and heavy cavalry.
+(defrule
+	(true)
+=>
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
 #end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: naval and siege pressure backed by archers and heavy cavalry.
+(defrule
+	(true)
+=>
+	(up-modify-goal fc-affinity c:+ 2)
+
+	(disable-self)
+)
+#end-if
+
+#end-if
+
 #load-if-defined UP-CELTIC-CIV-ENEMY ; Picts
 
+;Respond to enemy doctrine: persistent infantry raids supported by fast light cavalry.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 1)
+	(up-modify-goal cush-affinity c:- 1)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+
 #end-if
+
 #load-if-defined UP-KHMER-CIV-ENEMY ; Pontus
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: flexible legionary infantry with cavalry and mounted missiles.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 1)
+	(up-modify-goal cush-affinity c:- 1)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
 #end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: flexible legionary infantry with cavalry and mounted missiles.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+#end-if
+
+#end-if
+
 #load-if-defined UP-BYZANTINE-CIV-ENEMY ; Roman Empire
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: disciplined legion-and-spear advance with crossbows and siege.
+(defrule
+	(true)
+=>
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
 #end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: disciplined legion-and-spear advance with crossbows and siege.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 1)
+	(up-modify-goal cush-affinity c:- 1)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+#end-if
+
+#end-if
+
 #load-if-defined UP-ITALIAN-CIV-ENEMY ; Roman Republic
 
+;Respond to enemy doctrine: manipular infantry with cavalry, missile, siege, and naval support.
+(defrule
+	(true)
+=>
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+
 #end-if
+
 #load-if-defined UP-CUMANS-CIV-ENEMY ; Scythians
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: deep mounted raids, refusal of static battle, and renewed attack.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
 #end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: deep mounted raids, refusal of static battle, and renewed attack.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:+ 1)
+
+	(disable-self)
+)
+#end-if
+
+#end-if
+
 #load-if-defined UP-BURMESE-CIV-ENEMY ; Seleucids
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: pike and imitation-legion center with heavy cavalry and elephants.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 1)
+	(up-modify-goal cush-affinity c:- 1)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
 #end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: pike and imitation-legion center with heavy cavalry and elephants.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+#end-if
+
+#end-if
+
 #load-if-defined UP-JAPANESE-CIV-ENEMY ; Spartans
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: elite spear infantry holding the line for ranged and siege support.
+(defrule
+	(true)
+=>
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
 #end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: elite spear infantry holding the line for ranged and siege support.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 1)
+	(up-modify-goal cush-affinity c:- 1)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+#end-if
+
+#end-if
+
 #load-if-defined UP-MALAY-CIV-ENEMY ; Syracusans
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: fortified combined land and naval defense centered on artillery.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 1)
+	(up-modify-goal cush-affinity c:- 1)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
 #end-if
+
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: fortified combined land and naval defense centered on artillery.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:+ 1)
+
+	(disable-self)
+)
+#end-if
+
+#end-if
+
 #load-if-defined UP-MALIAN-CIV-ENEMY ; Thracians
 
+#load-if-not-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: shock infantry and light horse supported by mounted archers and priests.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 1)
+	(up-modify-goal cush-affinity c:- 1)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
 #end-if
 
+#load-if-defined DIFFICULTY-EXTREME
+;Respond to enemy doctrine: shock infantry and light horse supported by mounted archers and priests.
+(defrule
+	(true)
+=>
+	(up-modify-goal drush-affinity c:- 2)
+	(up-modify-goal cush-affinity c:- 2)
+	(up-modify-goal fc-affinity c:- 1)
+
+	(disable-self)
+)
+#end-if
+
+#end-if
+
+;civ specific unit preferences
+;Below Extreme: historical and broad combined-arms profile.
+#load-if-not-defined DIFFICULTY-EXTREME
+
+;Doctrine: sustained infantry pressure with cavalry pursuit.
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(not
+		(goal primary-unit CHAMPION)
+	)
+=>
+	(set-goal primary-unit CHAMPION)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(not
+		(goal secondary-unit SPEARMAN)
+	)
+=>
+	(set-goal secondary-unit SPEARMAN)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(not
+		(goal tertiary-unit SCAVALRY)
+	)
+=>
+	(set-goal tertiary-unit SCAVALRY)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(not
+		(goal quaternary-unit SKIRMISHER)
+	)
+=>
+	(set-goal quaternary-unit SKIRMISHER)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(not
+		(goal primary-unit CHAMPION)
+	)
+=>
+	(set-goal primary-unit CHAMPION)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(not
+		(goal secondary-unit SPEARMAN)
+	)
+=>
+	(set-goal secondary-unit SPEARMAN)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(not
+		(goal tertiary-unit CAVALRY)
+	)
+=>
+	(set-goal tertiary-unit CAVALRY)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(not
+		(goal quaternary-unit SCAVALRY)
+	)
+=>
+	(set-goal quaternary-unit SCAVALRY)
+)
+
+;Keep every configured composition line enabled for training.
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(goal train-champion NO)
+=>
+	(set-goal train-champion YES)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(goal train-spearman NO)
+=>
+	(set-goal train-spearman YES)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(goal train-scoutcav NO)
+=>
+	(set-goal train-scoutcav YES)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(goal train-skirmisher NO)
+=>
+	(set-goal train-skirmisher YES)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(goal train-champion NO)
+=>
+	(set-goal train-champion YES)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(goal train-spearman NO)
+=>
+	(set-goal train-spearman YES)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(goal train-cavalry NO)
+=>
+	(set-goal train-cavalry YES)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(goal train-scoutcav NO)
+=>
+	(set-goal train-scoutcav YES)
+)
+
+#end-if
+
+;Extreme: max-return profile constrained by RAW AI unit focus spreadsheet.ods.
+#load-if-defined DIFFICULTY-EXTREME
+
+;Doctrine: sustained infantry pressure with cavalry pursuit.
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(not
+		(goal primary-unit CHAMPION)
+	)
+=>
+	(set-goal primary-unit CHAMPION)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(not
+		(goal secondary-unit SPEARMAN)
+	)
+=>
+	(set-goal secondary-unit SPEARMAN)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(not
+		(goal tertiary-unit SCAVALRY)
+	)
+=>
+	(set-goal tertiary-unit SCAVALRY)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(not
+		(goal quaternary-unit CAVALRY)
+	)
+=>
+	(set-goal quaternary-unit CAVALRY)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(not
+		(goal primary-unit CHAMPION)
+	)
+=>
+	(set-goal primary-unit CHAMPION)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(not
+		(goal secondary-unit SPEARMAN)
+	)
+=>
+	(set-goal secondary-unit SPEARMAN)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(not
+		(goal tertiary-unit CAVALRY)
+	)
+=>
+	(set-goal tertiary-unit CAVALRY)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(not
+		(goal quaternary-unit SCAVALRY)
+	)
+=>
+	(set-goal quaternary-unit SCAVALRY)
+)
+
+;Keep every configured composition line enabled for training.
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(goal train-champion NO)
+=>
+	(set-goal train-champion YES)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(goal train-spearman NO)
+=>
+	(set-goal train-spearman YES)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(goal train-scoutcav NO)
+=>
+	(set-goal train-scoutcav YES)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(goal train-cavalry NO)
+=>
+	(set-goal train-cavalry YES)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(goal train-champion NO)
+=>
+	(set-goal train-champion YES)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(goal train-spearman NO)
+=>
+	(set-goal train-spearman YES)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(goal train-cavalry NO)
+=>
+	(set-goal train-cavalry YES)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(goal train-scoutcav NO)
+=>
+	(set-goal train-scoutcav YES)
+)
+
+#end-if
 ;civ specific structure preferences
 
 (defrule
