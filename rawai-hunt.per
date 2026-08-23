@@ -3,6 +3,10 @@
 (defrule
 	(up-compare-goal current-phase <= 1)
     (dropsite-min-distance live-boar s:< sn-maximum-hunt-drop-distance)
+	(or
+		(dropsite-min-distance boar-hunting < 0)
+		(dropsite-min-distance boar-hunting > 9)
+	)
 	(unit-type-count villager >= 8)
 (or	(research-completed ri-loom)
     (dropsite-min-distance live-boar < 15))
@@ -20,16 +24,56 @@
    (set-strategic-number sn-enable-boar-hunting 1)
 )
 
+;Request support before the lured boar is killed. The previous six-tile window
+;was narrow enough for the lure to end before support villagers were assigned.
 (defrule
-    (dropsite-min-distance live-boar < 6)
-    (unit-type-count villager-hunter < 6)
+	(up-timer-status t-boar-support != timer-running)
+	(dropsite-min-distance live-boar >= 0)
+	(dropsite-min-distance live-boar <= 9)
 	(unit-type-count villager >= 8)
+	(unit-type-count villager < 10)
 =>
+	(enable-timer t-boar-support 3)
     (set-strategic-number sn-minimum-boar-hunt-group-size 6)
     (set-strategic-number sn-minimum-number-hunters 6)
-    (up-request-hunters c: 5))
+    (up-request-hunters c: 5)
+)
+
 (defrule
-    (dropsite-min-distance live-boar > 5)
+	(up-timer-status t-boar-support != timer-running)
+	(dropsite-min-distance live-boar >= 0)
+	(dropsite-min-distance live-boar <= 9)
+	(unit-type-count villager >= 10)
+=>
+	(enable-timer t-boar-support 3)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 7)
+	(set-strategic-number sn-minimum-number-hunters 7)
+	(up-request-hunters c: 6)
+)
+
+;Keep the full group on a nearby boar carcass. Otherwise the next visible live
+;boar can reduce sn-minimum-number-hunters to one while food remains here.
+(defrule
+	(dropsite-min-distance boar-hunting >= 0)
+	(dropsite-min-distance boar-hunting <= 9)
+	(unit-type-count villager >= 8)
+	(unit-type-count villager < 10)
+=>
+	(set-strategic-number sn-minimum-boar-hunt-group-size 6)
+	(set-strategic-number sn-minimum-number-hunters 6)
+)
+
+(defrule
+	(dropsite-min-distance boar-hunting >= 0)
+	(dropsite-min-distance boar-hunting <= 9)
+	(unit-type-count villager >= 10)
+=>
+	(set-strategic-number sn-minimum-boar-hunt-group-size 7)
+	(set-strategic-number sn-minimum-number-hunters 7)
+)
+
+(defrule
+    (dropsite-min-distance live-boar > 9)
     (dropsite-min-distance live-boar s:< sn-maximum-hunt-drop-distance)
     (unit-type-count villager-hunter < 1)
 	(unit-type-count villager >= 6)
@@ -39,4 +83,19 @@
     (set-strategic-number sn-minimum-boar-hunt-group-size 1)
     (set-strategic-number sn-minimum-number-hunters 1)
     (up-request-hunters c: 1)
+)
+
+(defrule
+	(or
+		(dropsite-min-distance boar-hunting < 0)
+		(dropsite-min-distance boar-hunting > 9)
+	)
+	(or
+		(dropsite-min-distance live-boar < 0)
+		(dropsite-min-distance live-boar > 9)
+	)
+	(strategic-number sn-minimum-number-hunters > 1)
+=>
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
 )
