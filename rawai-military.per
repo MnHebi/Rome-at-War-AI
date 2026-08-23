@@ -271,9 +271,26 @@
 	(up-remove-objects search-local object-data-on-mainland != on-mainland)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index >= 4)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-island-migration-load-target g:= local-total)
+	(set-goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
+	(up-compare-goal gl-island-migration-load-target c:>= 2)
+=>
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-state MIGRATION-LOADING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
+	(up-compare-goal gl-island-migration-load-target c:< 2)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
 )
 
 (defrule
@@ -287,7 +304,7 @@
 (defrule
 	(goal gl-island-migration-state MIGRATION-CHECK-LOAD)
 	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count >= 2)
+	(up-object-data object-data-garrison-count g:>= gl-island-migration-load-target)
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
@@ -299,7 +316,7 @@
 (defrule
 	(goal gl-island-migration-state MIGRATION-CHECK-LOAD)
 	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count < 2)
+	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
 =>
 	(set-goal gl-island-migration-state MIGRATION-LOADING)
 )
@@ -325,6 +342,13 @@
 	(up-object-data object-data-garrison-count <= 0)
 	(up-object-data object-data-on-mainland == off-mainland)
 =>
+	(up-get-point position-object point-x)
+	(up-full-reset-search)
+	(up-set-target-point point-x)
+	(up-filter-distance c: -1 c: 12)
+	(up-find-local c: villager-class c: 20)
+	(up-remove-objects search-local object-data-on-mainland != off-mainland)
+	(up-target-point gl-island-migration-target-x action-move -1 stance-no-attack)
 	(up-set-timer c: t-island-migration c: 180)
 	(set-goal gl-island-migration-state MIGRATION-IDLE)
 )
@@ -760,6 +784,8 @@
 	(up-remove-objects search-local object-data-on-mainland != off-mainland)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-capacity)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-transport-recovery-load-target g:= local-total)
 	(up-add-object-by-id search-remote g: gl-transport-recovery-transport-id)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(set-goal gl-transport-recovery-state TRANSPORT-RECOVERY-LOADING)
@@ -775,6 +801,7 @@
 
 (defrule
 	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-LOADING)
+	(up-compare-goal gl-transport-recovery-load-target c:>= 1)
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-recovery-transport-id)
@@ -782,9 +809,17 @@
 )
 
 (defrule
+	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-LOADING)
+	(up-compare-goal gl-transport-recovery-load-target c:< 1)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-transport-recovery-focus)
+	(set-goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
+)
+
+(defrule
 	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-CHECK-LOAD)
 	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count >= 1)
+	(up-object-data object-data-garrison-count g:>= gl-transport-recovery-load-target)
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-recovery-transport-id)
@@ -795,7 +830,7 @@
 (defrule
 	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-CHECK-LOAD)
 	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count < 1)
+	(up-object-data object-data-garrison-count g:< gl-transport-recovery-load-target)
 =>
 	(set-goal gl-transport-recovery-state TRANSPORT-RECOVERY-LOADING)
 )
@@ -813,6 +848,17 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count <= 0)
 =>
+	(up-get-point position-object gl-transport-recovery-unit-x)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-recovery-unit-x)
+	(up-filter-distance c: -1 c: 12)
+	(up-find-local c: scout-cavalry-class c: 20)
+	(up-find-local c: cavalry-archer-class c: 20)
+	(up-find-local c: cavalry-class c: 40)
+	(up-find-local c: infantry-class c: 40)
+	(up-find-local c: archery-class c: 40)
+	(up-remove-objects search-local object-data-on-mainland != off-mainland)
+	(up-target-point gl-transport-recovery-target-x action-move -1 stance-defensive)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-recovery-focus)
 	(up-set-timer c: t-transport-recovery c: 90)
 	(set-goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
