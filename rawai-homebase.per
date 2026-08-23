@@ -228,15 +228,17 @@
 	(up-chat-data-to-self "pending placement resize sn-maximum-town-size; %d" s: sn-maximum-town-size)
 )
 
+;Enemy structures can contract placement toward the protected core, but the
+;strict comparison must turn false at safe-townsize or this rule never settles.
 (defrule
 	(enemy-buildings-in-town)
-	(up-compare-sn sn-maximum-town-size g:>= safe-townsize)
+	(up-compare-sn sn-maximum-town-size g:> safe-townsize)
 	(up-compare-sn sn-maximum-town-size g:<= outer-townsize)
+	(up-timer-status t-town-size != timer-running)
 =>
 	(up-modify-sn sn-maximum-town-size c:- 1)
-	(up-modify-sn sn-maximum-town-size g:> safe-townsize)
-	(up-modify-sn sn-maximum-town-size g:< outer-townsize)
 	(up-chat-data-to-self "resize due to enemy buildings in town sn-maximum-town-size; %d" s: sn-maximum-town-size)
+	(enable-timer t-town-size 6)
 )
 
 (defrule

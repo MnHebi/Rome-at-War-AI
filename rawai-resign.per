@@ -1,4 +1,40 @@
 
+;Do not wait for the military-superiority estimate after the economy is gone.
+;With no living or queued villagers, no wonder, and either no town center or an
+;active town incursion, a solo player has no credible recovery path.
+(defrule
+	(goal prevent-resign NO)
+	(goal team-game NO)
+	(game-time > 300)
+	(unit-type-count-total villager == 0)
+	(building-type-count wonder == 0)
+	(or
+		(building-type-count-total town-center == 0)
+		(up-enemy-units-in-town c:>= 3)
+	)
+=>
+	(set-goal resign-state YES)
+	(chat-to-enemies-using-range 22300 26)
+)
+
+;A player that began in a team game becomes subject to the same terminal test
+;once no ally remains.  Living allies retain the more conservative team rule.
+(defrule
+	(goal prevent-resign NO)
+	(goal team-game YES)
+	(not (player-in-game any-ally))
+	(game-time > 300)
+	(unit-type-count-total villager == 0)
+	(building-type-count wonder == 0)
+	(or
+		(building-type-count-total town-center == 0)
+		(up-enemy-units-in-town c:>= 3)
+	)
+=>
+	(set-goal resign-state YES)
+	(chat-to-enemies-using-range 22300 26)
+)
+
 (defrule
 	(goal prevent-resign NO)
 	(goal team-game NO)
@@ -29,6 +65,15 @@
 	(goal prevent-resign NO)
 	(goal team-game NO)
 	(goal resign-state YES)
+=>
+	(resign)
+)
+
+(defrule
+	(goal prevent-resign NO)
+	(goal team-game YES)
+	(goal resign-state YES)
+	(not (player-in-game any-ally))
 =>
 	(resign)
 )
