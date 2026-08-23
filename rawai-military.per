@@ -582,12 +582,8 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-THREAT)
 	(not (up-set-target-object search-remote c: 0))
 =>
-	(set-strategic-number sn-focus-player-number my-player-number)
-	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-transport-route-id)
-	(up-target-point gl-transport-route-target-x action-unload -1 stance-no-attack)
-	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
-	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-WAIT)
+	(up-bound-point gl-transport-route-landing-x gl-transport-route-target-x)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-PREPARE)
 )
 
 (defrule
@@ -643,12 +639,8 @@
 		)
 	)
 =>
-	(set-strategic-number sn-focus-player-number my-player-number)
-	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-transport-route-id)
-	(up-target-point gl-transport-route-left-x action-unload -1 stance-no-attack)
-	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
-	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-WAIT)
+	(up-bound-point gl-transport-route-landing-x gl-transport-route-left-x)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-PREPARE)
 )
 
 (defrule
@@ -661,12 +653,128 @@
 		)
 	)
 =>
+	(up-bound-point gl-transport-route-landing-x gl-transport-route-right-x)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-PREPARE)
+)
+
+;Landing safety alone is insufficient: a direct engine path can spend its whole
+;voyage inside a tower's range. Sample both sides of the route at its midpoint
+;and force the loaded ship through the less-defended lateral waypoint.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-PREPARE)
+=>
+	(up-bound-point gl-transport-route-waypoint-left-x gl-transport-route-landing-x)
+	(up-lerp-percent gl-transport-route-waypoint-left-x gl-transport-route-origin-x c: 50)
+	(up-cross-tiles gl-transport-route-waypoint-left-x gl-transport-route-origin-x c: 26)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-left-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 10)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: town-center c: 10)
+	(up-get-search-state remote-total)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-LEFT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-LEFT)
+=>
+	(up-modify-goal gl-transport-route-corridor-left-threats g:= remote-total)
+	(up-bound-point gl-transport-route-waypoint-right-x gl-transport-route-landing-x)
+	(up-lerp-percent gl-transport-route-waypoint-right-x gl-transport-route-origin-x c: 50)
+	(up-cross-tiles gl-transport-route-waypoint-right-x gl-transport-route-origin-x c: -26)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-right-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 10)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: town-center c: 10)
+	(up-get-search-state remote-total)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-RIGHT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-RIGHT)
+=>
+	(up-modify-goal gl-transport-route-corridor-right-threats g:= remote-total)
+	(generate-random-number 2)
+	(up-get-fact random-number 0 gl-transport-route-random)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-APPLY)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-APPLY)
+	(or
+		(up-compare-goal gl-transport-route-corridor-left-threats g:< gl-transport-route-corridor-right-threats)
+		(and
+			(up-compare-goal gl-transport-route-corridor-left-threats g:= gl-transport-route-corridor-right-threats)
+			(up-compare-goal gl-transport-route-random c:<= 1)
+		)
+	)
+=>
+	(up-bound-point gl-transport-route-waypoint-x gl-transport-route-waypoint-left-x)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
-	(up-target-point gl-transport-route-right-x action-unload -1 stance-no-attack)
+	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-APPLY)
+	(or
+		(up-compare-goal gl-transport-route-corridor-right-threats g:< gl-transport-route-corridor-left-threats)
+		(and
+			(up-compare-goal gl-transport-route-corridor-left-threats g:= gl-transport-route-corridor-right-threats)
+			(up-compare-goal gl-transport-route-random c:> 1)
+		)
+	)
+=>
+	(up-bound-point gl-transport-route-waypoint-x gl-transport-route-waypoint-right-x)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
+	(up-timer-status t-transport-route == timer-triggered)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-x)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-CHECK)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance <= 8)
+=>
+	(up-target-point gl-transport-route-landing-x action-unload -1 stance-no-attack)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance > 8)
+=>
+	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-CHECK)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 )
 
 ;Do not leave an empty attack transport exposed on the landing shoreline. Wait
@@ -1223,6 +1331,61 @@
 	(set-goal gl-roman-champion-counter-target 0)
 )
 #end-if
+
+;A soldier already taking damage must not keep an obsolete chase order toward
+;the far side of town. Select the closest local intruder, then retask only our
+;nearby military units whose under-attack flag is set.
+(defrule
+	(up-timer-status t-defense-leash == timer-triggered)
+	(goal gl-local-response-state LOCAL-RESPONSE-IDLE)
+	(up-enemy-units-in-town c:>= 1)
+=>
+	(up-modify-goal gl-local-response-focus s:= sn-focus-player-number)
+	(up-find-player enemy find-closest gl-local-response-player)
+	(up-modify-sn sn-focus-player-number g:= gl-local-response-player)
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-filter-distance c: -1 c: 32)
+	(up-find-remote c: scout-cavalry-class c: 40)
+	(up-find-remote c: cavalry-archer-class c: 40)
+	(up-find-remote c: cavalry-class c: 40)
+	(up-find-remote c: infantry-class c: 40)
+	(up-find-remote c: archery-class c: 40)
+	(up-find-remote c: siege-weapon-class c: 40)
+	(up-find-remote c: priest c: 10)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-local-response-state LOCAL-RESPONSE-FIND)
+)
+
+(defrule
+	(goal gl-local-response-state LOCAL-RESPONSE-FIND)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-point position-object gl-local-response-target-x)
+	(up-reset-search 1 1 0 0)
+	(up-set-target-point gl-local-response-target-x)
+	(up-filter-distance c: -1 c: 12)
+	(up-find-local c: scout-cavalry-class c: 40)
+	(up-find-local c: cavalry-archer-class c: 40)
+	(up-find-local c: cavalry-class c: 40)
+	(up-find-local c: infantry-class c: 40)
+	(up-find-local c: archery-class c: 40)
+	(up-find-local c: siege-weapon-class c: 40)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-under-attack <= 0)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-target-objects 1 action-default -1 stance-aggressive)
+	(up-modify-sn sn-focus-player-number g:= gl-local-response-focus)
+	(set-goal gl-local-response-state LOCAL-RESPONSE-IDLE)
+)
+
+(defrule
+	(goal gl-local-response-state LOCAL-RESPONSE-FIND)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-local-response-focus)
+	(set-goal gl-local-response-state LOCAL-RESPONSE-IDLE)
+)
 
 ;If an enemy reaches the town while an outbound attack is still assembling near
 ;home, cancel that attack and hold reinforcements until the incursion is cleared.

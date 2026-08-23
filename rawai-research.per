@@ -1,6 +1,17 @@
 
 ;UNIT UPGRADES
 
+;Ballistics is the first Middle-Age military technology whenever it is
+;available. Town Centers, towers, forts, and ranged units otherwise waste much
+;of their defensive fire against moving attackers.
+(defrule
+	(current-age >= middle-antiquity-age)
+	(up-can-research gl-researchescrow-state c: ri-ballistics)
+=>
+	(up-research gl-researchescrow-state c: ri-ballistics)
+	(chat-local-to-self "priority research ballistics ")
+)
+
 (defrule
 	(up-compare-goal current-phase == 7)
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
@@ -795,14 +806,6 @@
 )
 
 ;OTHER RESEARCH ITEMS
-(defrule
-	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
-	(goal upgrade-military-generic 1)
-	(up-can-research gl-researchescrow-state c: ri-ballistics)
-=>
-	(up-research gl-researchescrow-state c: ri-ballistics)
-	(chat-local-to-self "research ballistics ")
-)
 
 (defrule
 	(up-compare-goal current-phase == 7)
