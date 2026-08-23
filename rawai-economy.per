@@ -637,9 +637,27 @@
 	(delete-unit villager)
 )
 
+;Seed an aquatic economy even before the periodic resource scan has seen fish.
+;The first boats explore their water body and reveal additional fishing grounds.
+(defrule
+	(unit-type-count-total fishing-ship < 2)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(can-train fishing-ship)
+=>
+	(train fishing-ship)
+)
+
 (defrule
 	(unit-type-count-total fishing-ship g:< desired-number-fishing)
-	(goal wait-techup-requirements NO)
 	(or
 		(goal fish-present YES)
 		(building-type-count-total fish-trap > 0)
