@@ -1,6 +1,72 @@
 
 ; Straight from AiBuilder files. Now extensively modified.
 
+;Temporarily pull extra villagers onto large foundations. The percentages and
+;caps return to the normal economy profile as soon as those foundations finish.
+(defrule
+	(or
+		(up-pending-objects c: castle >= 1)
+		(up-pending-objects c: wonder >= 1)
+	)
+	(strategic-number sn-percent-civilian-builders != 75)
+=>
+	(set-strategic-number sn-percent-civilian-builders 75)
+	(set-strategic-number sn-cap-civilian-builders 15)
+	(set-strategic-number sn-percent-civilian-gatherers 25)
+)
+
+(defrule
+	(and
+		(up-pending-objects c: castle <= 0)
+		(up-pending-objects c: wonder <= 0)
+	)
+	(or
+		(up-pending-objects c: town-center >= 1)
+		(or
+			(up-pending-objects c: market >= 1)
+			(or
+				(up-pending-objects c: university >= 1)
+				(or
+					(up-pending-objects c: monastery >= 1)
+					(or
+						(up-pending-objects c: siege-workshop >= 1)
+						(or
+							(up-pending-objects c: dock >= 1)
+							(or
+								(up-pending-objects c: shipyard >= 1)
+								(up-pending-objects c: caravanserai >= 1)
+							)
+						)
+					)
+				)
+			)
+		)
+	)
+	(strategic-number sn-percent-civilian-builders != 40)
+=>
+	(set-strategic-number sn-percent-civilian-builders 40)
+	(set-strategic-number sn-cap-civilian-builders 10)
+	(set-strategic-number sn-percent-civilian-gatherers 60)
+)
+
+(defrule
+	(up-pending-objects c: castle <= 0)
+	(up-pending-objects c: wonder <= 0)
+	(up-pending-objects c: town-center <= 0)
+	(up-pending-objects c: market <= 0)
+	(up-pending-objects c: university <= 0)
+	(up-pending-objects c: monastery <= 0)
+	(up-pending-objects c: siege-workshop <= 0)
+	(up-pending-objects c: dock <= 0)
+	(up-pending-objects c: shipyard <= 0)
+	(up-pending-objects c: caravanserai <= 0)
+	(strategic-number sn-percent-civilian-builders != 15)
+=>
+	(set-strategic-number sn-percent-civilian-builders 15)
+	(set-strategic-number sn-cap-civilian-builders 8)
+	(set-strategic-number sn-percent-civilian-gatherers 85)
+)
+
 (defrule
 	(current-age == iron-age)
 	(and
