@@ -798,6 +798,23 @@
 
 #load-if-not-defined INCAN-CIV
 
+;Counter observed ranged mass even when Skirmishers are outside this
+;civilization's focus-sheet composition. The population cap keeps the response
+;proportional instead of replacing the historical core army.
+(defrule
+	(current-age >= early-antiquity-age)
+	(or
+		(players-unit-type-count any-enemy archery-class >= 3)
+		(players-unit-type-count any-enemy cavalry-archer-class >= 3)
+	)
+	(unit-type-count-total skirmisher-line g:< gl-five-percent)
+	(food-amount > 150)
+	(up-can-train gl-unitescrow-state c: skirmisher-line)
+=>
+	(set-goal train-skirmisher YES)
+	(up-train gl-unitescrow-state c: skirmisher-line)
+)
+
 (defrule
 	(and
 		(goal train-skirmisher YES)
@@ -873,6 +890,20 @@
 #end-if
 
 #load-if-defined INCAN-CIV
+
+(defrule
+	(current-age >= early-antiquity-age)
+	(or
+		(players-unit-type-count any-enemy archery-class >= 3)
+		(players-unit-type-count any-enemy cavalry-archer-class >= 3)
+	)
+	(unit-type-count-total range-mounted-skirmisher-line g:< gl-five-percent)
+	(food-amount > 150)
+	(up-can-train gl-unitescrow-state c: range-mounted-skirmisher-line)
+=>
+	(set-goal train-skirmisher YES)
+	(up-train gl-unitescrow-state c: range-mounted-skirmisher-line)
+)
 
 (defrule
 	(and
@@ -1870,6 +1901,91 @@
 
 ;========================SHIPYARD BEGIN========================
 
+;Maintain a credible mixed fleet even if the rotating ship selector or a
+;civilization focus flag cannot find a trainable choice. Availability checks
+;make these safe for civilizations that lack one of the later hulls.
+(defrule
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(wood-amount > 250)
+	(warboat-count g:< gl-five-percent)
+	(unit-type-count-total scout-galley-line g:< gl-one-percent)
+	(up-can-train gl-unitescrow-state c: scout-galley-line)
+=>
+	(up-train gl-unitescrow-state c: scout-galley-line)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 2)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(wood-amount > 250)
+	(gold-amount > 150)
+	(warboat-count g:< gl-five-percent)
+	(unit-type-count-total polyreme-line g:< gl-one-percent)
+	(up-can-train gl-unitescrow-state c: polyreme-line)
+=>
+	(up-train gl-unitescrow-state c: polyreme-line)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 2)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(wood-amount > 250)
+	(gold-amount > 150)
+	(warboat-count g:< gl-five-percent)
+	(unit-type-count-total fire-ship-line g:< gl-one-percent)
+	(up-can-train gl-unitescrow-state c: fire-ship-line)
+=>
+	(up-train gl-unitescrow-state c: fire-ship-line)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(wood-amount > 250)
+	(gold-amount > 150)
+	(warboat-count g:< gl-five-percent)
+	(unit-type-count-total juggernaut-line g:< gl-one-percent)
+	(up-can-train gl-unitescrow-state c: juggernaut-line)
+=>
+	(up-train gl-unitescrow-state c: juggernaut-line)
+)
+
 ;========================SCOUT SHIP BEGIN========================
 
 (defrule
@@ -1886,7 +2002,6 @@
 		)
 	)
 	(unit-type-count-total scout-galley-line g:< gl-one-percent)
-	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: scout-galley-line)
 =>
 	(up-train gl-unitescrow-state c: scout-galley-line)
@@ -1913,7 +2028,6 @@
 		)
 	)
 	(unit-type-count-total polyreme-line g:< gl-one-percent)
-	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: polyreme-line)
 =>
 	(up-train gl-unitescrow-state c: polyreme-line)
@@ -1940,7 +2054,6 @@
 		)
 	)
 	(unit-type-count-total fire-ship-line g:< gl-one-percent)
-	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: fire-ship-line)
 =>
 	(up-train gl-unitescrow-state c: fire-ship-line)
@@ -1967,7 +2080,6 @@
 		)
 	)
 	(unit-type-count-total demolition-ship-line g:< gl-one-percent)
-	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: demolition-ship-line)
 =>
 	(up-train gl-unitescrow-state c: demolition-ship-line)
@@ -1994,7 +2106,6 @@
 		)
 	)
 	(unit-type-count-total hemiolia-line g:< gl-one-percent)
-	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: hemiolia-line)
 =>
 	(up-train gl-unitescrow-state c: hemiolia-line)
@@ -2021,7 +2132,6 @@
 		)
 	)
 	(unit-type-count-total boarding-ship g:< gl-one-percent)
-	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: boarding-ship)
 =>
 	(up-train gl-unitescrow-state c: boarding-ship)
@@ -2047,7 +2157,6 @@
 		)
 	)
 	(unit-type-count-total quadrireme-line g:< gl-one-percent)
-	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: quadrireme-line)
 =>
 	(up-train gl-unitescrow-state c: quadrireme-line)
@@ -2073,7 +2182,6 @@
 		)
 	)
 	(unit-type-count-total octeres g:< gl-one-percent)
-	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: octeres)
 =>
 	(up-train gl-unitescrow-state c: octeres)
@@ -2099,7 +2207,6 @@
 		)
 	)
 	(unit-type-count-total juggernaut-line g:< gl-one-percent)
-	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: juggernaut-line)
 =>
 	(up-train gl-unitescrow-state c: juggernaut-line)

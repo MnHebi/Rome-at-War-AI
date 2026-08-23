@@ -188,6 +188,8 @@
 	(goal gl-island-migration-state MIGRATION-IDLE)
 	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)
 	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(goal gl-home-defense-state NO)
 	(current-age >= middle-antiquity-age)
 	(or
@@ -209,10 +211,9 @@
 	(up-set-target-point position-self-x)
 	(up-find-remote c: gold-mine-class c: 10)
 	(up-find-remote c: stone-mine-class c: 10)
-	(up-find-remote c: forage-class c: 10)
-	(up-find-remote c: prey-animal-class c: 10)
 	(up-remove-objects search-remote object-data-on-mainland != off-mainland)
 	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-island-migration-mission MIGRATION-MISSION-MINING)
 	(up-set-timer c: t-island-migration c: 180)
 	(set-goal gl-island-migration-state MIGRATION-FIND-LANDING)
 )
@@ -235,6 +236,43 @@
 (defrule
 	(goal gl-island-migration-state MIGRATION-FIND-LANDING)
 	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-find-remote c: tree-class c: 40)
+	(up-find-remote c: forage-class c: 10)
+	(up-find-remote c: prey-animal-class c: 10)
+	(up-remove-objects search-remote object-data-on-mainland != off-mainland)
+	(up-clean-search search-remote object-data-distance search-order-desc)
+	(set-goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
+	(set-goal gl-island-migration-state MIGRATION-FIND-SCOUT-LANDING)
+)
+
+;When no remote mine is known, use the farthest observed off-mainland natural
+;object as a beachhead for a transported scout. This deliberately favors a
+;barely revealed land mass over a shoreline the AI has already explored.
+(defrule
+	(goal gl-island-migration-state MIGRATION-FIND-SCOUT-LANDING)
+	(up-set-target-object search-remote c: 0)
+	(unit-type-count scout-cavalry-class >= 1)
+=>
+	(up-get-object-data object-data-id gl-island-migration-anchor-id)
+	(up-get-point position-object gl-island-migration-target-x)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-find-remote c: transport-ship c: 40)
+	(up-remove-objects search-remote object-data-garrison-count > 0)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-island-migration-state MIGRATION-FIND-TRANSPORT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-FIND-SCOUT-LANDING)
+	(or
+		(not (up-set-target-object search-remote c: 0))
+		(unit-type-count scout-cavalry-class <= 0)
+	)
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-state MIGRATION-IDLE)
@@ -259,6 +297,7 @@
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-BOARDING)
+	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
@@ -271,6 +310,28 @@
 	(up-remove-objects search-local object-data-on-mainland != on-mainland)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index >= 4)
+	(up-find-local c: scout-cavalry-class c: 1)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-on-mainland != on-mainland)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-island-migration-load-target g:= local-total)
+	(set-goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-BOARDING)
+	(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
+	(up-set-target-object search-remote c: 0)
+	(up-get-point position-object point-x)
+	(up-set-target-point point-x)
+	(up-find-local c: scout-cavalry-class c: 3)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-on-mainland != on-mainland)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 1)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-island-migration-load-target g:= local-total)
 	(set-goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
@@ -278,6 +339,7 @@
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
+	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
 	(up-compare-goal gl-island-migration-load-target c:>= 2)
 =>
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
@@ -287,7 +349,26 @@
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
-	(up-compare-goal gl-island-migration-load-target c:< 2)
+	(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
+	(up-compare-goal gl-island-migration-load-target c:>= 1)
+=>
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-state MIGRATION-LOADING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
+	(or
+		(and
+			(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+			(up-compare-goal gl-island-migration-load-target c:< 2)
+		)
+		(and
+			(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
+			(up-compare-goal gl-island-migration-load-target c:< 1)
+		)
+	)
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-state MIGRATION-IDLE)
@@ -342,13 +423,65 @@
 	(up-object-data object-data-garrison-count <= 0)
 	(up-object-data object-data-on-mainland == off-mainland)
 =>
-	(up-get-point position-object point-x)
+	(set-goal gl-island-migration-state MIGRATION-TASK-MINING)
+)
+
+;The old migration routine stopped after unloading. Explicitly task the
+;settlers to the selected mine, place their drop site, give an accompanying
+;scout an explore order, and send the now-empty transport home.
+(defrule
+	(goal gl-island-migration-state MIGRATION-TASK-MINING)
+	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+=>
 	(up-full-reset-search)
-	(up-set-target-point point-x)
-	(up-filter-distance c: -1 c: 12)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-filter-distance c: -1 c: 18)
 	(up-find-local c: villager-class c: 20)
 	(up-remove-objects search-local object-data-on-mainland != off-mainland)
-	(up-target-point gl-island-migration-target-x action-move -1 stance-no-attack)
+	(set-strategic-number sn-focus-player-number 0)
+	(up-add-object-by-id search-remote g: gl-island-migration-anchor-id)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-state MIGRATION-PLACE-MINING-CAMP)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-PLACE-MINING-CAMP)
+=>
+	(up-copy-point point2-x gl-island-migration-target-x)
+	(up-modify-goal point2-x c:+ 3)
+	(up-modify-goal point2-y c:+ 3)
+	(up-set-target-point point2-x)
+	(up-build place-point 0 c: mining-camp)
+	(set-goal gl-island-migration-state MIGRATION-TASK-SCOUT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-TASK-MINING)
+	(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
+=>
+	(set-goal gl-island-migration-state MIGRATION-TASK-SCOUT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-TASK-SCOUT)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-local c: scout-cavalry-class c: 3)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-on-mainland != off-mainland)
+	(up-copy-point point2-x gl-island-migration-target-x)
+	(up-modify-goal point2-x c:+ 24)
+	(up-modify-goal point2-y c:+ 24)
+	(up-bound-point point3-x point2-x)
+	(up-target-point point3-x action-patrol -1 stance-no-attack)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(up-target-point position-self-x action-move -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 180)
 	(set-goal gl-island-migration-state MIGRATION-IDLE)
 )
@@ -1455,20 +1588,19 @@
 )
 #end-if
 
-;A soldier already taking damage must not keep an obsolete chase order toward
-;the far side of town. Select the closest local intruder, then retask only our
-;nearby military units whose under-attack flag is set.
+;Scan beyond the engine-defined town boundary and answer the closest local
+;intruder with every nearby defender. This also interrupts obsolete chase
+;orders before an incursion crosses the formal town perimeter.
 (defrule
 	(up-timer-status t-defense-leash == timer-triggered)
 	(goal gl-local-response-state LOCAL-RESPONSE-IDLE)
-	(up-enemy-units-in-town c:>= 1)
 =>
 	(up-modify-goal gl-local-response-focus s:= sn-focus-player-number)
 	(up-find-player enemy find-closest gl-local-response-player)
 	(up-modify-sn sn-focus-player-number g:= gl-local-response-player)
 	(up-full-reset-search)
 	(up-set-target-point position-self-x)
-	(up-filter-distance c: -1 c: 32)
+	(up-filter-distance c: -1 c: 48)
 	(up-find-remote c: scout-cavalry-class c: 40)
 	(up-find-remote c: cavalry-archer-class c: 40)
 	(up-find-remote c: cavalry-class c: 40)
@@ -1477,6 +1609,8 @@
 	(up-find-remote c: siege-weapon-class c: 40)
 	(up-find-remote c: priest c: 10)
 	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-get-search-state remote-total)
+	(up-modify-goal gl-local-response-threats g:= remote-total)
 	(set-goal gl-local-response-state LOCAL-RESPONSE-FIND)
 )
 
@@ -1487,7 +1621,7 @@
 	(up-get-point position-object gl-local-response-target-x)
 	(up-reset-search 1 1 0 0)
 	(up-set-target-point gl-local-response-target-x)
-	(up-filter-distance c: -1 c: 12)
+	(up-filter-distance c: -1 c: 24)
 	(up-find-local c: scout-cavalry-class c: 40)
 	(up-find-local c: cavalry-archer-class c: 40)
 	(up-find-local c: cavalry-class c: 40)
@@ -1495,7 +1629,6 @@
 	(up-find-local c: archery-class c: 40)
 	(up-find-local c: siege-weapon-class c: 40)
 	(up-remove-objects search-local object-data-garrisoned == 1)
-	(up-remove-objects search-local object-data-under-attack <= 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-target-objects 1 action-default -1 stance-aggressive)
 	(up-modify-sn sn-focus-player-number g:= gl-local-response-focus)
@@ -1506,6 +1639,7 @@
 	(goal gl-local-response-state LOCAL-RESPONSE-FIND)
 	(not (up-set-target-object search-remote c: 0))
 =>
+	(set-goal gl-local-response-threats 0)
 	(up-modify-sn sn-focus-player-number g:= gl-local-response-focus)
 	(set-goal gl-local-response-state LOCAL-RESPONSE-IDLE)
 )
@@ -1515,7 +1649,7 @@
 (defrule
 	(up-timer-status t-defense-leash == timer-triggered)
 	(goal gl-home-defense-state NO)
-	(up-enemy-units-in-town c:>= 3)
+	(up-compare-goal gl-local-response-threats c:>= 3)
 =>
 	(up-full-reset-search)
 	(up-set-target-point position-self-x)
@@ -1534,7 +1668,7 @@
 (defrule
 	(up-timer-status t-defense-leash == timer-triggered)
 	(goal gl-home-defense-state NO)
-	(up-enemy-units-in-town c:>= 3)
+	(up-compare-goal gl-local-response-threats c:>= 3)
 	(up-compare-goal local-total c:>= 4)
 =>
 	(up-reset-attack-now)
@@ -1547,7 +1681,7 @@
 (defrule
 	(up-timer-status t-home-defense-hold == timer-triggered)
 	(goal gl-home-defense-state YES)
-	(up-enemy-units-in-town c:< 2)
+	(up-compare-goal gl-local-response-threats c:< 2)
 =>
 	(set-goal gl-home-defense-state NO)
 	(set-goal current-action ACTION-WAIT)
@@ -1556,7 +1690,7 @@
 (defrule
 	(up-timer-status t-home-defense-hold == timer-triggered)
 	(goal gl-home-defense-state YES)
-	(up-enemy-units-in-town c:>= 2)
+	(up-compare-goal gl-local-response-threats c:>= 2)
 =>
 	(up-set-timer c: t-home-defense-hold c: 30)
 )

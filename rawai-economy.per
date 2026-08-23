@@ -375,6 +375,25 @@
 	(up-modify-goal desired-number-miningcamps c:= 0)
 )
 
+;Hybrid and island economies must keep extending their wood line instead of
+;letting the five oldest camps satisfy the late-game building target forever.
+;The larger drop distance remains confined to water-separated maps.
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(goal wood-present YES)
+	(or
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
+=>
+	(up-modify-goal desired-number-lumbercamps c:max 7)
+	(up-modify-goal lumbercamp-max-distance c:max 120)
+	(up-modify-goal max-wood-distance c:max 36)
+)
+
 (defrule
 	(goal resources-depleted YES)
 =>
