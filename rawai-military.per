@@ -51,6 +51,95 @@
 )
 ;rule jumps end
 
+;Reserve a proportional part of the navy as transport escorts. Direct targeting
+;spreads the selected warships evenly across the first two Transport Ships.
+(defrule
+	(up-timer-status t-transport-escort == timer-triggered)
+	(goal gl-transport-escort-state ESCORT-IDLE)
+	(unit-type-count transport-ship >= 1)
+	(warboat-count >= 1)
+=>
+	(up-get-fact warboat-count 0 gl-transport-escort-count)
+	(up-modify-goal gl-transport-escort-count c:/ 2)
+	(up-get-fact unit-type-count transport-ship gl-transport-escort-targets)
+	(set-goal gl-transport-escort-state ESCORT-PREPARE)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-PREPARE)
+	(up-compare-goal gl-transport-escort-targets c:> 2)
+=>
+	(set-goal gl-transport-escort-targets 2)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-PREPARE)
+	(up-compare-goal gl-transport-escort-count g:< gl-transport-escort-targets)
+=>
+	(up-modify-goal gl-transport-escort-count g:= gl-transport-escort-targets)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-PREPARE)
+	(warboat-count g:< gl-transport-escort-count)
+=>
+	(up-get-fact warboat-count 0 gl-transport-escort-count)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-PREPARE)
+=>
+	(up-modify-goal gl-transport-escort-limit g:= gl-transport-escort-targets)
+	(up-modify-goal gl-transport-escort-limit c:* 2)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-PREPARE)
+	(up-compare-goal gl-transport-escort-count g:> gl-transport-escort-limit)
+=>
+	(up-modify-goal gl-transport-escort-count g:= gl-transport-escort-limit)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-PREPARE)
+=>
+	(up-modify-goal gl-transport-escort-focus-player s:= sn-focus-player-number)
+	(up-modify-group-flag 0 c: transport-escort-group)
+	(up-reset-group c: transport-escort-group)
+	(up-full-reset-search)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-find-remote c: transport-ship g: gl-transport-escort-targets)
+	(up-set-target-object search-remote c: 0)
+	(up-get-point position-object point-x)
+	(up-set-target-point point-x)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-PREPARE)
+=>
+	(up-find-local c: warship-class c: 40)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index g:>= gl-transport-escort-count)
+	(up-create-group 0 0 c: transport-escort-group)
+	(up-modify-group-flag 1 c: transport-escort-group)
+	(up-target-objects 0 action-guard -1 stance-aggressive)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-escort-focus-player)
+	(set-goal gl-transport-escort-state ESCORT-IDLE)
+)
+
+(defrule
+	(up-timer-status t-transport-escort == timer-triggered)
+	(goal gl-transport-escort-state ESCORT-IDLE)
+	(up-group-size c: transport-escort-group > 0)
+	(or
+		(unit-type-count transport-ship <= 0)
+		(warboat-count <= 0)
+	)
+=>
+	(up-modify-group-flag 0 c: transport-escort-group)
+	(up-reset-group c: transport-escort-group)
+)
+
 ;retreat when forces are too dwindled
 (defrule
 	(up-timer-status t-retreat == timer-triggered)
