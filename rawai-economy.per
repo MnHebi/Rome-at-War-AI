@@ -121,7 +121,8 @@
 		(and
 			(goal age-up-finished EARLY-ANTIQUITY)
 			(and
-				(food-amount < 800)
+				;Keep a buffer between the food recovery and gold-heavy modes.
+				(food-amount < 700)
 				(and
 					(goal age-up-started EARLY-ANTIQUITY)
 					(and
@@ -150,7 +151,7 @@
 		(and
 			(goal age-up-finished EARLY-ANTIQUITY)
 			(and
-				(food-amount > 800)
+				(food-amount > 900)
 				(and
 					(goal age-up-started EARLY-ANTIQUITY)
 					(and
@@ -218,7 +219,8 @@
 		(current-age-time < 120)
 		(and
 			(goal current-phase 5)
-			(wood-amount < 150)
+			;Hysteresis prevents villagers bouncing at a single wood threshold.
+			(wood-amount < 125)
 		)
 	)
 =>
@@ -238,7 +240,7 @@
 		(current-age-time < 120)
 		(and
 			(goal current-phase 5)
-			(wood-amount > 150)
+			(wood-amount > 200)
 		)
 	)
 =>
@@ -282,7 +284,8 @@
 		(and
 			(goal current-phase 5)
 			(and
-				(building-type-count-total farm g:<= desired-number-farms)
+				;Do not overlap the following >= rule when the counts are equal.
+				(building-type-count-total farm g:< desired-number-farms)
 				(and
 					(building-type-count-total university > 0)
 					(building-type-count-total monastery > 0)

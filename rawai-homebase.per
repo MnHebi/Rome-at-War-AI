@@ -256,8 +256,10 @@
 	(up-jump-rule 4)
 )
 
+;Resource presence goals are refreshed from current sighted objects every minute.
+;Do not use the total-sighted counters here because they retain depleted nodes.
 (defrule
-	(up-gaia-type-count-total c: wood >= 10)
+	(goal wood-present YES)
 	(up-pending-objects c: lumber-camp >= 1)
 =>
 	(up-full-reset-search)
@@ -273,7 +275,7 @@
 )
 
 (defrule
-	(up-gaia-type-count-total c: wood >= 10)
+	(goal wood-present YES)
 	(up-pending-objects c: lumber-camp >= 1)
 	(up-compare-goal local-total >= 1)
 	(up-compare-goal remote-total <= 2)
@@ -287,8 +289,8 @@
 
 (defrule
 	(or	
-		(up-gaia-type-count-total c: gold >= 5)
-		(up-gaia-type-count-total c: stone >= 5)
+		(goal gold-present YES)
+		(goal stone-present YES)
 	)
 	(up-pending-objects c: mining-camp >= 1)
 =>
@@ -310,8 +312,8 @@
 
 (defrule
 	(or	
-		(up-gaia-type-count-total c: gold >= 5)
-		(up-gaia-type-count-total c: stone >= 5)
+		(goal gold-present YES)
+		(goal stone-present YES)
 	)
 	(up-pending-objects c: mining-camp >= 1) 
 	(up-compare-goal local-total >= 1)
@@ -326,7 +328,7 @@
 
 (defrule
 	(and
-		(up-gaia-type-count-total c: wood > 20)
+		(goal wood-present YES)
 		(and
 			(dropsite-min-distance wood > 4)
 			(building-type-count-total lumber-camp g:< desired-number-lumbercamps)
@@ -342,7 +344,7 @@
 
 (defrule
 	(and	
-		(up-gaia-type-count-total c: food >= 5)
+		(up-gaia-type-count c: food >= 5)
 		(and
 			(building-type-count-total lumber-camp >= 1)
 			(and
@@ -587,7 +589,7 @@
 )
 
 (defrule
-	(up-gaia-type-count-total c: wood > 20)
+	(goal wood-present YES)
 	(up-object-type-count-total c: town-center > 0)
 	(up-object-type-count-total c: lumber-camp == 0)
 	(up-pending-objects c: lumber-camp <= 0)
@@ -602,6 +604,17 @@
 	(building-type-count-total town-center > 0)
 	(building-type-count-total lumber-camp > 0)
 	(building-type-count-total mining-camp == 0)
+	(up-pending-objects c: mining-camp <= 0)
+	(or
+		(and
+			(strategic-number sn-gold-gatherer-percentage >= 1)
+			(goal gold-present YES)
+		)
+		(and
+			(strategic-number sn-stone-gatherer-percentage >= 1)
+			(goal stone-present YES)
+		)
+	)
 	(can-afford-building mining-camp)
 	(up-can-build 0 c: mining-camp)
 =>
@@ -614,7 +627,7 @@
 	(building-type-count-total lumber-camp >= 1)
 	(up-pending-objects c: mining-camp <= 0)
 	(strategic-number sn-gold-gatherer-percentage >= 1)
-	(up-gaia-type-count-total c: gold >= 5)
+	(goal gold-present YES)
 	(dropsite-min-distance gold > 5)
 	(dropsite-min-distance gold g:< map-size)
 	(can-afford-building mining-camp)
@@ -628,7 +641,7 @@
 	(building-type-count-total lumber-camp >= 1)
 	(up-pending-objects c: mining-camp <= 0)
 	(strategic-number sn-stone-gatherer-percentage >= 1)
-	(up-gaia-type-count-total c: stone >= 5)
+	(goal stone-present YES)
 	(dropsite-min-distance stone > 5)
 	(dropsite-min-distance stone g:< map-size)
 	(can-afford-building mining-camp)
