@@ -34,6 +34,13 @@ Bundled AI validation and maintenance tools live in the `tools` directory:
 - `test_validators.py` provides synthetic regression cases for multiline PER
   operand errors, research ambiguity, role leakage, finite family bounds, and
   late-phase reachability; and
+- `evaluate_good_units.py` reconstructs fully upgraded per-civilization unit
+  statistics from an external Rome at War DAT/tech-tree export and writes the
+  reviewable AI-side `good-unit-evaluations.json` knowledge artifact;
+- `validate_good_units.py` rejects blank, malformed, or incomplete unit-rating
+  matrices and unique-unit leakage;
+- `validate_good_units_workbook.py` reads the generated ODS back and requires
+  every rating and unique-unit type to match the JSON knowledge artifact; and
 - `read_ods.py` provides read-only inspection of the two AI planning workbooks.
 
 The Rome at War data mod and DAT maintenance utilities are intentionally not

@@ -6,6 +6,7 @@ from __future__ import annotations
 import unittest
 
 from validate_per import validate_command_domains
+from validate_good_units import EXPECTED_CATEGORIES, validate_document
 from validate_strategy_execution import bounded_direct_train_blocks
 
 
@@ -138,6 +139,30 @@ class UniqueProductionTests(unittest.TestCase):
 )
 """
         self.assertEqual(len(bounded_direct_train_blocks(text, "unique-line")), 1)
+
+
+class GoodUnitEvaluationTests(unittest.TestCase):
+    def test_blank_rating_is_rejected(self) -> None:
+        ratings = {
+            category: {"rating": "No", "reason": "Unavailable."}
+            for category in EXPECTED_CATEGORIES
+        }
+        ratings["Cavalry"] = {"rating": "", "reason": "Missing."}
+        document = {
+            "display_order": [f"civ-{index}" for index in range(34)],
+            "category_order": list(EXPECTED_CATEGORIES),
+            "civilizations": {
+                f"civ-{index}": {
+                    "civilization": f"Civ {index}",
+                    "host_civilization": "Host",
+                    "unique_unit_type": "Other",
+                    "ratings": ratings,
+                }
+                for index in range(34)
+            },
+            "source_provenance": {},
+        }
+        self.assertIn("civ-0/Cavalry: invalid or blank rating", validate_document(document))
 
 
 if __name__ == "__main__":

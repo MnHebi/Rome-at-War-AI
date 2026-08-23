@@ -22,16 +22,37 @@ not selected by the focus workbook.
 Extreme composition, specialties, and unit-based rushes against
 `RAW AI unit focus spreadsheet.ods`; the historical profile is checked for valid
 unit and strategy constants but is intentionally not restricted by the workbook.
-The incomplete `RAW AI good units per civ.ods` is supporting guidance only; blank
-cells are not treated as evaluations.
+`RAW AI good units per civ.ods` is generated from the reviewable
+`good-unit-evaluations.json` knowledge artifact. `tools/evaluate_good_units.py`
+uses the external mod DAT and exported civilization trees to apply the strongest
+legal combination of a civilization's available upgrades, then records final
+HP, primary and role-weighted bonus damage, melee and pierce armor, range and
+minimum range, speed, reload, accuracy, resource cost, population use, and
+training time. Regional replacements such as
+Ratha may satisfy a generic category by final performance; castle/shipyard
+unique families remain listed separately in `UU Type`.
 
-The good-units workbook still lacks a defined rating rubric and most later unit
-columns are blank, including the Briton and Roman Empire evaluations. Those
-ratings cannot be completed reproducibly from the existing workbook alone. The
-project needs an agreed definition of `Excellent`, `Good`, `Mediocre`, `Bad`,
-and `No` before DAT statistics and test evidence can be converted into ratings;
-until then, blank cells remain an explicit knowledge gap rather than an implied
-negative score.
+The rating rubric is reproducible:
+
+- `No`: the family is unavailable;
+- `Excellent`: the final generic unit and all standard upgrades are available,
+  or missing upgrades are offset by final combat statistics at or above the
+  fully upgraded reference;
+- `Good`: at least 90% of reference even-number combat performance, or at least
+  full reference efficiency after a resource-cost or population advantage;
+- `Mediocre`: usable, but below those thresholds; and
+- `Bad`: below 72% of reference combat performance and still below 95% after
+  the best cost/population advantage.
+
+Range carries substantial weight for archers and siege. Missing Parthian Tactics
+adds an explicit mounted-archer penalty. Slower cavalry can still qualify through
+damage and durability. Priest affinity from `AI RAW.per` grants `Excellent`;
+other priests use a capability score for Sanctity, Fervor, Block Printing,
+Illumination, Redemption, Atonement, Theocracy, Heresy, and Faith. Navy uses the
+template naval affinity because boarding/fleet utility is not reducible to the
+ordinary land-unit damage model. The JSON records source hashes, every chosen
+unit and technology package, the final statistics, ratios, and an explanation
+for adversarial review.
 
 ## Focus exceptions and historical scope
 
