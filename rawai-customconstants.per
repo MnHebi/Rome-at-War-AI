@@ -670,6 +670,36 @@
 (defconst gl-transport-repair-maxhp 760)
 (defconst gl-transport-repair-percent 761)
 (defconst gl-transport-repair-focus 762)
+(defconst gl-transport-capacity 763)
+(defconst gl-transport-required 764)
+(defconst gl-transport-route-target-x 765)
+(defconst gl-transport-route-target-y 766)
+(defconst gl-transport-route-origin-x 767)
+(defconst gl-transport-route-origin-y 768)
+(defconst gl-transport-route-left-x 769)
+(defconst gl-transport-route-left-y 770)
+(defconst gl-transport-route-right-x 771)
+(defconst gl-transport-route-right-y 772)
+(defconst gl-island-migration-target-x 773)
+(defconst gl-island-migration-target-y 774)
+(defconst gl-island-migration-anchor-id 775)
+(defconst gl-transport-recovery-state 776)
+(defconst gl-transport-recovery-unit-id 777)
+(defconst gl-transport-recovery-transport-id 778)
+(defconst gl-transport-recovery-focus 779)
+(defconst gl-transport-recovery-target-x 780)
+(defconst gl-transport-recovery-target-y 781)
+(defconst gl-transport-recovery-unit-x 782)
+(defconst gl-transport-recovery-unit-y 783)
+(defconst gl-relic-ferry-state 784)
+(defconst gl-relic-ferry-transport-id 785)
+(defconst gl-relic-ferry-unit-id 786)
+(defconst gl-relic-ferry-target-id 787)
+(defconst gl-relic-ferry-focus 788)
+(defconst gl-relic-ferry-target-x 789)
+(defconst gl-relic-ferry-target-y 790)
+(defconst gl-relic-ferry-direction 791)
+(defconst gl-transport-capacity-upgrade 792)
 
 ; Goal Values
 
@@ -774,6 +804,7 @@
 (defconst TRANSPORT-ROUTE-LEFT 3)
 (defconst TRANSPORT-ROUTE-RIGHT 4)
 (defconst TRANSPORT-ROUTE-APPLY 5)
+(defconst TRANSPORT-ROUTE-TARGET 6)
 
 ;idle-villager island migration state
 (defconst MIGRATION-IDLE 0)
@@ -783,6 +814,7 @@
 (defconst MIGRATION-SAILING 4)
 (defconst MIGRATION-CHECK-LOAD 5)
 (defconst MIGRATION-CHECK-LANDING 6)
+(defconst MIGRATION-FIND-LANDING 7)
 
 ;damaged Transport Ship repair state
 (defconst TRANSPORT-REPAIR-IDLE 0)
@@ -790,6 +822,31 @@
 (defconst TRANSPORT-REPAIR-FIND-PORT 2)
 (defconst TRANSPORT-REPAIR-MOVE 3)
 (defconst TRANSPORT-REPAIR-TASK 4)
+
+;stranded military transport recovery state
+(defconst TRANSPORT-RECOVERY-IDLE 0)
+(defconst TRANSPORT-RECOVERY-FIND-TARGET 1)
+(defconst TRANSPORT-RECOVERY-FIND-UNIT 2)
+(defconst TRANSPORT-RECOVERY-FIND-TRANSPORT 3)
+(defconst TRANSPORT-RECOVERY-CHECK-LOAD 4)
+(defconst TRANSPORT-RECOVERY-SAILING 5)
+(defconst TRANSPORT-RECOVERY-CHECK-LANDING 6)
+(defconst TRANSPORT-RECOVERY-LOADING 7)
+
+;relic ferry state and trip direction
+(defconst RELIC-FERRY-IDLE 0)
+(defconst RELIC-FERRY-FIND-CARRIER 1)
+(defconst RELIC-FERRY-FIND-RELIC 2)
+(defconst RELIC-FERRY-FIND-PRIEST 3)
+(defconst RELIC-FERRY-FIND-TRANSPORT 4)
+(defconst RELIC-FERRY-CHECK-LOAD 5)
+(defconst RELIC-FERRY-SAILING 6)
+(defconst RELIC-FERRY-CHECK-LANDING 7)
+(defconst RELIC-FERRY-TASK-RELIC 8)
+(defconst RELIC-FERRY-TASK-HOME 9)
+(defconst RELIC-FERRY-LOADING 10)
+(defconst RELIC-FERRY-OUTBOUND 1)
+(defconst RELIC-FERRY-RETURN 2)
 
 ;attack-type-land and attack-type-sea
 (defconst TOWN-SIZE 0)
@@ -980,6 +1037,8 @@
 (defconst t-home-defense-hold 28)
 (defconst t-island-migration 29)
 (defconst t-transport-repair 30)
+(defconst t-transport-recovery 31)
+(defconst t-relic-ferry 32)
 
 (defrule
 	(true)

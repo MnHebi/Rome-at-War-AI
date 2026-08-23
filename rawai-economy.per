@@ -695,10 +695,9 @@
 	(train fishing-ship)
 )
 
-;Keep enough transports available for the engine's cross-water attack routing.
+;Budget one full lift for the current army plus one utility hull for villagers,
+;relic carriers, rescue work, or replacing a transport that is already sailing.
 (defrule
-	(current-age >= early-antiquity-age)
-	(soldier-count >= 6)
 	(or
 		(goal map-type LAKE)
 		(or
@@ -709,24 +708,34 @@
 			)
 		)
 	)
-	(unit-type-count-total transport-ship < 1)
-	(can-train transport-ship)
 =>
-	(train transport-ship)
+	(up-get-fact soldier-count 0 gl-transport-required)
+	(up-modify-goal gl-transport-required g:+ gl-transport-capacity)
+	(up-modify-goal gl-transport-required c:- 1)
+	(up-modify-goal gl-transport-required g:/ gl-transport-capacity)
+	(up-modify-goal gl-transport-required c:+ 1)
 )
 
 (defrule
-	(current-age >= middle-antiquity-age)
-	(soldier-count >= 15)
+	(up-compare-goal gl-transport-required c:> 16)
+=>
+	(set-goal gl-transport-required 16)
+)
+
+(defrule
+	(current-age >= early-antiquity-age)
 	(or
-		(goal map-type RIVERS)
+		(goal map-type LAKE)
 		(or
-			(goal map-type ISLANDS)
-			(goal map-type TEAM-ISLANDS)
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
 		)
 	)
-	(wood-amount > 200)
-	(unit-type-count-total transport-ship < 2)
+	(wood-amount > 160)
+	(unit-type-count-total transport-ship g:< gl-transport-required)
 	(can-train transport-ship)
 =>
 	(train transport-ship)

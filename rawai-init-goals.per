@@ -446,3 +446,27 @@
 
 	(disable-self)
 )
+
+;Keep the larger transport state machines out of the rule above so startup
+;remains below the engine's per-rule expression limit.
+(defrule
+	(true)
+=>
+	(set-goal gl-transport-capacity 5)
+	(set-goal gl-transport-capacity-upgrade 0)
+	(set-goal gl-transport-required 1)
+	(set-goal gl-transport-route-target-x 0)
+	(set-goal gl-transport-route-target-y 0)
+	(set-goal gl-island-migration-target-x 0)
+	(set-goal gl-island-migration-target-y 0)
+	(set-goal gl-island-migration-anchor-id -1)
+	(set-goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
+	(set-goal gl-transport-recovery-unit-id -1)
+	(set-goal gl-transport-recovery-transport-id -1)
+	(set-goal gl-relic-ferry-state RELIC-FERRY-IDLE)
+	(set-goal gl-relic-ferry-transport-id -1)
+	(set-goal gl-relic-ferry-unit-id -1)
+	(set-goal gl-relic-ferry-target-id -1)
+	(set-goal gl-relic-ferry-direction 0)
+	(disable-self)
+)
