@@ -118,6 +118,19 @@ def validate_command_domains(lines: list[str]) -> list[dict[str, object]]:
             }
         )
 
+    invalid_position_alias = re.compile(
+        r"\(up-set-target-point\s+(?P<identifier>position-(?:focus|object)-[xy])\s*\)",
+        re.IGNORECASE,
+    )
+    for match in invalid_position_alias.finditer(code):
+        issues.append(
+            {
+                "kind": "invalid_position_point_identifier",
+                "identifier": match.group("identifier"),
+                "line": code.count("\n", 0, match.start()) + 1,
+            }
+        )
+
     technology_training_patterns = (
         re.compile(
             r"\((?P<command>can-train(?:-with-escrow)?|train)\s+"

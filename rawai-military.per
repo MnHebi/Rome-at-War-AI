@@ -1945,7 +1945,10 @@
 	(up-find-player enemy find-closest gl-fortification-scan-player)
 	(up-modify-sn sn-focus-player-number g:= gl-fortification-scan-player)
 	(up-full-reset-search)
-	(up-set-target-point position-focus-x)
+	;position-focus is a point source, not a goal-pair identifier. Copy it into
+	;the scratch point before setting the search origin.
+	(up-get-point position-focus point-x)
+	(up-set-target-point point-x)
 	(up-filter-distance c: -1 c: 60)
 	(up-find-remote c: tower-class c: 40)
 	(up-find-remote c: sea-tower c: 10)

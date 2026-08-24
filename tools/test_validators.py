@@ -80,6 +80,20 @@ class PerDomainTests(unittest.TestCase):
             [issue["kind"] for issue in issues],
         )
 
+    def test_position_source_cannot_be_used_as_goal_pair(self) -> None:
+        issues = self.validate_text(
+            """(defrule
+    (true)
+=>
+    (up-set-target-point position-focus-x)
+)
+"""
+        )
+        self.assertIn(
+            "invalid_position_point_identifier",
+            [issue["kind"] for issue in issues],
+        )
+
 
 class UniqueProductionTests(unittest.TestCase):
     def test_role_dependent_path_is_not_direct(self) -> None:
