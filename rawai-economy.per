@@ -398,6 +398,52 @@
 
 (defrule
 	(goal resources-depleted YES)
+	(nor
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 100)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 0)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 0)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
+	(up-modify-goal desired-number-farms g:= gl-thirty-percent)
+)
+
+;After a resource-bearing off-island colony is confirmed, "depleted" describes
+;the exhausted starting land mass rather than every reachable zone. Preserve
+;nonzero remote-resource demand without rebalancing a failed migration.
+(defrule
+	(goal resources-depleted YES)
+	(goal gl-island-colony-established YES)
+	(or
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 45)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 35)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 15)
+	(up-modify-sn sn-stone-gatherer-percentage c:= 5)
+	(up-modify-goal desired-number-farms g:= gl-thirty-percent)
+)
+
+(defrule
+	(goal resources-depleted YES)
+	(goal gl-island-colony-established NO)
+	(or
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
 =>
 	(up-modify-sn sn-food-gatherer-percentage c:= 100)
 	(up-modify-sn sn-wood-gatherer-percentage c:= 0)
@@ -680,6 +726,13 @@
 (defrule
 	(goal resources-depleted YES)
 	(up-object-type-count-total c: villager g:> desired-number-farms)
+	(nor
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
 =>
 	(up-delete-idle-units idle-type-villager)
 	(disable-self)
@@ -689,6 +742,13 @@
 	(goal resources-depleted YES)
 	(up-idle-unit-count idle-type-villager < 5)
 	(up-object-type-count-total c: villager g:> desired-number-farms)
+	(nor
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
 =>
 	(delete-unit villager)
 )

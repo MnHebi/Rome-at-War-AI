@@ -557,6 +557,7 @@
 (defrule
 	(up-timer-status t-lumbercamp-placement == timer-triggered)
 	(goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
+	(goal gl-island-migration-state MIGRATION-IDLE)
 	(wood-amount >= 100)
 	(unit-type-count villager-wood >= 3)
 	(building-type-count-total lumber-camp >= 1)
@@ -654,6 +655,7 @@
 	)
 	(dropsite-min-distance wood g:< map-size)
 	(goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
+	(goal gl-island-migration-state MIGRATION-IDLE)
 	(up-timer-status t-lumbercamp-placement == timer-triggered)
 	(can-afford-building lumber-camp)
 	(up-pending-objects c: lumber-camp <= 0)
@@ -675,6 +677,7 @@
 	)
 	;The opening Mill is exclusively owned by the escrow bootstrap below. This
 	;rule may only add a genuinely additional drop site later.
+	(goal gl-island-migration-state MIGRATION-IDLE)
 	(building-type-count-total mill > 0)
 	(dropsite-min-distance food > 12)
 	(dropsite-min-distance food g:< map-size)
@@ -907,6 +910,7 @@
 	(up-object-type-count-total c: lumber-camp > 0)
 	(up-object-type-count-total c: mill == 0)
 	(goal gl-opening-mill-requested NO)
+	(goal gl-island-migration-state MIGRATION-IDLE)
 	(up-pending-objects c: mill <= 0)
 	(up-can-build gl-escrow c: mill)
 =>
@@ -933,6 +937,7 @@
 	(goal wood-present YES)
 	(up-object-type-count-total c: town-center > 0)
 	(up-object-type-count-total c: lumber-camp == 0)
+	(goal gl-island-migration-state MIGRATION-IDLE)
 	(up-pending-objects c: lumber-camp <= 0)
 	(can-build-with-escrow lumber-camp)
 =>

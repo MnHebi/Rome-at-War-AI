@@ -38,7 +38,7 @@
         "Gate optional Middle-Age buildings behind a completed second Town Center, retain a 20-minute deadlock escape for required University and Monastery construction, and defer optional research while safely preparing Imperial.",
         "Place a new Lumber Camp near a wood worker whose nearest camp is too distant.",
         "Filter local defense threats to the AI's mainland, replace unreachable GROUP attack selections with the implemented PERCENTAGE executor, and correct assignment operators that made every land and naval attack-executor comparison false.",
-        "Launch up to three bounded scout-ferry missions to observed off-mainland land anchors after Middle Antiquity.",
+        "Launch up to three bounded scout-ferry missions to observed off-mainland land anchors from Early Antiquity onward.",
         "Disable villager sea-fish gathering and cap Fishing Ships by the existing desired-number-fishing goal."
       ],
       "fresh_replay_acceptance": [
@@ -48,7 +48,7 @@
         "In a safe non-rush Middle age, the second Town Center precedes optional Outposts, Castle, and extra production buildings; University and Monastery also wait unless the 20-minute deadlock escape is reached.",
         "A safe non-rush player starts Imperial research near the 15-to-20-minute target without optional research repeatedly spending the reserve.",
         "Known adjacent-island units do not hold home defense active, and a sufficiently sized army dispatches an attack or transport assault.",
-        "After 10 minutes and Middle Antiquity, a scout is ferried when an observed off-mainland anchor and an unreserved transport exist; the mission is counted only after the scout is found unloaded on that land mass.",
+        "From Early Antiquity onward, a scout is ferried when an observed off-mainland anchor and an unreserved transport exist; the mission is counted only after the reserved scout is found unloaded on that land mass.",
         "Shepherd and deer or boar hunter churn is materially lower while animal food remains, without freezing unrelated resource workers.",
         "No land villager is assigned to sea fish, and the fishing fleet does not exceed desired-number-fishing."
       ],
@@ -97,7 +97,7 @@
         "Correct the invalid fortification-scan position-focus operand and reject reserved positional-source aliases in validation."
       ],
       "fresh_replay_acceptance": [
-        "The deployment checker reports zero unexpected, missing, or differing runtime files before game launch, the match starts without ERR2005, and replay chat contains the current runtime build marker RAWAI-P3B4.",
+        "The deployment checker reports zero unexpected, missing, or differing runtime files before game launch, the match starts without ERR2005, and replay chat contains the current runtime build marker RAWAI-P3B5.",
         "No Barracks command is issued before 03:00 or before the opening Mill and Lumber Camp have completed placement.",
         "Only one Mill is requested through phase three unless the first placement demonstrably failed and its 90-second retry expired.",
         "After the opening Mill exists, new House commands respect the configured eight-tile clearance from the engine-selected Mill anchor; the replay is also inspected for completed-building access around every Mill.",
@@ -155,7 +155,7 @@
         "Use the escrow-aware DUC trainability and production commands for the Roman Empire's bounded direct Legionary baseline while retaining the automatic Middle-age availability path from the current DAT."
       ],
       "fresh_replay_acceptance": [
-        "Replay chat contains the current runtime build marker RAWAI-P3B4 and the pre-match deployment checker reports no differing AI files.",
+        "Replay chat contains the current runtime build marker RAWAI-P3B5 and the pre-match deployment checker reports no differing AI files.",
         "Archer, infantry, and cavalry armor plus Marksmanship and Parthian Tactics do not begin without an owned affected class; Advanced Weaponry becomes an immediate Imperial priority while Ballistics retains earlier rule order, and Faith receives priority after enemy conversion units are observed.",
         "A safe non-rush Roman player reaches or begins Imperial near the 15-to-20-minute target, using Market bridging when close rather than spending the reserve on unrelated purchases.",
         "Sustained housing headroom below three can create a second pending House even if the earlier foundation completed, and does not produce another multi-minute Town Center villager gap.",
@@ -206,28 +206,47 @@
         "The 15-minute warboat-count plateau is consistent with naval idleness but is not proof: the replay format does not expose stable object-to-order ownership for those dynamically created ships."
       ],
       "changes_under_test": [
-        "Replace the long startup text with the short replay-visible build marker RAWAI-P3B4 and require its presence before attributing runtime behavior to this source revision.",
+        "Use the short replay-visible build marker RAWAI-P3B5 and require its presence before attributing runtime behavior to this source revision.",
         "Copy the contents of the population-percentage goals into every phase's land and naval launch requirements instead of storing their constant identifiers.",
         "Release the transport escort group every refresh, rebuild it only around loaded transports, assign half the fleet one-to-one across the nearest six loaded hulls with an intentional one-ship exception, and exclude route-screen, home-response, and actively exploring warships.",
         "Give land and naval timer dispatches explicit ownership; when both expire in one rule sweep, prioritize one global naval attack command and let land retry on its next randomized interval.",
         "Apply and reset sn-percent-attack-boats in the town-size naval executor and clear stale sampled warboat losses when fleet count is stable or growing.",
-        "Write the computed naval requirement, loaded-transport count, and every dedicated naval dispatch attempt into replay chat data for state-level verification."
+        "Write the computed naval requirement, loaded-transport count, and every dedicated naval dispatch attempt into replay chat data for state-level verification.",
+        "Give civilian evacuation priority over bounded scout-ferry attempts when at least two villagers are idle or the known map is depleted, and accept observed off-mainland trees, forage, or prey as colony anchors when no remote mine is known.",
+        "Reserve up to the Transport Ship's researched capacity as a civilian boarding group, retrieve that group directly rather than truncating a large villager search before filtering, depart partially after 45 seconds when at least two settlers have boarded, cancel stale garrison orders when the hull departs or disappears, and apply the same ownership to scout passengers.",
+        "On river and island maps, preserve excess depleted-economy villagers for evacuation instead of deleting them before the migration rules execute.",
+        "Confirm that reserved settlers unloaded in the selected land-zone ID before declaring success; when pathing chooses another resource-bearing island, recover that actual zone instead of abandoning the settlers.",
+        "Gate ordinary Mill, Lumber Camp, and Mining Camp producers while migration owns placement, and serialize colony placement behind any home controller or matching foundation that entered earlier in the rule sweep; refresh the colony resource after landing and, when affordable, try no more than four bounded offsets.",
+        "Emit migration trigger, target, transport, load, departure, landing, placement, timeout, and bounded no-launch gate telemetry.",
+        "Keep nonzero wood, gold, and stone gather demand after global depletion only after a resource-bearing off-island colony is confirmed, so transported settlers are not immediately folded back into an all-food economy and a failed migration does not rebalance the whole economy."
       ],
       "fresh_replay_acceptance": [
-        "The pre-match deployment checker reports no differing runtime files and replay chat contains RAWAI-P3B4 near match start.",
+        "The pre-match deployment checker reports no differing runtime files and replay chat contains RAWAI-P3B5 near match start.",
         "Naval-requirement telemetry reports a population-derived fleet count rather than goal identifiers 141 or 142.",
         "With no loaded Transport Ship, loaded-transport telemetry reports zero and no combat ship remains reserved in transport-escort-group; with multiple loaded hulls and enough eligible warships, escorts are assigned one-to-one rather than all guarding the nearest hull, and active naval explorers remain outside the group.",
         "When the dedicated naval timer fires with the population-derived requirement satisfied and home defense clear, replay chat records a naval dispatch attempt instead of an earlier land executor consuming it; a simultaneous timer expiry produces only the prioritized naval attack command.",
         "During a naval dispatch with loaded transports, assigned escorts retain their guard orders through the next escort refresh while non-escort warships receive and retain outbound attack orders.",
         "Both percentage and town-size naval launches apply the configured naval attack percentage and return it to zero afterward.",
-        "A one-window naval loss is followed by a zero current-loss sample when fleet count stabilizes and does not repeatedly retrigger retreat behavior."
+        "A one-window naval loss is followed by a zero current-loss sample when fleet count stabilizes and does not repeatedly retrigger retreat behavior.",
+        "With at least two idle home-island villagers, civilian migration owns the next available utility transport instead of a retrying scout mission; scout attempts remain bounded even when no empty transport or viable landing is found.",
+        "Civilian boarding telemetry can request up to the researched transport capacity; a full load departs immediately, or after 45 seconds a partial load departs when at least two settlers have boarded, and unboarded villagers cease chasing a departed or lost hull.",
+        "On RIVERS, ISLANDS, and TEAM-ISLANDS classifications, the depleted-economy cleanup does not delete prospective passengers before migration can select them, and successful lifts can repeat after a 60-second rearm interval.",
+        "A civilian migration is counted only when at least one reserved settler is observed in gl-island-migration-zone; an empty hull at another shore cannot produce false success, and a wrong-zone landing is adopted only after a current natural resource is found on the settlers' actual zone.",
+        "The landed settlers receive a refreshed resource task and request the matching drop site: Mining Camp for gold or stone, Lumber Camp for trees, and Mill for forage or prey; when affordable, placement tries no more than four bounded offsets and ordinary home placement cannot satisfy the colony's acceptance record.",
+        "If no migration launches on an expired timer, at most five gate snapshots distinguish the engine-idle-villager bucket, available Transport Ship count, home-defense state, global-depletion state, and the sum of competing transport-controller states.",
+        "After a resource-bearing colony is confirmed and resources-depleted is YES on RIVERS, ISLANDS, or TEAM-ISLANDS, gather percentages retain nonzero wood, gold, and stone demand and migrated settlers continue working the remote resource in the fresh replay."
       ],
       "known_limits": [
         "The replay parser cannot identify individual ship idle state, selection ownership, exact movement paths, transport occupancy, or whether a particular order came from manual intervention.",
         "Warboat-count debug is an aggregate combat-fleet fact and therefore cannot identify individual orders or explain the difference between 19 decoded production requests and 16 observed combat warboats.",
         "The absent runtime marker prevents this replay from validating or falsifying the exact source tree reviewed here.",
         "The active-stream cutoff does not contain diagnostic crash information, so no AI rule is blamed for the reported game crash.",
-        "Roman good-navy remains NO while its strategy requests a substantial Shipyard plan; changing that classification requires authoritative DAT and maintained workbook evidence rather than this replay alone."
+        "Roman good-navy remains NO while its strategy requests a substantial Shipyard plan; changing that classification requires authoritative DAT and maintained workbook evidence rather than this replay alone.",
+        "The engine exposes no direct water-zone connectivity or beach-path query for an arbitrary Transport Ship; migration now requires an idle, empty, unattacked hull and validates the landed zone, but a disconnected basin or unreachable inland unload target can still time out.",
+        "A wrong-zone landing on a resource-free islet is stopped and released rather than falsely counted, but the engine provides no reliable second-hop path query and those settlers are not yet automatically recovered to another island.",
+        "A matching drop site that is temporarily unaffordable waits for the migration watchdog rather than consuming four meaningless coordinate retries; fresh replay telemetry must distinguish that resource wait from point rejection.",
+        "gl-island-colony-established is set only after the owned drop-site foundation is accepted, but it is not yet cleared automatically if every settler dies or that remote colony later exhausts its resources; per-zone colony lifecycle evidence remains unavailable.",
+        "resources-depleted remains a global known-map signal rather than a home-island depletion measure; the independent two-idle-villager trigger handles visible shoreline unemployment, while a per-land-zone resource inventory and per-zone gather allocation remain unresolved."
       ],
       "validation_status": "fresh-replay-required"
     }
