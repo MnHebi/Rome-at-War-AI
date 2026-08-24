@@ -103,6 +103,21 @@ def validate_command_domains(lines: list[str]) -> list[dict[str, object]]:
     """Catch technology/unit operand swaps and guarded research mismatches."""
     issues: list[dict[str, object]] = []
     code = "\n".join(code_without_comments_or_strings(line) for line in lines)
+    invalid_compare_assignment = re.compile(
+        r"\((?P<command>up-compare-goal|up-compare-sn)\s+[^\s)]+\s+"
+        r"(?P<operator>[cgs]:=)(?=\s)",
+        re.IGNORECASE,
+    )
+    for match in invalid_compare_assignment.finditer(code):
+        issues.append(
+            {
+                "kind": "assignment_operator_in_comparison",
+                "command": match.group("command"),
+                "operator": match.group("operator"),
+                "line": code.count("\n", 0, match.start()) + 1,
+            }
+        )
+
     technology_training_patterns = (
         re.compile(
             r"\((?P<command>can-train(?:-with-escrow)?|train)\s+"

@@ -1,6 +1,16 @@
 
 ;========================BARRACKS BEGIN========================
 
+;Generic composition must not turn a planned later infantry line into an
+;Iron-Age Militia opening. A selected drush owns that opening explicitly.
+(defrule
+	(current-age < early-antiquity-age)
+	(goal rush-drush NO)
+	(goal train-champion YES)
+=>
+	(set-goal train-champion NO)
+)
+
 ;Emergency Roman response to enemy Champions inside the town. This exact unit
 ;request bypasses the normal Middle-Age legionary role mapping.
 #load-if-defined BYZANTINE-CIV

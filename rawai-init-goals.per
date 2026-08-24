@@ -519,3 +519,20 @@
 	(set-goal gl-relic-ferry-direction 0)
 	(disable-self)
 )
+
+;Placement retry state is isolated so additions do not push the transport
+;initializer back over the engine's rule-length limit.
+(defrule
+	(true)
+=>
+	(set-goal gl-market-placement-attempts 0)
+	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
+	(set-goal gl-lumbercamp-placement-focus 0)
+	(set-goal gl-lumbercamp-target-x 0)
+	(set-goal gl-lumbercamp-target-y 0)
+	(set-goal gl-island-scout-missions 0)
+	(set-goal gl-island-migration-zone -1)
+	(up-set-timer c: t-market-placement c: 1)
+	(up-set-timer c: t-lumbercamp-placement c: 60)
+	(disable-self)
+)

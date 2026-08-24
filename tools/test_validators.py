@@ -66,6 +66,20 @@ class PerDomainTests(unittest.TestCase):
             [issue["kind"] for issue in issues],
         )
 
+    def test_assignment_operator_in_comparison_is_rejected(self) -> None:
+        issues = self.validate_text(
+            """(defrule
+    (up-compare-goal current-action c:= ACTION-ATTACK)
+=>
+    (set-goal current-action ACTION-WAIT)
+)
+"""
+        )
+        self.assertIn(
+            "assignment_operator_in_comparison",
+            [issue["kind"] for issue in issues],
+        )
+
 
 class UniqueProductionTests(unittest.TestCase):
     def test_role_dependent_path_is_not_direct(self) -> None:

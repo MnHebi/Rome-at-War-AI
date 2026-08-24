@@ -23,7 +23,9 @@
 (defrule
 	(soldier-count g:>= gl-twenty-percent)
 =>
-	(set-goal attack-type-land GROUP)
+	;GROUP has no direct attack executor in this module and can leave a full
+	;army waiting forever. Keep the large-force path on the working executor.
+	(set-goal attack-type-land PERCENTAGE)
 	(up-jump-rule 1)
 )
 
@@ -47,7 +49,7 @@
 (defrule
 	(warboat-count g:>= gl-twenty-percent)
 =>
-	(set-goal attack-type-sea GROUP)
+	(set-goal attack-type-sea PERCENTAGE)
 )
 ;rule jumps end
 
@@ -192,6 +194,41 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(goal gl-home-defense-state NO)
 	(current-age >= middle-antiquity-age)
+	(game-time >= 600)
+	(up-compare-goal gl-island-scout-missions c:< 3)
+	(unit-type-count scout-cavalry-class >= 1)
+	(unit-type-count transport-ship >= 1)
+	(or
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
+=>
+	(up-modify-goal gl-island-migration-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-find-remote c: tree-class c: 40)
+	(up-find-remote c: forage-class c: 10)
+	(up-find-remote c: prey-animal-class c: 10)
+	(up-remove-objects search-remote object-data-on-mainland != off-mainland)
+	(up-clean-search search-remote object-data-distance search-order-desc)
+	(set-goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
+	(up-set-timer c: t-island-migration c: 180)
+	(set-goal gl-island-migration-state MIGRATION-FIND-SCOUT-LANDING)
+)
+
+(defrule
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)
+	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(goal gl-home-defense-state NO)
+	(current-age >= middle-antiquity-age)
 	(or
 		(up-idle-unit-count idle-type-villager >= 2)
 		(goal resources-depleted YES)
@@ -223,6 +260,7 @@
 	(up-set-target-object search-remote c: 0)
 =>
 	(up-get-object-data object-data-id gl-island-migration-anchor-id)
+	(up-get-object-data object-data-map-zone-id gl-island-migration-zone)
 	(up-get-point position-object gl-island-migration-target-x)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
@@ -257,6 +295,7 @@
 	(unit-type-count scout-cavalry-class >= 1)
 =>
 	(up-get-object-data object-data-id gl-island-migration-anchor-id)
+	(up-get-object-data object-data-map-zone-id gl-island-migration-zone)
 	(up-get-point position-object gl-island-migration-target-x)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
@@ -466,6 +505,22 @@
 (defrule
 	(goal gl-island-migration-state MIGRATION-TASK-SCOUT)
 =>
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-find-remote c: tree-class c: 40)
+	(up-find-remote c: forage-class c: 10)
+	(up-find-remote c: prey-animal-class c: 10)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-clean-search search-remote object-data-distance search-order-desc)
+	(set-goal gl-island-migration-state MIGRATION-FIND-SCOUT-PATROL)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-FIND-SCOUT-PATROL)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-point position-object point2-x)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-set-target-point gl-island-migration-target-x)
@@ -473,11 +528,41 @@
 	(up-find-local c: scout-cavalry-class c: 3)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-on-mainland != off-mainland)
-	(up-copy-point point2-x gl-island-migration-target-x)
-	(up-modify-goal point2-x c:+ 24)
-	(up-modify-goal point2-y c:+ 24)
-	(up-bound-point point3-x point2-x)
-	(up-target-point point3-x action-patrol -1 stance-no-attack)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-FIND-SCOUT-PATROL)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(up-target-point position-self-x action-move -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(up-set-timer c: t-island-migration c: 180)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-target-point point2-x action-patrol -1 stance-no-attack)
+	(up-modify-goal gl-island-scout-missions c:+ 1)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(up-target-point position-self-x action-move -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(up-set-timer c: t-island-migration c: 180)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT)
+	(not (up-set-target-object search-local c: 0))
+=>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
 	(up-target-point position-self-x action-move -1 stance-no-attack)
@@ -522,6 +607,10 @@
 (defrule
 	(up-timer-status t-transport-repair == timer-triggered)
 	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
+	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)
 	(wood-amount > 80)
 	(up-idle-unit-count idle-type-villager >= 1)
 	(unit-type-count transport-ship >= 1)
@@ -627,6 +716,10 @@
 (defrule
 	(up-timer-status t-transport-route == timer-triggered)
 	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)
+	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
 	(goal gl-home-defense-state NO)
 	(or
 		(goal map-type LAKE)
@@ -783,7 +876,7 @@
 	(or
 		(up-compare-goal gl-transport-route-left-threats g:< gl-transport-route-right-threats)
 		(and
-			(up-compare-goal gl-transport-route-left-threats g:= gl-transport-route-right-threats)
+			(up-compare-goal gl-transport-route-left-threats g:== gl-transport-route-right-threats)
 			(up-compare-goal gl-transport-route-random c:<= 1)
 		)
 	)
@@ -797,7 +890,7 @@
 	(or
 		(up-compare-goal gl-transport-route-right-threats g:< gl-transport-route-left-threats)
 		(and
-			(up-compare-goal gl-transport-route-left-threats g:= gl-transport-route-right-threats)
+			(up-compare-goal gl-transport-route-left-threats g:== gl-transport-route-right-threats)
 			(up-compare-goal gl-transport-route-random c:> 1)
 		)
 	)
@@ -866,7 +959,7 @@
 	(or
 		(up-compare-goal gl-transport-route-corridor-left-threats g:< gl-transport-route-corridor-right-threats)
 		(and
-			(up-compare-goal gl-transport-route-corridor-left-threats g:= gl-transport-route-corridor-right-threats)
+			(up-compare-goal gl-transport-route-corridor-left-threats g:== gl-transport-route-corridor-right-threats)
 			(up-compare-goal gl-transport-route-random c:<= 1)
 		)
 	)
@@ -946,7 +1039,7 @@
 	(or
 		(up-compare-goal gl-transport-route-corridor-left-threats g:< gl-transport-route-corridor-right-threats)
 		(and
-			(up-compare-goal gl-transport-route-corridor-left-threats g:= gl-transport-route-corridor-right-threats)
+			(up-compare-goal gl-transport-route-corridor-left-threats g:== gl-transport-route-corridor-right-threats)
 			(up-compare-goal gl-transport-route-random c:<= 1)
 		)
 	)
@@ -965,7 +1058,7 @@
 	(or
 		(up-compare-goal gl-transport-route-corridor-right-threats g:< gl-transport-route-corridor-left-threats)
 		(and
-			(up-compare-goal gl-transport-route-corridor-left-threats g:= gl-transport-route-corridor-right-threats)
+			(up-compare-goal gl-transport-route-corridor-left-threats g:== gl-transport-route-corridor-right-threats)
 			(up-compare-goal gl-transport-route-random c:> 1)
 		)
 	)
@@ -984,7 +1077,7 @@
 	(or
 		(up-compare-goal gl-transport-route-corridor-right-threats g:< gl-transport-route-corridor-left-threats)
 		(and
-			(up-compare-goal gl-transport-route-corridor-left-threats g:= gl-transport-route-corridor-right-threats)
+			(up-compare-goal gl-transport-route-corridor-left-threats g:== gl-transport-route-corridor-right-threats)
 			(up-compare-goal gl-transport-route-random c:> 1)
 		)
 	)
@@ -1074,6 +1167,8 @@
 	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
 	(goal gl-island-migration-state MIGRATION-IDLE)
 	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
 	(goal gl-home-defense-state NO)
 	(current-age >= middle-antiquity-age)
 	(unit-type-count transport-ship >= 1)
@@ -1290,6 +1385,8 @@
 	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)
 	(goal gl-island-migration-state MIGRATION-IDLE)
 	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
 	(current-age >= middle-antiquity-age)
 	(building-type-count-total monastery >= 1)
 	(unit-type-count transport-ship >= 1)
@@ -1608,6 +1705,9 @@
 	(up-find-remote c: archery-class c: 40)
 	(up-find-remote c: siege-weapon-class c: 40)
 	(up-find-remote c: priest c: 10)
+	;An enemy on the next island is not a local incursion. Without this filter,
+	;Britannia can remain in home-defense state and suppress every attack.
+	(up-remove-objects search-remote object-data-on-mainland != on-mainland)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(up-get-search-state remote-total)
 	(up-modify-goal gl-local-response-threats g:= remote-total)
@@ -1718,6 +1818,7 @@
 (defrule
 	(up-timer-status t-opportunistic-raid == timer-triggered)
 	(goal gl-raid-state RAID-IDLE)
+	(goal map-type LAND)
 	(goal gl-home-defense-state NO)
 	(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
 	(up-compare-goal military-superiority c:>= EQUAL)
@@ -1735,7 +1836,7 @@
 	(up-set-target-point position-self-x)
 	(up-find-remote c: town-center c: 8)
 	(up-clean-search search-remote object-data-distance search-order-asc)
-	(up-get-search-state local-total)
+	(up-get-search-state remote-total)
 	(set-goal gl-raid-state RAID-FIND-TOWN)
 )
 
@@ -1774,7 +1875,7 @@
 	(up-clean-search search-remote -1 search-order-asc)
 	(up-set-target-point position-self-x)
 	(up-clean-search search-remote object-data-distance search-order-asc)
-	(up-get-search-state local-total)
+	(up-get-search-state remote-total)
 	(set-goal gl-raid-state RAID-FIND-TARGET)
 )
 
@@ -1797,7 +1898,7 @@
 	(up-find-remote c: siege-workshop c: 5)
 	(up-clean-search search-remote -1 search-order-asc)
 	(up-clean-search search-remote object-data-distance search-order-asc)
-	(up-get-search-state local-total)
+	(up-get-search-state remote-total)
 	(set-goal gl-raid-state RAID-FIND-TARGET)
 )
 
@@ -1844,6 +1945,8 @@
 	(up-find-player enemy find-closest gl-fortification-scan-player)
 	(up-modify-sn sn-focus-player-number g:= gl-fortification-scan-player)
 	(up-full-reset-search)
+	(up-set-target-point position-focus-x)
+	(up-filter-distance c: -1 c: 60)
 	(up-find-remote c: tower-class c: 40)
 	(up-find-remote c: sea-tower c: 10)
 	(up-find-remote c: castle c: 10)
@@ -2670,11 +2773,11 @@
 
 ;rule 11
 (defrule
-	(up-compare-goal current-action c:= ACTION-ATTACK)
+	(up-compare-goal current-action c:== ACTION-ATTACK)
 	(goal gl-home-defense-state NO)
 	(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
 	(and
-		(up-compare-goal attack-type-land c:= PERCENTAGE)
+		(up-compare-goal attack-type-land c:== PERCENTAGE)
 		(and
 			(up-compare-goal gl-game-time g:>= land-attack-delay)
 			(soldier-count g:>= land-attack-requirement)
@@ -2690,10 +2793,10 @@
 
 ;rule 12
 (defrule
-	(up-compare-goal current-action c:= ACTION-ATTACK)
+	(up-compare-goal current-action c:== ACTION-ATTACK)
 	(goal gl-home-defense-state NO)
 	(and
-		(up-compare-goal attack-type-sea c:= PERCENTAGE)
+		(up-compare-goal attack-type-sea c:== PERCENTAGE)
 		(and
 			(up-compare-goal gl-game-time g:>= naval-attack-delay)
 			(and
@@ -2711,11 +2814,11 @@
 )
 
 (defrule
-	(up-compare-goal current-action c:= ACTION-ATTACK)
+	(up-compare-goal current-action c:== ACTION-ATTACK)
 	(goal gl-home-defense-state NO)
 	(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
 	(and
-		(up-compare-goal attack-type-land c:= TOWN-SIZE)
+		(up-compare-goal attack-type-land c:== TOWN-SIZE)
 		(and
 			(up-compare-goal gl-game-time g:>= land-attack-delay)
 			(soldier-count g:>= land-attack-requirement)
@@ -2732,7 +2835,7 @@
 ;After repeated failures, wait until roughly fifteen percent of the population
 ;is military and send most of it together instead of issuing more small raids.
 (defrule
-	(up-compare-goal current-action c:= ACTION-ATTACK)
+	(up-compare-goal current-action c:== ACTION-ATTACK)
 	(goal gl-home-defense-state NO)
 	(goal gl-attack-escalation-state ATTACK-ESCALATION-REGROUP)
 	(up-compare-goal gl-game-time g:>= land-attack-delay)
@@ -2748,7 +2851,7 @@
 ;A fortified target adds the further requirement that the assault force has a
 ;real siege component before the accumulated army is released.
 (defrule
-	(up-compare-goal current-action c:= ACTION-ATTACK)
+	(up-compare-goal current-action c:== ACTION-ATTACK)
 	(goal gl-home-defense-state NO)
 	(goal gl-attack-escalation-state ATTACK-ESCALATION-SIEGE)
 	(goal have-siege YES)
@@ -2763,10 +2866,10 @@
 )
 
 (defrule
-	(up-compare-goal current-action c:= ACTION-ATTACK)
+	(up-compare-goal current-action c:== ACTION-ATTACK)
 	(goal gl-home-defense-state NO)
 	(and
-		(up-compare-goal attack-type-sea c:= TOWN-SIZE)
+		(up-compare-goal attack-type-sea c:== TOWN-SIZE)
 		(and
 			(up-compare-goal gl-game-time g:>= naval-attack-delay)
 			(and

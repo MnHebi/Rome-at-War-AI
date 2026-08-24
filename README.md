@@ -40,8 +40,14 @@ Bundled AI validation and maintenance tools live in the `tools` directory:
 - `validate_good_units.py` rejects blank, malformed, or incomplete unit-rating
   matrices and unique-unit leakage;
 - `validate_good_units_workbook.py` reads the generated ODS back and requires
-  every rating and unique-unit type to match the JSON knowledge artifact; and
+  every rating and unique-unit type to match the JSON knowledge artifact;
+- `validate_replay_benchmarks.py` requires source hashes, separates direct
+  observations from inferences, and rejects path-bearing replay metadata; and
 - `read_ods.py` provides read-only inspection of the two AI planning workbooks.
+
+Replay-derived runtime observations, implementation inferences, acceptance
+criteria, and unresolved engine limitations are kept separately in
+`replay-benchmarks.json`. Replay files themselves are never committed.
 
 The Rome at War data mod and DAT maintenance utilities are intentionally not
 part of this repository.

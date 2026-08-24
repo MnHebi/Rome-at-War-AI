@@ -81,7 +81,9 @@
 	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
 	(up-modify-goal desired-number-farms c:= gl-three-percent)
 	(up-modify-goal desired-number-lumbercamps c:= 2)
-	(up-modify-goal desired-number-mills c:= 2)
+	;One Mill covers the opening food cluster. Additional Mills require an
+	;actually distant cluster later instead of following the phase number.
+	(up-modify-goal desired-number-mills c:= 1)
 	(up-modify-goal desired-number-miningcamps c:= 2)
 	(chat-local-to-self "aging to early antiquity age resource gathering settings")
 	
@@ -110,7 +112,7 @@
 	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
 	(up-modify-goal desired-number-farms c:= 0)
 	(up-modify-goal desired-number-lumbercamps c:= 3)
-	(up-modify-goal desired-number-mills c:= 3)
+	(up-modify-goal desired-number-mills c:= 1)
 	(up-modify-goal desired-number-miningcamps c:= 3)
 )
 
@@ -140,7 +142,7 @@
 	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
 	(up-modify-goal desired-number-farms c:= gl-four-percent)
 	(up-modify-goal desired-number-lumbercamps c:= 3)
-	(up-modify-goal desired-number-mills c:= 3)
+	(up-modify-goal desired-number-mills c:= 1)
 	(up-modify-goal desired-number-miningcamps c:= 3)
 )
 
@@ -169,7 +171,7 @@
 	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
 	(up-modify-goal desired-number-farms c:= gl-four-percent)
 	(up-modify-goal desired-number-lumbercamps c:= 3)
-	(up-modify-goal desired-number-mills c:= 3)
+	(up-modify-goal desired-number-mills c:= 1)
 	(up-modify-goal desired-number-miningcamps c:= 3)
 )
 
@@ -195,7 +197,7 @@
 	(up-modify-sn sn-stone-gatherer-percentage c:= 10)
 	(up-modify-goal desired-number-farms c:= gl-two-percent)
 	(up-modify-goal desired-number-lumbercamps c:= 3)
-	(up-modify-goal desired-number-mills c:= 3)
+	(up-modify-goal desired-number-mills c:= 1)
 	(up-modify-goal desired-number-miningcamps c:= 3)
 )
 
@@ -524,11 +526,14 @@
 	(set-goal upgrade-military-villager-requirement 27)
 	(set-goal upgrade-economy 1)
 	(set-goal upgrade-economy-villager-requirement 27)
-	(set-goal upgrade-fortifications 1)
+	;While preparing for and living in Middle Antiquity, reserve research
+	;escrow for unit lines and the economy. Optional defenses and utility techs
+	;resume once Imperial is queued, or immediately for a rush/emergency.
+	(set-goal upgrade-fortifications 0)
 	(set-goal upgrade-fortifications-villager-requirement 27)
 	(set-goal upgrade-navy 1)
 	(set-goal upgrade-navy-villager-requirement 27)
-	(set-goal upgrade-other 1)
+	(set-goal upgrade-other 0)
 	(set-goal upgrade-other-villager-requirement 27)
 	
 	(disable-self)
@@ -544,14 +549,46 @@
 	(set-goal upgrade-military-villager-requirement 27)
 	(set-goal upgrade-economy 1)
 	(set-goal upgrade-economy-villager-requirement 27)
-	(set-goal upgrade-fortifications 1)
+	(set-goal upgrade-fortifications 0)
 	(set-goal upgrade-fortifications-villager-requirement 27)
 	(set-goal upgrade-navy 1)
 	(set-goal upgrade-navy-villager-requirement 27)
-	(set-goal upgrade-other 1)
+	(set-goal upgrade-other 0)
 	(set-goal upgrade-other-villager-requirement 27)
 	
 	(disable-self)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+	(or
+		(up-compare-goal rush-rushing c:!= NO)
+		(or
+			(goal gl-home-defense-state YES)
+			(goal age-up-started IMPERIAL)
+		)
+	)
+	(or
+		(goal upgrade-fortifications 0)
+		(goal upgrade-other 0)
+	)
+=>
+	(set-goal upgrade-fortifications 1)
+	(set-goal upgrade-other 1)
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+	(goal rush-rushing NO)
+	(goal gl-home-defense-state NO)
+	(up-compare-goal age-up-started c:< IMPERIAL)
+	(or
+		(goal upgrade-fortifications 1)
+		(goal upgrade-other 1)
+	)
+=>
+	(set-goal upgrade-fortifications 0)
+	(set-goal upgrade-other 0)
 )
 
 ;run once, timer handles it afterwards
@@ -661,6 +698,7 @@
 (defrule
 	(game-time < 600)
 	(unit-type-count-total fishing-ship < 2)
+	(unit-type-count-total fishing-ship g:< desired-number-fishing)
 	(or
 		(goal map-type LAKE)
 		(or
@@ -679,6 +717,7 @@
 (defrule
 	(goal fish-present YES)
 	(unit-type-count-total fishing-ship < 2)
+	(unit-type-count-total fishing-ship g:< desired-number-fishing)
 	(wood-amount > 140)
 	(can-train fishing-ship)
 =>
@@ -696,6 +735,7 @@
 		)
 	)
 	(unit-type-count-total fishing-ship < 4)
+	(unit-type-count-total fishing-ship g:< desired-number-fishing)
 	(wood-amount > 220)
 	(can-train fishing-ship)
 =>
@@ -708,6 +748,7 @@
 		(cc-players-unit-type-count 0 shore-fish-class >= 10)
 	)
 	(unit-type-count-total fishing-ship < 6)
+	(unit-type-count-total fishing-ship g:< desired-number-fishing)
 	(wood-amount > 320)
 	(can-train fishing-ship)
 =>
@@ -823,26 +864,11 @@
 ;	(train construction-ship)
 ;)
 
-;resource dropoff deletions so the AI can keep up with diminishing resources
-;also, trim fishing fleets when their fishing grounds shrink
-(defrule
-	(and
-		(goal wood-present YES)
-		(dropsite-min-distance wood > 8)
-	)
-=>
-	(set-goal delete-wood-dropoff 1)
-)
+;Do not delete Lumber Camps through delete-building: that command cannot select
+;the depleted camp and can erase the productive camp just placed at a new wood
+;line. Targeted object-ID deletion can be added once camp depletion is tracked.
 
-(defrule
-	(and
-		(goal delete-wood-dropoff 1)
-		(building-type-count-total lumber-camp g:>= desired-number-lumbercamps)
-	)
-=>
-	(delete-building lumber-camp)
-	(set-goal delete-wood-dropoff 0)
-)
+;Trim fishing fleets when their fishing grounds shrink.
 
 (defrule
 	(and
@@ -865,6 +891,13 @@
 =>
 	(delete-building mining-camp)
 	(set-goal delete-mining-dropoff 0)
+)
+
+(defrule
+	(up-timer-status t-update-facts == timer-triggered)
+	(unit-type-count fishing-ship g:> desired-number-fishing)
+=>
+	(delete-unit fishing-ship)
 )
 
 (defrule

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "benchmarks": [
+    {
+      "id": "britannia-rome-vs-britons-20260824-090234",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 090234.aoe2record",
+        "sha256": "82DEC6C271C6F687A6A5B06C3F412AC8EF7072DBD746112DC714263D50EB6803",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Britons",
+          "Roman Empire"
+        ],
+        "duration_seconds": 2440
+      },
+      "direct_replay_observations": [
+        "Player 2 issued 2467 Market build commands at map coordinate (110,35) from 12:53 through 40:39 and remained in Early Antiquity.",
+        "Player 1 first issued Militia-line production at 02:01.",
+        "Player 1 issued a Barracks build command at 00:00, a Lumber Camp at 01:01, and its first Mill at 03:55.",
+        "Player 1 issued Mill build commands at (21,140) and (23,146); Player 2 also placed its first two Mills about nine tiles apart.",
+        "Player 1 completed Middle Antiquity at 17:35, issued six Outpost builds before 18:08, a Monastery at 20:23, a second Town Center at 22:08, a University at 22:32, and completed Imperial at 30:14.",
+        "The land-attack timer refreshed repeatedly from 10:32 through 39:38, but no land-attack or periodic-attack dispatch message was recorded.",
+        "Both players issued only one Lumber Camp build command during the recorded match."
+      ],
+      "implementation_inferences": [
+        "The unbounded fixed-position Market retry is sufficient to explain Player 2's villager churn and economic collapse.",
+        "Enemy armies on adjacent islands could be counted as local threats because the response scan lacked a mainland-reachability filter, potentially holding the attack system in home-defense state.",
+        "Phase-based desired Mill counts and the lack of a distinct-cluster requirement explain the nearby duplicate Mills.",
+        "Simultaneous Middle-Age optional-building goals competed with the second Town Center and Imperial reserve.",
+        "Animal-worker abandonment is consistent with automatic builder assistance and phase gatherer rebalancing, but the replay's WORK records do not identify individual villagers."
+      ],
+      "changes_under_test": [
+        "Bound Market retries with pending checks, cooldowns, and a fallback placement mode.",
+        "Keep animal-food workers out of automatic builder assistance and raise the global resource-retask floor from 20 to the documented bounded maximum of 40 while shepherds or hunters are active.",
+        "Require a Mill and Lumber Camp before normal Barracks construction and suppress generic Iron-Age Militia outside a selected drush.",
+        "Keep one planned Mill through the opening and require a distant food cluster for another.",
+        "Gate optional Middle-Age buildings behind a completed second Town Center, retain a 20-minute deadlock escape for required University and Monastery construction, and defer optional research while safely preparing Imperial.",
+        "Place a new Lumber Camp near a wood worker whose nearest camp is too distant.",
+        "Filter local defense threats to the AI's mainland, replace unreachable GROUP attack selections with the implemented PERCENTAGE executor, and correct assignment operators that made every land and naval attack-executor comparison false.",
+        "Launch up to three bounded scout-ferry missions to observed off-mainland land anchors after Middle Antiquity.",
+        "Disable villager sea-fish gathering and cap Fishing Ships by the existing desired-number-fishing goal."
+      ],
+      "fresh_replay_acceptance": [
+        "No player repeats a failed Market placement more than three normal attempts plus one fallback per cooldown cycle.",
+        "Outside a selected drush, no Militia-line production occurs before Early Antiquity and normal Barracks construction follows both the first Mill and Lumber Camp.",
+        "A second Mill is not attempted beside the opening Mill merely because the economy phase changed.",
+        "In a safe non-rush Middle age, the second Town Center precedes optional Outposts, Castle, and extra production buildings; University and Monastery also wait unless the 20-minute deadlock escape is reached.",
+        "A safe non-rush player starts Imperial research near the 15-to-20-minute target without optional research repeatedly spending the reserve.",
+        "Known adjacent-island units do not hold home defense active, and a sufficiently sized army dispatches an attack or transport assault.",
+        "After 10 minutes and Middle Antiquity, a scout is ferried when an observed off-mainland anchor and an unreserved transport exist; the mission is counted only after the scout is found unloaded on that land mass.",
+        "Shepherd and deer or boar hunter churn is materially lower while animal food remains, without freezing unrelated resource workers.",
+        "No land villager is assigned to sea fish, and the fishing fleet does not exceed desired-number-fishing."
+      ],
+      "known_limits": [
+        "The replay parser does not yet decode research actions, so no individual technology is blamed for the delayed Imperial age.",
+        "The engine search API used here can select an observed off-mainland landing anchor but cannot deliberately select a completely black, unknown island; elapsed time is only a conservative scout trigger and does not prove the home island is fully explored.",
+        "Visible fish counts do not prove water-zone reachability from a Dock; a water-connectivity-aware fish controller remains unresolved.",
+        "The retask strategic numbers are global rather than per-role, so this change can only reduce animal-worker churn; a fresh replay must establish whether explicit phase balancing still reassigns them.",
+        "The mainland filter protects the original home land zone; defense of a later off-mainland colony needs separate zone ownership and remains unresolved.",
+        "Autonomous choke-point walling remains unresolved because the current wall code has no terrain-frontier or choke detector, and map classification alone is unsafe on Britannia-style island starts."
+      ],
+      "validation_status": "fresh-replay-required"
+    }
+  ]
+}
