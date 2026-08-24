@@ -97,6 +97,51 @@
 	(chat-local-to-self "Imperial bridge: sell excess wood for gold")
 )
 
+;A depleted starting island needs a 125-wood Transport Ship plus a 100-wood
+;remote resource camp. Bridge that audited DAT package before normal age and
+;military spending consumes the last movable reserve.
+(defrule
+	(current-age >= middle-antiquity-age)
+	(goal gl-home-resource-pressure YES)
+	(up-timer-status t-relocation-market == timer-triggered)
+	(wood-amount < 225)
+	(gold-amount >= 200)
+	(can-buy-commodity wood)
+=>
+	(buy-commodity wood)
+	(up-set-timer c: t-relocation-market c: 20)
+	(chat-local-to-self "Relocation bridge: buy wood")
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(goal gl-home-resource-pressure YES)
+	(up-timer-status t-relocation-market == timer-triggered)
+	(wood-amount < 225)
+	(gold-amount < 200)
+	(stone-amount >= 300)
+	(can-sell-commodity stone)
+=>
+	(sell-commodity stone)
+	(up-set-timer c: t-relocation-market c: 20)
+	(chat-local-to-self "Relocation bridge: sell stone")
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(goal gl-home-resource-pressure YES)
+	(up-timer-status t-relocation-market == timer-triggered)
+	(wood-amount < 225)
+	(gold-amount < 200)
+	(stone-amount < 300)
+	(food-amount >= 700)
+	(can-sell-commodity food)
+=>
+	(sell-commodity food)
+	(up-set-timer c: t-relocation-market c: 20)
+	(chat-local-to-self "Relocation bridge: sell food")
+)
+
 (defrule
 	(current-age == middle-antiquity-age)
 	(up-compare-goal age-up-started c:< IMPERIAL)

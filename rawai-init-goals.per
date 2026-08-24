@@ -340,7 +340,35 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B13: %d" c: 13)
+	(up-chat-data-to-self "RAWAI-P3B14: %d" c: 14)
+	(disable-self)
+)
+
+;Wood viability, failed-zone backoff, explicit naval scouting, and guarded
+;home-Town-Center retirement are isolated to stay below ERR6002.
+(defrule
+	(true)
+=>
+	(set-goal gl-home-tree-count 40)
+	(set-goal gl-home-wood-pressure NO)
+	(set-goal gl-island-migration-rejected-zone -1)
+	(set-goal gl-island-migration-rejected-zone2 -1)
+	(set-goal gl-island-migration-rejected-zone3 -1)
+	(set-goal gl-island-migration-rejection-armed NO)
+	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
+	(set-goal gl-home-retirement-focus 0)
+	(set-goal gl-home-retirement-target-id -1)
+	(set-goal gl-home-retirement-resource-count 0)
+	(set-goal gl-home-retirement-settler-count 0)
+	(set-goal gl-naval-scout-focus 0)
+	(set-goal gl-transport-readiness-focus 0)
+	(set-goal gl-home-zone -1)
+	(set-goal gl-naval-scout-state NAVAL-SCOUT-IDLE)
+	(set-goal gl-naval-scout-count 0)
+	(up-set-timer c: t-island-migration-rejection c: 1)
+	(up-set-timer c: t-home-retirement c: 30)
+	(up-set-timer c: t-naval-scout c: 15)
+	(up-set-timer c: t-relocation-market c: 1)
 	(disable-self)
 )
 

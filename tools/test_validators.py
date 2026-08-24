@@ -276,10 +276,12 @@ class FarmPolicyTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         root = Path(__file__).resolve().parent.parent
         cls.economy = (root / "rawai-economy.per").read_text(encoding="utf-8-sig")
+        cls.general = (root / "rawai-general.per").read_text(encoding="utf-8-sig")
         cls.homebase = (root / "rawai-homebase.per").read_text(encoding="utf-8-sig")
         cls.init_goals = (root / "rawai-init-goals.per").read_text(encoding="utf-8-sig")
         cls.military = (root / "rawai-military.per").read_text(encoding="utf-8-sig")
         cls.timers = (root / "rawai-timers.per").read_text(encoding="utf-8-sig")
+        cls.trade = (root / "rawai-trade.per").read_text(encoding="utf-8-sig")
 
     def test_dependent_farm_demand_bounds_fisherman_substitution(self) -> None:
         rules = matching_rules(
@@ -409,7 +411,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B13", self.init_goals)
+        self.assertIn("RAWAI-P3B14", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -575,8 +577,9 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertEqual(len(reserved_attempt), 1)
 
-    def test_home_mine_pressure_evacuates_assigned_fishermen(self) -> None:
-        self.assertIn("home mines depleted: %d", self.military)
+    def test_home_resource_pressure_evacuates_assigned_fishermen(self) -> None:
+        self.assertIn("home resource pressure: %d", self.military)
+        self.assertIn("home trees low: %d", self.military)
         civilian_gate = matching_rules(
             self.military,
             facts=(
@@ -715,11 +718,49 @@ class FarmPolicyTests(unittest.TestCase):
             facts=(
                 "(goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)",
                 "(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)",
-                "(up-object-data object-data-garrison-count >= 1)",
+                "gl-island-migration-loaded-count c:>= 1",
             ),
             actions=("MIGRATION-ROUTE-PREPARE",),
         )
         self.assertEqual(len(scout_departure), 1)
+
+        exact_hull_refresh = matching_rules(
+            self.military,
+            facts=("(goal gl-island-migration-state MIGRATION-LOADING)",),
+            actions=(
+                "(up-find-local c: transport-ship c: 40)",
+                "object-data-id g:!= gl-island-migration-transport-id",
+                "(set-goal gl-island-migration-loaded-count -1)",
+                "MIGRATION-CHECK-LOAD",
+            ),
+        )
+        self.assertEqual(len(exact_hull_refresh), 1)
+        lost = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)",
+                "gl-island-migration-loaded-count c:< 0",
+            ),
+            actions=("migration transport lost: %d",),
+        )
+        self.assertEqual(len(lost), 1)
+        below_minimum = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)",
+                "gl-island-migration-loaded-count c:>= 0",
+                "gl-island-migration-load-target c:< 1",
+                "gl-island-migration-load-target c:< 2",
+            ),
+            actions=(
+                "migration below minimum: %d",
+                "(up-set-group search-local c: migration-boarding-group)",
+                "position-self-x action-stop",
+                "gl-island-migration-origin-x action-unload",
+                "MIGRATION-RETURNING",
+            ),
+        )
+        self.assertEqual(len(below_minimum), 1)
 
     def test_attacked_colony_holds_reinforcement(self) -> None:
         self.assertIn("migration colony threat hold: %d", self.military)
@@ -746,6 +787,180 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(civilian_gate), 1)
+
+    def test_naval_exploration_is_scout_ship_only(self) -> None:
+        self.assertIn(
+            "(set-strategic-number sn-number-boat-explore-groups 0)",
+            self.general,
+        )
+        scout_producer = matching_rules(
+            self.military,
+            facts=(
+                "(up-timer-status t-naval-scout == timer-triggered)",
+                "(goal gl-naval-scout-state NAVAL-SCOUT-IDLE)",
+            ),
+            actions=(
+                "(up-find-local c: scout-galley-line c: 10)",
+                "gl-naval-scout-count",
+                "NAVAL-SCOUT-CHECK",
+            ),
+        )
+        self.assertEqual(len(scout_producer), 1)
+        scout_rules = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-naval-scout-state NAVAL-SCOUT-CHECK)",
+                "gl-naval-scout-count c:> 0",
+            ),
+            actions=(
+                "(up-find-local c: scout-galley-line c: 10)",
+                "(up-create-group 0 0 c: naval-scout-group)",
+                "action-explore",
+            ),
+        )
+        self.assertEqual(len(scout_rules), 1)
+        _, _, _, _, actions = scout_rules[0]
+        self.assertNotIn("juggernaut", actions.lower())
+        self.assertNotIn("octeres", actions.lower())
+        self.assertNotIn("warship-class", actions.lower())
+        unavailable = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-naval-scout-state NAVAL-SCOUT-CHECK)",
+                "gl-naval-scout-count c:<= 0",
+            ),
+            actions=(
+                "naval scout safe hull unavailable: %d",
+                "NAVAL-SCOUT-IDLE",
+            ),
+        )
+        self.assertEqual(len(unavailable), 1)
+
+    def test_migration_rejects_failed_zone_for_a_bounded_window(self) -> None:
+        self.assertGreaterEqual(
+            self.military.count(
+                "object-data-map-zone-id g:== gl-island-migration-rejected-zone"
+            ),
+            3,
+        )
+        failures = matching_rules(
+            self.military,
+            actions=(
+                "gl-island-migration-rejected-zone3 g:= gl-island-migration-rejected-zone2",
+                "gl-island-migration-rejected-zone2 g:= gl-island-migration-rejected-zone",
+                "gl-island-migration-rejected-zone g:= gl-island-migration-zone",
+                "(set-goal gl-island-migration-rejection-armed NO)",
+            ),
+        )
+        self.assertGreaterEqual(len(failures), 3)
+        armed = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-IDLE)",
+                "(goal gl-island-migration-rejection-armed NO)",
+            ),
+            actions=(
+                "(up-set-timer c: t-island-migration-rejection c: 180)",
+                "(set-goal gl-island-migration-rejection-armed YES)",
+            ),
+        )
+        self.assertEqual(len(armed), 1)
+        release = matching_rules(
+            self.military,
+            facts=(
+                "(up-timer-status t-island-migration-rejection == timer-triggered)",
+                "(goal gl-island-migration-rejection-armed YES)",
+            ),
+            actions=(
+                "(set-goal gl-island-migration-rejected-zone -1)",
+                "(set-goal gl-island-migration-rejected-zone2 -1)",
+                "(set-goal gl-island-migration-rejected-zone3 -1)",
+            ),
+        )
+        self.assertEqual(len(release), 1)
+
+    def test_depleted_home_preserves_a_transport_and_camp_package(self) -> None:
+        emergency = matching_rules(
+            self.economy,
+            facts=(
+                "(goal gl-home-resource-pressure YES)",
+                "(wood-amount >= 225)",
+                "(can-train transport-ship)",
+            ),
+            actions=("(train transport-ship)",),
+        )
+        self.assertEqual(len(emergency), 1)
+        facts = emergency[0][3]
+        self.assertIn("(unit-type-count-total transport-ship < 2)", facts)
+        self.assertIn("gl-available-transport-count c:< 1", facts)
+        self.assertIn("(unit-type-count-total transport-ship < 3)", facts)
+        self.assertIn("Relocation bridge: buy wood", self.trade)
+
+    def test_home_attack_recalls_the_exact_loaded_transport(self) -> None:
+        recalls = matching_rules(
+            self.military,
+            facts=(
+                "(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))",
+                "gl-local-response-threats c:>= 1",
+                "gl-naval-response-threats c:>= 1",
+                "gl-local-response-zone g:== gl-home-zone",
+                "gl-naval-response-asset-zone g:== gl-home-zone",
+            ),
+            actions=(
+                "(up-find-local c: transport-ship c: 40)",
+                "object-data-id g:!= gl-transport-route-id",
+                "gl-transport-route-origin-x action-unload",
+                "TRANSPORT-ROUTE-RECOVERY-WAIT",
+            ),
+        )
+        self.assertEqual(len(recalls), 1)
+        recall_facts = recalls[0][3]
+        self.assertNotIn("TRANSPORT-ROUTE-RETURN-WAIT", recall_facts)
+        self.assertNotIn("TRANSPORT-ROUTE-RETURN-CHECK", recall_facts)
+
+    def test_home_tc_retirement_requires_a_live_colony_and_spare_tc(self) -> None:
+        starts = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-island-colony-established YES)",
+                "(goal gl-island-colony-threat NO)",
+                "(goal gl-home-resource-pressure YES)",
+                "(building-type-count-total town-center >= 2)",
+                "(up-pending-objects c: town-center <= 0)",
+                "(not (up-pending-placement c: town-center))",
+            ),
+            actions=("HOME-RETIRE-VERIFY-COLONY",),
+        )
+        self.assertEqual(len(starts), 1)
+        captures = matching_rules(
+            self.homebase,
+            facts=(
+                "gl-home-retirement-target-id c:== -1",
+                "(building-type-count-total town-center >= 1)",
+            ),
+            actions=("HOME-RETIRE-CAPTURE-STARTING",),
+        )
+        self.assertEqual(len(captures), 1)
+        delete = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-home-retirement-state HOME-RETIRE-VALIDATE-OLD)",
+                "(up-object-data object-data-status == status-ready)",
+                "object-data-map-zone-id g:== gl-home-zone",
+                "(up-object-data object-data-under-attack <= 0)",
+                "(building-type-count-total town-center >= 2)",
+            ),
+            actions=(
+                "(up-target-point 0 action-delete -1 -1)",
+                "home TC retired exact id: %d",
+                "(set-goal gl-home-retirement-target-id -2)",
+                "gl-home-zone g:= gl-island-colony-zone",
+            ),
+        )
+        self.assertEqual(len(delete), 1)
+        self.assertNotIn(
+            "(up-modify-goal position-self-x", self.homebase
+        )
 
     def test_migration_uses_bounded_evasive_waypoint(self) -> None:
         self.assertIn("MIGRATION-ROUTE-WAYPOINT-CHECK", self.military)
@@ -907,6 +1122,18 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(usable_count), 1)
+        _, _, _, _, usable_actions = usable_count[0]
+        self.assertIn(
+            "gl-transport-readiness-focus s:= sn-focus-player-number",
+            usable_actions,
+        )
+        self.assertIn(
+            "(set-strategic-number sn-focus-player-number my-player-number)",
+            usable_actions,
+        )
+        self.assertIn(
+            "gl-transport-readiness-focus", usable_actions
+        )
         land_dispatches = matching_rules(
             self.military,
             facts=(

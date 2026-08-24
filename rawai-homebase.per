@@ -656,6 +656,264 @@
 	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
 )
 
+;Capture one immutable starting Town Center before remote expansion can add
+;other candidates. Retirement later applies only to this exact object ID.
+(defrule
+	(goal gl-home-retirement-state HOME-RETIRE-IDLE)
+	(up-compare-goal gl-home-retirement-target-id c:== -1)
+	(building-type-count-total town-center >= 1)
+=>
+	(up-modify-goal gl-home-retirement-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-local c: town-center c: 20)
+	(up-remove-objects search-local object-data-on-mainland != on-mainland)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-home-retirement-state HOME-RETIRE-CAPTURE-STARTING)
+)
+
+(defrule
+	(goal gl-home-retirement-state HOME-RETIRE-CAPTURE-STARTING)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-home-retirement-target-id)
+	(up-get-object-data object-data-map-zone-id gl-home-zone)
+	(up-chat-data-to-self "starting TC captured: %d" g: gl-home-retirement-target-id)
+	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
+	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
+)
+
+(defrule
+	(goal gl-home-retirement-state HOME-RETIRE-CAPTURE-STARTING)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
+	(up-set-timer c: t-home-retirement c: 30)
+	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
+)
+
+;Once a resource-bearing off-home colony has a live Town Center and enough
+;settlers, retire the captured starting Town Center once. This conservative
+;variant keeps the old base until the replacement is complete, then leaves the
+;new TC as the engine's ordinary place-normal anchor. Every delete revalidates
+;the exact ready object and never removes the last TC.
+(defrule
+	(up-timer-status t-home-retirement == timer-triggered)
+	(goal gl-home-retirement-state HOME-RETIRE-IDLE)
+	(goal gl-island-colony-established YES)
+	(goal gl-island-colony-threat NO)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
+	(goal gl-home-defense-state NO)
+	(up-compare-goal gl-colony-towncenter-id c:>= 0)
+	(up-compare-goal gl-home-retirement-target-id c:>= 0)
+	(goal gl-home-resource-pressure YES)
+	(building-type-count-total town-center >= 2)
+	(up-pending-objects c: town-center <= 0)
+	(not (up-pending-placement c: town-center))
+	(or
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
+=>
+	(up-modify-goal gl-home-retirement-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-find-local c: town-center c: 20)
+	(up-remove-objects search-local object-data-id g:!= gl-colony-towncenter-id)
+	(set-goal gl-home-retirement-state HOME-RETIRE-VERIFY-COLONY)
+)
+
+(defrule
+	(goal gl-home-retirement-state HOME-RETIRE-VERIFY-COLONY)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-map-zone-id g:== gl-island-colony-zone)
+	(up-object-data object-data-on-mainland == off-mainland)
+=>
+	(up-get-point position-object point-x)
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point point-x)
+	(up-filter-distance c: -1 c: 40)
+	(up-find-remote c: gold-mine-class c: 10)
+	(up-find-remote c: stone-mine-class c: 10)
+	(up-find-remote c: tree-class c: 40)
+	(up-find-remote c: forage-class c: 10)
+	(up-find-remote c: prey-animal-class c: 10)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-island-colony-zone)
+	(up-get-search-state remote-total)
+	(up-modify-goal gl-home-retirement-resource-count g:= remote-total)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point point-x)
+	(up-filter-distance c: -1 c: 40)
+	(up-find-local c: villager-class c: 40)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-colony-zone)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-home-retirement-settler-count g:= local-total)
+	(set-goal gl-home-retirement-state HOME-RETIRE-CHECK-VIABILITY)
+)
+
+(defrule
+	(goal gl-home-retirement-state HOME-RETIRE-VERIFY-COLONY)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-status != status-ready)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
+	(up-set-timer c: t-home-retirement c: 60)
+	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
+)
+
+(defrule
+	(goal gl-home-retirement-state HOME-RETIRE-VERIFY-COLONY)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-status == status-ready)
+	(or
+		(up-object-data object-data-map-zone-id g:!= gl-island-colony-zone)
+		(up-object-data object-data-on-mainland != off-mainland)
+	)
+=>
+	(up-chat-data-to-self "colony TC revalidation mismatch: %d" g: gl-colony-towncenter-id)
+	(set-goal gl-colony-towncenter-id -1)
+	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
+	(up-set-timer c: t-home-retirement c: 90)
+	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
+)
+
+(defrule
+	(goal gl-home-retirement-state HOME-RETIRE-VERIFY-COLONY)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-chat-data-to-self "colony TC revalidation lost: %d" g: gl-colony-towncenter-id)
+	(set-goal gl-colony-towncenter-id -1)
+	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
+	(up-set-timer c: t-home-retirement c: 90)
+	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
+)
+
+(defrule
+	(goal gl-home-retirement-state HOME-RETIRE-CHECK-VIABILITY)
+	(up-compare-goal gl-home-retirement-resource-count c:>= 4)
+	(up-compare-goal gl-home-retirement-settler-count c:>= 6)
+=>
+	(up-full-reset-search)
+	(up-find-local c: town-center c: 20)
+	(up-remove-objects search-local object-data-id g:!= gl-home-retirement-target-id)
+	(set-goal gl-home-retirement-state HOME-RETIRE-VALIDATE-OLD)
+)
+
+(defrule
+	(goal gl-home-retirement-state HOME-RETIRE-CHECK-VIABILITY)
+	(or
+		(up-compare-goal gl-home-retirement-resource-count c:< 4)
+		(up-compare-goal gl-home-retirement-settler-count c:< 6)
+	)
+=>
+	(up-chat-data-to-self "colony TC retirement hold settlers: %d" g: gl-home-retirement-settler-count)
+	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
+	(up-set-timer c: t-home-retirement c: 90)
+	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
+)
+
+(defrule
+	(goal gl-home-retirement-state HOME-RETIRE-VALIDATE-OLD)
+	(or
+		(goal gl-island-colony-threat YES)
+		(or
+			(not (goal gl-island-migration-state MIGRATION-IDLE))
+			(or
+				(not (goal gl-colony-towncenter-state COLONY-TC-IDLE))
+				(or
+					(goal gl-home-defense-state YES)
+					(or
+						(building-type-count-total town-center < 2)
+						(or
+							(up-pending-objects c: town-center > 0)
+							(up-pending-placement c: town-center)
+						)
+					)
+				)
+			)
+		)
+	)
+=>
+	(up-chat-data-to-self "home TC retirement invalidated: %d" g: gl-home-retirement-target-id)
+	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
+	(up-set-timer c: t-home-retirement c: 90)
+	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
+)
+
+(defrule
+	(goal gl-home-retirement-state HOME-RETIRE-VALIDATE-OLD)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-id g:== gl-home-retirement-target-id)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-map-zone-id g:== gl-home-zone)
+	(up-object-data object-data-under-attack <= 0)
+	(up-object-data object-data-action != actionid-research)
+	(up-object-data object-data-order != orderid-research)
+	(goal gl-island-colony-threat NO)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
+	(goal gl-home-defense-state NO)
+	(building-type-count-total town-center >= 2)
+	(up-pending-objects c: town-center <= 0)
+	(not (up-pending-placement c: town-center))
+=>
+	(up-target-point 0 action-delete -1 -1)
+	(up-chat-data-to-self "home TC retired exact id: %d" g: gl-home-retirement-target-id)
+	(set-goal gl-home-retirement-target-id -2)
+	(up-modify-goal gl-home-zone g:= gl-island-colony-zone)
+	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
+	(up-set-timer c: t-home-retirement c: 90)
+	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
+)
+
+(defrule
+	(goal gl-home-retirement-state HOME-RETIRE-VALIDATE-OLD)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-chat-data-to-self "starting TC already absent: %d" g: gl-home-retirement-target-id)
+	(set-goal gl-home-retirement-target-id -2)
+	(up-modify-goal gl-home-zone g:= gl-island-colony-zone)
+	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
+	(up-set-timer c: t-home-retirement c: 300)
+	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
+)
+
+(defrule
+	(goal gl-home-retirement-state HOME-RETIRE-VALIDATE-OLD)
+	(up-set-target-object search-local c: 0)
+	(or
+		(up-object-data object-data-id g:!= gl-home-retirement-target-id)
+		(or
+			(up-object-data object-data-status != status-ready)
+			(or
+				(up-object-data object-data-map-zone-id g:!= gl-home-zone)
+				(or
+					(up-object-data object-data-under-attack > 0)
+					(or
+						(up-object-data object-data-action == actionid-research)
+						(up-object-data object-data-order == orderid-research)
+					)
+				)
+			)
+		)
+	)
+=>
+	(up-chat-data-to-self "home TC retirement deferred: %d" g: gl-home-retirement-target-id)
+	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
+	(up-set-timer c: t-home-retirement c: 90)
+	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
+)
+
 (defrule
 	(current-age >= middle-antiquity-age)
 	(goal gl-colony-towncenter-state COLONY-TC-IDLE)

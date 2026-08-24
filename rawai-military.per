@@ -150,6 +150,7 @@
 	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag == transport-screen-group)
 	(up-remove-objects search-local object-data-group-flag == home-naval-response-group)
+	(up-remove-objects search-local object-data-group-flag == naval-scout-group)
 	(up-remove-objects search-local object-data-action == actionid-explore)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-escort-count)
@@ -326,6 +327,74 @@
 	(up-reset-group c: transport-escort-group)
 )
 
+;The built-in boat explorer strategic number cannot constrain hull type. Keep
+;one or two explicitly selected Scout Ships exploring and reserve them from
+;normal escort/attack ownership. Heavy bombardment hulls are never candidates.
+(defrule
+	(up-timer-status t-naval-scout == timer-triggered)
+	(goal gl-naval-scout-state NAVAL-SCOUT-IDLE)
+	(up-compare-goal desired-naval-explorers c:>= 1)
+	(goal gl-home-defense-state NO)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+=>
+	(up-modify-goal gl-naval-scout-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-modify-group-flag 0 c: naval-scout-group)
+	(up-reset-group c: naval-scout-group)
+	(up-full-reset-search)
+	(up-find-local c: scout-galley-line c: 10)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-clean-search search-local object-data-id search-order-asc)
+	(up-remove-objects search-local object-data-index g:>= desired-naval-explorers)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-naval-scout-count g:= local-total)
+	(set-goal gl-naval-scout-state NAVAL-SCOUT-CHECK)
+)
+
+(defrule
+	(goal gl-naval-scout-state NAVAL-SCOUT-CHECK)
+	(up-compare-goal gl-naval-scout-count c:> 0)
+=>
+	;Rebuild the filtered list in the consumer instead of depending on a shared
+	;search list surviving the state boundary.
+	(up-full-reset-search)
+	(up-find-local c: scout-galley-line c: 10)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-clean-search search-local object-data-id search-order-asc)
+	(up-remove-objects search-local object-data-index g:>= desired-naval-explorers)
+	(up-create-group 0 0 c: naval-scout-group)
+	(up-modify-group-flag 1 c: naval-scout-group)
+	(up-target-point position-enemy action-explore -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-scout-focus)
+	(up-set-timer c: t-naval-scout c: 45)
+	(set-goal gl-naval-scout-state NAVAL-SCOUT-IDLE)
+)
+
+;Do not substitute a siege or capital hull when the preferred light family is
+;missing or every Scout Ship is busy. Keep the filtered absence observable.
+(defrule
+	(goal gl-naval-scout-state NAVAL-SCOUT-CHECK)
+	(up-compare-goal gl-naval-scout-count c:<= 0)
+=>
+	(up-chat-data-to-self "naval scout safe hull unavailable: %d" g: gl-naval-scout-count)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-scout-focus)
+	(up-set-timer c: t-naval-scout c: 45)
+	(set-goal gl-naval-scout-state NAVAL-SCOUT-IDLE)
+)
+
 ;Track the actual Transport Ship capacity used by the current civilization.
 #load-if-defined AZTEC-CIV
 (defrule
@@ -367,10 +436,9 @@
 )
 
 ;Global resource depletion includes every explored island and therefore cannot
-;detect that the starting land mass has lost both mine types.  Count only
-;observed Gaia gold and stone in the immutable starting-TC land zone.  This is
-;an explicit relocation pressure signal, not a claim that the whole map is
-;empty.
+;detect exhaustion of the immutable starting-TC land zone. Count its observed
+;mines and trees separately; five or fewer trees is a bounded wood-exhaustion
+;warning, not a claim that the whole map is empty.
 (defrule
 	(up-timer-status t-home-resource-pressure == timer-triggered)
 	(current-age >= middle-antiquity-age)
@@ -391,24 +459,73 @@
 	(up-remove-objects search-remote object-data-on-mainland != on-mainland)
 	(up-get-search-state remote-total)
 	(up-modify-goal gl-home-mine-count g:= remote-total)
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-find-remote c: tree-class c: 40)
+	(up-remove-objects search-remote object-data-on-mainland != on-mainland)
+	(up-get-search-state remote-total)
+	(up-modify-goal gl-home-tree-count g:= remote-total)
 	(up-modify-sn sn-focus-player-number g:= gl-home-resource-focus)
 	(up-set-timer c: t-home-resource-pressure c: 45)
 )
 
 (defrule
+	(goal gl-home-wood-pressure NO)
+	(up-compare-goal gl-home-tree-count c:<= 5)
+=>
+	(set-goal gl-home-wood-pressure YES)
+	(up-chat-data-to-self "home trees low: %d" g: gl-home-tree-count)
+)
+
+(defrule
+	(goal gl-home-wood-pressure YES)
+	(up-compare-goal gl-home-tree-count c:> 5)
+=>
+	(set-goal gl-home-wood-pressure NO)
+	(up-chat-data-to-self "home trees viable: %d" g: gl-home-tree-count)
+)
+
+(defrule
 	(goal gl-home-resource-pressure NO)
-	(up-compare-goal gl-home-mine-count c:<= 0)
+	(or
+		(up-compare-goal gl-home-mine-count c:<= 0)
+		(goal gl-home-wood-pressure YES)
+	)
 =>
 	(set-goal gl-home-resource-pressure YES)
-	(up-chat-data-to-self "home mines depleted: %d" g: gl-home-mine-count)
+	(up-chat-data-to-self "home resource pressure: %d" g: gl-home-mine-count)
 )
 
 (defrule
 	(goal gl-home-resource-pressure YES)
 	(up-compare-goal gl-home-mine-count c:> 0)
+	(goal gl-home-wood-pressure NO)
 =>
 	(set-goal gl-home-resource-pressure NO)
-	(up-chat-data-to-self "home mines available: %d" g: gl-home-mine-count)
+	(up-chat-data-to-self "home resources viable: %d" g: gl-home-mine-count)
+)
+
+(defrule
+	(up-timer-status t-island-migration-rejection == timer-triggered)
+	(goal gl-island-migration-rejection-armed YES)
+	(up-compare-goal gl-island-migration-rejected-zone c:>= 0)
+=>
+	(up-chat-data-to-self "migration rejected zone released: %d" g: gl-island-migration-rejected-zone)
+	(set-goal gl-island-migration-rejected-zone -1)
+	(set-goal gl-island-migration-rejected-zone2 -1)
+	(set-goal gl-island-migration-rejected-zone3 -1)
+	(set-goal gl-island-migration-rejection-armed NO)
+)
+
+;Start the failure-ring cooldown only after the hull/passengers have completed
+;their bounded return and released migration ownership.
+(defrule
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-island-migration-rejection-armed NO)
+	(up-compare-goal gl-island-migration-rejected-zone c:>= 0)
+=>
+	(up-set-timer c: t-island-migration-rejection c: 180)
+	(set-goal gl-island-migration-rejection-armed YES)
 )
 
 ;Do not reinforce a colony that the response system has just identified as
@@ -475,11 +592,6 @@
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-GATE-OWNER)
-	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)
-	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
-	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
-	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
-	(goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
 	(goal gl-home-defense-state NO)
 	(goal resources-depleted NO)
 	(goal gl-home-resource-pressure NO)
@@ -504,6 +616,9 @@
 	(up-find-remote c: forage-class c: 10)
 	(up-find-remote c: prey-animal-class c: 10)
 	(up-remove-objects search-remote object-data-on-mainland != off-mainland)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone2)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone3)
 	(up-clean-search search-remote object-data-distance search-order-desc)
 	(set-goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
 	(up-set-timer c: t-island-migration c: 180)
@@ -511,11 +626,6 @@
 )
 (defrule
 	(goal gl-island-migration-state MIGRATION-GATE-OWNER)
-	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)
-	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
-	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
-	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
-	(goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
 	(goal gl-home-defense-state NO)
 	(goal gl-island-colony-threat NO)
 	(current-age >= middle-antiquity-age)
@@ -542,9 +652,11 @@
 	(up-find-remote c: gold-mine-class c: 10)
 	(up-find-remote c: stone-mine-class c: 10)
 	(up-remove-objects search-remote object-data-on-mainland != off-mainland)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone2)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone3)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-island-migration-mission MIGRATION-MISSION-MINING)
-	(up-chat-data-to-self "migration civilian trigger: %d" c: 1)
 	(up-set-timer c: t-island-migration c: 180)
 	(set-goal gl-island-migration-state MIGRATION-FIND-LANDING)
 )
@@ -640,6 +752,7 @@
 	(up-remove-objects search-remote object-data-garrison-count > 0)
 	(up-remove-objects search-remote object-data-idling != 1)
 	(up-remove-objects search-remote object-data-under-attack > 0)
+	(up-remove-objects search-remote object-data-group-flag >= 0)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-island-migration-state MIGRATION-FIND-TRANSPORT)
 )
@@ -654,6 +767,9 @@
 	(up-find-remote c: forage-class c: 10)
 	(up-find-remote c: prey-animal-class c: 10)
 	(up-remove-objects search-remote object-data-on-mainland != off-mainland)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone2)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone3)
 	(up-clean-search search-remote object-data-distance search-order-desc)
 	(set-goal gl-island-migration-state MIGRATION-FIND-COLONY-LANDING)
 )
@@ -674,6 +790,7 @@
 	(up-remove-objects search-remote object-data-garrison-count > 0)
 	(up-remove-objects search-remote object-data-idling != 1)
 	(up-remove-objects search-remote object-data-under-attack > 0)
+	(up-remove-objects search-remote object-data-group-flag >= 0)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-island-migration-state MIGRATION-FIND-TRANSPORT)
 )
@@ -707,6 +824,7 @@
 	(up-remove-objects search-remote object-data-garrison-count > 0)
 	(up-remove-objects search-remote object-data-idling != 1)
 	(up-remove-objects search-remote object-data-under-attack > 0)
+	(up-remove-objects search-remote object-data-group-flag >= 0)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-island-migration-state MIGRATION-FIND-TRANSPORT)
 )
@@ -732,7 +850,8 @@
 	(up-modify-group-flag 0 c: migration-transport-group)
 	(up-reset-group c: migration-transport-group)
 	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(up-find-local c: transport-ship c: 40)
+	(up-remove-objects search-local object-data-id g:!= gl-island-migration-transport-id)
 	(up-create-group 0 0 c: migration-transport-group)
 	(up-modify-group-flag 1 c: migration-transport-group)
 	(up-chat-data-to-self "migration transport: %d" g: gl-island-migration-transport-id)
@@ -752,7 +871,8 @@
 	(up-modify-group-flag 0 c: migration-transport-group)
 	(up-reset-group c: migration-transport-group)
 	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(up-find-local c: transport-ship c: 40)
+	(up-remove-objects search-local object-data-id g:!= gl-island-migration-transport-id)
 	(up-create-group 0 0 c: migration-transport-group)
 	(up-modify-group-flag 1 c: migration-transport-group)
 	(up-modify-goal gl-island-scout-attempts c:+ 1)
@@ -962,7 +1082,9 @@
 	(up-get-search-state local-total)
 	(up-modify-goal gl-island-migration-outstanding-count g:= local-total)
 	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(up-find-local c: transport-ship c: 40)
+	(up-remove-objects search-local object-data-id g:!= gl-island-migration-transport-id)
+	(set-goal gl-island-migration-loaded-count -1)
 	(set-goal gl-island-migration-state MIGRATION-CHECK-LOAD)
 )
 
@@ -980,21 +1102,60 @@
 )
 
 (defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LOAD)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(set-goal gl-island-migration-loaded-count -1)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)
+)
+
+;Deaths can lower the live passenger target below the mission minimum. A live
+;empty or underfilled hull must return immediately instead of waiting in an
+;uncovered 0/0 or 1/1 state for the global watchdog.
+(defrule
 	(goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)
-	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count g:>= gl-island-migration-load-target)
+	(up-compare-goal gl-island-migration-loaded-count c:>= 0)
 	(or
 		(and
 			(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
-			(up-object-data object-data-garrison-count >= 1)
+			(up-compare-goal gl-island-migration-load-target c:< 1)
 		)
 		(and
 			(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
-			(up-object-data object-data-garrison-count >= 2)
+			(up-compare-goal gl-island-migration-load-target c:< 2)
 		)
 	)
 =>
-	(up-get-object-data object-data-garrison-count gl-island-migration-loaded-count)
+	(up-chat-data-to-self "migration below minimum: %d" g: gl-island-migration-loaded-count)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-target-point position-self-x action-stop -1 stance-no-attack)
+	(up-full-reset-search)
+	(up-find-local c: transport-ship c: 40)
+	(up-remove-objects search-local object-data-id g:!= gl-island-migration-transport-id)
+	(up-target-point gl-island-migration-origin-x action-unload -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-route-waits 0)
+	(up-set-timer c: t-island-migration c: 15)
+	(set-goal gl-island-migration-state MIGRATION-RETURNING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)
+	(up-compare-goal gl-island-migration-loaded-count g:>= gl-island-migration-load-target)
+	(or
+		(and
+			(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
+			(up-compare-goal gl-island-migration-loaded-count c:>= 1)
+		)
+		(and
+			(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+			(up-compare-goal gl-island-migration-loaded-count c:>= 2)
+		)
+	)
+=>
 	(up-chat-data-to-self "migration depart full: %d" g: gl-island-migration-loaded-count)
 	(set-goal gl-island-migration-route-waits 0)
 	(up-set-timer c: t-island-migration c: 120)
@@ -1007,11 +1168,9 @@
 (defrule
 	(goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)
 	(up-timer-status t-island-migration == timer-triggered)
-	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count >= 2)
-	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
+	(up-compare-goal gl-island-migration-loaded-count c:>= 2)
+	(up-compare-goal gl-island-migration-loaded-count g:< gl-island-migration-load-target)
 =>
-	(up-get-object-data object-data-garrison-count gl-island-migration-loaded-count)
 	(up-chat-data-to-self "migration depart partial: %d" g: gl-island-migration-loaded-count)
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
@@ -1087,6 +1246,10 @@
 	(up-target-point gl-island-migration-origin-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-chat-data-to-self "migration route held: %d" c: 1)
+	(up-modify-goal gl-island-migration-rejected-zone3 g:= gl-island-migration-rejected-zone2)
+	(up-modify-goal gl-island-migration-rejected-zone2 g:= gl-island-migration-rejected-zone)
+	(up-modify-goal gl-island-migration-rejected-zone g:= gl-island-migration-zone)
+	(set-goal gl-island-migration-rejection-armed NO)
 	(set-goal gl-island-migration-route-waits 0)
 	(up-set-timer c: t-island-migration c: 15)
 	(set-goal gl-island-migration-state MIGRATION-RETURNING)
@@ -1200,6 +1363,10 @@
 	(up-target-point gl-island-migration-origin-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-chat-data-to-self "migration route unreachable: %d" g: gl-island-migration-transport-id)
+	(up-modify-goal gl-island-migration-rejected-zone3 g:= gl-island-migration-rejected-zone2)
+	(up-modify-goal gl-island-migration-rejected-zone2 g:= gl-island-migration-rejected-zone)
+	(up-modify-goal gl-island-migration-rejected-zone g:= gl-island-migration-zone)
+	(set-goal gl-island-migration-rejection-armed NO)
 	(set-goal gl-island-migration-route-waits 0)
 	(up-set-timer c: t-island-migration c: 15)
 	(set-goal gl-island-migration-state MIGRATION-RETURNING)
@@ -1327,13 +1494,14 @@
 	(goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)
 	(up-timer-status t-island-migration == timer-running)
 	(up-timer-status t-island-migration-board-retry == timer-triggered)
-	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
+	(up-compare-goal gl-island-migration-loaded-count c:>= 0)
+	(up-compare-goal gl-island-migration-loaded-count g:< gl-island-migration-load-target)
 =>
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
-	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
+	(up-find-remote c: transport-ship c: 40)
+	(up-remove-objects search-remote object-data-id g:!= gl-island-migration-transport-id)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-set-timer c: t-island-migration-board-retry c: 3)
 	(set-goal gl-island-migration-state MIGRATION-LOADING)
@@ -1343,15 +1511,15 @@
 	(goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)
 	(up-timer-status t-island-migration == timer-running)
 	(up-timer-status t-island-migration-board-retry == timer-running)
-	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
+	(up-compare-goal gl-island-migration-loaded-count c:>= 0)
+	(up-compare-goal gl-island-migration-loaded-count g:< gl-island-migration-load-target)
 =>
 	(set-goal gl-island-migration-state MIGRATION-LOADING)
 )
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)
-	(not (up-set-target-object search-local c: 0))
+	(up-compare-goal gl-island-migration-loaded-count c:< 0)
 =>
 	(up-chat-data-to-self "migration transport lost: %d" g: gl-island-migration-transport-id)
 	(up-full-reset-search)
@@ -2183,6 +2351,10 @@
 	(up-modify-goal gl-island-colony-zone g:= gl-island-migration-zone)
 	(set-goal gl-colony-towncenter-id -1)
 	(set-goal gl-island-colony-established YES)
+	(set-goal gl-island-migration-rejected-zone -1)
+	(set-goal gl-island-migration-rejected-zone2 -1)
+	(set-goal gl-island-migration-rejected-zone3 -1)
+	(set-goal gl-island-migration-rejection-armed NO)
 	(set-goal gl-migration-placement-lock NO)
 	(set-goal gl-island-migration-placement-attempts 0)
 	(up-modify-group-flag 0 c: migration-boarding-group)
@@ -2249,6 +2421,10 @@
 =>
 	(set-goal gl-migration-placement-lock NO)
 	(up-chat-data-to-self "migration dropsite failed: %d" g: gl-island-migration-zone)
+	(up-modify-goal gl-island-migration-rejected-zone3 g:= gl-island-migration-rejected-zone2)
+	(up-modify-goal gl-island-migration-rejected-zone2 g:= gl-island-migration-rejected-zone)
+	(up-modify-goal gl-island-migration-rejected-zone g:= gl-island-migration-zone)
+	(set-goal gl-island-migration-rejection-armed NO)
 	(up-reset-placement c: mining-camp)
 	(up-reset-placement c: lumber-camp)
 	(up-reset-placement c: mill)
@@ -4861,11 +5037,21 @@
 	(up-set-timer c: t-home-defense-hold c: 30)
 )
 
-;Abort a transport route that is still being selected or screened when home
-;defense activates. A ship already at the landing stage keeps its bounded
-;unload-and-return recovery instead of being given a conflicting order.
+;Abort a transport route when an attacked-home threat is observed, even when
+;no ordinary responder exists to raise the global defense latch. Re-resolve
+;the exact route hull and include the outbound RETURN stages: they begin after
+;the unload command is issued, not after the passengers are proven ashore.
 (defrule
-	(goal gl-home-defense-state YES)
+	(or
+		(and
+			(up-compare-goal gl-local-response-threats c:>= 1)
+			(up-compare-goal gl-local-response-zone g:== gl-home-zone)
+		)
+		(and
+			(up-compare-goal gl-naval-response-threats c:>= 1)
+			(up-compare-goal gl-naval-response-asset-zone g:== gl-home-zone)
+		)
+	)
 	(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))
 	(up-compare-goal gl-transport-screen-id c:>= 0)
 =>
@@ -4879,16 +5065,24 @@
 )
 
 (defrule
-	(goal gl-home-defense-state YES)
+	(or
+		(and
+			(up-compare-goal gl-local-response-threats c:>= 1)
+			(up-compare-goal gl-local-response-zone g:== gl-home-zone)
+		)
+		(and
+			(up-compare-goal gl-naval-response-threats c:>= 1)
+			(up-compare-goal gl-naval-response-asset-zone g:== gl-home-zone)
+		)
+	)
 	(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))
-	(not (goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-WAIT))
-	(not (goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-CHECK))
 	(not (goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT))
 	(not (goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK))
 =>
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-find-local c: transport-ship c: 40)
+	(up-remove-objects search-local object-data-id g:!= gl-transport-route-id)
 	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-modify-group-flag 0 c: transport-screen-group)

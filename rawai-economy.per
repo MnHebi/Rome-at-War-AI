@@ -866,10 +866,18 @@
 (defrule
 	(up-timer-status t-transport-readiness == timer-triggered)
 	(or
-		(goal map-type ISLANDS)
-		(goal map-type TEAM-ISLANDS)
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
 	)
 =>
+	(up-modify-goal gl-transport-readiness-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-find-local c: transport-ship c: 40)
 	(up-remove-objects search-local object-data-garrison-count > 0)
@@ -880,6 +888,7 @@
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-available-transport-count g:= local-total)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-readiness-focus)
 	(up-set-timer c: t-transport-readiness c: 5)
 )
 
@@ -953,12 +962,17 @@
 			(goal map-type TEAM-ISLANDS)
 		)
 	)
-	;The authoritative DAT cost is 125 wood.  Once both starting-land mine
-	;types are gone, do not require the normal 35-wood production buffer.
-	(wood-amount >= 125)
+	;The authoritative DAT costs are 125 wood for the hull and 100 for either
+	;resource camp. Require the complete 225-wood package when the hull is
+	;requested; the relocation Market bridge continues replenishing wood while
+	;pressure remains because this threshold is not an engine escrow.
+	(wood-amount >= 225)
 	(or
-		(unit-type-count-total transport-ship g:< gl-transport-required)
 		(unit-type-count-total transport-ship < 2)
+		(and
+			(up-compare-goal gl-available-transport-count c:< 1)
+			(unit-type-count-total transport-ship < 3)
+		)
 	)
 	(can-train transport-ship)
 =>

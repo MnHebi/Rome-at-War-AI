@@ -480,6 +480,69 @@
         "The 120-second colony threat hold is derived from detected local response state and the naval responder's attacked owned-asset zone. Attacks hidden by fog or absent from the bounded owned-asset searches can still be missed."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-rome-vs-britons-20260824-230404",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 230404.aoe2record",
+        "sha256": "EEAE1B9B19998898AF579ED02677F93EDA9FD32D25504A2C392EADAEC2766165",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 6095
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and ended at 101:35. Player 1 was Roman Empire civilization 23 and Player 2 was Britons civilization 3.",
+        "The decompressed runtime header contains RAWAI-P3B12 twice and no RAWAI-P3B13 marker. A header marker is partial runtime evidence, not proof that every deployed AI file matched the repository.",
+        "Thirty-five Roman migration triggers occurred from 21:11 onward. Thirty-four selected a destination zone, hull, and passenger set and issued boarding, then immediately reported that the migration transport was lost.",
+        "The allegedly lost hull IDs 11205, 11490, and 12167 remained present later in the replay and subsequently moved or unloaded. No Roman migration departure, route, landing, drop-site completion, or completed migration was decoded.",
+        "Rome requested Scout Galley family unit 1877 thirty-seven times beginning at 36:37 and Juggernaut unit 420 seven times beginning at 52:12. No Octeres 1884 request was decoded; the replay cannot associate a post-production hull instance with the engine's naval-explorer role.",
+        "No Roman Town Center build command was decoded. Roman building activity remained around the starting base; four delete commands had no serialized object type.",
+        "A candidate garrison target 14330 showed boarding churn while the Roman home was attacked, but the replay does not serialize enough type or ownership information to prove that this object was the reported loaded military Transport Ship.",
+        "Loaded-transport telemetry remained zero throughout. The replay aggregate resource stocks do not establish that all usable Roman resources were exhausted, and home-mine telemetry remained viable."
+      ],
+      "implementation_inferences": [
+        "Migration loading rebuilt the local search list through an object-ID insertion, then consumed it in a later state. The replay's immediate false-loss sequence, followed by continued existence of the same hull IDs, falsifies actual hull destruction and points to failed exact-hull re-resolution or search-list lifetime as the blocking transition.",
+        "The engine-owned sn-number-boat-explore-groups accepts no ship-family allowlist. Leaving it enabled allowed a heavy warship such as a Juggernaut or Octeres to be drafted as an explorer even though the AI had a dedicated Scout Ship family.",
+        "Relocation pressure counted only starting-land gold and stone objects. A starting island that retained a visible mine object but had exhausted practical wood could therefore fail to enter the emergency migration economy.",
+        "Emergency Transport production counted all completed hulls rather than usable idle hulls and budgeted only the 125-wood hull. A busy hull could block replacement and construction could consume the 100 wood needed for the destination Mining or Lumber Camp.",
+        "Military transport recall depended primarily on the global home-defense latch and excluded outbound return states, allowing a loaded hull to retain its expedition while a detected threat existed but no reachable response group raised the latch.",
+        "The AI had a point-placed remote colony Town Center producer but no guarded starting-Town-Center retirement path. As a result, ordinary place-normal construction remained anchored to the starting island after a mainland colony was established."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B14 and require a source-matched deployment before attributing new runtime behavior to this patch.",
+        "Re-resolve the selected migration hull from the live Transport Ship family and exact stored object ID, persist its garrison count in a goal, and declare loss only when that exact lookup produces the negative sentinel. Reissue boarding against the exact remote hull, compare subsequent full, partial, retry, and loss transitions only against stored counts, and return a live hull immediately if deaths reduce a scout below one passenger or settlers below two.",
+        "Disable the generic engine boat-explorer selector. Every forty-five seconds, select only scout-galley-line hulls for a reserved naval-scout group; Juggernaut, Octeres, generic warship, garrisoned, attacked, and already reserved hulls have no fallback path into this role, and the absence of a safe Scout Ship is replay-observable.",
+        "Count starting-land trees independently and raise relocation pressure at five or fewer observed trees as well as at zero observed mines.",
+        "Under relocation pressure, require the conservative pre-Shipwright 225-wood package at the Transport request for one 125-wood hull and one 100-wood resource Camp, inspect self-owned usable empty idle hulls on hybrid water maps with explicit focus restoration, and allow one bounded replacement up to three total Transports when every existing hull is busy.",
+        "Use bounded market trades to bridge toward the 225-wood relocation package when gold, stone, or excess food is available.",
+        "Retain the three most recently failed destination land zones and reject all three for 180 seconds beginning only after bounded return releases migration ownership, preventing immediate A/B alternation after a defended-route, unreachable-route, or drop-site failure.",
+        "Capture the immutable starting Town Center's land zone as the active home and recall the exact loaded military Transport and its route screen only when a local or naval response identifies a threat in that home zone, including outbound return states while excluding only the existing recovery states; transfer the active zone to the established colony when relocation completes.",
+        "Capture one immutable starting Town Center object ID before remote expansion. After a completed correct-zone colony Town Center has at least six settlers and four currently observed natural-resource objects, and only while migration, Town Center placement, colony threat, home defense, pending work, and attack checks are clear, delete that exact ready starting object once without ever deleting the final Town Center."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B14 near match start.",
+        "A selected migration hull is not reported lost while the same object ID remains alive. Its live loaded count advances through boarding and produces either a route departure, a bounded partial departure with at least two settlers, or a real exact-hull-loss record.",
+        "At least one Roman civilian migration reaches a resource-bearing non-starting zone, completes the matching correct-zone drop site, and records a completed colony without selecting any of the three retained rejected zones during the post-return 180-second backoff.",
+        "All naval exploration commands target Scout Galley family IDs 1877, 1878, or 1879. Juggernaut IDs 420 and 691 and Octeres 1884 receive no explorer-group assignment or action-explore command.",
+        "When the starting zone has at most five observed trees or no observed mines, relocation pressure activates. A Transport request is not issued below the 225-wood package threshold, the Market bridge continues while wood is below that threshold, and a busy existing hull cannot suppress one bounded replacement.",
+        "If an economic or military anchor in the active home zone is attacked while a military Transport remains loaded or outbound, the exact hull and route screen receive recall orders before the attack clears; an attack confined to a different remote colony does not spuriously unload the force at an unrelated route origin, and successful relocation transfers this behavior to the colony zone.",
+        "After a viable mainland colony Town Center completes, the AI retires no old Town Center until all safety gates pass, deletes only the one startup-captured ready target while at least two Town Centers exist, never repeats retirement against later expansion Town Centers, and subsequent ordinary buildings appear around the surviving mainland Town Center rather than the depleted island."
+      ],
+      "known_limits": [
+        "The replay does not serialize naval explorer group membership, exact transport occupancy, object type for every garrison or delete command, command issuer identity, fog-of-war knowledge, water-path geometry, or remaining resource amounts within visible mine and tree objects.",
+        "The P3B12 header marker does not prove a complete deployment-manifest match. Fresh P3B14 evidence is required before the changed search and state semantics can be accepted.",
+        "DUC structural validation cannot prove that the engine preserves a produced search list across rule-state transitions. The exact Transport-family lookup removes the replay's object-ID insertion failure mode, but its runtime list lifetime still requires the fresh replay.",
+        "The engine exposes no arbitrary ship-to-beach path query. Rejected-zone backoff prevents immediate repetition but does not prove that the next selected island or corridor is navigable or safe from hidden defenses.",
+        "The starting-land tree count is an observed-object threshold, not a remaining-wood measurement. Unseen trees can cause a false pressure signal and nearly exhausted visible trees can delay it.",
+        "The 225-wood package uses authoritative pre-Shipwright DAT costs. Shipwright later lowers the Transport cost, so the request threshold is conservative rather than an exact late-game cost. It is not an engine escrow: other systems can spend the remaining 100 wood during the voyage, and the Market bridge can replenish it only while market access and saleable resources remain.",
+        "Deleting an old Town Center after a safe colony exists follows experienced AI-developer placement guidance, but the engine does not expose its default place-normal anchor. Fresh construction locations must prove that retirement actually transfers ordinary building placement to the mainland.",
+        "The retirement controller deliberately refuses to delete the final Town Center and does not move position-self. If the AI has only its starting Town Center and cannot first complete the explicit colony Town Center, it remains in the safer migration-and-point-placement path rather than risking total Town Center loss."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }
