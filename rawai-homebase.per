@@ -676,10 +676,12 @@
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
+	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
 	(up-can-build 0 c: house)
 =>
 	(up-build place-normal 0 c: house)
+	(up-set-timer c: t-house-placement c: 8)
 )
 
 (defrule
@@ -691,11 +693,13 @@
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
+	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
 	(up-can-build 0 c: house)
 =>
 	(up-set-placement-data my-player-number -1 c: -10)
 	(up-build place-control 0 c: house)
+	(up-set-timer c: t-house-placement c: 8)
 )
 
 (defrule
@@ -707,6 +711,7 @@
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
+	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
 	(up-can-build 0 c: house)
 =>
@@ -714,6 +719,7 @@
 	;letting the compact TC housing pattern seal every farm approach.
 	(up-set-placement-data my-player-number mill c: 8)
 	(up-build place-control 0 c: house)
+	(up-set-timer c: t-house-placement c: 8)
 )
 
 (defrule
@@ -725,10 +731,12 @@
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
+	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
 	(up-can-build 0 c: house)
 =>
 	(up-build place-normal 0 c: house)
+	(up-set-timer c: t-house-placement c: 8)
 )
 
 (defrule
@@ -739,12 +747,14 @@
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
+	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
 	(up-can-build 0 c: house)
 =>
 	;Starting-Mill starts and rebuilt housing use the same local clearance bias.
 	(up-set-placement-data my-player-number mill c: 8)
 	(up-build place-control 0 c: house)
+	(up-set-timer c: t-house-placement c: 8)
 )
 
 ;Under sustained population pressure, put one new House at the confirmed
@@ -758,7 +768,9 @@
 	(up-pending-objects c: house < 2)
 	(population-headroom > 0)
 	(housing-headroom < 3)
+	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
+	(up-can-build 0 c: house)
 	(or
 		(goal map-type RIVERS)
 		(or
@@ -768,11 +780,15 @@
 	)
 =>
 	(up-copy-point point2-x gl-island-colony-x)
-	(up-modify-goal point2-x c:+ 14)
-	(up-modify-goal point2-y c:+ 14)
+	;Keep colony housing near its confirmed resource anchor. The former diagonal
+	;offset was almost twenty tiles away and could cross a narrow island.
+	(up-modify-goal point2-x c:+ 6)
+	(up-modify-goal point2-y c:+ 6)
 	(up-bound-point point3-x point2-x)
 	(up-set-target-point point3-x)
 	(up-build place-point 0 c: house)
+	(up-set-timer c: t-house-pressure c: 30)
+	(up-set-timer c: t-house-placement c: 8)
 )
 
 (defrule
@@ -783,12 +799,14 @@
 	(up-pending-objects c: house < 2)
 	(population-headroom > 0)
 	(housing-headroom < 3)
+	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
 	(up-can-build 0 c: house)
 =>
 	(up-set-placement-data my-player-number mill c: 8)
 	(up-build place-control 0 c: house)
 	(up-set-timer c: t-house-pressure c: 30)
+	(up-set-timer c: t-house-placement c: 8)
 )
 
 (defrule
@@ -799,11 +817,13 @@
 	(up-pending-objects c: house < 2)
 	(population-headroom > 0)
 	(housing-headroom < 3)
+	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
 	(up-can-build 0 c: house)
 =>
 	(up-build place-normal 0 c: house)
 	(up-set-timer c: t-house-pressure c: 30)
+	(up-set-timer c: t-house-placement c: 8)
 )
 
 (defrule
@@ -815,11 +835,13 @@
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
+	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
 	(up-can-build 0 c: house)
 =>
 	(up-set-placement-data my-player-number mill c: 8)
 	(up-build place-control 0 c: house)
+	(up-set-timer c: t-house-placement c: 8)
 )
 
 (defrule
@@ -1073,6 +1095,219 @@
 	(up-modify-goal 509 c:min 2)
 	(up-modify-goal gl-farm-build-target g:- 509)
 	(up-modify-goal gl-farm-build-target c:max 0)
+)
+
+;Farm construction and farm staffing are separate invariants. A completed
+;abandoned Farm must be reclaimed even when the building target is already met.
+;The tasker handles one worker per bounded pass and only targets a Farm in the
+;worker's land zone, so it never issues an impossible across-water gather order.
+(defrule
+	(up-timer-status t-farm-staffing == timer-triggered)
+	(goal gl-farm-staffing-state FARM-STAFFING-IDLE)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(building-type-count farm >= 1)
+	(or
+		(unit-type-count villager-fisherman > 0)
+		(unit-type-count villager-farmer g:< gl-farm-build-target)
+	)
+=>
+	(up-modify-goal gl-farm-staffing-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-filter-distance c: -1 g: map-size)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-remote c: farm c: 240)
+	(up-remove-objects search-remote object-data-tasks-count > 0)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-farm-staffing-state FARM-STAFFING-FIND-FARM)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-FIND-FARM)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-farm-staffing-id)
+	(up-get-object-data object-data-map-zone-id gl-farm-staffing-zone)
+	(up-get-point position-object point2-x)
+	;Keep the remaining Farm candidates in search-remote. If this Farm's zone has
+	;lost every eligible worker, the failure path can reject it and advance.
+	(up-reset-search 1 1 0 0)
+	(up-set-target-point point2-x)
+	(up-find-local c: villager-class c: 240)
+	(up-remove-objects search-local object-data-language-id != lid-villager-fisherman)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-farm-staffing-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 1)
+	(set-goal gl-farm-staffing-state FARM-STAFFING-CHECK-FISHERMAN)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-FISHERMAN)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-add-object-by-id search-remote g: gl-farm-staffing-id)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+	(up-chat-data-to-self "farm staffing fisherman: %d" g: gl-farm-staffing-id)
+	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
+	(up-set-timer c: t-farm-staffing c: 5)
+	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-FISHERMAN)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-reset-search 1 1 0 0)
+	(up-set-target-point point2-x)
+	(up-find-local c: villager-class c: 240)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-farm-staffing-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 1)
+	(set-goal gl-farm-staffing-state FARM-STAFFING-CHECK-IDLE)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-IDLE)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-add-object-by-id search-remote g: gl-farm-staffing-id)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+	(up-chat-data-to-self "farm staffing idle: %d" g: gl-farm-staffing-id)
+	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
+	(up-set-timer c: t-farm-staffing c: 5)
+	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-IDLE)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-reset-search 1 1 0 0)
+	(up-set-target-point point2-x)
+	(up-find-local c: villager-class c: 240)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-build)
+	(up-remove-objects search-local object-data-action == actionid-repair)
+	(up-remove-objects search-local object-data-action == actionid-hunt)
+	(up-remove-objects search-local object-data-target == prey-animal-class)
+	(up-remove-objects search-local object-data-target == livestock-class)
+	(up-remove-objects search-local object-data-language-id == lid-villager-farmer)
+	(up-remove-objects search-local object-data-language-id == lid-villager-shepherd)
+	(up-remove-objects search-local object-data-language-id == lid-villager-forager)
+	(up-remove-objects search-local object-data-language-id == lid-villager-hunter)
+	(up-remove-objects search-local object-data-language-id == lid-villager-builder)
+	(up-remove-objects search-local object-data-group-flag == migration-boarding-group)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-farm-staffing-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 1)
+	(set-goal gl-farm-staffing-state FARM-STAFFING-ASSIGN)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-ASSIGN)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-add-object-by-id search-remote g: gl-farm-staffing-id)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+	(up-chat-data-to-self "farm staffing worker: %d" g: gl-farm-staffing-id)
+	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
+	(up-set-timer c: t-farm-staffing c: 5)
+	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-ASSIGN)
+	(not (up-set-target-object search-local c: 0))
+=>
+	;An orphan Farm must not monopolize every later staffing pass. Remove it from
+	;this preserved candidate list and test the next observed Farm immediately.
+	(up-remove-objects search-remote object-data-id g:== gl-farm-staffing-id)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-farm-staffing-state FARM-STAFFING-FIND-FARM)
+)
+
+;Once Farms exist, civilian shore fishing is no longer a permanent role. If no
+;same-zone Farm is available, convert one excess fisherman per pass to an
+;observed same-zone mine or tree. This also prevents a resource-island colony
+;from turning every transported worker into a shoreline fisherman.
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-FIND-FARM)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-filter-distance c: -1 g: map-size)
+	(up-find-local c: villager-class c: 240)
+	(up-remove-objects search-local object-data-language-id != lid-villager-fisherman)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 1)
+	(set-goal gl-farm-staffing-state FARM-STAFFING-CHECK-EXCESS-FISHERMAN)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-EXCESS-FISHERMAN)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-farm-staffing-worker-id)
+	(up-get-object-data object-data-map-zone-id gl-farm-staffing-zone)
+	(up-get-point position-object point2-x)
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point point2-x)
+	(up-filter-distance c: -1 c: 40)
+	(up-find-remote c: gold-mine-class c: 10)
+	(up-find-remote c: stone-mine-class c: 10)
+	(up-find-remote c: tree-class c: 40)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-farm-staffing-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-farm-staffing-state FARM-STAFFING-FIND-RESOURCE)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-FIND-RESOURCE)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-farm-staffing-id)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-farm-staffing-worker-id)
+	(set-strategic-number sn-focus-player-number 0)
+	(up-add-object-by-id search-remote g: gl-farm-staffing-id)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+	(up-chat-data-to-self "fisherman redirected to resource: %d" g: gl-farm-staffing-zone)
+	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
+	(up-set-timer c: t-farm-staffing c: 5)
+	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-FIND-RESOURCE)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
+	(up-set-timer c: t-farm-staffing c: 20)
+	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-EXCESS-FISHERMAN)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
+	(up-set-timer c: t-farm-staffing c: 15)
+	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
+)
+
+(defrule
+	(up-timer-status t-farm-staffing == timer-triggered)
+	(goal gl-farm-staffing-state FARM-STAFFING-IDLE)
+=>
+	(up-set-timer c: t-farm-staffing c: 15)
 )
 
 ;Report only after economy state transitions and both finalized demand paths.

@@ -411,6 +411,52 @@
 	(up-chat-data-to-self "home mines available: %d" g: gl-home-mine-count)
 )
 
+;Do not reinforce a colony that the response system has just identified as
+;attacked, especially when it reported no same-zone defenders. Keep a bounded
+;cooldown after the last land or naval response sweep for that colony zone.
+(defrule
+	(goal gl-island-colony-established YES)
+	(goal gl-island-colony-threat NO)
+	(or
+		(and
+			(not (goal gl-local-response-state LOCAL-RESPONSE-IDLE))
+			(up-compare-goal gl-local-response-zone g:== gl-island-colony-zone)
+		)
+		(and
+			(not (goal gl-naval-response-state NAVAL-RESPONSE-IDLE))
+			(up-compare-goal gl-naval-response-asset-zone g:== gl-island-colony-zone)
+		)
+	)
+=>
+	(set-goal gl-island-colony-threat YES)
+	(up-set-timer c: t-island-colony-threat c: 120)
+	(up-chat-data-to-self "migration colony threat hold: %d" g: gl-island-colony-zone)
+)
+
+(defrule
+	(goal gl-island-colony-threat YES)
+	(or
+		(and
+			(not (goal gl-local-response-state LOCAL-RESPONSE-IDLE))
+			(up-compare-goal gl-local-response-zone g:== gl-island-colony-zone)
+		)
+		(and
+			(not (goal gl-naval-response-state NAVAL-RESPONSE-IDLE))
+			(up-compare-goal gl-naval-response-asset-zone g:== gl-island-colony-zone)
+		)
+	)
+=>
+	(up-set-timer c: t-island-colony-threat c: 120)
+)
+
+(defrule
+	(goal gl-island-colony-threat YES)
+	(up-timer-status t-island-colony-threat == timer-triggered)
+=>
+	(set-goal gl-island-colony-threat NO)
+	(up-chat-data-to-self "migration colony threat cleared: %d" g: gl-island-colony-zone)
+)
+
 ;Use otherwise idle villagers to establish a second economy off the home
 ;island. The landing point must be an observed resource site on another land
 ;zone; interpolating toward the enemy can select an empty intermediate island.
@@ -471,6 +517,7 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
 	(goal gl-home-defense-state NO)
+	(goal gl-island-colony-threat NO)
 	(current-age >= middle-antiquity-age)
 	(unit-type-count transport-ship >= 1)
 	(or
@@ -740,6 +787,11 @@
 	(up-find-local c: villager-class c: 40)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-language-id == lid-villager-farmer)
+	(up-remove-objects search-local object-data-language-id == lid-villager-fisherman)
+	(up-remove-objects search-local object-data-language-id == lid-villager-shepherd)
+	(up-remove-objects search-local object-data-language-id == lid-villager-forager)
+	(up-remove-objects search-local object-data-language-id == lid-villager-hunter)
 	(up-remove-objects search-local object-data-on-mainland != on-mainland)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-capacity)
@@ -756,6 +808,7 @@
 (defrule
 	(goal gl-island-migration-state MIGRATION-BOARDING)
 	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+	(goal gl-island-colony-established NO)
 	(or
 		(goal resources-depleted YES)
 		(goal gl-home-resource-pressure YES)
@@ -775,6 +828,46 @@
 	(up-remove-objects search-local object-data-action == actionid-hunt)
 	(up-remove-objects search-local object-data-target == prey-animal-class)
 	(up-remove-objects search-local object-data-target == livestock-class)
+	(up-remove-objects search-local object-data-on-mainland != on-mainland)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index g:>= gl-transport-capacity)
+	(up-create-group 0 0 c: migration-boarding-group)
+	(up-modify-group-flag 1 c: migration-boarding-group)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-island-migration-load-target g:= local-total)
+	(set-goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
+)
+
+;After the first productive colony exists, later reinforcement lifts must not
+;strip the home food economy. Select miners, lumberjacks, or genuinely idle
+;generic workers while preserving every established farm and natural-food role.
+(defrule
+	(goal gl-island-migration-state MIGRATION-BOARDING)
+	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+	(goal gl-island-colony-established YES)
+	(or
+		(goal resources-depleted YES)
+		(goal gl-home-resource-pressure YES)
+	)
+=>
+	(up-modify-group-flag 0 c: migration-boarding-group)
+	(up-reset-group c: migration-boarding-group)
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
+	(up-set-target-object search-remote c: 0)
+	(up-get-point position-object point-x)
+	(up-set-target-point point-x)
+	(up-find-local c: villager-class c: 40)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-build)
+	(up-remove-objects search-local object-data-action == actionid-repair)
+	(up-remove-objects search-local object-data-target == prey-animal-class)
+	(up-remove-objects search-local object-data-target == livestock-class)
+	(up-remove-objects search-local object-data-language-id == lid-villager-farmer)
+	(up-remove-objects search-local object-data-language-id == lid-villager-fisherman)
+	(up-remove-objects search-local object-data-language-id == lid-villager-shepherd)
+	(up-remove-objects search-local object-data-language-id == lid-villager-forager)
+	(up-remove-objects search-local object-data-language-id == lid-villager-hunter)
 	(up-remove-objects search-local object-data-on-mainland != on-mainland)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-capacity)
@@ -816,7 +909,8 @@
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-chat-data-to-self "migration board target: %d" g: gl-island-migration-load-target)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
-	(up-set-timer c: t-island-migration c: 45)
+	(up-set-timer c: t-island-migration c: 30)
+	(up-set-timer c: t-island-migration-board-retry c: 3)
 	(set-goal gl-island-migration-state MIGRATION-LOADING)
 )
 
@@ -828,7 +922,8 @@
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-chat-data-to-self "migration scout board: %d" g: gl-island-migration-load-target)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
-	(up-set-timer c: t-island-migration c: 45)
+	(up-set-timer c: t-island-migration c: 30)
+	(up-set-timer c: t-island-migration-board-retry c: 3)
 	(set-goal gl-island-migration-state MIGRATION-LOADING)
 )
 
@@ -856,15 +951,48 @@
 (defrule
 	(goal gl-island-migration-state MIGRATION-LOADING)
 =>
+	;A direct-control group reserves selection from our other controllers, but it
+	;does not stop the built-in economy from overwriting a passenger's command.
+	;Count surviving ashore passengers every sweep; only the retry branch below
+	;reissues their boarding order on its independent three-second timer.
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-island-migration-outstanding-count g:= local-total)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
 	(set-goal gl-island-migration-state MIGRATION-CHECK-LOAD)
 )
 
+;Refresh the expected load from the live hull plus surviving ashore members.
+;Deaths therefore lower a stale frozen target, while a merely retasked member
+;remains outstanding and receives another boarding command.
 (defrule
 	(goal gl-island-migration-state MIGRATION-CHECK-LOAD)
 	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-garrison-count gl-island-migration-loaded-count)
+	(up-modify-goal gl-island-migration-load-target g:= gl-island-migration-loaded-count)
+	(up-modify-goal gl-island-migration-load-target g:+ gl-island-migration-outstanding-count)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)
+	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count g:>= gl-island-migration-load-target)
+	(or
+		(and
+			(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
+			(up-object-data object-data-garrison-count >= 1)
+		)
+		(and
+			(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+			(up-object-data object-data-garrison-count >= 2)
+		)
+	)
 =>
 	(up-get-object-data object-data-garrison-count gl-island-migration-loaded-count)
 	(up-chat-data-to-self "migration depart full: %d" g: gl-island-migration-loaded-count)
@@ -877,7 +1005,7 @@
 ;bounded boarding window, sail with at least two settlers and cancel the stale
 ;garrison orders of selected villagers who did not board.
 (defrule
-	(goal gl-island-migration-state MIGRATION-CHECK-LOAD)
+	(goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)
 	(up-timer-status t-island-migration == timer-triggered)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count >= 2)
@@ -938,8 +1066,11 @@
 	(goal gl-island-migration-state MIGRATION-ROUTE-RIGHT)
 =>
 	(up-modify-goal gl-island-migration-route-right-threats g:= remote-total)
-	(generate-random-number 2)
+	;The engine range is inclusive. A maximum of two yielded an uncovered value
+	;2 while the tie branches handled only 0 and 1, deadlocking ROUTE-APPLY.
+	(generate-random-number 1)
 	(up-get-fact random-number 0 gl-island-migration-route-random)
+	(up-chat-data-to-self "migration route random: %d" g: gl-island-migration-route-random)
 	(up-chat-data-to-self "migration route left threats: %d" g: gl-island-migration-route-left-threats)
 	(up-chat-data-to-self "migration route right threats: %d" g: gl-island-migration-route-right-threats)
 	(set-goal gl-island-migration-state MIGRATION-ROUTE-APPLY)
@@ -1193,8 +1324,25 @@
 )
 
 (defrule
-	(goal gl-island-migration-state MIGRATION-CHECK-LOAD)
+	(goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)
 	(up-timer-status t-island-migration == timer-running)
+	(up-timer-status t-island-migration-board-retry == timer-triggered)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
+=>
+	(up-full-reset-search)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(up-set-timer c: t-island-migration-board-retry c: 3)
+	(set-goal gl-island-migration-state MIGRATION-LOADING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)
+	(up-timer-status t-island-migration == timer-running)
+	(up-timer-status t-island-migration-board-retry == timer-running)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
 =>
@@ -1202,7 +1350,7 @@
 )
 
 (defrule
-	(goal gl-island-migration-state MIGRATION-CHECK-LOAD)
+	(goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)
 	(not (up-set-target-object search-local c: 0))
 =>
 	(up-chat-data-to-self "migration transport lost: %d" g: gl-island-migration-transport-id)
@@ -2439,7 +2587,7 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-RIGHT)
 =>
 	(up-modify-goal gl-transport-route-right-threats g:= remote-total)
-	(generate-random-number 2)
+	(generate-random-number 1)
 	(up-get-fact random-number 0 gl-transport-route-random)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-APPLY)
 )
@@ -2531,7 +2679,7 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-RIGHT)
 =>
 	(up-modify-goal gl-transport-route-corridor-right-threats g:= remote-total)
-	(generate-random-number 2)
+	(generate-random-number 1)
 	(up-get-fact random-number 0 gl-transport-route-random)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-APPLY)
 )
@@ -2601,7 +2749,7 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-WIDE-RIGHT)
 =>
 	(up-modify-goal gl-transport-route-corridor-right-threats g:= remote-total)
-	(generate-random-number 2)
+	(generate-random-number 1)
 	(up-get-fact random-number 0 gl-transport-route-random)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-WIDE-APPLY)
 )
@@ -3745,6 +3893,19 @@
 	(set-goal gl-local-response-state LOCAL-RESPONSE-COMMAND)
 )
 
+;This consumer sits between both local-response target producers and the
+;COMMAND consumer. It therefore captures a colony attack even when the whole
+;response state machine advances back to IDLE within one rule sweep.
+(defrule
+	(goal gl-local-response-state LOCAL-RESPONSE-COMMAND)
+	(goal gl-island-colony-established YES)
+	(up-compare-goal gl-local-response-zone g:== gl-island-colony-zone)
+=>
+	(set-goal gl-island-colony-threat YES)
+	(up-set-timer c: t-island-colony-threat c: 120)
+	(up-chat-data-to-self "migration colony threat hold: %d" g: gl-island-colony-zone)
+)
+
 (defrule
 	(goal gl-local-response-state LOCAL-RESPONSE-COMMAND)
 =>
@@ -3812,6 +3973,7 @@
 	(goal gl-naval-response-state NAVAL-RESPONSE-IDLE)
 =>
 	(up-modify-goal gl-naval-response-focus s:= sn-focus-player-number)
+	(set-goal gl-naval-response-asset-zone -1)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-set-target-point position-self-x)
@@ -3835,6 +3997,7 @@
 	(up-set-target-object search-local c: 0)
 =>
 	(up-get-point position-object gl-naval-response-target-x)
+	(up-get-object-data object-data-map-zone-id gl-naval-response-asset-zone)
 	(up-find-player enemy find-attacker gl-naval-response-player)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-response-player)
 	(up-full-reset-search)
@@ -3852,6 +4015,19 @@
 	(up-get-search-state remote-total)
 	(up-modify-goal gl-naval-response-threats g:= remote-total)
 	(set-goal gl-naval-response-state NAVAL-RESPONSE-HOME-THREAT)
+)
+
+;Capture the attacked colony asset before the naval response can complete and
+;return to IDLE in the same rule sweep. The asset's land zone is authoritative;
+;the later attacker zone can be a water zone and is not comparable to it.
+(defrule
+	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-THREAT)
+	(goal gl-island-colony-established YES)
+	(up-compare-goal gl-naval-response-asset-zone g:== gl-island-colony-zone)
+=>
+	(set-goal gl-island-colony-threat YES)
+	(up-set-timer c: t-island-colony-threat c: 120)
+	(up-chat-data-to-self "migration colony naval threat hold: %d" g: gl-island-colony-zone)
 )
 
 (defrule

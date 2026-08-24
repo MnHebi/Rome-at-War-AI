@@ -415,6 +415,71 @@
         "The completed Town Center deletes are strongly inferred as manual or external because current source lacks that action, but the replay does not identify the human or AI command issuer separately from player ownership."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-rome-vs-britons-20260824-213542",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 213542.aoe2record",
+        "sha256": "16089D9B7288834673E1A722EE934AF52E7F307DE5CAF93F6CB75DD3029D9101",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 3639
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and ended at 60:39 when Player 1 resigned.",
+        "None of 2626 decoded chat records contains the expected RAWAI-P3B11 runtime marker, so the complete deployed source tree cannot be proven even though migration-gate, drop-site-accepted, and farm telemetry strings provide a partial semantic fingerprint.",
+        "At 31:11 telemetry reported ten civilian fishermen, one farmer, ten completed Farms, and a farm target of ten. From 33:13 through 52:48 the farmer count remained zero while ten to eighteen fishermen and ten to eleven completed Farms were repeatedly reported.",
+        "Hunt distance became -1 at 26:10 and remained -1 while food distance remained 3.",
+        "Player 1 issued forty House build commands. Twenty-eight were issued in the three minutes from 40:48 through 43:49, with six delete actions interspersed during the same period; exact housing headroom and deleted object types are not serialized.",
+        "Eight civilian migration attempts selected a five-passenger target. Four completed five-settler landings and emitted accepted drop-site telemetry, one departed with four settlers after 46 seconds, three timed out in migration state 28 after equal zero-versus-zero route-threat results, and one timed out in migration state 5 after 46 seconds of loading.",
+        "Migration state 28 is MIGRATION-ROUTE-APPLY and state 5 is MIGRATION-CHECK-LOAD in the semantically matching source. Every completed equal-threat tie selected side one, while three equal-threat ties produced neither route-side telemetry nor progress before timeout.",
+        "The remote colony zone reported naval no-responder telemetry at 42:52 and 43:34 and repeated land no-responder telemetry from 43:35 through 44:16. Villager count then fell from 48 at 43:21 to 33 at 44:07, yet another five-settler migration departed at 44:23 and landed in the attacked zone at 45:40.",
+        "The aggregate fisherman fact rises and falls by exactly five around several full departures and landings, demonstrating that transport occupancy can contaminate the replay-visible fisherman count; it is not a location-specific shore-worker count."
+      ],
+      "implementation_inferences": [
+        "Farm demand and stop conditions controlled completed Farm buildings but no controller assigned workers back to abandoned Farms. Food allocation could therefore remain numerically satisfied by fishermen while every completed Farm was idle.",
+        "An established off-island colony retained desired-depleted-villagers at the emergency thirty-percent floor, preventing normal villager replacement after remote workers or home farmers were killed.",
+        "Migration froze the passenger target, issued garrison once, and then reselected only the hull. A built-in economy retask could overwrite one passenger while the direct-control group flag remained set, forcing the ship to wait for the stale 45-second target.",
+        "The colony House producer did not reset the House pressure timer after issuing a point placement and used a diagonal plus-fourteen offset. Independent House producers could also consume the same pending-object snapshot in one rule sweep.",
+        "The route tie generator used an inclusive maximum of two while both route-apply state machines handled only values zero and one. A generated value of two explains the otherwise uncovered state-28 deadlocks.",
+        "Civilian migration checked global home-defense state but did not retain recent attack state for the destination colony. A no-responder colony defense therefore returned to idle quickly enough for another reinforcement lift into the known attacked zone."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B12 and require an exact deployment-manifest match before attributing subsequent replay behavior to this patch.",
+        "Treat completed Farm staffing as a separate invariant: search every observed land zone for one ready, untasked Farm per bounded pass, prefer a same-zone civilian fisherman, then an idle villager, then a noncritical worker while preserving builders and animal-food workers; reject an orphan Farm within the same candidate transaction so it cannot block later zones.",
+        "Once Farms exist, make civilian fishing a transitional rather than permanent role. Redirect a same-zone fisherman to an empty Farm, or to an observed mine or tree in its own zone when every usable Farm is staffed; never issue an across-water Farm command.",
+        "When a productive colony is established during global depletion, set desired-depleted-villagers from the normal phase desired-number-villagers target so Town Centers replace farmer and colony-worker losses.",
+        "After the first colony exists, exclude farmers, fishermen, shepherds, foragers, and hunters from reinforcement-lift passenger selection so repeated migrations do not strip the home food economy.",
+        "During migration loading, continuously recount the reserved passenger group and hull, renew garrison orders for every surviving ungarrisoned member no more than once per an independent three-second timer, and calculate the live target as hull occupancy plus surviving ashore members before applying full, partial, or abort gates; a scout mission must retain at least one actual passenger.",
+        "Reduce the overall boarding window from forty-five to thirty seconds while preserving the two-settler minimum for civilian departure.",
+        "Generate route tie choices with an inclusive maximum of one in migration and military transport routing and publish the migration random value, closing every zero-versus-zero tie.",
+        "Serialize all nine House producers through one eight-second request cooldown, reset both pressure and placement timers on the colony branch, and reduce its diagonal offset from fourteen to six tiles.",
+        "Latch a recent colony threat for 120 seconds from the last same-zone local-response command or attacked colony asset observed by the naval responder, and require that latch to be clear before another civilian migration starts."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime manifests and replay chat contains RAWAI-P3B12 near match start.",
+        "During a migration-idle interval with completed Farms, the replay-visible farmer count rises toward the lesser of usable completed Farms and the calculated target; a completed-farm count equal to target no longer permits farmers to remain zero, and an empty Farm on a workerless colony does not block staffing in another zone.",
+        "After Farms exist, every selected civilian fisherman receives either a same-zone Farm or same-zone natural-resource command. Fishermen on a resource island are not ordered to an unreachable home Farm, and persistent non-garrisoned fisherman count trends to zero when a same-zone destination exists.",
+        "After a productive colony is established, Town Centers continue training until the normal desired-number-villagers target rather than stopping at the depleted thirty-percent floor after remote losses.",
+        "No House build command is issued less than eight seconds after another AI House request, every colony pressure request resets its timer, and no comparable multi-dozen remote House backlog develops after population headroom recovers.",
+        "If a selected passenger is retasked while walking, a loading pass renews its garrison command no more than once per three seconds; if it dies, the recorded live target falls. A civilian hull departs with at least two survivors within the thirty-second window or aborts and releases ownership, while a scout hull never departs empty.",
+        "Migration route-random telemetry contains only zero or one and every equal-threat ROUTE-APPLY state emits a route side or explicit held-route outcome without reaching the 120-second generic timeout.",
+        "After asset-defense telemetry identifies the colony zone, migration emits a colony-threat hold and no civilian trigger or departure targets that colony until 120 seconds after the last same-zone response."
+      ],
+      "known_limits": [
+        "The absent P3B11 marker prevents exact build attribution. The replay directly demonstrates symptoms and state sequences but not that every source file matched repository commit fd8035d.",
+        "The aggregate villager-fisherman fact includes at least some garrisoned passengers, so acceptance must correlate it with migration state and direct staffing or resource-redirection telemetry rather than reading it as a pure shore-worker count.",
+        "object-data-tasks-count is the available engine proxy for an unoccupied Farm. Structural validation cannot prove its runtime timing around expiring Farms or simultaneous built-in worker assignment.",
+        "A fisherman stranded in a land zone with no Farm, mine, or tree still requires a transport recovery path; the same-zone tasker deliberately refuses an impossible cross-water command.",
+        "The colony-established sentinel is not yet cleared automatically if every remote worker and drop site is lost or the island is exhausted. Per-zone colony lifecycle remains unresolved.",
+        "The engine exposes no arbitrary ship-to-beach path query. Closing the random tie state guarantees controller progress, not that either selected water waypoint is navigable.",
+        "The 120-second colony threat hold is derived from detected local response state and the naval responder's attacked owned-asset zone. Attacks hidden by fog or absent from the bounded owned-asset searches can still be missed."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

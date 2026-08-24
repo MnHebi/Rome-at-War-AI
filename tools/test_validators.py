@@ -299,6 +299,10 @@ class FarmPolicyTests(unittest.TestCase):
             self.homebase,
             actions=("c: farm",),
         )
+        farm_builders = [
+            rule for rule in farm_builders
+            if "up-build" in rule[4]
+        ]
         self.assertGreaterEqual(len(farm_builders), 3)
         for _, _, _, facts, _ in farm_builders:
             self.assertNotIn("dependent-farms", facts)
@@ -405,7 +409,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B11", self.init_goals)
+        self.assertIn("RAWAI-P3B12", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -475,8 +479,156 @@ class FarmPolicyTests(unittest.TestCase):
                 "(set-goal gl-island-migration-state MIGRATION-ISSUE-BOARD)",
             ),
         )
-        self.assertEqual(len(evacuation), 1)
-        self.assertNotIn("object-data-idling", evacuation[0][4])
+        self.assertEqual(len(evacuation), 2)
+        initial = [rule for rule in evacuation if "gl-island-colony-established NO" in rule[3]]
+        reinforcement = [rule for rule in evacuation if "gl-island-colony-established YES" in rule[3]]
+        self.assertEqual(len(initial), 1)
+        self.assertEqual(len(reinforcement), 1)
+        self.assertNotIn("object-data-idling", initial[0][4])
+        self.assertIn("lid-villager-farmer", reinforcement[0][4])
+        self.assertIn("lid-villager-fisherman", reinforcement[0][4])
+        self.assertIn("lid-villager-shepherd", reinforcement[0][4])
+
+    def test_completed_farms_are_restaffed_same_zone(self) -> None:
+        start = matching_rules(
+            self.homebase,
+            facts=(
+                "(up-timer-status t-farm-staffing == timer-triggered)",
+                "(building-type-count farm >= 1)",
+                "(unit-type-count villager-fisherman > 0)",
+            ),
+            actions=(
+                "(up-filter-distance c: -1 g: map-size)",
+                "(up-find-remote c: farm c: 240)",
+                "object-data-tasks-count > 0",
+                "FARM-STAFFING-FIND-FARM",
+            ),
+        )
+        self.assertEqual(len(start), 1)
+        self.assertNotIn("object-data-on-mainland != on-mainland", start[0][4])
+        assignments = matching_rules(
+            self.homebase,
+            actions=(
+                "search-remote g: gl-farm-staffing-id",
+                "(up-target-objects 0 action-default -1 stance-no-attack)",
+                "t-farm-staffing",
+            ),
+        )
+        self.assertGreaterEqual(len(assignments), 3)
+        orphan_reject = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-farm-staffing-state FARM-STAFFING-ASSIGN)",
+                "(not (up-set-target-object search-local c: 0))",
+            ),
+            actions=(
+                "object-data-id g:== gl-farm-staffing-id",
+                "(set-goal gl-farm-staffing-state FARM-STAFFING-FIND-FARM)",
+            ),
+        )
+        self.assertEqual(len(orphan_reject), 1)
+        self.assertGreaterEqual(self.homebase.count("(up-reset-search 1 1 0 0)"), 3)
+        self.assertIn(
+            "object-data-map-zone-id g:!= gl-farm-staffing-zone",
+            self.homebase,
+        )
+        self.assertIn("fisherman redirected to resource: %d", self.homebase)
+
+    def test_colony_restores_normal_villager_target(self) -> None:
+        rules = matching_rules(
+            self.economy,
+            facts=(
+                "(goal resources-depleted YES)",
+                "(goal gl-island-colony-established YES)",
+            ),
+            actions=(
+                "(up-modify-goal desired-depleted-villagers g:= desired-number-villagers)",
+            ),
+        )
+        self.assertEqual(len(rules), 1)
+
+    def test_house_requests_share_a_cooldown(self) -> None:
+        house_rules = matching_rules(self.homebase, actions=("up-build", "c: house"))
+        self.assertEqual(len(house_rules), 9)
+        for _, _, _, facts, actions in house_rules:
+            self.assertIn("(up-timer-status t-house-placement != timer-running)", facts)
+            self.assertIn("(up-set-timer c: t-house-placement c: 8)", actions)
+        self.assertIn("(up-modify-goal point2-x c:+ 6)", self.homebase)
+        self.assertNotIn("(up-modify-goal point2-x c:+ 14)", self.homebase)
+
+    def test_migration_reissues_and_recounts_boarding(self) -> None:
+        loading = matching_rules(
+            self.military,
+            facts=("(goal gl-island-migration-state MIGRATION-LOADING)",),
+            actions=(
+                "(up-set-group search-local c: migration-boarding-group)",
+                "object-data-garrisoned == 1",
+                "gl-island-migration-outstanding-count",
+            ),
+        )
+        self.assertEqual(len(loading), 1)
+        self.assertNotIn("t-island-migration-board-retry", loading[0][3])
+        retry = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)",
+                "(up-timer-status t-island-migration-board-retry == timer-triggered)",
+            ),
+            actions=(
+                "(up-target-objects 0 action-garrison -1 stance-no-attack)",
+                "(up-set-timer c: t-island-migration-board-retry c: 3)",
+            ),
+        )
+        self.assertEqual(len(retry), 1)
+        recount = matching_rules(
+            self.military,
+            facts=("(goal gl-island-migration-state MIGRATION-CHECK-LOAD)",),
+            actions=(
+                "object-data-garrison-count gl-island-migration-loaded-count",
+                "gl-island-migration-outstanding-count",
+                "MIGRATION-CHECK-LOAD-RESULT",
+            ),
+        )
+        self.assertEqual(len(recount), 1)
+        self.assertIn("(generate-random-number 1)", self.military)
+        self.assertNotIn("(generate-random-number 2)", self.military)
+
+        scout_departure = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-CHECK-LOAD-RESULT)",
+                "(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)",
+                "(up-object-data object-data-garrison-count >= 1)",
+            ),
+            actions=("MIGRATION-ROUTE-PREPARE",),
+        )
+        self.assertEqual(len(scout_departure), 1)
+
+    def test_attacked_colony_holds_reinforcement(self) -> None:
+        self.assertIn("migration colony threat hold: %d", self.military)
+        naval_latch = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-naval-response-state NAVAL-RESPONSE-HOME-THREAT)",
+                "gl-naval-response-asset-zone g:== gl-island-colony-zone",
+            ),
+            actions=(
+                "(set-goal gl-island-colony-threat YES)",
+                "(up-set-timer c: t-island-colony-threat c: 120)",
+            ),
+        )
+        self.assertEqual(len(naval_latch), 1)
+        civilian_gate = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-GATE-OWNER)",
+                "(goal gl-island-colony-threat NO)",
+            ),
+            actions=(
+                "(set-goal gl-island-migration-mission MIGRATION-MISSION-MINING)",
+            ),
+        )
+        self.assertEqual(len(civilian_gate), 1)
 
     def test_migration_uses_bounded_evasive_waypoint(self) -> None:
         self.assertIn("MIGRATION-ROUTE-WAYPOINT-CHECK", self.military)
