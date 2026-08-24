@@ -286,7 +286,7 @@
         "The Roman Legionary rule existed, but its semantic up-can-train and up-train path produced no replay MAKE record; the exact failed runtime gate remains unobservable."
       ],
       "changes_under_test": [
-        "Emit RAWAI-P3B6 and require a source-matched deployment before behavioral attribution.",
+        "Emit RAWAI-P3B7 and require a source-matched deployment before behavioral attribution.",
         "Select an attacked owned villager or economic anchor anywhere on the map, identify its recent attacker, require a same-land-zone threat, and dispatch same-zone defenders leashed to the attacked point instead of the original Town Center.",
         "Allow an attacked coastal economy anywhere on the map to identify a nearby hostile warship or shoreline land raider; draw unreserved friendly warships from the same water zone against ships or from a bounded 56-tile coastal radius against land units, then release and leash them at the defended point.",
         "After a confirmed resource colony, use at least twelve observed natural-resource objects as an explicit island-size proxy and try no more than four point-placed Town Center offsets before cooling down; suppress ordinary home Town Center placement and new migration dropsite ownership until the colony Town Center attempt resolves.",
@@ -294,10 +294,12 @@
         "Under sustained housing pressure, point-place a new House beside the confirmed colony without deleting completed inner housing.",
         "Repeatedly assign long-form Juggernauts and Octeres an exact known fortification target and separately direct the ram family to nearby Towers, Castles, Town Centers, walls, and gates rather than economic camps.",
         "Use concrete DAT-backed Legionary IDs 866 and 868 with conservative two-percent caps on both ranged and melee forms, keeping their worst-case combined family below five percent, and audit all four physical stance IDs in the unique-unit manifest.",
-        "Keep Rome's generic Extreme navy focus disabled while allowing bounded threat-gated Hemiolia and Quadrireme selector overrides and a fortification-gated Octeres override."
+        "Replace the binary naval selector with a generated 0-100 capability model that scores lineup completeness, fully upgraded class statistics including projectile count, blast width, and superior cost/population efficiency, relevant naval technologies, and a signed operational production-throughput adjustment while retaining Naval Yes/No as a separate doctrine preference. Cothon batch potential is recorded but does not inflate runtime capability until the AI operates that production path.",
+        "In all-Naval-No matches, allow only a civilization within 85% of the strongest opposing capability to own a competitive fleet; against any Naval Yes opponent, keep Naval No fleets in the transport-escort and bombardment support role.",
+        "In team games, make Naval Yes civilizations primary fleet owners; when every allied civilization is Naval No, elect the highest-scoring AI, cap other allies as support navies, and allow only civilizations with both Quadrireme/Quinquereme and Octeres access a bounded heavy support detachment."
       ],
       "fresh_replay_acceptance": [
-        "The pre-match deployment checker reports no differing runtime files and replay chat contains RAWAI-P3B6 near match start.",
+        "The pre-match deployment checker reports no differing runtime files and replay chat contains RAWAI-P3B7 near match start.",
         "An attacked remote Mining Camp, Lumber Camp, Town Center, or villager produces an asset-defense zone record and same-zone defenders engage without being recalled across water after the threat clears.",
         "When an island expansion is attacked, replay chat distinguishes a hostile water zone from a coastal land threat; available unreserved warships in that water zone or within the bounded coastal radius receive response orders even when the asset lies outside the original town radius.",
         "A resource-bearing colony with at least twelve currently observed natural-resource objects and no Town Center receives no more than four remote Town Center placement attempts; an accepted foundation receives the configured six-builder assistance and ordinary home expansion does not steal that placement window.",
@@ -305,7 +307,10 @@
         "Sustained low housing headroom can produce a colony House without deleting existing housing or blocking a remote Town Center placement.",
         "Rams with an observed same-zone fortification retain a fortification target rather than crossing the enemy town for a Mining Camp; long-form Juggernauts and Octeres reacquire a static defensive target after target loss, while replay distance measurements determine whether a separate explicit standoff controller is still required.",
         "Roman Legionary IDs 866 or 868 receive MAKE requests in Middle Antiquity while both conservative weapon-form caps permit production.",
-        "On an Imperial source-matched test, observed fortifications can produce a bounded Octeres, and an inferior fleet can produce bounded Hemiolia or Quadrireme detachments without enabling an unrestricted generic Roman navy composition."
+        "In a source-matched all-Naval-No Roman Empire versus Britons test, Rome publishes scaled capability 8820 (88.20/100) and selects COMPETITIVE while Britons publish 6287 (62.87/100) and select SUPPORT; Rome may maintain the larger fleet despite Naval No on both sides.",
+        "In a source-matched Naval Yes plus Naval No team test, the Yes ally selects PRIMARY, the No ally selects SUPPORT, the support ally never launches an independent naval attack, and its completed-plus-queued combat fleet remains at its three-percent cap unless the audited heavy-hull exception raises it to five percent.",
+        "In a source-matched all-Naval-No team test, only the highest-scoring allied AI selects COMPETITIVE unless capability ties; a lower-scoring ally yields after reading the published allied capability goal.",
+        "An eligible support civilization produces no more than two Quadrireme/Quinquereme-line hulls and one Octeres while retaining Scout, Fire, Boarding, and Juggernaut escort/bombardment coverage."
       ],
       "known_limits": [
         "The engine exposes map-zone and observed resource counts, not terrain area; twelve resources are a documented settlement proxy and must be calibrated in fresh replays.",
@@ -317,7 +322,9 @@
         "The siege controllers currently inspect the closest enemy player. Their exact-target behavior is therefore calibrated for the present one-versus-one test and requires enemy iteration before it is reliable in free-for-all matches.",
         "Pummel is not an identifier in the current DAT, strings, unit lines, or AI constants. The implemented land controller assumes the user meant the Battering Ram, Capped Ram, and Siege Ram family.",
         "The replay cannot identify whether clustered unknown DELETE commands removed a Town Center foundation; cancellation telemetry and a source-matched replay are still required.",
-        "The inspected MainLog is not a usable whole-match oracle because most of it is repetitive UnitAIModule trace output."
+        "The inspected MainLog is not a usable whole-match oracle because most of it is repetitive UnitAIModule trace output.",
+        "Structural and synchronization validators cannot prove up-allied-goal timing, role convergence with human allies, Shipyard placement success, or whether global attack-now respects every reserved specialist group; the three naval matchup acceptance cases require fresh runtime evidence.",
+        "The competitive score now captures steady-state hull quality including projectile/blast-area lethality, population-discounted garrison firepower for Tessarakonteres, cost/population efficiency, audited and forced line upgrades, support-upgrade access, missing Conscription, Shipyard work rate, and ship train time. Carthaginian Cothon batch cost and throughput are validated and retained as potential evidence but excluded from the runtime score because the AI does not yet construct and operate Cothon batches. Research discounts, free-upgrade timing, and age-of-unlock readiness remain explicit unscored calibration inputs because the current evaluator cannot yet derive them consistently across every mutually exclusive DAT technology branch."
       ],
       "validation_status": "fresh-replay-required"
     }

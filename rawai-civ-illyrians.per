@@ -1554,10 +1554,12 @@
 
 (defrule
 	(up-compare-goal current-phase >= 5)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-specialist-fleet-cap)
 	(unit-type-count-total liburna-line g:< gl-five-percent)
 	(can-train liburna-line)
 =>
 	(train liburna-line)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 
 ; Upgrade Liburna

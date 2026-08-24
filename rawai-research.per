@@ -440,6 +440,8 @@
 	(up-compare-goal current-phase == 7)
 	(up-compare-goal villager-count g:>= upgrade-navy-villager-requirement)
 	(goal upgrade-navy 1)
+	(up-compare-goal gl-naval-role c:<= NAVAL-ROLE-COMPETITIVE)
+	(up-compare-goal gl-naval-role c:>= NAVAL-ROLE-PRIMARY)
 	(up-can-research gl-researchescrow-state c: ri-bireme)
 =>
     (up-research gl-researchescrow-state c: ri-bireme)
@@ -450,6 +452,8 @@
 	(up-compare-goal current-phase == 7)
 	(up-compare-goal villager-count g:>= upgrade-navy-villager-requirement)
 	(goal upgrade-navy 1)
+	(up-compare-goal gl-naval-role c:<= NAVAL-ROLE-COMPETITIVE)
+	(up-compare-goal gl-naval-role c:>= NAVAL-ROLE-PRIMARY)
 	(up-can-research gl-researchescrow-state c: ri-trireme)
 =>
     (up-research gl-researchescrow-state c: ri-trireme)
@@ -470,6 +474,8 @@
 	(up-compare-goal current-phase == 7)
 	(up-compare-goal villager-count g:>= upgrade-navy-villager-requirement)
 	(goal upgrade-navy 1)
+	(up-compare-goal gl-naval-role c:<= NAVAL-ROLE-COMPETITIVE)
+	(up-compare-goal gl-naval-role c:>= NAVAL-ROLE-PRIMARY)
 	(up-can-research gl-researchescrow-state c: ri-heavy-demolition-ship)
 =>
     (up-research gl-researchescrow-state c: ri-heavy-demolition-ship)
@@ -480,6 +486,8 @@
 	(up-compare-goal current-phase == 7)
 	(up-compare-goal villager-count g:>= upgrade-navy-villager-requirement)
 	(goal upgrade-navy 1)
+	(up-compare-goal gl-naval-role c:<= NAVAL-ROLE-COMPETITIVE)
+	(up-compare-goal gl-naval-role c:>= NAVAL-ROLE-PRIMARY)
 	(up-can-research gl-researchescrow-state c: ri-trihemiolia)
 =>
     (up-research gl-researchescrow-state c: ri-trihemiolia)
@@ -490,6 +498,8 @@
 	(up-compare-goal current-phase == 7)
 	(up-compare-goal villager-count g:>= upgrade-navy-villager-requirement)
 	(goal upgrade-navy 1)
+	(up-compare-goal gl-naval-role c:<= NAVAL-ROLE-COMPETITIVE)
+	(up-compare-goal gl-naval-role c:>= NAVAL-ROLE-PRIMARY)
 	(up-can-research gl-researchescrow-state c: ri-elite-trihemiolia)
 =>
     (up-research gl-researchescrow-state c: ri-elite-trihemiolia)
@@ -510,21 +520,24 @@
 	(up-compare-goal current-phase == 7)
 	(up-compare-goal villager-count g:>= upgrade-navy-villager-requirement)
 	(goal upgrade-navy 1)
+	(or
+		(and
+			(up-compare-goal gl-naval-role c:<= NAVAL-ROLE-COMPETITIVE)
+			(up-compare-goal gl-naval-role c:>= NAVAL-ROLE-PRIMARY)
+		)
+		(and
+			(goal gl-naval-role NAVAL-ROLE-SUPPORT)
+			(goal gl-naval-specialist-support YES)
+		)
+	)
 	(up-can-research gl-researchescrow-state c: ri-quinquereme)
 =>
     (up-research gl-researchescrow-state c: ri-quinquereme)
 	(chat-local-to-self "research quinquereme")
 )
 
-(defrule
-	(up-compare-goal current-phase == 7)
-	(up-compare-goal villager-count g:>= upgrade-navy-villager-requirement)
-	(goal upgrade-navy 1)
-	(up-can-research gl-researchescrow-state c: ri-reinforced-prow)
-=>
-    (up-research gl-researchescrow-state c: ri-reinforced-prow)
-	(chat-local-to-self "research reinforced prow")
-)
+;Reinforced Prow 1004 is intentionally not queued. The current DAT entry has
+;effect_id -1 and no valid research producer despite its descriptive text.
 
 (defrule
 	(up-compare-goal current-phase == 7)

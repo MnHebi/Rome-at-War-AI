@@ -4,10 +4,13 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
 
 from validate_per import validate_command_domains
-from validate_good_units import EXPECTED_CATEGORIES, validate_document
+from validate_good_units import EXPECTED_CATEGORIES, validate_document, validate_provenance_sources
 from validate_strategy_execution import bounded_direct_train_blocks
+from validate_naval_doctrine import matching_rules
+from sync_naval_capabilities import competitive_enemy_ceiling, runtime_score
 
 
 class PerDomainTests(unittest.TestCase):
@@ -233,6 +236,38 @@ class GoodUnitEvaluationTests(unittest.TestCase):
             "source_provenance": {},
         }
         self.assertIn("civ-0/Cavalry: invalid or blank rating", validate_document(document))
+
+    def test_missing_authoritative_provenance_source_is_rejected(self) -> None:
+        issues = validate_provenance_sources(
+            {"source_provenance": {"source_sha256": "0" * 64}},
+            {"source_sha256": Path("missing-authoritative-source")},
+        )
+        self.assertEqual(len(issues), 1)
+        self.assertIn("authoritative source is missing", issues[0])
+
+
+class NavalDoctrineTests(unittest.TestCase):
+    def test_commented_reservation_is_not_an_action(self) -> None:
+        text = """(defrule
+    (true)
+=>
+    ;(up-modify-goal gl-naval-fleet-count-total c:+ 1)
+    (chat-local-to-self "semicolon ; inside a string is not a comment")
+)
+"""
+        self.assertEqual(
+            matching_rules(
+                text,
+                actions=("(up-modify-goal gl-naval-fleet-count-total c:+ 1)",),
+            ),
+            [],
+        )
+
+    def test_runtime_score_preserves_exact_matchup_threshold(self) -> None:
+        self.assertEqual(runtime_score(62.87), 6287)
+        self.assertEqual(competitive_enemy_ceiling(62.87), 7396)
+        self.assertLess(62.87 / 74.26, 0.85)
+        self.assertGreater(runtime_score(74.26), competitive_enemy_ceiling(62.87))
 
 
 if __name__ == "__main__":

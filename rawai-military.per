@@ -59,7 +59,10 @@
 	(up-timer-status t-transport-escort == timer-triggered)
 	(goal gl-transport-escort-state ESCORT-IDLE)
 	(unit-type-count transport-ship >= 1)
-	(warboat-count >= 1)
+	(or
+		(warboat-count >= 1)
+		(unit-type-count boarding-ship >= 1)
+	)
 =>
 	(up-modify-goal gl-transport-escort-focus-player s:= sn-focus-player-number)
 	(up-modify-group-flag 0 c: transport-escort-group)
@@ -91,6 +94,8 @@
 =>
 	(up-modify-goal gl-transport-escort-targets g:= remote-total)
 	(up-get-fact warboat-count 0 gl-transport-escort-count)
+	(up-get-fact unit-type-count boarding-ship gl-naval-boarding-count-total)
+	(up-modify-goal gl-transport-escort-count g:+ gl-naval-boarding-count-total)
 	(up-modify-goal gl-transport-escort-count c:/ 2)
 	(up-chat-data-to-self "loaded transports: %d" g: gl-transport-escort-targets)
 	(set-goal gl-transport-escort-state ESCORT-PREPARE)
@@ -142,6 +147,7 @@
 	(up-reset-search 1 1 0 0)
 	(up-filter-exclude -1 actionid-explore orderid-explore -1)
 	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag == transport-screen-group)
 	(up-remove-objects search-local object-data-group-flag == home-naval-response-group)
 	(up-remove-objects search-local object-data-action == actionid-explore)
@@ -177,6 +183,7 @@
 =>
 	(up-reset-search 1 1 0 0)
 	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-clean-search search-local object-data-id search-order-asc)
 	(up-remove-objects search-local object-data-index != 0)
@@ -197,6 +204,7 @@
 =>
 	(up-reset-search 1 1 0 0)
 	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-clean-search search-local object-data-id search-order-asc)
 	(up-remove-objects search-local object-data-index != 1)
@@ -217,6 +225,7 @@
 =>
 	(up-reset-search 1 1 0 0)
 	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-clean-search search-local object-data-id search-order-asc)
 	(up-remove-objects search-local object-data-index != 2)
@@ -237,6 +246,7 @@
 =>
 	(up-reset-search 1 1 0 0)
 	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-clean-search search-local object-data-id search-order-asc)
 	(up-remove-objects search-local object-data-index != 3)
@@ -257,6 +267,7 @@
 =>
 	(up-reset-search 1 1 0 0)
 	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-clean-search search-local object-data-id search-order-asc)
 	(up-remove-objects search-local object-data-index != 4)
@@ -277,6 +288,7 @@
 =>
 	(up-reset-search 1 1 0 0)
 	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-clean-search search-local object-data-id search-order-asc)
 	(up-remove-objects search-local object-data-index != 5)
@@ -304,7 +316,10 @@
 	(up-group-size c: transport-escort-group > 0)
 	(or
 		(unit-type-count transport-ship <= 0)
-		(warboat-count <= 0)
+		(and
+			(warboat-count <= 0)
+			(unit-type-count boarding-ship <= 0)
+		)
 	)
 =>
 	(up-modify-group-flag 0 c: transport-escort-group)
@@ -1608,6 +1623,7 @@
 	(up-filter-distance c: -1 c: 40)
 	(up-find-local c: fishing-ship-class c: 20)
 	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-find-local c: transport-ship c: 10)
 	(up-remove-objects search-local object-data-distance < 12)
 	(up-remove-objects search-local object-data-id g:== gl-transport-clear-id)
@@ -3157,6 +3173,7 @@
 	(up-full-reset-search)
 	(up-set-target-point position-self-x)
 	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-find-local c: villager-class c: 40)
 	(up-find-local c: town-center c: 20)
 	(up-find-local c: mining-camp c: 20)
@@ -3181,6 +3198,7 @@
 	(up-set-target-point gl-naval-response-target-x)
 	(up-filter-distance c: -1 c: 32)
 	(up-find-remote c: warship-class c: 40)
+	(up-find-remote c: boarding-ship c: 10)
 	(up-find-remote c: scout-cavalry-class c: 20)
 	(up-find-remote c: cavalry-archer-class c: 20)
 	(up-find-remote c: cavalry-class c: 20)
@@ -3201,6 +3219,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-under-attack <= 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(set-goal gl-naval-response-state NAVAL-RESPONSE-FIND-SHIP)
@@ -3209,7 +3228,10 @@
 (defrule
 	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-THREAT)
 	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-class == warship-class)
+	(or
+		(up-object-data object-data-class == warship-class)
+		(up-object-data object-data-type == boarding-ship)
+	)
 =>
 	(up-get-point position-object gl-naval-response-target-x)
 	(up-get-object-data object-data-map-zone-id gl-naval-response-zone)
@@ -3227,7 +3249,10 @@
 (defrule
 	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-THREAT)
 	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-class != warship-class)
+	(and
+		(up-object-data object-data-class != warship-class)
+		(up-object-data object-data-type != boarding-ship)
+	)
 =>
 	(up-get-point position-object gl-naval-response-target-x)
 	(set-goal gl-naval-response-land-threat YES)
@@ -3252,6 +3277,7 @@
 	(up-reset-search 1 1 0 0)
 	(up-set-target-point gl-naval-response-target-x)
 	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-response-zone)
 	(up-remove-objects search-local object-data-group-flag == transport-escort-group)
 	(up-remove-objects search-local object-data-group-flag == transport-screen-group)
@@ -3270,6 +3296,7 @@
 	(up-set-target-point gl-naval-response-target-x)
 	(up-filter-distance c: -1 c: 56)
 	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag == transport-escort-group)
 	(up-remove-objects search-local object-data-group-flag == transport-screen-group)
 	(up-clean-search search-local object-data-distance search-order-asc)
@@ -3310,6 +3337,7 @@
 	(up-set-target-point gl-naval-response-target-x)
 	(up-filter-distance c: -1 c: 32)
 	(up-find-remote c: warship-class c: 40)
+	(up-find-remote c: boarding-ship c: 10)
 	(up-find-remote c: scout-cavalry-class c: 20)
 	(up-find-remote c: cavalry-archer-class c: 20)
 	(up-find-remote c: cavalry-class c: 20)
@@ -3333,7 +3361,10 @@
 (defrule
 	(goal gl-naval-response-state NAVAL-RESPONSE-FIND-THREAT)
 	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-class == warship-class)
+	(or
+		(up-object-data object-data-class == warship-class)
+		(up-object-data object-data-type == boarding-ship)
+	)
 =>
 	(up-get-point position-object gl-naval-response-target-x)
 	(up-get-object-data object-data-map-zone-id gl-naval-response-zone)
@@ -3341,6 +3372,7 @@
 	(up-reset-search 1 1 0 0)
 	(up-set-target-point gl-naval-response-target-x)
 	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-response-zone)
 	(up-remove-objects search-local object-data-group-flag == transport-escort-group)
 	(up-remove-objects search-local object-data-group-flag == transport-screen-group)
@@ -3355,7 +3387,10 @@
 (defrule
 	(goal gl-naval-response-state NAVAL-RESPONSE-FIND-THREAT)
 	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-class != warship-class)
+	(and
+		(up-object-data object-data-class != warship-class)
+		(up-object-data object-data-type != boarding-ship)
+	)
 =>
 	(up-get-point position-object gl-naval-response-target-x)
 	(set-goal gl-naval-response-land-threat YES)
@@ -3363,6 +3398,7 @@
 	(up-set-target-point gl-naval-response-target-x)
 	(up-filter-distance c: -1 c: 56)
 	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag == transport-escort-group)
 	(up-remove-objects search-local object-data-group-flag == transport-screen-group)
 	(up-remove-objects search-local object-data-group-flag == home-naval-response-group)
@@ -3795,6 +3831,7 @@
 	(up-set-target-point gl-naval-response-target-x)
 	(up-filter-distance c: 72 c: -1)
 	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag != home-naval-response-group)
 	(up-target-point gl-naval-response-target-x action-move -1 stance-defensive)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-response-focus)
@@ -3831,6 +3868,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag != home-naval-response-group)
 	(up-target-point gl-naval-response-target-x action-move -1 stance-defensive)
 	(up-modify-group-flag 0 c: home-naval-response-group)
@@ -4626,6 +4664,15 @@
 	(chat-local-to-self "naval-superiority SUPERIOR")
 )
 
+;The superiority checks above still measure a support fleet for defensive
+;decisions, but they must not promote it into an independent attack. This rule
+;is deliberately after every percentage writer and before periodic attack-now.
+(defrule
+	(goal gl-naval-role NAVAL-ROLE-SUPPORT)
+=>
+	(set-goal naval-attack-percentage 0)
+)
+
 ;reset
 
 (defrule
@@ -4869,6 +4916,8 @@
 	(up-compare-goal current-action c:== ACTION-ATTACK)
 	(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NAVAL)
 	(goal gl-home-defense-state NO)
+	(up-compare-goal gl-naval-role c:<= NAVAL-ROLE-COMPETITIVE)
+	(up-compare-goal gl-naval-role c:>= NAVAL-ROLE-PRIMARY)
 	(and
 		(up-compare-goal attack-type-sea c:== PERCENTAGE)
 		(and
@@ -4954,6 +5003,8 @@
 	(up-compare-goal current-action c:== ACTION-ATTACK)
 	(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NAVAL)
 	(goal gl-home-defense-state NO)
+	(up-compare-goal gl-naval-role c:<= NAVAL-ROLE-COMPETITIVE)
+	(up-compare-goal gl-naval-role c:>= NAVAL-ROLE-PRIMARY)
 	(and
 		(up-compare-goal attack-type-sea c:== TOWN-SIZE)
 		(and
@@ -5665,14 +5716,28 @@
 	(disable-self)
 )
 
-;Keep one ship choice stable long enough for the Shipyard rules to queue it.
-;The former selector could cascade through several choices in one update and
-;good naval civilizations could remain stuck on the first Scout Ship state.
+;Keep one choice stable long enough for Shipyards to queue it. Primary and
+;data-competitive fleets rotate through the complete roster. Support fleets
+;retain escort/interception/bombardment hulls and receive heavy specialist
+;detachments through bounded direct rules in the common production files.
 (defrule
 	(up-timer-status t-ship-train != timer-running)
 	(goal ship-train SCOUTSHIP)
+	(or
+		(goal gl-naval-role NAVAL-ROLE-PRIMARY)
+		(goal gl-naval-role NAVAL-ROLE-COMPETITIVE)
+	)
 =>
 	(set-goal ship-train POLYREME)
+	(up-set-timer c: t-ship-train c: 12)
+)
+
+(defrule
+	(up-timer-status t-ship-train != timer-running)
+	(goal ship-train SCOUTSHIP)
+	(goal gl-naval-role NAVAL-ROLE-SUPPORT)
+=>
+	(set-goal ship-train FIRESHIP)
 	(up-set-timer c: t-ship-train c: 12)
 )
 
@@ -5687,16 +5752,10 @@
 (defrule
 	(up-timer-status t-ship-train != timer-running)
 	(goal ship-train FIRESHIP)
-	(goal good-navy YES)
-=>
-	(set-goal ship-train HEMIOLIA)
-	(up-set-timer c: t-ship-train c: 12)
-)
-
-(defrule
-	(up-timer-status t-ship-train != timer-running)
-	(goal ship-train FIRESHIP)
-	(goal good-navy NO)
+	(or
+		(goal gl-naval-role NAVAL-ROLE-PRIMARY)
+		(goal gl-naval-role NAVAL-ROLE-COMPETITIVE)
+	)
 =>
 	(set-goal ship-train DEMOSHIP)
 	(up-set-timer c: t-ship-train c: 12)
@@ -5704,10 +5763,24 @@
 
 (defrule
 	(up-timer-status t-ship-train != timer-running)
-	(or
-		(goal ship-train HEMIOLIA)
-		(goal ship-train DEMOSHIP)
-	)
+	(goal ship-train FIRESHIP)
+	(goal gl-naval-role NAVAL-ROLE-SUPPORT)
+=>
+	(set-goal ship-train BOARDINGSHIP)
+	(up-set-timer c: t-ship-train c: 12)
+)
+
+(defrule
+	(up-timer-status t-ship-train != timer-running)
+	(goal ship-train DEMOSHIP)
+=>
+	(set-goal ship-train HEMIOLIA)
+	(up-set-timer c: t-ship-train c: 12)
+)
+
+(defrule
+	(up-timer-status t-ship-train != timer-running)
+	(goal ship-train HEMIOLIA)
 =>
 	(set-goal ship-train BOARDINGSHIP)
 	(up-set-timer c: t-ship-train c: 12)
@@ -5716,7 +5789,10 @@
 (defrule
 	(up-timer-status t-ship-train != timer-running)
 	(goal ship-train BOARDINGSHIP)
-	(goal good-navy YES)
+	(or
+		(goal gl-naval-role NAVAL-ROLE-PRIMARY)
+		(goal gl-naval-role NAVAL-ROLE-COMPETITIVE)
+	)
 =>
 	(set-goal ship-train Q-REME)
 	(up-set-timer c: t-ship-train c: 12)
@@ -5725,7 +5801,7 @@
 (defrule
 	(up-timer-status t-ship-train != timer-running)
 	(goal ship-train BOARDINGSHIP)
-	(goal good-navy NO)
+	(goal gl-naval-role NAVAL-ROLE-SUPPORT)
 =>
 	(set-goal ship-train JUGGERNAUT)
 	(up-set-timer c: t-ship-train c: 12)
@@ -5750,6 +5826,7 @@
 (defrule
 	(up-timer-status t-ship-train != timer-running)
 	(goal ship-train JUGGERNAUT)
+	(up-compare-goal gl-naval-role c:>= NAVAL-ROLE-PRIMARY)
 =>
 	(set-goal ship-train SCOUTSHIP)
 	(up-set-timer c: t-ship-train c: 12)
@@ -6299,41 +6376,8 @@
 
 #end-if
 
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(or
-		(goal civ-specialty1 SPE-NAVAL)
-		(or
-			(goal civ-specialty2 SPE-NAVAL)
-			(goal good-navy YES)
-		)
-	)
-=>
-	(set-goal train-scoutships YES)
-	(set-goal train-remes YES)
-	(set-goal train-fireships YES)
-	(set-goal train-demoships YES)
-	(set-goal train-hemiolia YES)
-	(set-goal train-boardingships YES)
-	(chat-local-to-self ">=Middle Antiquity, Good Navy, enable all combat vessel training")
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(goal good-navy NO)
-=>
-	(set-goal train-scoutships YES)
-	(set-goal train-remes NO)
-	(set-goal train-fireships YES)
-	(set-goal train-demoships YES)
-	(set-goal train-hemiolia NO)
-	(set-goal train-boardingships YES)
-	(chat-local-to-self ">=Middle Antiquity, Good Navy, enable Scout Ship, Fire Ship, Demolition Ship, Boarding Ship training")
-	
-	(disable-self)
-)
+;Naval production permissions are owned by rawai-naval-doctrine.per. Keeping a
+;second specialty/good-navy writer here would race the match-relative role.
 
 #end-if
 #end-if

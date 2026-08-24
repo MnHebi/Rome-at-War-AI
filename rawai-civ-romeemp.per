@@ -1625,47 +1625,8 @@
 	(chat-local-to-self "Roman concrete Legionary production")
 )
 
-;The Extreme focus sheet keeps Rome's generic planned navy disabled. These
-;small, threat-gated detachments use the civ file's high specialist affinities
-;without turning the selector into an unrestricted alternate composition.
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal naval-superiority c:<= TOLERABLE)
-	(players-unit-type-count any-enemy warship-class >= 3)
-	(unit-type-count-total hemiolia-line < 2)
-	(wood-amount > 200)
-	(gold-amount > 100)
-	(can-train hemiolia-line)
-=>
-	(set-goal train-hemiolia YES)
-	(set-goal ship-train HEMIOLIA)
-	(chat-local-to-self "Roman reactive Hemiolia detachment")
-)
-
-(defrule
-	(current-age >= imperial-age)
-	(up-compare-goal naval-superiority c:<= TOLERABLE)
-	(players-unit-type-count any-enemy warship-class >= 8)
-	(unit-type-count-total quadrireme-line < 2)
-	(wood-amount > 300)
-	(gold-amount > 200)
-	(can-train quadrireme-line)
-=>
-	(set-goal ship-train Q-REME)
-	(chat-local-to-self "Roman reactive Quadrireme detachment")
-)
-
-(defrule
-	(current-age >= imperial-age)
-	(up-compare-goal gl-known-fortifications c:>= 1)
-	(unit-type-count-total octeres < 1)
-	(wood-amount > 300)
-	(gold-amount > 200)
-	(can-train octeres)
-=>
-	(set-goal ship-train OCTERES)
-	(chat-local-to-self "Roman coastal-siege Octeres")
-)
+;Naval specialist detachments are now generated from the DAT-backed capability
+;manifest in rawai-naval-doctrine.per and shared by every eligible civilization.
 
 ; Upgrade Praetorian Prefect
 (defrule
