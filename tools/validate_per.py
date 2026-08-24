@@ -131,6 +131,24 @@ def validate_command_domains(lines: list[str]) -> list[dict[str, object]]:
             }
         )
 
+    # set-goal treats its second operand as a literal. A gl-* token is the
+    # numeric identifier of another goal, not that goal's stored value; use
+    # up-modify-goal with a g:= operand when copying between goals.
+    literal_goal_copy = re.compile(
+        r"\(set-goal\s+(?P<destination>[^\s)]+)\s+"
+        r"(?P<source>gl-[^\s)]+)\s*\)",
+        re.IGNORECASE,
+    )
+    for match in literal_goal_copy.finditer(code):
+        issues.append(
+            {
+                "kind": "goal_identifier_stored_as_value",
+                "destination": match.group("destination"),
+                "source": match.group("source"),
+                "line": code.count("\n", 0, match.start()) + 1,
+            }
+        )
+
     # position-focus and position-object are point *sources*. They never expose
     # synthetic -x/-y goal aliases, regardless of the command consuming them.
     invalid_position_alias = re.compile(

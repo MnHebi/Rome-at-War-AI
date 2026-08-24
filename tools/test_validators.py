@@ -94,6 +94,20 @@ class PerDomainTests(unittest.TestCase):
             [issue["kind"] for issue in issues],
         )
 
+    def test_set_goal_cannot_copy_another_goals_identifier(self) -> None:
+        issues = self.validate_text(
+            """(defrule
+    (true)
+=>
+    (set-goal naval-attack-requirement gl-two-percent)
+)
+"""
+        )
+        self.assertIn(
+            "goal_identifier_stored_as_value",
+            [issue["kind"] for issue in issues],
+        )
+
     def test_position_source_cannot_be_used_as_goal_pair(self) -> None:
         issues = self.validate_text(
             """(defrule

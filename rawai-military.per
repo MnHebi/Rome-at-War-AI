@@ -53,17 +53,46 @@
 )
 ;rule jumps end
 
-;Reserve a proportional part of the navy as transport escorts. Direct targeting
-;spreads the selected warships evenly across the first two Transport Ships.
+;Reserve half the combat navy, with a one-ship exception, and pair one escort
+;with each nearest loaded transport. Empty hulls release it on the next refresh.
 (defrule
 	(up-timer-status t-transport-escort == timer-triggered)
 	(goal gl-transport-escort-state ESCORT-IDLE)
 	(unit-type-count transport-ship >= 1)
 	(warboat-count >= 1)
 =>
+	(up-modify-goal gl-transport-escort-focus-player s:= sn-focus-player-number)
+	(up-modify-group-flag 0 c: transport-escort-group)
+	(up-reset-group c: transport-escort-group)
+	(up-full-reset-search)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-find-remote c: transport-ship c: 40)
+	(up-remove-objects search-remote object-data-garrison-count <= 0)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-get-search-state remote-total)
+	(set-goal gl-transport-escort-state ESCORT-FIND)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-FIND)
+	(up-compare-goal remote-total c:<= 0)
+=>
+	(set-goal gl-transport-escort-count 0)
+	(set-goal gl-transport-escort-targets 0)
+	(up-chat-data-to-self "loaded transports: %d" c: 0)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-escort-focus-player)
+	(up-full-reset-search)
+	(set-goal gl-transport-escort-state ESCORT-IDLE)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-FIND)
+	(up-compare-goal remote-total c:> 0)
+=>
+	(up-modify-goal gl-transport-escort-targets g:= remote-total)
 	(up-get-fact warboat-count 0 gl-transport-escort-count)
 	(up-modify-goal gl-transport-escort-count c:/ 2)
-	(up-get-fact unit-type-count transport-ship gl-transport-escort-targets)
+	(up-chat-data-to-self "loaded transports: %d" g: gl-transport-escort-targets)
 	(set-goal gl-transport-escort-state ESCORT-PREPARE)
 )
 
@@ -76,58 +105,196 @@
 
 (defrule
 	(goal gl-transport-escort-state ESCORT-PREPARE)
-	(up-compare-goal gl-transport-escort-count g:< gl-transport-escort-targets)
+	(up-compare-goal gl-transport-escort-count c:<= 0)
+=>
+	(set-goal gl-transport-escort-count 1)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-PREPARE)
+	(up-compare-goal gl-transport-escort-count g:> gl-transport-escort-targets)
 =>
 	(up-modify-goal gl-transport-escort-count g:= gl-transport-escort-targets)
 )
 
 (defrule
 	(goal gl-transport-escort-state ESCORT-PREPARE)
-	(warboat-count g:< gl-transport-escort-count)
-=>
-	(up-get-fact warboat-count 0 gl-transport-escort-count)
-)
-
-(defrule
-	(goal gl-transport-escort-state ESCORT-PREPARE)
-=>
-	(up-modify-goal gl-transport-escort-limit g:= gl-transport-escort-targets)
-	(up-modify-goal gl-transport-escort-limit c:* 2)
-)
-
-(defrule
-	(goal gl-transport-escort-state ESCORT-PREPARE)
-	(up-compare-goal gl-transport-escort-count g:> gl-transport-escort-limit)
-=>
-	(up-modify-goal gl-transport-escort-count g:= gl-transport-escort-limit)
-)
-
-(defrule
-	(goal gl-transport-escort-state ESCORT-PREPARE)
-=>
-	(up-modify-goal gl-transport-escort-focus-player s:= sn-focus-player-number)
-	(up-modify-group-flag 0 c: transport-escort-group)
-	(up-reset-group c: transport-escort-group)
-	(up-full-reset-search)
-	(set-strategic-number sn-focus-player-number my-player-number)
-	(up-find-remote c: transport-ship g: gl-transport-escort-targets)
 	(up-set-target-object search-remote c: 0)
+=>
 	(up-get-point position-object point-x)
 	(up-set-target-point point-x)
+	(set-goal gl-transport-escort-state ESCORT-SELECT)
 )
 
 (defrule
 	(goal gl-transport-escort-state ESCORT-PREPARE)
+	(not (up-set-target-object search-remote c: 0))
 =>
+	(up-modify-sn sn-focus-player-number g:= gl-transport-escort-focus-player)
+	(up-full-reset-search)
+	(set-goal gl-transport-escort-state ESCORT-IDLE)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-SELECT)
+=>
+	;Clear only the local list so the loaded transports remain search-remote.
+	(up-reset-search 1 1 0 0)
+	(up-filter-exclude -1 actionid-explore orderid-explore -1)
 	(up-find-local c: warship-class c: 40)
 	(up-remove-objects search-local object-data-group-flag == transport-screen-group)
 	(up-remove-objects search-local object-data-group-flag == home-naval-response-group)
+	(up-remove-objects search-local object-data-action == actionid-explore)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-escort-count)
+	(up-get-search-state local-total)
+	(set-goal gl-transport-escort-state ESCORT-COMMAND)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-COMMAND)
+	(up-compare-goal local-total c:> 0)
+=>
+	(up-modify-goal gl-transport-escort-count g:= local-total)
 	(up-create-group 0 0 c: transport-escort-group)
 	(up-modify-group-flag 1 c: transport-escort-group)
-	(up-target-objects 0 action-guard -1 stance-aggressive)
+	(set-goal gl-transport-escort-state ESCORT-GUARD-0)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-COMMAND)
+	(up-compare-goal local-total c:<= 0)
+=>
 	(up-modify-sn sn-focus-player-number g:= gl-transport-escort-focus-player)
+	(up-full-reset-search)
+	(set-goal gl-transport-escort-state ESCORT-IDLE)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-GUARD-0)
+	(up-compare-goal gl-transport-escort-count c:> 0)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-reset-search 1 1 0 0)
+	(up-find-local c: warship-class c: 40)
+	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
+	(up-clean-search search-local object-data-id search-order-asc)
+	(up-remove-objects search-local object-data-index != 0)
+	(up-target-objects 0 action-guard -1 stance-aggressive)
+	(set-goal gl-transport-escort-state ESCORT-GUARD-1)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-GUARD-0)
+=>
+	(set-goal gl-transport-escort-state ESCORT-GUARD-1)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-GUARD-1)
+	(up-compare-goal gl-transport-escort-count c:> 1)
+	(up-set-target-object search-remote c: 1)
+=>
+	(up-reset-search 1 1 0 0)
+	(up-find-local c: warship-class c: 40)
+	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
+	(up-clean-search search-local object-data-id search-order-asc)
+	(up-remove-objects search-local object-data-index != 1)
+	(up-target-objects 0 action-guard -1 stance-aggressive)
+	(set-goal gl-transport-escort-state ESCORT-GUARD-2)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-GUARD-1)
+=>
+	(set-goal gl-transport-escort-state ESCORT-GUARD-2)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-GUARD-2)
+	(up-compare-goal gl-transport-escort-count c:> 2)
+	(up-set-target-object search-remote c: 2)
+=>
+	(up-reset-search 1 1 0 0)
+	(up-find-local c: warship-class c: 40)
+	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
+	(up-clean-search search-local object-data-id search-order-asc)
+	(up-remove-objects search-local object-data-index != 2)
+	(up-target-objects 0 action-guard -1 stance-aggressive)
+	(set-goal gl-transport-escort-state ESCORT-GUARD-3)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-GUARD-2)
+=>
+	(set-goal gl-transport-escort-state ESCORT-GUARD-3)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-GUARD-3)
+	(up-compare-goal gl-transport-escort-count c:> 3)
+	(up-set-target-object search-remote c: 3)
+=>
+	(up-reset-search 1 1 0 0)
+	(up-find-local c: warship-class c: 40)
+	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
+	(up-clean-search search-local object-data-id search-order-asc)
+	(up-remove-objects search-local object-data-index != 3)
+	(up-target-objects 0 action-guard -1 stance-aggressive)
+	(set-goal gl-transport-escort-state ESCORT-GUARD-4)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-GUARD-3)
+=>
+	(set-goal gl-transport-escort-state ESCORT-GUARD-4)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-GUARD-4)
+	(up-compare-goal gl-transport-escort-count c:> 4)
+	(up-set-target-object search-remote c: 4)
+=>
+	(up-reset-search 1 1 0 0)
+	(up-find-local c: warship-class c: 40)
+	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
+	(up-clean-search search-local object-data-id search-order-asc)
+	(up-remove-objects search-local object-data-index != 4)
+	(up-target-objects 0 action-guard -1 stance-aggressive)
+	(set-goal gl-transport-escort-state ESCORT-GUARD-5)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-GUARD-4)
+=>
+	(set-goal gl-transport-escort-state ESCORT-GUARD-5)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-GUARD-5)
+	(up-compare-goal gl-transport-escort-count c:> 5)
+	(up-set-target-object search-remote c: 5)
+=>
+	(up-reset-search 1 1 0 0)
+	(up-find-local c: warship-class c: 40)
+	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
+	(up-clean-search search-local object-data-id search-order-asc)
+	(up-remove-objects search-local object-data-index != 5)
+	(up-target-objects 0 action-guard -1 stance-aggressive)
+	(set-goal gl-transport-escort-state ESCORT-FINISH)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-GUARD-5)
+=>
+	(set-goal gl-transport-escort-state ESCORT-FINISH)
+)
+
+(defrule
+	(goal gl-transport-escort-state ESCORT-FINISH)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-transport-escort-focus-player)
+	(up-full-reset-search)
 	(set-goal gl-transport-escort-state ESCORT-IDLE)
 )
 
@@ -2985,10 +3152,10 @@
 	(set-goal smart-wall-targeting 1)
 	(set-goal land-attack-delay 300)
 	(set-goal land-attack-interval 300)
-	(set-goal land-attack-requirement gl-two-percent)
+	(up-modify-goal land-attack-requirement g:= gl-two-percent)
 	(set-goal naval-attack-delay 300)
 	(set-goal naval-attack-interval 300)
-	(set-goal naval-attack-requirement gl-two-percent)
+	(up-modify-goal naval-attack-requirement g:= gl-two-percent)
 	
 	(disable-self)
 )
@@ -3003,10 +3170,10 @@
 	(set-goal smart-wall-targeting 1)
 	(set-goal land-attack-delay 300)
 	(set-goal land-attack-interval 240)
-	(set-goal land-attack-requirement gl-two-percent)
+	(up-modify-goal land-attack-requirement g:= gl-two-percent)
 	(set-goal naval-attack-delay 300)
 	(set-goal naval-attack-interval 240)
-	(set-goal naval-attack-requirement gl-two-percent)
+	(up-modify-goal naval-attack-requirement g:= gl-two-percent)
 	
 	(disable-self)
 )
@@ -3021,10 +3188,10 @@
 	(set-goal smart-wall-targeting 1)
 	(set-goal land-attack-delay 300)
 	(set-goal land-attack-interval 180)
-	(set-goal land-attack-requirement gl-two-percent)
+	(up-modify-goal land-attack-requirement g:= gl-two-percent)
 	(set-goal naval-attack-delay 300)
 	(set-goal naval-attack-interval 180)
-	(set-goal naval-attack-requirement gl-two-percent)
+	(up-modify-goal naval-attack-requirement g:= gl-two-percent)
 	
 	(disable-self)
 )
@@ -3039,10 +3206,10 @@
 	(set-goal smart-wall-targeting 1)
 	(set-goal land-attack-delay 300)
 	(set-goal land-attack-interval 180)
-	(set-goal land-attack-requirement gl-two-percent)
+	(up-modify-goal land-attack-requirement g:= gl-two-percent)
 	(set-goal naval-attack-delay 300)
 	(set-goal naval-attack-interval 180)
-	(set-goal naval-attack-requirement gl-two-percent)
+	(up-modify-goal naval-attack-requirement g:= gl-two-percent)
 	
 	(disable-self)
 )
@@ -3057,10 +3224,10 @@
 	(set-goal smart-wall-targeting 1)
 	(set-goal land-attack-delay 300)
 	(set-goal land-attack-interval 120)
-	(set-goal land-attack-requirement gl-one-percent)
+	(up-modify-goal land-attack-requirement g:= gl-one-percent)
 	(set-goal naval-attack-delay 300)
 	(set-goal naval-attack-interval 120)
-	(set-goal naval-attack-requirement gl-one-percent)
+	(up-modify-goal naval-attack-requirement g:= gl-one-percent)
 	
 	(disable-self)
 )
@@ -3075,10 +3242,10 @@
 	(set-goal smart-wall-targeting 1)
 	(set-goal land-attack-delay 300)
 	(set-goal land-attack-interval 120)
-	(set-goal land-attack-requirement gl-one-percent)
+	(up-modify-goal land-attack-requirement g:= gl-one-percent)
 	(set-goal naval-attack-delay 300)
 	(set-goal naval-attack-interval 120)
-	(set-goal naval-attack-requirement gl-one-percent)
+	(up-modify-goal naval-attack-requirement g:= gl-one-percent)
 	
 	(disable-self)
 )
@@ -3093,10 +3260,10 @@
 	(set-goal smart-wall-targeting 1)
 	(set-goal land-attack-delay 300)
 	(set-goal land-attack-interval 120)
-	(set-goal land-attack-requirement gl-one-percent)
+	(up-modify-goal land-attack-requirement g:= gl-one-percent)
 	(set-goal naval-attack-delay 300)
 	(set-goal naval-attack-interval 120)
-	(set-goal naval-attack-requirement gl-one-percent)
+	(up-modify-goal naval-attack-requirement g:= gl-one-percent)
 	
 	(disable-self)
 )
@@ -3620,26 +3787,7 @@
 )
 
 (defrule
-	(or
-		(up-timer-status t-land-attack == timer-triggered)
-		(up-timer-status t-naval-attack == timer-triggered)
-	)
-	(goal current-action ACTION-WAIT)
-=>
-	(set-goal current-action ACTION-ATTACK)
-)
-
-(defrule
 	(up-timer-status t-land-attack == timer-triggered)
-	(nor
-		(goal current-action ACTION-ATTACK)
-		(goal current-action ACTION-RETREAT)
-	)
-=>
-	(set-goal current-action ACTION-ATTACK)
-)
-
-(defrule
 	(up-timer-status t-naval-attack == timer-triggered)
 	(nor
 		(goal current-action ACTION-ATTACK)
@@ -3647,11 +3795,40 @@
 	)
 =>
 	(set-goal current-action ACTION-ATTACK)
+	;attack-now is global, so do not issue it twice in one rule sweep. The rarer
+	;simultaneous collision prioritizes the naval dispatch; land retries later.
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NAVAL)
+)
+
+(defrule
+	(up-timer-status t-land-attack == timer-triggered)
+	(up-timer-status t-naval-attack != timer-triggered)
+	(nor
+		(goal current-action ACTION-ATTACK)
+		(goal current-action ACTION-RETREAT)
+	)
+=>
+	(set-goal current-action ACTION-ATTACK)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-LAND)
+)
+
+(defrule
+	(up-timer-status t-naval-attack == timer-triggered)
+	(up-timer-status t-land-attack != timer-triggered)
+	(nor
+		(goal current-action ACTION-ATTACK)
+		(goal current-action ACTION-RETREAT)
+	)
+=>
+	(set-goal current-action ACTION-ATTACK)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NAVAL)
 )
 
 ;rule 11
 (defrule
 	(up-compare-goal current-action c:== ACTION-ATTACK)
+	(up-timer-status t-land-attack == timer-triggered)
+	(goal gl-attack-dispatch-owner ATTACK-DISPATCH-LAND)
 	(goal gl-home-defense-state NO)
 	(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
 	(and
@@ -3666,12 +3843,14 @@
 	(up-modify-sn sn-percent-attack-soldiers g:= land-attack-percentage)
 	(attack-now)
 	(set-strategic-number sn-percent-attack-soldiers 0)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)
 	(set-goal current-action ACTION-WAIT)
 )
 
 ;rule 12
 (defrule
 	(up-compare-goal current-action c:== ACTION-ATTACK)
+	(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NAVAL)
 	(goal gl-home-defense-state NO)
 	(and
 		(up-compare-goal attack-type-sea c:== PERCENTAGE)
@@ -3679,7 +3858,7 @@
 			(up-compare-goal gl-game-time g:>= naval-attack-delay)
 			(and
 				(warboat-count g:>= naval-attack-requirement)
-				(up-timer-status t-naval-attack != timer-running)
+				(up-timer-status t-naval-attack == timer-triggered)
 			)
 		)
 	)
@@ -3687,12 +3866,16 @@
 	(chat-local-to-self "naval attack")
 	(up-modify-sn sn-percent-attack-boats g:= naval-attack-percentage)
 	(attack-now)
+	(up-chat-data-to-self "naval dispatch: %d" g: naval-attack-percentage)
 	(set-strategic-number sn-percent-attack-boats 0)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)
 	(set-goal current-action ACTION-WAIT)
 )
 
 (defrule
 	(up-compare-goal current-action c:== ACTION-ATTACK)
+	(up-timer-status t-land-attack == timer-triggered)
+	(goal gl-attack-dispatch-owner ATTACK-DISPATCH-LAND)
 	(goal gl-home-defense-state NO)
 	(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
 	(and
@@ -3707,6 +3890,7 @@
 	(up-modify-sn sn-maximum-town-size c:= 250)
 	(attack-now)
 	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)
 	(set-goal current-action ACTION-WAIT)
 )
 
@@ -3714,6 +3898,8 @@
 ;is military and send most of it together instead of issuing more small raids.
 (defrule
 	(up-compare-goal current-action c:== ACTION-ATTACK)
+	(up-timer-status t-land-attack == timer-triggered)
+	(goal gl-attack-dispatch-owner ATTACK-DISPATCH-LAND)
 	(goal gl-home-defense-state NO)
 	(goal gl-attack-escalation-state ATTACK-ESCALATION-REGROUP)
 	(up-compare-goal gl-game-time g:>= land-attack-delay)
@@ -3723,6 +3909,7 @@
 	(set-strategic-number sn-percent-attack-soldiers 80)
 	(attack-now)
 	(set-strategic-number sn-percent-attack-soldiers 0)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)
 	(set-goal current-action ACTION-WAIT)
 )
 
@@ -3730,6 +3917,8 @@
 ;real siege component before the accumulated army is released.
 (defrule
 	(up-compare-goal current-action c:== ACTION-ATTACK)
+	(up-timer-status t-land-attack == timer-triggered)
+	(goal gl-attack-dispatch-owner ATTACK-DISPATCH-LAND)
 	(goal gl-home-defense-state NO)
 	(goal gl-attack-escalation-state ATTACK-ESCALATION-SIEGE)
 	(goal have-siege YES)
@@ -3740,11 +3929,13 @@
 	(set-strategic-number sn-percent-attack-soldiers 80)
 	(attack-now)
 	(set-strategic-number sn-percent-attack-soldiers 0)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)
 	(set-goal current-action ACTION-WAIT)
 )
 
 (defrule
 	(up-compare-goal current-action c:== ACTION-ATTACK)
+	(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NAVAL)
 	(goal gl-home-defense-state NO)
 	(and
 		(up-compare-goal attack-type-sea c:== TOWN-SIZE)
@@ -3752,15 +3943,29 @@
 			(up-compare-goal gl-game-time g:>= naval-attack-delay)
 			(and
 				(warboat-count g:>= naval-attack-requirement)
-				(up-timer-status t-naval-attack != timer-running)
+				(up-timer-status t-naval-attack == timer-triggered)
 			)
 		)
 	)
 =>
 	(chat-local-to-self "naval attack")
+	(up-modify-sn sn-percent-attack-boats g:= naval-attack-percentage)
 	(up-modify-sn sn-maximum-town-size c:= 250)
 	(attack-now)
+	(up-chat-data-to-self "naval dispatch: %d" g: naval-attack-percentage)
 	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
+	(set-strategic-number sn-percent-attack-boats 0)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)
+	(set-goal current-action ACTION-WAIT)
+)
+
+;A timer dispatch that did not meet an executor's force, age, or defense gates
+;must not leave ACTION-ATTACK latched into later updates.
+(defrule
+	(goal current-action ACTION-ATTACK)
+	(up-compare-goal gl-attack-dispatch-owner c:!= ATTACK-DISPATCH-NONE)
+=>
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)
 	(set-goal current-action ACTION-WAIT)
 )
 
@@ -3894,6 +4099,17 @@
 	(up-chat-data-to-self "previous warboat losses: %d." g: gl-previous-warboat-losses)
 	(up-chat-data-to-self "current warboat losses: %d." g: gl-current-warboat-losses)
 	(up-chat-data-to-self "total warboat losses: %d." g: gl-total-warboat-losses)
+)
+
+;Clear the sampled naval loss when the fleet held steady or grew, matching the
+;soldier-loss window and preventing an old loss from retriggering retreats.
+(defrule
+	(up-timer-status t-check-losses == timer-triggered)
+	(up-compare-goal gl-previous-warboat-count g:<= gl-current-warboat-count)
+=>
+	(up-modify-goal gl-previous-warboat-losses g:= gl-current-warboat-losses)
+	(up-modify-goal gl-current-warboat-losses c:= 0)
+	(up-modify-goal gl-warboat-loss-counter c:= 0)
 )
 
 ;toggle allowed military units based on civ specialties, and current phase

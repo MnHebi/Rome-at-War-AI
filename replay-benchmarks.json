@@ -97,7 +97,7 @@
         "Correct the invalid fortification-scan position-focus operand and reject reserved positional-source aliases in validation."
       ],
       "fresh_replay_acceptance": [
-        "The deployment checker reports zero unexpected, missing, or differing runtime files before game launch, the match starts without ERR2005, and replay chat contains runtime build ID PR3-20260824-placement2.",
+        "The deployment checker reports zero unexpected, missing, or differing runtime files before game launch, the match starts without ERR2005, and replay chat contains the current runtime build marker RAWAI-P3B4.",
         "No Barracks command is issued before 03:00 or before the opening Mill and Lumber Camp have completed placement.",
         "Only one Mill is requested through phase three unless the first placement demonstrably failed and its 90-second retry expired.",
         "After the opening Mill exists, new House commands respect the configured eight-tile clearance from the engine-selected Mill anchor; the replay is also inspected for completed-building access around every Mill.",
@@ -155,7 +155,7 @@
         "Use the escrow-aware DUC trainability and production commands for the Roman Empire's bounded direct Legionary baseline while retaining the automatic Middle-age availability path from the current DAT."
       ],
       "fresh_replay_acceptance": [
-        "Replay chat contains runtime build ID PR3-20260824-placement3 and the pre-match deployment checker reports no differing AI files.",
+        "Replay chat contains the current runtime build marker RAWAI-P3B4 and the pre-match deployment checker reports no differing AI files.",
         "Archer, infantry, and cavalry armor plus Marksmanship and Parthian Tactics do not begin without an owned affected class; Advanced Weaponry becomes an immediate Imperial priority while Ballistics retains earlier rule order, and Faith receives priority after enemy conversion units are observed.",
         "A safe non-rush Roman player reaches or begins Imperial near the 15-to-20-minute target, using Market bridging when close rather than spending the reserve on unrelated purchases.",
         "Sustained housing headroom below three can create a second pending House even if the earlier foundation completed, and does not produce another multi-minute Town Center villager gap.",
@@ -172,6 +172,62 @@
         "The engine exposes coarse local searches rather than projectile events, so Juggernaut evasion reacts to an attacked ship plus a nearby observed Juggernaut rather than to an individual shot.",
         "Moving an empty transport from a production berth is bounded to transports not reserved by migration, relic, recovery, repair, or route state and requires another ship 12-to-40 tiles from the Port as a known-water destination; water connectivity and congestion still require an in-game replay.",
         "The Legionary line is automatically enabled for the Roman Empire by its Middle Antiquity availability technology; the stance technologies switch forms and are not unlock prerequisites."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britannia-rome-vs-britons-20260824-124042-partial",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 124042.aoe2record",
+        "sha256": "41122DB23D987222F28CD9E52D7943D7B5970D1C7513E05F8E08E8590571894F",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 4277
+      },
+      "direct_replay_observations": [
+        "The command stream remains active through 71:17 and contains neither a postgame record nor a resignation, which is compatible with the reported crash or forced close but does not identify its cause.",
+        "None of 1670 decoded chat records contains PR3-20260824-placement3 or another runtime-build marker even though later up-chat-data debug records are present, so the deployed source revision cannot be verified from the replay.",
+        "The Roman player completed Early Antiquity at 11:21, Middle Antiquity at 21:56, and Imperial at 43:42; the Britons completed those ages at 11:37, 21:03, and 42:02.",
+        "The Roman player issued three Port or Dock requests, three Shipyard requests, eight Transport Ship requests, five Fishing Ship requests, four Scout Galley requests, seven Polyreme requests, four Fire Galley requests, and four Juggernaut requests.",
+        "Roman combat-ship production first appears at 44:40 for Scout Galleys, 44:44 for Polyremes, 48:22 for Fire Galleys, and 49:36 for Juggernauts, for 19 decoded combat-ship production requests in total.",
+        "Roman debug records report 16 combat warboats at 55:20 and still 16 at 70:25, with only two total sampled warboat losses; the aggregate records do not identify individual ship orders.",
+        "The replay contains repeated naval-attack interval and naval-superiority debug records, with reported naval superiority three, but no replay-visible dedicated naval-launch record.",
+        "No Roman Legionary-line production IDs 866, 868, 1658, or 1661 appear in decoded MAKE records."
+      ],
+      "implementation_inferences": [
+        "The missing startup marker leaves stale, partial, or game-cached runtime files as an unresolved explanation for every observed behavior in this replay.",
+        "The phase rules stored the numeric goal identifiers gl-one-percent and gl-two-percent as naval fleet thresholds; values 141 and 142 are sufficient to make the dedicated naval executor unreachable for the observed fleet.",
+        "The former escort controller reserved at least one warship per Transport Ship and refreshed the guard order while any transports existed, so empty home transports could permanently consume a large part of the combat fleet.",
+        "Land and naval timer rules shared current-action, and the earlier land executors did not require a triggered land timer, allowing an eligible land attack to consume a naval timer dispatch before the naval executor was evaluated.",
+        "The 15-minute warboat-count plateau is consistent with naval idleness but is not proof: the replay format does not expose stable object-to-order ownership for those dynamically created ships."
+      ],
+      "changes_under_test": [
+        "Replace the long startup text with the short replay-visible build marker RAWAI-P3B4 and require its presence before attributing runtime behavior to this source revision.",
+        "Copy the contents of the population-percentage goals into every phase's land and naval launch requirements instead of storing their constant identifiers.",
+        "Release the transport escort group every refresh, rebuild it only around loaded transports, assign half the fleet one-to-one across the nearest six loaded hulls with an intentional one-ship exception, and exclude route-screen, home-response, and actively exploring warships.",
+        "Give land and naval timer dispatches explicit ownership; when both expire in one rule sweep, prioritize one global naval attack command and let land retry on its next randomized interval.",
+        "Apply and reset sn-percent-attack-boats in the town-size naval executor and clear stale sampled warboat losses when fleet count is stable or growing.",
+        "Write the computed naval requirement, loaded-transport count, and every dedicated naval dispatch attempt into replay chat data for state-level verification."
+      ],
+      "fresh_replay_acceptance": [
+        "The pre-match deployment checker reports no differing runtime files and replay chat contains RAWAI-P3B4 near match start.",
+        "Naval-requirement telemetry reports a population-derived fleet count rather than goal identifiers 141 or 142.",
+        "With no loaded Transport Ship, loaded-transport telemetry reports zero and no combat ship remains reserved in transport-escort-group; with multiple loaded hulls and enough eligible warships, escorts are assigned one-to-one rather than all guarding the nearest hull, and active naval explorers remain outside the group.",
+        "When the dedicated naval timer fires with the population-derived requirement satisfied and home defense clear, replay chat records a naval dispatch attempt instead of an earlier land executor consuming it; a simultaneous timer expiry produces only the prioritized naval attack command.",
+        "During a naval dispatch with loaded transports, assigned escorts retain their guard orders through the next escort refresh while non-escort warships receive and retain outbound attack orders.",
+        "Both percentage and town-size naval launches apply the configured naval attack percentage and return it to zero afterward.",
+        "A one-window naval loss is followed by a zero current-loss sample when fleet count stabilizes and does not repeatedly retrigger retreat behavior."
+      ],
+      "known_limits": [
+        "The replay parser cannot identify individual ship idle state, selection ownership, exact movement paths, transport occupancy, or whether a particular order came from manual intervention.",
+        "Warboat-count debug is an aggregate combat-fleet fact and therefore cannot identify individual orders or explain the difference between 19 decoded production requests and 16 observed combat warboats.",
+        "The absent runtime marker prevents this replay from validating or falsifying the exact source tree reviewed here.",
+        "The active-stream cutoff does not contain diagnostic crash information, so no AI rule is blamed for the reported game crash.",
+        "Roman good-navy remains NO while its strategy requests a substantial Shipyard plan; changing that classification requires authoritative DAT and maintained workbook evidence rather than this replay alone."
       ],
       "validation_status": "fresh-replay-required"
     }
