@@ -80,12 +80,40 @@ class PerDomainTests(unittest.TestCase):
             [issue["kind"] for issue in issues],
         )
 
+    def test_comparison_operator_in_goal_fact_is_rejected(self) -> None:
+        issues = self.validate_text(
+            """(defrule
+    (goal placement-attempts < 4)
+=>
+    (set-goal placement-attempts 0)
+)
+"""
+        )
+        self.assertIn(
+            "comparison_operator_in_goal_fact",
+            [issue["kind"] for issue in issues],
+        )
+
     def test_position_source_cannot_be_used_as_goal_pair(self) -> None:
         issues = self.validate_text(
             """(defrule
     (true)
 =>
     (up-set-target-point position-focus-x)
+)
+"""
+        )
+        self.assertIn(
+            "invalid_position_point_identifier",
+            [issue["kind"] for issue in issues],
+        )
+
+    def test_position_source_alias_is_rejected_in_any_command(self) -> None:
+        issues = self.validate_text(
+            """(defrule
+    (true)
+=>
+    (up-target-point position-object-y action-move -1 stance-no-attack)
 )
 """
         )

@@ -334,6 +334,7 @@
 (defrule
 	(goal allow-houses 1)
 	(building-type-count-total house == 0)
+	(building-type-count-total mill == 0)
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
@@ -347,6 +348,7 @@
 	(current-age <= early-antiquity-age)
 	(goal allow-houses 1)
 	(building-type-count-total house > 0)
+	(building-type-count-total mill == 0)
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
@@ -358,9 +360,27 @@
 )
 
 (defrule
+	(current-age <= early-antiquity-age)
+	(goal allow-houses 1)
+	(building-type-count-total house > 0)
+	(building-type-count-total mill >= 1)
+	(up-pending-objects c: house <= 0)
+	(population-headroom > 0)
+	(housing-headroom < 5)
+	(can-afford-building house)
+	(up-can-build 0 c: house)
+=>
+	;Bias later houses away from the Mill anchor selected by the placement engine
+	;letting the compact TC housing pattern seal every farm approach.
+	(up-set-placement-data my-player-number mill c: 8)
+	(up-build place-control 0 c: house)
+)
+
+(defrule
 	(current-age >= middle-antiquity-age)
 	(goal allow-houses 1)
 	(building-type-count-total house > 0)
+	(building-type-count-total mill == 0)
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
@@ -368,6 +388,36 @@
 	(up-can-build 0 c: house)
 =>
 	(up-build place-normal 0 c: house)
+)
+
+(defrule
+	(goal allow-houses 1)
+	(building-type-count-total house == 0)
+	(building-type-count-total mill >= 1)
+	(up-pending-objects c: house <= 0)
+	(population-headroom > 0)
+	(housing-headroom < 5)
+	(can-afford-building house)
+	(up-can-build 0 c: house)
+=>
+	;Starting-Mill starts and rebuilt housing use the same local clearance bias.
+	(up-set-placement-data my-player-number mill c: 8)
+	(up-build place-control 0 c: house)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(goal allow-houses 1)
+	(building-type-count-total house > 0)
+	(building-type-count-total mill >= 1)
+	(up-pending-objects c: house <= 0)
+	(population-headroom > 0)
+	(housing-headroom < 5)
+	(can-afford-building house)
+	(up-can-build 0 c: house)
+=>
+	(up-set-placement-data my-player-number mill c: 8)
+	(up-build place-control 0 c: house)
 )
 
 (defrule
@@ -427,7 +477,9 @@
 	(up-get-point position-object 509)
 	(up-set-target-point 509)
 	(up-reset-filters)
-	(up-filter-distance c: -1 c: 4)
+	;The targeted builder uses four diagonal offsets three tiles from the mine.
+	;An eight-tile validation radius covers those accepted foundations.
+	(up-filter-distance c: -1 c: 8)
 	(up-modify-goal 508 s:= sn-focus-player-number)
 	(set-strategic-number sn-focus-player-number 0)
 	(up-find-remote c: 66 c: 1)
@@ -571,10 +623,11 @@
 			)
 		)
 	)
-	(or
-		(building-type-count-total mill == 0)
-		(dropsite-min-distance food > 12)
-	)
+	;The opening Mill is exclusively owned by the escrow bootstrap below. This
+	;rule may only add a genuinely additional drop site later.
+	(building-type-count-total mill > 0)
+	(dropsite-min-distance food > 12)
+	(dropsite-min-distance food g:< map-size)
 	(can-afford-building mill)
 	(up-pending-objects c: mill <= 0)
 	(up-can-build 0 c: mill)
@@ -803,11 +856,27 @@
 	(up-object-type-count-total c: town-center > 0)
 	(up-object-type-count-total c: lumber-camp > 0)
 	(up-object-type-count-total c: mill == 0)
+	(goal gl-opening-mill-requested NO)
 	(up-pending-objects c: mill <= 0)
 	(up-can-build gl-escrow c: mill)
 =>
 	(set-goal gl-escrow with-escrow)
 	(up-build place-normal gl-escrow c: mill)
+	(set-goal gl-opening-mill-requested YES)
+	(up-set-timer c: t-opening-mill c: 90)
+)
+
+;A failed managed placement must not permanently consume the one-shot opening
+;Mill owner. Reset only when no Mill object or foundation appeared.
+(defrule
+	(goal gl-opening-mill-requested YES)
+	(building-type-count-total mill == 0)
+	(up-pending-objects c: mill <= 0)
+	(up-timer-status t-opening-mill == timer-triggered)
+=>
+	(up-reset-placement c: mill)
+	(set-goal gl-opening-mill-requested NO)
+	(up-set-timer c: t-opening-mill c: 30)
 )
 
 (defrule
@@ -821,59 +890,336 @@
 	(build lumber-camp)
 )
 
+;Mining Camps follow the actual resource targeted by an active miner. Alternate
+;gold and stone searches so one configured gather percentage cannot starve the
+;other resource, then reject targets that already have a nearby camp.
 (defrule
+	(up-timer-status t-miningcamp-placement == timer-triggered)
+	(goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-miningcamp-next-resource gold)
 	(current-age >= early-antiquity-age)
-	(building-type-count-total town-center > 0)
-	(building-type-count-total lumber-camp > 0)
-	(building-type-count-total mining-camp == 0)
+	(building-type-count-total mining-camp g:< desired-number-miningcamps)
+	(building-type-count-total lumber-camp >= 1)
 	(up-pending-objects c: mining-camp <= 0)
-	(or
-		(and
-			(strategic-number sn-gold-gatherer-percentage >= 1)
-			(goal gold-present YES)
-		)
-		(and
-			(strategic-number sn-stone-gatherer-percentage >= 1)
-			(goal stone-present YES)
-		)
-	)
+	(not (up-pending-placement c: mining-camp))
+	(strategic-number sn-gold-gatherer-percentage >= 1)
+	(goal gold-present YES)
 	(can-afford-building mining-camp)
 	(up-can-build 0 c: mining-camp)
 =>
-	(up-build place-normal 0 c: mining-camp)
+	(up-modify-goal gl-miningcamp-placement-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-find-local c: villager-class c: 40)
+	(up-remove-objects search-local object-data-gather-type != gold)
+	(up-clean-search search-local object-data-distance search-order-desc)
+	(set-goal gl-miningcamp-resource-type gold)
+	(set-goal gl-miningcamp-next-resource stone)
+	(set-goal gl-miningcamp-placement-attempts 0)
+	(up-set-timer c: t-miningcamp-placement c: 60)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-ASSESS)
 )
 
 (defrule
+	(up-timer-status t-miningcamp-placement == timer-triggered)
+	(goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-miningcamp-next-resource stone)
 	(current-age >= early-antiquity-age)
 	(building-type-count-total mining-camp g:< desired-number-miningcamps)
 	(building-type-count-total lumber-camp >= 1)
 	(up-pending-objects c: mining-camp <= 0)
-	(strategic-number sn-gold-gatherer-percentage >= 1)
-	(goal gold-present YES)
-	(dropsite-min-distance gold > 5)
-	(dropsite-min-distance gold g:< map-size)
-	(can-afford-building mining-camp)
-	(up-can-build 0 c: mining-camp)
-=>
-	(up-build place-normal 0 c: mining-camp))
-
-(defrule
-	(current-age >= early-antiquity-age)
-	(building-type-count-total mining-camp g:< desired-number-miningcamps)
-	(building-type-count-total lumber-camp >= 1)
-	(up-pending-objects c: mining-camp <= 0)
+	(not (up-pending-placement c: mining-camp))
 	(strategic-number sn-stone-gatherer-percentage >= 1)
 	(goal stone-present YES)
-	(dropsite-min-distance stone > 5)
-	(dropsite-min-distance stone g:< map-size)
 	(can-afford-building mining-camp)
 	(up-can-build 0 c: mining-camp)
 =>
-	(up-build place-normal 0 c: mining-camp))
+	(up-modify-goal gl-miningcamp-placement-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-find-local c: villager-class c: 40)
+	(up-remove-objects search-local object-data-gather-type != stone)
+	(up-clean-search search-local object-data-distance search-order-desc)
+	(set-goal gl-miningcamp-resource-type stone)
+	(set-goal gl-miningcamp-next-resource gold)
+	(set-goal gl-miningcamp-placement-attempts 0)
+	(up-set-timer c: t-miningcamp-placement c: 60)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-ASSESS)
+)
+
+;If the preferred resource is unavailable, immediately give the other search a
+;turn instead of leaving the placement timer pinned to an impossible branch.
+(defrule
+	(up-timer-status t-miningcamp-placement == timer-triggered)
+	(goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+	(goal gl-miningcamp-next-resource gold)
+	(or
+		(goal gold-present NO)
+		(strategic-number sn-gold-gatherer-percentage < 1)
+	)
+=>
+	(set-goal gl-miningcamp-next-resource stone)
+)
+
+(defrule
+	(up-timer-status t-miningcamp-placement == timer-triggered)
+	(goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+	(goal gl-miningcamp-next-resource stone)
+	(or
+		(goal stone-present NO)
+		(strategic-number sn-stone-gatherer-percentage < 1)
+	)
+=>
+	(set-goal gl-miningcamp-next-resource gold)
+	(up-set-timer c: t-miningcamp-placement c: 10)
+)
+
+(defrule
+	(goal gl-miningcamp-placement-state PLACEMENT-ASSESS)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-point position-object gl-miningcamp-target-x)
+	(up-get-object-data object-data-target-id gl-miningcamp-resource-id)
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-miningcamp-resource-id)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-FIND-RESOURCE)
+)
+
+(defrule
+	(goal gl-miningcamp-placement-state PLACEMENT-ASSESS)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-miningcamp-placement-focus)
+	(up-set-timer c: t-miningcamp-placement c: 10)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+)
+
+(defrule
+	(goal gl-miningcamp-placement-state PLACEMENT-FIND-RESOURCE)
+	(up-set-target-object search-remote c: 0)
+	(or
+		(and
+			(goal gl-miningcamp-resource-type gold)
+			(up-object-data object-data-type == 66)
+		)
+		(and
+			(goal gl-miningcamp-resource-type stone)
+			(up-object-data object-data-type == 102)
+		)
+	)
+=>
+	;Only a matching mine target can own this placement. A miner temporarily
+	;attacking a Gaia animal must not redirect a Mining Camp.
+	(up-get-point position-object gl-miningcamp-target-x)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-miningcamp-target-x)
+	(up-find-remote c: mining-camp c: 20)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-miningcamp-placement-focus)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-FIND-CAMP)
+)
+
+(defrule
+	(goal gl-miningcamp-placement-state PLACEMENT-FIND-RESOURCE)
+	(up-set-target-object search-remote c: 0)
+	(or
+		(and
+			(goal gl-miningcamp-resource-type gold)
+			(up-object-data object-data-type != 66)
+		)
+		(and
+			(goal gl-miningcamp-resource-type stone)
+			(up-object-data object-data-type != 102)
+		)
+	)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-miningcamp-placement-focus)
+	(up-set-timer c: t-miningcamp-placement c: 10)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+)
+
+(defrule
+	(goal gl-miningcamp-placement-state PLACEMENT-FIND-RESOURCE)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-miningcamp-placement-focus)
+	(up-set-timer c: t-miningcamp-placement c: 10)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+)
+
+(defrule
+	(goal gl-miningcamp-placement-state PLACEMENT-FIND-CAMP)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-distance <= 10)
+=>
+	(up-set-timer c: t-miningcamp-placement c: 60)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+)
+
+(defrule
+	(goal gl-miningcamp-placement-state PLACEMENT-FIND-CAMP)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-distance > 10)
+=>
+	(set-goal gl-miningcamp-placement-state PLACEMENT-PLACE)
+)
+
+(defrule
+	(goal gl-miningcamp-placement-state PLACEMENT-FIND-CAMP)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-miningcamp-placement-state PLACEMENT-PLACE)
+)
+
+;Try four bounded diagonals around the resource target. Retain state ownership
+;until a foundation exists or every offset has failed.
+(defrule
+	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
+	(goal gl-miningcamp-placement-attempts 0)
+=>
+	(up-copy-point point2-x gl-miningcamp-target-x)
+	(up-modify-goal point2-x c:+ 3)
+	(up-modify-goal point2-y c:+ 3)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+	(up-build place-point 0 c: mining-camp)
+	(set-goal gl-miningcamp-placement-attempts 1)
+	(up-set-timer c: t-miningcamp-placement c: 30)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)
+)
+
+(defrule
+	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
+	(goal gl-miningcamp-placement-attempts 1)
+=>
+	(up-copy-point point2-x gl-miningcamp-target-x)
+	(up-modify-goal point2-x c:- 3)
+	(up-modify-goal point2-y c:+ 3)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+	(up-build place-point 0 c: mining-camp)
+	(set-goal gl-miningcamp-placement-attempts 2)
+	(up-set-timer c: t-miningcamp-placement c: 30)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)
+)
+
+(defrule
+	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
+	(goal gl-miningcamp-placement-attempts 2)
+=>
+	(up-copy-point point2-x gl-miningcamp-target-x)
+	(up-modify-goal point2-x c:+ 3)
+	(up-modify-goal point2-y c:- 3)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+	(up-build place-point 0 c: mining-camp)
+	(set-goal gl-miningcamp-placement-attempts 3)
+	(up-set-timer c: t-miningcamp-placement c: 30)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)
+)
+
+(defrule
+	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
+	(goal gl-miningcamp-placement-attempts 3)
+=>
+	(up-copy-point point2-x gl-miningcamp-target-x)
+	(up-modify-goal point2-x c:- 3)
+	(up-modify-goal point2-y c:- 3)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+	(up-build place-point 0 c: mining-camp)
+	(set-goal gl-miningcamp-placement-attempts 4)
+	(up-set-timer c: t-miningcamp-placement c: 30)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)
+)
+
+(defrule
+	(goal gl-miningcamp-placement-state PLACEMENT-WAIT)
+	(up-pending-objects c: mining-camp >= 1)
+=>
+	(set-goal gl-miningcamp-placement-attempts 0)
+	(up-set-timer c: t-miningcamp-placement c: 120)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+)
+
+(defrule
+	(goal gl-miningcamp-placement-state PLACEMENT-WAIT)
+	(up-timer-status t-miningcamp-placement == timer-triggered)
+	(up-pending-objects c: mining-camp <= 0)
+	(up-compare-goal gl-miningcamp-placement-attempts c:< 4)
+=>
+	(up-reset-placement c: mining-camp)
+	(up-set-timer c: t-miningcamp-placement c: 1)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-PLACE)
+)
+
+(defrule
+	(goal gl-miningcamp-placement-state PLACEMENT-WAIT)
+	(up-timer-status t-miningcamp-placement == timer-triggered)
+	(up-pending-objects c: mining-camp <= 0)
+	(up-compare-goal gl-miningcamp-placement-attempts c:>= 4)
+=>
+	(up-reset-placement c: mining-camp)
+	(set-goal gl-miningcamp-placement-attempts 0)
+	(up-set-timer c: t-miningcamp-placement c: 180)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+)
+
+(defrule
+	(up-timer-status t-miningcamp-placement == timer-triggered)
+	(or
+		(goal gl-miningcamp-placement-state PLACEMENT-ASSESS)
+		(goal gl-miningcamp-placement-state PLACEMENT-FIND-RESOURCE)
+	)
+=>
+	(up-reset-placement c: mining-camp)
+	(up-modify-sn sn-focus-player-number g:= gl-miningcamp-placement-focus)
+	(set-goal gl-miningcamp-placement-attempts 0)
+	(up-set-timer c: t-miningcamp-placement c: 60)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+)
+
+(defrule
+	(up-timer-status t-miningcamp-placement == timer-triggered)
+	(or
+		(goal gl-miningcamp-placement-state PLACEMENT-FIND-CAMP)
+		(or
+			(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
+			(goal gl-miningcamp-placement-state PLACEMENT-WAIT)
+		)
+	)
+=>
+	(up-reset-placement c: mining-camp)
+	(set-goal gl-miningcamp-placement-attempts 0)
+	(up-set-timer c: t-miningcamp-placement c: 60)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+)
+
+(defrule
+	(goal gl-opening-drop-sites-ready NO)
+	(game-time >= 180)
+	(building-type-count lumber-camp >= 1)
+	(building-type-count mill >= 1)
+	(up-pending-objects c: lumber-camp <= 0)
+	(up-pending-objects c: mill <= 0)
+	(not (up-pending-placement c: lumber-camp))
+	(not (up-pending-placement c: mill))
+=>
+	;Use a persistent readiness latch so queued-building count semantics cannot
+	;release an opening Barracks in the first rules pass.
+	(set-goal gl-opening-drop-sites-ready YES)
+)
 
 (defrule
 	(can-afford-building barracks)
 	(goal wait-techup-requirements NO)
+	(goal gl-opening-drop-sites-ready YES)
 	(building-type-count-total barracks g:< desired-number-barracks)
 	;Non-total counts exclude queued buildings, and pending checks keep a live
 	;foundation from satisfying the prerequisite.

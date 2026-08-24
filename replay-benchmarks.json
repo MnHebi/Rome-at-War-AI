@@ -61,6 +61,55 @@
         "Autonomous choke-point walling remains unresolved because the current wall code has no terrain-frontier or choke detector, and map classification alone is unsafe on Britannia-style island starts."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britannia-rome-vs-britons-20260824-102135",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 102135.aoe2record",
+        "sha256": "ABB172E54F36EC53C4246AEC02881866A573822B1FA7E57B3967B7783BF8C9B4",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Britons",
+          "Roman Empire"
+        ],
+        "duration_seconds": 1313
+      },
+      "direct_replay_observations": [
+        "Initial-object parsing found no Barracks, Mill, Lumber Camp, or Mining Camp for Player 1, but Player 1 issued a Barracks build command at 00:00, a Lumber Camp at 01:02, and a Mill at 03:46.",
+        "Player 1 issued Mill commands at (39,130) at 03:46 and (31,146) at 08:00; Player 2 also issued two Mill commands at 01:02 and 06:03.",
+        "Player 1 house commands at (28,145) and (31,143) preceded the second Mill command at (31,146), and later house commands were issued around that site at (34,145), (28,148), and (31,149).",
+        "At least five Player 1 villagers received gold-mining work orders around (21.5,143.5) through (22.5,145.5) from 15:03 through 15:27.",
+        "Player 1 issued its first Mining Camp command at (38,120) at 16:01, roughly 31 tiles from those active miners; a villager first received a gold order near the new camp at 17:03."
+      ],
+      "implementation_inferences": [
+        "The 00:00 Barracks is unreachable through the exact current normal and rush Barracks rules, which require the opening Mill and Lumber Camp; the test therefore used a stale, partial, or game-cached local runtime payload.",
+        "The duplicate early Mills fingerprint the pre-fix phase configuration that requested two Mills; the current economy requests one through phase three, so this replay does not falsify the current count fix.",
+        "House placement independently lacked any Mill clearance; if the issued buildings completed at those coordinates, they would obstruct access around that Mill even after the duplicate-Mill count fix.",
+        "The current Mining Camp bootstrap and resource-specific rules used generic place-normal without owning the resource point selected by active miners, which is sufficient to explain the distant camp."
+      ],
+      "changes_under_test": [
+        "Hash-check all 67 top-level AI runtime files against the enabled local test mod before every match, restart the game after synchronization, and emit runtime build ID PR3-20260824-placement2 into the replay chat stream.",
+        "Latch Barracks readiness only after three minutes and after the opening Mill and Lumber Camp exist with no pending foundation or placement.",
+        "Give the escrow bootstrap exclusive ownership of the first Mill request, with a bounded failed-placement reset, while later Mill rules require an existing first Mill and a genuinely distant food source.",
+        "Bias first and subsequent House placement eight tiles from the Mill anchor selected by the placement engine when a Mill already exists.",
+        "Alternate active gold/stone miner searches, accept only matching gold-mine or stone-mine target IDs, reject targets with a Mining Camp within ten tiles, serialize island and home-economy camp producers, and bound point placement to four rotated offsets.",
+        "Correct the invalid fortification-scan position-focus operand and reject reserved positional-source aliases in validation."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports zero unexpected, missing, or differing runtime files before game launch, the match starts without ERR2005, and replay chat contains runtime build ID PR3-20260824-placement2.",
+        "No Barracks command is issued before 03:00 or before the opening Mill and Lumber Camp have completed placement.",
+        "Only one Mill is requested through phase three unless the first placement demonstrably failed and its 90-second retry expired.",
+        "After the opening Mill exists, new House commands respect the configured eight-tile clearance from the engine-selected Mill anchor; the replay is also inspected for completed-building access around every Mill.",
+        "Gold and stone both receive placement turns, and a Mining Camp request follows the selected miner's resource target without repeating an impossible offset more than four times."
+      ],
+      "known_limits": [
+        "BUILD records prove command issuance rather than successful building completion.",
+        "The replay format does not embed a repository commit or runtime-file hash. The startup build identifier distinguishes semantic builds, while the pre-match hash check remains necessary to prove every runtime file was synchronized.",
+        "A miner's target ID can refer to a return dropsite or become stale while orders change; the nearby-camp rejection and a fresh replay must verify the resulting camp-to-resource distance.",
+        "An eight-tile House placement anchor does not by itself prove pathable farm access around every terrain-constrained Mill."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

@@ -118,8 +118,23 @@ def validate_command_domains(lines: list[str]) -> list[dict[str, object]]:
             }
         )
 
+    invalid_goal_comparison = re.compile(
+        r"\(goal\s+[^\s)]+\s+(?P<operator><=|>=|==|!=|<|>)\s+",
+        re.IGNORECASE,
+    )
+    for match in invalid_goal_comparison.finditer(code):
+        issues.append(
+            {
+                "kind": "comparison_operator_in_goal_fact",
+                "operator": match.group("operator"),
+                "line": code.count("\n", 0, match.start()) + 1,
+            }
+        )
+
+    # position-focus and position-object are point *sources*. They never expose
+    # synthetic -x/-y goal aliases, regardless of the command consuming them.
     invalid_position_alias = re.compile(
-        r"\(up-set-target-point\s+(?P<identifier>position-(?:focus|object)-[xy])\s*\)",
+        r"\b(?P<identifier>position-(?:focus|object)-[xy])\b",
         re.IGNORECASE,
     )
     for match in invalid_position_alias.finditer(code):

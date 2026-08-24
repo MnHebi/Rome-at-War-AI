@@ -295,6 +295,15 @@
 	(disable-self)
 )
 
+;Recorded replays do not embed the loaded AI files. Emit a semantic runtime ID
+;so stale or cached test payloads can be distinguished from the current build.
+(defrule
+	(true)
+=>
+	(chat-local-to-self "RAW AI runtime build: PR3-20260824-placement2")
+	(disable-self)
+)
+
 ;Adaptive attack state is isolated from the larger transport initializer so
 ;both startup rules stay comfortably below the engine expression limit.
 (defrule
@@ -532,7 +541,19 @@
 	(set-goal gl-lumbercamp-target-y 0)
 	(set-goal gl-island-scout-missions 0)
 	(set-goal gl-island-migration-zone -1)
+	(set-goal gl-opening-drop-sites-ready NO)
+	(set-goal gl-opening-mill-requested NO)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+	(set-goal gl-miningcamp-placement-focus 0)
+	(set-goal gl-miningcamp-target-x 0)
+	(set-goal gl-miningcamp-target-y 0)
+	(set-goal gl-miningcamp-resource-id -1)
+	(set-goal gl-miningcamp-resource-type gold)
+	(set-goal gl-miningcamp-next-resource gold)
+	(set-goal gl-miningcamp-placement-attempts 0)
 	(up-set-timer c: t-market-placement c: 1)
 	(up-set-timer c: t-lumbercamp-placement c: 60)
+	(up-set-timer c: t-miningcamp-placement c: 1)
+	(up-set-timer c: t-opening-mill c: 1)
 	(disable-self)
 )
