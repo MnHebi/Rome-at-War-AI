@@ -1096,6 +1096,52 @@
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-RETURN-CHECK)
+	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count <= 0)
+=>
+	;Recovered workers may still carry the island resource. Send them to the
+	;nearest home Town Center before normal economy allocation can retask them.
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-origin-x)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-on-mainland != on-mainland)
+	(up-remove-objects search-local object-data-carry <= 0)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	;The reserved hull was selected within forty tiles of the startup anchor.
+	;Search a wider bounded band so an inland home TC is still found from shore.
+	(up-find-remote c: town-center c: 80)
+	(up-remove-objects search-remote object-data-on-mainland != on-mainland)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-set-timer c: t-island-migration c: 15)
+	(set-goal gl-island-migration-state MIGRATION-RETURN-DEPOSIT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RETURN-DEPOSIT)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-target-objects 0 action-default -1 stance-no-attack)
+	(up-chat-data-to-self "migration cargo deposit target: %d" c: 1)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(up-set-timer c: t-island-migration c: 60)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RETURN-DEPOSIT)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-chat-data-to-self "migration cargo deposit target: %d" c: 0)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(up-set-timer c: t-island-migration c: 60)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RETURN-CHECK)
+	(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count <= 0)
 =>
@@ -1184,9 +1230,6 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count <= 0)
 =>
-	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
-	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
 	(up-full-reset-search)
 	(up-set-target-point gl-island-migration-target-x)
 	(up-set-group search-local c: migration-boarding-group)
@@ -1296,22 +1339,12 @@
 =>
 	(up-chat-data-to-self "migration recovery no resources: %d" g: gl-island-migration-zone)
 	(set-strategic-number sn-focus-player-number my-player-number)
-	(up-full-reset-search)
-	(up-set-group search-local c: migration-boarding-group)
-	(up-remove-objects search-local object-data-garrisoned == 1)
-	(up-target-point position-self-x action-stop -1 stance-no-attack)
-	(up-modify-group-flag 0 c: migration-boarding-group)
-	(up-reset-group c: migration-boarding-group)
-	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
-	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
-	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
-	(up-set-timer c: t-island-migration c: 60)
-	(set-goal gl-island-migration-state MIGRATION-IDLE)
+	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
 )
 
 ;Task only the reserved settlers confirmed on the selected land zone, place a
-;drop site matching the selected natural resource, then release their group.
+;drop site matching the selected natural resource, and retain them until the
+;correct-zone foundation is complete.
 (defrule
 	(goal gl-island-migration-state MIGRATION-TASK-MINING)
 	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
@@ -1355,9 +1388,9 @@
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
 	(set-strategic-number sn-focus-player-number 0)
 	(up-add-object-by-id search-remote g: gl-island-migration-anchor-id)
+	;Let the reserved settlers begin harvesting while placement is negotiated,
+	;but retain the group until they own and finish the remote foundation.
 	(up-target-objects 0 action-default -1 stance-no-attack)
-	(up-modify-group-flag 0 c: migration-boarding-group)
-	(up-reset-group c: migration-boarding-group)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-placement-attempts 0)
 	(up-set-timer c: t-island-migration c: 120)
@@ -1553,6 +1586,86 @@
 )
 
 (defrule
+	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+	(or
+		(goal gl-island-migration-anchor-class gold-mine-class)
+		(goal gl-island-migration-anchor-class stone-mine-class)
+	)
+	(not (can-afford-building mining-camp))
+=>
+	(up-chat-data-to-self "migration mining camp resource wait: %d" g: gl-island-migration-zone)
+	(up-set-timer c: t-island-migration c: 60)
+	(set-goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-RESOURCES)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+	(goal gl-island-migration-anchor-class tree-class)
+	(not (can-afford-building lumber-camp))
+=>
+	(up-chat-data-to-self "migration lumber camp resource wait: %d" g: gl-island-migration-zone)
+	(up-set-timer c: t-island-migration c: 60)
+	(set-goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-RESOURCES)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+	(or
+		(goal gl-island-migration-anchor-class forage-class)
+		(goal gl-island-migration-anchor-class prey-animal-class)
+	)
+	(not (can-afford-building mill))
+=>
+	(up-chat-data-to-self "migration mill resource wait: %d" g: gl-island-migration-zone)
+	(up-set-timer c: t-island-migration c: 60)
+	(set-goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-RESOURCES)
+)
+
+;A temporary resource shortage keeps the reserved builders and hull together.
+;Resume the same point as soon as its matching building becomes affordable.
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-RESOURCES)
+	(or
+		(goal gl-island-migration-anchor-class gold-mine-class)
+		(goal gl-island-migration-anchor-class stone-mine-class)
+	)
+	(can-afford-building mining-camp)
+=>
+	(up-set-timer c: t-island-migration c: 120)
+	(set-goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-RESOURCES)
+	(goal gl-island-migration-anchor-class tree-class)
+	(can-afford-building lumber-camp)
+=>
+	(up-set-timer c: t-island-migration c: 120)
+	(set-goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-RESOURCES)
+	(or
+		(goal gl-island-migration-anchor-class forage-class)
+		(goal gl-island-migration-anchor-class prey-animal-class)
+	)
+	(can-afford-building mill)
+=>
+	(up-set-timer c: t-island-migration c: 120)
+	(set-goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-RESOURCES)
+	(up-timer-status t-island-migration == timer-triggered)
+=>
+	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
+)
+
+;A global pending count is not proof that the remote request succeeded. Find
+;the matching pending foundation and reject it unless it is in the landing zone.
+(defrule
 	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
 	(or
 		(goal gl-island-migration-anchor-class gold-mine-class)
@@ -1560,19 +1673,14 @@
 	)
 	(up-pending-objects c: mining-camp >= 1)
 =>
-	(up-chat-data-to-self "migration dropsite accepted: %d" g: gl-island-migration-placement-attempts)
-	(up-modify-goal gl-island-colony-x g:= gl-island-migration-target-x)
-	(up-modify-goal gl-island-colony-y g:= gl-island-migration-target-y)
-	(up-modify-goal gl-island-colony-zone g:= gl-island-migration-zone)
-	(set-goal gl-colony-towncenter-id -1)
-	(set-goal gl-island-colony-established YES)
-	(set-goal gl-migration-placement-lock NO)
-	(set-goal gl-island-migration-placement-attempts 0)
+	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
-	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
-	(up-set-timer c: t-island-migration c: 60)
-	(set-goal gl-island-migration-state MIGRATION-IDLE)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-filter-status c: status-pending c: list-active)
+	(up-find-status-local c: mining-camp c: 8)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)
 )
 
 (defrule
@@ -1580,19 +1688,14 @@
 	(goal gl-island-migration-anchor-class tree-class)
 	(up-pending-objects c: lumber-camp >= 1)
 =>
-	(up-chat-data-to-self "migration dropsite accepted: %d" g: gl-island-migration-placement-attempts)
-	(up-modify-goal gl-island-colony-x g:= gl-island-migration-target-x)
-	(up-modify-goal gl-island-colony-y g:= gl-island-migration-target-y)
-	(up-modify-goal gl-island-colony-zone g:= gl-island-migration-zone)
-	(set-goal gl-colony-towncenter-id -1)
-	(set-goal gl-island-colony-established YES)
-	(set-goal gl-migration-placement-lock NO)
-	(set-goal gl-island-migration-placement-attempts 0)
+	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
-	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
-	(up-set-timer c: t-island-migration c: 60)
-	(set-goal gl-island-migration-state MIGRATION-IDLE)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-filter-status c: status-pending c: list-active)
+	(up-find-status-local c: lumber-camp c: 8)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)
 )
 
 (defrule
@@ -1603,7 +1706,64 @@
 	)
 	(up-pending-objects c: mill >= 1)
 =>
-	(up-chat-data-to-self "migration dropsite accepted: %d" g: gl-island-migration-placement-attempts)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-filter-status c: status-pending c: list-active)
+	(up-find-status-local c: mill c: 8)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-island-migration-dropsite-id)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-add-object-by-id search-remote g: gl-island-migration-dropsite-id)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+	(up-chat-data-to-self "migration dropsite builders assigned: %d" g: gl-island-migration-dropsite-id)
+	(up-set-timer c: t-island-migration c: 120)
+	(set-goal gl-island-migration-state MIGRATION-CONFIRM-DROPSITE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-chat-data-to-self "migration dropsite zone mismatch: %d" g: gl-island-migration-zone)
+	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CONFIRM-DROPSITE)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-island-migration-dropsite-id)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-DROPSITE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-status == status-pending)
+=>
+	(set-goal gl-island-migration-state MIGRATION-CONFIRM-DROPSITE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-status == status-ready)
+=>
+	(up-chat-data-to-self "migration dropsite complete: %d" g: gl-island-migration-dropsite-id)
 	(up-modify-goal gl-island-colony-x g:= gl-island-migration-target-x)
 	(up-modify-goal gl-island-colony-y g:= gl-island-migration-target-y)
 	(up-modify-goal gl-island-colony-zone g:= gl-island-migration-zone)
@@ -1611,11 +1771,32 @@
 	(set-goal gl-island-colony-established YES)
 	(set-goal gl-migration-placement-lock NO)
 	(set-goal gl-island-migration-placement-attempts 0)
+	(up-modify-group-flag 0 c: migration-boarding-group)
+	(up-reset-group c: migration-boarding-group)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
 	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 60)
 	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-status != status-pending)
+	(up-object-data object-data-status != status-ready)
+=>
+	(up-chat-data-to-self "migration dropsite inactive: %d" g: gl-island-migration-dropsite-id)
+	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-chat-data-to-self "migration dropsite foundation lost: %d" g: gl-island-migration-dropsite-id)
+	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
 )
 
 (defrule
@@ -1639,6 +1820,17 @@
 )
 
 (defrule
+	(or
+		(goal gl-island-migration-state MIGRATION-CONFIRM-DROPSITE)
+		(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE)
+	)
+	(up-timer-status t-island-migration == timer-triggered)
+=>
+	(up-chat-data-to-self "migration dropsite construction timeout: %d" g: gl-island-migration-dropsite-id)
+	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
+)
+
+(defrule
 	(goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
 =>
 	(set-goal gl-migration-placement-lock NO)
@@ -1647,9 +1839,102 @@
 	(up-reset-placement c: lumber-camp)
 	(up-reset-placement c: mill)
 	(set-goal gl-island-migration-placement-attempts 0)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-island-migration-load-target g:= local-total)
+	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(up-set-timer c: t-island-migration c: 45)
+	(set-goal gl-island-migration-state MIGRATION-RECALL-LOADING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RECALL-LOADING)
+	(up-compare-goal gl-island-migration-load-target c:< 1)
+=>
+	(up-modify-group-flag 0 c: migration-boarding-group)
+	(up-reset-group c: migration-boarding-group)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
 	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(up-set-timer c: t-island-migration c: 60)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RECALL-LOADING)
+	(up-compare-goal gl-island-migration-load-target c:>= 1)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(set-goal gl-island-migration-state MIGRATION-RECALL-CHECK)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RECALL-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count g:>= gl-island-migration-load-target)
+=>
+	(up-target-point gl-island-migration-origin-x action-unload -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-route-waits 0)
+	(up-set-timer c: t-island-migration c: 15)
+	(set-goal gl-island-migration-state MIGRATION-RETURNING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RECALL-CHECK)
+	(up-timer-status t-island-migration == timer-triggered)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
+=>
+	(up-target-point gl-island-migration-origin-x action-unload -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-route-waits 0)
+	(up-set-timer c: t-island-migration c: 15)
+	(set-goal gl-island-migration-state MIGRATION-RETURNING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RECALL-CHECK)
+	(up-timer-status t-island-migration == timer-running)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
+=>
+	(set-goal gl-island-migration-state MIGRATION-RECALL-LOADING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RECALL-CHECK)
+	(up-timer-status t-island-migration == timer-triggered)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count <= 0)
+=>
+	(up-chat-data-to-self "migration settler recall failed: %d" g: gl-island-migration-zone)
+	(up-modify-group-flag 0 c: migration-boarding-group)
+	(up-reset-group c: migration-boarding-group)
+	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(up-set-timer c: t-island-migration c: 60)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RECALL-CHECK)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-chat-data-to-self "migration recall transport lost: %d" g: gl-island-migration-transport-id)
+	(up-modify-group-flag 0 c: migration-boarding-group)
+	(up-reset-group c: migration-boarding-group)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 60)
 	(set-goal gl-island-migration-state MIGRATION-IDLE)
 )

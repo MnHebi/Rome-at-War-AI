@@ -405,7 +405,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B10", self.init_goals)
+        self.assertIn("RAWAI-P3B11", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -487,6 +487,121 @@ class FarmPolicyTests(unittest.TestCase):
             "(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)",
             self.military,
         )
+
+    def test_remote_dropsite_keeps_and_assigns_reserved_settlers(self) -> None:
+        gather = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-CLEAR)",
+            ),
+            actions=(
+                "(up-set-group search-local c: migration-boarding-group)",
+                "(up-target-objects 0 action-default -1 stance-no-attack)",
+                "(set-goal gl-island-migration-state MIGRATION-PLACE-DROPSITE)",
+            ),
+        )
+        self.assertEqual(len(gather), 1)
+        self.assertNotIn("up-modify-group-flag", gather[0][4])
+        self.assertNotIn("up-reset-group", gather[0][4])
+
+        assignment = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)",
+                "(up-set-target-object search-local c: 0)",
+            ),
+            actions=(
+                "object-data-id gl-island-migration-dropsite-id",
+                "(up-set-group search-local c: migration-boarding-group)",
+                "object-data-map-zone-id g:!= gl-island-migration-zone",
+                "search-remote g: gl-island-migration-dropsite-id",
+                "(up-target-objects 0 action-default -1 stance-no-attack)",
+            ),
+        )
+        self.assertEqual(len(assignment), 1)
+
+    def test_remote_colony_requires_completed_correct_zone_dropsite(self) -> None:
+        pending_searches = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)",
+                "(up-pending-objects",
+            ),
+            actions=(
+                "(up-filter-status c: status-pending c: list-active)",
+                "c: 8",
+                "object-data-map-zone-id g:!= gl-island-migration-zone",
+                "(set-goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)",
+            ),
+        )
+        self.assertEqual(len(pending_searches), 3)
+        publish = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE)",
+                "(up-object-data object-data-status == status-ready)",
+            ),
+            actions=("(set-goal gl-island-colony-established YES)",),
+        )
+        self.assertEqual(len(publish), 1)
+        self.assertEqual(
+            self.military.count("(set-goal gl-island-colony-established YES)"),
+            1,
+        )
+
+    def test_failed_remote_dropsite_recalls_workers_with_cargo(self) -> None:
+        recall = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)",
+            ),
+            actions=(
+                "(up-set-group search-local c: migration-boarding-group)",
+                "(up-add-object-by-id search-remote g: gl-island-migration-transport-id)",
+                "(up-target-objects 0 action-garrison -1 stance-no-attack)",
+                "(set-goal gl-island-migration-state MIGRATION-RECALL-LOADING)",
+            ),
+        )
+        self.assertEqual(len(recall), 1)
+        unload = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-RECALL-CHECK)",
+                "object-data-garrison-count g:>= gl-island-migration-load-target",
+            ),
+            actions=(
+                "gl-island-migration-origin-x action-unload",
+                "(set-goal gl-island-migration-state MIGRATION-RETURNING)",
+            ),
+        )
+        self.assertEqual(len(unload), 1)
+        deposit = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-RETURN-CHECK)",
+                "(goal gl-island-migration-mission MIGRATION-MISSION-MINING)",
+                "object-data-garrison-count <= 0",
+            ),
+            actions=(
+                "object-data-carry <= 0",
+                "(up-find-remote c: town-center c: 80)",
+                "object-data-on-mainland != on-mainland",
+                "(set-goal gl-island-migration-state MIGRATION-RETURN-DEPOSIT)",
+            ),
+        )
+        self.assertEqual(len(deposit), 1)
+        deposit_target = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-RETURN-DEPOSIT)",
+                "(up-set-target-object search-remote c: 0)",
+            ),
+            actions=(
+                "(up-target-objects 0 action-default -1 stance-no-attack)",
+                "migration cargo deposit target: %d",
+            ),
+        )
+        self.assertEqual(len(deposit_target), 1)
 
     def test_starting_anchor_uses_engine_position_without_shared_search(self) -> None:
         customconstants = (
