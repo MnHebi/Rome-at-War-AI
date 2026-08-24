@@ -409,7 +409,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B12", self.init_goals)
+        self.assertIn("RAWAI-P3B13", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -430,6 +430,123 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertEqual(len(calculators), 2)
         self.assertTrue(all(rule[1] < telemetry[0][0] for rule in calculators))
         self.assertIn("(up-timer-status t-farm-report != timer-running)", self.timers)
+
+    def test_resource_camps_require_live_same_zone_extraction(self) -> None:
+        self.assertNotIn("(build lumber-camp)", self.homebase)
+        self.assertNotIn("(up-build place-normal 0 c: lumber-camp)", self.homebase)
+        lumber_builds = matching_rules(
+            self.homebase,
+            facts=("(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)",),
+            actions=("(up-build place-point 0 c: lumber-camp)",),
+        )
+        self.assertEqual(len(lumber_builds), 1)
+        for evidence in (
+            "object-data-target-id gl-lumbercamp-resource-id",
+            "object-data-action != actionid-gather",
+            "(up-object-data object-data-class == tree-class)",
+            "object-data-map-zone-id gl-lumbercamp-resource-zone",
+            "(up-compare-goal remote-total c:>= 3)",
+            "object-data-map-zone-id g:!= gl-lumbercamp-resource-zone",
+        ):
+            self.assertIn(evidence, self.homebase)
+
+        mining_builds = matching_rules(
+            self.homebase,
+            facts=("(goal gl-miningcamp-placement-state PLACEMENT-PLACE)",),
+            actions=("(up-build place-point 0 c: mining-camp)",),
+        )
+        self.assertEqual(len(mining_builds), 4)
+        for evidence in (
+            "object-data-target-id gl-miningcamp-resource-id",
+            "object-data-map-zone-id gl-miningcamp-resource-zone",
+            "object-data-map-zone-id g:!= gl-miningcamp-resource-zone",
+            "PLACEMENT-CHECK-FOUNDATION",
+            "PLACEMENT-VALIDATE-FOUNDATION-RESOURCE",
+        ):
+            self.assertIn(evidence, self.homebase)
+
+        pending_radius = matching_rules(
+            self.homebase,
+            actions=(
+                "(up-filter-distance c: -1 c: 8)",
+                "(up-find-status-local c: mining-camp c: 8)",
+            ),
+        )
+        self.assertEqual(len(pending_radius), 1)
+
+        retry = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-miningcamp-placement-state PLACEMENT-WAIT)",
+                "gl-miningcamp-placement-attempts c:< 4",
+            ),
+            actions=(
+                "search-remote g: gl-miningcamp-resource-id",
+                "PLACEMENT-FIND-RESOURCE",
+            ),
+        )
+        retry_consumer = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-miningcamp-placement-state PLACEMENT-FIND-RESOURCE)",
+                "(up-set-target-object search-remote c: 0)",
+            ),
+            actions=("object-data-map-zone-id gl-miningcamp-resource-zone",),
+        )
+        self.assertEqual(len(retry), 1)
+        self.assertEqual(len(retry_consumer), 1)
+        self.assertLessEqual(retry[0][1], retry_consumer[0][0])
+
+        migration_validation = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)",
+            ),
+            actions=(
+                "search-remote g: gl-island-migration-anchor-id",
+                "MIGRATION-CHECK-DROPSITE-ANCHOR",
+            ),
+        )
+        self.assertEqual(len(migration_validation), 1)
+        self.assertIn("(up-compare-goal remote-total c:>= 3)", self.military)
+        self.assertIn("migration refreshing stale resource anchor: %d", self.military)
+        refresh = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-ANCHOR)",
+            ),
+            actions=("MIGRATION-FIND-RECOVERY-ANCHOR",),
+        )
+        refresh_consumer = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)",
+                "(up-set-target-object search-remote c: 0)",
+            ),
+            actions=("migration refreshed resource anchor: %d",),
+        )
+        self.assertEqual(len(refresh), 1)
+        self.assertEqual(len(refresh_consumer), 1)
+        self.assertLessEqual(refresh[0][1], refresh_consumer[0][0])
+        migration_pending = matching_rules(
+            self.military,
+            facts=("(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)",),
+            actions=(
+                "(up-filter-distance c: -1 c: 8)",
+                "(up-filter-status c: status-pending c: list-active)",
+            ),
+        )
+        self.assertEqual(len(migration_pending), 3)
+        for evidence in (
+            "gl-island-migration-rejected-tree1-x",
+            "gl-island-migration-rejected-tree2-x",
+            "gl-island-migration-rejected-tree3-x",
+            "MIGRATION-CHECK-DROPSITE-NONTREE",
+            "MIGRATION-REFRESH-DROPSITE-TREES",
+            "(up-remove-objects search-remote object-data-distance <= 8)",
+            "migration alternate tree clusters exhausted: %d",
+        ):
+            self.assertIn(evidence, self.military)
 
     def test_island_migration_waits_for_a_real_transport(self) -> None:
         scout_rules = matching_rules(
@@ -649,7 +766,7 @@ class FarmPolicyTests(unittest.TestCase):
             actions=(
                 "(up-set-group search-local c: migration-boarding-group)",
                 "(up-target-objects 0 action-default -1 stance-no-attack)",
-                "(set-goal gl-island-migration-state MIGRATION-PLACE-DROPSITE)",
+                "(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)",
             ),
         )
         self.assertEqual(len(gather), 1)

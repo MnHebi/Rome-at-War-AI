@@ -1406,6 +1406,7 @@
 	(up-compare-goal local-total c:>= 1)
 =>
 	(up-chat-data-to-self "migration settlers landed: %d" g: local-total)
+	(set-goal gl-island-migration-anchor-rejections 0)
 	(set-strategic-number sn-focus-player-number 0)
 	(up-full-reset-search)
 	(up-set-target-point gl-island-migration-target-x)
@@ -1441,6 +1442,7 @@
 =>
 	(up-get-object-data object-data-map-zone-id gl-island-migration-zone)
 	(up-get-point position-object gl-island-migration-target-x)
+	(set-goal gl-island-migration-anchor-rejections 0)
 	(set-strategic-number sn-focus-player-number 0)
 	(up-full-reset-search)
 	(up-set-target-point gl-island-migration-target-x)
@@ -1542,7 +1544,7 @@
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-placement-attempts 0)
 	(up-set-timer c: t-island-migration c: 120)
-	(set-goal gl-island-migration-state MIGRATION-PLACE-DROPSITE)
+	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
 
 ;Try four bounded diagonals around the colony resource. The migration system
@@ -1599,6 +1601,267 @@
 	(set-goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
 )
 
+;A cached colony anchor is not permanent evidence. Re-resolve the exact Gaia
+;object immediately before every placement attempt and refresh its point. Tree
+;anchors additionally require a useful same-zone cluster rather than one
+;straggling tree.
+(defrule
+	(goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
+=>
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-island-migration-anchor-id)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-ANCHOR)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-ANCHOR)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-class g:== gl-island-migration-anchor-class)
+	(up-object-data object-data-map-zone-id g:== gl-island-migration-zone)
+	(goal gl-island-migration-anchor-class tree-class)
+=>
+	(up-get-point position-object gl-island-migration-target-x)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-filter-distance c: -1 c: 8)
+	(up-find-remote c: tree-class c: 20)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-get-search-state remote-total)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-TREES)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-ANCHOR)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-class g:== gl-island-migration-anchor-class)
+	(up-object-data object-data-map-zone-id g:== gl-island-migration-zone)
+	(up-compare-goal gl-island-migration-anchor-class c:!= tree-class)
+=>
+	(up-get-point position-object gl-island-migration-target-x)
+	(up-chat-data-to-self "migration live resource anchor: %d" g: gl-island-migration-anchor-id)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-state MIGRATION-PLACE-DROPSITE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-TREES)
+	(up-compare-goal remote-total c:>= 3)
+=>
+	(up-chat-data-to-self "migration live lumber cluster: %d" g: remote-total)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-state MIGRATION-PLACE-DROPSITE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-TREES)
+	(up-compare-goal remote-total c:< 3)
+	(goal gl-island-migration-anchor-rejections 0)
+=>
+	(up-chat-data-to-self "migration rejected sparse lumber cluster: %d" g: remote-total)
+	(up-copy-point gl-island-migration-rejected-tree1-x gl-island-migration-target-x)
+	(set-goal gl-island-migration-anchor-rejections 1)
+	(set-goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-AFTER-SPARSE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-TREES)
+	(up-compare-goal remote-total c:< 3)
+	(goal gl-island-migration-anchor-rejections 1)
+=>
+	(up-chat-data-to-self "migration rejected second sparse lumber cluster: %d" g: remote-total)
+	(up-copy-point gl-island-migration-rejected-tree2-x gl-island-migration-target-x)
+	(set-goal gl-island-migration-anchor-rejections 2)
+	(set-goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-AFTER-SPARSE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-TREES)
+	(up-compare-goal remote-total c:< 3)
+	(goal gl-island-migration-anchor-rejections 2)
+=>
+	(up-chat-data-to-self "migration rejected third sparse lumber cluster: %d" g: remote-total)
+	(up-copy-point gl-island-migration-rejected-tree3-x gl-island-migration-target-x)
+	(set-goal gl-island-migration-anchor-rejections 3)
+	(set-goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-AFTER-SPARSE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-TREES)
+	(up-compare-goal remote-total c:< 3)
+	(goal gl-island-migration-anchor-rejections 3)
+=>
+	(up-chat-data-to-self "migration exhausted sparse lumber anchors: %d" g: gl-island-migration-anchor-rejections)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-ANCHOR)
+	(up-set-target-object search-remote c: 0)
+	(or
+		(up-object-data object-data-class g:!= gl-island-migration-anchor-class)
+		(up-object-data object-data-map-zone-id g:!= gl-island-migration-zone)
+	)
+=>
+	(set-goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-ANCHOR)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-ANCHOR)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-ANCHOR)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-ANCHOR)
+=>
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-find-remote c: gold-mine-class c: 10)
+	(up-find-remote c: stone-mine-class c: 10)
+	(up-find-remote c: tree-class c: 40)
+	(up-find-remote c: forage-class c: 10)
+	(up-find-remote c: prey-animal-class c: 10)
+	(up-remove-objects search-remote object-data-id g:== gl-island-migration-anchor-id)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-chat-data-to-self "migration refreshing stale resource anchor: %d" g: gl-island-migration-anchor-id)
+	(set-goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)
+)
+
+;Consume the refreshed list immediately. Holding a Gaia-focused DUC list until
+;the next sweep lets unrelated military rules overwrite both search ownership
+;and focus before the old recovery consumer can run.
+(defrule
+	(goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-island-migration-anchor-id)
+	(up-get-object-data object-data-class gl-island-migration-anchor-class)
+	(up-get-point position-object gl-island-migration-target-x)
+	(up-chat-data-to-self "migration refreshed resource anchor: %d" g: gl-island-migration-anchor-id)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(set-goal gl-island-migration-state MIGRATION-TASK-MINING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-chat-data-to-self "migration refresh found no resources: %d" g: gl-island-migration-zone)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
+)
+
+;After rejecting a sparse tree, test every mine or natural-food alternative
+;first. If none exists, build one tree candidate list and remove every stored
+;eight-tile rejected pocket so two sparse groves cannot alternate forever.
+(defrule
+	(goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-AFTER-SPARSE)
+=>
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-find-remote c: gold-mine-class c: 10)
+	(up-find-remote c: stone-mine-class c: 10)
+	(up-find-remote c: forage-class c: 10)
+	(up-find-remote c: prey-animal-class c: 10)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-NONTREE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-NONTREE)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-island-migration-anchor-id)
+	(up-get-object-data object-data-class gl-island-migration-anchor-class)
+	(up-get-point position-object gl-island-migration-target-x)
+	(up-chat-data-to-self "migration alternate resource anchor: %d" g: gl-island-migration-anchor-id)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(set-goal gl-island-migration-state MIGRATION-TASK-MINING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-NONTREE)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-TREES)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-TREES)
+	(goal gl-island-migration-anchor-rejections 1)
+=>
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-rejected-tree1-x)
+	(up-find-remote c: tree-class c: 40)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-remove-objects search-remote object-data-distance <= 8)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-TREES)
+	(goal gl-island-migration-anchor-rejections 2)
+=>
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-rejected-tree1-x)
+	(up-find-remote c: tree-class c: 40)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-remove-objects search-remote object-data-distance <= 8)
+	(up-set-target-point gl-island-migration-rejected-tree2-x)
+	(up-remove-objects search-remote object-data-distance <= 8)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-TREES)
+	(goal gl-island-migration-anchor-rejections 3)
+=>
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-rejected-tree1-x)
+	(up-find-remote c: tree-class c: 40)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-remove-objects search-remote object-data-distance <= 8)
+	(up-set-target-point gl-island-migration-rejected-tree2-x)
+	(up-remove-objects search-remote object-data-distance <= 8)
+	(up-set-target-point gl-island-migration-rejected-tree3-x)
+	(up-remove-objects search-remote object-data-distance <= 8)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-island-migration-anchor-id)
+	(up-get-object-data object-data-class gl-island-migration-anchor-class)
+	(up-get-point position-object gl-island-migration-target-x)
+	(up-chat-data-to-self "migration alternate tree anchor: %d" g: gl-island-migration-anchor-id)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(set-goal gl-island-migration-state MIGRATION-TASK-MINING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-chat-data-to-self "migration alternate tree clusters exhausted: %d" g: gl-island-migration-zone)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
+)
+
 (defrule
 	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
 	(or
@@ -1631,7 +1894,7 @@
 	(up-chat-data-to-self "migration rejected mining point: %d" g: gl-island-migration-placement-attempts)
 	(up-modify-goal gl-island-migration-placement-attempts c:+ 1)
 	(up-set-timer c: t-island-migration c: 1)
-	(set-goal gl-island-migration-state MIGRATION-PLACE-DROPSITE)
+	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
 
 (defrule
@@ -1658,7 +1921,7 @@
 	(up-chat-data-to-self "migration rejected lumber point: %d" g: gl-island-migration-placement-attempts)
 	(up-modify-goal gl-island-migration-placement-attempts c:+ 1)
 	(up-set-timer c: t-island-migration c: 1)
-	(set-goal gl-island-migration-state MIGRATION-PLACE-DROPSITE)
+	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
 
 (defrule
@@ -1685,7 +1948,7 @@
 	(up-chat-data-to-self "migration rejected mill point: %d" g: gl-island-migration-placement-attempts)
 	(up-modify-goal gl-island-migration-placement-attempts c:+ 1)
 	(up-set-timer c: t-island-migration c: 1)
-	(set-goal gl-island-migration-state MIGRATION-PLACE-DROPSITE)
+	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
 
 (defrule
@@ -1780,7 +2043,7 @@
 	(can-afford-building mining-camp)
 =>
 	(up-set-timer c: t-island-migration c: 120)
-	(set-goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
 
 (defrule
@@ -1789,7 +2052,7 @@
 	(can-afford-building lumber-camp)
 =>
 	(up-set-timer c: t-island-migration c: 120)
-	(set-goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
 
 (defrule
@@ -1801,7 +2064,7 @@
 	(can-afford-building mill)
 =>
 	(up-set-timer c: t-island-migration c: 120)
-	(set-goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
 
 (defrule
@@ -1824,6 +2087,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-set-target-point gl-island-migration-target-x)
+	(up-filter-distance c: -1 c: 8)
 	(up-filter-status c: status-pending c: list-active)
 	(up-find-status-local c: mining-camp c: 8)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
@@ -1839,6 +2103,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-set-target-point gl-island-migration-target-x)
+	(up-filter-distance c: -1 c: 8)
 	(up-filter-status c: status-pending c: list-active)
 	(up-find-status-local c: lumber-camp c: 8)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
@@ -1857,6 +2122,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-set-target-point gl-island-migration-target-x)
+	(up-filter-distance c: -1 c: 8)
 	(up-filter-status c: status-pending c: list-active)
 	(up-find-status-local c: mill c: 8)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
@@ -1956,7 +2222,7 @@
 	(up-reset-placement c: lumber-camp)
 	(up-reset-placement c: mill)
 	(up-set-timer c: t-island-migration c: 1)
-	(set-goal gl-island-migration-state MIGRATION-PLACE-DROPSITE)
+	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
 
 (defrule

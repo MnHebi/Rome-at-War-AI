@@ -340,7 +340,7 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B12: %d" c: 12)
+	(up-chat-data-to-self "RAWAI-P3B13: %d" c: 13)
 	(disable-self)
 )
 
@@ -651,9 +651,29 @@
 	(set-goal gl-miningcamp-next-resource gold)
 	(set-goal gl-miningcamp-placement-attempts 0)
 	(up-set-timer c: t-market-placement c: 1)
-	(up-set-timer c: t-lumbercamp-placement c: 60)
+	(up-set-timer c: t-lumbercamp-placement c: 1)
 	(up-set-timer c: t-miningcamp-placement c: 1)
 	(up-set-timer c: t-opening-mill c: 1)
+	(disable-self)
+)
+
+;Exact resource/foundation ownership and bounded rejected-tree pockets are kept
+;in a separate initializer to remain below the engine's 32-element rule limit.
+(defrule
+	(true)
+=>
+	(set-goal gl-lumbercamp-resource-id -1)
+	(set-goal gl-lumbercamp-resource-zone -1)
+	(set-goal gl-lumbercamp-foundation-id -1)
+	(set-goal gl-miningcamp-resource-zone -1)
+	(set-goal gl-miningcamp-foundation-id -1)
+	(set-goal gl-island-migration-anchor-rejections 0)
+	(set-goal gl-island-migration-rejected-tree1-x -1)
+	(set-goal gl-island-migration-rejected-tree1-y -1)
+	(set-goal gl-island-migration-rejected-tree2-x -1)
+	(set-goal gl-island-migration-rejected-tree2-y -1)
+	(set-goal gl-island-migration-rejected-tree3-x -1)
+	(set-goal gl-island-migration-rejected-tree3-y -1)
 	(disable-self)
 )
 
