@@ -2,15 +2,20 @@
 ;run out of order. Candidates are built at the checked point, not anywhere on
 ;a line back to the Port, and completed naval buildings receive a clear radius.
 
-;Hybrid maps do not need the eight-Shipyard late-game island target.
+;Hybrid maps need more than the old three-Shipyard ceiling to sustain a navy,
+;but a closed lake still should not consume the full island-map target.
 (defrule
-	(or
-		(goal map-type LAKE)
-		(goal map-type RIVERS)
-	)
-	(up-compare-goal desired-number-shipyards > 3)
+	(goal map-type LAKE)
+	(up-compare-goal desired-number-shipyards > 4)
 =>
-	(up-modify-goal desired-number-shipyards c:= 3)
+	(up-modify-goal desired-number-shipyards c:= 4)
+)
+
+(defrule
+	(goal map-type RIVERS)
+	(up-compare-goal desired-number-shipyards > 6)
+=>
+	(up-modify-goal desired-number-shipyards c:= 6)
 )
 
 (defrule

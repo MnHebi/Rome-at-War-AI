@@ -12,6 +12,32 @@
 	(chat-local-to-self "priority research ballistics ")
 )
 
+;Advanced Weaponry upgrades a broad set of ranged units, naval units, and
+;static defenses in the current DAT. Once Imperial makes it available, request
+;it before the later generic military technologies.
+(defrule
+	(up-compare-goal current-phase == 7)
+	(up-can-research gl-researchescrow-state c: ri-advanced-weaponry)
+=>
+	(up-research gl-researchescrow-state c: ri-advanced-weaponry)
+	(chat-local-to-self "priority research advanced weaponry")
+)
+
+;Faith cannot be researched before Imperial in the data mod. Enemy conversion
+;units make it an immediate Imperial request instead of leaving it behind the
+;ordinary monastery-research queue.
+(defrule
+	(up-compare-goal current-phase == 7)
+	(or
+		(players-unit-type-count any-enemy priest > 0)
+		(players-unit-type-count any-enemy brahmin > 0)
+	)
+	(up-can-research gl-researchescrow-state c: ri-faith)
+=>
+	(up-research gl-researchescrow-state c: ri-faith)
+	(chat-local-to-self "conversion threat: priority research faith")
+)
+
 (defrule
 	(up-compare-goal current-phase == 7)
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
@@ -590,6 +616,8 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(unit-type-count cavalry-archer-class > 0)
 	(up-can-research gl-researchescrow-state c: ri-parthian-tactics)
 =>
 	(up-research gl-researchescrow-state c: ri-parthian-tactics)
@@ -599,6 +627,11 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(or
+		(unit-type-count archery-class > 0)
+		(unit-type-count cavalry-archer-class > 0)
+	)
 	(up-can-research gl-researchescrow-state c: ri-marksmanship)
 =>
 	(up-research gl-researchescrow-state c: ri-marksmanship)
@@ -608,6 +641,11 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(or
+		(unit-type-count archery-class > 0)
+		(unit-type-count cavalry-archer-class > 0)
+	)
 	(up-can-research gl-researchescrow-state c: ri-padded-archer-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-padded-archer-armor)
@@ -617,6 +655,11 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(or
+		(unit-type-count archery-class > 0)
+		(unit-type-count cavalry-archer-class > 0)
+	)
 	(up-can-research gl-researchescrow-state c: ri-leather-archer-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-leather-archer-armor)
@@ -626,6 +669,11 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(or
+		(unit-type-count archery-class > 0)
+		(unit-type-count cavalry-archer-class > 0)
+	)
 	(up-can-research gl-researchescrow-state c: ri-ring-archer-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-ring-archer-armor)
@@ -635,6 +683,8 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(unit-type-count infantry-class > 0)
 	(up-can-research gl-researchescrow-state c: ri-scale-mail-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-scale-mail-armor)
@@ -644,6 +694,8 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(unit-type-count infantry-class > 0)
 	(up-can-research gl-researchescrow-state c: ri-chain-mail-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-chain-mail-armor)
@@ -653,6 +705,8 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(unit-type-count infantry-class > 0)
 	(up-can-research gl-researchescrow-state c: ri-plate-mail-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-plate-mail-armor)
@@ -699,6 +753,8 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(unit-type-count cavalry-class > 0)
 	(up-can-research gl-researchescrow-state c: ri-scale-barding-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-scale-barding-armor)
@@ -708,6 +764,8 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(unit-type-count cavalry-class > 0)
 	(up-can-research gl-researchescrow-state c: ri-chain-barding-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-chain-barding-armor)
@@ -717,6 +775,8 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(unit-type-count cavalry-class > 0)
 	(up-can-research gl-researchescrow-state c: ri-plate-barding-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-plate-barding-armor)
@@ -806,16 +866,6 @@
 )
 
 ;OTHER RESEARCH ITEMS
-
-(defrule
-	(up-compare-goal current-phase == 7)
-	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
-	(goal upgrade-military-generic 1)
-	(up-can-research gl-researchescrow-state c: ri-advanced-weaponry)
-=>
-	(up-research gl-researchescrow-state c: ri-advanced-weaponry)
-	(chat-local-to-self "research advanced weaponry ")
-)
 
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)

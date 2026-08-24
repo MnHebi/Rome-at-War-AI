@@ -110,6 +110,70 @@
         "An eight-tile House placement anchor does not by itself prove pathable farm access around every terrain-constrained Mill."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britannia-rome-vs-britons-20260824-104545",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 104545.aoe2record",
+        "sha256": "7029B8A330BDECFAA57EBA81B9EBC0F48B2990384B1741CDB9E13FA0F71F1C20",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 3738
+      },
+      "direct_replay_observations": [
+        "No PR3-20260824-placement2 startup marker appeared among 1543 decoded chat records, so the deployed AI build cannot be verified from this replay.",
+        "The Roman player completed Early Antiquity at 08:18, Middle Antiquity at 15:10, and Imperial at 27:57; the Britons completed those ages at 08:25, 15:23, and 26:34.",
+        "The parser decoded no RESEARCH actions, so the replay cannot identify armor, Advanced Weaponry, Faith, or other individual technologies.",
+        "The Roman player sold wood at 21:04 and 21:15, bought stone at 25:08 and 28:06, and bought food at 25:24 and 25:34; the replay does not identify whether each Market action was AI-issued or manual intervention.",
+        "The Roman player remained at 50 villagers from 22:40 through 26:15 and issued no decoded villager production from 22:06 through 25:57 despite issuing House requests.",
+        "The Roman player issued Shipyard requests at 30:01, 39:12, and 47:56; its first decoded Scout Galley appeared at 31:07, Polyreme at 37:27, Fire Galley at 41:40, and Juggernaut at 56:43.",
+        "Decoded MAKE records contain 37 Roman Scout Galley, 19 Polyreme, 9 Fire Galley, and 1 Juggernaut commands, but no Legionary-line unit IDs 866, 868, 1658, or 1661."
+      ],
+      "implementation_inferences": [
+        "The absent placement2 marker leaves stale or game-cached runtime files as a live explanation for behavior that current source cannot reproduce, including the missing Roman Legionary production.",
+        "The former hybrid-map cap of three Shipyards is sufficient to explain why the Roman player stopped after three Shipyard requests despite a large wood reserve.",
+        "Armor research was composition-blind in source because each armor chain waited for the technology to be available rather than requiring a matching owned combat class.",
+        "The former home-defense latch required both three nearby threats and four local defenders, allowing attack dispatch while smaller incursions were already in the town.",
+        "Transport route ties always selected the same lateral waypoint because a two-value random goal was tested with less-than-or-equal-to one versus greater-than one; unload completion also had no timeout if passengers remained aboard.",
+        "The former age-up Market rules could not bridge a moderate Imperial-resource deficit, while ordinary Middle-age purchases remained able to spend the gold reserve after the target deadline."
+      ],
+      "changes_under_test": [
+        "Emit replay-visible runtime build ID PR3-20260824-placement3 and require its presence before interpreting behavioral results.",
+        "Require an owned matching infantry, archer, cavalry-archer, or cavalry class before its armor or specialized upgrade chain can spend resources.",
+        "Keep Ballistics as the first research rule, make Advanced Weaponry an immediate Imperial priority when available, and prioritize Faith when an enemy Priest or Brahmin has been observed.",
+        "After 15 minutes in Middle Antiquity, use bounded Market trades to bridge the Imperial food or gold threshold, stop ordinary gold-consuming purchases, and disable all Middle-age trading once Imperial research starts.",
+        "Permit an additional pending House after sustained low housing headroom even when an earlier foundation completed before the pressure timer fired.",
+        "Raise the hybrid-map phase ceiling from three Shipyards, maintain two naval scouts from Early Antiquity onward, respond first when a home-water ship or production berth is under attack and then aid an attacked friendly warship elsewhere, and pull vulnerable non-specialist ships away from observed Juggernauts.",
+        "Cycle every ready Port and move an idle empty Transport Ship away from an occupied berth when no transport subsystem owns it and another ship provides a known-water destination.",
+        "Reserve a Scout Galley from competing direct-control groups while it screens both the route midpoint and final landing, accept a busy explorer rather than waiting forever for an idle scout, bound missing-scout and unreachable-point retries, reject approaches where the scout draws fire or reveals static defenses, correct lateral route randomization, keep a recalled loaded transport reserved until it unloads at home, and order an emptied Transport Ship home after landing.",
+        "Activate home defense on the first reachable land incursion or an attacked home-water asset with an observed hostile warship nearby, abort active launch preparation and transport routes, and keep the defense latch until both local threat classes clear.",
+        "Count an eight-or-greater net non-defensive army-loss window toward the existing two-failure regroup-and-siege escalation.",
+        "Use the escrow-aware DUC trainability and production commands for the Roman Empire's bounded direct Legionary baseline while retaining the automatic Middle-age availability path from the current DAT."
+      ],
+      "fresh_replay_acceptance": [
+        "Replay chat contains runtime build ID PR3-20260824-placement3 and the pre-match deployment checker reports no differing AI files.",
+        "Archer, infantry, and cavalry armor plus Marksmanship and Parthian Tactics do not begin without an owned affected class; Advanced Weaponry becomes an immediate Imperial priority while Ballistics retains earlier rule order, and Faith receives priority after enemy conversion units are observed.",
+        "A safe non-rush Roman player reaches or begins Imperial near the 15-to-20-minute target, using Market bridging when close rather than spending the reserve on unrelated purchases.",
+        "Sustained housing headroom below three can create a second pending House even if the earlier foundation completed, and does not produce another multi-minute Town Center villager gap.",
+        "A hybrid-map player can expand beyond three Shipyards when its phase target and resources allow it, maintains scouting vessels, and nearby unreserved warships answer attacks in home waters or against an attacked friendly scout elsewhere.",
+        "Every loaded military transport waypoint is scouted before entry; observed tower, sea-tower, Castle, Town Center, or defensive fire against the scout causes a home recall, lack of any scout times out, incomplete unloading times out, and the loaded transport remains reserved until it is empty in home water.",
+        "No attack launches while a reachable hostile land unit is inside the home-response radius or a home-water asset is under observed warship attack, and already forming raids or transport attacks are cancelled.",
+        "Two eight-or-greater net non-defensive army-loss windows suppress further opportunistic raids and require the configured large regrouping attack; three known fortifications keep the force home until siege is available.",
+        "Roman Legionary-line units appear after Middle Antiquity when infantry demand exists; if they do not, the replay-visible runtime marker and source-matched deployment are used to isolate the remaining production gate."
+      ],
+      "known_limits": [
+        "The replay parser cannot verify individual research actions, selection state, idle-unit state, transport occupancy, exact transport paths, or whether a Market action was manual.",
+        "A scout screen validates only currently observed defenses near each waypoint and defensive fire against its own ship; it cannot prove fogged water is safe, guarantee the pathfinder will follow the scout's exact route, or detect another enemy player's static defenses in a team game while the route scan is focused on the selected target player.",
+        "Local land response scans the selected closest enemy and naval rescue uses the engine's recent-attacker player; multi-enemy attribution therefore remains a fresh team-game validation target.",
+        "The engine exposes coarse local searches rather than projectile events, so Juggernaut evasion reacts to an attacked ship plus a nearby observed Juggernaut rather than to an individual shot.",
+        "Moving an empty transport from a production berth is bounded to transports not reserved by migration, relic, recovery, repair, or route state and requires another ship 12-to-40 tiles from the Port as a known-water destination; water connectivity and congestion still require an in-game replay.",
+        "The Legionary line is automatically enabled for the Roman Empire by its Middle Antiquity availability technology; the stance technologies switch forms and are not unlock prerequisites."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

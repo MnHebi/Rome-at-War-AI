@@ -322,6 +322,27 @@
 	(chat-local-to-self "allow-houses YES")
 )
 
+;One House at a time cannot keep pace with several Town Centers and military
+;buildings. Start a pressure timer at three slots of headroom, then permit one
+;additional pending House while the shortage persists. The two-foundation cap
+;prevents the old unbounded House-flood failure mode.
+(defrule
+	(goal gl-house-pressure NO)
+	(housing-headroom < 5)
+	(up-pending-objects c: house >= 1)
+=>
+	(set-goal gl-house-pressure YES)
+	(up-set-timer c: t-house-pressure c: 15)
+)
+
+(defrule
+	(goal gl-house-pressure YES)
+	(housing-headroom >= 5)
+=>
+	(set-goal gl-house-pressure NO)
+	(up-set-timer c: t-house-pressure c: 30)
+)
+
 (defrule
 	(current-age >= middle-antiquity-age)
 	(can-afford-building town-center)
@@ -403,6 +424,35 @@
 	;Starting-Mill starts and rebuilt housing use the same local clearance bias.
 	(up-set-placement-data my-player-number mill c: 8)
 	(up-build place-control 0 c: house)
+)
+
+(defrule
+	(goal gl-house-pressure YES)
+	(up-timer-status t-house-pressure == timer-triggered)
+	(building-type-count-total mill >= 1)
+	(up-pending-objects c: house < 2)
+	(population-headroom > 0)
+	(housing-headroom < 3)
+	(can-afford-building house)
+	(up-can-build 0 c: house)
+=>
+	(up-set-placement-data my-player-number mill c: 8)
+	(up-build place-control 0 c: house)
+	(up-set-timer c: t-house-pressure c: 30)
+)
+
+(defrule
+	(goal gl-house-pressure YES)
+	(up-timer-status t-house-pressure == timer-triggered)
+	(building-type-count-total mill == 0)
+	(up-pending-objects c: house < 2)
+	(population-headroom > 0)
+	(housing-headroom < 3)
+	(can-afford-building house)
+	(up-can-build 0 c: house)
+=>
+	(up-build place-normal 0 c: house)
+	(up-set-timer c: t-house-pressure c: 30)
 )
 
 (defrule
@@ -1409,7 +1459,10 @@
 		(goal map-type LAKE)
 		(or
 			(goal map-type RIVERS)
-			(goal map-type ISLANDS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
 		)
 	)
 	(building-type-count-total dock g:< desired-number-docks)
@@ -1423,7 +1476,7 @@
 	(current-age >= middle-antiquity-age)
 	(or
 		(building-type-count town-center >= 2)
-		(game-time >= 1200)
+		(game-time >= 990)
 	)
 	(can-afford-building university)
 	(building-type-count-total university g:< desired-number-universities)
@@ -1435,7 +1488,7 @@
 	(current-age >= middle-antiquity-age)
 	(or
 		(building-type-count town-center >= 2)
-		(game-time >= 1200)
+		(game-time >= 990)
 	)
 	(can-afford-building monastery)
 	(building-type-count-total monastery g:< desired-number-monasteries)
