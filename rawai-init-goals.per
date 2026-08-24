@@ -295,6 +295,42 @@
 	(disable-self)
 )
 
+;Remote-colony and dedicated siege controllers remain isolated from the other
+;startup blocks so additions cannot recreate ERR6002's expression overflow.
+(defrule
+	(true)
+=>
+	(set-goal gl-local-response-zone -1)
+	(set-goal gl-naval-response-zone -1)
+	(set-goal gl-naval-response-land-threat NO)
+	(set-goal gl-island-colony-x 0)
+	(set-goal gl-island-colony-y 0)
+	(set-goal gl-island-colony-zone -1)
+	(set-goal gl-migration-placement-lock NO)
+	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
+	(set-goal gl-colony-towncenter-focus 0)
+	(set-goal gl-colony-towncenter-target-x 0)
+	(set-goal gl-colony-towncenter-target-y 0)
+	(set-goal gl-colony-towncenter-resource-count 0)
+	(set-goal gl-colony-towncenter-attempts 0)
+	(set-goal gl-colony-towncenter-id -1)
+	(set-goal gl-siege-target-state SIEGE-TARGET-IDLE)
+	(set-goal gl-siege-target-focus 0)
+	(set-goal gl-siege-target-player 0)
+	(set-goal gl-siege-target-zone -1)
+	(set-goal gl-siege-source-id -1)
+	(set-goal gl-siege-source-count 0)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+	(set-goal gl-naval-siege-focus 0)
+	(set-goal gl-naval-siege-player 0)
+	(set-goal gl-naval-siege-source-id -1)
+	(set-goal gl-naval-siege-source-count 0)
+	(up-set-timer c: t-colony-towncenter c: 45)
+	(up-set-timer c: t-siege-target c: 12)
+	(up-set-timer c: t-naval-siege c: 12)
+	(disable-self)
+)
+
 ;Recorded replays do not embed the loaded AI files. Emit a semantic runtime ID
 ;so stale or cached test payloads can be distinguished from the current build.
 (defrule
@@ -304,7 +340,7 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B5: %d" c: 5)
+	(up-chat-data-to-self "RAWAI-P3B6: %d" c: 6)
 	(disable-self)
 )
 

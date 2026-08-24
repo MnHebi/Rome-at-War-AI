@@ -249,6 +249,77 @@
         "resources-depleted remains a global known-map signal rather than a home-island depletion measure; the independent two-idle-villager trigger handles visible shoreline unemployment, while a per-land-zone resource inventory and per-zone gather allocation remain unresolved."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-rome-vs-britons-20260824-140224",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 140224.aoe2record",
+        "sha256": "820AE4D68CC3017BF2B5499B868D23E2D7D50B26C816B301E8DE43A32FC59C55",
+        "mainlog_basename": "MainLog.txt",
+        "mainlog_sha256": "C92288EFDB0CF525D91F7155130D45CA6E673A66C5D38FBB3B19AF8A69DE334D",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 6100
+      },
+      "direct_replay_observations": [
+        "The match completed normally at 101:40 with Player 2 resigning; no replay parser errors were reported.",
+        "None of 2664 decoded chat records contains the expected RAWAI-P3B5 startup marker, so the exact deployed source revision remains unverified.",
+        "A Roman Town Center requested at (102,50) around 39:21 became an active producer around 40:27. Roman civilian count then fell from 93 at 54:19 to 62 at 55:20, while ten Roman warboats existed and no warboat loss was recorded until 63:24.",
+        "Remote Roman economic requests included Lumber Camps near (201,15), (135,148), and (202,42), plus Mining Camps near (209,38), (160,147), and (167,142).",
+        "Eleven DELETE commands at 60:18 through 60:26 targeted object 11595, which the log identifies as a completed MINE3 Mining Camp at (90,42).",
+        "Duplicate Town Center requests at (66,56) around 78:20 produced no later villager-producing Town Center and were followed by clustered DELETE actions, but the deleted object types are unavailable and a Town Center-foundation deletion is not proven.",
+        "No Roman Legionary-family MAKE request occurred for IDs 866, 868, 1658, or 1661.",
+        "Roman naval MAKE requests comprised 30 Scout Galleys, 21 Fire Galleys, 15 Polyremes, 11 Juggernauts, and 11 Transports from six distinct Shipyards; no Octeres 1884 request occurred.",
+        "The replay does not expose reliable Juggernaut range bands or dynamic Pummel or ram target types.",
+        "Meaningful AI state in the 64.7 GB MainLog ends around game time 30:17; later sampled content is runaway UnitAIModule trace repetition and cannot establish whole-AI idleness or the cause of any gameplay behavior."
+      ],
+      "implementation_inferences": [
+        "Current land response explicitly removed every off-mainland threat and current naval response scanned only attacked ships, Ports, and Shipyards near the original town, which is sufficient to exclude the reported island colony from both response triggers.",
+        "The completed Mining Camp deletion is explained by a generic delete-building rule that cannot select which camp is removed; no equivalent explicit Town Center deletion rule exists.",
+        "Migration confirms a resource colony after a Mill or Camp foundation but had no remote Town Center producer, so full island settlement and relocation were unimplemented.",
+        "Roman good-navy NO routes the stable selector around Hemiolia, Quadrireme, and Octeres even when their affinity and DAT availability are high; the match never reached Imperial, so this replay alone cannot prove an Imperial Octeres availability failure.",
+        "Long-form Juggernaut and ram target selection was left to global engine attack groups; no unit-specific fortification controller existed.",
+        "The Roman Legionary rule existed, but its semantic up-can-train and up-train path produced no replay MAKE record; the exact failed runtime gate remains unobservable."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B6 and require a source-matched deployment before behavioral attribution.",
+        "Select an attacked owned villager or economic anchor anywhere on the map, identify its recent attacker, require a same-land-zone threat, and dispatch same-zone defenders leashed to the attacked point instead of the original Town Center.",
+        "Allow an attacked coastal economy anywhere on the map to identify a nearby hostile warship or shoreline land raider; draw unreserved friendly warships from the same water zone against ships or from a bounded 56-tile coastal radius against land units, then release and leash them at the defended point.",
+        "After a confirmed resource colony, use at least twelve observed natural-resource objects as an explicit island-size proxy and try no more than four point-placed Town Center offsets before cooling down; suppress ordinary home Town Center placement and new migration dropsite ownership until the colony Town Center attempt resolves.",
+        "Remove untargeted completed Mining Camp deletion while leaving the engine-wide building-cancellation threshold unchanged, and retain verified villager-class DUC selectors with gather-role filters rather than using counting-only villager role pseudo-types as object selectors.",
+        "Under sustained housing pressure, point-place a new House beside the confirmed colony without deleting completed inner housing.",
+        "Repeatedly assign long-form Juggernauts and Octeres an exact known fortification target and separately direct the ram family to nearby Towers, Castles, Town Centers, walls, and gates rather than economic camps.",
+        "Use concrete DAT-backed Legionary IDs 866 and 868 with conservative two-percent caps on both ranged and melee forms, keeping their worst-case combined family below five percent, and audit all four physical stance IDs in the unique-unit manifest.",
+        "Keep Rome's generic Extreme navy focus disabled while allowing bounded threat-gated Hemiolia and Quadrireme selector overrides and a fortification-gated Octeres override."
+      ],
+      "fresh_replay_acceptance": [
+        "The pre-match deployment checker reports no differing runtime files and replay chat contains RAWAI-P3B6 near match start.",
+        "An attacked remote Mining Camp, Lumber Camp, Town Center, or villager produces an asset-defense zone record and same-zone defenders engage without being recalled across water after the threat clears.",
+        "When an island expansion is attacked, replay chat distinguishes a hostile water zone from a coastal land threat; available unreserved warships in that water zone or within the bounded coastal radius receive response orders even when the asset lies outside the original town radius.",
+        "A resource-bearing colony with at least twelve currently observed natural-resource objects and no Town Center receives no more than four remote Town Center placement attempts; an accepted foundation receives the configured six-builder assistance and ordinary home expansion does not steal that placement window.",
+        "No completed productive Mining Camp is deleted merely because another known gold or stone node is more than eight tiles from a dropsite, and remote role workers can seed follow-up Camps.",
+        "Sustained low housing headroom can produce a colony House without deleting existing housing or blocking a remote Town Center placement.",
+        "Rams with an observed same-zone fortification retain a fortification target rather than crossing the enemy town for a Mining Camp; long-form Juggernauts and Octeres reacquire a static defensive target after target loss, while replay distance measurements determine whether a separate explicit standoff controller is still required.",
+        "Roman Legionary IDs 866 or 868 receive MAKE requests in Middle Antiquity while both conservative weapon-form caps permit production.",
+        "On an Imperial source-matched test, observed fortifications can produce a bounded Octeres, and an inferior fleet can produce bounded Hemiolia or Quadrireme detachments without enabling an unrestricted generic Roman navy composition."
+      ],
+      "known_limits": [
+        "The engine exposes map-zone and observed resource counts, not terrain area; twelve resources are a documented settlement proxy and must be calibrated in fresh replays.",
+        "A remote Town Center does not redefine position-self. Home-centered economy systems remain anchored to the original town, while the new defense and housing paths explicitly use the colony point.",
+        "The colony-established and colony-Town-Center sentinels are not yet cleared automatically if every settler dies, the colony is exhausted, or its Town Center is destroyed; per-zone lifecycle remains unresolved.",
+        "Asset scans use bounded DUC search lists. A very large economy can still hide an attacked villager beyond a role list, although attacked economic buildings are searched separately.",
+        "For shoreline land attackers, distance from the attacked asset is only a coastal-reachability proxy; the engine exposes no general warship-to-land-target path query, so a disconnected nearby basin remains a fresh-replay risk.",
+        "Exact target commands prevent target drift but do not mathematically enforce a maximum-range annulus; pathing, obstruction handling, weapon-form state, distance discipline, and runtime command ownership still require replay evidence.",
+        "The siege controllers currently inspect the closest enemy player. Their exact-target behavior is therefore calibrated for the present one-versus-one test and requires enemy iteration before it is reliable in free-for-all matches.",
+        "Pummel is not an identifier in the current DAT, strings, unit lines, or AI constants. The implemented land controller assumes the user meant the Battering Ram, Capped Ram, and Siege Ram family.",
+        "The replay cannot identify whether clustered unknown DELETE commands removed a Town Center foundation; cancellation telemetry and a source-matched replay are still required.",
+        "The inspected MainLog is not a usable whole-match oracle because most of it is repetitive UnitAIModule trace output."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

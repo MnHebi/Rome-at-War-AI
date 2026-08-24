@@ -924,34 +924,11 @@
 ;	(train construction-ship)
 ;)
 
-;Do not delete Lumber Camps through delete-building: that command cannot select
-;the depleted camp and can erase the productive camp just placed at a new wood
-;line. Targeted object-ID deletion can be added once camp depletion is tracked.
+;Do not delete resource Camps through delete-building: that command cannot
+;select the depleted camp and can erase the productive remote camp instead.
+;Targeted object-ID deletion can be added once per-zone depletion is tracked.
 
 ;Trim fishing fleets when their fishing grounds shrink.
-
-(defrule
-	(and
-		(goal gold-present YES)
-		(goal stone-present YES)
-	)
-	(or
-		(dropsite-min-distance stone > 8)
-		(dropsite-min-distance gold > 8)
-	)
-=>
-	(set-goal delete-mining-dropoff 1)
-)
-
-(defrule
-	(and
-		(goal delete-mining-dropoff 1)
-		(building-type-count-total mining-camp g:>= desired-number-miningcamps)
-	)
-=>
-	(delete-building mining-camp)
-	(set-goal delete-mining-dropoff 0)
-)
 
 (defrule
 	(up-timer-status t-update-facts == timer-triggered)

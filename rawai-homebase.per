@@ -343,8 +343,320 @@
 	(up-set-timer c: t-house-pressure c: 30)
 )
 
+;A confirmed resource colony becomes a real settlement when its land zone has
+;enough observed resources to justify a Town Center. Map-zone and resource
+;density are the engine-visible proxy for island size; terrain area itself is
+;not exposed to the AI scripting interface.
+(defrule
+	(up-timer-status t-colony-towncenter == timer-triggered)
+	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
+	(goal gl-island-colony-established YES)
+	(up-compare-goal gl-colony-towncenter-id c:< 0)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(or
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
+=>
+	(set-goal gl-colony-towncenter-state COLONY-TC-GATE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-GATE)
+	(goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
+	(goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+	(current-age >= middle-antiquity-age)
+	(building-type-count-total town-center < 8)
+	(or
+		(building-type-count-total town-center g:< desired-number-towncenters)
+		(goal resources-depleted YES)
+	)
+	(up-pending-objects c: town-center <= 0)
+	(not (up-pending-placement c: town-center))
+	(can-afford-building town-center)
+=>
+	(up-modify-goal gl-colony-towncenter-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-colony-x)
+	(up-filter-distance c: -1 c: 40)
+	(up-find-local c: villager-class c: 40)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-colony-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-colony-towncenter-state COLONY-TC-FIND-SETTLER)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-GATE)
+=>
+	(up-set-timer c: t-colony-towncenter c: 45)
+	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-FIND-SETTLER)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-point position-object gl-colony-towncenter-target-x)
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-colony-towncenter-target-x)
+	(up-filter-distance c: -1 c: 36)
+	(up-find-remote c: gold-mine-class c: 10)
+	(up-find-remote c: stone-mine-class c: 10)
+	(up-find-remote c: tree-class c: 40)
+	(up-find-remote c: forage-class c: 10)
+	(up-find-remote c: prey-animal-class c: 10)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-island-colony-zone)
+	(up-get-search-state remote-total)
+	(up-modify-goal gl-colony-towncenter-resource-count g:= remote-total)
+	(set-goal gl-colony-towncenter-state COLONY-TC-CHECK-RESOURCES)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-FIND-SETTLER)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
+	(up-set-timer c: t-colony-towncenter c: 90)
+	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-CHECK-RESOURCES)
+	(up-compare-goal gl-colony-towncenter-resource-count c:>= 12)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-find-local c: town-center c: 20)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-colony-zone)
+	(set-goal gl-colony-towncenter-state COLONY-TC-CHECK-EXISTING)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-CHECK-RESOURCES)
+	(up-compare-goal gl-colony-towncenter-resource-count c:< 12)
+=>
+	(up-chat-data-to-self "colony TC resource proxy too small: %d" g: gl-colony-towncenter-resource-count)
+	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
+	(up-set-timer c: t-colony-towncenter c: 120)
+	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-CHECK-EXISTING)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-colony-towncenter-id)
+	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
+	(up-set-timer c: t-colony-towncenter c: 180)
+	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-CHECK-EXISTING)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
+	(set-goal gl-colony-towncenter-attempts 0)
+	(set-goal gl-colony-towncenter-state COLONY-TC-PLACE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-PLACE)
+	(goal gl-colony-towncenter-attempts 0)
+=>
+	(up-copy-point point2-x gl-colony-towncenter-target-x)
+	(up-modify-goal point2-x c:+ 8)
+	(up-modify-goal point2-y c:+ 8)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+	(set-goal gl-colony-towncenter-state COLONY-TC-ISSUE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-PLACE)
+	(goal gl-colony-towncenter-attempts 1)
+=>
+	(up-copy-point point2-x gl-colony-towncenter-target-x)
+	(up-modify-goal point2-x c:- 8)
+	(up-modify-goal point2-y c:+ 8)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+	(set-goal gl-colony-towncenter-state COLONY-TC-ISSUE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-PLACE)
+	(goal gl-colony-towncenter-attempts 2)
+=>
+	(up-copy-point point2-x gl-colony-towncenter-target-x)
+	(up-modify-goal point2-x c:+ 8)
+	(up-modify-goal point2-y c:- 8)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+	(set-goal gl-colony-towncenter-state COLONY-TC-ISSUE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-PLACE)
+	(goal gl-colony-towncenter-attempts 3)
+=>
+	(up-copy-point point2-x gl-colony-towncenter-target-x)
+	(up-modify-goal point2-x c:- 8)
+	(up-modify-goal point2-y c:- 8)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+	(set-goal gl-colony-towncenter-state COLONY-TC-ISSUE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-ISSUE)
+	(or
+		(up-pending-placement c: town-center)
+		(or
+			(up-pending-placement c: market)
+			(or
+				(up-pending-placement c: lumber-camp)
+				(or
+					(up-pending-placement c: mining-camp)
+					(or
+						(up-pending-placement c: mill)
+						(up-pending-placement c: house)
+					)
+				)
+			)
+		)
+	)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
+	(up-set-timer c: t-colony-towncenter c: 15)
+	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-ISSUE)
+	(up-pending-objects c: town-center <= 0)
+	(not (up-pending-placement c: town-center))
+	(up-can-build 0 c: town-center)
+=>
+	(up-build place-point 0 c: town-center)
+	(up-modify-goal gl-colony-towncenter-attempts c:+ 1)
+	(up-chat-data-to-self "colony TC placement attempt: %d" g: gl-colony-towncenter-attempts)
+	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
+	(up-set-timer c: t-colony-towncenter c: 20)
+	(set-goal gl-colony-towncenter-state COLONY-TC-WAIT)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-ISSUE)
+	(up-compare-goal gl-colony-towncenter-attempts c:< 3)
+	(can-afford-building town-center)
+	(not (up-can-build 0 c: town-center))
+=>
+	(up-modify-goal gl-colony-towncenter-attempts c:+ 1)
+	(set-goal gl-colony-towncenter-state COLONY-TC-PLACE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-ISSUE)
+	(up-compare-goal gl-colony-towncenter-attempts c:>= 3)
+	(can-afford-building town-center)
+	(not (up-can-build 0 c: town-center))
+=>
+	(up-chat-data-to-self "colony TC placement exhausted: %d" g: gl-island-colony-zone)
+	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
+	(up-set-timer c: t-colony-towncenter c: 120)
+	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-ISSUE)
+	(not (can-afford-building town-center))
+=>
+	(up-chat-data-to-self "colony TC resource wait in zone: %d" g: gl-island-colony-zone)
+	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
+	(up-set-timer c: t-colony-towncenter c: 60)
+	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-WAIT)
+	(up-pending-objects c: town-center >= 1)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-filter-status c: status-pending c: list-active)
+	(up-find-status-local c: town-center c: 10)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-colony-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-colony-towncenter-state COLONY-TC-ASSIGN)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-ASSIGN)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-colony-towncenter-id)
+	(up-get-point position-object gl-colony-towncenter-target-x)
+	(up-full-reset-search)
+	(up-set-target-point gl-colony-towncenter-target-x)
+	(up-filter-distance c: -1 c: 24)
+	(up-find-local c: villager-class c: 6)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-colony-zone)
+	(up-remove-objects search-local object-data-language-id == lid-villager-shepherd)
+	(up-remove-objects search-local object-data-language-id == lid-villager-hunter)
+	(up-remove-objects search-local object-data-language-id == lid-villager-fisherman)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-add-object-by-id search-remote g: gl-colony-towncenter-id)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+	(up-chat-data-to-self "colony TC accepted in zone: %d" g: gl-island-colony-zone)
+	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
+	(up-set-timer c: t-colony-towncenter c: 180)
+	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-ASSIGN)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-chat-data-to-self "colony TC pending owner mismatch: %d" g: gl-island-colony-zone)
+	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
+	(up-set-timer c: t-colony-towncenter c: 120)
+	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-WAIT)
+	(up-timer-status t-colony-towncenter == timer-triggered)
+	(up-pending-objects c: town-center <= 0)
+	(up-compare-goal gl-colony-towncenter-attempts c:< 4)
+=>
+	(up-reset-placement c: town-center)
+	(set-goal gl-colony-towncenter-state COLONY-TC-PLACE)
+)
+
+(defrule
+	(goal gl-colony-towncenter-state COLONY-TC-WAIT)
+	(up-timer-status t-colony-towncenter == timer-triggered)
+	(up-pending-objects c: town-center <= 0)
+	(up-compare-goal gl-colony-towncenter-attempts c:>= 4)
+=>
+	(up-chat-data-to-self "colony TC foundation not accepted: %d" g: gl-island-colony-zone)
+	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
+	(up-set-timer c: t-colony-towncenter c: 120)
+	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
+)
+
 (defrule
 	(current-age >= middle-antiquity-age)
+	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
+	(goal gl-island-migration-state MIGRATION-IDLE)
 	(can-afford-building town-center)
 	(building-type-count-total town-center g:< desired-number-towncenters)
 	(up-can-build 0 c: town-center)
@@ -356,6 +668,7 @@
 	(goal allow-houses 1)
 	(building-type-count-total house == 0)
 	(building-type-count-total mill == 0)
+	(goal gl-migration-placement-lock NO)
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
@@ -370,6 +683,7 @@
 	(goal allow-houses 1)
 	(building-type-count-total house > 0)
 	(building-type-count-total mill == 0)
+	(goal gl-migration-placement-lock NO)
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
@@ -385,6 +699,7 @@
 	(goal allow-houses 1)
 	(building-type-count-total house > 0)
 	(building-type-count-total mill >= 1)
+	(goal gl-migration-placement-lock NO)
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
@@ -402,6 +717,7 @@
 	(goal allow-houses 1)
 	(building-type-count-total house > 0)
 	(building-type-count-total mill == 0)
+	(goal gl-migration-placement-lock NO)
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
@@ -415,6 +731,7 @@
 	(goal allow-houses 1)
 	(building-type-count-total house == 0)
 	(building-type-count-total mill >= 1)
+	(goal gl-migration-placement-lock NO)
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
@@ -426,10 +743,39 @@
 	(up-build place-control 0 c: house)
 )
 
+;Under sustained population pressure, put one new House at the confirmed
+;colony instead of consuming another military-production tile around the home
+;Mill. This is replacement-free: completed inner housing is never deleted.
+(defrule
+	(goal gl-house-pressure YES)
+	(goal gl-island-colony-established YES)
+	(goal gl-migration-placement-lock NO)
+	(up-timer-status t-house-pressure == timer-triggered)
+	(up-pending-objects c: house < 2)
+	(population-headroom > 0)
+	(housing-headroom < 3)
+	(can-afford-building house)
+	(or
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
+=>
+	(up-copy-point point2-x gl-island-colony-x)
+	(up-modify-goal point2-x c:+ 14)
+	(up-modify-goal point2-y c:+ 14)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+	(up-build place-point 0 c: house)
+)
+
 (defrule
 	(goal gl-house-pressure YES)
 	(up-timer-status t-house-pressure == timer-triggered)
 	(building-type-count-total mill >= 1)
+	(goal gl-migration-placement-lock NO)
 	(up-pending-objects c: house < 2)
 	(population-headroom > 0)
 	(housing-headroom < 3)
@@ -445,6 +791,7 @@
 	(goal gl-house-pressure YES)
 	(up-timer-status t-house-pressure == timer-triggered)
 	(building-type-count-total mill == 0)
+	(goal gl-migration-placement-lock NO)
 	(up-pending-objects c: house < 2)
 	(population-headroom > 0)
 	(housing-headroom < 3)
@@ -460,6 +807,7 @@
 	(goal allow-houses 1)
 	(building-type-count-total house > 0)
 	(building-type-count-total mill >= 1)
+	(goal gl-migration-placement-lock NO)
 	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
 	(housing-headroom < 5)
@@ -898,6 +1246,8 @@
 )
 
 (defrule
+	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
+	(goal gl-island-migration-state MIGRATION-IDLE)
 	(can-afford-building town-center)
 	(building-type-count-total town-center == 0)
 	(up-can-build 0 c: town-center)
@@ -1395,6 +1745,7 @@
 			)
 		)
 	)
+	(goal gl-migration-placement-lock NO)
 	(can-afford-building market)
 	(building-type-count-total market == 0)
 	(up-pending-objects c: market <= 0)
@@ -1412,6 +1763,7 @@
 ;positive town radius. This cannot issue thousands of identical commands.
 (defrule
 	(current-age >= early-antiquity-age)
+	(goal gl-migration-placement-lock NO)
 	(or
 		(current-age != middle-antiquity-age)
 		(or
@@ -1444,6 +1796,7 @@
 
 (defrule
 	(current-age == imperial-age)
+	(goal gl-migration-placement-lock NO)
 	(can-afford-building market)
 	(building-type-count-total market g:< desired-number-markets)
 	(up-pending-objects c: market <= 0)

@@ -1600,14 +1600,71 @@
 )
 
 ;Legionaries are unique and keep a bounded baseline even when Champion is not
-;part of the generic focus-sheet composition.
+;part of the generic focus-sheet composition. Use the concrete DAT-backed
+;producer IDs: replay evidence showed that the semantic line operand never
+;issued a MAKE command even with an available Barracks and resources.
 (defrule
 	(up-compare-goal current-phase >= 5)
-	(unit-type-count-total legionary-ranged-line g:< gl-five-percent)
+	(unit-type-count-total legionary-ranged-line g:< gl-two-percent)
+	(unit-type-count-total legionary-melee-line g:< gl-two-percent)
 	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: legionary-ranged-line)
+	(can-train elite-legionary)
 =>
-	(up-train gl-unitescrow-state c: legionary-ranged-line)
+	(train elite-legionary)
+	(chat-local-to-self "Roman concrete Elite Legionary production")
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(unit-type-count-total legionary-ranged-line g:< gl-two-percent)
+	(unit-type-count-total legionary-melee-line g:< gl-two-percent)
+	(food-amount > 180)
+	(can-train legionary)
+=>
+	(train legionary)
+	(chat-local-to-self "Roman concrete Legionary production")
+)
+
+;The Extreme focus sheet keeps Rome's generic planned navy disabled. These
+;small, threat-gated detachments use the civ file's high specialist affinities
+;without turning the selector into an unrestricted alternate composition.
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal naval-superiority c:<= TOLERABLE)
+	(players-unit-type-count any-enemy warship-class >= 3)
+	(unit-type-count-total hemiolia-line < 2)
+	(wood-amount > 200)
+	(gold-amount > 100)
+	(can-train hemiolia-line)
+=>
+	(set-goal train-hemiolia YES)
+	(set-goal ship-train HEMIOLIA)
+	(chat-local-to-self "Roman reactive Hemiolia detachment")
+)
+
+(defrule
+	(current-age >= imperial-age)
+	(up-compare-goal naval-superiority c:<= TOLERABLE)
+	(players-unit-type-count any-enemy warship-class >= 8)
+	(unit-type-count-total quadrireme-line < 2)
+	(wood-amount > 300)
+	(gold-amount > 200)
+	(can-train quadrireme-line)
+=>
+	(set-goal ship-train Q-REME)
+	(chat-local-to-self "Roman reactive Quadrireme detachment")
+)
+
+(defrule
+	(current-age >= imperial-age)
+	(up-compare-goal gl-known-fortifications c:>= 1)
+	(unit-type-count-total octeres < 1)
+	(wood-amount > 300)
+	(gold-amount > 200)
+	(can-train octeres)
+=>
+	(set-goal ship-train OCTERES)
+	(chat-local-to-self "Roman coastal-siege Octeres")
 )
 
 ; Upgrade Praetorian Prefect
