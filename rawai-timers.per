@@ -114,7 +114,8 @@
 	(up-timer-status t-unit-type != timer-running)
 =>
 	(chat-local-to-self "refresh unit type timer")
-	(enable-timer t-unit-type 15)
+	;Restart an already-triggered UP timer after the earlier unit selectors run.
+	(up-set-timer c: t-unit-type c: 15)
 )
 
 ;timer 17, check villagers timer

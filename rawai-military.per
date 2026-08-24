@@ -6327,7 +6327,7 @@
 
 (defrule
 	(and
-		(up-timer-status t-unit-type != timer-running)
+		(up-timer-status t-unit-type == timer-triggered)
 		(gold-amount < 500)
 	)
 	(goal train-type MAIN)
@@ -6338,18 +6338,7 @@
 
 (defrule
 	(and
-		(up-timer-status t-unit-type != timer-running)
-		(gold-amount > 500)
-	)
-	(goal train-type MAIN)
-=>
-	(chat-local-to-self "unit type switch to TRASH")
-	(set-goal train-type TRASH)
-)
-
-(defrule
-	(and
-		(up-timer-status t-unit-type != timer-running)
+		(up-timer-status t-unit-type == timer-triggered)
 		(gold-amount > 500)
 	)
 	(goal train-type TRASH)
@@ -6357,6 +6346,11 @@
 	(chat-local-to-self "unit type switch to MAIN")
 	(set-goal train-type MAIN)
 )
+
+;The generated match-relative naval doctrine is the only active owner of ship
+;permission goals. Keep the old budget toggle and ship switcher behind one
+;undefined compatibility flag so they cannot race the doctrine every sweep.
+#load-if-defined RAWAI-LEGACY-NAVY-SWITCHER
 
 ;allow navy training once we have sufficient gold and wood
 
@@ -6436,10 +6430,6 @@
 	(set-goal train-hemiolia NO)
 	(set-goal train-boardingships NO)
 )
-
-;Retained only as reference for older AI builds. The stable selector above
-;supersedes this cascading selector.
-#load-if-defined RAWAI-LEGACY-NAVY-SWITCHER
 
 ;good navies begin
 
@@ -6853,6 +6843,10 @@
 #load-if-not-defined DIFFICULTY-HARDEST
 #load-if-not-defined DIFFICULTY-HARD
 
+;The low-difficulty copy of the obsolete budget toggle and ship switcher is
+;disabled by the same compatibility flag.
+#load-if-defined RAWAI-LEGACY-NAVY-SWITCHER
+
 ;allow navy training once we have sufficient gold and wood
 
 (defrule
@@ -6931,10 +6925,6 @@
 	(set-goal train-hemiolia NO)
 	(set-goal train-boardingships NO)
 )
-
-;Retained only as reference for older AI builds. The stable selector above
-;supersedes this cascading selector.
-#load-if-defined RAWAI-LEGACY-NAVY-SWITCHER
 
 ;just go through ship types in order...
 

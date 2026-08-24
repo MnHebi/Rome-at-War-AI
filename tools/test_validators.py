@@ -405,7 +405,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B9", self.init_goals)
+        self.assertIn("RAWAI-P3B10", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -588,6 +588,50 @@ class FarmPolicyTests(unittest.TestCase):
                 "gl-local-response-responders" in facts
                 or "gl-naval-response-responders" in facts
             )
+
+    def test_legacy_naval_permission_writers_are_compile_gated(self) -> None:
+        compatibility_flag = "#load-if-defined RAWAI-LEGACY-NAVY-SWITCHER"
+        self.assertEqual(self.military.count(compatibility_flag), 2)
+        gated_disallow = re.findall(
+            rf"{compatibility_flag}"
+            rf"(?:(?!#end-if).)*disallow navy training",
+            self.military,
+            flags=re.DOTALL,
+        )
+        self.assertEqual(len(gated_disallow), 2)
+
+    def test_unit_type_timer_has_one_direction_per_gold_band(self) -> None:
+        low_gold = matching_rules(
+            self.military,
+            facts=(
+                "(up-timer-status t-unit-type == timer-triggered)",
+                "(gold-amount < 500)",
+                "(goal train-type MAIN)",
+            ),
+            actions=("(set-goal train-type TRASH)",),
+        )
+        high_gold = matching_rules(
+            self.military,
+            facts=(
+                "(up-timer-status t-unit-type == timer-triggered)",
+                "(gold-amount > 500)",
+                "(goal train-type TRASH)",
+            ),
+            actions=("(set-goal train-type MAIN)",),
+        )
+        contradictory = matching_rules(
+            self.military,
+            facts=(
+                "(gold-amount > 500)",
+                "(goal train-type MAIN)",
+            ),
+            actions=("(set-goal train-type TRASH)",),
+        )
+        self.assertEqual(len(low_gold), 1)
+        self.assertEqual(len(high_gold), 1)
+        self.assertEqual(contradictory, [])
+        self.assertIn("(up-set-timer c: t-unit-type c: 15)", self.timers)
+        self.assertNotIn("(enable-timer t-unit-type 15)", self.timers)
 
 
 if __name__ == "__main__":
