@@ -83,7 +83,7 @@
 	(true)
 =>
 	(up-modify-goal desired-number-towncenters c:= 0)
-	(up-modify-goal desired-number-farms c:= 0)
+	(up-modify-goal desired-depleted-villagers c:= 0)
 	(up-modify-goal desired-number-lumbercamps c:= 0)
 	(up-modify-goal desired-number-mills c:= 0)
 	(up-modify-goal desired-number-miningcamps c:= 0)
@@ -122,7 +122,7 @@
 (defrule
 	(true)
 =>
-	(set-goal dependent-farms 1)
+	(set-goal dependent-farms FARM-DEMAND-DEPENDENT)
 	(set-goal allow-houses 0)
 
 	(disable-self)
@@ -340,7 +340,22 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B7: %d" c: 7)
+	(up-chat-data-to-self "RAWAI-P3B8: %d" c: 8)
+	(disable-self)
+)
+
+;Farm telemetry is isolated so the larger runtime initializers remain below
+;the engine's expression limit.
+(defrule
+	(true)
+=>
+	(set-goal gl-farm-report-fishermen 0)
+	(set-goal gl-farm-report-farmers 0)
+	(set-goal gl-farm-report-farms 0)
+	(set-goal gl-farm-report-hunt-distance -1)
+	(set-goal gl-farm-report-food-distance -1)
+	(set-goal gl-farm-build-target 0)
+	(set-goal gl-farm-placement-suspended NO)
 	(disable-self)
 )
 

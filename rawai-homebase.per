@@ -1018,7 +1018,7 @@
 		(and
 			(building-type-count-total lumber-camp >= 1)
 			(and
-				(building-type-count-total farm g:< desired-number-farms)
+				(building-type-count-total farm g:< gl-farm-build-target)
 				(building-type-count-total mill g:< desired-number-mills)
 			)
 		)
@@ -1037,18 +1037,58 @@
 )
 
 (defrule
-	(goal dependent-farms 1)
+	(goal dependent-farms FARM-DEMAND-DEPENDENT)
 =>
-	(up-modify-goal desired-number-farms g:= villager-count)
-	(up-modify-goal desired-number-farms s:%* sn-food-gatherer-percentage)
-	(up-modify-goal 510 g:= desired-number-farms)
+	(up-modify-goal gl-farm-build-target g:= villager-count)
+	(up-modify-goal gl-farm-build-target s:%* sn-food-gatherer-percentage)
+	(up-modify-goal 510 g:= gl-farm-build-target)
 	(up-get-fact unit-type-count villager-food 509)
-	(up-modify-goal desired-number-farms g:- 509)
+	(up-modify-goal gl-farm-build-target g:- 509)
 	(up-get-fact unit-type-count villager-farmer 509)
-	(up-modify-goal desired-number-farms g:+ 509)
-	(up-modify-goal desired-number-farms c:max 0)
+	(up-modify-goal gl-farm-build-target g:+ 509)
+	;At most two shore fishermen may substitute for farms. Add the full
+	;fisherman count back, then discount only the bounded supplement.
+	(up-get-fact unit-type-count villager-fisherman 509)
+	(up-modify-goal gl-farm-build-target g:+ 509)
+	(up-modify-goal 509 c:min 2)
+	(up-modify-goal gl-farm-build-target g:- 509)
+	(up-modify-goal gl-farm-build-target c:max 0)
 	(up-modify-goal 510 c:+ 2);
-	(up-modify-goal desired-number-farms g:min 510)
+	(up-modify-goal gl-farm-build-target g:min 510)
+)
+
+;Once land food is exhausted, derive farms from the current villager economy,
+;not the phase's population-cap percentage. Shore fishing remains a bounded
+;supplement, so it cannot displace more than two farms.
+(defrule
+	(goal dependent-farms FARM-DEMAND-INDEPENDENT)
+=>
+	(up-modify-goal gl-farm-build-target g:= villager-count)
+	(up-modify-goal gl-farm-build-target s:%* sn-food-gatherer-percentage)
+	(up-get-fact unit-type-count villager-fisherman 509)
+	(up-modify-goal 509 c:min 2)
+	(up-modify-goal gl-farm-build-target g:- 509)
+	(up-modify-goal gl-farm-build-target c:max 0)
+)
+
+;Report only after economy state transitions and both finalized demand paths.
+(defrule
+	(timer-triggered t-farm-report)
+=>
+	(up-get-fact unit-type-count villager-fisherman gl-farm-report-fishermen)
+	(up-get-fact unit-type-count villager-farmer gl-farm-report-farmers)
+	(up-get-fact building-type-count farm gl-farm-report-farms)
+	(up-get-fact dropsite-min-distance hunting gl-farm-report-hunt-distance)
+	(up-get-fact dropsite-min-distance food gl-farm-report-food-distance)
+	(up-chat-data-to-self "farm mode: %d" g: dependent-farms)
+	(up-chat-data-to-self "civilian fishermen: %d" g: gl-farm-report-fishermen)
+	(up-chat-data-to-self "farmers: %d" g: gl-farm-report-farmers)
+	(up-chat-data-to-self "farms: %d" g: gl-farm-report-farms)
+	(up-chat-data-to-self "farm target: %d" g: gl-farm-build-target)
+	(up-chat-data-to-self "farm placement suspended: %d" g: gl-farm-placement-suspended)
+	(up-chat-data-to-self "hunt distance: %d" g: gl-farm-report-hunt-distance)
+	(up-chat-data-to-self "food distance: %d" g: gl-farm-report-food-distance)
+	(disable-timer t-farm-report)
 )
 
 (defrule
@@ -1061,10 +1101,11 @@
 )
 
 (defrule
-(or	(up-compare-goal desired-number-farms <= 0)
-(or	(building-type-count-total farm g:>= desired-number-farms)
+(or	(goal gl-farm-placement-suspended YES)
+(or	(up-compare-goal gl-farm-build-target <= 0)
+(or	(building-type-count-total farm g:>= gl-farm-build-target)
 (or	(up-pending-placement c: farm)
-	(not (up-can-build 0 c: farm)))))
+	(not (up-can-build 0 c: farm))))))
 =>
 	(up-jump-rule 17)
 
@@ -1197,7 +1238,7 @@
 )
 
 (defrule
-	(goal dependent-farms 1)
+	(goal gl-farm-placement-suspended NO)
 	(building-type-count mill >= 1)
 	(up-compare-goal point3-x >= 0)
 	(up-can-build-line 0 point3-x c: farm)
@@ -1236,8 +1277,8 @@
 ;jumps end
 
 (defrule
+	(goal gl-farm-placement-suspended NO)
 	(wood-amount > 150)
-	(goal dependent-farms 1)
 	(building-type-count mill >= 1)
 	(up-can-build 0 c: farm)
 =>
@@ -2009,13 +2050,15 @@
 ;farm fallback
 
 (defrule
+	(goal gl-farm-placement-suspended NO)
 	(current-age >= early-antiquity-age)
 	(wood-amount > 150)
+	(up-compare-goal gl-farm-build-target > 0)
 	(and
 		(building-type-count mill >= 1)
 		(building-type-count farm == 0)
 	)
-	(building-type-count farm < desired-number-farms)
+		(building-type-count farm < gl-farm-build-target)
 	(up-can-build 0 c: farm)
 =>
 	(chat-local-to-self "fallback farm placement")
