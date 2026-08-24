@@ -340,7 +340,7 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B8: %d" c: 8)
+	(up-chat-data-to-self "RAWAI-P3B9: %d" c: 9)
 	(disable-self)
 )
 
@@ -356,6 +356,31 @@
 	(set-goal gl-farm-report-food-distance -1)
 	(set-goal gl-farm-build-target 0)
 	(set-goal gl-farm-placement-suspended NO)
+	(disable-self)
+)
+
+;Home-island resource pressure and migration routing remain separate from the
+;farm initializer so the replay marker and startup rules stay below ERR6002.
+(defrule
+	(true)
+=>
+	(set-goal gl-home-resource-pressure NO)
+	(set-goal gl-home-mine-count 1)
+	(set-goal gl-home-resource-focus 0)
+	(set-goal gl-island-migration-origin-x 0)
+	(set-goal gl-island-migration-origin-y 0)
+	(set-goal gl-island-migration-route-left-threats 0)
+	(set-goal gl-island-migration-route-right-threats 0)
+	(set-goal gl-island-migration-route-waits 0)
+	(set-goal gl-island-migration-route-distance 255)
+	(set-goal gl-juggernaut-evasion-unit-id -1)
+	(set-goal gl-island-migration-fishermen 0)
+	(set-goal gl-local-response-responders 0)
+	(set-goal gl-naval-response-responders 0)
+	(set-goal gl-land-transport-ready YES)
+	(set-goal gl-available-transport-count 0)
+	(up-set-timer c: t-home-resource-pressure c: 15)
+	(up-set-timer c: t-transport-readiness c: 3)
 	(disable-self)
 )
 

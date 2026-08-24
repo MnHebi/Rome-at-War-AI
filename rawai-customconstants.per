@@ -822,6 +822,28 @@
 (defconst gl-farm-report-food-distance 911)
 (defconst gl-farm-build-target 912)
 (defconst gl-farm-placement-suspended 913)
+(defconst gl-home-resource-pressure 914)
+(defconst gl-home-mine-count 915)
+(defconst gl-home-resource-focus 916)
+(defconst gl-island-migration-origin-x 917)
+(defconst gl-island-migration-origin-y 918)
+(defconst gl-island-migration-route-left-threats 919)
+(defconst gl-island-migration-route-right-threats 920)
+(defconst gl-island-migration-route-waypoint-x 921)
+(defconst gl-island-migration-route-waypoint-y 922)
+(defconst gl-island-migration-route-left-x 923)
+(defconst gl-island-migration-route-left-y 924)
+(defconst gl-island-migration-route-right-x 925)
+(defconst gl-island-migration-route-right-y 926)
+(defconst gl-island-migration-route-random 927)
+(defconst gl-island-migration-route-waits 928)
+(defconst gl-juggernaut-evasion-unit-id 929)
+(defconst gl-island-migration-fishermen 930)
+(defconst gl-local-response-responders 931)
+(defconst gl-naval-response-responders 932)
+(defconst gl-land-transport-ready 933)
+(defconst gl-island-migration-route-distance 934)
+(defconst gl-available-transport-count 935)
 
 ; Goal Values
 
@@ -1019,9 +1041,19 @@
 (defconst MIGRATION-WAIT-DROPSITE-OWNER 22)
 (defconst MIGRATION-GATE-OWNER 23)
 (defconst MIGRATION-WAIT-DROPSITE-CLEAR 24)
+(defconst MIGRATION-ROUTE-PREPARE 25)
+(defconst MIGRATION-ROUTE-LEFT 26)
+(defconst MIGRATION-ROUTE-RIGHT 27)
+(defconst MIGRATION-ROUTE-APPLY 28)
+(defconst MIGRATION-ROUTE-WAYPOINT-WAIT 29)
+(defconst MIGRATION-ROUTE-WAYPOINT-CHECK 30)
+(defconst MIGRATION-RETURNING 31)
+(defconst MIGRATION-RETURN-CHECK 32)
+(defconst MIGRATION-RETURN-FAILED 33)
 (defconst MIGRATION-MISSION-MINING 1)
 (defconst MIGRATION-MISSION-SCOUT 2)
 (defconst migration-boarding-group 4)
+(defconst migration-transport-group 3)
 
 ;damaged Transport Ship repair state
 (defconst TRANSPORT-REPAIR-IDLE 0)
@@ -1078,6 +1110,7 @@
 (defconst JUGGERNAUT-EVASION-IDLE 0)
 (defconst JUGGERNAUT-EVASION-FIND 1)
 (defconst JUGGERNAUT-EVASION-CHECK 2)
+(defconst JUGGERNAUT-EVASION-FIND-ANCHOR 3)
 
 ;Remote Town Center placement
 (defconst COLONY-TC-IDLE 0)
@@ -1316,6 +1349,8 @@
 (defconst t-siege-target 44)
 (defconst t-naval-siege 45)
 (defconst t-farm-report 46)
+(defconst t-home-resource-pressure 47)
+(defconst t-transport-readiness 48)
 
 (defrule
 	(true)
@@ -1356,18 +1391,14 @@
 	(set-strategic-number sn-wall-targeting-mode 0)
 	(set-strategic-number sn-easiest-reaction-percentage 20)
 	(set-strategic-number sn-easier-reaction-percentage 60)
-	(up-get-point position-object position-self-x)
+	(up-get-point position-self position-self-x)
 	(disable-self)
 )
 
-(defrule
-	(building-type-count town-center >= 1)
-=>
-	(up-full-reset-search)
-	(up-find-local c: town-center c: 1)
-	(up-set-target-object search-local c: 0)
-	(up-get-point position-object position-self-x)
-)
+;position-self is the engine-owned immutable starting-land anchor captured
+;above without borrowing another subsystem's focus or search state.  Remote
+;colony Town Centers must not move every home-economy and defense reference to
+;an arbitrary island, and ships use their own water-valid origin/Port anchors.
 #load-if-not-defined DIFFICULTY-EASIEST
 #load-if-not-defined DIFFICULTY-EASY
 (defrule

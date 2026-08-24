@@ -340,6 +340,79 @@
         "The competitive score now captures steady-state hull quality including projectile/blast-area lethality, population-discounted garrison firepower for Tessarakonteres, cost/population efficiency, audited and forced line upgrades, support-upgrade access, missing Conscription, Shipyard work rate, and ship train time. Carthaginian Cothon batch cost and throughput are validated and retained as potential evidence but excluded from the runtime score because the AI does not yet construct and operate Cothon batches. Research discounts, free-upgrade timing, and age-of-unlock readiness remain explicit unscored calibration inputs because the current evaluator cannot yet derive them consistently across every mutually exclusive DAT technology branch."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-rome-vs-britons-20260824-194738",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 194738.aoe2record",
+        "sha256": "BE2D6CF398AF62D1F811D69C0EE6B3809C6D7C3320AD19619CC0046BE4DAD99B",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 6644
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and ended normally at 110:44 when the Roman Empire resigned; Rome reached Early, Middle, and Imperial at 11:13, 21:08, and 45:22, while Britons reached them at 12:03, 21:30, and 38:27.",
+        "None of 2967 decoded chat records contains the expected RAWAI-P3B8 marker or its farm telemetry, so the complete deployed build cannot be attributed to repository HEAD 41e6164 even though some migration telemetry fingerprints match.",
+        "Migration scout attempts fired at 11:37, 14:37, and 17:38. The first Roman Transport Ship MAKE request was not issued until 14:21, and no migration transport, boarding, departure, landing, or failure telemetry followed any attempt.",
+        "At 21:09 through 23:11, five gate snapshots each reported two Transport Ships, idle-villager bucket zero, home defense zero, global depletion zero, and utility-controller sum zero.",
+        "Transport objects 11576 and 11607 received no post-creation orders until roughly 69 minutes, leaving each inactive for about 51 to 54 minutes despite the migration gate seeing both by 21:09.",
+        "Transport 11607 later received repeated boarding, movement, and unload commands from 69:14 through 79:53, including large destination reversals and shoreline ping-pong. Replay telemetry nevertheless reported zero loaded transports every approximately 20 seconds from 43:42 through 110:35.",
+        "A 48-unit Roman group was retasked six times in twelve seconds around nearly identical assembly coordinates at 75:08 through 75:20; twenty of those units then received boarding orders toward transport 11607.",
+        "Four completed, villager-producing Roman Town Centers were explicitly deleted at 95:11 through 95:24. Current source has no autonomous completed-Town-Center deletion rule, making manual or external intervention the strongest attribution, although the replay records only player ownership.",
+        "Fourteen Roman naval dispatch telemetry events occurred from 50:28 through 105:57, Roman warboat count reached sixteen, and total warboat losses reached eighteen. This falsifies a claim that the navy never dispatched, but does not establish useful target acquisition or movement before the first group waypoint at 48:42."
+      ],
+      "implementation_inferences": [
+        "The civilian migration gate depended on engine-idle villagers or whole-known-map depletion, so assigned fishermen on a mine-depleted starting island could leave both conditions false even while two idle utility transports existed.",
+        "Scout opportunities were consumed before a hull was selected; three early landing-search failures could therefore permanently exhaust the bounded scouting system before transport production became usable.",
+        "Migration sent loaded ships directly toward an inland natural-resource point and bypassed the military transport screen, tower scan, corridor waypoint, and recall controller. A disconnected basin, unreachable beach, or known defended direct corridor could therefore stall or destroy the mission.",
+        "The migration hull was stored only by ID and not reserved in a direct-control group, while global attack-now remained free to retask transport assembly. This left command ownership vulnerable to the observed boarding and movement churn.",
+        "Attack timer ownership was cleared when a transient eligibility gate failed, after which the timer module restarted a full interval. This could add long passive gaps rather than a short readiness retry.",
+        "The shared position-self point was continuously rewritten from an arbitrary current Town Center, and a Juggernaut evasion rule explicitly moved warships to that inland point. Land and water controllers therefore did not have stable domain-specific anchors.",
+        "Defense suppression was enabled before local or naval response rules established that any same-zone responder existed, allowing an unreachable remote attack to suppress offense without producing a useful defense group."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B9 and require an exact deployment-manifest match before attributing subsequent replay behavior to this patch.",
+        "Every 45 seconds in Middle Antiquity or later, count observed Gaia gold and stone only on the immutable starting-Town-Center land zone and publish a separate home-mine-pressure signal without conflating it with whole-map depletion.",
+        "Give civilian relocation priority when starting-land mines are exhausted, require a real Transport Ship before either migration mission starts, include assigned noncritical fishermen in evacuation, and consume a scout attempt only after a hull is selected and reserved.",
+        "Reserve the selected migration hull in its own direct-control group, capture its water-valid origin, return empty ships to that origin instead of an inland Town Center, and release ownership on every idle terminal path.",
+        "Before departure, sample both lateral mid-route corridors for known Towers, Sea Towers, Castles, and Town Centers; hold the mission when both are defended, repeatedly drive the hull through the selected bounded waypoint, and recall it after four measured no-progress checks rather than four checks during a long but advancing voyage.",
+        "Bound an aborted ferry to four origin-unload retries plus one final watchdog window, and centrally release both the transport and passenger reservation groups on every idle terminal path.",
+        "Permit emergency Transport Ship production at the authoritative 125-wood DAT cost after starting-land mine depletion instead of requiring the normal 35-wood production buffer, and demand at least two hulls there so one busy transport cannot suppress its replacement.",
+        "On true island maps, defer land attack-now until completed Transport Ships cover a full army lift plus utility hull and every direct transport controller is idle; queued hulls no longer satisfy readiness.",
+        "Prioritize a confirmed remote colony Town Center under home-mine pressure and suppress ordinary additional starting-island Town Centers while preserving a zero-Town-Center last-resort recovery rule.",
+        "Keep position-self fixed at its startup land anchor and send a ranged warship evading a nearby Juggernaut toward the nearest own Port or Shipyard rather than a Town Center.",
+        "Defer global land and naval attack dispatch while migration or transport routing owns a hull, restrict the combined periodic attack to land maps, and retry transiently blocked attack timers after twenty seconds instead of a full interval.",
+        "Count eligible same-zone land and naval responders before aborting attacks and setting global home defense, and record a bounded no-responder diagnostic instead of freezing offense around an empty response group."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime manifests and replay chat contains RAWAI-P3B9 near match start.",
+        "No scout attempt is recorded before at least one completed empty Transport Ship exists; after a hull is selected, telemetry records its ID, a boarding target, loaded count, route-side decision, waypoint progress, and either a landed scout or an explicit abort reason.",
+        "When both known starting-land mine classes reach zero while remote naturals are known, home-mine pressure becomes one and civilian migration starts even if at least two waiting villagers remain classified as fishermen rather than engine-idle.",
+        "A selected migration transport receives no departure command before its recorded garrison count meets the one-scout target or the two-settler partial minimum, retains stable ownership during boarding, and does not repeat the 69 to 80 minute board-move-unload churn.",
+        "The migration route uses one selected lateral waypoint, retries no more than four times if it makes no progress, refuses two known defended corridors, unloads on the intended resource-bearing land zone, and returns the empty hull toward its captured water origin.",
+        "A moving transport on a long route resets its stall counter when distance to the waypoint falls; an unreachable return performs no more than four origin unload retries and one final watchdog attempt before releasing transport ownership.",
+        "An island land attack does not dispatch while its completed transport count is below the full-lift target or migration, route, recovery, relic, repair, or harbor-clearing owns the transport channel.",
+        "After a starting island loses its mines, transported settlers establish an accepted resource dropsite and a qualifying colony receives the dedicated Town Center attempt without requiring deletion of completed starting-island Town Centers.",
+        "A transient attack-readiness failure produces another eligibility check after about twenty seconds, while active migration or route ownership does not produce repeated inland transport assembly orders.",
+        "A remote attacked asset with zero same-zone responders emits the no-responder diagnostic and does not globally latch home defense; a reachable threat reports a positive responder count before offense is aborted.",
+        "A ranged warship evading a nearby Juggernaut moves toward a Port or Shipyard shoreline anchor, and establishing or deleting a remote Town Center does not change the replay-visible startup home point."
+      ],
+      "known_limits": [
+        "The replay command stream does not expose actual transport occupancy, reached positions, path splines, fog-of-war knowledge at decision time, individual death causes, or whether ordinary movement and construction orders were manual.",
+        "The engine exposes no arbitrary ship-to-beach path query. The new migration waypoint has a progress watchdog and water-valid origin but still requires a fresh replay to prove the selected bounded point is navigable.",
+        "Migration route defense scans currently inspect the selected target player and sampled midpoint regions, not every segment or every hostile owner in a team or free-for-all match.",
+        "A known-safe sampled corridor is not a proof against defenses hidden in fog. Unlike the military route controller, a one-unit scout ferry cannot use its own land scout as an advance naval screen.",
+        "A reservation group and repeated direct movement order do not structurally prove that the engine attack manager can never overwrite a transport; runtime command ownership remains a replay acceptance item.",
+        "Starting-land pressure counts observed mine objects, not remaining resource amount or terrain area. An unexplored home mine can cause a false-positive signal, while a visible but nearly exhausted mine delays it until the object disappears.",
+        "The replay shows fourteen naval dispatches and a sixteen-warboat fleet, so remaining naval usefulness is a target, zone, and command-ownership problem rather than an absence-of-production problem; direct main-fleet rally replacement remains unresolved.",
+        "For a coastal land attacker the AI can command nearby naval support but still cannot prove water-path compatibility. That branch no longer globally retreats the army or latches home defense, and its actual support value requires fresh replay evidence.",
+        "The completed Town Center deletes are strongly inferred as manual or external because current source lacks that action, but the replay does not identify the human or AI command issuer separately from player ownership."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

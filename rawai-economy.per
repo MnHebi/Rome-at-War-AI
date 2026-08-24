@@ -855,8 +855,116 @@
 	(set-goal gl-transport-required 16)
 )
 
+;On true island layouts a land attack waits for the completed full-lift budget.
+;Queued hulls and transports currently owned by utility controllers are not a
+;usable lift and therefore cannot release the army toward an inland rally.
+;Hybrid Rivers and Lake maps keep ordinary land dispatch because reachable land
+;fronts can exist there even when naval infrastructure is incomplete.
+(defrule
+	(up-timer-status t-transport-readiness == timer-triggered)
+	(or
+		(goal map-type ISLANDS)
+		(goal map-type TEAM-ISLANDS)
+	)
+=>
+	(up-full-reset-search)
+	(up-find-local c: transport-ship c: 40)
+	(up-remove-objects search-local object-data-garrison-count > 0)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	;Any direct-control or engine attack-group flag makes the hull unavailable
+	;for a newly dispatched full lift. Unassigned objects report group flag -2.
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-available-transport-count g:= local-total)
+	(up-set-timer c: t-transport-readiness c: 5)
+)
+
+(defrule
+	(or
+		(goal map-type ISLANDS)
+		(goal map-type TEAM-ISLANDS)
+	)
+	(up-compare-goal gl-available-transport-count g:< gl-transport-required)
+=>
+	(set-goal gl-land-transport-ready NO)
+)
+
+(defrule
+	(or
+		(goal map-type ISLANDS)
+		(goal map-type TEAM-ISLANDS)
+	)
+	(or
+		(not (goal gl-island-migration-state MIGRATION-IDLE))
+		(or
+			(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))
+			(or
+				(not (goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE))
+				(or
+					(not (goal gl-relic-ferry-state RELIC-FERRY-IDLE))
+					(or
+						(not (goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE))
+						(not (goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE))
+					)
+				)
+			)
+		)
+	)
+=>
+	(set-goal gl-land-transport-ready NO)
+)
+
+(defrule
+	(or
+		(goal map-type ISLANDS)
+		(goal map-type TEAM-ISLANDS)
+	)
+	(up-compare-goal gl-available-transport-count g:>= gl-transport-required)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
+	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
+	(goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
+=>
+	(set-goal gl-land-transport-ready YES)
+)
+
+(defrule
+	(nor
+		(goal map-type ISLANDS)
+		(goal map-type TEAM-ISLANDS)
+	)
+=>
+	(set-goal gl-land-transport-ready YES)
+)
+
 (defrule
 	(current-age >= early-antiquity-age)
+	(goal gl-home-resource-pressure YES)
+	(or
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
+	;The authoritative DAT cost is 125 wood.  Once both starting-land mine
+	;types are gone, do not require the normal 35-wood production buffer.
+	(wood-amount >= 125)
+	(or
+		(unit-type-count-total transport-ship g:< gl-transport-required)
+		(unit-type-count-total transport-ship < 2)
+	)
+	(can-train transport-ship)
+=>
+	(train transport-ship)
+)
+
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal gl-home-resource-pressure NO)
 	(or
 		(goal map-type LAKE)
 		(or

@@ -278,6 +278,7 @@ class FarmPolicyTests(unittest.TestCase):
         cls.economy = (root / "rawai-economy.per").read_text(encoding="utf-8-sig")
         cls.homebase = (root / "rawai-homebase.per").read_text(encoding="utf-8-sig")
         cls.init_goals = (root / "rawai-init-goals.per").read_text(encoding="utf-8-sig")
+        cls.military = (root / "rawai-military.per").read_text(encoding="utf-8-sig")
         cls.timers = (root / "rawai-timers.per").read_text(encoding="utf-8-sig")
 
     def test_dependent_farm_demand_bounds_fisherman_substitution(self) -> None:
@@ -404,7 +405,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B8", self.init_goals)
+        self.assertIn("RAWAI-P3B9", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -425,6 +426,168 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertEqual(len(calculators), 2)
         self.assertTrue(all(rule[1] < telemetry[0][0] for rule in calculators))
         self.assertIn("(up-timer-status t-farm-report != timer-running)", self.timers)
+
+    def test_island_migration_waits_for_a_real_transport(self) -> None:
+        scout_rules = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-GATE-OWNER)",
+                "(unit-type-count transport-ship >= 1)",
+                "(unit-type-count scout-cavalry-class >= 1)",
+            ),
+            actions=(
+                "(set-goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)",
+            ),
+        )
+        self.assertEqual(len(scout_rules), 1)
+        self.assertNotIn("gl-island-scout-attempts c:+", scout_rules[0][4])
+        reserved_attempt = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-FIND-TRANSPORT)",
+                "(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)",
+            ),
+            actions=(
+                "(up-modify-goal gl-island-scout-attempts c:+ 1)",
+                "migration-transport-group",
+            ),
+        )
+        self.assertEqual(len(reserved_attempt), 1)
+
+    def test_home_mine_pressure_evacuates_assigned_fishermen(self) -> None:
+        self.assertIn("home mines depleted: %d", self.military)
+        civilian_gate = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-home-resource-pressure YES)",
+                "(unit-type-count transport-ship >= 1)",
+            ),
+            actions=(
+                "(set-goal gl-island-migration-mission MIGRATION-MISSION-MINING)",
+            ),
+        )
+        self.assertEqual(len(civilian_gate), 1)
+        evacuation = matching_rules(
+            self.military,
+            facts=("(goal gl-home-resource-pressure YES)",),
+            actions=(
+                "(up-find-local c: villager-class c: 40)",
+                "(set-goal gl-island-migration-state MIGRATION-ISSUE-BOARD)",
+            ),
+        )
+        self.assertEqual(len(evacuation), 1)
+        self.assertNotIn("object-data-idling", evacuation[0][4])
+
+    def test_migration_uses_bounded_evasive_waypoint(self) -> None:
+        self.assertIn("MIGRATION-ROUTE-WAYPOINT-CHECK", self.military)
+        self.assertIn("migration route left threats: %d", self.military)
+        self.assertIn("migration route right threats: %d", self.military)
+        self.assertIn("migration route unreachable: %d", self.military)
+        self.assertIn(
+            "(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)",
+            self.military,
+        )
+
+    def test_starting_anchor_uses_engine_position_without_shared_search(self) -> None:
+        customconstants = (
+            Path(__file__).resolve().parent.parent / "rawai-customconstants.per"
+        ).read_text(encoding="utf-8-sig")
+        anchor_rules = matching_rules(
+            customconstants,
+            facts=("(true)",),
+            actions=("(up-get-point position-self position-self-x)",),
+        )
+        self.assertEqual(len(anchor_rules), 1)
+        self.assertNotIn("position-object position-self-x", customconstants)
+
+    def test_island_land_attacks_wait_for_full_transport_lift(self) -> None:
+        readiness = matching_rules(
+            self.economy,
+            facts=(
+                "(goal map-type ISLANDS)",
+                "(up-compare-goal gl-available-transport-count g:< gl-transport-required)",
+            ),
+            actions=("(set-goal gl-land-transport-ready NO)",),
+        )
+        self.assertEqual(len(readiness), 1)
+        usable_count = matching_rules(
+            self.economy,
+            facts=("(up-timer-status t-transport-readiness == timer-triggered)",),
+            actions=(
+                "(up-find-local c: transport-ship c: 40)",
+                "object-data-garrison-count > 0",
+                "object-data-idling != 1",
+                "object-data-under-attack > 0",
+                "object-data-group-flag >= 0",
+                "(up-modify-goal gl-available-transport-count g:= local-total)",
+            ),
+        )
+        self.assertEqual(len(usable_count), 1)
+        land_dispatches = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-attack-dispatch-owner ATTACK-DISPATCH-LAND)",
+                "(goal gl-land-transport-ready YES)",
+            ),
+            actions=("(attack-now)",),
+        )
+        self.assertEqual(len(land_dispatches), 4)
+
+    def test_migration_return_has_a_bounded_origin_unload(self) -> None:
+        wait_for_retry_window = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-RETURNING)",
+                "(up-timer-status t-island-migration == timer-triggered)",
+            ),
+            actions=(
+                "(set-goal gl-island-migration-state MIGRATION-RETURN-CHECK)",
+            ),
+        )
+        self.assertEqual(len(wait_for_retry_window), 1)
+        retry = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-RETURN-CHECK)",
+                "(up-compare-goal gl-island-migration-route-waits c:< 4)",
+            ),
+            actions=(
+                "gl-island-migration-origin-x action-unload",
+                "(up-modify-goal gl-island-migration-route-waits c:+ 1)",
+            ),
+        )
+        self.assertEqual(len(retry), 1)
+        failed = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-RETURN-CHECK)",
+                "(up-compare-goal gl-island-migration-route-waits c:>= 4)",
+            ),
+            actions=(
+                "(set-goal gl-island-migration-state MIGRATION-RETURN-FAILED)",
+                "migration-boarding-group",
+            ),
+        )
+        self.assertEqual(len(failed), 1)
+        self.assertNotIn(
+            "(goal gl-island-migration-state MIGRATION-RETURN-FAILED)",
+            self.military,
+        )
+
+    def test_unreachable_threat_without_responders_cannot_latch_defense(self) -> None:
+        latches = matching_rules(
+            self.military,
+            actions=(
+                "(set-goal gl-home-defense-state YES)",
+                "(set-goal current-action ACTION-RETREAT)",
+            ),
+        )
+        self.assertGreaterEqual(len(latches), 2)
+        for _, _, _, facts, _ in latches:
+            self.assertTrue(
+                "gl-local-response-responders" in facts
+                or "gl-naval-response-responders" in facts
+            )
 
 
 if __name__ == "__main__":

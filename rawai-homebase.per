@@ -372,7 +372,10 @@
 	(building-type-count-total town-center < 8)
 	(or
 		(building-type-count-total town-center g:< desired-number-towncenters)
-		(goal resources-depleted YES)
+		(or
+			(goal resources-depleted YES)
+			(goal gl-home-resource-pressure YES)
+		)
 	)
 	(up-pending-objects c: town-center <= 0)
 	(not (up-pending-placement c: town-center))
@@ -657,6 +660,7 @@
 	(current-age >= middle-antiquity-age)
 	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
 	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-home-resource-pressure NO)
 	(can-afford-building town-center)
 	(building-type-count-total town-center g:< desired-number-towncenters)
 	(up-can-build 0 c: town-center)
@@ -1289,8 +1293,11 @@
 (defrule
 	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
 	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-migration-placement-lock NO)
 	(can-afford-building town-center)
 	(building-type-count-total town-center == 0)
+	(up-pending-objects c: town-center <= 0)
+	(not (up-pending-placement c: town-center))
 	(up-can-build 0 c: town-center)
 =>
 	(up-build place-normal 0 c: town-center)
