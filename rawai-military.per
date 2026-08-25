@@ -377,7 +377,11 @@
 	(up-remove-objects search-local object-data-index g:>= desired-naval-explorers)
 	(up-create-group 0 0 c: naval-scout-group)
 	(up-modify-group-flag 1 c: naval-scout-group)
-	(up-target-point position-enemy action-explore -1 stance-no-attack)
+	;Target commands consume a goal pair, not a PositionType constant. Copy the
+	;current enemy position and issue the parser-supported reconnaissance move in
+	;this same rule sweep; AoE II exposes no TargetAction named action-explore.
+	(up-get-point position-enemy point4-x)
+	(up-target-point point4-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-scout-focus)
 	(up-set-timer c: t-naval-scout c: 45)
 	(set-goal gl-naval-scout-state NAVAL-SCOUT-IDLE)

@@ -140,6 +140,90 @@ class PerDomainTests(unittest.TestCase):
             [issue["kind"] for issue in issues],
         )
 
+    def test_undefined_target_action_is_rejected(self) -> None:
+        issues = self.validate_text(
+            """(defrule
+    (true)
+=>
+    (up-target-point point-x action-explore -1 stance-no-attack)
+)
+"""
+        )
+        self.assertIn(
+            "invalid_target_action_identifier",
+            [issue["kind"] for issue in issues],
+        )
+
+    def test_near_miss_target_action_is_rejected(self) -> None:
+        issues = self.validate_text(
+            """(defrule
+    (true)
+=>
+    (up-target-point point-x action_move -1 stance-no-attack)
+)
+"""
+        )
+        self.assertIn(
+            "invalid_target_action_identifier",
+            [issue["kind"] for issue in issues],
+        )
+
+    def test_wrong_domain_target_action_is_rejected(self) -> None:
+        issues = self.validate_text(
+            """(defrule
+    (true)
+=>
+    (up-target-point point-x stance-no-attack -1 stance-no-attack)
+)
+"""
+        )
+        self.assertIn(
+            "invalid_target_action_identifier",
+            [issue["kind"] for issue in issues],
+        )
+
+    def test_out_of_range_numeric_target_action_is_rejected(self) -> None:
+        issues = self.validate_text(
+            """(defrule
+    (true)
+=>
+    (up-target-point point-x 99 -1 stance-no-attack)
+)
+"""
+        )
+        self.assertIn(
+            "invalid_target_action_identifier",
+            [issue["kind"] for issue in issues],
+        )
+
+    def test_position_source_must_be_copied_before_targeting(self) -> None:
+        issues = self.validate_text(
+            """(defrule
+    (true)
+=>
+    (up-target-point position-enemy action-move -1 stance-no-attack)
+)
+"""
+        )
+        self.assertIn(
+            "position_source_used_as_target_point",
+            [issue["kind"] for issue in issues],
+        )
+
+    def test_undefined_target_point_is_rejected(self) -> None:
+        issues = self.validate_text(
+            """(defrule
+    (true)
+=>
+    (up-target-point position_enemy action-move -1 stance-no-attack)
+)
+"""
+        )
+        self.assertIn(
+            "invalid_target_point_identifier",
+            [issue["kind"] for issue in issues],
+        )
+
 
 class UniqueProductionTests(unittest.TestCase):
     def test_role_dependent_path_is_not_direct(self) -> None:
@@ -411,7 +495,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B14", self.init_goals)
+        self.assertIn("RAWAI-P3B15", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -815,7 +899,8 @@ class FarmPolicyTests(unittest.TestCase):
             actions=(
                 "(up-find-local c: scout-galley-line c: 10)",
                 "(up-create-group 0 0 c: naval-scout-group)",
-                "action-explore",
+                "(up-get-point position-enemy point4-x)",
+                "(up-target-point point4-x action-move -1 stance-no-attack)",
             ),
         )
         self.assertEqual(len(scout_rules), 1)

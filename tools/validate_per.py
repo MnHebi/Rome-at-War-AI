@@ -74,6 +74,65 @@ def code_without_comments_or_strings(line: str) -> str:
     return "".join(result)
 
 
+def constants_with_prefix(prefix: str) -> frozenset[str]:
+    """Collect engine-domain constants from the project's audited table."""
+    path = ROOT / "rawai-constants.per"
+    if not path.is_file():
+        return frozenset()
+    text = "\n".join(
+        code_without_comments_or_strings(line)
+        for line in path.read_text(encoding="utf-8-sig").splitlines()
+    )
+    return frozenset(
+        name.casefold()
+        for name in re.findall(
+            rf"\(defconst\s+({re.escape(prefix)}[a-z0-9-]+)\s+[-0-9]+\s*\)",
+            text,
+            re.IGNORECASE,
+        )
+    )
+
+
+def constant_values_with_prefix(prefix: str) -> frozenset[int]:
+    """Collect the numeric values in one audited engine-constant domain."""
+    path = ROOT / "rawai-constants.per"
+    if not path.is_file():
+        return frozenset()
+    text = "\n".join(
+        code_without_comments_or_strings(line)
+        for line in path.read_text(encoding="utf-8-sig").splitlines()
+    )
+    return frozenset(
+        int(value)
+        for value in re.findall(
+            rf"\(defconst\s+{re.escape(prefix)}[a-z0-9-]+\s+(-?\d+)\s*\)",
+            text,
+            re.IGNORECASE,
+        )
+    )
+
+
+def project_defconsts() -> frozenset[str]:
+    """Collect every goal/domain identifier declared by the AI payload."""
+    names: set[str] = set()
+    for path in ROOT.glob("*.per"):
+        text = "\n".join(
+            code_without_comments_or_strings(line)
+            for line in path.read_text(encoding="utf-8-sig").splitlines()
+        )
+        names.update(
+            name.casefold()
+            for name in re.findall(r"\(defconst\s+([^\s()]+)", text)
+        )
+    return frozenset(names)
+
+
+TARGET_ACTION_CONSTANTS = constants_with_prefix("action-")
+TARGET_ACTION_VALUES = constant_values_with_prefix("action-")
+POSITION_SOURCE_CONSTANTS = constants_with_prefix("position-")
+PROJECT_DEFCONSTS = project_defconsts()
+
+
 def defrule_blocks(lines: list[str]) -> list[tuple[int, str]]:
     """Return balanced, comment-free defrule blocks with start line numbers."""
     text = "\n".join(code_without_comments_or_strings(line) for line in lines)
@@ -163,6 +222,59 @@ def validate_command_domains(lines: list[str]) -> list[dict[str, object]]:
                 "line": code.count("\n", 0, match.start()) + 1,
             }
         )
+
+    # up-target-* takes a TargetAction as its second operand. Unknown action-*
+    # names parse as ERR2005; validate only this operand rather than rejecting
+    # similarly named state constants elsewhere in the AI.
+    target_command = re.compile(
+        r"\((?P<command>up-target-(?:point|objects))\s+"
+        r"(?P<target>[^\s()]+)\s+(?P<action>[^\s()]+)",
+        re.IGNORECASE,
+    )
+    for match in target_command.finditer(code):
+        action = match.group("action")
+        numeric_action = re.fullmatch(r"-?\d+", action)
+        if (
+            numeric_action is not None
+            and int(action) not in TARGET_ACTION_VALUES
+        ) or (
+            numeric_action is None
+            and action.casefold() not in TARGET_ACTION_CONSTANTS
+        ):
+            issues.append(
+                {
+                    "kind": "invalid_target_action_identifier",
+                    "command": match.group("command"),
+                    "identifier": action,
+                    "line": code.count("\n", 0, match.start("action")) + 1,
+                }
+            )
+        target = match.group("target")
+        if (
+            match.group("command").casefold() == "up-target-point"
+            and target.casefold() in POSITION_SOURCE_CONSTANTS
+        ):
+            issues.append(
+                {
+                    "kind": "position_source_used_as_target_point",
+                    "command": match.group("command"),
+                    "identifier": target,
+                    "line": code.count("\n", 0, match.start("target")) + 1,
+                }
+            )
+        elif (
+            match.group("command").casefold() == "up-target-point"
+            and not re.fullmatch(r"-?\d+", target)
+            and target.casefold() not in PROJECT_DEFCONSTS
+        ):
+            issues.append(
+                {
+                    "kind": "invalid_target_point_identifier",
+                    "command": match.group("command"),
+                    "identifier": target,
+                    "line": code.count("\n", 0, match.start("target")) + 1,
+                }
+            )
 
     technology_training_patterns = (
         re.compile(
