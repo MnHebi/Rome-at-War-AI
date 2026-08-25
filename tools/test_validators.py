@@ -495,7 +495,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B15", self.init_goals)
+        self.assertIn("RAWAI-P3B16", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -517,15 +517,67 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertTrue(all(rule[1] < telemetry[0][0] for rule in calculators))
         self.assertIn("(up-timer-status t-farm-report != timer-running)", self.timers)
 
-    def test_resource_camps_require_live_same_zone_extraction(self) -> None:
+    def test_resource_camps_bootstrap_from_resources_then_follow_workers(self) -> None:
         self.assertNotIn("(build lumber-camp)", self.homebase)
         self.assertNotIn("(up-build place-normal 0 c: lumber-camp)", self.homebase)
+        self.assertNotIn("(can-build-with-escrow lumber-camp)", self.homebase)
+
+        lumber_bootstrap = matching_rules(
+            self.homebase,
+            facts=(
+                "(building-type-count-total lumber-camp == 0)",
+                "desired-number-lumbercamps c:>= 1",
+                "gl-home-zone c:>= 0",
+            ),
+            actions=(
+                "(set-strategic-number sn-focus-player-number 0)",
+                "(up-set-target-point gl-home-anchor-x)",
+                "(up-find-remote c: tree-class c: 40)",
+                "object-data-map-zone-id g:!= gl-home-zone",
+                "gl-lumbercamp-rejected-resource-id3",
+                "PLACEMENT-FIND-RESOURCE",
+            ),
+        )
+        self.assertEqual(len(lumber_bootstrap), 1)
+        self.assertNotIn("(goal wood-present YES)", lumber_bootstrap[0][3])
+
+        later_lumber = matching_rules(
+            self.homebase,
+            facts=(
+                "(building-type-count-total lumber-camp >= 1)",
+                "lumber-camp g:< desired-number-lumbercamps",
+            ),
+            actions=(
+                "object-data-action != actionid-gather",
+                "object-data-target-id == -1",
+                "PLACEMENT-ASSESS",
+            ),
+        )
+        self.assertEqual(len(later_lumber), 1)
+
         lumber_builds = matching_rules(
             self.homebase,
             facts=("(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)",),
             actions=("(up-build place-point 0 c: lumber-camp)",),
         )
-        self.assertEqual(len(lumber_builds), 1)
+        self.assertEqual(len(lumber_builds), 4)
+        self.assertEqual(
+            {
+                ("c:+", "c:+"),
+                ("c:-", "c:+"),
+                ("c:+", "c:-"),
+                ("c:-", "c:-"),
+            },
+            {
+                tuple(
+                    re.findall(
+                        r"\(up-modify-goal\s+point2-[xy]\s+(c:[+-])\s+3\)",
+                        rule[4],
+                    )
+                )
+                for rule in lumber_builds
+            },
+        )
         for evidence in (
             "object-data-target-id gl-lumbercamp-resource-id",
             "object-data-action != actionid-gather",
@@ -535,6 +587,82 @@ class FarmPolicyTests(unittest.TestCase):
             "object-data-map-zone-id g:!= gl-lumbercamp-resource-zone",
         ):
             self.assertIn(evidence, self.homebase)
+        lumber_exhausted = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-lumbercamp-placement-state PLACEMENT-WAIT)",
+                "gl-lumbercamp-placement-attempts c:>= 4",
+            ),
+            actions=(
+                "gl-lumbercamp-rejected-resource-id3 g:= gl-lumbercamp-rejected-resource-id2",
+                "gl-lumbercamp-rejected-resource-id g:= gl-lumbercamp-resource-id",
+            ),
+        )
+        self.assertEqual(len(lumber_exhausted), 1)
+        lumber_backoff_release = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-lumbercamp-placement-state PLACEMENT-FIND-RESOURCE)",
+                "(not (up-set-target-object search-remote c: 0))",
+            ),
+            actions=(
+                "(set-goal gl-lumbercamp-rejected-resource-id -1)",
+                "(set-goal gl-lumbercamp-rejected-resource-id2 -1)",
+                "(set-goal gl-lumbercamp-rejected-resource-id3 -1)",
+            ),
+        )
+        self.assertEqual(len(lumber_backoff_release), 1)
+
+        mining_bootstrap = matching_rules(
+            self.homebase,
+            facts=(
+                "(building-type-count-total mining-camp == 0)",
+                "desired-number-miningcamps c:>= 1",
+                "gl-home-zone c:>= 0",
+            ),
+            actions=(
+                "(up-set-target-point gl-home-anchor-x)",
+                "object-data-map-zone-id g:!= gl-home-zone",
+                "gl-miningcamp-rejected-resource-id3",
+                "PLACEMENT-FIND-RESOURCE",
+            ),
+        )
+        self.assertEqual(len(mining_bootstrap), 2)
+        self.assertTrue(
+            all("(goal gold-present YES)" not in rule[3] for rule in mining_bootstrap)
+        )
+        self.assertTrue(
+            all("(goal stone-present YES)" not in rule[3] for rule in mining_bootstrap)
+        )
+        self.assertTrue(
+            any("(up-find-remote c: gold-mine-class c: 40)" in rule[4] for rule in mining_bootstrap)
+        )
+        self.assertTrue(
+            any("object-data-type != 66" in rule[4] for rule in mining_bootstrap)
+        )
+        self.assertTrue(
+            any("(up-find-remote c: stone-mine-class c: 40)" in rule[4] for rule in mining_bootstrap)
+        )
+        self.assertTrue(
+            any("object-data-type != 102" in rule[4] for rule in mining_bootstrap)
+        )
+
+        later_mining = matching_rules(
+            self.homebase,
+            facts=("(building-type-count-total mining-camp >= 1)",),
+            actions=(
+                "object-data-action != actionid-gather",
+                "object-data-target-id == -1",
+                "PLACEMENT-ASSESS",
+            ),
+        )
+        self.assertEqual(len(later_mining), 2)
+        self.assertTrue(
+            all("(goal gold-present YES)" not in rule[3] for rule in later_mining)
+        )
+        self.assertTrue(
+            all("(goal stone-present YES)" not in rule[3] for rule in later_mining)
+        )
 
         mining_builds = matching_rules(
             self.homebase,
@@ -542,6 +670,9 @@ class FarmPolicyTests(unittest.TestCase):
             actions=("(up-build place-point 0 c: mining-camp)",),
         )
         self.assertEqual(len(mining_builds), 4)
+        self.assertTrue(
+            all("(can-afford-building mining-camp)" in rule[3] for rule in mining_builds)
+        )
         for evidence in (
             "object-data-target-id gl-miningcamp-resource-id",
             "object-data-map-zone-id gl-miningcamp-resource-zone",
@@ -582,6 +713,62 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertEqual(len(retry), 1)
         self.assertEqual(len(retry_consumer), 1)
         self.assertLessEqual(retry[0][1], retry_consumer[0][0])
+        mining_backoff_release = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-miningcamp-placement-state PLACEMENT-FIND-RESOURCE)",
+                "(not (up-set-target-object search-remote c: 0))",
+            ),
+            actions=(
+                "(set-goal gl-miningcamp-rejected-resource-id -1)",
+                "(set-goal gl-miningcamp-rejected-resource-id2 -1)",
+                "(set-goal gl-miningcamp-rejected-resource-id3 -1)",
+            ),
+        )
+        self.assertEqual(len(mining_backoff_release), 1)
+
+        home_anchor_capture = matching_rules(
+            self.homebase,
+            actions=(
+                "object-data-map-zone-id gl-home-zone",
+                "(up-get-point position-object gl-home-anchor-x)",
+            ),
+        )
+        self.assertEqual(len(home_anchor_capture), 1)
+        home_anchor_transfer = matching_rules(
+            self.homebase,
+            actions=(
+                "(set-goal gl-home-retirement-target-id -2)",
+                "gl-home-zone g:= gl-island-colony-zone",
+                "(up-copy-point gl-home-anchor-x gl-island-colony-x)",
+            ),
+        )
+        self.assertEqual(len(home_anchor_transfer), 2)
+
+        mining_unrelated_reset = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-miningcamp-placement-state PLACEMENT-CHECK-FOUNDATION)",
+                "(not (up-set-target-object search-local c: 0))",
+            ),
+            actions=("(up-reset-placement c: mining-camp)",),
+        )
+        self.assertEqual(len(mining_unrelated_reset), 1)
+
+        opening_mill = matching_rules(
+            self.homebase,
+            facts=(
+                "(up-object-type-count-total c: mill == 0)",
+                "(can-afford-building mill)",
+                "(up-can-build 0 c: mill)",
+            ),
+            actions=(
+                "(up-build place-normal 0 c: mill)",
+                "(set-goal gl-opening-mill-requested YES)",
+            ),
+        )
+        self.assertEqual(len(opening_mill), 1)
+        self.assertNotIn("(set-goal gl-escrow", opening_mill[0][4])
 
         migration_validation = matching_rules(
             self.military,

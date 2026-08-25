@@ -680,6 +680,7 @@
 =>
 	(up-get-object-data object-data-id gl-home-retirement-target-id)
 	(up-get-object-data object-data-map-zone-id gl-home-zone)
+	(up-get-point position-object gl-home-anchor-x)
 	(up-chat-data-to-self "starting TC captured: %d" g: gl-home-retirement-target-id)
 	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
 	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
@@ -871,6 +872,7 @@
 	(up-chat-data-to-self "home TC retired exact id: %d" g: gl-home-retirement-target-id)
 	(set-goal gl-home-retirement-target-id -2)
 	(up-modify-goal gl-home-zone g:= gl-island-colony-zone)
+	(up-copy-point gl-home-anchor-x gl-island-colony-x)
 	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
 	(up-set-timer c: t-home-retirement c: 90)
 	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
@@ -883,6 +885,7 @@
 	(up-chat-data-to-self "starting TC already absent: %d" g: gl-home-retirement-target-id)
 	(set-goal gl-home-retirement-target-id -2)
 	(up-modify-goal gl-home-zone g:= gl-island-colony-zone)
+	(up-copy-point gl-home-anchor-x gl-island-colony-x)
 	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
 	(up-set-timer c: t-home-retirement c: 300)
 	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
@@ -1102,19 +1105,52 @@
 	(up-set-timer c: t-house-placement c: 8)
 )
 
-;A desired Lumber Camp count is only a ceiling. A live woodcutter target owns
-;the request, and the exact target must still belong to a useful same-zone tree
-;cluster before a point placement is issued.
+;The first Lumber Camp cannot depend on an existing classified woodcutter: with
+;three opening villagers, a ten-percent wood allocation can legitimately round
+;to zero. Bootstrap only from a visible tree near the active home
+;land, then feed that exact resource into the same cluster/foundation validator
+;used by later worker-owned camps.
+(defrule
+	(up-timer-status t-lumbercamp-placement == timer-triggered)
+	(goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(up-compare-goal desired-number-lumbercamps c:>= 1)
+	(up-compare-goal gl-home-zone c:>= 0)
+	(building-type-count-total lumber-camp == 0)
+	(up-pending-objects c: lumber-camp <= 0)
+	(not (up-pending-placement c: lumber-camp))
+	(can-afford-building lumber-camp)
+=>
+	(up-modify-goal gl-lumbercamp-placement-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-distance c: -1 c: 40)
+	(up-find-remote c: tree-class c: 40)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-home-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-lumbercamp-rejected-resource-id)
+	(up-remove-objects search-remote object-data-id g:== gl-lumbercamp-rejected-resource-id2)
+	(up-remove-objects search-remote object-data-id g:== gl-lumbercamp-rejected-resource-id3)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-lumbercamp-placement-attempts 0)
+	(up-set-timer c: t-lumbercamp-placement c: 120)
+	(set-goal gl-lumbercamp-placement-state PLACEMENT-FIND-RESOURCE)
+)
+
+;After the bootstrap, the desired count is a ceiling. A live woodcutter target
+;owns each additional request, and its exact target must still be a useful
+;same-zone tree cluster before point placement is issued.
 (defrule
 	(up-timer-status t-lumbercamp-placement == timer-triggered)
 	(goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 	(goal gl-island-migration-state MIGRATION-IDLE)
 	(unit-type-count villager-wood >= 1)
+	(building-type-count-total lumber-camp >= 1)
+	(building-type-count-total lumber-camp g:< desired-number-lumbercamps)
 	(building-type-count-total lumber-camp < 8)
 	(up-pending-objects c: lumber-camp <= 0)
 	(not (up-pending-placement c: lumber-camp))
-	(can-build-with-escrow lumber-camp)
-	(up-can-build 0 c: lumber-camp)
+	(can-afford-building lumber-camp)
 =>
 	(up-modify-goal gl-lumbercamp-placement-focus s:= sn-focus-player-number)
 	(set-strategic-number sn-focus-player-number my-player-number)
@@ -1125,6 +1161,7 @@
 	(up-remove-objects search-local object-data-action != actionid-gather)
 	(up-remove-objects search-local object-data-target-id == -1)
 	(up-clean-search search-local object-data-distance search-order-desc)
+	(set-goal gl-lumbercamp-placement-attempts 0)
 	(up-set-timer c: t-lumbercamp-placement c: 120)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-ASSESS)
 )
@@ -1145,6 +1182,7 @@
 	(up-set-target-object search-remote c: 0)
 	(up-object-data object-data-class == tree-class)
 =>
+	(up-get-object-data object-data-id gl-lumbercamp-resource-id)
 	(up-get-point position-object gl-lumbercamp-target-x)
 	(up-get-object-data object-data-map-zone-id gl-lumbercamp-resource-zone)
 	(up-full-reset-search)
@@ -1174,6 +1212,9 @@
 	(goal gl-lumbercamp-placement-state PLACEMENT-CHECK-RESOURCE)
 	(up-compare-goal remote-total c:< 3)
 =>
+	(up-modify-goal gl-lumbercamp-rejected-resource-id3 g:= gl-lumbercamp-rejected-resource-id2)
+	(up-modify-goal gl-lumbercamp-rejected-resource-id2 g:= gl-lumbercamp-rejected-resource-id)
+	(up-modify-goal gl-lumbercamp-rejected-resource-id g:= gl-lumbercamp-resource-id)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
 	(up-chat-data-to-self "lumber camp rejected sparse wood zone: %d" g: gl-lumbercamp-resource-zone)
 	(up-set-timer c: t-lumbercamp-placement c: 15)
@@ -1196,6 +1237,12 @@
 		(up-object-data object-data-class != tree-class)
 	)
 =>
+	;The three-entry rejection ring is bounded backoff, not a permanent ban.
+	;If every non-rejected tree has been exhausted, release the ring so a
+	;temporarily obstructed sole resource can be reconsidered.
+	(set-goal gl-lumbercamp-rejected-resource-id -1)
+	(set-goal gl-lumbercamp-rejected-resource-id2 -1)
+	(set-goal gl-lumbercamp-rejected-resource-id3 -1)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
 	(up-set-timer c: t-lumbercamp-placement c: 15)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
@@ -1217,21 +1264,22 @@
 		(up-object-data object-data-distance > 10)
 	)
 =>
-	(up-copy-point point2-x gl-lumbercamp-target-x)
-	(up-modify-goal point2-x c:+ 3)
-	(up-modify-goal point2-y c:+ 3)
-	(up-bound-point point3-x point2-x)
-	(up-set-target-point point3-x)
+	(set-goal gl-lumbercamp-placement-attempts 0)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
 )
 
 (defrule
 	(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
-	(can-build-with-escrow lumber-camp)
-	(up-can-build 0 c: lumber-camp)
+	(goal gl-lumbercamp-placement-attempts 0)
+	(can-afford-building lumber-camp)
 =>
-	(release-escrow wood)
+	(up-copy-point point2-x gl-lumbercamp-target-x)
+	(up-modify-goal point2-x c:+ 3)
+	(up-modify-goal point2-y c:+ 3)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
 	(up-build place-point 0 c: lumber-camp)
+	(set-goal gl-lumbercamp-placement-attempts 1)
 	(up-chat-data-to-self "lumber camp resource zone: %d" g: gl-lumbercamp-resource-zone)
 	(up-set-timer c: t-lumbercamp-placement c: 30)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)
@@ -1239,11 +1287,58 @@
 
 (defrule
 	(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
-	(or
-		(not (can-build-with-escrow lumber-camp))
-		(not (up-can-build 0 c: lumber-camp))
-	)
+	(goal gl-lumbercamp-placement-attempts 1)
+	(can-afford-building lumber-camp)
 =>
+	(up-copy-point point2-x gl-lumbercamp-target-x)
+	(up-modify-goal point2-x c:- 3)
+	(up-modify-goal point2-y c:+ 3)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+	(up-build place-point 0 c: lumber-camp)
+	(set-goal gl-lumbercamp-placement-attempts 2)
+	(up-set-timer c: t-lumbercamp-placement c: 30)
+	(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)
+)
+
+(defrule
+	(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
+	(goal gl-lumbercamp-placement-attempts 2)
+	(can-afford-building lumber-camp)
+=>
+	(up-copy-point point2-x gl-lumbercamp-target-x)
+	(up-modify-goal point2-x c:+ 3)
+	(up-modify-goal point2-y c:- 3)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+	(up-build place-point 0 c: lumber-camp)
+	(set-goal gl-lumbercamp-placement-attempts 3)
+	(up-set-timer c: t-lumbercamp-placement c: 30)
+	(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)
+)
+
+(defrule
+	(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
+	(goal gl-lumbercamp-placement-attempts 3)
+	(can-afford-building lumber-camp)
+=>
+	(up-copy-point point2-x gl-lumbercamp-target-x)
+	(up-modify-goal point2-x c:- 3)
+	(up-modify-goal point2-y c:- 3)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+	(up-build place-point 0 c: lumber-camp)
+	(set-goal gl-lumbercamp-placement-attempts 4)
+	(up-set-timer c: t-lumbercamp-placement c: 30)
+	(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)
+)
+
+(defrule
+	(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
+	(not (can-afford-building lumber-camp))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
+	(set-goal gl-lumbercamp-placement-attempts 0)
 	(up-set-timer c: t-lumbercamp-placement c: 30)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 )
@@ -1308,6 +1403,7 @@
 =>
 	(up-chat-data-to-self "lumber camp accepted live resource: %d" g: gl-lumbercamp-resource-id)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
+	(set-goal gl-lumbercamp-placement-attempts 0)
 	(up-set-timer c: t-lumbercamp-placement c: 90)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 )
@@ -1328,8 +1424,12 @@
 	(up-set-target-object search-local c: 0)
 	(up-target-point 0 action-delete -1 -1)
 	(up-reset-placement c: lumber-camp)
+	(up-modify-goal gl-lumbercamp-rejected-resource-id3 g:= gl-lumbercamp-rejected-resource-id2)
+	(up-modify-goal gl-lumbercamp-rejected-resource-id2 g:= gl-lumbercamp-rejected-resource-id)
+	(up-modify-goal gl-lumbercamp-rejected-resource-id g:= gl-lumbercamp-resource-id)
 	(up-chat-data-to-self "lumber camp deleted stale resource foundation: %d" g: gl-lumbercamp-foundation-id)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
+	(set-goal gl-lumbercamp-placement-attempts 0)
 	(up-set-timer c: t-lumbercamp-placement c: 30)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 )
@@ -1338,10 +1438,27 @@
 	(goal gl-lumbercamp-placement-state PLACEMENT-WAIT)
 	(up-timer-status t-lumbercamp-placement == timer-triggered)
 	(up-pending-objects c: lumber-camp <= 0)
+	(up-compare-goal gl-lumbercamp-placement-attempts c:< 4)
 =>
 	(up-reset-placement c: lumber-camp)
-	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
 	(up-set-timer c: t-lumbercamp-placement c: 30)
+	(set-goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
+)
+
+(defrule
+	(goal gl-lumbercamp-placement-state PLACEMENT-WAIT)
+	(up-timer-status t-lumbercamp-placement == timer-triggered)
+	(up-pending-objects c: lumber-camp <= 0)
+	(up-compare-goal gl-lumbercamp-placement-attempts c:>= 4)
+=>
+	(up-reset-placement c: lumber-camp)
+	(up-modify-goal gl-lumbercamp-rejected-resource-id3 g:= gl-lumbercamp-rejected-resource-id2)
+	(up-modify-goal gl-lumbercamp-rejected-resource-id2 g:= gl-lumbercamp-rejected-resource-id)
+	(up-modify-goal gl-lumbercamp-rejected-resource-id g:= gl-lumbercamp-resource-id)
+	(up-chat-data-to-self "lumber camp exhausted offsets at resource: %d" g: gl-lumbercamp-resource-id)
+	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
+	(set-goal gl-lumbercamp-placement-attempts 0)
+	(up-set-timer c: t-lumbercamp-placement c: 60)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 )
 
@@ -1862,10 +1979,10 @@
 	(goal gl-opening-mill-requested NO)
 	(goal gl-island-migration-state MIGRATION-IDLE)
 	(up-pending-objects c: mill <= 0)
-	(up-can-build gl-escrow c: mill)
+	(can-afford-building mill)
+	(up-can-build 0 c: mill)
 =>
-	(set-goal gl-escrow with-escrow)
-	(up-build place-normal gl-escrow c: mill)
+	(up-build place-normal 0 c: mill)
 	(set-goal gl-opening-mill-requested YES)
 	(up-set-timer c: t-opening-mill c: 90)
 )
@@ -1883,23 +2000,92 @@
 	(up-set-timer c: t-opening-mill c: 30)
 )
 
-;Mining Camps follow the actual resource targeted by an active miner. Alternate
-;gold and stone searches so one configured gather percentage cannot starve the
-;other resource, then reject targets that already have a nearby camp.
+;As with the first Lumber Camp, the first Mining Camp must not require a miner
+;who is already extracting without a dropoff. Bootstrap from an exact visible
+;active-home mine; later expansions remain owned by active gatherers.
 (defrule
 	(up-timer-status t-miningcamp-placement == timer-triggered)
 	(goal gl-miningcamp-placement-state PLACEMENT-IDLE)
 	(goal gl-island-migration-state MIGRATION-IDLE)
 	(goal gl-miningcamp-next-resource gold)
 	(current-age >= early-antiquity-age)
+	(building-type-count-total mining-camp == 0)
+	(up-compare-goal desired-number-miningcamps c:>= 1)
+	(up-compare-goal gl-home-zone c:>= 0)
+	(building-type-count-total lumber-camp >= 1)
+	(up-pending-objects c: mining-camp <= 0)
+	(not (up-pending-placement c: mining-camp))
+	(strategic-number sn-gold-gatherer-percentage >= 1)
+	(can-afford-building mining-camp)
+=>
+	(up-modify-goal gl-miningcamp-placement-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-distance c: -1 c: 60)
+	(up-find-remote c: gold-mine-class c: 40)
+	(up-remove-objects search-remote object-data-type != 66)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-home-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-miningcamp-rejected-resource-id)
+	(up-remove-objects search-remote object-data-id g:== gl-miningcamp-rejected-resource-id2)
+	(up-remove-objects search-remote object-data-id g:== gl-miningcamp-rejected-resource-id3)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-miningcamp-resource-type gold)
+	(set-goal gl-miningcamp-next-resource stone)
+	(set-goal gl-miningcamp-placement-attempts 0)
+	(up-set-timer c: t-miningcamp-placement c: 60)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-FIND-RESOURCE)
+)
+
+(defrule
+	(up-timer-status t-miningcamp-placement == timer-triggered)
+	(goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-miningcamp-next-resource stone)
+	(current-age >= early-antiquity-age)
+	(building-type-count-total mining-camp == 0)
+	(up-compare-goal desired-number-miningcamps c:>= 1)
+	(up-compare-goal gl-home-zone c:>= 0)
+	(building-type-count-total lumber-camp >= 1)
+	(up-pending-objects c: mining-camp <= 0)
+	(not (up-pending-placement c: mining-camp))
+	(strategic-number sn-stone-gatherer-percentage >= 1)
+	(can-afford-building mining-camp)
+=>
+	(up-modify-goal gl-miningcamp-placement-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-distance c: -1 c: 60)
+	(up-find-remote c: stone-mine-class c: 40)
+	(up-remove-objects search-remote object-data-type != 102)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-home-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-miningcamp-rejected-resource-id)
+	(up-remove-objects search-remote object-data-id g:== gl-miningcamp-rejected-resource-id2)
+	(up-remove-objects search-remote object-data-id g:== gl-miningcamp-rejected-resource-id3)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-miningcamp-resource-type stone)
+	(set-goal gl-miningcamp-next-resource gold)
+	(set-goal gl-miningcamp-placement-attempts 0)
+	(up-set-timer c: t-miningcamp-placement c: 60)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-FIND-RESOURCE)
+)
+
+;After bootstrap, alternate the active gold and stone searches so one configured
+;gather percentage cannot starve the other, then reject already-served targets.
+(defrule
+	(up-timer-status t-miningcamp-placement == timer-triggered)
+	(goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-miningcamp-next-resource gold)
+	(current-age >= early-antiquity-age)
+	(building-type-count-total mining-camp >= 1)
 	(building-type-count-total mining-camp g:< desired-number-miningcamps)
 	(building-type-count-total lumber-camp >= 1)
 	(up-pending-objects c: mining-camp <= 0)
 	(not (up-pending-placement c: mining-camp))
 	(strategic-number sn-gold-gatherer-percentage >= 1)
-	(goal gold-present YES)
 	(can-afford-building mining-camp)
-	(up-can-build 0 c: mining-camp)
 =>
 	(up-modify-goal gl-miningcamp-placement-focus s:= sn-focus-player-number)
 	(set-strategic-number sn-focus-player-number my-player-number)
@@ -1923,14 +2109,13 @@
 	(goal gl-island-migration-state MIGRATION-IDLE)
 	(goal gl-miningcamp-next-resource stone)
 	(current-age >= early-antiquity-age)
+	(building-type-count-total mining-camp >= 1)
 	(building-type-count-total mining-camp g:< desired-number-miningcamps)
 	(building-type-count-total lumber-camp >= 1)
 	(up-pending-objects c: mining-camp <= 0)
 	(not (up-pending-placement c: mining-camp))
 	(strategic-number sn-stone-gatherer-percentage >= 1)
-	(goal stone-present YES)
 	(can-afford-building mining-camp)
-	(up-can-build 0 c: mining-camp)
 =>
 	(up-modify-goal gl-miningcamp-placement-focus s:= sn-focus-player-number)
 	(set-strategic-number sn-focus-player-number my-player-number)
@@ -2028,6 +2213,7 @@
 =>
 	;Only a matching mine target can own this placement. A miner temporarily
 	;attacking a Gaia animal must not redirect a Mining Camp.
+	(up-get-object-data object-data-id gl-miningcamp-resource-id)
 	(up-get-point position-object gl-miningcamp-target-x)
 	(up-get-object-data object-data-map-zone-id gl-miningcamp-resource-zone)
 	(set-strategic-number sn-focus-player-number my-player-number)
@@ -2063,6 +2249,11 @@
 	(goal gl-miningcamp-placement-state PLACEMENT-FIND-RESOURCE)
 	(not (up-set-target-object search-remote c: 0))
 =>
+	;Release bounded rejection memory after an exhausted candidate search. This
+	;lets a sole mine recover after a temporary placement obstruction clears.
+	(set-goal gl-miningcamp-rejected-resource-id -1)
+	(set-goal gl-miningcamp-rejected-resource-id2 -1)
+	(set-goal gl-miningcamp-rejected-resource-id3 -1)
 	(up-modify-sn sn-focus-player-number g:= gl-miningcamp-placement-focus)
 	(up-set-timer c: t-miningcamp-placement c: 10)
 	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
@@ -2097,6 +2288,7 @@
 (defrule
 	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
 	(goal gl-miningcamp-placement-attempts 0)
+	(can-afford-building mining-camp)
 =>
 	(up-copy-point point2-x gl-miningcamp-target-x)
 	(up-modify-goal point2-x c:+ 3)
@@ -2112,6 +2304,7 @@
 (defrule
 	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
 	(goal gl-miningcamp-placement-attempts 1)
+	(can-afford-building mining-camp)
 =>
 	(up-copy-point point2-x gl-miningcamp-target-x)
 	(up-modify-goal point2-x c:- 3)
@@ -2127,6 +2320,7 @@
 (defrule
 	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
 	(goal gl-miningcamp-placement-attempts 2)
+	(can-afford-building mining-camp)
 =>
 	(up-copy-point point2-x gl-miningcamp-target-x)
 	(up-modify-goal point2-x c:+ 3)
@@ -2142,6 +2336,7 @@
 (defrule
 	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
 	(goal gl-miningcamp-placement-attempts 3)
+	(can-afford-building mining-camp)
 =>
 	(up-copy-point point2-x gl-miningcamp-target-x)
 	(up-modify-goal point2-x c:- 3)
@@ -2152,6 +2347,16 @@
 	(set-goal gl-miningcamp-placement-attempts 4)
 	(up-set-timer c: t-miningcamp-placement c: 30)
 	(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)
+)
+
+(defrule
+	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
+	(not (can-afford-building mining-camp))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-miningcamp-placement-focus)
+	(set-goal gl-miningcamp-placement-attempts 0)
+	(up-set-timer c: t-miningcamp-placement c: 30)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
 )
 
 (defrule
@@ -2200,6 +2405,7 @@
 	(goal gl-miningcamp-placement-state PLACEMENT-CHECK-FOUNDATION)
 	(not (up-set-target-object search-local c: 0))
 =>
+	(up-reset-placement c: mining-camp)
 	(up-chat-data-to-self "mining camp rejected unrelated foundation: %d" g: gl-miningcamp-resource-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-miningcamp-placement-focus)
 	(up-set-timer c: t-miningcamp-placement c: 30)
@@ -2269,6 +2475,10 @@
 	(up-compare-goal gl-miningcamp-placement-attempts c:>= 4)
 =>
 	(up-reset-placement c: mining-camp)
+	(up-modify-goal gl-miningcamp-rejected-resource-id3 g:= gl-miningcamp-rejected-resource-id2)
+	(up-modify-goal gl-miningcamp-rejected-resource-id2 g:= gl-miningcamp-rejected-resource-id)
+	(up-modify-goal gl-miningcamp-rejected-resource-id g:= gl-miningcamp-resource-id)
+	(up-chat-data-to-self "mining camp exhausted offsets at resource: %d" g: gl-miningcamp-resource-id)
 	(up-modify-sn sn-focus-player-number g:= gl-miningcamp-placement-focus)
 	(set-goal gl-miningcamp-placement-attempts 0)
 	(up-set-timer c: t-miningcamp-placement c: 180)
