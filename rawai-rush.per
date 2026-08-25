@@ -519,7 +519,14 @@
 	(game-time g:> gl-rush-attack-delay)
 	(current-age <= middle-antiquity-age)
 	(soldier-count >= 4)
+	(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)
+	(nor
+		(goal current-action ACTION-ATTACK)
+		(goal current-action ACTION-RETREAT)
+	)
 =>
+	(set-goal current-action ACTION-ATTACK)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 	(attack-now)
 	;The opening exemption ends once its force is committed. Selected rush unit
 	;goals remain bounded and active, but age-up preparation may resume.

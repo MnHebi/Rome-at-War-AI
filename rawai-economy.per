@@ -908,7 +908,10 @@
 		(goal map-type TEAM-ISLANDS)
 	)
 	(or
-		(not (goal gl-island-migration-state MIGRATION-IDLE))
+		(nor
+			(goal gl-island-migration-state MIGRATION-IDLE)
+			(goal gl-island-migration-state MIGRATION-QUARANTINED)
+		)
 		(or
 			(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))
 			(or
@@ -933,7 +936,10 @@
 		(goal map-type TEAM-ISLANDS)
 	)
 	(up-compare-goal gl-available-transport-count g:>= gl-transport-required)
-	(goal gl-island-migration-state MIGRATION-IDLE)
+	(or
+		(goal gl-island-migration-state MIGRATION-IDLE)
+		(goal gl-island-migration-state MIGRATION-QUARANTINED)
+	)
 	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
 	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)

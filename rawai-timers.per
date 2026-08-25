@@ -55,6 +55,16 @@
 	(up-set-timer c: t-farm-check c: 30)
 	(chat-local-to-self "refresh farm check timer")
 )
+;This module is loaded after every conditional rush module in AI RAW. All
+;attack-now producers retain COMPLETE ownership until this post-dispatch rule,
+;preventing a later rush from issuing a second global attack in the same sweep.
+(defrule
+	(goal current-action ACTION-ATTACK)
+	(goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
+=>
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)
+	(set-goal current-action ACTION-WAIT)
+)
 
 ;timer 46, finalized farm-demand telemetry
 

@@ -34,6 +34,12 @@ ENGINE_RESEARCH_CONSTANTS = {
 # one element for this limit.
 MAX_RULE_ELEMENTS = 32
 
+# The AoE II AI runtime exposes timer slots 1 through 50. Defining a symbolic
+# timer outside this range parses, but its controller cannot be trusted at
+# runtime; sharing one slot between two owners creates the same class of race.
+MIN_TIMER_ID = 1
+MAX_TIMER_ID = 50
+
 # These DUC commands mutate search state and are only valid on the action side
 # of a rule. AoE reports ERR2005 when one is accidentally used as a fact.
 ACTION_ONLY_RULE_COMMANDS = {
@@ -125,6 +131,65 @@ def project_defconsts() -> frozenset[str]:
             for name in re.findall(r"\(defconst\s+([^\s()]+)", text)
         )
     return frozenset(names)
+
+
+def validate_timer_sources(
+    sources: dict[str, str],
+) -> dict[str, list[dict[str, object]]]:
+    """Require timer constants in named PER sources to use unique valid slots."""
+    report: dict[str, list[dict[str, object]]] = {}
+    timer_slots: dict[int, tuple[str, str, int]] = {}
+    timer_pattern = re.compile(
+        r"^\s*\(defconst\s+(?P<name>t-[^\s()]+)\s+(?P<value>-?\d+)\s*\)",
+        re.IGNORECASE,
+    )
+    for filename, source in sources.items():
+        for line_number, raw_line in enumerate(source.splitlines(), 1):
+            line = code_without_comments_or_strings(raw_line)
+            match = timer_pattern.match(line)
+            if match is None:
+                continue
+            name = match.group("name")
+            value = int(match.group("value"))
+            if not MIN_TIMER_ID <= value <= MAX_TIMER_ID:
+                report.setdefault(filename, []).append(
+                    {
+                        "kind": "timer_id_out_of_range",
+                        "name": name,
+                        "value": value,
+                        "line": line_number,
+                        "minimum": MIN_TIMER_ID,
+                        "maximum": MAX_TIMER_ID,
+                    }
+                )
+            if value in timer_slots:
+                first_name, first_file, first_line = timer_slots[value]
+                report.setdefault(filename, []).append(
+                    {
+                        "kind": "duplicate_timer_id",
+                        "name": name,
+                        "value": value,
+                        "line": line_number,
+                        "first_name": first_name,
+                        "first_file": first_file,
+                        "first_line": first_line,
+                    }
+                )
+            else:
+                timer_slots[value] = (name, filename, line_number)
+    return report
+
+
+def validate_timer_definitions(
+    paths: list[Path],
+) -> dict[str, list[dict[str, object]]]:
+    """Read project PER files and validate their engine timer definitions."""
+    return validate_timer_sources(
+        {
+            path.name: path.read_text(encoding="utf-8-sig")
+            for path in paths
+        }
+    )
 
 
 TARGET_ACTION_CONSTANTS = constants_with_prefix("action-")
@@ -523,6 +588,9 @@ def main() -> None:
         issues = validate_file(path)
         if issues:
             report[path.name] = issues
+
+    for filename, issues in validate_timer_definitions(paths).items():
+        report.setdefault(filename, []).extend(issues)
 
     all_defconsts: set[str] = set()
     for path in paths:

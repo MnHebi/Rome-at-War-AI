@@ -768,7 +768,6 @@
 (defconst gl-attack-dispatch-owner 859)
 (defconst gl-island-scout-attempts 860)
 (defconst gl-island-migration-anchor-class 861)
-(defconst gl-island-migration-loaded-count 862)
 (defconst gl-island-migration-placement-attempts 863)
 (defconst gl-island-migration-gate-reports 864)
 (defconst gl-island-colony-established 865)
@@ -850,7 +849,6 @@
 (defconst gl-farm-staffing-id 939)
 (defconst gl-farm-staffing-focus 940)
 (defconst gl-farm-staffing-worker-id 941)
-(defconst gl-island-migration-outstanding-count 942)
 (defconst gl-island-colony-threat 943)
 (defconst gl-naval-response-asset-zone 944)
 (defconst gl-lumbercamp-resource-id 945)
@@ -890,6 +888,13 @@
 (defconst gl-miningcamp-rejected-resource-id3 979)
 (defconst gl-home-anchor-x 980)
 (defconst gl-home-anchor-y 981)
+(defconst gl-age-advantage-pressure 982)
+(defconst gl-island-colony-threat-until 983)
+(defconst gl-island-migration-rejection-until 984)
+(defconst gl-naval-scout-next 985)
+(defconst gl-relocation-market-next 986)
+(defconst gl-age-advantage-next 987)
+(defconst gl-age-up-attack-pending 988)
 
 ; Goal Values
 
@@ -952,6 +957,8 @@
 (defconst ATTACK-DISPATCH-NONE 0)
 (defconst ATTACK-DISPATCH-LAND 1)
 (defconst ATTACK-DISPATCH-NAVAL 2)
+(defconst ATTACK-DISPATCH-AGE 3)
+(defconst ATTACK-DISPATCH-COMPLETE 4)
 
 ;extreme-cheats
 (defconst GIVE 2)
@@ -1119,7 +1126,6 @@
 (defconst MIGRATION-RECALL-LOADING 38)
 (defconst MIGRATION-RECALL-CHECK 39)
 (defconst MIGRATION-RETURN-DEPOSIT 40)
-(defconst MIGRATION-CHECK-LOAD-RESULT 41)
 (defconst MIGRATION-VALIDATE-DROPSITE-ANCHOR 42)
 (defconst MIGRATION-CHECK-DROPSITE-ANCHOR 43)
 (defconst MIGRATION-CHECK-DROPSITE-TREES 44)
@@ -1127,6 +1133,7 @@
 (defconst MIGRATION-REFRESH-DROPSITE-AFTER-SPARSE 46)
 (defconst MIGRATION-CHECK-DROPSITE-NONTREE 47)
 (defconst MIGRATION-REFRESH-DROPSITE-TREES 48)
+(defconst MIGRATION-QUARANTINED 49)
 (defconst MIGRATION-MISSION-MINING 1)
 (defconst MIGRATION-MISSION-SCOUT 2)
 (defconst migration-boarding-group 4)
@@ -1404,8 +1411,8 @@
 (defconst t-unit-type 15)
 (defconst t-ship-train 16)
 (defconst t-check-vills 17)
-(defconst t-check-mil 18)
-(defconst t-check-navy 19)
+(defconst t-island-migration-board-retry 18)
+(defconst t-home-retirement 19)
 (defconst t-check-error 20)
 (defconst t-check-losses 21)
 (defconst t-update-facts 22)
@@ -1437,12 +1444,6 @@
 (defconst t-transport-readiness 48)
 (defconst t-house-placement 49)
 (defconst t-farm-staffing 50)
-(defconst t-island-colony-threat 51)
-(defconst t-island-migration-board-retry 52)
-(defconst t-island-migration-rejection 53)
-(defconst t-home-retirement 54)
-(defconst t-naval-scout 55)
-(defconst t-relocation-market 56)
 
 (defrule
 	(true)

@@ -546,6 +546,63 @@
         "Active-home zone, active-home anchor distance, exact-type, and resource-cluster checks are placement proxies, not an engine path query. Structural validation cannot prove that a villager can reach the selected camp foundation or that terrain permits any of the four offsets; fresh runtime telemetry and replay evidence remain required."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-rome-vs-britons-20260825-120904",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.25 120904.aoe2record",
+        "sha256": "1A1DA62ED84E1FC7CF3534AF62F2739C393B36338742B0CE0639244AADD71976",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 2628
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and ended at 43:48. No RAWAI runtime marker was decoded.",
+        "Player 1 completed Early Antiquity at 10:20, Middle Antiquity at 16:37, and Imperial at 26:35. No Player 2 age advancement was decoded before the replay ended.",
+        "Seventeen civilian migration boarding commands targeted destination land zone 5. Sixteen completed attempts ended exactly thirty seconds later with migration timeout state 41; the final attempt began six seconds before the replay ended.",
+        "State 41 in the matching historical source is MIGRATION-CHECK-LOAD-RESULT. No migration depart-full, depart-partial, below-minimum, passengers-unavailable, or transport-lost telemetry was decoded.",
+        "The transport action stream records a garrison command against hull 11620 or 11625 at every boarding attempt and an unload command at the timeout, at the hull's recorded home-water coordinates.",
+        "Land-attack interval telemetry refreshed eight times from 23:22 through 42:07 while military superiority remained 3 (SUPERIOR). No replay-persistent land-dispatch telemetry existed in that build.",
+        "Three naval dispatches at eighty percent were decoded from 36:49 through 42:52, so the replay does not support a claim of total military inactivity."
+      ],
+      "implementation_inferences": [
+        "The state-41 rules left the expired zero-or-one-passenger case uncovered. The generic watchdog then unloaded at the stored origin and published MIGRATION-IDLE before proving the asynchronous unload complete, which explains the observed load/unload cycle beside the Roman town.",
+        "Repeated migration ownership can suppress ordinary land dispatch because every land executor requires migration idle; interval refresh alone does not prove an attack command was issued.",
+        "The historical one-shot age-up rules issued attack-now without first setting a nonzero soldier percentage, while the ordinary executors reset that strategic number to zero after use.",
+        "The aggression model compared raw military counts and own phase but had no enemy-age input. The land TOLERABLE band was also unreachable because the earlier INFERIOR rule claimed every own-force count below the enemy total."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B17 and require a complete source-matched deployment before attributing fresh behavior to this patch.",
+        "Remove the uncovered migration result state and compare the exact reserved hull's live garrison count directly in the same search state. Depart full immediately, depart with at least two settlers at the thirty-second bound, or explicitly abort an empty or one-passenger mission.",
+        "On a loaded abort or any otherwise uncovered timeout, retain the reserved transport group and remain in the return/check lifecycle until an exact-hull check proves garrison count zero. After four failed origin-beach unloads, use the active home anchor as an alternate shore and quarantine the occupied hull instead of repeating the same unload loop; permit unrelated attacks only when enough other ungrouped, empty, idle Transports satisfy full lift. Back off the failed destination zone after a below-minimum boarding abort.",
+        "Correct land military bands so INFERIOR means below half enemy strength and TOLERABLE covers at least half but less than the enemy total.",
+        "Latch pressure only for a live building-owning enemy target that remains at least one age behind for 120 seconds; when the closest selector returns an invalid player in multiplayer, deterministically reacquire a live hostile player with buildings. Then issue randomized ninety-to-one-hundred-fifty-second sixty-percent pressure attacks on land or hybrid maps only when home defense, migration, route readiness, transport capacity, failed-raid escalation, and force-size gates permit.",
+        "Give the existing Middle and Imperial one-shot age-up attacks a bounded nonzero soldier percentage, real force threshold, replay-persistent dispatch telemetry, and the same escalation safety gate; preserve a pending one-shot request while an invalid target is being reacquired. Serialize every military, periodic, age, and rush attack through a COMPLETE owner released in AI RAW only after the later-loaded rush module, and persist every ordinary normal, regroup, and siege land dispatch as well.",
+        "Keep all symbolic timers in unique engine slots 1 through 50. Reuse formerly inactive slots 18 and 19 for migration boarding retry and home retirement, and implement colony-threat, rejected-zone, naval-scout, relocation-market, and age-pressure cooldowns as game-time deadlines."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B17 near match start.",
+        "A civilian boarding mission emits a full or at-least-two-passenger partial departure within thirty seconds, or emits an explicit empty/one-passenger abort. State 41 never appears because it no longer exists in the runtime state machine.",
+        "After a loaded abort, the exact hull remains reserved and in RETURNING, RETURN-CHECK, RETURN-FAILED, or QUARANTINED until telemetry and subsequent behavior establish that it is empty; after four rejected origin unloads it tries the active-home shoreline and does not restart the same bounded-origin counter. QUARANTINED does not itself suppress an otherwise ready attack, while the reserved loaded hull never contributes to available lift.",
+        "Three consecutive below-minimum boarding failures do not repeatedly select the same destination zone without passing through the rejected-zone backoff.",
+        "When a live building-owning selected enemy remains at least one age behind for two minutes, replay chat records age-advantage pressure and one owner-serialized land dispatch within the next randomized pressure window if the safe force and route gates are met; an invalid closest player is replaced by another viable enemy instead of erasing a pending one-shot request.",
+        "If pressure is blocked by active home defense, incomplete transport lift, repeated-raid regrouping, or known fortifications without siege, no age-advantage rule bypasses that blocker.",
+        "The structural timer validator reports no duplicate timer slots and no timer identifier outside 1 through 50; boarding-retry telemetry confirms that the reclaimed slot 18 can fire in a fresh match.",
+        "No sweep records two attack dispatches from ordinary, periodic, age, and rush producers: COMPLETE ownership remains visible through the rush rules and is released only by the post-rush AI RAW cleanup rule.",
+        "A separate fresh P3B17 match, not this pre-P3B16 replay, verifies that the initial Lumber Camp and Mill bootstrap without manual construction."
+      ],
+      "known_limits": [
+        "The user confirmed this replay predates P3B16. Its manually assisted opening Lumber Camp and Mill therefore do not test or falsify the current P3B16 drop-site bootstrap.",
+        "The replay does not serialize exact transport occupancy. Garrison and unload commands plus the state telemetry prove the controller cycle, while the user's visual observation supplies the fact that villagers were actually aboard.",
+        "The replay has no current land-dispatch message, so absence of a decoded land attack cannot distinguish a blocked executor from an issued but unpersisted chat-local-to-self command. P3B17 adds replay-persistent dispatch telemetry.",
+        "No Player 2 age-up message was decoded, but player identity and map naming rely on the match context supplied by the user because no RAWAI deployment marker was present.",
+        "Direct object-data occupancy predicates and structural validation cannot prove runtime selection lifetime, asynchronous unload completion, or path safety. A fresh replay remains required."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

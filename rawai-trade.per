@@ -103,34 +103,36 @@
 (defrule
 	(current-age >= middle-antiquity-age)
 	(goal gl-home-resource-pressure YES)
-	(up-timer-status t-relocation-market == timer-triggered)
+	(up-compare-goal gl-game-time g:>= gl-relocation-market-next)
 	(wood-amount < 225)
 	(gold-amount >= 200)
 	(can-buy-commodity wood)
 =>
 	(buy-commodity wood)
-	(up-set-timer c: t-relocation-market c: 20)
+	(up-modify-goal gl-relocation-market-next g:= gl-game-time)
+	(up-modify-goal gl-relocation-market-next c:+ 20)
 	(chat-local-to-self "Relocation bridge: buy wood")
 )
 
 (defrule
 	(current-age >= middle-antiquity-age)
 	(goal gl-home-resource-pressure YES)
-	(up-timer-status t-relocation-market == timer-triggered)
+	(up-compare-goal gl-game-time g:>= gl-relocation-market-next)
 	(wood-amount < 225)
 	(gold-amount < 200)
 	(stone-amount >= 300)
 	(can-sell-commodity stone)
 =>
 	(sell-commodity stone)
-	(up-set-timer c: t-relocation-market c: 20)
+	(up-modify-goal gl-relocation-market-next g:= gl-game-time)
+	(up-modify-goal gl-relocation-market-next c:+ 20)
 	(chat-local-to-self "Relocation bridge: sell stone")
 )
 
 (defrule
 	(current-age >= middle-antiquity-age)
 	(goal gl-home-resource-pressure YES)
-	(up-timer-status t-relocation-market == timer-triggered)
+	(up-compare-goal gl-game-time g:>= gl-relocation-market-next)
 	(wood-amount < 225)
 	(gold-amount < 200)
 	(stone-amount < 300)
@@ -138,7 +140,8 @@
 	(can-sell-commodity food)
 =>
 	(sell-commodity food)
-	(up-set-timer c: t-relocation-market c: 20)
+	(up-modify-goal gl-relocation-market-next g:= gl-game-time)
+	(up-modify-goal gl-relocation-market-next c:+ 20)
 	(chat-local-to-self "Relocation bridge: sell food")
 )
 
