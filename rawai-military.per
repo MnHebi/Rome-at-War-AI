@@ -148,9 +148,7 @@
 	(up-filter-exclude -1 actionid-explore orderid-explore -1)
 	(up-find-local c: warship-class c: 40)
 	(up-find-local c: boarding-ship c: 10)
-	(up-remove-objects search-local object-data-group-flag == transport-screen-group)
-	(up-remove-objects search-local object-data-group-flag == home-naval-response-group)
-	(up-remove-objects search-local object-data-group-flag == naval-scout-group)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-action == actionid-explore)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-escort-count)
@@ -377,11 +375,47 @@
 	(up-remove-objects search-local object-data-index g:>= desired-naval-explorers)
 	(up-create-group 0 0 c: naval-scout-group)
 	(up-modify-group-flag 1 c: naval-scout-group)
-	;Target commands consume a goal pair, not a PositionType constant. Copy the
-	;current enemy position and issue the parser-supported reconnaissance move in
-	;this same rule sweep; AoE II exposes no TargetAction named action-explore.
+	;Prefer a known resource-bearing land mass outside the mutable home zone.
+	;The fallback still pressures unexplored coast toward the current enemy.
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-find-remote c: gold-mine c: 20)
+	(up-find-remote c: stone-mine c: 20)
+	(up-find-remote c: relic-class c: 10)
+	(up-find-remote c: tree-class c: 40)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)
+	(up-clean-search search-remote object-data-distance search-order-desc)
+	(set-goal gl-naval-scout-state NAVAL-SCOUT-TARGET)
+)
+
+(defrule
+	(goal gl-naval-scout-state NAVAL-SCOUT-TARGET)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-point position-object gl-naval-scout-target-x)
+	(up-get-object-data object-data-map-zone-id gl-naval-scout-target-zone)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-group search-local c: naval-scout-group)
+	(up-target-point gl-naval-scout-target-x action-move -1 stance-no-attack)
+	(up-chat-data-to-self "naval scout external land zone: %d" g: gl-naval-scout-target-zone)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-scout-focus)
+	(up-modify-goal gl-naval-scout-next g:= gl-game-time)
+	(up-modify-goal gl-naval-scout-next c:+ 45)
+	(set-goal gl-naval-scout-state NAVAL-SCOUT-IDLE)
+)
+
+(defrule
+	(goal gl-naval-scout-state NAVAL-SCOUT-TARGET)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-group search-local c: naval-scout-group)
 	(up-get-point position-enemy point4-x)
 	(up-target-point point4-x action-move -1 stance-no-attack)
+	(up-chat-data-to-self "naval scout enemy-coast fallback: %d" g: gl-naval-scout-count)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-scout-focus)
 	(up-modify-goal gl-naval-scout-next g:= gl-game-time)
 	(up-modify-goal gl-naval-scout-next c:+ 45)
@@ -442,9 +476,29 @@
 )
 
 ;Global resource depletion includes every explored island and therefore cannot
-;detect exhaustion of the immutable starting-TC land zone. Count its observed
+;detect exhaustion of the current active-home land zone. Count its observed
 ;mines and trees separately; five or fewer trees is a bounded wood-exhaustion
 ;warning, not a claim that the whole map is empty.
+(defrule
+	(up-timer-status t-home-resource-pressure == timer-triggered)
+	(current-age >= middle-antiquity-age)
+	(or
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
+=>
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-find-remote c: stone-mine-class c: 20)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-home-zone)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-home-stone-count g:= remote-total)
+)
+
 (defrule
 	(up-timer-status t-home-resource-pressure == timer-triggered)
 	(current-age >= middle-antiquity-age)
@@ -459,16 +513,16 @@
 	(up-modify-goal gl-home-resource-focus s:= sn-focus-player-number)
 	(set-strategic-number sn-focus-player-number 0)
 	(up-full-reset-search)
-	(up-set-target-point position-self-x)
+	(up-set-target-point gl-home-anchor-x)
 	(up-find-remote c: gold-mine-class c: 20)
 	(up-find-remote c: stone-mine-class c: 20)
-	(up-remove-objects search-remote object-data-on-mainland != on-mainland)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-home-zone)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-home-mine-count g:= remote-total)
 	(up-full-reset-search)
-	(up-set-target-point position-self-x)
+	(up-set-target-point gl-home-anchor-x)
 	(up-find-remote c: tree-class c: 40)
-	(up-remove-objects search-remote object-data-on-mainland != on-mainland)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-home-zone)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-home-tree-count g:= remote-total)
 	(up-modify-sn sn-focus-player-number g:= gl-home-resource-focus)
@@ -604,9 +658,9 @@
 	(goal gl-home-defense-state NO)
 	(goal resources-depleted NO)
 	(goal gl-home-resource-pressure NO)
+	(up-compare-goal gl-home-stone-count c:> 0)
 	(current-age >= early-antiquity-age)
 	(up-compare-goal gl-island-scout-attempts c:< 3)
-	(up-idle-unit-count idle-type-villager < 2)
 	(unit-type-count transport-ship >= 1)
 	(unit-type-count scout-cavalry-class >= 1)
 	(or
@@ -620,11 +674,11 @@
 	(up-modify-goal gl-island-migration-focus s:= sn-focus-player-number)
 	(set-strategic-number sn-focus-player-number 0)
 	(up-full-reset-search)
-	(up-set-target-point position-self-x)
+	(up-set-target-point gl-home-anchor-x)
 	(up-find-remote c: tree-class c: 40)
 	(up-find-remote c: forage-class c: 10)
 	(up-find-remote c: prey-animal-class c: 10)
-	(up-remove-objects search-remote object-data-on-mainland != off-mainland)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)
 	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone)
 	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone2)
 	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone3)
@@ -633,6 +687,48 @@
 	(up-set-timer c: t-island-migration c: 180)
 	(set-goal gl-island-migration-state MIGRATION-FIND-SCOUT-LANDING)
 )
+
+;When the active home has no useful stone reserve, give a known remote stone
+;deposit first ownership of the next civilian lift. The generic mine selector
+;below remains the fallback when no stone-priority mission claims the gate.
+(defrule
+	(goal gl-island-migration-state MIGRATION-GATE-OWNER)
+	(goal gl-home-defense-state NO)
+	(goal gl-island-colony-threat NO)
+	(current-age >= middle-antiquity-age)
+	(up-compare-goal gl-home-stone-count c:<= 0)
+	(unit-type-count transport-ship >= 1)
+	(or
+		(up-idle-unit-count idle-type-villager >= 2)
+		(or
+			(goal resources-depleted YES)
+			(goal gl-home-resource-pressure YES)
+		)
+	)
+	(or
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
+=>
+	(up-modify-goal gl-island-migration-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-find-remote c: stone-mine-class c: 20)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone2)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone3)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+	(up-chat-data-to-self "migration remote stone priority: %d" g: gl-home-zone)
+	(up-set-timer c: t-island-migration c: 180)
+	(set-goal gl-island-migration-state MIGRATION-FIND-LANDING)
+)
+
 (defrule
 	(goal gl-island-migration-state MIGRATION-GATE-OWNER)
 	(goal gl-home-defense-state NO)
@@ -657,10 +753,10 @@
 	(up-modify-goal gl-island-migration-focus s:= sn-focus-player-number)
 	(set-strategic-number sn-focus-player-number 0)
 	(up-full-reset-search)
-	(up-set-target-point position-self-x)
+	(up-set-target-point gl-home-anchor-x)
 	(up-find-remote c: gold-mine-class c: 10)
 	(up-find-remote c: stone-mine-class c: 10)
-	(up-remove-objects search-remote object-data-on-mainland != off-mainland)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)
 	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone)
 	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone2)
 	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone3)
@@ -756,7 +852,7 @@
 	(up-chat-data-to-self "migration target zone: %d" g: gl-island-migration-zone)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
-	(up-set-target-point position-self-x)
+	(up-set-target-point gl-home-anchor-x)
 	(up-find-remote c: transport-ship c: 40)
 	(up-remove-objects search-remote object-data-garrison-count > 0)
 	(up-remove-objects search-remote object-data-idling != 1)
@@ -771,11 +867,11 @@
 	(not (up-set-target-object search-remote c: 0))
 =>
 	(up-full-reset-search)
-	(up-set-target-point position-self-x)
+	(up-set-target-point gl-home-anchor-x)
 	(up-find-remote c: tree-class c: 40)
 	(up-find-remote c: forage-class c: 10)
 	(up-find-remote c: prey-animal-class c: 10)
-	(up-remove-objects search-remote object-data-on-mainland != off-mainland)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)
 	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone)
 	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone2)
 	(up-remove-objects search-remote object-data-map-zone-id g:== gl-island-migration-rejected-zone3)
@@ -794,7 +890,7 @@
 	(up-chat-data-to-self "migration colony zone: %d" g: gl-island-migration-zone)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
-	(up-set-target-point position-self-x)
+	(up-set-target-point gl-home-anchor-x)
 	(up-find-remote c: transport-ship c: 40)
 	(up-remove-objects search-remote object-data-garrison-count > 0)
 	(up-remove-objects search-remote object-data-idling != 1)
@@ -828,7 +924,7 @@
 	(up-get-point position-object gl-island-migration-target-x)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
-	(up-set-target-point position-self-x)
+	(up-set-target-point gl-home-anchor-x)
 	(up-find-remote c: transport-ship c: 40)
 	(up-remove-objects search-remote object-data-garrison-count > 0)
 	(up-remove-objects search-remote object-data-idling != 1)
@@ -921,7 +1017,7 @@
 	(up-remove-objects search-local object-data-language-id == lid-villager-shepherd)
 	(up-remove-objects search-local object-data-language-id == lid-villager-forager)
 	(up-remove-objects search-local object-data-language-id == lid-villager-hunter)
-	(up-remove-objects search-local object-data-on-mainland != on-mainland)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-capacity)
 	(up-create-group 0 0 c: migration-boarding-group)
@@ -957,7 +1053,7 @@
 	(up-remove-objects search-local object-data-action == actionid-hunt)
 	(up-remove-objects search-local object-data-target == prey-animal-class)
 	(up-remove-objects search-local object-data-target == livestock-class)
-	(up-remove-objects search-local object-data-on-mainland != on-mainland)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-capacity)
 	(up-create-group 0 0 c: migration-boarding-group)
@@ -997,7 +1093,7 @@
 	(up-remove-objects search-local object-data-language-id == lid-villager-shepherd)
 	(up-remove-objects search-local object-data-language-id == lid-villager-forager)
 	(up-remove-objects search-local object-data-language-id == lid-villager-hunter)
-	(up-remove-objects search-local object-data-on-mainland != on-mainland)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-capacity)
 	(up-create-group 0 0 c: migration-boarding-group)
@@ -1020,7 +1116,7 @@
 	(up-set-target-point point-x)
 	(up-find-local c: scout-cavalry-class c: 3)
 	(up-remove-objects search-local object-data-garrisoned == 1)
-	(up-remove-objects search-local object-data-on-mainland != on-mainland)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index >= 1)
 	(up-create-group 0 0 c: migration-boarding-group)
@@ -1448,13 +1544,13 @@
 	(up-set-target-point gl-island-migration-origin-x)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
-	(up-remove-objects search-local object-data-on-mainland != on-mainland)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
 	(up-remove-objects search-local object-data-carry <= 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	;The reserved hull was selected within forty tiles of the startup anchor.
 	;Search a wider bounded band so an inland home TC is still found from shore.
 	(up-find-remote c: town-center c: 80)
-	(up-remove-objects search-remote object-data-on-mainland != on-mainland)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-home-zone)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(up-set-timer c: t-island-migration c: 15)
 	(set-goal gl-island-migration-state MIGRATION-RETURN-DEPOSIT)
@@ -1651,7 +1747,7 @@
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
-	(up-remove-objects search-local object-data-on-mainland != off-mainland)
+	(up-remove-objects search-local object-data-map-zone-id g:== gl-home-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(set-goal gl-island-migration-state MIGRATION-RECOVER-LANDING)
 )
@@ -3323,9 +3419,7 @@
 	(up-filter-distance c: -1 c: 80)
 	(up-find-local c: scout-galley-line c: 10)
 	(up-remove-objects search-local object-data-under-attack > 0)
-	(up-remove-objects search-local object-data-group-flag == transport-escort-group)
-	(up-remove-objects search-local object-data-group-flag == transport-screen-group)
-	(up-remove-objects search-local object-data-group-flag == home-naval-response-group)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-CHECK)
 )
@@ -3812,7 +3906,7 @@
 	(up-find-remote c: archery-class c: 40)
 	(up-remove-objects search-remote object-data-garrisoned == 1)
 	(up-remove-objects search-remote object-data-under-attack > 0)
-	(up-remove-objects search-remote object-data-on-mainland != off-mainland)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)
 	(up-remove-objects search-remote object-data-distance < 28)
 	(up-clean-search search-remote object-data-distance search-order-desc)
 	(set-goal gl-transport-recovery-state TRANSPORT-RECOVERY-FIND-UNIT)
@@ -3832,7 +3926,7 @@
 	(up-find-remote c: archery-class c: 40)
 	(up-remove-objects search-remote object-data-garrisoned == 1)
 	(up-remove-objects search-remote object-data-under-attack > 0)
-	(up-remove-objects search-remote object-data-on-mainland != off-mainland)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)
 	(up-remove-objects search-remote object-data-distance < 28)
 	(up-clean-search search-remote object-data-distance search-order-desc)
 	(set-goal gl-transport-recovery-state TRANSPORT-RECOVERY-FIND-UNIT)
@@ -3875,7 +3969,7 @@
 	(up-find-local c: archery-class c: 40)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-under-attack > 0)
-	(up-remove-objects search-local object-data-on-mainland != off-mainland)
+	(up-remove-objects search-local object-data-map-zone-id g:== gl-home-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-capacity)
 	(up-get-search-state local-total)
@@ -3951,7 +4045,7 @@
 	(up-find-local c: cavalry-class c: 40)
 	(up-find-local c: infantry-class c: 40)
 	(up-find-local c: archery-class c: 40)
-	(up-remove-objects search-local object-data-on-mainland != off-mainland)
+	(up-remove-objects search-local object-data-map-zone-id g:== gl-home-zone)
 	(up-target-point gl-transport-recovery-target-x action-move -1 stance-defensive)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-recovery-focus)
 	(up-set-timer c: t-transport-recovery c: 90)
@@ -4001,12 +4095,14 @@
 	)
 =>
 	(up-modify-goal gl-relic-ferry-focus s:= sn-focus-player-number)
+	(set-goal gl-relic-ferry-return-attempts 0)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
-	(up-set-target-point position-self-x)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-distance c: -1 c: 160)
 	(up-find-remote c: monk-with-relic-class c: 5)
 	(up-remove-objects search-remote object-data-garrisoned == 1)
-	(up-remove-objects search-remote object-data-on-mainland != off-mainland)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(up-set-timer c: t-relic-ferry c: 180)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-FIND-CARRIER)
@@ -4023,6 +4119,8 @@
 	(up-set-target-point gl-relic-ferry-target-x)
 	(up-find-remote c: transport-ship c: 40)
 	(up-remove-objects search-remote object-data-garrison-count > 0)
+	(up-remove-objects search-remote object-data-under-attack > 0)
+	(up-remove-objects search-remote object-data-group-flag >= 0)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-FIND-TRANSPORT)
 )
@@ -4033,9 +4131,9 @@
 =>
 	(set-strategic-number sn-focus-player-number 0)
 	(up-full-reset-search)
-	(up-set-target-point position-self-x)
+	(up-set-target-point gl-home-anchor-x)
 	(up-find-remote c: relic-class c: 10)
-	(up-remove-objects search-remote object-data-on-mainland != off-mainland)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-FIND-RELIC)
 )
@@ -4049,11 +4147,11 @@
 	(up-get-point position-object gl-relic-ferry-target-x)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
-	(up-set-target-point position-self-x)
+	(up-set-target-point gl-home-anchor-x)
 	(up-find-remote c: priest c: 5)
 	(up-find-remote c: brahmin c: 5)
 	(up-remove-objects search-remote object-data-garrisoned == 1)
-	(up-remove-objects search-remote object-data-on-mainland != on-mainland)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-home-zone)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-FIND-PRIEST)
 )
@@ -4063,6 +4161,7 @@
 	(not (up-set-target-object search-remote c: 0))
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-relic-ferry-focus)
+	(up-set-timer c: t-relic-ferry c: 60)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-IDLE)
 )
 
@@ -4076,6 +4175,8 @@
 	(up-set-target-point gl-transport-recovery-unit-x)
 	(up-find-remote c: transport-ship c: 40)
 	(up-remove-objects search-remote object-data-garrison-count > 0)
+	(up-remove-objects search-remote object-data-under-attack > 0)
+	(up-remove-objects search-remote object-data-group-flag >= 0)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-FIND-TRANSPORT)
 )
@@ -4085,6 +4186,7 @@
 	(not (up-set-target-object search-remote c: 0))
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-relic-ferry-focus)
+	(up-set-timer c: t-relic-ferry c: 60)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-IDLE)
 )
 
@@ -4093,6 +4195,10 @@
 	(up-set-target-object search-remote c: 0)
 =>
 	(up-get-object-data object-data-id gl-relic-ferry-transport-id)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-relic-ferry-transport-id)
+	(up-create-group 0 0 c: relic-ferry-transport-group)
+	(up-modify-group-flag 1 c: relic-ferry-transport-group)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-relic-ferry-unit-id)
 	(up-add-object-by-id search-remote g: gl-relic-ferry-transport-id)
@@ -4104,7 +4210,10 @@
 	(goal gl-relic-ferry-state RELIC-FERRY-FIND-TRANSPORT)
 	(not (up-set-target-object search-remote c: 0))
 =>
+	(up-modify-group-flag 0 c: relic-ferry-transport-group)
+	(up-reset-group c: relic-ferry-transport-group)
 	(up-modify-sn sn-focus-player-number g:= gl-relic-ferry-focus)
+	(up-set-timer c: t-relic-ferry c: 60)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-IDLE)
 )
 
@@ -4136,7 +4245,7 @@
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-relic-ferry-transport-id)
-	(up-target-point position-self-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-SAILING)
 )
 
@@ -4191,6 +4300,53 @@
 	(set-strategic-number sn-focus-player-number 0)
 	(up-add-object-by-id search-remote g: gl-relic-ferry-target-id)
 	(up-target-objects 0 action-default -1 stance-no-attack)
+	;Keep the exact transport reserved beside the landing while the priest walks
+	;to and picks up the relic. Releasing ownership here caused other transport
+	;controllers to send the hull home before the return passenger was ready.
+	(up-set-timer c: t-relic-ferry c: 90)
+	(set-goal gl-relic-ferry-state RELIC-FERRY-WAIT-CARRIER)
+)
+
+(defrule
+	(goal gl-relic-ferry-state RELIC-FERRY-WAIT-CARRIER)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-relic-ferry-unit-id)
+	(up-add-object-by-id search-remote g: gl-relic-ferry-transport-id)
+	(set-goal gl-relic-ferry-state RELIC-FERRY-CHECK-CARRIER)
+)
+
+(defrule
+	(goal gl-relic-ferry-state RELIC-FERRY-CHECK-CARRIER)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-class == monk-with-relic-class)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-goal gl-relic-ferry-direction RELIC-FERRY-RETURN)
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(up-chat-data-to-self "relic carrier return boarding: %d" g: gl-relic-ferry-unit-id)
+	(up-set-timer c: t-relic-ferry c: 90)
+	(set-goal gl-relic-ferry-state RELIC-FERRY-LOADING)
+)
+
+(defrule
+	(goal gl-relic-ferry-state RELIC-FERRY-CHECK-CARRIER)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-class != monk-with-relic-class)
+=>
+	(set-goal gl-relic-ferry-state RELIC-FERRY-WAIT-CARRIER)
+)
+
+(defrule
+	(goal gl-relic-ferry-state RELIC-FERRY-CHECK-CARRIER)
+	(or
+		(not (up-set-target-object search-local c: 0))
+		(not (up-set-target-object search-remote c: 0))
+	)
+=>
+	(up-modify-group-flag 0 c: relic-ferry-transport-group)
+	(up-reset-group c: relic-ferry-transport-group)
 	(up-modify-sn sn-focus-player-number g:= gl-relic-ferry-focus)
 	(up-set-timer c: t-relic-ferry c: 60)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-IDLE)
@@ -4202,9 +4358,13 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-relic-ferry-unit-id)
+	(up-set-target-point gl-home-anchor-x)
 	(up-find-remote c: monastery c: 5)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-home-zone)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(up-target-objects 0 action-default -1 stance-no-attack)
+	(up-modify-group-flag 0 c: relic-ferry-transport-group)
+	(up-reset-group c: relic-ferry-transport-group)
 	(up-modify-sn sn-focus-player-number g:= gl-relic-ferry-focus)
 	(up-set-timer c: t-relic-ferry c: 60)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-IDLE)
@@ -4213,12 +4373,83 @@
 (defrule
 	(up-timer-status t-relic-ferry == timer-triggered)
 	(not (goal gl-relic-ferry-state RELIC-FERRY-IDLE))
+	(up-compare-goal gl-relic-ferry-return-attempts c:< 3)
 =>
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-relic-ferry-transport-id)
-	(up-target-point position-self-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
+	;Do not release the exact hull merely because its controller timed out. Keep
+	;ownership until it is empty and physically back beside the active home.
+	(up-modify-goal gl-relic-ferry-return-attempts c:+ 1)
+	(up-set-timer c: t-relic-ferry c: 30)
+	(set-goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-RETURN)
+)
+
+(defrule
+	(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-RETURN)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-add-object-by-id search-local g: gl-relic-ferry-transport-id)
+	(set-goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-CHECK)
+)
+
+(defrule
+	(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count <= 0)
+	(up-object-data object-data-distance <= 16)
+=>
+	(up-modify-group-flag 0 c: relic-ferry-transport-group)
+	(up-reset-group c: relic-ferry-transport-group)
 	(up-modify-sn sn-focus-player-number g:= gl-relic-ferry-focus)
+	(set-goal gl-relic-ferry-return-attempts 0)
+	(up-set-timer c: t-relic-ferry c: 60)
+	(set-goal gl-relic-ferry-state RELIC-FERRY-IDLE)
+)
+
+(defrule
+	(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-CHECK)
+	(up-set-target-object search-local c: 0)
+	(or
+		(up-object-data object-data-garrison-count > 0)
+		(up-object-data object-data-distance > 16)
+	)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-relic-ferry-transport-id)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
+	(set-goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-RETURN)
+)
+
+(defrule
+	(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-CHECK)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-group-flag 0 c: relic-ferry-transport-group)
+	(up-reset-group c: relic-ferry-transport-group)
+	(up-modify-sn sn-focus-player-number g:= gl-relic-ferry-focus)
+	(set-goal gl-relic-ferry-return-attempts 0)
+	(up-set-timer c: t-relic-ferry c: 60)
+	(set-goal gl-relic-ferry-state RELIC-FERRY-IDLE)
+)
+
+;A living transport can still be unable to path back to the active home. Do
+;not reserve that hull forever: after three timed return commands, release the
+;utility channel so another ferry or migration mission can be attempted.
+(defrule
+	(up-timer-status t-relic-ferry == timer-triggered)
+	(not (goal gl-relic-ferry-state RELIC-FERRY-IDLE))
+	(up-compare-goal gl-relic-ferry-return-attempts c:>= 3)
+=>
+	(up-modify-group-flag 0 c: relic-ferry-transport-group)
+	(up-reset-group c: relic-ferry-transport-group)
+	(up-modify-sn sn-focus-player-number g:= gl-relic-ferry-focus)
+	(set-goal gl-relic-ferry-return-attempts 0)
+	(up-chat-data-to-self "relic ferry watchdog abort: %d" g: gl-relic-ferry-transport-id)
+	(up-set-timer c: t-relic-ferry c: 60)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-IDLE)
 )
 
@@ -4297,8 +4528,9 @@
 	(up-modify-goal gl-local-response-focus s:= sn-focus-player-number)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
-	(up-set-target-point position-self-x)
-	(up-find-local c: villager-class c: 40)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-distance c: -1 c: 160)
+	(up-find-local c: villager-class c: 240)
 	(up-find-local c: town-center c: 20)
 	(up-find-local c: mining-camp c: 20)
 	(up-find-local c: lumber-camp c: 20)
@@ -4365,7 +4597,7 @@
 	(up-find-player enemy find-closest gl-local-response-player)
 	(up-modify-sn sn-focus-player-number g:= gl-local-response-player)
 	(up-full-reset-search)
-	(up-set-target-point position-self-x)
+	(up-set-target-point gl-home-anchor-x)
 	(up-filter-distance c: -1 c: 48)
 	(up-find-remote c: scout-cavalry-class c: 40)
 	(up-find-remote c: cavalry-archer-class c: 40)
@@ -4374,7 +4606,7 @@
 	(up-find-remote c: archery-class c: 40)
 	(up-find-remote c: siege-weapon-class c: 40)
 	(up-find-remote c: priest c: 10)
-	(up-remove-objects search-remote object-data-on-mainland != on-mainland)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-home-zone)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-local-response-threats g:= remote-total)
@@ -4418,6 +4650,8 @@
 	(up-find-local c: infantry-class c: 40)
 	(up-find-local c: archery-class c: 40)
 	(up-find-local c: siege-weapon-class c: 40)
+	(up-remove-objects search-local object-data-type == palintonon)
+	(up-remove-objects search-local object-data-type == palintonon-packed)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-local-response-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
@@ -4474,10 +4708,11 @@
 	(set-goal gl-naval-response-asset-zone -1)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
-	(up-set-target-point position-self-x)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-distance c: -1 c: 160)
 	(up-find-local c: warship-class c: 40)
 	(up-find-local c: boarding-ship c: 10)
-	(up-find-local c: villager-class c: 40)
+	(up-find-local c: villager-class c: 240)
 	(up-find-local c: town-center c: 20)
 	(up-find-local c: mining-camp c: 20)
 	(up-find-local c: lumber-camp c: 20)
@@ -4538,6 +4773,7 @@
 	(up-full-reset-search)
 	(up-find-local c: warship-class c: 40)
 	(up-find-local c: boarding-ship c: 10)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-under-attack <= 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(set-goal gl-naval-response-state NAVAL-RESPONSE-FIND-SHIP)
@@ -4586,8 +4822,7 @@
 	(up-find-local c: warship-class c: 40)
 	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-response-zone)
-	(up-remove-objects search-local object-data-group-flag == transport-escort-group)
-	(up-remove-objects search-local object-data-group-flag == transport-screen-group)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-naval-response-responders g:= local-total)
@@ -4606,8 +4841,7 @@
 	(up-filter-distance c: -1 c: 56)
 	(up-find-local c: warship-class c: 40)
 	(up-find-local c: boarding-ship c: 10)
-	(up-remove-objects search-local object-data-group-flag == transport-escort-group)
-	(up-remove-objects search-local object-data-group-flag == transport-screen-group)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-naval-response-responders g:= local-total)
@@ -4721,9 +4955,7 @@
 	(up-find-local c: warship-class c: 40)
 	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-response-zone)
-	(up-remove-objects search-local object-data-group-flag == transport-escort-group)
-	(up-remove-objects search-local object-data-group-flag == transport-screen-group)
-	(up-remove-objects search-local object-data-group-flag == home-naval-response-group)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-target-objects 1 action-default -1 stance-aggressive)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-response-focus)
@@ -4746,9 +4978,7 @@
 	(up-filter-distance c: -1 c: 56)
 	(up-find-local c: warship-class c: 40)
 	(up-find-local c: boarding-ship c: 10)
-	(up-remove-objects search-local object-data-group-flag == transport-escort-group)
-	(up-remove-objects search-local object-data-group-flag == transport-screen-group)
-	(up-remove-objects search-local object-data-group-flag == home-naval-response-group)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-target-objects 1 action-default -1 stance-aggressive)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-response-focus)
@@ -4765,9 +4995,9 @@
 	(set-goal gl-naval-response-state NAVAL-RESPONSE-IDLE)
 )
 
-;Vulnerable ranged ships that are already under fire by a nearby Juggernaut
-;withdraw toward home. Fire, demolition, and boarding ships are deliberately
-;not included because closing distance is their intended combat behavior.
+;Vulnerable ranged ships already under capital-ship or static-defense fire
+;withdraw toward a safe Port or Shipyard in their own water zone. Reserved
+;Scout Ships receive first inspection; other reserved mission ships remain out.
 (defrule
 	(up-timer-status t-juggernaut-evasion == timer-triggered)
 	(goal gl-juggernaut-evasion-state JUGGERNAUT-EVASION-IDLE)
@@ -4775,14 +5005,47 @@
 	(up-modify-goal gl-juggernaut-evasion-focus s:= sn-focus-player-number)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-set-group search-local c: naval-scout-group)
+	(up-remove-objects search-local object-data-under-attack <= 0)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-juggernaut-evasion-state JUGGERNAUT-EVASION-SCOUT-CHECK)
+)
+
+(defrule
+	(goal gl-juggernaut-evasion-state JUGGERNAUT-EVASION-SCOUT-CHECK)
+	(up-set-target-object search-local c: 0)
+=>
+	;Capture the exact grouped scout here instead of depending on a shared local
+	;search surviving another rule boundary.
+	(up-get-object-data object-data-id gl-juggernaut-evasion-unit-id)
+	(up-get-object-data object-data-map-zone-id gl-juggernaut-evasion-zone)
+	(up-get-point position-object gl-juggernaut-evasion-target-x)
+	(up-find-player enemy find-attacker gl-juggernaut-evasion-player)
+	(up-modify-sn sn-focus-player-number g:= gl-juggernaut-evasion-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-juggernaut-evasion-target-x)
+	(up-filter-distance c: -1 c: 18)
+	(up-find-remote c: juggernaut-line c: 10)
+	(up-find-remote c: octeres c: 10)
+	(up-find-remote c: sea-tower c: 10)
+	(up-find-remote c: tower-class c: 20)
+	(up-find-remote c: castle c: 10)
+	(set-goal gl-juggernaut-evasion-state JUGGERNAUT-EVASION-CHECK)
+)
+
+(defrule
+	(goal gl-juggernaut-evasion-state JUGGERNAUT-EVASION-SCOUT-CHECK)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-full-reset-search)
 	(up-find-local c: scout-galley-line c: 10)
 	(up-find-local c: polyreme-line c: 20)
 	(up-find-local c: hemiolia-line c: 10)
 	(up-find-local c: quadrireme-line c: 10)
-	(up-find-local c: juggernaut-line c: 10)
 	(up-find-local c: liburna-line c: 10)
-	(up-find-local c: octeres c: 5)
 	(up-remove-objects search-local object-data-under-attack <= 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(set-goal gl-juggernaut-evasion-state JUGGERNAUT-EVASION-FIND)
 )
@@ -4792,6 +5055,7 @@
 	(up-set-target-object search-local c: 0)
 =>
 	(up-get-object-data object-data-id gl-juggernaut-evasion-unit-id)
+	(up-get-object-data object-data-map-zone-id gl-juggernaut-evasion-zone)
 	(up-get-point position-object gl-juggernaut-evasion-target-x)
 	(up-find-player enemy find-attacker gl-juggernaut-evasion-player)
 	(up-modify-sn sn-focus-player-number g:= gl-juggernaut-evasion-player)
@@ -4799,6 +5063,10 @@
 	(up-set-target-point gl-juggernaut-evasion-target-x)
 	(up-filter-distance c: -1 c: 18)
 	(up-find-remote c: juggernaut-line c: 10)
+	(up-find-remote c: octeres c: 10)
+	(up-find-remote c: sea-tower c: 10)
+	(up-find-remote c: tower-class c: 20)
+	(up-find-remote c: castle c: 10)
 	(set-goal gl-juggernaut-evasion-state JUGGERNAUT-EVASION-CHECK)
 )
 
@@ -4820,6 +5088,8 @@
 	(up-set-target-point gl-juggernaut-evasion-target-x)
 	(up-find-local c: port c: 10)
 	(up-find-local c: shipyard c: 10)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-juggernaut-evasion-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(set-goal gl-juggernaut-evasion-state JUGGERNAUT-EVASION-FIND-ANCHOR)
 )
@@ -4855,22 +5125,34 @@
 	(set-goal gl-juggernaut-evasion-state JUGGERNAUT-EVASION-IDLE)
 )
 
-;Rams are breach engines, not raiders. Reissue an exact known fortification
-;target so an engine attack group cannot drag them across town after a Mining
-;Camp while Towers, walls, gates, Castles, or a Town Center remain nearby.
+;Rams and Palintonons are breach engines, not raiders. Form one same-land-zone
+;objective group and give the whole detachment one known fortification target,
+;so individual engines are not repeatedly packed or dragged onto economy sites.
 (defrule
 	(up-timer-status t-siege-target == timer-triggered)
 	(goal gl-siege-target-state SIEGE-TARGET-IDLE)
 	(goal gl-home-defense-state NO)
-	(unit-type-count-total battering-ram-line >= 1)
+	(or
+		(unit-type-count-total battering-ram-line >= 1)
+		(or
+			(unit-type-count-total palintonon >= 1)
+			(unit-type-count-total palintonon-packed >= 1)
+		)
+	)
 	(players-building-count any-enemy >= 1)
 =>
 	(up-modify-goal gl-siege-target-focus s:= sn-focus-player-number)
 	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-modify-group-flag 0 c: siege-objective-group)
+	(up-reset-group c: siege-objective-group)
 	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
 	(up-find-local c: battering-ram-line c: 40)
+	(up-find-local c: palintonon c: 20)
+	(up-find-local c: palintonon-packed c: 20)
 	(up-remove-objects search-local object-data-garrisoned == 1)
-	(up-remove-objects search-local object-data-group-flag == home-defense-response-group)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(set-goal gl-siege-target-state SIEGE-TARGET-FIND-UNIT)
 )
@@ -4912,16 +5194,22 @@
 =>
 	(up-get-point position-object gl-siege-target-x)
 	(set-strategic-number sn-focus-player-number my-player-number)
-	;Preserve the remote fortification list while rebuilding only the initiating
-	;ram as the local source set.
+	;Preserve the remote fortification list while rebuilding every available
+	;breach engine in the sampled source land zone.
 	(up-reset-search 1 1 0 0)
-	(up-add-object-by-id search-local g: gl-siege-source-id)
+	(up-set-target-point gl-siege-target-x)
+	(up-find-local c: battering-ram-line c: 40)
+	(up-find-local c: palintonon c: 20)
+	(up-find-local c: palintonon-packed c: 20)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-siege-target-zone)
 	(up-remove-objects search-local object-data-garrisoned == 1)
-	(up-remove-objects search-local object-data-group-flag == home-defense-response-group)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-siege-source-count g:= local-total)
+	(up-create-group 0 0 c: siege-objective-group)
+	(up-modify-group-flag 1 c: siege-objective-group)
 	(set-goal gl-siege-target-state SIEGE-TARGET-COMMAND)
 )
 
@@ -4930,6 +5218,7 @@
 	(up-compare-goal gl-siege-source-count c:> 0)
 =>
 	(up-target-objects 1 action-default -1 stance-aggressive)
+	(up-chat-data-to-self "siege objective group: %d" g: gl-siege-source-count)
 	(up-modify-sn sn-focus-player-number g:= gl-siege-target-focus)
 	(up-set-timer c: t-siege-target c: 12)
 	(set-goal gl-siege-target-state SIEGE-TARGET-IDLE)
@@ -4939,6 +5228,8 @@
 	(goal gl-siege-target-state SIEGE-TARGET-COMMAND)
 	(up-compare-goal gl-siege-source-count c:<= 0)
 =>
+	(up-modify-group-flag 0 c: siege-objective-group)
+	(up-reset-group c: siege-objective-group)
 	(up-modify-sn sn-focus-player-number g:= gl-siege-target-focus)
 	(up-set-timer c: t-siege-target c: 12)
 	(set-goal gl-siege-target-state SIEGE-TARGET-IDLE)
@@ -4953,77 +5244,310 @@
 	(set-goal gl-siege-target-state SIEGE-TARGET-IDLE)
 )
 
-;Long-form Juggernauts and Octeres repeatedly receive one exact static target,
-;preventing target drift to low-value economy. Barrage-form Juggernauts and any
-;ship currently under attack are excluded; exact maximum-range spacing remains
-;an engine-pathing behavior that a fresh replay must verify.
+;Juggernauts and Octeres have different range envelopes, so they own distinct
+;persistent bombardment groups. Each family receives up to two nearby light or
+;medium escorts, and only the capital group is ordered onto fortifications.
+;Alternating the families keeps one timer owner while refreshing both missions.
 (defrule
 	(up-timer-status t-naval-siege == timer-triggered)
 	(goal gl-naval-siege-state SIEGE-TARGET-IDLE)
 	(goal gl-home-defense-state NO)
 	(goal gl-juggernaut-evasion-state JUGGERNAUT-EVASION-IDLE)
-	(or
-		(unit-type-count-total juggernaut-line >= 1)
-		(unit-type-count-total octeres >= 1)
-	)
+	(goal gl-naval-siege-family 0)
+	(unit-type-count-total juggernaut-line >= 1)
 	(players-building-count any-enemy >= 1)
 =>
 	(up-modify-goal gl-naval-siege-focus s:= sn-focus-player-number)
 	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-modify-group-flag 0 c: juggernaut-bombardment-group)
+	(up-reset-group c: juggernaut-bombardment-group)
+	(up-modify-group-flag 0 c: juggernaut-bombardment-escort-group)
+	(up-reset-group c: juggernaut-bombardment-escort-group)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-SELECT)
+)
+
+(defrule
+	(up-timer-status t-naval-siege == timer-triggered)
+	(goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+	(goal gl-home-defense-state NO)
+	(goal gl-juggernaut-evasion-state JUGGERNAUT-EVASION-IDLE)
+	(goal gl-naval-siege-family 1)
+	(unit-type-count-total octeres >= 1)
+	(players-building-count any-enemy >= 1)
+=>
+	(up-modify-goal gl-naval-siege-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-modify-group-flag 0 c: octeres-bombardment-group)
+	(up-reset-group c: octeres-bombardment-group)
+	(up-modify-group-flag 0 c: octeres-bombardment-escort-group)
+	(up-reset-group c: octeres-bombardment-escort-group)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-SELECT)
+)
+
+(defrule
+	(up-timer-status t-naval-siege == timer-triggered)
+	(goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+	(goal gl-naval-siege-family 0)
+	(unit-type-count-total juggernaut-line < 1)
+=>
+	(up-modify-group-flag 0 c: juggernaut-bombardment-group)
+	(up-reset-group c: juggernaut-bombardment-group)
+	(up-modify-group-flag 0 c: juggernaut-bombardment-escort-group)
+	(up-reset-group c: juggernaut-bombardment-escort-group)
+	(set-goal gl-naval-siege-family 1)
+)
+
+(defrule
+	(up-timer-status t-naval-siege == timer-triggered)
+	(goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+	(goal gl-naval-siege-family 1)
+	(unit-type-count-total octeres < 1)
+=>
+	(up-modify-group-flag 0 c: octeres-bombardment-group)
+	(up-reset-group c: octeres-bombardment-group)
+	(up-modify-group-flag 0 c: octeres-bombardment-escort-group)
+	(up-reset-group c: octeres-bombardment-escort-group)
+	(set-goal gl-naval-siege-family 0)
+	(up-set-timer c: t-naval-siege c: 12)
+)
+
+;Select one unreserved source hull first. The family group is formed only after
+;the source water zone has been captured, so other basins remain available.
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-SELECT)
+	(goal gl-naval-siege-family 0)
+=>
 	(up-full-reset-search)
-	(up-find-local c: juggernaut-line c: 20)
-	(up-find-local c: octeres c: 10)
+	(up-set-target-point gl-home-anchor-x)
+	(up-find-local c: juggernaut-line c: 200)
 	(up-remove-objects search-local object-data-under-attack > 0)
-	(up-remove-objects search-local object-data-group-flag == home-naval-response-group)
-	(up-remove-objects search-local object-data-group-flag == transport-escort-group)
-	(up-remove-objects search-local object-data-group-flag == transport-screen-group)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-FIND-UNIT)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-SELECT)
+	(goal gl-naval-siege-family 1)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-find-local c: octeres c: 200)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-FIND-UNIT)
 )
 
 (defrule
 	(goal gl-naval-siege-state SIEGE-TARGET-FIND-UNIT)
+	(goal gl-naval-siege-family 0)
 	(up-set-target-object search-local c: 0)
 =>
 	(up-get-point position-object gl-naval-siege-target-x)
 	(up-get-object-data object-data-id gl-naval-siege-source-id)
+	(up-get-object-data object-data-map-zone-id gl-naval-siege-zone)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-GROUP)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-ESCORT)
+	(goal gl-naval-siege-family 0)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-naval-siege-source-id)
+	(up-set-group search-local c: juggernaut-bombardment-escort-group)
+	(up-target-objects 0 action-guard -1 stance-aggressive)
 	(up-find-player enemy find-closest gl-naval-siege-player)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-player)
 	(up-full-reset-search)
 	(up-set-target-point gl-naval-siege-target-x)
-	(up-filter-distance c: -1 c: 36)
+	(up-filter-distance c: -1 c: 120)
 	(up-find-remote c: sea-tower c: 20)
-	(up-find-remote c: tower-class c: 40)
-	(up-find-remote c: castle c: 10)
-	(up-find-remote c: town-center c: 20)
-	(up-find-remote c: wall-class c: 40)
-	(up-find-remote c: gate-class c: 20)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-FIND-STRUCTURE)
 )
 
 (defrule
 	(goal gl-naval-siege-state SIEGE-TARGET-FIND-UNIT)
+	(goal gl-naval-siege-family 1)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-point position-object gl-naval-siege-target-x)
+	(up-get-object-data object-data-id gl-naval-siege-source-id)
+	(up-get-object-data object-data-map-zone-id gl-naval-siege-zone)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-GROUP)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-GROUP)
+	(goal gl-naval-siege-family 0)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-siege-target-x)
+	(up-find-local c: juggernaut-line c: 200)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-naval-siege-escort-count g:= local-total)
+	(up-modify-goal gl-naval-siege-escort-count c:* 2)
+	(up-modify-goal gl-naval-siege-escort-count c:min 8)
+	(up-create-group 0 0 c: juggernaut-bombardment-group)
+	(up-modify-group-flag 1 c: juggernaut-bombardment-group)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-ESCORT-SELECT)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-GROUP)
+	(goal gl-naval-siege-family 1)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-siege-target-x)
+	(up-find-local c: octeres c: 200)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-naval-siege-escort-count g:= local-total)
+	(up-modify-goal gl-naval-siege-escort-count c:* 2)
+	(up-modify-goal gl-naval-siege-escort-count c:min 8)
+	(up-create-group 0 0 c: octeres-bombardment-group)
+	(up-modify-group-flag 1 c: octeres-bombardment-group)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-ESCORT-SELECT)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-ESCORT-SELECT)
+	(goal gl-naval-siege-family 0)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-siege-target-x)
+	(up-find-local c: scout-galley-line c: 30)
+	(up-find-local c: polyreme-line c: 30)
+	(up-find-local c: hemiolia-line c: 30)
+	(up-find-local c: quadrireme-line c: 30)
+	(up-find-local c: liburna-line c: 30)
+	(up-find-local c: fire-ship-line c: 30)
+	(up-find-local c: fire-galley c: 30)
+	(up-find-local c: boarding-ship c: 30)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index g:>= gl-naval-siege-escort-count)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-naval-siege-escort-count g:= local-total)
+	(up-create-group 0 0 c: juggernaut-bombardment-escort-group)
+	(up-modify-group-flag 1 c: juggernaut-bombardment-escort-group)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-ESCORT)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-ESCORT-SELECT)
+	(goal gl-naval-siege-family 1)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-siege-target-x)
+	(up-find-local c: scout-galley-line c: 30)
+	(up-find-local c: polyreme-line c: 30)
+	(up-find-local c: hemiolia-line c: 30)
+	(up-find-local c: quadrireme-line c: 30)
+	(up-find-local c: liburna-line c: 30)
+	(up-find-local c: fire-ship-line c: 30)
+	(up-find-local c: fire-galley c: 30)
+	(up-find-local c: boarding-ship c: 30)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index g:>= gl-naval-siege-escort-count)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-naval-siege-escort-count g:= local-total)
+	(up-create-group 0 0 c: octeres-bombardment-escort-group)
+	(up-modify-group-flag 1 c: octeres-bombardment-escort-group)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-ESCORT)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-ESCORT)
+	(goal gl-naval-siege-family 1)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-naval-siege-source-id)
+	(up-set-group search-local c: octeres-bombardment-escort-group)
+	(up-target-objects 0 action-guard -1 stance-aggressive)
+	(up-find-player enemy find-closest gl-naval-siege-player)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-siege-target-x)
+	(up-filter-distance c: -1 c: 120)
+	(up-find-remote c: sea-tower c: 20)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-FIND-STRUCTURE)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-FIND-UNIT)
+	(goal gl-naval-siege-family 0)
 	(not (up-set-target-object search-local c: 0))
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
+	(up-modify-group-flag 0 c: juggernaut-bombardment-group)
+	(up-reset-group c: juggernaut-bombardment-group)
+	(up-modify-group-flag 0 c: juggernaut-bombardment-escort-group)
+	(up-reset-group c: juggernaut-bombardment-escort-group)
+	(set-goal gl-naval-siege-family 1)
+	(up-set-timer c: t-naval-siege c: 12)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-FIND-UNIT)
+	(goal gl-naval-siege-family 1)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
+	(up-modify-group-flag 0 c: octeres-bombardment-group)
+	(up-reset-group c: octeres-bombardment-group)
+	(up-modify-group-flag 0 c: octeres-bombardment-escort-group)
+	(up-reset-group c: octeres-bombardment-escort-group)
+	(set-goal gl-naval-siege-family 0)
 	(up-set-timer c: t-naval-siege c: 12)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
 )
 
 (defrule
 	(goal gl-naval-siege-state SIEGE-TARGET-FIND-STRUCTURE)
+	(goal gl-naval-siege-family 0)
 	(up-set-target-object search-remote c: 0)
 =>
+	(up-get-object-data object-data-type gl-naval-siege-target-type)
 	(up-get-point position-object gl-naval-siege-target-x)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-reset-search 1 1 0 0)
-	(up-add-object-by-id search-local g: gl-naval-siege-source-id)
+	(up-set-group search-local c: juggernaut-bombardment-group)
 	(up-remove-objects search-local object-data-under-attack > 0)
-	(up-remove-objects search-local object-data-group-flag == home-naval-response-group)
-	(up-remove-objects search-local object-data-group-flag == transport-escort-group)
-	(up-remove-objects search-local object-data-group-flag == transport-screen-group)
-	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-naval-siege-source-count g:= local-total)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-COMMAND)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-FIND-STRUCTURE)
+	(goal gl-naval-siege-family 1)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-type gl-naval-siege-target-type)
+	(up-get-point position-object gl-naval-siege-target-x)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-reset-search 1 1 0 0)
+	(up-set-group search-local c: octeres-bombardment-group)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-naval-siege-source-count g:= local-total)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-COMMAND)
@@ -5031,19 +5555,52 @@
 
 (defrule
 	(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)
+	(goal gl-naval-siege-family 0)
 	(up-compare-goal gl-naval-siege-source-count c:> 0)
 =>
 	(up-target-objects 1 action-default -1 stance-aggressive)
+	(up-chat-data-to-self "Juggernaut bombardment escorts: %d" g: gl-naval-siege-escort-count)
+	(up-chat-data-to-self "naval bombardment target type: %d" g: gl-naval-siege-target-type)
+	(up-chat-data-to-self "naval bombardment water zone: %d" g: gl-naval-siege-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
+	(set-goal gl-naval-siege-family 1)
 	(up-set-timer c: t-naval-siege c: 12)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
 )
 
 (defrule
 	(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)
+	(goal gl-naval-siege-family 1)
+	(up-compare-goal gl-naval-siege-source-count c:> 0)
+=>
+	(up-target-objects 1 action-default -1 stance-aggressive)
+	(up-chat-data-to-self "Octeres bombardment escorts: %d" g: gl-naval-siege-escort-count)
+	(up-chat-data-to-self "naval bombardment target type: %d" g: gl-naval-siege-target-type)
+	(up-chat-data-to-self "naval bombardment water zone: %d" g: gl-naval-siege-zone)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
+	(set-goal gl-naval-siege-family 0)
+	(up-set-timer c: t-naval-siege c: 12)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)
+	(goal gl-naval-siege-family 0)
 	(up-compare-goal gl-naval-siege-source-count c:<= 0)
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
+	(set-goal gl-naval-siege-family 1)
+	(up-set-timer c: t-naval-siege c: 12)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)
+	(goal gl-naval-siege-family 1)
+	(up-compare-goal gl-naval-siege-source-count c:<= 0)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
+	(set-goal gl-naval-siege-family 0)
 	(up-set-timer c: t-naval-siege c: 12)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
 )
@@ -5052,7 +5609,73 @@
 	(goal gl-naval-siege-state SIEGE-TARGET-FIND-STRUCTURE)
 	(not (up-set-target-object search-remote c: 0))
 =>
+	;The scripting API exposes no dependable naval path query. Keep non-sea-
+	;tower fallback targets close to the selected capital ship to reduce the
+	;chance of choosing an unreachable inland structure.
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-siege-target-x)
+	(up-filter-distance c: -1 c: 48)
+	(up-find-remote c: tower-class c: 20)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: town-center c: 10)
+	(up-find-remote c: wall-class c: 20)
+	(up-find-remote c: gate-class c: 10)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-FALLBACK)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-FALLBACK)
+	(goal gl-naval-siege-family 0)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-type gl-naval-siege-target-type)
+	(up-get-point position-object gl-naval-siege-target-x)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-reset-search 1 1 0 0)
+	(up-set-group search-local c: juggernaut-bombardment-group)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-naval-siege-source-count g:= local-total)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-COMMAND)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-FALLBACK)
+	(goal gl-naval-siege-family 1)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-type gl-naval-siege-target-type)
+	(up-get-point position-object gl-naval-siege-target-x)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-reset-search 1 1 0 0)
+	(up-set-group search-local c: octeres-bombardment-group)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-naval-siege-source-count g:= local-total)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-COMMAND)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-FALLBACK)
+	(goal gl-naval-siege-family 0)
+	(not (up-set-target-object search-remote c: 0))
+=>
 	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
+	(set-goal gl-naval-siege-family 1)
+	(up-set-timer c: t-naval-siege c: 12)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-FALLBACK)
+	(goal gl-naval-siege-family 1)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
+	(set-goal gl-naval-siege-family 0)
 	(up-set-timer c: t-naval-siege c: 12)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
 )
@@ -5197,6 +5820,8 @@
 	(up-find-local c: infantry-class c: 40)
 	(up-find-local c: archery-class c: 40)
 	(up-find-local c: siege-weapon-class c: 40)
+	(up-remove-objects search-local object-data-type == palintonon)
+	(up-remove-objects search-local object-data-type == palintonon-packed)
 	(up-remove-objects search-local object-data-group-flag != home-defense-response-group)
 	(up-target-point gl-local-response-target-x action-move -1 stance-defensive)
 	(up-modify-sn sn-focus-player-number g:= gl-local-response-focus)
@@ -5261,7 +5886,7 @@
 	(up-timer-status t-defense-leash == timer-triggered)
 =>
 	(up-full-reset-search)
-	(up-set-target-point position-self-x)
+	(up-set-target-point gl-home-anchor-x)
 	(up-filter-distance c: 18 c: -1)
 	(up-filter-include -1 actionid-defend -1 -1)
 	(up-find-local c: scout-cavalry-class c: 40)
@@ -5270,9 +5895,11 @@
 	(up-find-local c: infantry-class c: 40)
 	(up-find-local c: archery-class c: 40)
 	(up-find-local c: siege-weapon-class c: 40)
-	(up-remove-objects search-local object-data-on-mainland != on-mainland)
+	(up-remove-objects search-local object-data-type == palintonon)
+	(up-remove-objects search-local object-data-type == palintonon-packed)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
 	(up-clean-search search-local -1 search-order-asc)
-	(up-target-point position-self-x action-move -1 stance-defensive)
+	(up-target-point gl-home-anchor-x action-move -1 stance-defensive)
 )
 
 ;Keep the main army available for decisive attacks while a small detachment raids

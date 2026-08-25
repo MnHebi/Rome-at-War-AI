@@ -11,6 +11,33 @@
 	(up-modify-goal desired-number-shipyards c:= 4)
 )
 
+;A first Shipyard is core hybrid-map infrastructure, not an optional Imperial
+;expense. Let it bypass the generic age-up spending hold once Early Antiquity,
+;a Port, and a conservative wood reserve are present. Later Shipyards continue
+;through the ordinary wait-techup gate below.
+(defrule
+	(goal shipyard-placement-state SHIPYARD-IDLE)
+	(current-age >= early-antiquity-age)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(wood-amount > 250)
+	(building-type-count port > 0)
+	(building-type-count-total shipyard == 0)
+	(up-pending-objects c: shipyard <= 0)
+	(can-build shipyard)
+=>
+	(up-chat-data-to-self "first shipyard priority: %d" g: current-phase)
+	(set-goal shipyard-placement-state SHIPYARD-ANCHOR)
+)
+
 (defrule
 	(goal map-type RIVERS)
 	(up-compare-goal desired-number-shipyards > 6)

@@ -277,8 +277,18 @@ def can_train_unit(block: str, unit: str) -> bool:
     )
 
 
-def has_finite_bound(block: str, bound_units: set[str]) -> bool:
+def has_finite_bound(
+    block: str,
+    bound_units: set[str],
+    bound_goal: str | None = None,
+) -> bool:
     positive_limit = r"(?:gl-(?:one|two|five|ten)-percent|[1-9]\d*)"
+    if bound_goal and re.search(
+        rf"\(up-compare-goal\s+{re.escape(bound_goal)}\s+"
+        rf"(?:g:|c:)?<\s*{positive_limit}\s*\)",
+        block,
+    ):
+        return True
     bounded_units: set[str] = set()
     for unit in bound_units:
         escaped = re.escape(unit)
@@ -336,6 +346,7 @@ def bounded_direct_train_blocks(
     text: str,
     unit: str,
     bound_units: set[str] | None = None,
+    bound_goal: str | None = None,
 ) -> list[str]:
     """Return bounded, role-independent, persistent production paths."""
     expected_bounds = bound_units or {unit}
@@ -345,7 +356,7 @@ def bounded_direct_train_blocks(
         if unit in trained_units(block)
         and can_train_unit(block, unit)
         and not ROLE_FACT.search(block)
-        and has_finite_bound(block, expected_bounds)
+        and has_finite_bound(block, expected_bounds, bound_goal)
         and phase_gate_persists(block)
     ]
 
@@ -384,6 +395,49 @@ def validate_focus_exemptions(
             f"missing={sorted(set(extreme) - set(manifest_civs))} "
             f"extra={sorted(set(manifest_civs) - set(extreme))}"
         )
+    aggregate_bounds: dict[str, set[str]] = {}
+    for civ_manifest in manifest_civs.values():
+        for family in civ_manifest.get("families", []):
+            bound_goal = family.get("bound_goal")
+            if not bound_goal:
+                continue
+            aggregate_bounds.setdefault(str(bound_goal), set()).update(
+                str(value) for value in family.get("bound_units", [])
+            )
+    common_text = (AI_ROOT / "rawai-military-units-common.per").read_text(
+        encoding="utf-8-sig"
+    )
+    common_blocks = defrule_blocks(common_text)
+    for bound_goal, bound_units in aggregate_bounds.items():
+        refresh_blocks = [
+            block
+            for block in common_blocks
+            if all(
+                re.search(
+                    rf"\(up-get-fact\s+unit-type-count-total\s+"
+                    rf"{re.escape(unit)}\s+\S+\s*\)",
+                    block,
+                )
+                for unit in bound_units
+            )
+            and re.search(
+                rf"\(up-get-fact\s+unit-type-count-total\s+\S+\s+"
+                rf"{re.escape(bound_goal)}\s*\)",
+                block,
+            )
+            and (
+                len(bound_units) == 1
+                or re.search(
+                    rf"\(up-modify-goal\s+{re.escape(bound_goal)}\s+g:\+\s+\S+\s*\)",
+                    block,
+                )
+            )
+        ]
+        if not refresh_blocks:
+            errors.append(
+                "unique-unit manifest aggregate bound "
+                f"{bound_goal} is not refreshed from {sorted(bound_units)}"
+            )
     for civ, profile in extreme.items():
         civ_focus = focus_rows[CIV_SHEET_NAMES[civ]]
         for field in ("early", "late", "support"):
@@ -400,22 +454,30 @@ def validate_focus_exemptions(
 
         civ_path = AI_ROOT / f"rawai-civ-{civ}.per"
         civ_text = civ_path.read_text(encoding="utf-8-sig")
-        expected_units: dict[str, tuple[str, set[str]]] = {}
+        expected_units: dict[str, tuple[str, set[str], str | None]] = {}
         civ_manifest = manifest_civs.get(civ, {})
         for family in civ_manifest.get("families", []):
             family_name = str(family["name"])
             bounds = {str(value) for value in family.get("bound_units", [])}
+            bound_goal = family.get("bound_goal")
+            if bound_goal is not None:
+                bound_goal = str(bound_goal)
             for value in family.get("train_units", []):
                 unit = str(value)
-                expected_units[unit] = (family_name, bounds or {unit})
+                expected_units[unit] = (family_name, bounds or {unit}, bound_goal)
 
         active_by_difficulty = {
             name: preprocess(civ_text, name)
             for name in DIFFICULTIES
         }
-        for unit, (family_name, bound_units) in expected_units.items():
+        for unit, (family_name, bound_units, bound_goal) in expected_units.items():
             for difficulty, active_text in active_by_difficulty.items():
-                if not bounded_direct_train_blocks(active_text, unit, bound_units):
+                if not bounded_direct_train_blocks(
+                    active_text,
+                    unit,
+                    bound_units,
+                    bound_goal,
+                ):
                     errors.append(
                         f"{civ_path.name}: {family_name} ({unit}) has no bounded, "
                         f"role-independent persistent path on {difficulty}"
@@ -439,8 +501,8 @@ def validate_focus_exemptions(
                         f"unmanifested composition unit {unit}"
                     )
                     continue
-                _, bound_units = expected_units[unit]
-                if not has_finite_bound(block, bound_units):
+                _, bound_units, bound_goal = expected_units[unit]
+                if not has_finite_bound(block, bound_units, bound_goal):
                     errors.append(
                         f"{civ_path.name}: rule {block_number} directly trains {unit} "
                         "without a positive finite manifest bound"

@@ -331,6 +331,22 @@
 	(disable-self)
 )
 
+(defrule
+	(true)
+=>
+	(set-goal gl-naval-siege-family 0)
+	(set-goal gl-naval-siege-escort-count 0)
+	(set-goal gl-naval-siege-zone -1)
+	(set-goal gl-naval-siege-target-type -1)
+	(set-goal gl-juggernaut-evasion-zone -1)
+	(set-goal gl-legionary-family-count 0)
+	(set-goal gl-naval-scout-target-x 0)
+	(set-goal gl-naval-scout-target-y 0)
+	(set-goal gl-naval-scout-target-zone -1)
+	(set-goal gl-home-stone-count 1)
+	(disable-self)
+)
+
 ;Recorded replays do not embed the loaded AI files. Emit a semantic runtime ID
 ;so stale or cached test payloads can be distinguished from the current build.
 (defrule
@@ -340,7 +356,7 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B18: %d" c: 18)
+	(up-chat-data-to-self "RAWAI-P3B19: %d" c: 19)
 	(disable-self)
 )
 
@@ -661,6 +677,17 @@
 	(set-goal gl-relic-ferry-unit-id -1)
 	(set-goal gl-relic-ferry-target-id -1)
 	(set-goal gl-relic-ferry-direction 0)
+	(disable-self)
+)
+
+;The relic controller previously never received its first timer arm, making the
+;entire state machine unreachable until another path happened to write slot 32.
+;Keep this isolated from the already-large transport initializer.
+(defrule
+	(true)
+=>
+	(set-goal gl-relic-ferry-return-attempts 0)
+	(up-set-timer c: t-relic-ferry c: 60)
 	(disable-self)
 )
 

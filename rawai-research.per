@@ -13,14 +13,26 @@
 )
 
 ;Advanced Weaponry upgrades a broad set of ranged units, naval units, and
-;static defenses in the current DAT. Once Imperial makes it available, request
-;it before the later generic military technologies.
+;static defenses in the current DAT. Some civilizations expose it in Middle
+;Antiquity, so capability rather than an Imperial-only phase gate owns timing.
 (defrule
-	(up-compare-goal current-phase == 7)
+	(current-age >= middle-antiquity-age)
 	(up-can-research gl-researchescrow-state c: ri-advanced-weaponry)
 =>
 	(up-research gl-researchescrow-state c: ri-advanced-weaponry)
-	(chat-local-to-self "priority research advanced weaponry")
+	(up-chat-data-to-self "priority advanced weaponry: %d" g: current-phase)
+)
+
+;Crossbowman is a separate advanced unit unlock (technology 85), not an
+;Improved Bowman upgrade. Explicit ownership keeps the Roman late ranged policy
+;from depending on undocumented automatic-research behavior.
+(defrule
+	(current-age >= middle-antiquity-age)
+	(research-completed ri-advanced-weaponry)
+	(up-can-research gl-researchescrow-state c: ri-crossbowman)
+=>
+	(up-research gl-researchescrow-state c: ri-crossbowman)
+	(up-chat-data-to-self "priority crossbow unlock: %d" c: ri-crossbowman)
 )
 
 ;Faith cannot be researched before Imperial in the data mod. Enemy conversion
@@ -657,12 +669,15 @@
 	(goal wait-techup-requirements NO)
 	(or
 		(unit-type-count archery-class > 0)
-		(unit-type-count cavalry-archer-class > 0)
+		(or
+			(unit-type-count cavalry-archer-class > 0)
+			(unit-type-count crossbowman > 0)
+		)
 	)
 	(up-can-research gl-researchescrow-state c: ri-padded-archer-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-padded-archer-armor)
-	(chat-local-to-self "research padded archer armor")
+	(up-chat-data-to-self "priority padded archer armor: %d" c: ri-padded-archer-armor)
 )
 
 (defrule
@@ -671,7 +686,10 @@
 	(goal wait-techup-requirements NO)
 	(or
 		(unit-type-count archery-class > 0)
-		(unit-type-count cavalry-archer-class > 0)
+		(or
+			(unit-type-count cavalry-archer-class > 0)
+			(unit-type-count crossbowman > 0)
+		)
 	)
 	(up-can-research gl-researchescrow-state c: ri-leather-archer-armor)
 =>
@@ -685,7 +703,10 @@
 	(goal wait-techup-requirements NO)
 	(or
 		(unit-type-count archery-class > 0)
-		(unit-type-count cavalry-archer-class > 0)
+		(or
+			(unit-type-count cavalry-archer-class > 0)
+			(unit-type-count crossbowman > 0)
+		)
 	)
 	(up-can-research gl-researchescrow-state c: ri-ring-archer-armor)
 =>
@@ -767,18 +788,24 @@
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
 	(goal wait-techup-requirements NO)
-	(unit-type-count cavalry-class > 0)
+	(or
+		(unit-type-count cavalry-class > 0)
+		(unit-type-count scout-cavalry-class > 0)
+	)
 	(up-can-research gl-researchescrow-state c: ri-scale-barding-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-scale-barding-armor)
-	(chat-local-to-self "research scale barding armor")
+	(up-chat-data-to-self "priority scale barding armor: %d" c: ri-scale-barding-armor)
 )
 
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
 	(goal wait-techup-requirements NO)
-	(unit-type-count cavalry-class > 0)
+	(or
+		(unit-type-count cavalry-class > 0)
+		(unit-type-count scout-cavalry-class > 0)
+	)
 	(up-can-research gl-researchescrow-state c: ri-chain-barding-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-chain-barding-armor)
@@ -789,7 +816,10 @@
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
 	(goal wait-techup-requirements NO)
-	(unit-type-count cavalry-class > 0)
+	(or
+		(unit-type-count cavalry-class > 0)
+		(unit-type-count scout-cavalry-class > 0)
+	)
 	(up-can-research gl-researchescrow-state c: ri-plate-barding-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-plate-barding-armor)

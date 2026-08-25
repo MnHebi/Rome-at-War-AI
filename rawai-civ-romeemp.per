@@ -1427,6 +1427,16 @@
 #end-if
 ;civ specific structure preferences
 
+;Roman siege doctrine requires a small Scorpion detachment. Affinity alone can
+;lose the role during composition randomization, so keep the existing bounded
+;three-percent common producer reachable from Middle-phase play onward.
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(goal train-scorpion NO)
+=>
+	(set-goal train-scorpion YES)
+)
+
 (defrule
 	(goal current-phase 1)
 =>
@@ -1480,7 +1490,7 @@
 	(up-modify-goal desired-number-outposts c:= 0)
 	(up-modify-goal desired-number-watchtowers c:= 0)
 	(up-modify-goal desired-number-seatowers c:= 0)
-	(up-modify-goal desired-number-shipyards c:= 0)
+	(up-modify-goal desired-number-shipyards c:= 1)
 	
 	(disable-self)
 )
@@ -1509,7 +1519,7 @@
 	(up-modify-goal desired-number-outposts c:= 2)
 	(up-modify-goal desired-number-watchtowers c:= 4)
 	(up-modify-goal desired-number-seatowers c:= 4)
-	(up-modify-goal desired-number-shipyards c:= 2)
+	(up-modify-goal desired-number-shipyards c:= 3)
 	
 	(disable-self)
 )
@@ -1605,24 +1615,22 @@
 ;issued a MAKE command even with an available Barracks and resources.
 (defrule
 	(up-compare-goal current-phase >= 5)
-	(unit-type-count-total legionary-ranged-line g:< gl-two-percent)
-	(unit-type-count-total legionary-melee-line g:< gl-two-percent)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
 	(food-amount > 180)
-	(can-train elite-legionary)
+	(up-can-train gl-unitescrow-state c: elite-legionary)
 =>
-	(train elite-legionary)
-	(chat-local-to-self "Roman concrete Elite Legionary production")
+	(up-train gl-unitescrow-state c: elite-legionary)
+	(up-chat-data-to-self "Roman baseline Legionary: %d" c: elite-legionary)
 )
 
 (defrule
 	(up-compare-goal current-phase >= 5)
-	(unit-type-count-total legionary-ranged-line g:< gl-two-percent)
-	(unit-type-count-total legionary-melee-line g:< gl-two-percent)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
 	(food-amount > 180)
-	(can-train legionary)
+	(up-can-train gl-unitescrow-state c: legionary)
 =>
-	(train legionary)
-	(chat-local-to-self "Roman concrete Legionary production")
+	(up-train gl-unitescrow-state c: legionary)
+	(up-chat-data-to-self "Roman baseline Legionary: %d" c: legionary)
 )
 
 ;Naval specialist detachments are now generated from the DAT-backed capability

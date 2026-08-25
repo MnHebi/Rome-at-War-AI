@@ -14,6 +14,14 @@
 ;Emergency Roman response to enemy Champions inside the town. This exact unit
 ;request bypasses the normal Middle-Age legionary role mapping.
 #load-if-defined BYZANTINE-CIV
+
+(defrule
+	(true)
+=>
+	(up-get-fact unit-type-count-total legionary-ranged-line gl-legionary-family-count)
+	(up-get-fact unit-type-count-total legionary-melee-line temporary-goal)
+	(up-modify-goal gl-legionary-family-count g:+ temporary-goal)
+)
 (defrule
 	(goal gl-roman-champion-base-threat YES)
 	(current-age >= middle-antiquity-age)
@@ -168,11 +176,23 @@
 (defrule
 	(current-age >= middle-antiquity-age)
 	(goal train-champion YES)
-	(unit-type-count-total legionary-ranged-line g:< gl-ten-percent)
+	(up-compare-goal gl-legionary-family-count g:< gl-ten-percent)
 	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: legionary-ranged-line)
+	(up-can-train gl-unitescrow-state c: elite-legionary)
 =>
-	(up-train gl-unitescrow-state c: legionary-ranged-line)
+	(up-train gl-unitescrow-state c: elite-legionary)
+	(up-chat-data-to-self "Roman Legionary request: %d" c: elite-legionary)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(goal train-champion YES)
+	(up-compare-goal gl-legionary-family-count g:< gl-ten-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary)
+=>
+	(up-train gl-unitescrow-state c: legionary)
+	(up-chat-data-to-self "Roman Legionary request: %d" c: legionary)
 )
 
 ;Roman Imperial ranges switch completely from Improved Bowmen to the separate
@@ -207,6 +227,14 @@
 ;========================ROMAN REPUBLIC========================
 
 #load-if-defined ITALIAN-CIV
+
+(defrule
+	(true)
+=>
+	(up-get-fact unit-type-count-total legionary-ranged-line gl-legionary-family-count)
+	(up-get-fact unit-type-count-total legionary-melee-line temporary-goal)
+	(up-modify-goal gl-legionary-family-count g:+ temporary-goal)
+)
 
 (defrule
 	(current-age < middle-antiquity-age)
@@ -266,11 +294,24 @@
 		(goal train-champion YES)
 		(goal primary-unit CHAMPION)
 	)
-	(unit-type-count-total legionary-melee-line g:< gl-ten-percent)
+	(up-compare-goal gl-legionary-family-count g:< gl-ten-percent)
 	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: legionary-melee-line)
+	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
 =>
-	(up-train gl-unitescrow-state c: legionary-melee-line)
+	(up-train gl-unitescrow-state c: elite-legionary-melee)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal primary-unit CHAMPION)
+	)
+	(up-compare-goal gl-legionary-family-count g:< gl-ten-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary-melee)
+=>
+	(up-train gl-unitescrow-state c: legionary-melee)
 )
 
 (defrule
@@ -279,11 +320,24 @@
 		(goal train-champion YES)
 		(goal secondary-unit CHAMPION)
 	)
-	(unit-type-count-total legionary-melee-line g:< gl-five-percent)
+	(up-compare-goal gl-legionary-family-count g:< gl-five-percent)
 	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: legionary-melee-line)
+	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
 =>
-	(up-train gl-unitescrow-state c: legionary-melee-line)
+	(up-train gl-unitescrow-state c: elite-legionary-melee)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal secondary-unit CHAMPION)
+	)
+	(up-compare-goal gl-legionary-family-count g:< gl-five-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary-melee)
+=>
+	(up-train gl-unitescrow-state c: legionary-melee)
 )
 
 (defrule
@@ -292,11 +346,24 @@
 		(goal train-champion YES)
 		(goal tertiary-unit CHAMPION)
 	)
-	(unit-type-count-total legionary-melee-line g:< gl-two-percent)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
 	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: legionary-melee-line)
+	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
 =>
-	(up-train gl-unitescrow-state c: legionary-melee-line)
+	(up-train gl-unitescrow-state c: elite-legionary-melee)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal tertiary-unit CHAMPION)
+	)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary-melee)
+=>
+	(up-train gl-unitescrow-state c: legionary-melee)
 )
 
 (defrule
@@ -305,11 +372,24 @@
 		(goal train-champion YES)
 		(goal quaternary-unit CHAMPION)
 	)
-	(unit-type-count-total legionary-melee-line g:< gl-one-percent)
+	(up-compare-goal gl-legionary-family-count g:< gl-one-percent)
 	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: legionary-melee-line)
+	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
 =>
-	(up-train gl-unitescrow-state c: legionary-melee-line)
+	(up-train gl-unitescrow-state c: elite-legionary-melee)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal quaternary-unit CHAMPION)
+	)
+	(up-compare-goal gl-legionary-family-count g:< gl-one-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary-melee)
+=>
+	(up-train gl-unitescrow-state c: legionary-melee)
 )
 
 #end-if
@@ -1797,9 +1877,19 @@
 	(goal train-scorpion YES)
 	(unit-type-count-total scorpion-line g:< gl-three-percent)
 	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: scorpion-line)
+	(up-can-train gl-unitescrow-state c: heavy-scorpion)
 =>
-	(up-train gl-unitescrow-state c: scorpion-line)
+	(up-train gl-unitescrow-state c: heavy-scorpion)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(goal train-scorpion YES)
+	(unit-type-count-total scorpion-line g:< gl-three-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: scorpion)
+=>
+	(up-train gl-unitescrow-state c: scorpion)
 )
 
 ;========================SCORPION END========================

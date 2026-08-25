@@ -341,6 +341,27 @@ class UniqueProductionTests(unittest.TestCase):
 """
         self.assertEqual(len(bounded_direct_train_blocks(text, "unique-line")), 1)
 
+    def test_manifest_aggregate_goal_bound_is_accepted(self) -> None:
+        text = """(defrule
+    (up-compare-goal current-phase >= 5)
+    (up-compare-goal gl-family-count g:< gl-two-percent)
+    (can-train mobile-form)
+=>
+    (train mobile-form)
+)
+"""
+        self.assertEqual(
+            len(
+                bounded_direct_train_blocks(
+                    text,
+                    "mobile-form",
+                    {"mobile-form", "stationary-form"},
+                    "gl-family-count",
+                )
+            ),
+            1,
+        )
+
 
 class GoodUnitEvaluationTests(unittest.TestCase):
     def test_blank_rating_is_rejected(self) -> None:
@@ -410,6 +431,14 @@ class FarmPolicyTests(unittest.TestCase):
         cls.homebase = (root / "rawai-homebase.per").read_text(encoding="utf-8-sig")
         cls.init_goals = (root / "rawai-init-goals.per").read_text(encoding="utf-8-sig")
         cls.military = (root / "rawai-military.per").read_text(encoding="utf-8-sig")
+        cls.military_common = (root / "rawai-military-units-common.per").read_text(
+            encoding="utf-8-sig"
+        )
+        cls.research = (root / "rawai-research.per").read_text(encoding="utf-8-sig")
+        cls.romeemp = (root / "rawai-civ-romeemp.per").read_text(encoding="utf-8-sig")
+        cls.specialplacement = (root / "rawai-specialplacement.per").read_text(
+            encoding="utf-8-sig"
+        )
         cls.rush = (root / "rawai-rush.per").read_text(encoding="utf-8-sig")
         cls.main = (root / "AI RAW.per").read_text(encoding="utf-8-sig")
         cls.timers = (root / "rawai-timers.per").read_text(encoding="utf-8-sig")
@@ -543,7 +572,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B18", self.init_goals)
+        self.assertIn("RAWAI-P3B19", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -564,6 +593,97 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertEqual(len(calculators), 2)
         self.assertTrue(all(rule[1] < telemetry[0][0] for rule in calculators))
         self.assertIn("(up-timer-status t-farm-report != timer-running)", self.timers)
+
+    def test_relic_carrier_reboards_the_reserved_transport(self) -> None:
+        wait = matching_rules(
+            self.military,
+            facts=("(goal gl-relic-ferry-state RELIC-FERRY-WAIT-CARRIER)",),
+            actions=(
+                "(up-add-object-by-id search-local g: gl-relic-ferry-unit-id)",
+                "(up-add-object-by-id search-remote g: gl-relic-ferry-transport-id)",
+                "(set-goal gl-relic-ferry-state RELIC-FERRY-CHECK-CARRIER)",
+            ),
+        )
+        self.assertEqual(len(wait), 1)
+        reboard = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-relic-ferry-state RELIC-FERRY-CHECK-CARRIER)",
+                "object-data-class == monk-with-relic-class",
+            ),
+            actions=(
+                "(up-target-objects 0 action-garrison -1 stance-no-attack)",
+                "(set-goal gl-relic-ferry-direction RELIC-FERRY-RETURN)",
+                "(set-goal gl-relic-ferry-state RELIC-FERRY-LOADING)",
+            ),
+        )
+        self.assertEqual(len(reboard), 1)
+
+    def test_roman_legionary_and_scorpion_producers_use_concrete_units(self) -> None:
+        for unit in ("elite-legionary", "legionary"):
+            rules = matching_rules(
+                self.military_common,
+                facts=("gl-legionary-family-count g:< gl-ten-percent",),
+                actions=(f"(up-train gl-unitescrow-state c: {unit})",),
+            )
+            self.assertEqual(len(rules), 1)
+        for unit in ("heavy-scorpion", "scorpion"):
+            rules = matching_rules(
+                self.military_common,
+                facts=("(unit-type-count-total scorpion-line g:< gl-three-percent)",),
+                actions=(f"(up-train gl-unitescrow-state c: {unit})",),
+            )
+            self.assertEqual(len(rules), 1)
+        for invalid_train_operand in (
+            "c: legionary-ranged-line",
+            "c: legionary-melee-line",
+            "c: scorpion-line",
+        ):
+            self.assertNotIn(invalid_train_operand, self.military_common)
+
+    def test_roman_shipyards_are_requested_before_late_land_structures(self) -> None:
+        phase_two = matching_rules(
+            self.romeemp,
+            facts=("(goal current-phase 2)",),
+            actions=("(up-modify-goal desired-number-shipyards c:= 1)",),
+        )
+        phase_three = matching_rules(
+            self.romeemp,
+            facts=("(goal current-phase 3)",),
+            actions=("(up-modify-goal desired-number-shipyards c:= 3)",),
+        )
+        first_shipyard = matching_rules(
+            self.specialplacement,
+            facts=(
+                "(current-age >= early-antiquity-age)",
+                "(building-type-count port > 0)",
+                "(building-type-count-total shipyard == 0)",
+            ),
+            actions=("(set-goal shipyard-placement-state SHIPYARD-ANCHOR)",),
+        )
+        self.assertEqual(len(phase_two), 1)
+        self.assertEqual(len(phase_three), 1)
+        self.assertEqual(len(first_shipyard), 1)
+
+    def test_crossbow_and_scout_cavalry_unlock_their_actual_armor(self) -> None:
+        padded = matching_rules(
+            self.research,
+            facts=("(unit-type-count crossbowman > 0)",),
+            actions=("(up-research gl-researchescrow-state c: ri-padded-archer-armor)",),
+        )
+        marksmanship = matching_rules(
+            self.research,
+            facts=("(unit-type-count crossbowman > 0)",),
+            actions=("(up-research gl-researchescrow-state c: ri-marksmanship)",),
+        )
+        scale = matching_rules(
+            self.research,
+            facts=("(unit-type-count scout-cavalry-class > 0)",),
+            actions=("(up-research gl-researchescrow-state c: ri-scale-barding-armor)",),
+        )
+        self.assertEqual(len(padded), 1)
+        self.assertEqual(marksmanship, [])
+        self.assertEqual(len(scale), 1)
 
     def test_resource_camps_bootstrap_from_resources_then_follow_workers(self) -> None:
         search_state_block = {
@@ -618,6 +738,12 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(later_lumber), 1)
+        for rejected_id in (
+            "gl-lumbercamp-rejected-resource-id",
+            "gl-lumbercamp-rejected-resource-id2",
+            "gl-lumbercamp-rejected-resource-id3",
+        ):
+            self.assertIn(f"object-data-target-id g:== {rejected_id}", later_lumber[0][4])
 
         lumber_builds = matching_rules(
             self.homebase,
@@ -671,6 +797,24 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(lumber_sparse), 1)
+        self.assertIn(
+            "gl-lumbercamp-rejected-resource-id g:= gl-lumbercamp-resource-id",
+            lumber_sparse[0][4],
+        )
+        lumber_retry = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-lumbercamp-placement-state PLACEMENT-ASSESS)",
+                "(not (up-set-target-object search-local c: 0))",
+            ),
+            actions=(
+                "(set-goal gl-lumbercamp-rejected-resource-id -1)",
+                "(set-goal gl-lumbercamp-rejected-resource-id2 -1)",
+                "(set-goal gl-lumbercamp-rejected-resource-id3 -1)",
+                "(set-goal gl-lumbercamp-candidate-index 0)",
+            ),
+        )
+        self.assertEqual(len(lumber_retry), 1)
 
         # The freshly rebuilt list has stable distance ranks. Advancing the
         # retained rank must therefore inspect A, B, C, D rather than allowing
@@ -961,7 +1105,13 @@ class FarmPolicyTests(unittest.TestCase):
                 "(set-goal gl-island-migration-mission MIGRATION-MISSION-MINING)",
             ),
         )
-        self.assertEqual(len(civilian_gate), 1)
+        self.assertEqual(len(civilian_gate), 2)
+        self.assertTrue(
+            any(
+                "gl-home-stone-count c:<= 0" in rule[3]
+                for rule in civilian_gate
+            )
+        )
         evacuation = matching_rules(
             self.military,
             facts=("(goal gl-home-resource-pressure YES)",),
@@ -979,6 +1129,195 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("lid-villager-farmer", reinforcement[0][4])
         self.assertIn("lid-villager-fisherman", reinforcement[0][4])
         self.assertIn("lid-villager-shepherd", reinforcement[0][4])
+
+    def test_active_home_stone_pressure_preempts_scout_migration(self) -> None:
+        stone_refresh = matching_rules(
+            self.military,
+            facts=(
+                "(up-timer-status t-home-resource-pressure == timer-triggered)",
+                "(current-age >= middle-antiquity-age)",
+            ),
+            actions=(
+                "(up-find-remote c: stone-mine-class c: 20)",
+                "(up-modify-goal gl-home-stone-count g:= remote-total)",
+            ),
+        )
+        stone_gate = matching_rules(
+            self.military,
+            facts=("gl-home-stone-count c:<= 0",),
+            actions=(
+                "(up-find-remote c: stone-mine-class c: 20)",
+                "(set-goal gl-island-migration-mission MIGRATION-MISSION-MINING)",
+            ),
+        )
+        scout_gate = matching_rules(
+            self.military,
+            facts=("gl-home-stone-count c:> 0",),
+            actions=(
+                "(set-goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)",
+            ),
+        )
+        self.assertEqual(len(stone_refresh), 1)
+        self.assertEqual(len(stone_gate), 1)
+        self.assertEqual(len(scout_gate), 1)
+
+    def test_remote_asset_defense_does_not_truncate_villagers_before_filter(self) -> None:
+        local = matching_rules(
+            self.military,
+            facts=("(goal gl-local-response-state LOCAL-RESPONSE-IDLE)",),
+            actions=(
+                "(up-find-local c: villager-class c: 240)",
+                "(up-remove-objects search-local object-data-under-attack <= 0)",
+                "LOCAL-RESPONSE-ASSET-FIND",
+            ),
+        )
+        naval = matching_rules(
+            self.military,
+            facts=("(goal gl-naval-response-state NAVAL-RESPONSE-IDLE)",),
+            actions=(
+                "(up-find-local c: villager-class c: 240)",
+                "(up-remove-objects search-local object-data-under-attack <= 0)",
+                "NAVAL-RESPONSE-HOME-FIND",
+            ),
+        )
+        self.assertEqual(len(local), 1)
+        self.assertEqual(len(naval), 1)
+        for rule in local + naval:
+            self.assertLess(
+                rule[4].find("villager-class c: 240"),
+                rule[4].find("object-data-under-attack <= 0"),
+            )
+
+    def test_relic_watchdog_keeps_hull_until_empty_at_home(self) -> None:
+        stranded = matching_rules(
+            self.military,
+            facts=("(goal gl-relic-ferry-state RELIC-FERRY-FIND-CARRIER)",),
+            actions=(
+                "object-data-under-attack > 0",
+                "object-data-group-flag >= 0",
+                "RELIC-FERRY-FIND-TRANSPORT",
+            ),
+        )
+        watchdog = matching_rules(
+            self.military,
+            facts=(
+                "(up-timer-status t-relic-ferry == timer-triggered)",
+                "gl-relic-ferry-return-attempts c:< 3",
+            ),
+            actions=(
+                "gl-home-anchor-x action-unload",
+                "gl-relic-ferry-return-attempts c:+ 1",
+                "RELIC-FERRY-WATCHDOG-RETURN",
+            ),
+        )
+        release = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-CHECK)",
+                "object-data-garrison-count <= 0",
+                "object-data-distance <= 16",
+            ),
+            actions=(
+                "(up-reset-group c: relic-ferry-transport-group)",
+                "RELIC-FERRY-IDLE",
+            ),
+        )
+        self.assertEqual(len(stranded), 1)
+        self.assertEqual(len(watchdog), 1)
+        self.assertEqual(len(release), 1)
+
+        abort = matching_rules(
+            self.military,
+            facts=(
+                "(up-timer-status t-relic-ferry == timer-triggered)",
+                "gl-relic-ferry-return-attempts c:>= 3",
+            ),
+            actions=(
+                "(up-reset-group c: relic-ferry-transport-group)",
+                "(set-goal gl-relic-ferry-return-attempts 0)",
+                "relic ferry watchdog abort",
+                "RELIC-FERRY-IDLE",
+            ),
+        )
+        self.assertEqual(len(abort), 1)
+
+    def test_migration_transport_fallbacks_use_active_home_anchor(self) -> None:
+        for state in (
+            "MIGRATION-FIND-COLONY-LANDING",
+            "MIGRATION-FIND-SCOUT-LANDING",
+        ):
+            rules = matching_rules(
+                self.military,
+                facts=(f"(goal gl-island-migration-state {state})",),
+                actions=(
+                    "(up-set-target-point gl-home-anchor-x)",
+                    "(up-find-remote c: transport-ship c: 40)",
+                    "MIGRATION-FIND-TRANSPORT",
+                ),
+            )
+            self.assertEqual(len(rules), 1)
+
+    def test_reserved_naval_scouts_are_evasion_candidates(self) -> None:
+        inspect = matching_rules(
+            self.military,
+            facts=(
+                "(up-timer-status t-juggernaut-evasion == timer-triggered)",
+                "JUGGERNAUT-EVASION-IDLE",
+            ),
+            actions=(
+                "(up-set-group search-local c: naval-scout-group)",
+                "JUGGERNAUT-EVASION-SCOUT-CHECK",
+            ),
+        )
+        capture = matching_rules(
+            self.military,
+            facts=(
+                "JUGGERNAUT-EVASION-SCOUT-CHECK",
+                "(up-set-target-object search-local c: 0)",
+            ),
+            actions=(
+                "gl-juggernaut-evasion-unit-id",
+                "(up-find-remote c: sea-tower c: 10)",
+                "JUGGERNAUT-EVASION-CHECK",
+            ),
+        )
+        self.assertEqual(len(inspect), 1)
+        self.assertEqual(len(capture), 1)
+
+    def test_palintonons_receive_one_same_zone_objective_group(self) -> None:
+        selection = matching_rules(
+            self.military,
+            facts=("(goal gl-siege-target-state SIEGE-TARGET-IDLE)",),
+            actions=(
+                "(up-reset-group c: siege-objective-group)",
+                "(up-set-target-point gl-home-anchor-x)",
+                "(up-find-local c: palintonon-packed c: 20)",
+            ),
+        )
+        grouping = matching_rules(
+            self.military,
+            facts=("(goal gl-siege-target-state SIEGE-TARGET-FIND-STRUCTURE)",),
+            actions=(
+                "(up-find-local c: palintonon c: 20)",
+                "object-data-map-zone-id g:!= gl-siege-target-zone",
+                "(up-create-group 0 0 c: siege-objective-group)",
+                "SIEGE-TARGET-COMMAND",
+            ),
+        )
+        command = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-siege-target-state SIEGE-TARGET-COMMAND)",
+                "gl-siege-source-count c:> 0",
+            ),
+            actions=(
+                "(up-target-objects 1 action-default -1 stance-aggressive)",
+                "siege objective group: %d",
+            ),
+        )
+        self.assertEqual(len(selection), 1)
+        self.assertEqual(len(grouping), 1)
+        self.assertEqual(len(command), 1)
 
     def test_completed_farms_are_restaffed_same_zone(self) -> None:
         start = matching_rules(
@@ -1166,7 +1505,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "(set-goal gl-island-migration-mission MIGRATION-MISSION-MINING)",
             ),
         )
-        self.assertEqual(len(civilian_gate), 1)
+        self.assertEqual(len(civilian_gate), 2)
 
     def test_naval_exploration_is_scout_ship_only(self) -> None:
         self.assertIn(
@@ -1186,7 +1525,7 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(scout_producer), 1)
-        scout_rules = matching_rules(
+        scout_reservation = matching_rules(
             self.military,
             facts=(
                 "(goal gl-naval-scout-state NAVAL-SCOUT-CHECK)",
@@ -1195,15 +1534,28 @@ class FarmPolicyTests(unittest.TestCase):
             actions=(
                 "(up-find-local c: scout-galley-line c: 10)",
                 "(up-create-group 0 0 c: naval-scout-group)",
-                "(up-get-point position-enemy point4-x)",
-                "(up-target-point point4-x action-move -1 stance-no-attack)",
+                "(set-goal gl-naval-scout-state NAVAL-SCOUT-TARGET)",
             ),
         )
-        self.assertEqual(len(scout_rules), 1)
-        _, _, _, _, actions = scout_rules[0]
+        self.assertEqual(len(scout_reservation), 1)
+        _, _, _, _, actions = scout_reservation[0]
         self.assertNotIn("juggernaut", actions.lower())
         self.assertNotIn("octeres", actions.lower())
         self.assertNotIn("warship-class", actions.lower())
+        target_rules = matching_rules(
+            self.military,
+            facts=("(goal gl-naval-scout-state NAVAL-SCOUT-TARGET)",),
+            actions=(
+                "(up-set-group search-local c: naval-scout-group)",
+                "action-move",
+            ),
+        )
+        self.assertEqual(len(target_rules), 2)
+        self.assertTrue(any("position-enemy" in rule[4] for rule in target_rules))
+        for _, _, _, _, target_actions in target_rules:
+            self.assertNotIn("juggernaut", target_actions.lower())
+            self.assertNotIn("octeres", target_actions.lower())
+            self.assertNotIn("warship-class", target_actions.lower())
         unavailable = matching_rules(
             self.military,
             facts=(
@@ -1451,7 +1803,7 @@ class FarmPolicyTests(unittest.TestCase):
             actions=(
                 "object-data-carry <= 0",
                 "(up-find-remote c: town-center c: 80)",
-                "object-data-on-mainland != on-mainland",
+                "object-data-map-zone-id g:!= gl-home-zone",
                 "(set-goal gl-island-migration-state MIGRATION-RETURN-DEPOSIT)",
             ),
         )

@@ -924,6 +924,8 @@
 	(goal gl-home-resource-pressure NO)
 	(can-afford-building town-center)
 	(building-type-count-total town-center g:< desired-number-towncenters)
+	(up-pending-objects c: town-center <= 0)
+	(not (up-pending-placement c: town-center))
 	(up-can-build 0 c: town-center)
 =>
 	(up-build place-normal 0 c: town-center)
@@ -1158,11 +1160,15 @@
 	(up-modify-goal gl-lumbercamp-placement-focus s:= sn-focus-player-number)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
-	(up-set-target-point position-self-x)
-	(up-find-local c: villager-class c: 40)
+	(up-set-target-point gl-home-anchor-x)
+	(up-find-local c: villager-class c: 160)
 	(up-remove-objects search-local object-data-gather-type != wood)
 	(up-remove-objects search-local object-data-action != actionid-gather)
 	(up-remove-objects search-local object-data-target-id == -1)
+	(up-remove-objects search-local object-data-target-id g:== gl-lumbercamp-rejected-resource-id)
+	(up-remove-objects search-local object-data-target-id g:== gl-lumbercamp-rejected-resource-id2)
+	(up-remove-objects search-local object-data-target-id g:== gl-lumbercamp-rejected-resource-id3)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
 	(up-clean-search search-local object-data-distance search-order-desc)
 	(set-goal gl-lumbercamp-placement-attempts 0)
 	(up-set-timer c: t-lumbercamp-placement c: 120)
@@ -1217,6 +1223,9 @@
 	(goal gl-lumbercamp-placement-state PLACEMENT-CHECK-RESOURCE)
 	(up-compare-goal remote-total c:< 3)
 =>
+	(up-modify-goal gl-lumbercamp-rejected-resource-id3 g:= gl-lumbercamp-rejected-resource-id2)
+	(up-modify-goal gl-lumbercamp-rejected-resource-id2 g:= gl-lumbercamp-rejected-resource-id)
+	(up-modify-goal gl-lumbercamp-rejected-resource-id g:= gl-lumbercamp-resource-id)
 	(up-modify-goal gl-lumbercamp-candidate-index c:+ 1)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
 	(up-chat-data-to-self "lumber camp rejected sparse wood zone: %d" g: gl-lumbercamp-resource-zone)
@@ -1229,6 +1238,12 @@
 	(goal gl-lumbercamp-placement-state PLACEMENT-ASSESS)
 	(not (up-set-target-object search-local c: 0))
 =>
+	;The rejection ring is bounded backoff. If all current woodcutter targets are
+	;temporarily sparse, release it before a later economy assignment is sampled.
+	(set-goal gl-lumbercamp-rejected-resource-id -1)
+	(set-goal gl-lumbercamp-rejected-resource-id2 -1)
+	(set-goal gl-lumbercamp-rejected-resource-id3 -1)
+	(set-goal gl-lumbercamp-candidate-index 0)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
 	(up-set-timer c: t-lumbercamp-placement c: 15)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
@@ -1434,6 +1449,79 @@
 	(up-modify-goal gl-lumbercamp-rejected-resource-id2 g:= gl-lumbercamp-rejected-resource-id)
 	(up-modify-goal gl-lumbercamp-rejected-resource-id g:= gl-lumbercamp-resource-id)
 	(up-chat-data-to-self "lumber camp deleted stale resource foundation: %d" g: gl-lumbercamp-foundation-id)
+	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
+	(set-goal gl-lumbercamp-placement-attempts 0)
+	(up-set-timer c: t-lumbercamp-placement c: 30)
+	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
+)
+
+;Four builders can complete the tiny foundation before the WAIT sweep ever
+;observes a pending object. Resolve a ready camp at the exact candidate before
+;classifying that successful build as a failed offset.
+(defrule
+	(goal gl-lumbercamp-placement-state PLACEMENT-WAIT)
+	(up-timer-status t-lumbercamp-placement == timer-triggered)
+	(up-pending-objects c: lumber-camp <= 0)
+	(building-type-count-total lumber-camp >= 1)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-lumbercamp-target-x)
+	(up-filter-distance c: -1 c: 8)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-local c: lumber-camp c: 8)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-lumbercamp-resource-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-lumbercamp-placement-state PLACEMENT-FIND-COMPLETED)
+)
+
+(defrule
+	(goal gl-lumbercamp-placement-state PLACEMENT-FIND-COMPLETED)
+	(up-set-target-object search-local c: 0)
+=>
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-lumbercamp-resource-id)
+	(set-goal gl-lumbercamp-placement-state PLACEMENT-VALIDATE-COMPLETED-RESOURCE)
+)
+
+(defrule
+	(goal gl-lumbercamp-placement-state PLACEMENT-FIND-COMPLETED)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-reset-placement c: lumber-camp)
+	(set-goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
+)
+
+(defrule
+	(goal gl-lumbercamp-placement-state PLACEMENT-VALIDATE-COMPLETED-RESOURCE)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-class == tree-class)
+	(up-object-data object-data-map-zone-id g:== gl-lumbercamp-resource-zone)
+=>
+	(up-chat-data-to-self "lumber camp accepted completed resource: %d" g: gl-lumbercamp-resource-id)
+	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
+	(set-goal gl-lumbercamp-placement-attempts 0)
+	(set-goal gl-lumbercamp-candidate-index 0)
+	(up-set-timer c: t-lumbercamp-placement c: 90)
+	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
+)
+
+(defrule
+	(goal gl-lumbercamp-placement-state PLACEMENT-VALIDATE-COMPLETED-RESOURCE)
+	(or
+		(not (up-set-target-object search-remote c: 0))
+		(or
+			(up-object-data object-data-class != tree-class)
+			(up-object-data object-data-map-zone-id g:!= gl-lumbercamp-resource-zone)
+		)
+	)
+=>
+	;Never delete a completed drop site merely because its exact sampled tree was
+	;cut down while builders worked. Reject that sample and seek another cluster.
+	(up-modify-goal gl-lumbercamp-rejected-resource-id3 g:= gl-lumbercamp-rejected-resource-id2)
+	(up-modify-goal gl-lumbercamp-rejected-resource-id2 g:= gl-lumbercamp-rejected-resource-id)
+	(up-modify-goal gl-lumbercamp-rejected-resource-id g:= gl-lumbercamp-resource-id)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
 	(set-goal gl-lumbercamp-placement-attempts 0)
 	(up-set-timer c: t-lumbercamp-placement c: 30)

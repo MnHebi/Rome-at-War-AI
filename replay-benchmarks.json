@@ -647,6 +647,68 @@
         "Correcting twenty-eight remote-count calls intentionally changes several systems that previously consumed the empty local count. A fresh match must check those dependent runtime behaviors for newly exposed balance or state-transition errors."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-rome-vs-britons-20260825-142803",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.25 142803.aoe2record",
+        "sha256": "C6224F39D0461BD3F2D26CF2FE9C15E8844279907966F5C5C7AD98C0C1A82D2D",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain (test context)",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 3976
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and lasted 66:16. No RAWAI startup marker was decoded, so source attribution to P3B18 is consistent with the test sequence but not proven by the recording.",
+        "Rome requested 52 Crossbowmen (unit 5), 35 Praetorian Prefects (40), four packed Palintonons (331), and ten Juggernauts (420), but zero Legionary forms (866, 868, 1658, or 1661), Scorpions (279 or 542), and Octeres (1884).",
+        "Rome first requested a Shipyard at 34:38 and its first warship at 47:19 despite Port requests at 07:57 and 16:26; Britons first requested a Shipyard at 32:12.",
+        "Each player issued only one Lumber Camp build request, at 00:32. The replay contains no accepted-live-resource or accepted-completed-resource telemetry for a later Roman camp.",
+        "Rome completed Early Antiquity at about 08:20, Middle Antiquity at about 16:35, and Imperial at about 25:50. Roman land and naval attack dispatch telemetry exists, so the recording disproves total inactivity but does not establish good target selection or coordination.",
+        "BUILD and MAKE records are command requests rather than proof of completed construction or training, and the replay does not expose exact transport occupancy or persistent combat-group membership."
+      ],
+      "implementation_inferences": [
+        "The relic-ferry timer was never armed during initialization. After the priest was tasked to the relic, the controller also released transport ownership and waited for a later timer cycle before rebuilding the return boarding order, which is sufficient to explain the visible delay beside an available hull.",
+        "The Legionary and Scorpion common producers passed negative line selectors to up-can-train and up-train. Those selectors are valid family-count operands but invalid concrete production identifiers, which explains zero requests despite verified Roman access to unit IDs 866/868 and Scorpion IDs 279/542.",
+        "Roman phase one and the Early-Antiquity age-up phase explicitly requested zero Shipyards, while completed Early Antiquity requested only two. That policy, combined with ordinary optional-structure ordering, is sufficient to explain why naval production infrastructure appeared only after later land structures.",
+        "Crossbowman is a separate technology-85 unit whose DAT targets include archer armor but not Marksmanship 437 or the generic archer attack/range effects. The existing armor rules checked only broad classes that did not count Crossbowman 5, while mounted Praetorian/scout forms could similarly miss the cavalry-only Barding predicate.",
+        "Local and naval asset-defense scans were anchored to position-self and several migration/resource filters assumed literal mainland versus off-mainland status. Those assumptions can miss attacked workers, remote stone, and active-home economic sites when Rome starts on Ireland or transfers its home to a colony.",
+        "Palintonon packing churn is consistent with generic defense selection and ten-second leash commands repeatedly claiming packed and unpacked forms rather than leaving the dedicated siege controller as their sole movement owner.",
+        "The capital-ship controller grouped every Juggernaut or Octeres before learning the selected source water zone, could reserve unreachable hulls in other basins, shared escorts with other controllers, and distance-sorted reachable sea towers together with potentially unreachable inland fortifications."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B19, arm the relic-ferry timer at startup, retain the exact safe unowned ferry Transport while the priest collects the relic, and reissue immediate return boarding until the carrier is aboard. A watchdog keeps the hull reserved until it is empty and physically beside the active home, but releases a path-blocked hull after three timed return attempts.",
+        "Replace every Legionary and Scorpion train operand with concrete base/elite unit IDs. Refresh one combined ranged-plus-melee Legionary family count so stance switching cannot evade the role-independent two-percent floor or the ten-percent CHAMPION-role ceiling, and persist request telemetry.",
+        "Explicitly research Advanced Weaponry and Crossbow unlock technology 85 when available; count Crossbowman for Padded, Leather, and Ring Archer Armor, and count scout-cavalry-class units for Scale, Chain, and Plate Barding Armor. Do not buy Marksmanship solely for Crossbowmen because the authoritative DAT does not apply it to unit 5.",
+        "Request the first Shipyard from Early Antiquity as soon as a Port, aquatic map, sufficient wood, and a valid placement exist; give Rome one Shipyard while aging into Early Antiquity and three once there, while preserving resource and placement gates.",
+        "Anchor attacked-worker, economic-site, local-incursion, remote-resource, migration, and scout filters to the mutable active-home point and zone rather than original position-self or literal mainland flags. Scan up to the population ceiling before filtering attacked villagers, count active-home stone separately, and mutually exclude scout ownership while a no-home-stone mission is eligible.",
+        "Exclude both Palintonon forms from generic local-defense selection and leashes, assemble every available Ram/Palintonon on the sampled land zone into one persistent fortification-objective group, and give Juggernauts and Octeres distinct same-water-zone capital groups with bounded 2:1 light-ship escorts.",
+        "Prioritize enemy Sea Towers for naval bombardment, keep fallback fortifications within forty-eight tiles of the capital source, publish target type and water zone, and make attacked light ranged ships—including reserved Scout Ships—recognize Octeres and static defenses while retreating only to an unattacked same-zone Port or Shipyard.",
+        "Keep later Lumber Camp requests tied to the farthest active same-home-zone woodcutter, reject sparse worker target trees through the same bounded three-ID backoff ring, recognize a camp that completed before the pending-foundation sweep, and retain live-resource validation instead of satisfying a desired count without nearby trees.",
+        "Add pending-foundation and pending-placement gates to ordinary Town Center expansion so a single rule sweep cannot request three overlapping Town Centers."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B19 near match start.",
+        "After a transported priest picks up a relic, return boarding is requested promptly against the already reserved nearby hull and the hull does not have to complete an unrelated home cycle before collecting the priest.",
+        "Rome publishes concrete Legionary request telemetry for 866 or 868 and Scorpion production requests for 279 or 542 when the Barracks/Siege Workshop, age, resources, and bounded role are available; the combined Legionary family never exceeds its active ten-percent ceiling through stance switching.",
+        "A Roman Crossbow force triggers technologies 211, 212, and 219 when affordable and safe. Marksmanship 437 is not required by Crossbow-only composition, while a genuinely affected archer or cavalry-archer still permits it. Praetorian/scout-cavalry presence permits the applicable Barding armor chain.",
+        "On Real World Britain, the first Shipyard is requested in Early or early Middle Antiquity after a Port and adequate wood rather than waiting for a Fort, and Rome produces a non-idle mixed escort fleet without assigning Juggernauts or Octeres as scouts.",
+        "An attacked villager, Mining Camp, Lumber Camp, or coastal colony inside the active-home search radius triggers same-zone response telemetry before the attacker crosses the legacy town boundary.",
+        "A far active wood line without a nearby Lumber Camp reaches resource-zone and accepted-resource telemetry and completes a same-zone camp; no camp request is issued merely to satisfy a desired count without a validated tree cluster.",
+        "Juggernauts and Octeres operate in separate same-basin capital groups, their escorts guard rather than replace their fortification target, and telemetry shows a reachable Sea Tower or nearby coastal fallback instead of an inland target that leaves the fleet stranded.",
+        "Palintonons remain under the dedicated siege controller long enough to fire and do not repeatedly pack and unpack because of home-defense leash commands.",
+        "At least one reserved Scout Ship explores a different observed land mass, and low home stone pressure produces a bounded remote stone mission with an actual same-zone Mining Camp rather than idle fishermen or a no-drop-site island party."
+      ],
+      "known_limits": [
+        "No decoded RAWAI marker proves the exact source build used for this replay. All fixes require a freshly deployed P3B19 match before runtime claims can be accepted.",
+        "The parser does not decode individual completed research events, exact transport occupancy, group flags, target reachability, fog-of-war sector coverage, or successful building completion. User visual evidence and command telemetry remain separate evidence classes.",
+        "The engine scripting API exposes no dependable arbitrary naval path or coastal-reachability query. Sea-Tower priority and the forty-eight-tile fallback reduce risk but cannot prove that a selected inland-looking target is attackable from water.",
+        "The current naval scout controller reserves observed Scout Ships and first targets known resource-bearing land outside the active-home zone, falling back toward the enemy coast. It still cannot prove independent exploration of completely black land masses or systematic sector coverage.",
+        "Cross-export tech-tree evidence remains inconsistent for Roman Empire: the standalone BYZANTINES export has 144 nodes while the aggregate ROMAN EMPIRE export has 162. Requested Crossbowman, Legionary, Scorpion, Juggernaut, and Octeres IDs agree with authoritative DAT evidence, but the eighteen extra aggregate nodes must not silently alter other Roman family evaluations until the export discrepancy is resolved."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

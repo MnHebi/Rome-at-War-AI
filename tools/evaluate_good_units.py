@@ -274,7 +274,11 @@ class NavalCategory:
 CATEGORIES = (
     Category("Militia", (567, 1809, 473, 1808, 77, 1807, 75, 1806, 74, 1805), 567, (567, 1809), INFANTRY_TECHS, 4, "melee"),
     Category("Spearmen", (359, 1812, 2446, 2040, 358, 1811, 93, 1810), 359, (359, 1812, 2446, 2040), INFANTRY_TECHS, 4, "melee"),
-    Category("Archer", (492, 24, 4), 492, (492,), ARCHER_TECHS, 3, "ranged"),
+    # Crossbowman 5 is a separate Advanced Weaponry-era branch used by Roman
+    # Imperial doctrine, not an Improved Bowman upgrade. Include it as a final
+    # generic archer candidate and derive its actually applicable upgrades from
+    # DAT effect targets (Marksmanship 437 does not target this unit/class).
+    Category("Archer", (5, 492, 24, 4), 492, (5, 492), ARCHER_TECHS, 3, "ranged"),
     Category("Skirmisher", (6, 7), 6, (6,), ARCHER_TECHS, 3, "ranged"),
     # Seleucid Aphraktos (2017) is a manifest-listed unique family and belongs
     # in UU Type, not in the generic cavalry-archer score.
@@ -808,7 +812,15 @@ def rate_category(
         for unit_id in candidates:
             state = state_for_unit(data, civ_id, unit_id, package)
             ratio = combat_ratio(state, reference, category, has_parthian)
-            missing = [tech_id for tech_id in category.required_techs if tech_id not in package]
+            # Crossbowman is a separate branch with fixed attack statistics.
+            # Padded/Leather/Ring armor and Ballistics apply; the three generic
+            # archer attack/range upgrades and Marksmanship do not target it.
+            applicable_techs = (
+                (93, 211, 212, 219)
+                if category.name == "Archer" and unit_id == 5
+                else category.required_techs
+            )
+            missing = [tech_id for tech_id in applicable_techs if tech_id not in package]
             full = unit_id in category.final_unit_ids and not missing
             ref_cost = resource_cost(reference)
             actual_cost = resource_cost(state)
@@ -838,12 +850,13 @@ def rate_category(
                     rating,
                     has_parthian,
                     number_multiplier,
+                    applicable_techs,
                 )
             )
 
     (
         _, number_adjusted, ratio, unit_id, state, researched, package_index, missing, full,
-        rating, has_parthian, number_multiplier,
+        rating, has_parthian, number_multiplier, applicable_techs,
     ) = max(evaluated, key=lambda item: item[:3])
 
     reasons = []
@@ -871,7 +884,7 @@ def rate_category(
         "missing_standard_tech_ids": missing,
         "has_parthian_tactics": has_parthian if category.parthian_sensitive else None,
         "selected_package_index": package_index,
-        "applied_standard_tech_ids": sorted(set(category.required_techs) & researched),
+        "applied_standard_tech_ids": sorted(set(applicable_techs) & researched),
         "compatible_package_count": len(research_packages),
         "combat_ratio": round(ratio, 4),
         "number_multiplier": round(number_multiplier, 4),
