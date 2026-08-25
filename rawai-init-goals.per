@@ -83,7 +83,7 @@
 	(true)
 =>
 	(up-modify-goal desired-number-towncenters c:= 0)
-	(up-modify-goal desired-number-farms c:= 0)
+	(up-modify-goal desired-depleted-villagers c:= 0)
 	(up-modify-goal desired-number-lumbercamps c:= 0)
 	(up-modify-goal desired-number-mills c:= 0)
 	(up-modify-goal desired-number-miningcamps c:= 0)
@@ -122,7 +122,7 @@
 (defrule
 	(true)
 =>
-	(set-goal dependent-farms 1)
+	(set-goal dependent-farms FARM-DEMAND-DEPENDENT)
 	(set-goal allow-houses 0)
 
 	(disable-self)
@@ -295,6 +295,187 @@
 	(disable-self)
 )
 
+;Remote-colony and dedicated siege controllers remain isolated from the other
+;startup blocks so additions cannot recreate ERR6002's expression overflow.
+(defrule
+	(true)
+=>
+	(set-goal gl-local-response-zone -1)
+	(set-goal gl-naval-response-zone -1)
+	(set-goal gl-naval-response-land-threat NO)
+	(set-goal gl-island-colony-x 0)
+	(set-goal gl-island-colony-y 0)
+	(set-goal gl-island-colony-zone -1)
+	(set-goal gl-migration-placement-lock NO)
+	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
+	(set-goal gl-colony-towncenter-focus 0)
+	(set-goal gl-colony-towncenter-target-x 0)
+	(set-goal gl-colony-towncenter-target-y 0)
+	(set-goal gl-colony-towncenter-resource-count 0)
+	(set-goal gl-colony-towncenter-attempts 0)
+	(set-goal gl-colony-towncenter-id -1)
+	(set-goal gl-siege-target-state SIEGE-TARGET-IDLE)
+	(set-goal gl-siege-target-focus 0)
+	(set-goal gl-siege-target-player 0)
+	(set-goal gl-siege-target-zone -1)
+	(set-goal gl-siege-source-id -1)
+	(set-goal gl-siege-source-count 0)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+	(set-goal gl-naval-siege-focus 0)
+	(set-goal gl-naval-siege-player 0)
+	(set-goal gl-naval-siege-source-id -1)
+	(set-goal gl-naval-siege-source-count 0)
+	(up-set-timer c: t-colony-towncenter c: 45)
+	(up-set-timer c: t-siege-target c: 12)
+	(up-set-timer c: t-naval-siege c: 12)
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(set-goal gl-naval-siege-family 0)
+	(set-goal gl-naval-siege-escort-count 0)
+	(set-goal gl-naval-siege-zone -1)
+	(set-goal gl-naval-siege-target-type -1)
+	(set-goal gl-juggernaut-evasion-zone -1)
+	(set-goal gl-legionary-family-count 0)
+	(set-goal gl-naval-scout-target-x 0)
+	(set-goal gl-naval-scout-target-y 0)
+	(set-goal gl-naval-scout-target-zone -1)
+	(set-goal gl-home-stone-count 1)
+	(disable-self)
+)
+
+;Recorded replays do not embed the loaded AI files. Emit a semantic runtime ID
+;so stale or cached test payloads can be distinguished from the current build.
+(defrule
+	(true)
+=>
+	;up-chat-data-to-self is serialized into recorded games; chat-local-to-self
+	;is visible live but was absent from the replay command stream.
+	;Keep the replay marker short: long formatted chat records have not appeared
+	;in recent recordings even though later up-chat-data debug records do.
+	(up-chat-data-to-self "RAWAI-P3B20: %d" c: 20)
+	(disable-self)
+)
+
+;Light-fleet opportunity targeting uses game-time deadlines rather than a new
+;timer slot: all 50 engine timer slots are already assigned and validated.
+(defrule
+	(true)
+=>
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-IDLE)
+	(set-goal gl-naval-opportunity-focus 0)
+	(set-goal gl-naval-opportunity-player 0)
+	(set-goal gl-naval-opportunity-source-id -1)
+	(set-goal gl-naval-opportunity-target-id -1)
+	(set-goal gl-naval-opportunity-active-id -1)
+	(set-goal gl-naval-opportunity-zone -1)
+	(set-goal gl-naval-opportunity-target-kind 0)
+	(set-goal gl-naval-opportunity-rejected-id -1)
+	(set-goal gl-naval-opportunity-ship-count 0)
+	(set-goal gl-naval-opportunity-next 8)
+	(set-goal gl-naval-opportunity-refresh 0)
+	(set-goal gl-naval-opportunity-rejected-zone -1)
+	(set-goal gl-naval-opportunity-rejected-zone2 -1)
+	(set-goal gl-naval-opportunity-rejected-zone3 -1)
+	(set-goal gl-naval-opportunity-rejected-id2 -1)
+	(set-goal gl-naval-opportunity-reject-count 0)
+	(set-goal gl-naval-opportunity-defense-player 0)
+	(set-goal gl-naval-opportunity-defense-first 0)
+	(disable-self)
+)
+
+;Wood viability, failed-zone backoff, explicit naval scouting, and guarded
+;home-Town-Center retirement are isolated to stay below ERR6002.
+(defrule
+	(true)
+=>
+	(set-goal gl-home-tree-count 40)
+	(set-goal gl-home-wood-pressure NO)
+	(set-goal gl-island-migration-rejected-zone -1)
+	(set-goal gl-island-migration-rejected-zone2 -1)
+	(set-goal gl-island-migration-rejected-zone3 -1)
+	(set-goal gl-island-migration-rejection-armed NO)
+	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
+	(set-goal gl-home-retirement-focus 0)
+	(set-goal gl-home-retirement-target-id -1)
+	(set-goal gl-home-retirement-resource-count 0)
+	(set-goal gl-home-retirement-settler-count 0)
+	(set-goal gl-naval-scout-focus 0)
+	(set-goal gl-transport-readiness-focus 0)
+	(set-goal gl-home-zone -1)
+	(set-goal gl-naval-scout-state NAVAL-SCOUT-IDLE)
+	(set-goal gl-naval-scout-count 0)
+	(set-goal gl-lumbercamp-placement-attempts 0)
+	(set-goal gl-lumbercamp-rejected-resource-id -1)
+	(set-goal gl-lumbercamp-rejected-resource-id2 -1)
+	(set-goal gl-lumbercamp-rejected-resource-id3 -1)
+	(set-goal gl-lumbercamp-candidate-index 0)
+	(set-goal gl-miningcamp-rejected-resource-id -1)
+	(set-goal gl-miningcamp-rejected-resource-id2 -1)
+	(set-goal gl-miningcamp-rejected-resource-id3 -1)
+	(set-goal gl-home-anchor-x 0)
+	(set-goal gl-home-anchor-y 0)
+	(set-goal gl-island-migration-rejection-until 0)
+	(set-goal gl-naval-scout-next 15)
+	(set-goal gl-relocation-market-next 1)
+	(up-set-timer c: t-home-retirement c: 30)
+	(disable-self)
+)
+
+;Farm telemetry is isolated so the larger runtime initializers remain below
+;the engine's expression limit.
+(defrule
+	(true)
+=>
+	(set-goal gl-farm-report-fishermen 0)
+	(set-goal gl-farm-report-farmers 0)
+	(set-goal gl-farm-report-farms 0)
+	(set-goal gl-farm-report-hunt-distance -1)
+	(set-goal gl-farm-report-food-distance -1)
+	(set-goal gl-farm-build-target 0)
+	(set-goal gl-farm-placement-suspended NO)
+	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
+	(set-goal gl-farm-staffing-zone -1)
+	(set-goal gl-farm-staffing-id -1)
+	(set-goal gl-farm-staffing-focus 0)
+	(set-goal gl-farm-staffing-worker-id -1)
+	(set-goal gl-island-colony-threat NO)
+	(set-goal gl-island-colony-threat-until 0)
+	(set-goal gl-naval-response-asset-zone -1)
+	(up-set-timer c: t-farm-staffing c: 5)
+	(up-set-timer c: t-house-placement c: 1)
+	(up-set-timer c: t-island-migration-board-retry c: 1)
+	(disable-self)
+)
+
+;Home-island resource pressure and migration routing remain separate from the
+;farm initializer so the replay marker and startup rules stay below ERR6002.
+(defrule
+	(true)
+=>
+	(set-goal gl-home-resource-pressure NO)
+	(set-goal gl-home-mine-count 1)
+	(set-goal gl-home-resource-focus 0)
+	(set-goal gl-island-migration-origin-x 0)
+	(set-goal gl-island-migration-origin-y 0)
+	(set-goal gl-island-migration-route-left-threats 0)
+	(set-goal gl-island-migration-route-right-threats 0)
+	(set-goal gl-island-migration-route-waits 0)
+	(set-goal gl-island-migration-route-distance 255)
+	(set-goal gl-juggernaut-evasion-unit-id -1)
+	(set-goal gl-island-migration-fishermen 0)
+	(set-goal gl-local-response-responders 0)
+	(set-goal gl-naval-response-responders 0)
+	(set-goal gl-land-transport-ready YES)
+	(set-goal gl-available-transport-count 0)
+	(up-set-timer c: t-home-resource-pressure c: 15)
+	(up-set-timer c: t-transport-readiness c: 3)
+	(disable-self)
+)
+
 ;Adaptive attack state is isolated from the larger transport initializer so
 ;both startup rules stay comfortably below the engine expression limit.
 (defrule
@@ -308,6 +489,9 @@
 	(set-goal gl-fortification-scan-focus 0)
 	(set-goal gl-fortification-scan-player 0)
 	(set-goal have-siege NO)
+	(set-goal gl-age-advantage-pressure NO)
+	(set-goal gl-age-advantage-next 0)
+	(set-goal gl-age-up-attack-pending NO)
 
 	(disable-self)
 )
@@ -437,9 +621,9 @@
 =>
 	(set-goal gl-transport-escort-count 0)
 	(set-goal gl-transport-escort-targets 0)
-	(set-goal gl-transport-escort-limit 0)
 	(set-goal gl-transport-escort-focus-player 0)
 	(set-goal gl-transport-escort-state ESCORT-IDLE)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)
 
 	(disable-self)
 )
@@ -503,6 +687,9 @@
 	(set-goal gl-island-migration-anchor-id -1)
 	(set-goal gl-island-migration-load-target 0)
 	(set-goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+	(set-goal gl-island-scout-attempts 0)
+	(set-goal gl-island-migration-anchor-class -1)
+	(set-goal gl-island-migration-placement-attempts 0)
 	(set-goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
 	(set-goal gl-transport-recovery-unit-id -1)
 	(set-goal gl-transport-recovery-transport-id -1)
@@ -517,5 +704,106 @@
 	(set-goal gl-relic-ferry-unit-id -1)
 	(set-goal gl-relic-ferry-target-id -1)
 	(set-goal gl-relic-ferry-direction 0)
+	(disable-self)
+)
+
+;The relic controller previously never received its first timer arm, making the
+;entire state machine unreachable until another path happened to write slot 32.
+;Keep this isolated from the already-large transport initializer.
+(defrule
+	(true)
+=>
+	(set-goal gl-relic-ferry-return-attempts 0)
+	(up-set-timer c: t-relic-ferry c: 60)
+	(disable-self)
+)
+
+;Placement retry state is isolated so additions do not push the transport
+;initializer back over the engine's rule-length limit.
+(defrule
+	(true)
+=>
+	(set-goal gl-market-placement-attempts 0)
+	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
+	(set-goal gl-lumbercamp-placement-focus 0)
+	(set-goal gl-lumbercamp-target-x 0)
+	(set-goal gl-lumbercamp-target-y 0)
+	(set-goal gl-island-scout-missions 0)
+	(set-goal gl-island-migration-zone -1)
+	(set-goal gl-island-migration-gate-reports 0)
+	(set-goal gl-island-colony-established NO)
+	(set-goal gl-island-migration-utility-blocks 0)
+	(set-goal gl-opening-drop-sites-ready NO)
+	(set-goal gl-opening-mill-requested NO)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
+	(set-goal gl-miningcamp-placement-focus 0)
+	(set-goal gl-miningcamp-target-x 0)
+	(set-goal gl-miningcamp-target-y 0)
+	(set-goal gl-miningcamp-resource-id -1)
+	(set-goal gl-miningcamp-resource-type gold)
+	(set-goal gl-miningcamp-next-resource gold)
+	(set-goal gl-miningcamp-placement-attempts 0)
+	(up-set-timer c: t-market-placement c: 1)
+	(up-set-timer c: t-lumbercamp-placement c: 1)
+	(up-set-timer c: t-miningcamp-placement c: 1)
+	(up-set-timer c: t-opening-mill c: 1)
+	(disable-self)
+)
+
+;Exact resource/foundation ownership and bounded rejected-tree pockets are kept
+;in a separate initializer to remain below the engine's 32-element rule limit.
+(defrule
+	(true)
+=>
+	(set-goal gl-lumbercamp-resource-id -1)
+	(set-goal gl-lumbercamp-resource-zone -1)
+	(set-goal gl-lumbercamp-foundation-id -1)
+	(set-goal gl-miningcamp-resource-zone -1)
+	(set-goal gl-miningcamp-foundation-id -1)
+	(set-goal gl-island-migration-anchor-rejections 0)
+	(set-goal gl-island-migration-rejected-tree1-x -1)
+	(set-goal gl-island-migration-rejected-tree1-y -1)
+	(set-goal gl-island-migration-rejected-tree2-x -1)
+	(set-goal gl-island-migration-rejected-tree2-y -1)
+	(set-goal gl-island-migration-rejected-tree3-x -1)
+	(set-goal gl-island-migration-rejected-tree3-y -1)
+	(disable-self)
+)
+
+;Replay-driven naval and production state has a separate initializer to keep
+;both startup rules well below the engine's expression limit.
+(defrule
+	(true)
+=>
+	(set-goal gl-house-pressure NO)
+	(set-goal gl-naval-response-state NAVAL-RESPONSE-IDLE)
+	(set-goal gl-naval-response-focus 0)
+	(set-goal gl-naval-response-player 0)
+	(set-goal gl-naval-response-threats 0)
+	(set-goal gl-juggernaut-evasion-state JUGGERNAUT-EVASION-IDLE)
+	(set-goal gl-juggernaut-evasion-focus 0)
+	(set-goal gl-juggernaut-evasion-player 0)
+	(set-goal gl-transport-screen-id -1)
+	(set-goal gl-transport-screen-waits 0)
+	(set-goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
+	(set-goal gl-transport-clear-focus 0)
+	(set-goal gl-transport-clear-id -1)
+	(set-goal gl-transport-clear-port-index 0)
+	(set-goal gl-own-naval-capability 0)
+	(set-goal gl-enemy-max-naval-capability 0)
+	(set-goal gl-enemy-primary-navy NO)
+	(set-goal gl-naval-role NAVAL-ROLE-UNASSIGNED)
+	(set-goal gl-naval-capability-ready NO)
+	(set-goal gl-naval-fleet-cap 0)
+	(set-goal gl-naval-specialist-support NO)
+	(set-goal gl-naval-theater NO)
+	(set-goal gl-naval-specialist-fleet-cap 0)
+	(set-goal gl-naval-fleet-count-total 0)
+	(set-goal gl-naval-boarding-count-total 0)
+	(up-set-timer c: t-house-pressure c: 30)
+	(up-set-timer c: t-age-market c: 1)
+	(up-set-timer c: t-naval-response c: 10)
+	(up-set-timer c: t-juggernaut-evasion c: 10)
+	(up-set-timer c: t-transport-clear c: 15)
 	(disable-self)
 )

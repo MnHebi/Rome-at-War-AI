@@ -1,0 +1,772 @@
+{
+  "schema_version": 1,
+  "benchmarks": [
+    {
+      "id": "britannia-rome-vs-britons-20260824-090234",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 090234.aoe2record",
+        "sha256": "82DEC6C271C6F687A6A5B06C3F412AC8EF7072DBD746112DC714263D50EB6803",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Britons",
+          "Roman Empire"
+        ],
+        "duration_seconds": 2440
+      },
+      "direct_replay_observations": [
+        "Player 2 issued 2467 Market build commands at map coordinate (110,35) from 12:53 through 40:39 and remained in Early Antiquity.",
+        "Player 1 first issued Militia-line production at 02:01.",
+        "Player 1 issued a Barracks build command at 00:00, a Lumber Camp at 01:01, and its first Mill at 03:55.",
+        "Player 1 issued Mill build commands at (21,140) and (23,146); Player 2 also placed its first two Mills about nine tiles apart.",
+        "Player 1 completed Middle Antiquity at 17:35, issued six Outpost builds before 18:08, a Monastery at 20:23, a second Town Center at 22:08, a University at 22:32, and completed Imperial at 30:14.",
+        "The land-attack timer refreshed repeatedly from 10:32 through 39:38, but no land-attack or periodic-attack dispatch message was recorded.",
+        "Both players issued only one Lumber Camp build command during the recorded match."
+      ],
+      "implementation_inferences": [
+        "The unbounded fixed-position Market retry is sufficient to explain Player 2's villager churn and economic collapse.",
+        "Enemy armies on adjacent islands could be counted as local threats because the response scan lacked a mainland-reachability filter, potentially holding the attack system in home-defense state.",
+        "Phase-based desired Mill counts and the lack of a distinct-cluster requirement explain the nearby duplicate Mills.",
+        "Simultaneous Middle-Age optional-building goals competed with the second Town Center and Imperial reserve.",
+        "Animal-worker abandonment is consistent with automatic builder assistance and phase gatherer rebalancing, but the replay's WORK records do not identify individual villagers."
+      ],
+      "changes_under_test": [
+        "Bound Market retries with pending checks, cooldowns, and a fallback placement mode.",
+        "Keep animal-food workers out of automatic builder assistance and raise the global resource-retask floor from 20 to the documented bounded maximum of 40 while shepherds or hunters are active.",
+        "Require an existing Mill and Lumber Camp (excluding queued foundations) before normal or rush Barracks construction and suppress generic Iron-Age Militia outside a selected drush.",
+        "Keep one planned Mill through the opening and require a distant food cluster for another.",
+        "Gate optional Middle-Age buildings behind a completed second Town Center, retain a 20-minute deadlock escape for required University and Monastery construction, and defer optional research while safely preparing Imperial.",
+        "Place a new Lumber Camp near a wood worker whose nearest camp is too distant.",
+        "Filter local defense threats to the AI's mainland, replace unreachable GROUP attack selections with the implemented PERCENTAGE executor, and correct assignment operators that made every land and naval attack-executor comparison false.",
+        "Launch up to three bounded scout-ferry missions to observed off-mainland land anchors from Early Antiquity onward.",
+        "Disable villager sea-fish gathering and cap Fishing Ships by the existing desired-number-fishing goal."
+      ],
+      "fresh_replay_acceptance": [
+        "No player repeats a failed Market placement more than three normal attempts plus one fallback per cooldown cycle.",
+        "Outside a selected drush, no Militia-line production occurs before Early Antiquity and Barracks construction follows completion of both the first Mill and Lumber Camp.",
+        "A second Mill is not attempted beside the opening Mill merely because the economy phase changed.",
+        "In a safe non-rush Middle age, the second Town Center precedes optional Outposts, Castle, and extra production buildings; University and Monastery also wait unless the 20-minute deadlock escape is reached.",
+        "A safe non-rush player starts Imperial research near the 15-to-20-minute target without optional research repeatedly spending the reserve.",
+        "Known adjacent-island units do not hold home defense active, and a sufficiently sized army dispatches an attack or transport assault.",
+        "From Early Antiquity onward, a scout is ferried when an observed off-mainland anchor and an unreserved transport exist; the mission is counted only after the reserved scout is found unloaded on that land mass.",
+        "Shepherd and deer or boar hunter churn is materially lower while animal food remains, without freezing unrelated resource workers.",
+        "No land villager is assigned to sea fish, and the fishing fleet does not exceed desired-number-fishing."
+      ],
+      "known_limits": [
+        "The replay parser does not yet decode research actions, so no individual technology is blamed for the delayed Imperial age.",
+        "The engine search API used here can select an observed off-mainland landing anchor but cannot deliberately select a completely black, unknown island; elapsed time is only a conservative scout trigger and does not prove the home island is fully explored.",
+        "Visible fish counts do not prove water-zone reachability from a Dock; a water-connectivity-aware fish controller remains unresolved.",
+        "The retask strategic numbers are global rather than per-role, so this change can only reduce animal-worker churn; a fresh replay must establish whether explicit phase balancing still reassigns them.",
+        "The mainland filter protects the original home land zone; defense of a later off-mainland colony needs separate zone ownership and remains unresolved.",
+        "Autonomous choke-point walling remains unresolved because the current wall code has no terrain-frontier or choke detector, and map classification alone is unsafe on Britannia-style island starts."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britannia-rome-vs-britons-20260824-102135",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 102135.aoe2record",
+        "sha256": "ABB172E54F36EC53C4246AEC02881866A573822B1FA7E57B3967B7783BF8C9B4",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Britons",
+          "Roman Empire"
+        ],
+        "duration_seconds": 1313
+      },
+      "direct_replay_observations": [
+        "Initial-object parsing found no Barracks, Mill, Lumber Camp, or Mining Camp for Player 1, but Player 1 issued a Barracks build command at 00:00, a Lumber Camp at 01:02, and a Mill at 03:46.",
+        "Player 1 issued Mill commands at (39,130) at 03:46 and (31,146) at 08:00; Player 2 also issued two Mill commands at 01:02 and 06:03.",
+        "Player 1 house commands at (28,145) and (31,143) preceded the second Mill command at (31,146), and later house commands were issued around that site at (34,145), (28,148), and (31,149).",
+        "At least five Player 1 villagers received gold-mining work orders around (21.5,143.5) through (22.5,145.5) from 15:03 through 15:27.",
+        "Player 1 issued its first Mining Camp command at (38,120) at 16:01, roughly 31 tiles from those active miners; a villager first received a gold order near the new camp at 17:03."
+      ],
+      "implementation_inferences": [
+        "The 00:00 Barracks is unreachable through the exact current normal and rush Barracks rules, which require the opening Mill and Lumber Camp; the test therefore used a stale, partial, or game-cached local runtime payload.",
+        "The duplicate early Mills fingerprint the pre-fix phase configuration that requested two Mills; the current economy requests one through phase three, so this replay does not falsify the current count fix.",
+        "House placement independently lacked any Mill clearance; if the issued buildings completed at those coordinates, they would obstruct access around that Mill even after the duplicate-Mill count fix.",
+        "The current Mining Camp bootstrap and resource-specific rules used generic place-normal without owning the resource point selected by active miners, which is sufficient to explain the distant camp."
+      ],
+      "changes_under_test": [
+        "Hash-check all 67 top-level AI runtime files against the enabled local test mod before every match, restart the game after synchronization, and emit runtime build ID PR3-20260824-placement2 into the replay chat stream.",
+        "Latch Barracks readiness only after three minutes and after the opening Mill and Lumber Camp exist with no pending foundation or placement.",
+        "Give the escrow bootstrap exclusive ownership of the first Mill request, with a bounded failed-placement reset, while later Mill rules require an existing first Mill and a genuinely distant food source.",
+        "Bias first and subsequent House placement eight tiles from the Mill anchor selected by the placement engine when a Mill already exists.",
+        "Alternate active gold/stone miner searches, accept only matching gold-mine or stone-mine target IDs, reject targets with a Mining Camp within ten tiles, serialize island and home-economy camp producers, and bound point placement to four rotated offsets.",
+        "Correct the invalid fortification-scan position-focus operand and reject reserved positional-source aliases in validation."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports zero unexpected, missing, or differing runtime files before game launch, the match starts without ERR2005, and replay chat contains the current runtime build marker RAWAI-P3B5.",
+        "No Barracks command is issued before 03:00 or before the opening Mill and Lumber Camp have completed placement.",
+        "Only one Mill is requested through phase three unless the first placement demonstrably failed and its 90-second retry expired.",
+        "After the opening Mill exists, new House commands respect the configured eight-tile clearance from the engine-selected Mill anchor; the replay is also inspected for completed-building access around every Mill.",
+        "Gold and stone both receive placement turns, and a Mining Camp request follows the selected miner's resource target without repeating an impossible offset more than four times."
+      ],
+      "known_limits": [
+        "BUILD records prove command issuance rather than successful building completion.",
+        "The replay format does not embed a repository commit or runtime-file hash. The startup build identifier distinguishes semantic builds, while the pre-match hash check remains necessary to prove every runtime file was synchronized.",
+        "A miner's target ID can refer to a return dropsite or become stale while orders change; the nearby-camp rejection and a fresh replay must verify the resulting camp-to-resource distance.",
+        "An eight-tile House placement anchor does not by itself prove pathable farm access around every terrain-constrained Mill."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britannia-rome-vs-britons-20260824-104545",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 104545.aoe2record",
+        "sha256": "7029B8A330BDECFAA57EBA81B9EBC0F48B2990384B1741CDB9E13FA0F71F1C20",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 3738
+      },
+      "direct_replay_observations": [
+        "No PR3-20260824-placement2 startup marker appeared among 1543 decoded chat records, so the deployed AI build cannot be verified from this replay.",
+        "The Roman player completed Early Antiquity at 08:18, Middle Antiquity at 15:10, and Imperial at 27:57; the Britons completed those ages at 08:25, 15:23, and 26:34.",
+        "The parser decoded no RESEARCH actions, so the replay cannot identify armor, Advanced Weaponry, Faith, or other individual technologies.",
+        "The Roman player sold wood at 21:04 and 21:15, bought stone at 25:08 and 28:06, and bought food at 25:24 and 25:34; the replay does not identify whether each Market action was AI-issued or manual intervention.",
+        "The Roman player remained at 50 villagers from 22:40 through 26:15 and issued no decoded villager production from 22:06 through 25:57 despite issuing House requests.",
+        "The Roman player issued Shipyard requests at 30:01, 39:12, and 47:56; its first decoded Scout Galley appeared at 31:07, Polyreme at 37:27, Fire Galley at 41:40, and Juggernaut at 56:43.",
+        "Decoded MAKE records contain 37 Roman Scout Galley, 19 Polyreme, 9 Fire Galley, and 1 Juggernaut commands, but no Legionary-line unit IDs 866, 868, 1658, or 1661."
+      ],
+      "implementation_inferences": [
+        "The absent placement2 marker leaves stale or game-cached runtime files as a live explanation for behavior that current source cannot reproduce, including the missing Roman Legionary production.",
+        "The former hybrid-map cap of three Shipyards is sufficient to explain why the Roman player stopped after three Shipyard requests despite a large wood reserve.",
+        "Armor research was composition-blind in source because each armor chain waited for the technology to be available rather than requiring a matching owned combat class.",
+        "The former home-defense latch required both three nearby threats and four local defenders, allowing attack dispatch while smaller incursions were already in the town.",
+        "Transport route ties always selected the same lateral waypoint because a two-value random goal was tested with less-than-or-equal-to one versus greater-than one; unload completion also had no timeout if passengers remained aboard.",
+        "The former age-up Market rules could not bridge a moderate Imperial-resource deficit, while ordinary Middle-age purchases remained able to spend the gold reserve after the target deadline."
+      ],
+      "changes_under_test": [
+        "Emit replay-visible runtime build ID PR3-20260824-placement3 and require its presence before interpreting behavioral results.",
+        "Require an owned matching infantry, archer, cavalry-archer, or cavalry class before its armor or specialized upgrade chain can spend resources.",
+        "Keep Ballistics as the first research rule, make Advanced Weaponry an immediate Imperial priority when available, and prioritize Faith when an enemy Priest or Brahmin has been observed.",
+        "After 15 minutes in Middle Antiquity, use bounded Market trades to bridge the Imperial food or gold threshold, stop ordinary gold-consuming purchases, and disable all Middle-age trading once Imperial research starts.",
+        "Permit an additional pending House after sustained low housing headroom even when an earlier foundation completed before the pressure timer fired.",
+        "Raise the hybrid-map phase ceiling from three Shipyards, maintain two naval scouts from Early Antiquity onward, respond first when a home-water ship or production berth is under attack and then aid an attacked friendly warship elsewhere, and pull vulnerable non-specialist ships away from observed Juggernauts.",
+        "Cycle every ready Port and move an idle empty Transport Ship away from an occupied berth when no transport subsystem owns it and another ship provides a known-water destination.",
+        "Reserve a Scout Galley from competing direct-control groups while it screens both the route midpoint and final landing, accept a busy explorer rather than waiting forever for an idle scout, bound missing-scout and unreachable-point retries, reject approaches where the scout draws fire or reveals static defenses, correct lateral route randomization, keep a recalled loaded transport reserved until it unloads at home, and order an emptied Transport Ship home after landing.",
+        "Activate home defense on the first reachable land incursion or an attacked home-water asset with an observed hostile warship nearby, abort active launch preparation and transport routes, and keep the defense latch until both local threat classes clear.",
+        "Count an eight-or-greater net non-defensive army-loss window toward the existing two-failure regroup-and-siege escalation.",
+        "Use the escrow-aware DUC trainability and production commands for the Roman Empire's bounded direct Legionary baseline while retaining the automatic Middle-age availability path from the current DAT."
+      ],
+      "fresh_replay_acceptance": [
+        "Replay chat contains the current runtime build marker RAWAI-P3B5 and the pre-match deployment checker reports no differing AI files.",
+        "Archer, infantry, and cavalry armor plus Marksmanship and Parthian Tactics do not begin without an owned affected class; Advanced Weaponry becomes an immediate Imperial priority while Ballistics retains earlier rule order, and Faith receives priority after enemy conversion units are observed.",
+        "A safe non-rush Roman player reaches or begins Imperial near the 15-to-20-minute target, using Market bridging when close rather than spending the reserve on unrelated purchases.",
+        "Sustained housing headroom below three can create a second pending House even if the earlier foundation completed, and does not produce another multi-minute Town Center villager gap.",
+        "A hybrid-map player can expand beyond three Shipyards when its phase target and resources allow it, maintains scouting vessels, and nearby unreserved warships answer attacks in home waters or against an attacked friendly scout elsewhere.",
+        "Every loaded military transport waypoint is scouted before entry; observed tower, sea-tower, Castle, Town Center, or defensive fire against the scout causes a home recall, lack of any scout times out, incomplete unloading times out, and the loaded transport remains reserved until it is empty in home water.",
+        "No attack launches while a reachable hostile land unit is inside the home-response radius or a home-water asset is under observed warship attack, and already forming raids or transport attacks are cancelled.",
+        "Two eight-or-greater net non-defensive army-loss windows suppress further opportunistic raids and require the configured large regrouping attack; three known fortifications keep the force home until siege is available.",
+        "Roman Legionary-line units appear after Middle Antiquity when infantry demand exists; if they do not, the replay-visible runtime marker and source-matched deployment are used to isolate the remaining production gate."
+      ],
+      "known_limits": [
+        "The replay parser cannot verify individual research actions, selection state, idle-unit state, transport occupancy, exact transport paths, or whether a Market action was manual.",
+        "A scout screen validates only currently observed defenses near each waypoint and defensive fire against its own ship; it cannot prove fogged water is safe, guarantee the pathfinder will follow the scout's exact route, or detect another enemy player's static defenses in a team game while the route scan is focused on the selected target player.",
+        "Local land response scans the selected closest enemy and naval rescue uses the engine's recent-attacker player; multi-enemy attribution therefore remains a fresh team-game validation target.",
+        "The engine exposes coarse local searches rather than projectile events, so Juggernaut evasion reacts to an attacked ship plus a nearby observed Juggernaut rather than to an individual shot.",
+        "Moving an empty transport from a production berth is bounded to transports not reserved by migration, relic, recovery, repair, or route state and requires another ship 12-to-40 tiles from the Port as a known-water destination; water connectivity and congestion still require an in-game replay.",
+        "The Legionary line is automatically enabled for the Roman Empire by its Middle Antiquity availability technology; the stance technologies switch forms and are not unlock prerequisites."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britannia-rome-vs-britons-20260824-124042-partial",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 124042.aoe2record",
+        "sha256": "41122DB23D987222F28CD9E52D7943D7B5970D1C7513E05F8E08E8590571894F",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 4277
+      },
+      "direct_replay_observations": [
+        "The command stream remains active through 71:17 and contains neither a postgame record nor a resignation, which is compatible with the reported crash or forced close but does not identify its cause.",
+        "None of 1670 decoded chat records contains PR3-20260824-placement3 or another runtime-build marker even though later up-chat-data debug records are present, so the deployed source revision cannot be verified from the replay.",
+        "The Roman player completed Early Antiquity at 11:21, Middle Antiquity at 21:56, and Imperial at 43:42; the Britons completed those ages at 11:37, 21:03, and 42:02.",
+        "The Roman player issued three Port or Dock requests, three Shipyard requests, eight Transport Ship requests, five Fishing Ship requests, four Scout Galley requests, seven Polyreme requests, four Fire Galley requests, and four Juggernaut requests.",
+        "Roman combat-ship production first appears at 44:40 for Scout Galleys, 44:44 for Polyremes, 48:22 for Fire Galleys, and 49:36 for Juggernauts, for 19 decoded combat-ship production requests in total.",
+        "Roman debug records report 16 combat warboats at 55:20 and still 16 at 70:25, with only two total sampled warboat losses; the aggregate records do not identify individual ship orders.",
+        "The replay contains repeated naval-attack interval and naval-superiority debug records, with reported naval superiority three, but no replay-visible dedicated naval-launch record.",
+        "No Roman Legionary-line production IDs 866, 868, 1658, or 1661 appear in decoded MAKE records."
+      ],
+      "implementation_inferences": [
+        "The missing startup marker leaves stale, partial, or game-cached runtime files as an unresolved explanation for every observed behavior in this replay.",
+        "The phase rules stored the numeric goal identifiers gl-one-percent and gl-two-percent as naval fleet thresholds; values 141 and 142 are sufficient to make the dedicated naval executor unreachable for the observed fleet.",
+        "The former escort controller reserved at least one warship per Transport Ship and refreshed the guard order while any transports existed, so empty home transports could permanently consume a large part of the combat fleet.",
+        "Land and naval timer rules shared current-action, and the earlier land executors did not require a triggered land timer, allowing an eligible land attack to consume a naval timer dispatch before the naval executor was evaluated.",
+        "The 15-minute warboat-count plateau is consistent with naval idleness but is not proof: the replay format does not expose stable object-to-order ownership for those dynamically created ships."
+      ],
+      "changes_under_test": [
+        "Use the short replay-visible build marker RAWAI-P3B5 and require its presence before attributing runtime behavior to this source revision.",
+        "Copy the contents of the population-percentage goals into every phase's land and naval launch requirements instead of storing their constant identifiers.",
+        "Release the transport escort group every refresh, rebuild it only around loaded transports, assign half the fleet one-to-one across the nearest six loaded hulls with an intentional one-ship exception, and exclude route-screen, home-response, and actively exploring warships.",
+        "Give land and naval timer dispatches explicit ownership; when both expire in one rule sweep, prioritize one global naval attack command and let land retry on its next randomized interval.",
+        "Apply and reset sn-percent-attack-boats in the town-size naval executor and clear stale sampled warboat losses when fleet count is stable or growing.",
+        "Write the computed naval requirement, loaded-transport count, and every dedicated naval dispatch attempt into replay chat data for state-level verification.",
+        "Give civilian evacuation priority over bounded scout-ferry attempts when at least two villagers are idle or the known map is depleted, and accept observed off-mainland trees, forage, or prey as colony anchors when no remote mine is known.",
+        "Reserve up to the Transport Ship's researched capacity as a civilian boarding group, retrieve that group directly rather than truncating a large villager search before filtering, depart partially after 45 seconds when at least two settlers have boarded, cancel stale garrison orders when the hull departs or disappears, and apply the same ownership to scout passengers.",
+        "On river and island maps, preserve excess depleted-economy villagers for evacuation instead of deleting them before the migration rules execute.",
+        "Confirm that reserved settlers unloaded in the selected land-zone ID before declaring success; when pathing chooses another resource-bearing island, recover that actual zone instead of abandoning the settlers.",
+        "Gate ordinary Mill, Lumber Camp, and Mining Camp producers while migration owns placement, and serialize colony placement behind any home controller or matching foundation that entered earlier in the rule sweep; refresh the colony resource after landing and, when affordable, try no more than four bounded offsets.",
+        "Emit migration trigger, target, transport, load, departure, landing, placement, timeout, and bounded no-launch gate telemetry.",
+        "Keep nonzero wood, gold, and stone gather demand after global depletion only after a resource-bearing off-island colony is confirmed, so transported settlers are not immediately folded back into an all-food economy and a failed migration does not rebalance the whole economy."
+      ],
+      "fresh_replay_acceptance": [
+        "The pre-match deployment checker reports no differing runtime files and replay chat contains RAWAI-P3B5 near match start.",
+        "Naval-requirement telemetry reports a population-derived fleet count rather than goal identifiers 141 or 142.",
+        "With no loaded Transport Ship, loaded-transport telemetry reports zero and no combat ship remains reserved in transport-escort-group; with multiple loaded hulls and enough eligible warships, escorts are assigned one-to-one rather than all guarding the nearest hull, and active naval explorers remain outside the group.",
+        "When the dedicated naval timer fires with the population-derived requirement satisfied and home defense clear, replay chat records a naval dispatch attempt instead of an earlier land executor consuming it; a simultaneous timer expiry produces only the prioritized naval attack command.",
+        "During a naval dispatch with loaded transports, assigned escorts retain their guard orders through the next escort refresh while non-escort warships receive and retain outbound attack orders.",
+        "Both percentage and town-size naval launches apply the configured naval attack percentage and return it to zero afterward.",
+        "A one-window naval loss is followed by a zero current-loss sample when fleet count stabilizes and does not repeatedly retrigger retreat behavior.",
+        "With at least two idle home-island villagers, civilian migration owns the next available utility transport instead of a retrying scout mission; scout attempts remain bounded even when no empty transport or viable landing is found.",
+        "Civilian boarding telemetry can request up to the researched transport capacity; a full load departs immediately, or after 45 seconds a partial load departs when at least two settlers have boarded, and unboarded villagers cease chasing a departed or lost hull.",
+        "On RIVERS, ISLANDS, and TEAM-ISLANDS classifications, the depleted-economy cleanup does not delete prospective passengers before migration can select them, and successful lifts can repeat after a 60-second rearm interval.",
+        "A civilian migration is counted only when at least one reserved settler is observed in gl-island-migration-zone; an empty hull at another shore cannot produce false success, and a wrong-zone landing is adopted only after a current natural resource is found on the settlers' actual zone.",
+        "The landed settlers receive a refreshed resource task and request the matching drop site: Mining Camp for gold or stone, Lumber Camp for trees, and Mill for forage or prey; when affordable, placement tries no more than four bounded offsets and ordinary home placement cannot satisfy the colony's acceptance record.",
+        "If no migration launches on an expired timer, at most five gate snapshots distinguish the engine-idle-villager bucket, available Transport Ship count, home-defense state, global-depletion state, and the sum of competing transport-controller states.",
+        "After a resource-bearing colony is confirmed and resources-depleted is YES on RIVERS, ISLANDS, or TEAM-ISLANDS, gather percentages retain nonzero wood, gold, and stone demand and migrated settlers continue working the remote resource in the fresh replay."
+      ],
+      "known_limits": [
+        "The replay parser cannot identify individual ship idle state, selection ownership, exact movement paths, transport occupancy, or whether a particular order came from manual intervention.",
+        "Warboat-count debug is an aggregate combat-fleet fact and therefore cannot identify individual orders or explain the difference between 19 decoded production requests and 16 observed combat warboats.",
+        "The absent runtime marker prevents this replay from validating or falsifying the exact source tree reviewed here.",
+        "The active-stream cutoff does not contain diagnostic crash information, so no AI rule is blamed for the reported game crash.",
+        "Roman good-navy remains NO while its strategy requests a substantial Shipyard plan; changing that classification requires authoritative DAT and maintained workbook evidence rather than this replay alone.",
+        "The engine exposes no direct water-zone connectivity or beach-path query for an arbitrary Transport Ship; migration now requires an idle, empty, unattacked hull and validates the landed zone, but a disconnected basin or unreachable inland unload target can still time out.",
+        "A wrong-zone landing on a resource-free islet is stopped and released rather than falsely counted, but the engine provides no reliable second-hop path query and those settlers are not yet automatically recovered to another island.",
+        "A matching drop site that is temporarily unaffordable waits for the migration watchdog rather than consuming four meaningless coordinate retries; fresh replay telemetry must distinguish that resource wait from point rejection.",
+        "gl-island-colony-established is set only after the owned drop-site foundation is accepted, but it is not yet cleared automatically if every settler dies or that remote colony later exhausts its resources; per-zone colony lifecycle evidence remains unavailable.",
+        "resources-depleted remains a global known-map signal rather than a home-island depletion measure; the independent two-idle-villager trigger handles visible shoreline unemployment, while a per-land-zone resource inventory and per-zone gather allocation remain unresolved."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-rome-vs-britons-20260824-140224",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 140224.aoe2record",
+        "sha256": "820AE4D68CC3017BF2B5499B868D23E2D7D50B26C816B301E8DE43A32FC59C55",
+        "mainlog_basename": "MainLog.txt",
+        "mainlog_sha256": "C92288EFDB0CF525D91F7155130D45CA6E673A66C5D38FBB3B19AF8A69DE334D",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 6100
+      },
+      "direct_replay_observations": [
+        "The match completed normally at 101:40 with Player 2 resigning; no replay parser errors were reported.",
+        "None of 2664 decoded chat records contains the expected RAWAI-P3B5 startup marker, so the exact deployed source revision remains unverified.",
+        "A Roman Town Center requested at (102,50) around 39:21 became an active producer around 40:27. Roman civilian count then fell from 93 at 54:19 to 62 at 55:20, while ten Roman warboats existed and no warboat loss was recorded until 63:24.",
+        "Remote Roman economic requests included Lumber Camps near (201,15), (135,148), and (202,42), plus Mining Camps near (209,38), (160,147), and (167,142).",
+        "Eleven DELETE commands at 60:18 through 60:26 targeted object 11595, which the log identifies as a completed MINE3 Mining Camp at (90,42).",
+        "Duplicate Town Center requests at (66,56) around 78:20 produced no later villager-producing Town Center and were followed by clustered DELETE actions, but the deleted object types are unavailable and a Town Center-foundation deletion is not proven.",
+        "No Roman Legionary-family MAKE request occurred for IDs 866, 868, 1658, or 1661.",
+        "Roman naval MAKE requests comprised 30 Scout Galleys, 21 Fire Galleys, 15 Polyremes, 11 Juggernauts, and 11 Transports from six distinct Shipyards; no Octeres 1884 request occurred.",
+        "The replay does not expose reliable Juggernaut range bands or dynamic Pummel or ram target types.",
+        "Meaningful AI state in the 64.7 GB MainLog ends around game time 30:17; later sampled content is runaway UnitAIModule trace repetition and cannot establish whole-AI idleness or the cause of any gameplay behavior."
+      ],
+      "implementation_inferences": [
+        "Current land response explicitly removed every off-mainland threat and current naval response scanned only attacked ships, Ports, and Shipyards near the original town, which is sufficient to exclude the reported island colony from both response triggers.",
+        "The completed Mining Camp deletion is explained by a generic delete-building rule that cannot select which camp is removed; no equivalent explicit Town Center deletion rule exists.",
+        "Migration confirms a resource colony after a Mill or Camp foundation but had no remote Town Center producer, so full island settlement and relocation were unimplemented.",
+        "Roman good-navy NO routes the stable selector around Hemiolia, Quadrireme, and Octeres even when their affinity and DAT availability are high; the match never reached Imperial, so this replay alone cannot prove an Imperial Octeres availability failure.",
+        "Long-form Juggernaut and ram target selection was left to global engine attack groups; no unit-specific fortification controller existed.",
+        "The Roman Legionary rule existed, but its semantic up-can-train and up-train path produced no replay MAKE record; the exact failed runtime gate remains unobservable."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B8 and require a source-matched deployment before behavioral attribution.",
+        "Keep farm builders available in both natural-food-dependent and independent farm-demand modes; derive both targets from the current villager count and food-gatherer percentage, while only the dependent mode discounts valid nearby natural-food workers.",
+        "Treat the negative dropsite-distance sentinel as no available hunt rather than as nearby food, so exhausted hunt can activate the independent villager-based farm target without consuming raw population-cap percentages.",
+        "Allow at most two civilian shore fishermen to substitute for the calculated farm requirement; additional fishermen are added back to demand and therefore cannot indefinitely suppress farm construction.",
+        "Replace the phase-five 20/35/40/5 versus 40/15/40/5 farm-count feedback pair with its stable 30/25/40/5 average so its own changing food percentage cannot alternate the target and retask villagers every sweep.",
+        "Keep depleted-island farm demand observable but suspend farm placement while no off-island colony exists, reserving residual or traded wood for the migration path; resume on non-water maps, resource recovery, or colony establishment.",
+        "Publish farm mode, placement suspension, civilian fishermen, farmers, completed farms, the finalized calculated target, and food-source distances on a separate post-calculation reporting cycle for replay diagnosis.",
+        "Select an attacked owned villager or economic anchor anywhere on the map, identify its recent attacker, require a same-land-zone threat, and dispatch same-zone defenders leashed to the attacked point instead of the original Town Center.",
+        "Allow an attacked coastal economy anywhere on the map to identify a nearby hostile warship or shoreline land raider; draw unreserved friendly warships from the same water zone against ships or from a bounded 56-tile coastal radius against land units, then release and leash them at the defended point.",
+        "After a confirmed resource colony, use at least twelve observed natural-resource objects as an explicit island-size proxy and try no more than four point-placed Town Center offsets before cooling down; suppress ordinary home Town Center placement and new migration dropsite ownership until the colony Town Center attempt resolves.",
+        "Remove untargeted completed Mining Camp deletion while leaving the engine-wide building-cancellation threshold unchanged, and retain verified villager-class DUC selectors with gather-role filters rather than using counting-only villager role pseudo-types as object selectors.",
+        "Under sustained housing pressure, point-place a new House beside the confirmed colony without deleting completed inner housing.",
+        "Repeatedly assign long-form Juggernauts and Octeres an exact known fortification target and separately direct the ram family to nearby Towers, Castles, Town Centers, walls, and gates rather than economic camps.",
+        "Use concrete DAT-backed Legionary IDs 866 and 868 with conservative two-percent caps on both ranged and melee forms, keeping their worst-case combined family below five percent, and audit all four physical stance IDs in the unique-unit manifest.",
+        "Replace the binary naval selector with a generated 0-100 capability model that scores lineup completeness, fully upgraded class statistics including projectile count, blast width, and superior cost/population efficiency, relevant naval technologies, and a signed operational production-throughput adjustment while retaining Naval Yes/No as a separate doctrine preference. Cothon batch potential is recorded but does not inflate runtime capability until the AI operates that production path.",
+        "In all-Naval-No matches, allow only a civilization within 85% of the strongest opposing capability to own a competitive fleet; against any Naval Yes opponent, keep Naval No fleets in the transport-escort and bombardment support role.",
+        "In team games, make Naval Yes civilizations primary fleet owners; when every allied civilization is Naval No, elect the highest-scoring AI, cap other allies as support navies, and allow only civilizations with both Quadrireme/Quinquereme and Octeres access a bounded heavy support detachment."
+      ],
+      "fresh_replay_acceptance": [
+        "The pre-match deployment checker reports no differing runtime files and replay chat contains RAWAI-P3B8 near match start.",
+        "After sheep and forage are too far and hunt distance is negative or greater than eight, farm mode becomes independent and more than the emergency first farm can be placed until the current villager-based target is met; newly reachable sheep or forage returns the mode to dependent.",
+        "With more than two civilian fishermen, the replay-visible farm target does not collapse one-for-one with the excess fishermen and the AI continues adding farms when wood and placement are available.",
+        "After phase five has both University and Monastery for more than 120 age-seconds, resource allocation remains 30 food, 25 wood, 40 gold, and 5 stone across consecutive AI updates rather than alternating when farms cross a self-changing target.",
+        "On a depleted Rivers, Islands, or Team Islands start with no established colony, farm-placement suspension becomes 1 and no new home farm command consumes migration wood; it returns to 0 after a colony is established or depletion clears.",
+        "Farm-report telemetry records mode, civilian fishermen, farmers, completed farms, finalized farm-building target, hunt distance, and food distance; source-matched replay commands are then used to distinguish a suppressed target from a farm that was requested but not completed.",
+        "An attacked remote Mining Camp, Lumber Camp, Town Center, or villager produces an asset-defense zone record and same-zone defenders engage without being recalled across water after the threat clears.",
+        "When an island expansion is attacked, replay chat distinguishes a hostile water zone from a coastal land threat; available unreserved warships in that water zone or within the bounded coastal radius receive response orders even when the asset lies outside the original town radius.",
+        "A resource-bearing colony with at least twelve currently observed natural-resource objects and no Town Center receives no more than four remote Town Center placement attempts; an accepted foundation receives the configured six-builder assistance and ordinary home expansion does not steal that placement window.",
+        "No completed productive Mining Camp is deleted merely because another known gold or stone node is more than eight tiles from a dropsite, and remote role workers can seed follow-up Camps.",
+        "Sustained low housing headroom can produce a colony House without deleting existing housing or blocking a remote Town Center placement.",
+        "Rams with an observed same-zone fortification retain a fortification target rather than crossing the enemy town for a Mining Camp; long-form Juggernauts and Octeres reacquire a static defensive target after target loss, while replay distance measurements determine whether a separate explicit standoff controller is still required.",
+        "Roman Legionary IDs 866 or 868 receive MAKE requests in Middle Antiquity while both conservative weapon-form caps permit production.",
+        "In a source-matched all-Naval-No Roman Empire versus Britons test, Rome publishes scaled capability 8820 (88.20/100) and selects COMPETITIVE while Britons publish 6287 (62.87/100) and select SUPPORT; Rome may maintain the larger fleet despite Naval No on both sides.",
+        "In a source-matched Naval Yes plus Naval No team test, the Yes ally selects PRIMARY, the No ally selects SUPPORT, the support ally never launches an independent naval attack, and its completed-plus-queued combat fleet remains at its three-percent cap unless the audited heavy-hull exception raises it to five percent.",
+        "In a source-matched all-Naval-No team test, only the highest-scoring allied AI selects COMPETITIVE unless capability ties; a lower-scoring ally yields after reading the published allied capability goal.",
+        "An eligible support civilization produces no more than two Quadrireme/Quinquereme-line hulls and one Octeres while retaining Scout, Fire, Boarding, and Juggernaut escort/bombardment coverage."
+      ],
+      "known_limits": [
+        "The engine exposes map-zone and observed resource counts, not terrain area; twelve resources are a documented settlement proxy and must be calibrated in fresh replays.",
+        "A remote Town Center does not redefine position-self. Home-centered economy systems remain anchored to the original town, while the new defense and housing paths explicitly use the colony point.",
+        "The colony-established and colony-Town-Center sentinels are not yet cleared automatically if every settler dies, the colony is exhausted, or its Town Center is destroyed; per-zone lifecycle remains unresolved.",
+        "Asset scans use bounded DUC search lists. A very large economy can still hide an attacked villager beyond a role list, although attacked economic buildings are searched separately.",
+        "For shoreline land attackers, distance from the attacked asset is only a coastal-reachability proxy; the engine exposes no general warship-to-land-target path query, so a disconnected nearby basin remains a fresh-replay risk.",
+        "Exact target commands prevent target drift but do not mathematically enforce a maximum-range annulus; pathing, obstruction handling, weapon-form state, distance discipline, and runtime command ownership still require replay evidence.",
+        "The siege controllers currently inspect the closest enemy player. Their exact-target behavior is therefore calibrated for the present one-versus-one test and requires enemy iteration before it is reliable in free-for-all matches.",
+        "Pummel is not an identifier in the current DAT, strings, unit lines, or AI constants. The implemented land controller assumes the user meant the Battering Ram, Capped Ram, and Siege Ram family.",
+        "The replay cannot identify whether clustered unknown DELETE commands removed a Town Center foundation; cancellation telemetry and a source-matched replay are still required.",
+        "The inspected MainLog is not a usable whole-match oracle because most of it is repetitive UnitAIModule trace output.",
+        "Structural and synchronization validators cannot prove up-allied-goal timing, role convergence with human allies, Shipyard placement success, or whether global attack-now respects every reserved specialist group; the three naval matchup acceptance cases require fresh runtime evidence.",
+        "The global food-gathering reach remains unchanged because it also governs forage access. Structural checks cannot prove whether engine autotasking still assigns too many villagers to distant shore fish; P3B8 telemetry and a fresh replay must determine whether a distance-specific fisherman retask or hard cap is also required.",
+        "Farm telemetry reports completed farms but not pending foundations, available wood, or placement feasibility. It can expose target suppression and lack of completed growth, but command-stream and resource evidence are still required to distinguish insufficient wood, accepted pending placement, rejected placement, and rule ownership failures.",
+        "The competitive score now captures steady-state hull quality including projectile/blast-area lethality, population-discounted garrison firepower for Tessarakonteres, cost/population efficiency, audited and forced line upgrades, support-upgrade access, missing Conscription, Shipyard work rate, and ship train time. Carthaginian Cothon batch cost and throughput are validated and retained as potential evidence but excluded from the runtime score because the AI does not yet construct and operate Cothon batches. Research discounts, free-upgrade timing, and age-of-unlock readiness remain explicit unscored calibration inputs because the current evaluator cannot yet derive them consistently across every mutually exclusive DAT technology branch."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-rome-vs-britons-20260824-194738",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 194738.aoe2record",
+        "sha256": "BE2D6CF398AF62D1F811D69C0EE6B3809C6D7C3320AD19619CC0046BE4DAD99B",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 6644
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and ended normally at 110:44 when the Roman Empire resigned; Rome reached Early, Middle, and Imperial at 11:13, 21:08, and 45:22, while Britons reached them at 12:03, 21:30, and 38:27.",
+        "None of 2967 decoded chat records contains the expected RAWAI-P3B8 marker or its farm telemetry, so the complete deployed build cannot be attributed to repository HEAD 41e6164 even though some migration telemetry fingerprints match.",
+        "Migration scout attempts fired at 11:37, 14:37, and 17:38. The first Roman Transport Ship MAKE request was not issued until 14:21, and no migration transport, boarding, departure, landing, or failure telemetry followed any attempt.",
+        "At 21:09 through 23:11, five gate snapshots each reported two Transport Ships, idle-villager bucket zero, home defense zero, global depletion zero, and utility-controller sum zero.",
+        "Transport objects 11576 and 11607 received no post-creation orders until roughly 69 minutes, leaving each inactive for about 51 to 54 minutes despite the migration gate seeing both by 21:09.",
+        "Transport 11607 later received repeated boarding, movement, and unload commands from 69:14 through 79:53, including large destination reversals and shoreline ping-pong. Replay telemetry nevertheless reported zero loaded transports every approximately 20 seconds from 43:42 through 110:35.",
+        "A 48-unit Roman group was retasked six times in twelve seconds around nearly identical assembly coordinates at 75:08 through 75:20; twenty of those units then received boarding orders toward transport 11607.",
+        "Four completed, villager-producing Roman Town Centers were explicitly deleted at 95:11 through 95:24. Current source has no autonomous completed-Town-Center deletion rule, making manual or external intervention the strongest attribution, although the replay records only player ownership.",
+        "Fourteen Roman naval dispatch telemetry events occurred from 50:28 through 105:57, Roman warboat count reached sixteen, and total warboat losses reached eighteen. This falsifies a claim that the navy never dispatched, but does not establish useful target acquisition or movement before the first group waypoint at 48:42."
+      ],
+      "implementation_inferences": [
+        "The civilian migration gate depended on engine-idle villagers or whole-known-map depletion, so assigned fishermen on a mine-depleted starting island could leave both conditions false even while two idle utility transports existed.",
+        "Scout opportunities were consumed before a hull was selected; three early landing-search failures could therefore permanently exhaust the bounded scouting system before transport production became usable.",
+        "Migration sent loaded ships directly toward an inland natural-resource point and bypassed the military transport screen, tower scan, corridor waypoint, and recall controller. A disconnected basin, unreachable beach, or known defended direct corridor could therefore stall or destroy the mission.",
+        "The migration hull was stored only by ID and not reserved in a direct-control group, while global attack-now remained free to retask transport assembly. This left command ownership vulnerable to the observed boarding and movement churn.",
+        "Attack timer ownership was cleared when a transient eligibility gate failed, after which the timer module restarted a full interval. This could add long passive gaps rather than a short readiness retry.",
+        "The shared position-self point was continuously rewritten from an arbitrary current Town Center, and a Juggernaut evasion rule explicitly moved warships to that inland point. Land and water controllers therefore did not have stable domain-specific anchors.",
+        "Defense suppression was enabled before local or naval response rules established that any same-zone responder existed, allowing an unreachable remote attack to suppress offense without producing a useful defense group."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B11 and require an exact deployment-manifest match before attributing subsequent replay behavior to this patch.",
+        "Every 45 seconds in Middle Antiquity or later, count observed Gaia gold and stone only on the immutable starting-Town-Center land zone and publish a separate home-mine-pressure signal without conflating it with whole-map depletion.",
+        "Give civilian relocation priority when starting-land mines are exhausted, require a real Transport Ship before either migration mission starts, include assigned noncritical fishermen in evacuation, and consume a scout attempt only after a hull is selected and reserved.",
+        "Reserve the selected migration hull in its own direct-control group, capture its water-valid origin, return empty ships to that origin instead of an inland Town Center, and release ownership on every idle terminal path.",
+        "Keep landed settlers and the migration hull reserved until the matching Mining Camp, Lumber Camp, or Mill foundation is found in the destination land zone, explicitly assign those settlers to its exact object ID, and publish the colony only after that foundation completes; if placement or construction fails, reboard the same settlers for a bounded return and direct any carried resources to a home Town Center.",
+        "Before departure, sample both lateral mid-route corridors for known Towers, Sea Towers, Castles, and Town Centers; hold the mission when both are defended, repeatedly drive the hull through the selected bounded waypoint, and recall it after four measured no-progress checks rather than four checks during a long but advancing voyage.",
+        "Bound an aborted ferry to four origin-unload retries plus one final watchdog window, and centrally release both the transport and passenger reservation groups on every idle terminal path.",
+        "Permit emergency Transport Ship production at the authoritative 125-wood DAT cost after starting-land mine depletion instead of requiring the normal 35-wood production buffer, and demand at least two hulls there so one busy transport cannot suppress its replacement.",
+        "On true island maps, defer land attack-now until completed Transport Ships cover a full army lift plus utility hull and every direct transport controller is idle; queued hulls no longer satisfy readiness.",
+        "Prioritize a confirmed remote colony Town Center under home-mine pressure and suppress ordinary additional starting-island Town Centers while preserving a zero-Town-Center last-resort recovery rule.",
+        "Keep position-self fixed at its startup land anchor and send a ranged warship evading a nearby Juggernaut toward the nearest own Port or Shipyard rather than a Town Center.",
+        "Defer global land and naval attack dispatch while migration or transport routing owns a hull, restrict the combined periodic attack to land maps, and retry transiently blocked attack timers after twenty seconds instead of a full interval.",
+        "Count eligible same-zone land and naval responders before aborting attacks and setting global home defense, and record a bounded no-responder diagnostic instead of freezing offense around an empty response group."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime manifests and replay chat contains RAWAI-P3B11 near match start.",
+        "No scout attempt is recorded before at least one completed empty Transport Ship exists; after a hull is selected, telemetry records its ID, a boarding target, loaded count, route-side decision, waypoint progress, and either a landed scout or an explicit abort reason.",
+        "When both known starting-land mine classes reach zero while remote naturals are known, home-mine pressure becomes one and civilian migration starts even if at least two waiting villagers remain classified as fishermen rather than engine-idle.",
+        "A selected migration transport receives no departure command before its recorded garrison count meets the one-scout target or the two-settler partial minimum, retains stable ownership during boarding, and does not repeat the 69 to 80 minute board-move-unload churn.",
+        "The migration route uses one selected lateral waypoint, retries no more than four times if it makes no progress, refuses two known defended corridors, unloads on the intended resource-bearing land zone, and returns the empty hull toward its captured water origin.",
+        "A moving transport on a long route resets its stall counter when distance to the waypoint falls; an unreachable return performs no more than four origin unload retries and one final watchdog attempt before releasing transport ownership.",
+        "An island land attack does not dispatch while its completed transport count is below the full-lift target or migration, route, recovery, relic, repair, or harbor-clearing owns the transport channel.",
+        "After a starting island loses its mines, transported settlers remain reserved, receive an explicit build order on a matching correct-zone resource drop-off, and publish the colony only after that drop-off completes; a failed drop-off attempt reboards available settlers, unloads them at the captured home shore, and targets a home Town Center so carried resources can be deposited.",
+        "A transient attack-readiness failure produces another eligibility check after about twenty seconds, while active migration or route ownership does not produce repeated inland transport assembly orders.",
+        "A remote attacked asset with zero same-zone responders emits the no-responder diagnostic and does not globally latch home defense; a reachable threat reports a positive responder count before offense is aborted.",
+        "A ranged warship evading a nearby Juggernaut moves toward a Port or Shipyard shoreline anchor, and establishing or deleting a remote Town Center does not change the replay-visible startup home point."
+      ],
+      "known_limits": [
+        "The replay command stream does not expose actual transport occupancy, reached positions, path splines, fog-of-war knowledge at decision time, individual death causes, or whether ordinary movement and construction orders were manual.",
+        "The engine exposes no arbitrary ship-to-beach path query. The new migration waypoint has a progress watchdog and water-valid origin but still requires a fresh replay to prove the selected bounded point is navigable.",
+        "Migration route defense scans currently inspect the selected target player and sampled midpoint regions, not every segment or every hostile owner in a team or free-for-all match.",
+        "A known-safe sampled corridor is not a proof against defenses hidden in fog. Unlike the military route controller, a one-unit scout ferry cannot use its own land scout as an advance naval screen.",
+        "A reservation group and repeated direct movement order do not structurally prove that the engine attack manager can never overwrite a transport; runtime command ownership remains a replay acceptance item.",
+        "Remote drop-offs are the primary island logistics path; the return ferry is a bounded recovery path for a failed colony establishment, not an inefficient per-resource-load shuttle. Foundation ownership, completion, reboarding, and final cargo deposit still require fresh replay confirmation.",
+        "Starting-land pressure counts observed mine objects, not remaining resource amount or terrain area. An unexplored home mine can cause a false-positive signal, while a visible but nearly exhausted mine delays it until the object disappears.",
+        "The replay shows fourteen naval dispatches and a sixteen-warboat fleet, so remaining naval usefulness is a target, zone, and command-ownership problem rather than an absence-of-production problem; direct main-fleet rally replacement remains unresolved.",
+        "For a coastal land attacker the AI can command nearby naval support but still cannot prove water-path compatibility. That branch no longer globally retreats the army or latches home defense, and its actual support value requires fresh replay evidence.",
+        "The completed Town Center deletes are strongly inferred as manual or external because current source lacks that action, but the replay does not identify the human or AI command issuer separately from player ownership."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-rome-vs-britons-20260824-213542",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 213542.aoe2record",
+        "sha256": "16089D9B7288834673E1A722EE934AF52E7F307DE5CAF93F6CB75DD3029D9101",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 3639
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and ended at 60:39 when Player 1 resigned.",
+        "None of 2626 decoded chat records contains the expected RAWAI-P3B11 runtime marker, so the complete deployed source tree cannot be proven even though migration-gate, drop-site-accepted, and farm telemetry strings provide a partial semantic fingerprint.",
+        "At 31:11 telemetry reported ten civilian fishermen, one farmer, ten completed Farms, and a farm target of ten. From 33:13 through 52:48 the farmer count remained zero while ten to eighteen fishermen and ten to eleven completed Farms were repeatedly reported.",
+        "Hunt distance became -1 at 26:10 and remained -1 while food distance remained 3.",
+        "Player 1 issued forty House build commands. Twenty-eight were issued in the three minutes from 40:48 through 43:49, with six delete actions interspersed during the same period; exact housing headroom and deleted object types are not serialized.",
+        "Eight civilian migration attempts selected a five-passenger target. Four completed five-settler landings and emitted accepted drop-site telemetry, one departed with four settlers after 46 seconds, three timed out in migration state 28 after equal zero-versus-zero route-threat results, and one timed out in migration state 5 after 46 seconds of loading.",
+        "Migration state 28 is MIGRATION-ROUTE-APPLY and state 5 is MIGRATION-CHECK-LOAD in the semantically matching source. Every completed equal-threat tie selected side one, while three equal-threat ties produced neither route-side telemetry nor progress before timeout.",
+        "The remote colony zone reported naval no-responder telemetry at 42:52 and 43:34 and repeated land no-responder telemetry from 43:35 through 44:16. Villager count then fell from 48 at 43:21 to 33 at 44:07, yet another five-settler migration departed at 44:23 and landed in the attacked zone at 45:40.",
+        "The aggregate fisherman fact rises and falls by exactly five around several full departures and landings, demonstrating that transport occupancy can contaminate the replay-visible fisherman count; it is not a location-specific shore-worker count."
+      ],
+      "implementation_inferences": [
+        "Farm demand and stop conditions controlled completed Farm buildings but no controller assigned workers back to abandoned Farms. Food allocation could therefore remain numerically satisfied by fishermen while every completed Farm was idle.",
+        "An established off-island colony retained desired-depleted-villagers at the emergency thirty-percent floor, preventing normal villager replacement after remote workers or home farmers were killed.",
+        "Migration froze the passenger target, issued garrison once, and then reselected only the hull. A built-in economy retask could overwrite one passenger while the direct-control group flag remained set, forcing the ship to wait for the stale 45-second target.",
+        "The colony House producer did not reset the House pressure timer after issuing a point placement and used a diagonal plus-fourteen offset. Independent House producers could also consume the same pending-object snapshot in one rule sweep.",
+        "The route tie generator used an inclusive maximum of two while both route-apply state machines handled only values zero and one. A generated value of two explains the otherwise uncovered state-28 deadlocks.",
+        "Civilian migration checked global home-defense state but did not retain recent attack state for the destination colony. A no-responder colony defense therefore returned to idle quickly enough for another reinforcement lift into the known attacked zone."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B12 and require an exact deployment-manifest match before attributing subsequent replay behavior to this patch.",
+        "Treat completed Farm staffing as a separate invariant: search every observed land zone for one ready, untasked Farm per bounded pass, prefer a same-zone civilian fisherman, then an idle villager, then a noncritical worker while preserving builders and animal-food workers; reject an orphan Farm within the same candidate transaction so it cannot block later zones.",
+        "Once Farms exist, make civilian fishing a transitional rather than permanent role. Redirect a same-zone fisherman to an empty Farm, or to an observed mine or tree in its own zone when every usable Farm is staffed; never issue an across-water Farm command.",
+        "When a productive colony is established during global depletion, set desired-depleted-villagers from the normal phase desired-number-villagers target so Town Centers replace farmer and colony-worker losses.",
+        "After the first colony exists, exclude farmers, fishermen, shepherds, foragers, and hunters from reinforcement-lift passenger selection so repeated migrations do not strip the home food economy.",
+        "During migration loading, continuously recount the reserved passenger group and hull, renew garrison orders for every surviving ungarrisoned member no more than once per an independent three-second timer, and calculate the live target as hull occupancy plus surviving ashore members before applying full, partial, or abort gates; a scout mission must retain at least one actual passenger.",
+        "Reduce the overall boarding window from forty-five to thirty seconds while preserving the two-settler minimum for civilian departure.",
+        "Generate route tie choices with an inclusive maximum of one in migration and military transport routing and publish the migration random value, closing every zero-versus-zero tie.",
+        "Serialize all nine House producers through one eight-second request cooldown, reset both pressure and placement timers on the colony branch, and reduce its diagonal offset from fourteen to six tiles.",
+        "Latch a recent colony threat for 120 seconds from the last same-zone local-response command or attacked colony asset observed by the naval responder, and require that latch to be clear before another civilian migration starts."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime manifests and replay chat contains RAWAI-P3B12 near match start.",
+        "During a migration-idle interval with completed Farms, the replay-visible farmer count rises toward the lesser of usable completed Farms and the calculated target; a completed-farm count equal to target no longer permits farmers to remain zero, and an empty Farm on a workerless colony does not block staffing in another zone.",
+        "After Farms exist, every selected civilian fisherman receives either a same-zone Farm or same-zone natural-resource command. Fishermen on a resource island are not ordered to an unreachable home Farm, and persistent non-garrisoned fisherman count trends to zero when a same-zone destination exists.",
+        "After a productive colony is established, Town Centers continue training until the normal desired-number-villagers target rather than stopping at the depleted thirty-percent floor after remote losses.",
+        "No House build command is issued less than eight seconds after another AI House request, every colony pressure request resets its timer, and no comparable multi-dozen remote House backlog develops after population headroom recovers.",
+        "If a selected passenger is retasked while walking, a loading pass renews its garrison command no more than once per three seconds; if it dies, the recorded live target falls. A civilian hull departs with at least two survivors within the thirty-second window or aborts and releases ownership, while a scout hull never departs empty.",
+        "Migration route-random telemetry contains only zero or one and every equal-threat ROUTE-APPLY state emits a route side or explicit held-route outcome without reaching the 120-second generic timeout.",
+        "After asset-defense telemetry identifies the colony zone, migration emits a colony-threat hold and no civilian trigger or departure targets that colony until 120 seconds after the last same-zone response."
+      ],
+      "known_limits": [
+        "The absent P3B11 marker prevents exact build attribution. The replay directly demonstrates symptoms and state sequences but not that every source file matched repository commit fd8035d.",
+        "The aggregate villager-fisherman fact includes at least some garrisoned passengers, so acceptance must correlate it with migration state and direct staffing or resource-redirection telemetry rather than reading it as a pure shore-worker count.",
+        "object-data-tasks-count is the available engine proxy for an unoccupied Farm. Structural validation cannot prove its runtime timing around expiring Farms or simultaneous built-in worker assignment.",
+        "A fisherman stranded in a land zone with no Farm, mine, or tree still requires a transport recovery path; the same-zone tasker deliberately refuses an impossible cross-water command.",
+        "The colony-established sentinel is not yet cleared automatically if every remote worker and drop site is lost or the island is exhausted. Per-zone colony lifecycle remains unresolved.",
+        "The engine exposes no arbitrary ship-to-beach path query. Closing the random tie state guarantees controller progress, not that either selected water waypoint is navigable.",
+        "The 120-second colony threat hold is derived from detected local response state and the naval responder's attacked owned-asset zone. Attacks hidden by fog or absent from the bounded owned-asset searches can still be missed."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-rome-vs-britons-20260824-230404",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 230404.aoe2record",
+        "sha256": "EEAE1B9B19998898AF579ED02677F93EDA9FD32D25504A2C392EADAEC2766165",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 6095
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and ended at 101:35. Player 1 was Roman Empire civilization 23 and Player 2 was Britons civilization 3.",
+        "The decompressed runtime header contains RAWAI-P3B12 twice and no RAWAI-P3B13 marker. A header marker is partial runtime evidence, not proof that every deployed AI file matched the repository.",
+        "Thirty-five Roman migration triggers occurred from 21:11 onward. Thirty-four selected a destination zone, hull, and passenger set and issued boarding, then immediately reported that the migration transport was lost.",
+        "The allegedly lost hull IDs 11205, 11490, and 12167 remained present later in the replay and subsequently moved or unloaded. No Roman migration departure, route, landing, drop-site completion, or completed migration was decoded.",
+        "Rome requested Scout Galley family unit 1877 thirty-seven times beginning at 36:37 and Juggernaut unit 420 seven times beginning at 52:12. No Octeres 1884 request was decoded; the replay cannot associate a post-production hull instance with the engine's naval-explorer role.",
+        "No Roman Town Center build command was decoded. Roman building activity remained around the starting base; four delete commands had no serialized object type.",
+        "A candidate garrison target 14330 showed boarding churn while the Roman home was attacked, but the replay does not serialize enough type or ownership information to prove that this object was the reported loaded military Transport Ship.",
+        "Loaded-transport telemetry remained zero throughout. The replay aggregate resource stocks do not establish that all usable Roman resources were exhausted, and home-mine telemetry remained viable."
+      ],
+      "implementation_inferences": [
+        "Migration loading rebuilt the local search list through an object-ID insertion, then consumed it in a later state. The replay's immediate false-loss sequence, followed by continued existence of the same hull IDs, falsifies actual hull destruction and points to failed exact-hull re-resolution or search-list lifetime as the blocking transition.",
+        "The engine-owned sn-number-boat-explore-groups accepts no ship-family allowlist. Leaving it enabled allowed a heavy warship such as a Juggernaut or Octeres to be drafted as an explorer even though the AI had a dedicated Scout Ship family.",
+        "Relocation pressure counted only starting-land gold and stone objects. A starting island that retained a visible mine object but had exhausted practical wood could therefore fail to enter the emergency migration economy.",
+        "Emergency Transport production counted all completed hulls rather than usable idle hulls and budgeted only the 125-wood hull. A busy hull could block replacement and construction could consume the 100 wood needed for the destination Mining or Lumber Camp.",
+        "Military transport recall depended primarily on the global home-defense latch and excluded outbound return states, allowing a loaded hull to retain its expedition while a detected threat existed but no reachable response group raised the latch.",
+        "The AI had a point-placed remote colony Town Center producer but no guarded starting-Town-Center retirement path. As a result, ordinary place-normal construction remained anchored to the starting island after a mainland colony was established."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B16 and require a source-matched deployment before attributing new runtime behavior to this patch.",
+        "Re-resolve the selected migration hull from the live Transport Ship family and exact stored object ID, persist its garrison count in a goal, and declare loss only when that exact lookup produces the negative sentinel. Reissue boarding against the exact remote hull, compare subsequent full, partial, retry, and loss transitions only against stored counts, and return a live hull immediately if deaths reduce a scout below one passenger or settlers below two.",
+        "Disable the generic engine boat-explorer selector. Every forty-five seconds, select only scout-galley-line hulls for a reserved naval-scout group; Juggernaut, Octeres, generic warship, garrisoned, attacked, and already reserved hulls have no fallback path into this role, and the absence of a safe Scout Ship is replay-observable.",
+        "Count starting-land trees independently and raise relocation pressure at five or fewer observed trees as well as at zero observed mines.",
+        "Under relocation pressure, require the conservative pre-Shipwright 225-wood package at the Transport request for one 125-wood hull and one 100-wood resource Camp, inspect self-owned usable empty idle hulls on hybrid water maps with explicit focus restoration, and allow one bounded replacement up to three total Transports when every existing hull is busy.",
+        "Use bounded market trades to bridge toward the 225-wood relocation package when gold, stone, or excess food is available.",
+        "Retain the three most recently failed destination land zones and reject all three for 180 seconds beginning only after bounded return releases migration ownership, preventing immediate A/B alternation after a defended-route, unreachable-route, or drop-site failure.",
+        "Capture the immutable starting Town Center's land zone as the active home and recall the exact loaded military Transport and its route screen only when a local or naval response identifies a threat in that home zone, including outbound return states while excluding only the existing recovery states; transfer the active zone to the established colony when relocation completes.",
+        "Capture one immutable starting Town Center object ID before remote expansion. After a completed correct-zone colony Town Center has at least six settlers and four currently observed natural-resource objects, and only while migration, Town Center placement, colony threat, home defense, pending work, and attack checks are clear, delete that exact ready starting object once without ever deleting the final Town Center.",
+        "Break the opening drop-site circularity by selecting the first Lumber Camp from a visible tree cluster near the active-home Town Center and in its land zone, and the first Mining Camp from an exact-type visible gold or stone mine near that same mutable anchor and in its zone. Treat those exact searches as authoritative instead of gating them behind coarse whole-map availability counts, transfer the anchor from the starting Town Center to the established colony when the old home retires, keep later camps tied to actively gathering workers and exact live resource IDs, try four bounded Lumber Camp offsets with a three-resource rejection ring, release that ring when every non-rejected candidate is exhausted so temporary obstruction cannot become a permanent ban, and make the one-shot opening Mill use ordinary affordability without mutating shared escrow state."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B16 near match start.",
+        "A selected migration hull is not reported lost while the same object ID remains alive. Its live loaded count advances through boarding and produces either a route departure, a bounded partial departure with at least two settlers, or a real exact-hull-loss record.",
+        "At least one Roman civilian migration reaches a resource-bearing non-starting zone, completes the matching correct-zone drop site, and records a completed colony without selecting any of the three retained rejected zones during the post-return 180-second backoff.",
+        "All explicit naval reconnaissance moves target Scout Galley family IDs 1877, 1878, or 1879 after copying the enemy PositionType source into a real goal pair. Juggernaut IDs 420 and 691 and Octeres 1884 receive no explorer-group assignment or reconnaissance move.",
+        "When the starting zone has at most five observed trees or no observed mines, relocation pressure activates. A Transport request is not issued below the 225-wood package threshold, the Market bridge continues while wood is below that threshold, and a busy existing hull cannot suppress one bounded replacement.",
+        "If an economic or military anchor in the active home zone is attacked while a military Transport remains loaded or outbound, the exact hull and route screen receive recall orders before the attack clears; an attack confined to a different remote colony does not spuriously unload the force at an unrelated route origin, and successful relocation transfers this behavior to the colony zone.",
+        "After a viable mainland colony Town Center completes, the AI retires no old Town Center until all safety gates pass, deletes only the one startup-captured ready target while at least two Town Centers exist, never repeats retirement against later expansion Town Centers, and subsequent ordinary buildings appear around the surviving mainland Town Center rather than the depleted island.",
+        "From a normal three-villager start, the AI creates a same-zone Lumber Camp foundation at a live cluster before opening readiness can permit the Barracks, then creates its opening Mill. A small known pocket of three to nine trees is not suppressed by the ten-object global wood sentinel. Once a positive gold or stone gather percentage is configured in Early Antiquity or later, the first Mining Camp is anchored to a matching live active-home mine even when fewer than five matching global mine objects are known; after safe home retirement, zero-camp recovery searches around the colony rather than the starting island. No camp is accepted against a mismatched, sparse, stale, or different-zone resource, and a temporarily obstructed sole resource is eligible again after the rejected-candidate search exhausts and releases its bounded ring."
+      ],
+      "known_limits": [
+        "The replay does not serialize naval explorer group membership, exact transport occupancy, object type for every garrison or delete command, command issuer identity, fog-of-war knowledge, water-path geometry, or remaining resource amounts within visible mine and tree objects.",
+        "The P3B12 header marker does not prove a complete deployment-manifest match. Fresh P3B16 evidence is required before the changed search and state semantics can be accepted.",
+        "DUC structural validation cannot prove that the engine preserves a produced search list across rule-state transitions. The exact Transport-family lookup removes the replay's object-ID insertion failure mode, but its runtime list lifetime still requires the fresh replay.",
+        "The engine exposes no arbitrary ship-to-beach path query. Rejected-zone backoff prevents immediate repetition but does not prove that the next selected island or corridor is navigable or safe from hidden defenses.",
+        "The starting-land tree count is an observed-object threshold, not a remaining-wood measurement. Unseen trees can cause a false pressure signal and nearly exhausted visible trees can delay it.",
+        "The 225-wood package uses authoritative pre-Shipwright DAT costs. Shipwright later lowers the Transport cost, so the request threshold is conservative rather than an exact late-game cost. It is not an engine escrow: other systems can spend the remaining 100 wood during the voyage, and the Market bridge can replenish it only while market access and saleable resources remain.",
+        "Deleting an old Town Center after a safe colony exists follows experienced AI-developer placement guidance, but the engine does not expose its default place-normal anchor. Fresh construction locations must prove that retirement actually transfers ordinary building placement to the mainland.",
+        "The retirement controller deliberately refuses to delete the final Town Center and does not move position-self. If the AI has only its starting Town Center and cannot first complete the explicit colony Town Center, it remains in the safer migration-and-point-placement path rather than risking total Town Center loss.",
+        "Active-home zone, active-home anchor distance, exact-type, and resource-cluster checks are placement proxies, not an engine path query. Structural validation cannot prove that a villager can reach the selected camp foundation or that terrain permits any of the four offsets; fresh runtime telemetry and replay evidence remain required."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-rome-vs-britons-20260825-120904",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.25 120904.aoe2record",
+        "sha256": "1A1DA62ED84E1FC7CF3534AF62F2739C393B36338742B0CE0639244AADD71976",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 2628
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and ended at 43:48. No RAWAI runtime marker was decoded.",
+        "Player 1 completed Early Antiquity at 10:20, Middle Antiquity at 16:37, and Imperial at 26:35. No Player 2 age advancement was decoded before the replay ended.",
+        "Seventeen civilian migration boarding commands targeted destination land zone 5. Sixteen completed attempts ended exactly thirty seconds later with migration timeout state 41; the final attempt began six seconds before the replay ended.",
+        "State 41 in the matching historical source is MIGRATION-CHECK-LOAD-RESULT. No migration depart-full, depart-partial, below-minimum, passengers-unavailable, or transport-lost telemetry was decoded.",
+        "The transport action stream records a garrison command against hull 11620 or 11625 at every boarding attempt and an unload command at the timeout, at the hull's recorded home-water coordinates.",
+        "Land-attack interval telemetry refreshed eight times from 23:22 through 42:07 while military superiority remained 3 (SUPERIOR). No replay-persistent land-dispatch telemetry existed in that build.",
+        "Three naval dispatches at eighty percent were decoded from 36:49 through 42:52, so the replay does not support a claim of total military inactivity."
+      ],
+      "implementation_inferences": [
+        "The state-41 rules left the expired zero-or-one-passenger case uncovered. The generic watchdog then unloaded at the stored origin and published MIGRATION-IDLE before proving the asynchronous unload complete, which explains the observed load/unload cycle beside the Roman town.",
+        "Repeated migration ownership can suppress ordinary land dispatch because every land executor requires migration idle; interval refresh alone does not prove an attack command was issued.",
+        "The historical one-shot age-up rules issued attack-now without first setting a nonzero soldier percentage, while the ordinary executors reset that strategic number to zero after use.",
+        "The aggression model compared raw military counts and own phase but had no enemy-age input. The land TOLERABLE band was also unreachable because the earlier INFERIOR rule claimed every own-force count below the enemy total."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B17 and require a complete source-matched deployment before attributing fresh behavior to this patch.",
+        "Remove the uncovered migration result state and compare the exact reserved hull's live garrison count directly in the same search state. Depart full immediately, depart with at least two settlers at the thirty-second bound, or explicitly abort an empty or one-passenger mission.",
+        "On a loaded abort or any otherwise uncovered timeout, retain the reserved transport group and remain in the return/check lifecycle until an exact-hull check proves garrison count zero. After four failed origin-beach unloads, use the active home anchor as an alternate shore and quarantine the occupied hull instead of repeating the same unload loop; permit unrelated attacks only when enough other ungrouped, empty, idle Transports satisfy full lift. Back off the failed destination zone after a below-minimum boarding abort.",
+        "Correct land military bands so INFERIOR means below half enemy strength and TOLERABLE covers at least half but less than the enemy total.",
+        "Latch pressure only for a live building-owning enemy target that remains at least one age behind for 120 seconds; when the closest selector returns an invalid player in multiplayer, deterministically reacquire a live hostile player with buildings. Then issue randomized ninety-to-one-hundred-fifty-second sixty-percent pressure attacks on land or hybrid maps only when home defense, migration, route readiness, transport capacity, failed-raid escalation, and force-size gates permit.",
+        "Give the existing Middle and Imperial one-shot age-up attacks a bounded nonzero soldier percentage, real force threshold, replay-persistent dispatch telemetry, and the same escalation safety gate; preserve a pending one-shot request while an invalid target is being reacquired. Serialize every military, periodic, age, and rush attack through a COMPLETE owner released in AI RAW only after the later-loaded rush module, and persist every ordinary normal, regroup, and siege land dispatch as well.",
+        "Keep all symbolic timers in unique engine slots 1 through 50. Reuse formerly inactive slots 18 and 19 for migration boarding retry and home retirement, and implement colony-threat, rejected-zone, naval-scout, relocation-market, and age-pressure cooldowns as game-time deadlines."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B17 near match start.",
+        "A civilian boarding mission emits a full or at-least-two-passenger partial departure within thirty seconds, or emits an explicit empty/one-passenger abort. State 41 never appears because it no longer exists in the runtime state machine.",
+        "After a loaded abort, the exact hull remains reserved and in RETURNING, RETURN-CHECK, RETURN-FAILED, or QUARANTINED until telemetry and subsequent behavior establish that it is empty; after four rejected origin unloads it tries the active-home shoreline and does not restart the same bounded-origin counter. QUARANTINED does not itself suppress an otherwise ready attack, while the reserved loaded hull never contributes to available lift.",
+        "Three consecutive below-minimum boarding failures do not repeatedly select the same destination zone without passing through the rejected-zone backoff.",
+        "When a live building-owning selected enemy remains at least one age behind for two minutes, replay chat records age-advantage pressure and one owner-serialized land dispatch within the next randomized pressure window if the safe force and route gates are met; an invalid closest player is replaced by another viable enemy instead of erasing a pending one-shot request.",
+        "If pressure is blocked by active home defense, incomplete transport lift, repeated-raid regrouping, or known fortifications without siege, no age-advantage rule bypasses that blocker.",
+        "The structural timer validator reports no duplicate timer slots and no timer identifier outside 1 through 50; boarding-retry telemetry confirms that the reclaimed slot 18 can fire in a fresh match.",
+        "No sweep records two attack dispatches from ordinary, periodic, age, and rush producers: COMPLETE ownership remains visible through the rush rules and is released only by the post-rush AI RAW cleanup rule.",
+        "A separate fresh P3B17 match, not this pre-P3B16 replay, verifies that the initial Lumber Camp and Mill bootstrap without manual construction."
+      ],
+      "known_limits": [
+        "The user confirmed this replay predates P3B16. Its manually assisted opening Lumber Camp and Mill therefore do not test or falsify the current P3B16 drop-site bootstrap.",
+        "The replay does not serialize exact transport occupancy. Garrison and unload commands plus the state telemetry prove the controller cycle, while the user's visual observation supplies the fact that villagers were actually aboard.",
+        "The replay has no current land-dispatch message, so absence of a decoded land attack cannot distinguish a blocked executor from an issued but unpersisted chat-local-to-self command. P3B17 adds replay-persistent dispatch telemetry.",
+        "No Player 2 age-up message was decoded, but player identity and map naming rely on the match context supplied by the user because no RAWAI deployment marker was present.",
+        "Direct object-data occupancy predicates and structural validation cannot prove runtime selection lifetime, asynchronous unload completion, or path safety. A fresh replay remains required."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "lumber-bootstrap-20260825-140137",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.25 140137.aoe2record",
+        "sha256": "BA6ECDFDD4C5193D2BADD9736BE2A34AC79A0F274374F8ECD3C84D993A8301C5",
+        "game_build": "101.103.48987.0",
+        "map": "unresolved",
+        "players": [
+          "Player 1",
+          "Player 2"
+        ],
+        "duration_seconds": 511
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and ended at 08:31. The parser did not expose the map or civilization names, and no RAWAI build marker was decoded.",
+        "The AI emitted `lumber camp rejected sparse wood zone: 3` thirty-four times from 00:01 through 08:24 at approximately fifteen-second intervals.",
+        "No Lumber Camp resource-zone, accepted-resource, exhausted-offset, or completed-placement telemetry was decoded. Both players' only decoded building type was object type 70, five times each.",
+        "The user visually observed three eligible forests immediately beside the town. The replay does not serialize the AI's visible tree list or candidate-cluster count, so that forest geometry is user-supplied match evidence rather than a parser-derived observation."
+      ],
+      "implementation_inferences": [
+        "The Lumber Camp cluster scan passed `remote-total` to `up-get-search-state`. That command writes four consecutive values beginning with local total, so the empty local-list count was stored in `remote-total`, every visible forest failed the three-tree threshold, and the real remote count spilled into the following `map-size` goal.",
+        "The same shifted four-goal output base occurred in twenty-eight homebase and military calls, potentially falsifying remote resource, threat, route, fortification, and response counts beyond the directly observed Lumber Camp failure.",
+        "The three-exact-ID sparse-resource ring could cycle forever once four nearby sparse candidates remained. Its empty-search release rule did not guarantee progress through a rebuilt ascending candidate list."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B18 and require a complete source-matched deployment before attributing fresh behavior to this patch.",
+        "Make every `up-get-search-state` write through the audited `local-total`, `local-last`, `remote-total`, and `remote-last` four-goal block and reject any other operand in structural validation.",
+        "Expose the measured sparse-tree count in replay chat while retaining the same-zone three-tree threshold.",
+        "Walk the freshly rebuilt distance-sorted opening-tree list with a persistent candidate rank. Sparse candidates advance that rank, and exhaustion resets it with the bounded obstruction ring, preventing a four-tree A/B/C/D cycle."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B18 near match start.",
+        "On the same opening, the first candidate forest reports a remote tree count of at least three and reaches Lumber Camp resource-zone and accepted-live-resource telemetry instead of repeating the sparse-zone message.",
+        "A same-zone Lumber Camp foundation is issued and completes without manual construction before opening readiness permits the Barracks.",
+        "If a genuinely sparse candidate is encountered, successive retries advance through distinct sorted candidates and either find a valid cluster or exhaust and reset the bounded scan; four nearby candidates never produce an endless A/B/C/D loop.",
+        "Remote-count consumers such as home-resource pressure, transport route threats, fortification scans, and local/naval response scans report values consistent with visible runtime objects and no longer overwrite `map-size`."
+      ],
+      "known_limits": [
+        "The replay does not serialize the DUC local and remote search lists, measured tree count, map name, civilization identities, or fog-of-war visibility. The repeated rejection proves the decision path but not the visible forest geometry by itself.",
+        "Structural validation proves the four-goal operand layout and monotonic candidate code shape, not that a particular forest is pathable or that terrain accepts one of the four point-placement offsets.",
+        "Correcting twenty-eight remote-count calls intentionally changes several systems that previously consumed the empty local count. A fresh match must check those dependent runtime behaviors for newly exposed balance or state-transition errors."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-rome-vs-britons-20260825-142803",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.25 142803.aoe2record",
+        "sha256": "C6224F39D0461BD3F2D26CF2FE9C15E8844279907966F5C5C7AD98C0C1A82D2D",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain (test context)",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 3976
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and lasted 66:16. No RAWAI startup marker was decoded, so source attribution to P3B18 is consistent with the test sequence but not proven by the recording.",
+        "Rome requested 52 Crossbowmen (unit 5), 35 Praetorian Prefects (40), four packed Palintonons (331), and ten Juggernauts (420), but zero Legionary forms (866, 868, 1658, or 1661), Scorpions (279 or 542), and Octeres (1884).",
+        "Rome first requested a Shipyard at 34:38 and its first warship at 47:19 despite Port requests at 07:57 and 16:26; Britons first requested a Shipyard at 32:12.",
+        "Each player issued only one Lumber Camp build request, at 00:32. The replay contains no accepted-live-resource or accepted-completed-resource telemetry for a later Roman camp.",
+        "Rome completed Early Antiquity at about 08:20, Middle Antiquity at about 16:35, and Imperial at about 25:50. Roman land and naval attack dispatch telemetry exists, so the recording disproves total inactivity but does not establish good target selection or coordination.",
+        "BUILD and MAKE records are command requests rather than proof of completed construction or training, and the replay does not expose exact transport occupancy or persistent combat-group membership."
+      ],
+      "implementation_inferences": [
+        "The relic-ferry timer was never armed during initialization. After the priest was tasked to the relic, the controller also released transport ownership and waited for a later timer cycle before rebuilding the return boarding order, which is sufficient to explain the visible delay beside an available hull.",
+        "The Legionary and Scorpion common producers passed negative line selectors to up-can-train and up-train. Those selectors are valid family-count operands but invalid concrete production identifiers, which explains zero requests despite verified Roman access to unit IDs 866/868 and Scorpion IDs 279/542.",
+        "Roman phase one and the Early-Antiquity age-up phase explicitly requested zero Shipyards, while completed Early Antiquity requested only two. That policy, combined with ordinary optional-structure ordering, is sufficient to explain why naval production infrastructure appeared only after later land structures.",
+        "Crossbowman is a separate technology-85 unit whose DAT targets include archer armor but not Marksmanship 437 or the generic archer attack/range effects. The existing armor rules checked only broad classes that did not count Crossbowman 5, while mounted Praetorian/scout forms could similarly miss the cavalry-only Barding predicate.",
+        "Local and naval asset-defense scans were anchored to position-self and several migration/resource filters assumed literal mainland versus off-mainland status. Those assumptions can miss attacked workers, remote stone, and active-home economic sites when Rome starts on Ireland or transfers its home to a colony.",
+        "Palintonon packing churn is consistent with generic defense selection and ten-second leash commands repeatedly claiming packed and unpacked forms rather than leaving the dedicated siege controller as their sole movement owner.",
+        "The capital-ship controller grouped every Juggernaut or Octeres before learning the selected source water zone, could reserve unreachable hulls in other basins, shared escorts with other controllers, and distance-sorted reachable sea towers together with potentially unreachable inland fortifications."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B19, arm the relic-ferry timer at startup, retain the exact safe unowned ferry Transport while the priest collects the relic, and reissue immediate return boarding until the carrier is aboard. A watchdog keeps the hull reserved until it is empty and physically beside the active home, but releases a path-blocked hull after three timed return attempts.",
+        "Replace every Legionary and Scorpion train operand with concrete base/elite unit IDs. Refresh one combined ranged-plus-melee Legionary family count so stance switching cannot evade the role-independent two-percent floor or the ten-percent CHAMPION-role ceiling, and persist request telemetry.",
+        "Explicitly research Advanced Weaponry and Crossbow unlock technology 85 when available; count Crossbowman for Padded, Leather, and Ring Archer Armor, and count scout-cavalry-class units for Scale, Chain, and Plate Barding Armor. Do not buy Marksmanship solely for Crossbowmen because the authoritative DAT does not apply it to unit 5.",
+        "Request the first Shipyard from Early Antiquity as soon as a Port, aquatic map, sufficient wood, and a valid placement exist; give Rome one Shipyard while aging into Early Antiquity and three once there, while preserving resource and placement gates.",
+        "Anchor attacked-worker, economic-site, local-incursion, remote-resource, migration, and scout filters to the mutable active-home point and zone rather than original position-self or literal mainland flags. Scan up to the population ceiling before filtering attacked villagers, count active-home stone separately, and mutually exclude scout ownership while a no-home-stone mission is eligible.",
+        "Exclude both Palintonon forms from generic local-defense selection and leashes, assemble every available Ram/Palintonon on the sampled land zone into one persistent fortification-objective group, and give Juggernauts and Octeres distinct same-water-zone capital groups with bounded 2:1 light-ship escorts.",
+        "Prioritize enemy Sea Towers for naval bombardment, keep fallback fortifications within forty-eight tiles of the capital source, publish target type and water zone, and make attacked light ranged ships—including reserved Scout Ships—recognize Octeres and static defenses while retreating only to an unattacked same-zone Port or Shipyard.",
+        "Keep later Lumber Camp requests tied to the farthest active same-home-zone woodcutter, reject sparse worker target trees through the same bounded three-ID backoff ring, recognize a camp that completed before the pending-foundation sweep, and retain live-resource validation instead of satisfying a desired count without nearby trees.",
+        "Add pending-foundation and pending-placement gates to ordinary Town Center expansion so a single rule sweep cannot request three overlapping Town Centers."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B19 near match start.",
+        "After a transported priest picks up a relic, return boarding is requested promptly against the already reserved nearby hull and the hull does not have to complete an unrelated home cycle before collecting the priest.",
+        "Rome publishes concrete Legionary request telemetry for 866 or 868 and Scorpion production requests for 279 or 542 when the Barracks/Siege Workshop, age, resources, and bounded role are available; the combined Legionary family never exceeds its active ten-percent ceiling through stance switching.",
+        "A Roman Crossbow force triggers technologies 211, 212, and 219 when affordable and safe. Marksmanship 437 is not required by Crossbow-only composition, while a genuinely affected archer or cavalry-archer still permits it. Praetorian/scout-cavalry presence permits the applicable Barding armor chain.",
+        "On Real World Britain, the first Shipyard is requested in Early or early Middle Antiquity after a Port and adequate wood rather than waiting for a Fort, and Rome produces a non-idle mixed escort fleet without assigning Juggernauts or Octeres as scouts.",
+        "An attacked villager, Mining Camp, Lumber Camp, or coastal colony inside the active-home search radius triggers same-zone response telemetry before the attacker crosses the legacy town boundary.",
+        "A far active wood line without a nearby Lumber Camp reaches resource-zone and accepted-resource telemetry and completes a same-zone camp; no camp request is issued merely to satisfy a desired count without a validated tree cluster.",
+        "Juggernauts and Octeres operate in separate same-basin capital groups, their escorts guard rather than replace their fortification target, and telemetry shows a reachable Sea Tower or nearby coastal fallback instead of an inland target that leaves the fleet stranded.",
+        "Palintonons remain under the dedicated siege controller long enough to fire and do not repeatedly pack and unpack because of home-defense leash commands.",
+        "At least one reserved Scout Ship explores a different observed land mass, and low home stone pressure produces a bounded remote stone mission with an actual same-zone Mining Camp rather than idle fishermen or a no-drop-site island party."
+      ],
+      "known_limits": [
+        "No decoded RAWAI marker proves the exact source build used for this replay. All fixes require a freshly deployed P3B19 match before runtime claims can be accepted.",
+        "The parser does not decode individual completed research events, exact transport occupancy, group flags, target reachability, fog-of-war sector coverage, or successful building completion. User visual evidence and command telemetry remain separate evidence classes.",
+        "The engine scripting API exposes no dependable arbitrary naval path or coastal-reachability query. Sea-Tower priority and the forty-eight-tile fallback reduce risk but cannot prove that a selected inland-looking target is attackable from water.",
+        "The current naval scout controller reserves observed Scout Ships and first targets known resource-bearing land outside the active-home zone, falling back toward the enemy coast. It still cannot prove independent exploration of completely black land masses or systematic sector coverage.",
+        "Cross-export tech-tree evidence remains inconsistent for Roman Empire: the standalone BYZANTINES export has 144 nodes while the aggregate ROMAN EMPIRE export has 162. Requested Crossbowman, Legionary, Scorpion, Juggernaut, and Octeres IDs agree with authoritative DAT evidence, but the eighteen extra aggregate nodes must not silently alter other Roman family evaluations until the export discrepancy is resolved."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-rome-vs-britons-20260825-163749",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.25 163749.aoe2record",
+        "sha256": "CDD083E9933A3FE06591FD7DF9D8E77433E81A4379B2C40B9367B6BC17BB2249",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain (test context)",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 2268
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and lasted 37:48. No RAWAI-P3B19 marker was decoded; repeated P3B19-specific naval-scout telemetry is a partial semantic fingerprint, not proof that every deployed file matched the repository.",
+        "Rome requested four Transport Ships (unit 545), seven Scout Galley-family ships (1877), eight Fire Galleys (1103), and eight Galley-family ships (539).",
+        "Neither player requested a Juggernaut (420 or elite 691) or Octeres (1884), so Rome had no dedicated capital bombardment hull in this recording.",
+        "Rome emitted seven serialized `naval dispatch: 80` records from approximately 18:44 through 35:05, repeatedly releasing eighty percent of its ordinary warships through the generic naval attack executor.",
+        "Roman warboat telemetry rose to twelve. At approximately 29:06 it reported seven current warboats and five current losses; at 30:06 it reported six current warboats, six current losses, and eleven total losses.",
+        "The user visually observed Roman warships ignoring enemy Transport and Fishing Ships, including an apparently loaded transport, and repeatedly attacking a tower instead. Target identity and exact combat orders are not decoded by the replay parser, so those observations remain user-supplied match evidence."
+      ],
+      "implementation_inferences": [
+        "The P3B19 naval dispatch path set `sn-percent-attack-boats` and called global `attack-now`. That broad engine owner is sufficient to bypass the dedicated capital-ship rules and explains why ordinary ships could prefer hard structures even though vessel target priorities were already high.",
+        "Configured target priority eleven for transports and fishing ships did not provide en-route retargeting for a multi-unit generic attack group; increasing the same priority would therefore be an untested repetition rather than a fix.",
+        "P3B19 assigned naval scout, Juggernaut, Octeres, relic-ferry, and siege-objective controllers to DUC group IDs 10 through 16. The documented runtime group domain is 0 through 9, so those ownership and exclusion guarantees could not be trusted even when structural syntax passed.",
+        "Because this recording contained no Juggernaut or Octeres, every attack on a tower, Fort-class castle, or Town Center by the ordinary fleet should have been considered an avoidable high-risk engagement rather than supported bombardment."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B20 and require a source-matched deployment before attributing fresh behavior to this patch.",
+        "Keep every DUC group operand in the engine's 0-through-9 domain, add structural validation for that operand domain, and require post-create group-size evidence for naval scout and capital ownership. Multiplex the land-only raid/scout and idle-route relic/screen slots only behind mutually exclusive gates; reserve both capital families together on one valid slot and filter the active family only when commanding it.",
+        "Replace autonomous naval `attack-now` dispatch with a game-time-driven light-fleet opportunity controller restricted to primary or competitive naval roles. Randomize the live target-owner selector, select an own unreserved light hull and its water zone, retain a three-zone ring of exhausted basins, then search the same basin in the order loaded Transport, positively allowlisted light warship, empty Transport, and Fishing Ship.",
+        "Reject an opportunity if any live enemy owns a known Sea Tower, tower, Fort/castle, or Town Center within eighteen tiles of the target or within a conservative thirty-two-tile midpoint corridor covering the bounded sixty-tile intercept. Walk the live-enemy set with an ordered focus-player cycle; across a rule-sweep boundary retain only the next player ID, restore borrowed focus, and rebuild the remote defense list in a fresh producer immediately before its consumer. Try up to two candidates in the same class before descending and explicitly exclude loaded hulls from the later empty-Transport class.",
+        "Rebuild the eligible local list and re-resolve the exact enemy object immediately before command. Issue no order and no success telemetry if either list is empty. Reissue an unchanged live target no more than once per thirty seconds, rescan every six to eight seconds, and immediately abandon opportunity ownership when home defense activates.",
+        "Exclude capital hulls, transports, direct-control groups, Scout Ship explorers, and capital guards from the opportunity source list. Rebuild ungrouped positive-allowlist escorts around the exact Juggernaut or Octeres, keep both capital families reserved in the shared valid DUC slot, filter commands to the active family, and prevent transport-escort selection from stealing follow/guard reservations.",
+        "Set warship targeting mode to its fortification-aware setting, preserve disabled built-in tower priority across all difficulty and age writers, initialize boat attack percentage to zero, and explicitly keep boats at zero in the periodic land `attack-now` producer."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B20 near match start.",
+        "When a same-water-zone loaded Transport is known within sixty tiles and the screened corridor contains no known hard defense, replay telemetry reports opportunity target kind one and ordinary light ships attack it rather than continuing toward an unrelated waypoint.",
+        "With no safe transport or enemy combat ship, an exposed Fishing Ship produces opportunity target kind four and a bounded group of at most twelve same-basin light ships attacks it.",
+        "A Transport or Fishing Ship beside a known tower, Fort/castle, or Town Center is rejected; ordinary light ships do not enter the screened target or midpoint defense corridor merely to take that opportunity.",
+        "If the closest opportunity in a class is defended but a second same-class vessel is safe, the controller rejects the first and attacks the second; after two defended candidates it descends to the next target class, and three consecutively exhausted water basins remain excluded while a fourth basin is considered.",
+        "In a multiplayer test, a vessel owned by one enemy is rejected when its target disk or midpoint corridor is covered only by another live enemy's known tower, Fort/castle, or Town Center.",
+        "A support-role navy does not launch an independent opportunity attack, while its reserved transport-screen and capital-bombardment duties remain available.",
+        "No autonomous naval-dispatch record is followed by broad boat `attack-now` behavior. Juggernauts and Octeres, when present in a separate test, retain dedicated fortification bombardment while their rebuilt light escorts guard the exact capital.",
+        "Naval scout, relic ferry, land siege, and alternating capital telemetry all show nonzero post-create ownership where expected, and no runtime group command uses or behaves as if it used an ID above nine.",
+        "An unchanged opportunity target does not receive a new attack order every six seconds; command telemetry refreshes at roughly thirty-second intervals unless the target changes or home defense aborts it."
+      ],
+      "known_limits": [
+        "No decoded RAWAI marker proves the exact source build used for this replay. The P3B19-specific scout messages establish only a partial source fingerprint.",
+        "The replay parser does not decode exact target types, target switching, DUC group membership, individual hull paths, garrison occupancy, or tower range. The user's visual target observations are therefore recorded separately from parser-derived telemetry.",
+        "The AI API exposes no dependable arbitrary ship-path query. The all-live-enemy target-radius and midpoint-disk checks deliberately over-reject known fortifications and cannot detect an unseen defense or prove the engine's eventual path remains inside the sampled corridor.",
+        "The opportunity controller uses a positive light-hull allowlist rather than the broad warship class, so Juggernauts and Octeres cannot be strength-blindly pulled into vessel interception. Other future unique light ships must be added explicitly after their role and data are audited.",
+        "The exhausted-basin ring retains three water-zone IDs. It prevents the observed two-basin alternation and reaches a fourth basin, but a map with more than three simultaneously empty, closer basins can eventually revisit an older basin; fresh multi-basin telemetry must determine whether a larger ring is justified.",
+        "Multiplexing is an engine-slot constraint. Structural validation proves IDs are in range, while fresh runtime telemetry is still required to prove the mutually exclusive map and route gates prevent ownership collisions."
+      ],
+      "validation_status": "fresh-replay-required"
+    }
+  ]
+}

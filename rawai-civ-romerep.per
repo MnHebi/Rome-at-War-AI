@@ -1524,11 +1524,22 @@
 ;Champion focus. Keep the allowance small enough to protect villager food.
 (defrule
 	(up-compare-goal current-phase >= 5)
-	(unit-type-count-total legionary-melee-line g:< gl-two-percent)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
 	(food-amount > 180)
-	(can-train legionary-melee-line)
+	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
 =>
-	(train legionary-melee-line)
+	(up-train gl-unitescrow-state c: elite-legionary-melee)
+	(up-chat-data-to-self "Roman Republic elite Legionary requested: %d" c: 1661)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary-melee)
+=>
+	(up-train gl-unitescrow-state c: legionary-melee)
+	(up-chat-data-to-self "Roman Republic Legionary requested: %d" c: 1658)
 )
 
 ; Upgrade Praetorian Guard

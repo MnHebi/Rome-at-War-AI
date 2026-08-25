@@ -293,7 +293,12 @@
 			)
 		)
 	)
+	(goal gl-opening-drop-sites-ready YES)
 	(building-type-count-total barracks c:< 1)
+	(building-type-count lumber-camp c:>= 1)
+	(building-type-count mill c:>= 1)
+	(up-pending-objects c: lumber-camp <= 0)
+	(up-pending-objects c: mill <= 0)
 	(up-can-build gl-buildingescrow-state c: barracks)
 =>
 	(up-build place-normal gl-buildingescrow-state c: barracks)
@@ -514,7 +519,14 @@
 	(game-time g:> gl-rush-attack-delay)
 	(current-age <= middle-antiquity-age)
 	(soldier-count >= 4)
+	(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)
+	(nor
+		(goal current-action ACTION-ATTACK)
+		(goal current-action ACTION-RETREAT)
+	)
 =>
+	(set-goal current-action ACTION-ATTACK)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 	(attack-now)
 	;The opening exemption ends once its force is committed. Selected rush unit
 	;goals remain bounded and active, but age-up preparation may resume.

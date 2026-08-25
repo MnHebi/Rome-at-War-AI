@@ -77,8 +77,142 @@
 )
 
 ;****************************CASTLE
+
+;The current DAT charges 1000 food and 800 gold for Imperial Age. After the
+;normal preparation deadline, trade only to close those deficits: liquidate an
+;excess resource for missing gold, or buy the last food tranche from a genuine
+;gold surplus. A cooldown prevents command bursts from racing the age-up rule.
 (defrule
 	(current-age == middle-antiquity-age)
+	(up-compare-goal age-up-started c:< IMPERIAL)
+	(game-time >= 900)
+	(up-timer-status t-age-market == timer-triggered)
+	(gold-amount < 800)
+	(wood-amount >= 400)
+	(commodity-selling-price wood >= 30)
+	(can-sell-commodity wood)
+=>
+	(sell-commodity wood)
+	(up-set-timer c: t-age-market c: 20)
+	(chat-local-to-self "Imperial bridge: sell excess wood for gold")
+)
+
+;A depleted starting island needs a 125-wood Transport Ship plus a 100-wood
+;remote resource camp. Bridge that audited DAT package before normal age and
+;military spending consumes the last movable reserve.
+(defrule
+	(current-age >= middle-antiquity-age)
+	(goal gl-home-resource-pressure YES)
+	(up-compare-goal gl-game-time g:>= gl-relocation-market-next)
+	(wood-amount < 225)
+	(gold-amount >= 200)
+	(can-buy-commodity wood)
+=>
+	(buy-commodity wood)
+	(up-modify-goal gl-relocation-market-next g:= gl-game-time)
+	(up-modify-goal gl-relocation-market-next c:+ 20)
+	(chat-local-to-self "Relocation bridge: buy wood")
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(goal gl-home-resource-pressure YES)
+	(up-compare-goal gl-game-time g:>= gl-relocation-market-next)
+	(wood-amount < 225)
+	(gold-amount < 200)
+	(stone-amount >= 300)
+	(can-sell-commodity stone)
+=>
+	(sell-commodity stone)
+	(up-modify-goal gl-relocation-market-next g:= gl-game-time)
+	(up-modify-goal gl-relocation-market-next c:+ 20)
+	(chat-local-to-self "Relocation bridge: sell stone")
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(goal gl-home-resource-pressure YES)
+	(up-compare-goal gl-game-time g:>= gl-relocation-market-next)
+	(wood-amount < 225)
+	(gold-amount < 200)
+	(stone-amount < 300)
+	(food-amount >= 700)
+	(can-sell-commodity food)
+=>
+	(sell-commodity food)
+	(up-modify-goal gl-relocation-market-next g:= gl-game-time)
+	(up-modify-goal gl-relocation-market-next c:+ 20)
+	(chat-local-to-self "Relocation bridge: sell food")
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+	(up-compare-goal age-up-started c:< IMPERIAL)
+	(game-time >= 900)
+	(up-timer-status t-age-market == timer-triggered)
+	(gold-amount < 800)
+	(wood-amount < 400)
+	(stone-amount >= 300)
+	(commodity-selling-price stone >= 30)
+	(can-sell-commodity stone)
+=>
+	(sell-commodity stone)
+	(up-set-timer c: t-age-market c: 20)
+	(chat-local-to-self "Imperial bridge: sell excess stone for gold")
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+	(up-compare-goal age-up-started c:< IMPERIAL)
+	(game-time >= 900)
+	(up-timer-status t-age-market == timer-triggered)
+	(gold-amount < 800)
+	(food-amount >= 1100)
+	(wood-amount < 400)
+	(stone-amount < 300)
+	(can-sell-commodity food)
+=>
+	(sell-commodity food)
+	(up-set-timer c: t-age-market c: 20)
+	(chat-local-to-self "Imperial bridge: sell food surplus for gold")
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+	(up-compare-goal age-up-started c:< IMPERIAL)
+	(game-time >= 900)
+	(up-timer-status t-age-market == timer-triggered)
+	(food-amount >= 900)
+	(food-amount < 1000)
+	(gold-amount >= 960)
+	(commodity-buying-price food <= 160)
+	(can-buy-commodity food)
+=>
+	(buy-commodity food)
+	(up-set-timer c: t-age-market c: 20)
+	(chat-local-to-self "Imperial bridge: buy missing food")
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+	(up-compare-goal age-up-started c:< IMPERIAL)
+	(game-time >= 900)
+	(up-timer-status t-age-market == timer-triggered)
+	(food-amount >= 800)
+	(food-amount < 900)
+	(gold-amount >= 1120)
+	(commodity-buying-price food <= 160)
+	(can-buy-commodity food)
+=>
+	(buy-commodity food)
+	(up-set-timer c: t-age-market c: 20)
+	(chat-local-to-self "Imperial bridge: buy first missing food tranche")
+)
+
+(defrule
+	(current-age == middle-antiquity-age)
+	(up-compare-goal age-up-started c:< IMPERIAL)
+	(game-time < 900)
 	(gold-amount >= 1000)
 	(wood-amount <= 200)
 	(commodity-buying-price wood <= 100)
@@ -90,6 +224,8 @@
 
 (defrule
 	(current-age == middle-antiquity-age)
+	(up-compare-goal age-up-started c:< IMPERIAL)
+	(game-time < 900)
 	(gold-amount >= 500)
 	(wood-amount <= 100)
 	(can-buy-commodity wood)
@@ -100,6 +236,8 @@
 
 (defrule
 	(current-age == middle-antiquity-age)
+	(up-compare-goal age-up-started c:< IMPERIAL)
+	(game-time < 900)
 	(gold-amount >= 1000)
 	(food-amount <= 200)
 	(commodity-buying-price food <= 100)
@@ -111,6 +249,8 @@
 
 (defrule
 	(current-age == middle-antiquity-age)
+	(up-compare-goal age-up-started c:< IMPERIAL)
+	(game-time < 900)
 	(gold-amount >= 1000)
 	(food-amount <= 100)
 	(can-buy-commodity food)
@@ -121,6 +261,8 @@
 
 (defrule
 	(current-age == middle-antiquity-age)
+	(up-compare-goal age-up-started c:< IMPERIAL)
+	(game-time < 900)
 	(gold-amount >= 1000)
 	(stone-amount <= 200)
 	(commodity-buying-price stone <= 200)
@@ -132,6 +274,7 @@
 
 (defrule
 	(current-age == middle-antiquity-age)
+	(up-compare-goal age-up-started c:< IMPERIAL)
 	(wood-amount >= 800)
 	(gold-amount < 250)
 	(commodity-selling-price wood >= 40)
@@ -143,6 +286,7 @@
 
 (defrule
 	(current-age == middle-antiquity-age)
+	(up-compare-goal age-up-started c:< IMPERIAL)
 	(food-amount >= 1200)
 	(gold-amount < 200)
 	(can-sell-commodity food)

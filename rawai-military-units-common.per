@@ -1,9 +1,27 @@
 
 ;========================BARRACKS BEGIN========================
 
+;Generic composition must not turn a planned later infantry line into an
+;Iron-Age Militia opening. A selected drush owns that opening explicitly.
+(defrule
+	(current-age < early-antiquity-age)
+	(goal rush-drush NO)
+	(goal train-champion YES)
+=>
+	(set-goal train-champion NO)
+)
+
 ;Emergency Roman response to enemy Champions inside the town. This exact unit
 ;request bypasses the normal Middle-Age legionary role mapping.
 #load-if-defined BYZANTINE-CIV
+
+(defrule
+	(true)
+=>
+	(up-get-fact unit-type-count-total legionary-ranged-line gl-legionary-family-count)
+	(up-get-fact unit-type-count-total legionary-melee-line temporary-goal)
+	(up-modify-goal gl-legionary-family-count g:+ temporary-goal)
+)
 (defrule
 	(goal gl-roman-champion-base-threat YES)
 	(current-age >= middle-antiquity-age)
@@ -158,11 +176,23 @@
 (defrule
 	(current-age >= middle-antiquity-age)
 	(goal train-champion YES)
-	(unit-type-count-total legionary-ranged-line g:< gl-ten-percent)
+	(up-compare-goal gl-legionary-family-count g:< gl-ten-percent)
 	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: legionary-ranged-line)
+	(up-can-train gl-unitescrow-state c: elite-legionary)
 =>
-	(up-train gl-unitescrow-state c: legionary-ranged-line)
+	(up-train gl-unitescrow-state c: elite-legionary)
+	(up-chat-data-to-self "Roman Legionary request: %d" c: elite-legionary)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(goal train-champion YES)
+	(up-compare-goal gl-legionary-family-count g:< gl-ten-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary)
+=>
+	(up-train gl-unitescrow-state c: legionary)
+	(up-chat-data-to-self "Roman Legionary request: %d" c: legionary)
 )
 
 ;Roman Imperial ranges switch completely from Improved Bowmen to the separate
@@ -197,6 +227,14 @@
 ;========================ROMAN REPUBLIC========================
 
 #load-if-defined ITALIAN-CIV
+
+(defrule
+	(true)
+=>
+	(up-get-fact unit-type-count-total legionary-ranged-line gl-legionary-family-count)
+	(up-get-fact unit-type-count-total legionary-melee-line temporary-goal)
+	(up-modify-goal gl-legionary-family-count g:+ temporary-goal)
+)
 
 (defrule
 	(current-age < middle-antiquity-age)
@@ -256,11 +294,24 @@
 		(goal train-champion YES)
 		(goal primary-unit CHAMPION)
 	)
-	(unit-type-count-total legionary-melee-line g:< gl-ten-percent)
+	(up-compare-goal gl-legionary-family-count g:< gl-ten-percent)
 	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: legionary-melee-line)
+	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
 =>
-	(up-train gl-unitescrow-state c: legionary-melee-line)
+	(up-train gl-unitescrow-state c: elite-legionary-melee)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal primary-unit CHAMPION)
+	)
+	(up-compare-goal gl-legionary-family-count g:< gl-ten-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary-melee)
+=>
+	(up-train gl-unitescrow-state c: legionary-melee)
 )
 
 (defrule
@@ -269,11 +320,24 @@
 		(goal train-champion YES)
 		(goal secondary-unit CHAMPION)
 	)
-	(unit-type-count-total legionary-melee-line g:< gl-five-percent)
+	(up-compare-goal gl-legionary-family-count g:< gl-five-percent)
 	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: legionary-melee-line)
+	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
 =>
-	(up-train gl-unitescrow-state c: legionary-melee-line)
+	(up-train gl-unitescrow-state c: elite-legionary-melee)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal secondary-unit CHAMPION)
+	)
+	(up-compare-goal gl-legionary-family-count g:< gl-five-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary-melee)
+=>
+	(up-train gl-unitescrow-state c: legionary-melee)
 )
 
 (defrule
@@ -282,11 +346,24 @@
 		(goal train-champion YES)
 		(goal tertiary-unit CHAMPION)
 	)
-	(unit-type-count-total legionary-melee-line g:< gl-two-percent)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
 	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: legionary-melee-line)
+	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
 =>
-	(up-train gl-unitescrow-state c: legionary-melee-line)
+	(up-train gl-unitescrow-state c: elite-legionary-melee)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal tertiary-unit CHAMPION)
+	)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary-melee)
+=>
+	(up-train gl-unitescrow-state c: legionary-melee)
 )
 
 (defrule
@@ -295,11 +372,24 @@
 		(goal train-champion YES)
 		(goal quaternary-unit CHAMPION)
 	)
-	(unit-type-count-total legionary-melee-line g:< gl-one-percent)
+	(up-compare-goal gl-legionary-family-count g:< gl-one-percent)
 	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: legionary-melee-line)
+	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
 =>
-	(up-train gl-unitescrow-state c: legionary-melee-line)
+	(up-train gl-unitescrow-state c: elite-legionary-melee)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal quaternary-unit CHAMPION)
+	)
+	(up-compare-goal gl-legionary-family-count g:< gl-one-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary-melee)
+=>
+	(up-train gl-unitescrow-state c: legionary-melee)
 )
 
 #end-if
@@ -1762,9 +1852,19 @@
 	(goal train-scorpion YES)
 	(unit-type-count-total scorpion-line g:< gl-three-percent)
 	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: scorpion-line)
+	(up-can-train gl-unitescrow-state c: heavy-scorpion)
 =>
-	(up-train gl-unitescrow-state c: scorpion-line)
+	(up-train gl-unitescrow-state c: heavy-scorpion)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(goal train-scorpion YES)
+	(unit-type-count-total scorpion-line g:< gl-three-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: scorpion)
+=>
+	(up-train gl-unitescrow-state c: scorpion)
 )
 
 ;========================SCORPION END========================
@@ -1916,11 +2016,13 @@
 		)
 	)
 	(wood-amount > 250)
-	(warboat-count g:< gl-five-percent)
+	(goal gl-naval-capability-ready YES)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-fleet-cap)
 	(unit-type-count-total scout-galley-line g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: scout-galley-line)
 =>
 	(up-train gl-unitescrow-state c: scout-galley-line)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 
 (defrule
@@ -1937,11 +2039,17 @@
 	)
 	(wood-amount > 250)
 	(gold-amount > 150)
-	(warboat-count g:< gl-five-percent)
+	(goal gl-naval-capability-ready YES)
+	(or
+		(goal gl-naval-role NAVAL-ROLE-PRIMARY)
+		(goal gl-naval-role NAVAL-ROLE-COMPETITIVE)
+	)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-fleet-cap)
 	(unit-type-count-total polyreme-line g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: polyreme-line)
 =>
 	(up-train gl-unitescrow-state c: polyreme-line)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 
 (defrule
@@ -1958,11 +2066,13 @@
 	)
 	(wood-amount > 250)
 	(gold-amount > 150)
-	(warboat-count g:< gl-five-percent)
+	(goal gl-naval-capability-ready YES)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-fleet-cap)
 	(unit-type-count-total fire-ship-line g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: fire-ship-line)
 =>
 	(up-train gl-unitescrow-state c: fire-ship-line)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 
 (defrule
@@ -1979,11 +2089,13 @@
 	)
 	(wood-amount > 250)
 	(gold-amount > 150)
-	(warboat-count g:< gl-five-percent)
+	(goal gl-naval-capability-ready YES)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-fleet-cap)
 	(unit-type-count-total juggernaut-line g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: juggernaut-line)
 =>
 	(up-train gl-unitescrow-state c: juggernaut-line)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 
 ;========================SCOUT SHIP BEGIN========================
@@ -2001,10 +2113,12 @@
 			)
 		)
 	)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-fleet-cap)
 	(unit-type-count-total scout-galley-line g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: scout-galley-line)
 =>
 	(up-train gl-unitescrow-state c: scout-galley-line)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 
 ;========================SCOUT SHIP END========================
@@ -2027,10 +2141,12 @@
 			)
 		)
 	)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-fleet-cap)
 	(unit-type-count-total polyreme-line g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: polyreme-line)
 =>
 	(up-train gl-unitescrow-state c: polyreme-line)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 
 ;========================POLYREME END========================
@@ -2053,10 +2169,12 @@
 			)
 		)
 	)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-fleet-cap)
 	(unit-type-count-total fire-ship-line g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: fire-ship-line)
 =>
 	(up-train gl-unitescrow-state c: fire-ship-line)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 
 ;========================FIRE SHIP END========================
@@ -2079,10 +2197,12 @@
 			)
 		)
 	)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-fleet-cap)
 	(unit-type-count-total demolition-ship-line g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: demolition-ship-line)
 =>
 	(up-train gl-unitescrow-state c: demolition-ship-line)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 
 ;========================DEMOLITION SHIP END========================
@@ -2105,10 +2225,12 @@
 			)
 		)
 	)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-fleet-cap)
 	(unit-type-count-total hemiolia-line g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: hemiolia-line)
 =>
 	(up-train gl-unitescrow-state c: hemiolia-line)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 
 ;========================HEMIOLIA END========================
@@ -2131,10 +2253,12 @@
 			)
 		)
 	)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-fleet-cap)
 	(unit-type-count-total boarding-ship g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: boarding-ship)
 =>
 	(up-train gl-unitescrow-state c: boarding-ship)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 
 ;========================BOARDING SHIP END========================
@@ -2156,10 +2280,12 @@
 			)
 		)
 	)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-fleet-cap)
 	(unit-type-count-total quadrireme-line g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: quadrireme-line)
 =>
 	(up-train gl-unitescrow-state c: quadrireme-line)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 
 ;========================Q-REME END========================
@@ -2181,10 +2307,12 @@
 			)
 		)
 	)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-fleet-cap)
 	(unit-type-count-total octeres g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: octeres)
 =>
 	(up-train gl-unitescrow-state c: octeres)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 
 ;========================OCTERES END========================
@@ -2206,13 +2334,64 @@
 			)
 		)
 	)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-fleet-cap)
 	(unit-type-count-total juggernaut-line g:< gl-one-percent)
 	(up-can-train gl-unitescrow-state c: juggernaut-line)
 =>
 	(up-train gl-unitescrow-state c: juggernaut-line)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 
 ;========================JUGGERNAUT END========================
+
+;A Naval No support civilization with both heavy families may contribute a
+;small artillery detachment without mirroring its primary naval ally's fleet.
+;Its ordinary escort roster stops at three percent; this separate five-percent
+;ceiling reserves the remaining capacity for heavy hulls.
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(current-age < imperial-age)
+	(goal gl-naval-role NAVAL-ROLE-SUPPORT)
+	(goal gl-naval-specialist-support YES)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-specialist-fleet-cap)
+	(unit-type-count-total quadrireme-line < 1)
+	(wood-amount > 300)
+	(gold-amount > 200)
+	(up-can-train gl-unitescrow-state c: quadrireme-line)
+=>
+	(up-train gl-unitescrow-state c: quadrireme-line)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
+)
+
+;Octeres receives first claim on Imperial specialist capacity so two early
+;Quadriremes cannot permanently crowd it out.
+(defrule
+	(current-age >= imperial-age)
+	(goal gl-naval-role NAVAL-ROLE-SUPPORT)
+	(goal gl-naval-specialist-support YES)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-specialist-fleet-cap)
+	(unit-type-count-total octeres < 1)
+	(wood-amount > 350)
+	(gold-amount > 250)
+	(up-can-train gl-unitescrow-state c: octeres)
+=>
+	(up-train gl-unitescrow-state c: octeres)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
+)
+
+(defrule
+	(current-age >= imperial-age)
+	(goal gl-naval-role NAVAL-ROLE-SUPPORT)
+	(goal gl-naval-specialist-support YES)
+	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-specialist-fleet-cap)
+	(unit-type-count-total quadrireme-line < 2)
+	(wood-amount > 300)
+	(gold-amount > 200)
+	(up-can-train gl-unitescrow-state c: quadrireme-line)
+=>
+	(up-train gl-unitescrow-state c: quadrireme-line)
+	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
+)
 
 ;========================SHIPYARD END========================
 

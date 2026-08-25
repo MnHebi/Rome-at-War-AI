@@ -34,6 +34,17 @@ ENGINE_RESEARCH_CONSTANTS = {
 # one element for this limit.
 MAX_RULE_ELEMENTS = 32
 
+# The AoE II AI runtime exposes timer slots 1 through 50. Defining a symbolic
+# timer outside this range parses, but its controller cannot be trusted at
+# runtime; sharing one slot between two owners creates the same class of race.
+MIN_TIMER_ID = 1
+MAX_TIMER_ID = 50
+
+# The DUC group table has ten slots. Values outside 0..9 parse as ordinary
+# identifiers but cannot provide dependable runtime ownership.
+MIN_DUC_GROUP_ID = 0
+MAX_DUC_GROUP_ID = 9
+
 # These DUC commands mutate search state and are only valid on the action side
 # of a rule. AoE reports ERR2005 when one is accidentally used as a fact.
 ACTION_ONLY_RULE_COMMANDS = {
@@ -74,6 +85,142 @@ def code_without_comments_or_strings(line: str) -> str:
     return "".join(result)
 
 
+def constants_with_prefix(prefix: str) -> frozenset[str]:
+    """Collect engine-domain constants from the project's audited table."""
+    path = ROOT / "rawai-constants.per"
+    if not path.is_file():
+        return frozenset()
+    text = "\n".join(
+        code_without_comments_or_strings(line)
+        for line in path.read_text(encoding="utf-8-sig").splitlines()
+    )
+    return frozenset(
+        name.casefold()
+        for name in re.findall(
+            rf"\(defconst\s+({re.escape(prefix)}[a-z0-9-]+)\s+[-0-9]+\s*\)",
+            text,
+            re.IGNORECASE,
+        )
+    )
+
+
+def constant_values_with_prefix(prefix: str) -> frozenset[int]:
+    """Collect the numeric values in one audited engine-constant domain."""
+    path = ROOT / "rawai-constants.per"
+    if not path.is_file():
+        return frozenset()
+    text = "\n".join(
+        code_without_comments_or_strings(line)
+        for line in path.read_text(encoding="utf-8-sig").splitlines()
+    )
+    return frozenset(
+        int(value)
+        for value in re.findall(
+            rf"\(defconst\s+{re.escape(prefix)}[a-z0-9-]+\s+(-?\d+)\s*\)",
+            text,
+            re.IGNORECASE,
+        )
+    )
+
+
+def project_defconsts() -> frozenset[str]:
+    """Collect every goal/domain identifier declared by the AI payload."""
+    names: set[str] = set()
+    for path in ROOT.glob("*.per"):
+        text = "\n".join(
+            code_without_comments_or_strings(line)
+            for line in path.read_text(encoding="utf-8-sig").splitlines()
+        )
+        names.update(
+            name.casefold()
+            for name in re.findall(r"\(defconst\s+([^\s()]+)", text)
+        )
+    return frozenset(names)
+
+
+def project_defconst_values() -> dict[str, int]:
+    """Collect numeric project constants for cross-file operand validation."""
+    values: dict[str, int] = {}
+    for path in ROOT.glob("*.per"):
+        text = "\n".join(
+            code_without_comments_or_strings(line)
+            for line in path.read_text(encoding="utf-8-sig").splitlines()
+        )
+        for name, value in re.findall(
+            r"\(defconst\s+([^\s()]+)\s+(-?\d+)\s*\)", text
+        ):
+            values.setdefault(name.casefold(), int(value))
+    return values
+
+
+def validate_timer_sources(
+    sources: dict[str, str],
+) -> dict[str, list[dict[str, object]]]:
+    """Require timer constants in named PER sources to use unique valid slots."""
+    report: dict[str, list[dict[str, object]]] = {}
+    timer_slots: dict[int, tuple[str, str, int]] = {}
+    timer_pattern = re.compile(
+        r"^\s*\(defconst\s+(?P<name>t-[^\s()]+)\s+(?P<value>-?\d+)\s*\)",
+        re.IGNORECASE,
+    )
+    for filename, source in sources.items():
+        for line_number, raw_line in enumerate(source.splitlines(), 1):
+            line = code_without_comments_or_strings(raw_line)
+            match = timer_pattern.match(line)
+            if match is None:
+                continue
+            name = match.group("name")
+            value = int(match.group("value"))
+            if not MIN_TIMER_ID <= value <= MAX_TIMER_ID:
+                report.setdefault(filename, []).append(
+                    {
+                        "kind": "timer_id_out_of_range",
+                        "name": name,
+                        "value": value,
+                        "line": line_number,
+                        "minimum": MIN_TIMER_ID,
+                        "maximum": MAX_TIMER_ID,
+                    }
+                )
+            if value in timer_slots:
+                first_name, first_file, first_line = timer_slots[value]
+                report.setdefault(filename, []).append(
+                    {
+                        "kind": "duplicate_timer_id",
+                        "name": name,
+                        "value": value,
+                        "line": line_number,
+                        "first_name": first_name,
+                        "first_file": first_file,
+                        "first_line": first_line,
+                    }
+                )
+            else:
+                timer_slots[value] = (name, filename, line_number)
+    return report
+
+
+def validate_timer_definitions(
+    paths: list[Path],
+) -> dict[str, list[dict[str, object]]]:
+    """Read project PER files and validate their engine timer definitions."""
+    return validate_timer_sources(
+        {
+            path.name: path.read_text(encoding="utf-8-sig")
+            for path in paths
+        }
+    )
+
+
+TARGET_ACTION_CONSTANTS = constants_with_prefix("action-")
+TARGET_ACTION_VALUES = constant_values_with_prefix("action-")
+POSITION_SOURCE_CONSTANTS = constants_with_prefix("position-")
+ACTION_ID_CONSTANTS = constants_with_prefix("actionid-")
+ORDER_ID_CONSTANTS = constants_with_prefix("orderid-")
+PROJECT_DEFCONSTS = project_defconsts()
+PROJECT_DEFCONST_VALUES = project_defconst_values()
+
+
 def defrule_blocks(lines: list[str]) -> list[tuple[int, str]]:
     """Return balanced, comment-free defrule blocks with start line numbers."""
     text = "\n".join(code_without_comments_or_strings(line) for line in lines)
@@ -103,6 +250,223 @@ def validate_command_domains(lines: list[str]) -> list[dict[str, object]]:
     """Catch technology/unit operand swaps and guarded research mismatches."""
     issues: list[dict[str, object]] = []
     code = "\n".join(code_without_comments_or_strings(line) for line in lines)
+
+    # Resolve both repository-wide constants and constants declared by an
+    # isolated test fixture, then enforce the engine's 0..9 DUC group domain.
+    constant_values = dict(PROJECT_DEFCONST_VALUES)
+    constant_values.update(
+        {
+            name.casefold(): int(value)
+            for name, value in re.findall(
+                r"\(defconst\s+([^\s()]+)\s+(-?\d+)\s*\)", code
+            )
+        }
+    )
+    group_operand_patterns = (
+        re.compile(
+            r"\(up-create-group\s+\S+\s+\S+\s+c:\s*(?P<group>[^\s)]+)",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\(up-set-group\s+\S+\s+c:\s*(?P<group>[^\s)]+)",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\(up-reset-group\s+c:\s*(?P<group>[^\s)]+)",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\(up-modify-group-flag\s+\S+\s+c:\s*(?P<group>[^\s)]+)",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\(up-group-size\s+c:\s*(?P<group>[^\s)]+)",
+            re.IGNORECASE,
+        ),
+    )
+    for pattern in group_operand_patterns:
+        for match in pattern.finditer(code):
+            operand = match.group("group")
+            value = (
+                int(operand)
+                if re.fullmatch(r"-?\d+", operand)
+                else constant_values.get(operand.casefold())
+            )
+            line = code.count("\n", 0, match.start("group")) + 1
+            if value is None:
+                issues.append(
+                    {
+                        "kind": "unknown_duc_group_identifier",
+                        "identifier": operand,
+                        "line": line,
+                    }
+                )
+            elif not MIN_DUC_GROUP_ID <= value <= MAX_DUC_GROUP_ID:
+                issues.append(
+                    {
+                        "kind": "duc_group_id_out_of_range",
+                        "identifier": operand,
+                        "value": value,
+                        "line": line,
+                        "minimum": MIN_DUC_GROUP_ID,
+                        "maximum": MAX_DUC_GROUP_ID,
+                    }
+                )
+
+    # ActionId and OrderId are separate engine domains from TargetAction. A
+    # plausible invented name (for example actionid-guard) produces ERR2005
+    # even though the corresponding TargetAction action-guard is valid.
+    for prefix, known, kind in (
+        ("actionid-", ACTION_ID_CONSTANTS, "undefined_action_id_constant"),
+        ("orderid-", ORDER_ID_CONSTANTS, "undefined_order_id_constant"),
+    ):
+        for match in re.finditer(
+            rf"\b(?P<identifier>{re.escape(prefix)}[a-z0-9-]+)\b",
+            code,
+            re.IGNORECASE,
+        ):
+            identifier = match.group("identifier")
+            if identifier.casefold() not in known:
+                issues.append(
+                    {
+                        "kind": kind,
+                        "identifier": identifier,
+                        "line": code.count("\n", 0, match.start()) + 1,
+                    }
+                )
+    invalid_compare_assignment = re.compile(
+        r"\((?P<command>up-compare-goal|up-compare-sn)\s+[^\s)]+\s+"
+        r"(?P<operator>[cgs]:=)(?=\s)",
+        re.IGNORECASE,
+    )
+    for match in invalid_compare_assignment.finditer(code):
+        issues.append(
+            {
+                "kind": "assignment_operator_in_comparison",
+                "command": match.group("command"),
+                "operator": match.group("operator"),
+                "line": code.count("\n", 0, match.start()) + 1,
+            }
+        )
+
+    invalid_goal_comparison = re.compile(
+        r"\(goal\s+[^\s)]+\s+(?P<operator><=|>=|==|!=|<|>)\s+",
+        re.IGNORECASE,
+    )
+    for match in invalid_goal_comparison.finditer(code):
+        issues.append(
+            {
+                "kind": "comparison_operator_in_goal_fact",
+                "operator": match.group("operator"),
+                "line": code.count("\n", 0, match.start()) + 1,
+            }
+        )
+
+    # up-get-search-state writes four consecutive outputs beginning at its
+    # operand: local total, local last-added, remote total, remote last-added.
+    # The project's audited four-goal block begins at local-total. Passing
+    # remote-total instead shifts every value and overwrites the following goal.
+    search_state_operand = re.compile(
+        r"\(up-get-search-state\s+(?P<operand>[^\s)]+)\s*\)",
+        re.IGNORECASE,
+    )
+    for match in search_state_operand.finditer(code):
+        if match.group("operand").casefold() != "local-total":
+            issues.append(
+                {
+                    "kind": "invalid_search_state_output_base",
+                    "operand": match.group("operand"),
+                    "expected": "local-total",
+                    "line": code.count("\n", 0, match.start()) + 1,
+                }
+            )
+
+    # set-goal treats its second operand as a literal. A gl-* token is the
+    # numeric identifier of another goal, not that goal's stored value; use
+    # up-modify-goal with a g:= operand when copying between goals.
+    literal_goal_copy = re.compile(
+        r"\(set-goal\s+(?P<destination>[^\s)]+)\s+"
+        r"(?P<source>gl-[^\s)]+)\s*\)",
+        re.IGNORECASE,
+    )
+    for match in literal_goal_copy.finditer(code):
+        issues.append(
+            {
+                "kind": "goal_identifier_stored_as_value",
+                "destination": match.group("destination"),
+                "source": match.group("source"),
+                "line": code.count("\n", 0, match.start()) + 1,
+            }
+        )
+
+    # position-focus and position-object are point *sources*. They never expose
+    # synthetic -x/-y goal aliases, regardless of the command consuming them.
+    invalid_position_alias = re.compile(
+        r"\b(?P<identifier>position-(?:focus|object)-[xy])\b",
+        re.IGNORECASE,
+    )
+    for match in invalid_position_alias.finditer(code):
+        issues.append(
+            {
+                "kind": "invalid_position_point_identifier",
+                "identifier": match.group("identifier"),
+                "line": code.count("\n", 0, match.start()) + 1,
+            }
+        )
+
+    # up-target-* takes a TargetAction as its second operand. Unknown action-*
+    # names parse as ERR2005; validate only this operand rather than rejecting
+    # similarly named state constants elsewhere in the AI.
+    target_command = re.compile(
+        r"\((?P<command>up-target-(?:point|objects))\s+"
+        r"(?P<target>[^\s()]+)\s+(?P<action>[^\s()]+)",
+        re.IGNORECASE,
+    )
+    for match in target_command.finditer(code):
+        action = match.group("action")
+        numeric_action = re.fullmatch(r"-?\d+", action)
+        if (
+            numeric_action is not None
+            and int(action) not in TARGET_ACTION_VALUES
+        ) or (
+            numeric_action is None
+            and action.casefold() not in TARGET_ACTION_CONSTANTS
+        ):
+            issues.append(
+                {
+                    "kind": "invalid_target_action_identifier",
+                    "command": match.group("command"),
+                    "identifier": action,
+                    "line": code.count("\n", 0, match.start("action")) + 1,
+                }
+            )
+        target = match.group("target")
+        if (
+            match.group("command").casefold() == "up-target-point"
+            and target.casefold() in POSITION_SOURCE_CONSTANTS
+        ):
+            issues.append(
+                {
+                    "kind": "position_source_used_as_target_point",
+                    "command": match.group("command"),
+                    "identifier": target,
+                    "line": code.count("\n", 0, match.start("target")) + 1,
+                }
+            )
+        elif (
+            match.group("command").casefold() == "up-target-point"
+            and not re.fullmatch(r"-?\d+", target)
+            and target.casefold() not in PROJECT_DEFCONSTS
+        ):
+            issues.append(
+                {
+                    "kind": "invalid_target_point_identifier",
+                    "command": match.group("command"),
+                    "identifier": target,
+                    "line": code.count("\n", 0, match.start("target")) + 1,
+                }
+            )
+
     technology_training_patterns = (
         re.compile(
             r"\((?P<command>can-train(?:-with-escrow)?|train)\s+"
@@ -350,6 +714,9 @@ def main() -> None:
         issues = validate_file(path)
         if issues:
             report[path.name] = issues
+
+    for filename, issues in validate_timer_definitions(paths).items():
+        report.setdefault(filename, []).extend(issues)
 
     all_defconsts: set[str] = set()
     for path in paths:

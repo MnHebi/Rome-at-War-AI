@@ -12,6 +12,44 @@
 	(chat-local-to-self "priority research ballistics ")
 )
 
+;Advanced Weaponry upgrades a broad set of ranged units, naval units, and
+;static defenses in the current DAT. Some civilizations expose it in Middle
+;Antiquity, so capability rather than an Imperial-only phase gate owns timing.
+(defrule
+	(current-age >= middle-antiquity-age)
+	(up-can-research gl-researchescrow-state c: ri-advanced-weaponry)
+=>
+	(up-research gl-researchescrow-state c: ri-advanced-weaponry)
+	(up-chat-data-to-self "priority advanced weaponry: %d" g: current-phase)
+)
+
+;Crossbowman is a separate advanced unit unlock (technology 85), not an
+;Improved Bowman upgrade. Explicit ownership keeps the Roman late ranged policy
+;from depending on undocumented automatic-research behavior.
+(defrule
+	(current-age >= middle-antiquity-age)
+	(research-completed ri-advanced-weaponry)
+	(up-can-research gl-researchescrow-state c: ri-crossbowman)
+=>
+	(up-research gl-researchescrow-state c: ri-crossbowman)
+	(up-chat-data-to-self "priority crossbow unlock: %d" c: ri-crossbowman)
+)
+
+;Faith cannot be researched before Imperial in the data mod. Enemy conversion
+;units make it an immediate Imperial request instead of leaving it behind the
+;ordinary monastery-research queue.
+(defrule
+	(up-compare-goal current-phase == 7)
+	(or
+		(players-unit-type-count any-enemy priest > 0)
+		(players-unit-type-count any-enemy brahmin > 0)
+	)
+	(up-can-research gl-researchescrow-state c: ri-faith)
+=>
+	(up-research gl-researchescrow-state c: ri-faith)
+	(chat-local-to-self "conversion threat: priority research faith")
+)
+
 (defrule
 	(up-compare-goal current-phase == 7)
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
@@ -414,6 +452,8 @@
 	(up-compare-goal current-phase == 7)
 	(up-compare-goal villager-count g:>= upgrade-navy-villager-requirement)
 	(goal upgrade-navy 1)
+	(up-compare-goal gl-naval-role c:<= NAVAL-ROLE-COMPETITIVE)
+	(up-compare-goal gl-naval-role c:>= NAVAL-ROLE-PRIMARY)
 	(up-can-research gl-researchescrow-state c: ri-bireme)
 =>
     (up-research gl-researchescrow-state c: ri-bireme)
@@ -424,6 +464,8 @@
 	(up-compare-goal current-phase == 7)
 	(up-compare-goal villager-count g:>= upgrade-navy-villager-requirement)
 	(goal upgrade-navy 1)
+	(up-compare-goal gl-naval-role c:<= NAVAL-ROLE-COMPETITIVE)
+	(up-compare-goal gl-naval-role c:>= NAVAL-ROLE-PRIMARY)
 	(up-can-research gl-researchescrow-state c: ri-trireme)
 =>
     (up-research gl-researchescrow-state c: ri-trireme)
@@ -444,6 +486,8 @@
 	(up-compare-goal current-phase == 7)
 	(up-compare-goal villager-count g:>= upgrade-navy-villager-requirement)
 	(goal upgrade-navy 1)
+	(up-compare-goal gl-naval-role c:<= NAVAL-ROLE-COMPETITIVE)
+	(up-compare-goal gl-naval-role c:>= NAVAL-ROLE-PRIMARY)
 	(up-can-research gl-researchescrow-state c: ri-heavy-demolition-ship)
 =>
     (up-research gl-researchescrow-state c: ri-heavy-demolition-ship)
@@ -454,6 +498,8 @@
 	(up-compare-goal current-phase == 7)
 	(up-compare-goal villager-count g:>= upgrade-navy-villager-requirement)
 	(goal upgrade-navy 1)
+	(up-compare-goal gl-naval-role c:<= NAVAL-ROLE-COMPETITIVE)
+	(up-compare-goal gl-naval-role c:>= NAVAL-ROLE-PRIMARY)
 	(up-can-research gl-researchescrow-state c: ri-trihemiolia)
 =>
     (up-research gl-researchescrow-state c: ri-trihemiolia)
@@ -464,6 +510,8 @@
 	(up-compare-goal current-phase == 7)
 	(up-compare-goal villager-count g:>= upgrade-navy-villager-requirement)
 	(goal upgrade-navy 1)
+	(up-compare-goal gl-naval-role c:<= NAVAL-ROLE-COMPETITIVE)
+	(up-compare-goal gl-naval-role c:>= NAVAL-ROLE-PRIMARY)
 	(up-can-research gl-researchescrow-state c: ri-elite-trihemiolia)
 =>
     (up-research gl-researchescrow-state c: ri-elite-trihemiolia)
@@ -484,21 +532,24 @@
 	(up-compare-goal current-phase == 7)
 	(up-compare-goal villager-count g:>= upgrade-navy-villager-requirement)
 	(goal upgrade-navy 1)
+	(or
+		(and
+			(up-compare-goal gl-naval-role c:<= NAVAL-ROLE-COMPETITIVE)
+			(up-compare-goal gl-naval-role c:>= NAVAL-ROLE-PRIMARY)
+		)
+		(and
+			(goal gl-naval-role NAVAL-ROLE-SUPPORT)
+			(goal gl-naval-specialist-support YES)
+		)
+	)
 	(up-can-research gl-researchescrow-state c: ri-quinquereme)
 =>
     (up-research gl-researchescrow-state c: ri-quinquereme)
 	(chat-local-to-self "research quinquereme")
 )
 
-(defrule
-	(up-compare-goal current-phase == 7)
-	(up-compare-goal villager-count g:>= upgrade-navy-villager-requirement)
-	(goal upgrade-navy 1)
-	(up-can-research gl-researchescrow-state c: ri-reinforced-prow)
-=>
-    (up-research gl-researchescrow-state c: ri-reinforced-prow)
-	(chat-local-to-self "research reinforced prow")
-)
+;Reinforced Prow 1004 is intentionally not queued. The current DAT entry has
+;effect_id -1 and no valid research producer despite its descriptive text.
 
 (defrule
 	(up-compare-goal current-phase == 7)
@@ -590,6 +641,8 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(unit-type-count cavalry-archer-class > 0)
 	(up-can-research gl-researchescrow-state c: ri-parthian-tactics)
 =>
 	(up-research gl-researchescrow-state c: ri-parthian-tactics)
@@ -599,6 +652,11 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(or
+		(unit-type-count archery-class > 0)
+		(unit-type-count cavalry-archer-class > 0)
+	)
 	(up-can-research gl-researchescrow-state c: ri-marksmanship)
 =>
 	(up-research gl-researchescrow-state c: ri-marksmanship)
@@ -608,15 +666,31 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(or
+		(unit-type-count archery-class > 0)
+		(or
+			(unit-type-count cavalry-archer-class > 0)
+			(unit-type-count crossbowman > 0)
+		)
+	)
 	(up-can-research gl-researchescrow-state c: ri-padded-archer-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-padded-archer-armor)
-	(chat-local-to-self "research padded archer armor")
+	(up-chat-data-to-self "priority padded archer armor: %d" c: ri-padded-archer-armor)
 )
 
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(or
+		(unit-type-count archery-class > 0)
+		(or
+			(unit-type-count cavalry-archer-class > 0)
+			(unit-type-count crossbowman > 0)
+		)
+	)
 	(up-can-research gl-researchescrow-state c: ri-leather-archer-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-leather-archer-armor)
@@ -626,6 +700,14 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(or
+		(unit-type-count archery-class > 0)
+		(or
+			(unit-type-count cavalry-archer-class > 0)
+			(unit-type-count crossbowman > 0)
+		)
+	)
 	(up-can-research gl-researchescrow-state c: ri-ring-archer-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-ring-archer-armor)
@@ -635,6 +717,8 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(unit-type-count infantry-class > 0)
 	(up-can-research gl-researchescrow-state c: ri-scale-mail-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-scale-mail-armor)
@@ -644,6 +728,8 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(unit-type-count infantry-class > 0)
 	(up-can-research gl-researchescrow-state c: ri-chain-mail-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-chain-mail-armor)
@@ -653,6 +739,8 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(unit-type-count infantry-class > 0)
 	(up-can-research gl-researchescrow-state c: ri-plate-mail-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-plate-mail-armor)
@@ -699,15 +787,25 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(or
+		(unit-type-count cavalry-class > 0)
+		(unit-type-count scout-cavalry-class > 0)
+	)
 	(up-can-research gl-researchescrow-state c: ri-scale-barding-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-scale-barding-armor)
-	(chat-local-to-self "research scale barding armor")
+	(up-chat-data-to-self "priority scale barding armor: %d" c: ri-scale-barding-armor)
 )
 
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(or
+		(unit-type-count cavalry-class > 0)
+		(unit-type-count scout-cavalry-class > 0)
+	)
 	(up-can-research gl-researchescrow-state c: ri-chain-barding-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-chain-barding-armor)
@@ -717,6 +815,11 @@
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
 	(goal upgrade-military-smith 1)
+	(goal wait-techup-requirements NO)
+	(or
+		(unit-type-count cavalry-class > 0)
+		(unit-type-count scout-cavalry-class > 0)
+	)
 	(up-can-research gl-researchescrow-state c: ri-plate-barding-armor)
 =>
 	(up-research gl-researchescrow-state c: ri-plate-barding-armor)
@@ -806,16 +909,6 @@
 )
 
 ;OTHER RESEARCH ITEMS
-
-(defrule
-	(up-compare-goal current-phase == 7)
-	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)
-	(goal upgrade-military-generic 1)
-	(up-can-research gl-researchescrow-state c: ri-advanced-weaponry)
-=>
-	(up-research gl-researchescrow-state c: ri-advanced-weaponry)
-	(chat-local-to-self "research advanced weaponry ")
-)
 
 (defrule
 	(up-compare-goal villager-count g:>= upgrade-military-villager-requirement)

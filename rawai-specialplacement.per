@@ -2,15 +2,47 @@
 ;run out of order. Candidates are built at the checked point, not anywhere on
 ;a line back to the Port, and completed naval buildings receive a clear radius.
 
-;Hybrid maps do not need the eight-Shipyard late-game island target.
+;Hybrid maps need more than the old three-Shipyard ceiling to sustain a navy,
+;but a closed lake still should not consume the full island-map target.
 (defrule
+	(goal map-type LAKE)
+	(up-compare-goal desired-number-shipyards > 4)
+=>
+	(up-modify-goal desired-number-shipyards c:= 4)
+)
+
+;A first Shipyard is core hybrid-map infrastructure, not an optional Imperial
+;expense. Let it bypass the generic age-up spending hold once Early Antiquity,
+;a Port, and a conservative wood reserve are present. Later Shipyards continue
+;through the ordinary wait-techup gate below.
+(defrule
+	(goal shipyard-placement-state SHIPYARD-IDLE)
+	(current-age >= early-antiquity-age)
 	(or
 		(goal map-type LAKE)
-		(goal map-type RIVERS)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
 	)
-	(up-compare-goal desired-number-shipyards > 3)
+	(wood-amount > 250)
+	(building-type-count port > 0)
+	(building-type-count-total shipyard == 0)
+	(up-pending-objects c: shipyard <= 0)
+	(can-build shipyard)
 =>
-	(up-modify-goal desired-number-shipyards c:= 3)
+	(up-chat-data-to-self "first shipyard priority: %d" g: current-phase)
+	(set-goal shipyard-placement-state SHIPYARD-ANCHOR)
+)
+
+(defrule
+	(goal map-type RIVERS)
+	(up-compare-goal desired-number-shipyards > 6)
+=>
+	(up-modify-goal desired-number-shipyards c:= 6)
 )
 
 (defrule

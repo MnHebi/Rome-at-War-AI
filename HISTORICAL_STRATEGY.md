@@ -159,6 +159,37 @@ attack before the regular late-game periodic timer.
 | Syracusans | Fortified land-and-sea defense centered on artillery |
 | Thracians | Shock infantry and light horse with mounted archers and priests |
 
+### Roman operational translation
+
+The Roman Empire profile treats the Legionary family as the infantry core and
+uses spear, missile, and cavalry units as bounded auxiliary screens. A small
+Scorpion detachment belongs with that main force as field artillery; it is not
+an independent mass composition. The AI's `Crossbowman` is the mod's approved
+late ranged branch and a useful auxiliary role, not a claim that the unit name
+describes a universal historical Roman formation. Accordingly, the runtime
+uses concrete Legionary and Scorpion production IDs and counts both Legionary
+weapon stances under one persistent family ceiling.
+
+Juggernauts and Octeres are translated as rare coastal-siege capital
+detachments. They keep separate objective groups because their range envelopes
+and targets differ, while faster Polyreme, Scout Ship, Fire Ship, and Boarding
+families provide local escort. Ordinary line ships should intercept hostile
+vessels and protect the detachment rather than pull the capital hulls away from
+fortification bombardment. This is a game-mechanical synthesis of the mod's
+coastal-artillery ship roles and Tacitus' evidence for coordinated Roman land
+and fleet operations in Britain; it does not identify the mod hull names with
+specific ships in Agricola's fleet.
+
+### Data authority note
+
+The current requested Roman branches are consistent across the authoritative
+DAT and the aggregate `ROMAN EMPIRE` tree: Crossbowman 5, Legionary 866/868,
+Scorpion 279/542, Juggernaut 420/691, and Octeres 1884. A separate export issue
+remains unresolved: the standalone `BYZANTINES` tree contains 144 nodes while
+the aggregate `ROMAN EMPIRE` record contains 162. The additional eighteen
+aggregate nodes include other mounted families and must not silently change
+Roman unit ratings or strategy until the export discrepancy is reconciled.
+
 ## Research basis
 
 The implementation uses primary sources where practical, while treating their
@@ -180,6 +211,10 @@ biases and literary conventions with caution:
   operations in Britain; this informs Roman logistics against the composite
   Briton opponent, not an Iceni unit claim:
   <https://dcc.dickinson.edu/nl/tacitus-agricola/25>
+- Vegetius, *De Re Militari* 2.25, for legion-associated engines including
+  scorpions. The AI implements this only as a small attached siege train and
+  does not assume Vegetius precisely describes every earlier Imperial army:
+  <https://www.thelatinlibrary.com/vegetius2.html>
 - Plutarch, *Life of Crassus*, for Parthian mounted archery and cataphract
   cooperation: <https://classics.mit.edu/Plutarch/crassus.html>
 - Herodotus, *Histories* 4, for Scythian mobility and avoidance of a forced

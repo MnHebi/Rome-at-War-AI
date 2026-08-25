@@ -43,6 +43,7 @@
 	(up-modify-goal gl-attack-timer-next g:+ gl-attack-timer-random)
 	(up-set-timer c: t-naval-attack g: gl-attack-timer-next)
 	(up-chat-data-to-self "current naval attack interval: %d." g: gl-attack-timer-next)
+	(up-chat-data-to-self "naval requirement: %d" g: naval-attack-requirement)
 	(up-chat-data-to-self "current naval-superiority: %d." g: naval-superiority)
 )
 
@@ -53,6 +54,32 @@
 =>
 	(up-set-timer c: t-farm-check c: 30)
 	(chat-local-to-self "refresh farm check timer")
+)
+;This module is loaded after every conditional rush module in AI RAW. All
+;attack-now producers retain COMPLETE ownership until this post-dispatch rule,
+;preventing a later rush from issuing a second global attack in the same sweep.
+(defrule
+	(goal current-action ACTION-ATTACK)
+	(goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
+=>
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)
+	(set-goal current-action ACTION-WAIT)
+)
+
+;timer 46, finalized farm-demand telemetry
+
+(defrule
+	(up-timer-status t-farm-report != timer-running)
+=>
+	(up-set-timer c: t-farm-report c: 30)
+)
+
+;timer 47, starting-land mine pressure for island migration
+
+(defrule
+	(up-timer-status t-home-resource-pressure != timer-running)
+=>
+	(up-set-timer c: t-home-resource-pressure c: 45)
 )
 
 ;timer 10, cheats
@@ -97,7 +124,8 @@
 	(up-timer-status t-unit-type != timer-running)
 =>
 	(chat-local-to-self "refresh unit type timer")
-	(enable-timer t-unit-type 15)
+	;Restart an already-triggered UP timer after the earlier unit selectors run.
+	(up-set-timer c: t-unit-type c: 15)
 )
 
 ;timer 17, check villagers timer
@@ -188,4 +216,22 @@
 	(up-timer-status t-fortification-scan != timer-running)
 =>
 	(up-set-timer c: t-fortification-scan c: 30)
+)
+
+(defrule
+	(up-timer-status t-colony-towncenter != timer-running)
+=>
+	(up-set-timer c: t-colony-towncenter c: 60)
+)
+
+(defrule
+	(up-timer-status t-siege-target != timer-running)
+=>
+	(up-set-timer c: t-siege-target c: 12)
+)
+
+(defrule
+	(up-timer-status t-naval-siege != timer-running)
+=>
+	(up-set-timer c: t-naval-siege c: 12)
 )
