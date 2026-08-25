@@ -603,6 +603,50 @@
         "Direct object-data occupancy predicates and structural validation cannot prove runtime selection lifetime, asynchronous unload completion, or path safety. A fresh replay remains required."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "lumber-bootstrap-20260825-140137",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.25 140137.aoe2record",
+        "sha256": "BA6ECDFDD4C5193D2BADD9736BE2A34AC79A0F274374F8ECD3C84D993A8301C5",
+        "game_build": "101.103.48987.0",
+        "map": "unresolved",
+        "players": [
+          "Player 1",
+          "Player 2"
+        ],
+        "duration_seconds": 511
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and ended at 08:31. The parser did not expose the map or civilization names, and no RAWAI build marker was decoded.",
+        "The AI emitted `lumber camp rejected sparse wood zone: 3` thirty-four times from 00:01 through 08:24 at approximately fifteen-second intervals.",
+        "No Lumber Camp resource-zone, accepted-resource, exhausted-offset, or completed-placement telemetry was decoded. Both players' only decoded building type was object type 70, five times each.",
+        "The user visually observed three eligible forests immediately beside the town. The replay does not serialize the AI's visible tree list or candidate-cluster count, so that forest geometry is user-supplied match evidence rather than a parser-derived observation."
+      ],
+      "implementation_inferences": [
+        "The Lumber Camp cluster scan passed `remote-total` to `up-get-search-state`. That command writes four consecutive values beginning with local total, so the empty local-list count was stored in `remote-total`, every visible forest failed the three-tree threshold, and the real remote count spilled into the following `map-size` goal.",
+        "The same shifted four-goal output base occurred in twenty-eight homebase and military calls, potentially falsifying remote resource, threat, route, fortification, and response counts beyond the directly observed Lumber Camp failure.",
+        "The three-exact-ID sparse-resource ring could cycle forever once four nearby sparse candidates remained. Its empty-search release rule did not guarantee progress through a rebuilt ascending candidate list."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B18 and require a complete source-matched deployment before attributing fresh behavior to this patch.",
+        "Make every `up-get-search-state` write through the audited `local-total`, `local-last`, `remote-total`, and `remote-last` four-goal block and reject any other operand in structural validation.",
+        "Expose the measured sparse-tree count in replay chat while retaining the same-zone three-tree threshold.",
+        "Walk the freshly rebuilt distance-sorted opening-tree list with a persistent candidate rank. Sparse candidates advance that rank, and exhaustion resets it with the bounded obstruction ring, preventing a four-tree A/B/C/D cycle."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B18 near match start.",
+        "On the same opening, the first candidate forest reports a remote tree count of at least three and reaches Lumber Camp resource-zone and accepted-live-resource telemetry instead of repeating the sparse-zone message.",
+        "A same-zone Lumber Camp foundation is issued and completes without manual construction before opening readiness permits the Barracks.",
+        "If a genuinely sparse candidate is encountered, successive retries advance through distinct sorted candidates and either find a valid cluster or exhaust and reset the bounded scan; four nearby candidates never produce an endless A/B/C/D loop.",
+        "Remote-count consumers such as home-resource pressure, transport route threats, fortification scans, and local/naval response scans report values consistent with visible runtime objects and no longer overwrite `map-size`."
+      ],
+      "known_limits": [
+        "The replay does not serialize the DUC local and remote search lists, measured tree count, map name, civilization identities, or fog-of-war visibility. The repeated rejection proves the decision path but not the visible forest geometry by itself.",
+        "Structural validation proves the four-goal operand layout and monotonic candidate code shape, not that a particular forest is pathable or that terrain accepts one of the four point-placement offsets.",
+        "Correcting twenty-eight remote-count calls intentionally changes several systems that previously consumed the empty local count. A fresh match must check those dependent runtime behaviors for newly exposed balance or state-transition errors."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

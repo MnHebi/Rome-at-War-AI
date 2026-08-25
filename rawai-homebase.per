@@ -415,7 +415,7 @@
 	(up-find-remote c: forage-class c: 10)
 	(up-find-remote c: prey-animal-class c: 10)
 	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-island-colony-zone)
-	(up-get-search-state remote-total)
+	(up-get-search-state local-total)
 	(up-modify-goal gl-colony-towncenter-resource-count g:= remote-total)
 	(set-goal gl-colony-towncenter-state COLONY-TC-CHECK-RESOURCES)
 )
@@ -748,7 +748,7 @@
 	(up-find-remote c: forage-class c: 10)
 	(up-find-remote c: prey-animal-class c: 10)
 	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-island-colony-zone)
-	(up-get-search-state remote-total)
+	(up-get-search-state local-total)
 	(up-modify-goal gl-home-retirement-resource-count g:= remote-total)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
@@ -1132,6 +1132,9 @@
 	(up-remove-objects search-remote object-data-id g:== gl-lumbercamp-rejected-resource-id2)
 	(up-remove-objects search-remote object-data-id g:== gl-lumbercamp-rejected-resource-id3)
 	(up-clean-search search-remote object-data-distance search-order-asc)
+	;Keep one stable rank from the freshly rebuilt list. Sparse candidates advance
+	;this cursor monotonically instead of cycling through a three-ID ring.
+	(up-remove-objects search-remote object-data-index g:!= gl-lumbercamp-candidate-index)
 	(set-goal gl-lumbercamp-placement-attempts 0)
 	(up-set-timer c: t-lumbercamp-placement c: 120)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-FIND-RESOURCE)
@@ -1190,7 +1193,9 @@
 	(up-filter-distance c: -1 c: 8)
 	(up-find-remote c: tree-class c: 20)
 	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-lumbercamp-resource-zone)
-	(up-get-search-state remote-total)
+	;up-get-search-state always writes local total, local last, remote total, and
+	;remote last beginning at its operand. local-total is the four-goal base.
+	(up-get-search-state local-total)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-CHECK-RESOURCE)
 )
 
@@ -1212,11 +1217,10 @@
 	(goal gl-lumbercamp-placement-state PLACEMENT-CHECK-RESOURCE)
 	(up-compare-goal remote-total c:< 3)
 =>
-	(up-modify-goal gl-lumbercamp-rejected-resource-id3 g:= gl-lumbercamp-rejected-resource-id2)
-	(up-modify-goal gl-lumbercamp-rejected-resource-id2 g:= gl-lumbercamp-rejected-resource-id)
-	(up-modify-goal gl-lumbercamp-rejected-resource-id g:= gl-lumbercamp-resource-id)
+	(up-modify-goal gl-lumbercamp-candidate-index c:+ 1)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
 	(up-chat-data-to-self "lumber camp rejected sparse wood zone: %d" g: gl-lumbercamp-resource-zone)
+	(up-chat-data-to-self "lumber camp sparse tree count: %d" g: remote-total)
 	(up-set-timer c: t-lumbercamp-placement c: 15)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 )
@@ -1243,6 +1247,7 @@
 	(set-goal gl-lumbercamp-rejected-resource-id -1)
 	(set-goal gl-lumbercamp-rejected-resource-id2 -1)
 	(set-goal gl-lumbercamp-rejected-resource-id3 -1)
+	(set-goal gl-lumbercamp-candidate-index 0)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
 	(up-set-timer c: t-lumbercamp-placement c: 15)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
@@ -1404,6 +1409,7 @@
 	(up-chat-data-to-self "lumber camp accepted live resource: %d" g: gl-lumbercamp-resource-id)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
 	(set-goal gl-lumbercamp-placement-attempts 0)
+	(set-goal gl-lumbercamp-candidate-index 0)
 	(up-set-timer c: t-lumbercamp-placement c: 90)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 )

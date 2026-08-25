@@ -98,6 +98,31 @@ class PerDomainTests(unittest.TestCase):
             [issue["kind"] for issue in issues],
         )
 
+    def test_search_state_requires_four_goal_block_base(self) -> None:
+        issues = self.validate_text(
+            """(defrule
+    (true)
+=>
+    (up-get-search-state remote-total)
+)
+"""
+        )
+        self.assertIn(
+            "invalid_search_state_output_base",
+            [issue["kind"] for issue in issues],
+        )
+        self.assertEqual(
+            [],
+            self.validate_text(
+                """(defrule
+    (true)
+=>
+    (up-get-search-state local-total)
+)
+"""
+            ),
+        )
+
     def test_set_goal_cannot_copy_another_goals_identifier(self) -> None:
         issues = self.validate_text(
             """(defrule
@@ -377,6 +402,9 @@ class FarmPolicyTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         root = Path(__file__).resolve().parent.parent
+        cls.customconstants = (root / "rawai-customconstants.per").read_text(
+            encoding="utf-8-sig"
+        )
         cls.economy = (root / "rawai-economy.per").read_text(encoding="utf-8-sig")
         cls.general = (root / "rawai-general.per").read_text(encoding="utf-8-sig")
         cls.homebase = (root / "rawai-homebase.per").read_text(encoding="utf-8-sig")
@@ -515,7 +543,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B17", self.init_goals)
+        self.assertIn("RAWAI-P3B18", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -538,6 +566,22 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(up-timer-status t-farm-report != timer-running)", self.timers)
 
     def test_resource_camps_bootstrap_from_resources_then_follow_workers(self) -> None:
+        search_state_block = {
+            name: int(value)
+            for name, value in re.findall(
+                r"\(defconst\s+(local-total|local-last|remote-total|remote-last)\s+(\d+)\)",
+                self.customconstants,
+            )
+        }
+        self.assertEqual(
+            search_state_block,
+            {
+                "local-total": 495,
+                "local-last": 496,
+                "remote-total": 497,
+                "remote-last": 498,
+            },
+        )
         self.assertNotIn("(build lumber-camp)", self.homebase)
         self.assertNotIn("(up-build place-normal 0 c: lumber-camp)", self.homebase)
         self.assertNotIn("(can-build-with-escrow lumber-camp)", self.homebase)
@@ -605,8 +649,44 @@ class FarmPolicyTests(unittest.TestCase):
             "object-data-map-zone-id gl-lumbercamp-resource-zone",
             "(up-compare-goal remote-total c:>= 3)",
             "object-data-map-zone-id g:!= gl-lumbercamp-resource-zone",
+            "(up-get-search-state local-total)",
         ):
             self.assertIn(evidence, self.homebase)
+        self.assertNotIn(
+            "(up-get-search-state remote-total)", self.homebase + self.military
+        )
+        self.assertIn(
+            "object-data-index g:!= gl-lumbercamp-candidate-index",
+            lumber_bootstrap[0][4],
+        )
+        lumber_sparse = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-lumbercamp-placement-state PLACEMENT-CHECK-RESOURCE)",
+                "(up-compare-goal remote-total c:< 3)",
+            ),
+            actions=(
+                "gl-lumbercamp-candidate-index c:+ 1",
+                "lumber camp sparse tree count: %d",
+            ),
+        )
+        self.assertEqual(len(lumber_sparse), 1)
+
+        # The freshly rebuilt list has stable distance ranks. Advancing the
+        # retained rank must therefore inspect A, B, C, D rather than allowing
+        # a three-entry exact-ID ring to rotate back to A on the fourth retry.
+        candidates = ["A", "B", "C", "D", "E"]
+        cursor = 0
+        visited: list[str] = []
+        for _ in range(4):
+            visited.extend(
+                candidate
+                for index, candidate in enumerate(candidates)
+                if index == cursor
+            )
+            cursor += 1
+        self.assertEqual(visited, ["A", "B", "C", "D"])
+        self.assertEqual(len(visited), len(set(visited)))
         lumber_exhausted = matching_rules(
             self.homebase,
             facts=(

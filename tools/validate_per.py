@@ -255,6 +255,25 @@ def validate_command_domains(lines: list[str]) -> list[dict[str, object]]:
             }
         )
 
+    # up-get-search-state writes four consecutive outputs beginning at its
+    # operand: local total, local last-added, remote total, remote last-added.
+    # The project's audited four-goal block begins at local-total. Passing
+    # remote-total instead shifts every value and overwrites the following goal.
+    search_state_operand = re.compile(
+        r"\(up-get-search-state\s+(?P<operand>[^\s)]+)\s*\)",
+        re.IGNORECASE,
+    )
+    for match in search_state_operand.finditer(code):
+        if match.group("operand").casefold() != "local-total":
+            issues.append(
+                {
+                    "kind": "invalid_search_state_output_base",
+                    "operand": match.group("operand"),
+                    "expected": "local-total",
+                    "line": code.count("\n", 0, match.start()) + 1,
+                }
+            )
+
     # set-goal treats its second operand as a literal. A gl-* token is the
     # numeric identifier of another goal, not that goal's stored value; use
     # up-modify-goal with a g:= operand when copying between goals.
