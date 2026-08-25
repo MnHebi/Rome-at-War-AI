@@ -150,6 +150,8 @@
 	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-action == actionid-explore)
+	;Capital escorts are ungrouped but reserved by their follow/guard action.
+	(up-remove-objects search-local object-data-action == actionid-follow)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-escort-count)
 	(up-get-search-state local-total)
@@ -391,6 +393,7 @@
 
 (defrule
 	(goal gl-naval-scout-state NAVAL-SCOUT-TARGET)
+	(up-group-size c: naval-scout-group > 0)
 	(up-set-target-object search-remote c: 0)
 =>
 	(up-get-point position-object gl-naval-scout-target-x)
@@ -408,6 +411,7 @@
 
 (defrule
 	(goal gl-naval-scout-state NAVAL-SCOUT-TARGET)
+	(up-group-size c: naval-scout-group > 0)
 	(not (up-set-target-object search-remote c: 0))
 =>
 	(set-strategic-number sn-focus-player-number my-player-number)
@@ -422,6 +426,20 @@
 	(set-goal gl-naval-scout-state NAVAL-SCOUT-IDLE)
 )
 
+;A valid post-create group size is runtime proof that the multiplexed slot was
+;actually populated. Never leave the focus player borrowed when formation
+;failed or another controller still owned the slot unexpectedly.
+(defrule
+	(goal gl-naval-scout-state NAVAL-SCOUT-TARGET)
+	(up-group-size c: naval-scout-group <= 0)
+=>
+	(up-chat-data-to-self "naval scout group formation failed: %d" g: gl-naval-scout-count)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-scout-focus)
+	(up-modify-goal gl-naval-scout-next g:= gl-game-time)
+	(up-modify-goal gl-naval-scout-next c:+ 20)
+	(set-goal gl-naval-scout-state NAVAL-SCOUT-IDLE)
+)
+
 ;Do not substitute a siege or capital hull when the preferred light family is
 ;missing or every Scout Ship is busy. Keep the filtered absence observable.
 (defrule
@@ -433,6 +451,619 @@
 	(up-modify-goal gl-naval-scout-next g:= gl-game-time)
 	(up-modify-goal gl-naval-scout-next c:+ 45)
 	(set-goal gl-naval-scout-state NAVAL-SCOUT-IDLE)
+)
+
+;Ordinary light ships intercept valuable vessels they encounter instead of
+;being released into the engine's structure-biased attack-now controller.
+;Select an own water-zone source first so an unreachable target in another sea
+;cannot block every useful target in the fleet's actual basin. Capital ships,
+;explorers, guards, response groups, screens, and transports are not candidates.
+(defrule
+	(up-compare-goal gl-game-time g:>= gl-naval-opportunity-next)
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-IDLE)
+	(goal gl-naval-theater YES)
+	(up-compare-goal gl-naval-role c:<= NAVAL-ROLE-COMPETITIVE)
+	(up-compare-goal gl-naval-role c:>= NAVAL-ROLE-PRIMARY)
+	(or
+		(warboat-count > 0)
+		(unit-type-count boarding-ship > 0)
+	)
+=>
+	(up-modify-goal gl-naval-opportunity-focus s:= sn-focus-player-number)
+	;Do not let one enemy or one empty water basin monopolize every scan.
+	(up-find-player enemy find-random gl-naval-opportunity-player)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-player)
+	(up-get-point position-focus gl-naval-opportunity-source-x)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-opportunity-source-x)
+	(up-find-local c: scout-galley-line c: 30)
+	(up-find-local c: polyreme-line c: 30)
+	(up-find-local c: hemiolia-line c: 30)
+	(up-find-local c: quadrireme-line c: 30)
+	(up-find-local c: liburna-line c: 30)
+	(up-find-local c: fire-ship-line c: 30)
+	(up-find-local c: fire-galley c: 30)
+	(up-find-local c: boarding-ship c: 30)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-action == actionid-explore)
+	(up-remove-objects search-local object-data-action == actionid-follow)
+	(up-remove-objects search-local object-data-map-zone-id g:== gl-naval-opportunity-rejected-zone)
+	(up-remove-objects search-local object-data-map-zone-id g:== gl-naval-opportunity-rejected-zone2)
+	(up-remove-objects search-local object-data-map-zone-id g:== gl-naval-opportunity-rejected-zone3)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-FIND-SOURCE)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-FIND-SOURCE)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-naval-opportunity-source-id)
+	(up-get-object-data object-data-map-zone-id gl-naval-opportunity-zone)
+	(up-get-point position-object gl-naval-opportunity-source-x)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-opportunity-source-x)
+	(up-filter-distance c: -1 c: 60)
+	(up-find-remote c: transport-ship c: 20)
+	(up-remove-objects search-remote object-data-garrison-count <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-naval-opportunity-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-LOADED)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-FIND-SOURCE)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-focus)
+	(set-goal gl-naval-opportunity-active-id -1)
+	(set-goal gl-naval-opportunity-rejected-zone -1)
+	(set-goal gl-naval-opportunity-rejected-zone2 -1)
+	(set-goal gl-naval-opportunity-rejected-zone3 -1)
+	(set-goal gl-naval-opportunity-rejected-id -1)
+	(set-goal gl-naval-opportunity-rejected-id2 -1)
+	(set-goal gl-naval-opportunity-reject-count 0)
+	(up-modify-goal gl-naval-opportunity-next g:= gl-game-time)
+	(up-modify-goal gl-naval-opportunity-next c:+ 8)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-IDLE)
+)
+
+;Loaded transports are the first target class because their loss also destroys
+;the embarked army. Every accepted candidate is screened against known static
+;defenses at the target and again across a conservative midpoint corridor.
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-LOADED)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-goal gl-naval-opportunity-target-kind NAVAL-OPPORTUNITY-LOADED)
+	(up-get-object-data object-data-id gl-naval-opportunity-target-id)
+	(up-get-point position-object gl-naval-opportunity-target-x)
+	(up-find-player enemy find-ordered gl-naval-opportunity-defense-player)
+	(up-modify-goal gl-naval-opportunity-defense-first g:= gl-naval-opportunity-defense-player)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-START-TARGET-DEFENSE)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-LOADED)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-opportunity-source-x)
+	(up-filter-distance c: -1 c: 60)
+	(up-find-remote c: scout-galley-line c: 30)
+	(up-find-remote c: polyreme-line c: 30)
+	(up-find-remote c: hemiolia-line c: 30)
+	(up-find-remote c: quadrireme-line c: 30)
+	(up-find-remote c: liburna-line c: 30)
+	(up-find-remote c: fire-ship-line c: 30)
+	(up-find-remote c: fire-galley c: 30)
+	(up-find-remote c: boarding-ship c: 30)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-naval-opportunity-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-naval-opportunity-reject-count 0)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-WARSHIP)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-WARSHIP)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-goal gl-naval-opportunity-target-kind NAVAL-OPPORTUNITY-WARSHIP)
+	(up-get-object-data object-data-id gl-naval-opportunity-target-id)
+	(up-get-point position-object gl-naval-opportunity-target-x)
+	(up-find-player enemy find-ordered gl-naval-opportunity-defense-player)
+	(up-modify-goal gl-naval-opportunity-defense-first g:= gl-naval-opportunity-defense-player)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-START-TARGET-DEFENSE)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-WARSHIP)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-opportunity-source-x)
+	(up-filter-distance c: -1 c: 60)
+	(up-find-remote c: transport-ship c: 20)
+	;This class is explicitly empty: a rejected loaded hull must never be
+	;silently reconsidered at the lower transport priority.
+	(up-remove-objects search-remote object-data-garrison-count > 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-naval-opportunity-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-naval-opportunity-reject-count 0)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-TRANSPORT)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-TRANSPORT)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-goal gl-naval-opportunity-target-kind NAVAL-OPPORTUNITY-TRANSPORT)
+	(up-get-object-data object-data-id gl-naval-opportunity-target-id)
+	(up-get-point position-object gl-naval-opportunity-target-x)
+	(up-find-player enemy find-ordered gl-naval-opportunity-defense-player)
+	(up-modify-goal gl-naval-opportunity-defense-first g:= gl-naval-opportunity-defense-player)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-START-TARGET-DEFENSE)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-TRANSPORT)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-opportunity-source-x)
+	(up-filter-distance c: -1 c: 60)
+	(up-find-remote c: fishing-ship-class c: 30)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-naval-opportunity-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-naval-opportunity-reject-count 0)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-FISHING)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-FISHING)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-goal gl-naval-opportunity-target-kind NAVAL-OPPORTUNITY-FISHING)
+	(up-get-object-data object-data-id gl-naval-opportunity-target-id)
+	(up-get-point position-object gl-naval-opportunity-target-x)
+	(up-find-player enemy find-ordered gl-naval-opportunity-defense-player)
+	(up-modify-goal gl-naval-opportunity-defense-first g:= gl-naval-opportunity-defense-player)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-START-TARGET-DEFENSE)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-FISHING)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-focus)
+	(set-goal gl-naval-opportunity-active-id -1)
+	(set-goal gl-naval-opportunity-rejected-id -1)
+	(set-goal gl-naval-opportunity-rejected-id2 -1)
+	(set-goal gl-naval-opportunity-reject-count 0)
+	(up-modify-goal gl-naval-opportunity-rejected-zone3 g:= gl-naval-opportunity-rejected-zone2)
+	(up-modify-goal gl-naval-opportunity-rejected-zone2 g:= gl-naval-opportunity-rejected-zone)
+	(up-modify-goal gl-naval-opportunity-rejected-zone g:= gl-naval-opportunity-zone)
+	(up-modify-goal gl-naval-opportunity-next g:= gl-game-time)
+	(up-modify-goal gl-naval-opportunity-next c:+ 8)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-IDLE)
+)
+
+;Remote DUC searches are focus-player owned. Walk every live enemy in one
+;bounded ordered cycle so a target belonging to one enemy is not accepted
+;through another enemy's known tower, Fort/castle, or Town Center coverage.
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-START-TARGET-DEFENSE)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-defense-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-opportunity-target-x)
+	(up-filter-distance c: -1 c: 18)
+	(up-find-remote c: sea-tower c: 10)
+	(up-find-remote c: tower-class c: 20)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: town-center c: 10)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-CHECK-TARGET)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-CHECK-TARGET)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-modify-goal gl-naval-opportunity-rejected-id2 g:= gl-naval-opportunity-rejected-id)
+	(up-modify-goal gl-naval-opportunity-rejected-id g:= gl-naval-opportunity-target-id)
+	(up-modify-goal gl-naval-opportunity-reject-count c:+ 1)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-player)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-REJECT)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-CHECK-TARGET)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-ADVANCE-TARGET-DEFENSE)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-ADVANCE-TARGET-DEFENSE)
+=>
+	(up-find-next-player enemy find-ordered gl-naval-opportunity-defense-player)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-NEXT-TARGET-DEFENSE)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-NEXT-TARGET-DEFENSE)
+	(up-compare-goal gl-naval-opportunity-defense-player g:!= gl-naval-opportunity-defense-first)
+=>
+	;The producer is earlier than this iterator branch. Yield with only the next
+	;player stored, restore borrowed focus, and rebuild a fresh list next sweep.
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-focus)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-START-TARGET-DEFENSE)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-NEXT-TARGET-DEFENSE)
+	(up-compare-goal gl-naval-opportunity-defense-player g:== gl-naval-opportunity-defense-first)
+=>
+	(up-bound-point gl-naval-opportunity-route-x gl-naval-opportunity-target-x)
+	(up-lerp-percent gl-naval-opportunity-route-x gl-naval-opportunity-source-x c: 50)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-START-ROUTE-DEFENSE)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-START-ROUTE-DEFENSE)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-defense-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-opportunity-route-x)
+	;A 32-tile midpoint disk covers the full direct segment of the bounded
+	;60-tile intercept and intentionally over-rejects lateral fortifications.
+	(up-filter-distance c: -1 c: 32)
+	(up-find-remote c: sea-tower c: 10)
+	(up-find-remote c: tower-class c: 20)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: town-center c: 10)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-CHECK-ROUTE)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-CHECK-ROUTE)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-modify-goal gl-naval-opportunity-rejected-id2 g:= gl-naval-opportunity-rejected-id)
+	(up-modify-goal gl-naval-opportunity-rejected-id g:= gl-naval-opportunity-target-id)
+	(up-modify-goal gl-naval-opportunity-reject-count c:+ 1)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-player)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-REJECT)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-CHECK-ROUTE)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-ADVANCE-ROUTE-DEFENSE)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-ADVANCE-ROUTE-DEFENSE)
+=>
+	(up-find-next-player enemy find-ordered gl-naval-opportunity-defense-player)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-NEXT-ROUTE-DEFENSE)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-NEXT-ROUTE-DEFENSE)
+	(up-compare-goal gl-naval-opportunity-defense-player g:!= gl-naval-opportunity-defense-first)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-focus)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-START-ROUTE-DEFENSE)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-NEXT-ROUTE-DEFENSE)
+	(up-compare-goal gl-naval-opportunity-defense-player g:== gl-naval-opportunity-defense-first)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-player)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-PREPARE)
+)
+
+;Try two candidates in the current class before descending the hierarchy. This
+;prevents the nearest defended transport or fishing boat from hiding a safe
+;second target while keeping the search bounded.
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-REJECT)
+	(goal gl-naval-opportunity-target-kind NAVAL-OPPORTUNITY-LOADED)
+	(up-compare-goal gl-naval-opportunity-reject-count c:< 2)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-opportunity-source-x)
+	(up-filter-distance c: -1 c: 60)
+	(up-find-remote c: transport-ship c: 20)
+	(up-remove-objects search-remote object-data-garrison-count <= 0)
+	(up-remove-objects search-remote object-data-id g:== gl-naval-opportunity-rejected-id)
+	(up-remove-objects search-remote object-data-id g:== gl-naval-opportunity-rejected-id2)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-naval-opportunity-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-LOADED)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-REJECT)
+	(goal gl-naval-opportunity-target-kind NAVAL-OPPORTUNITY-LOADED)
+	(up-compare-goal gl-naval-opportunity-reject-count c:>= 2)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-opportunity-source-x)
+	(up-filter-distance c: -1 c: 60)
+	(up-find-remote c: scout-galley-line c: 30)
+	(up-find-remote c: polyreme-line c: 30)
+	(up-find-remote c: hemiolia-line c: 30)
+	(up-find-remote c: quadrireme-line c: 30)
+	(up-find-remote c: liburna-line c: 30)
+	(up-find-remote c: fire-ship-line c: 30)
+	(up-find-remote c: fire-galley c: 30)
+	(up-find-remote c: boarding-ship c: 30)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-naval-opportunity-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-naval-opportunity-reject-count 0)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-WARSHIP)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-REJECT)
+	(goal gl-naval-opportunity-target-kind NAVAL-OPPORTUNITY-WARSHIP)
+	(up-compare-goal gl-naval-opportunity-reject-count c:< 2)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-opportunity-source-x)
+	(up-filter-distance c: -1 c: 60)
+	(up-find-remote c: scout-galley-line c: 30)
+	(up-find-remote c: polyreme-line c: 30)
+	(up-find-remote c: hemiolia-line c: 30)
+	(up-find-remote c: quadrireme-line c: 30)
+	(up-find-remote c: liburna-line c: 30)
+	(up-find-remote c: fire-ship-line c: 30)
+	(up-find-remote c: fire-galley c: 30)
+	(up-find-remote c: boarding-ship c: 30)
+	(up-remove-objects search-remote object-data-id g:== gl-naval-opportunity-rejected-id)
+	(up-remove-objects search-remote object-data-id g:== gl-naval-opportunity-rejected-id2)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-naval-opportunity-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-WARSHIP)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-REJECT)
+	(goal gl-naval-opportunity-target-kind NAVAL-OPPORTUNITY-WARSHIP)
+	(up-compare-goal gl-naval-opportunity-reject-count c:>= 2)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-opportunity-source-x)
+	(up-filter-distance c: -1 c: 60)
+	(up-find-remote c: transport-ship c: 20)
+	(up-remove-objects search-remote object-data-garrison-count > 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-naval-opportunity-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-naval-opportunity-reject-count 0)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-TRANSPORT)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-REJECT)
+	(goal gl-naval-opportunity-target-kind NAVAL-OPPORTUNITY-TRANSPORT)
+	(up-compare-goal gl-naval-opportunity-reject-count c:< 2)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-opportunity-source-x)
+	(up-filter-distance c: -1 c: 60)
+	(up-find-remote c: transport-ship c: 20)
+	(up-remove-objects search-remote object-data-garrison-count > 0)
+	(up-remove-objects search-remote object-data-id g:== gl-naval-opportunity-rejected-id)
+	(up-remove-objects search-remote object-data-id g:== gl-naval-opportunity-rejected-id2)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-naval-opportunity-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-TRANSPORT)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-REJECT)
+	(goal gl-naval-opportunity-target-kind NAVAL-OPPORTUNITY-TRANSPORT)
+	(up-compare-goal gl-naval-opportunity-reject-count c:>= 2)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-opportunity-source-x)
+	(up-filter-distance c: -1 c: 60)
+	(up-find-remote c: fishing-ship-class c: 30)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-naval-opportunity-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-naval-opportunity-reject-count 0)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-FISHING)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-REJECT)
+	(goal gl-naval-opportunity-target-kind NAVAL-OPPORTUNITY-FISHING)
+	(up-compare-goal gl-naval-opportunity-reject-count c:< 2)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-opportunity-source-x)
+	(up-filter-distance c: -1 c: 60)
+	(up-find-remote c: fishing-ship-class c: 30)
+	(up-remove-objects search-remote object-data-id g:== gl-naval-opportunity-rejected-id)
+	(up-remove-objects search-remote object-data-id g:== gl-naval-opportunity-rejected-id2)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-naval-opportunity-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-SCAN-FISHING)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-REJECT)
+	(goal gl-naval-opportunity-target-kind NAVAL-OPPORTUNITY-FISHING)
+	(up-compare-goal gl-naval-opportunity-reject-count c:>= 2)
+=>
+	(up-chat-data-to-self "naval opportunity rejected near defenses: %d" g: gl-naval-opportunity-target-id)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-focus)
+	(set-goal gl-naval-opportunity-active-id -1)
+	(set-goal gl-naval-opportunity-rejected-id -1)
+	(set-goal gl-naval-opportunity-rejected-id2 -1)
+	(set-goal gl-naval-opportunity-reject-count 0)
+	(up-modify-goal gl-naval-opportunity-rejected-zone3 g:= gl-naval-opportunity-rejected-zone2)
+	(up-modify-goal gl-naval-opportunity-rejected-zone2 g:= gl-naval-opportunity-rejected-zone)
+	(up-modify-goal gl-naval-opportunity-rejected-zone g:= gl-naval-opportunity-zone)
+	(up-modify-goal gl-naval-opportunity-next g:= gl-game-time)
+	(up-modify-goal gl-naval-opportunity-next c:+ 8)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-IDLE)
+)
+
+;A changed target is commanded immediately. An unchanged live target is only
+;refreshed every 30 seconds so the controller does not reset wind-up/pathing on
+;every six-second opportunity scan.
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-PREPARE)
+	(or
+		(up-compare-goal gl-naval-opportunity-target-id g:!= gl-naval-opportunity-active-id)
+		(up-compare-goal gl-game-time g:>= gl-naval-opportunity-refresh)
+	)
+=>
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-COMMAND)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-PREPARE)
+	(and
+		(up-compare-goal gl-naval-opportunity-target-id g:== gl-naval-opportunity-active-id)
+		(up-compare-goal gl-game-time g:< gl-naval-opportunity-refresh)
+	)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-focus)
+	(set-goal gl-naval-opportunity-rejected-zone -1)
+	(set-goal gl-naval-opportunity-rejected-zone2 -1)
+	(set-goal gl-naval-opportunity-rejected-zone3 -1)
+	(set-goal gl-naval-opportunity-rejected-id -1)
+	(set-goal gl-naval-opportunity-rejected-id2 -1)
+	(set-goal gl-naval-opportunity-reject-count 0)
+	(up-modify-goal gl-naval-opportunity-next g:= gl-game-time)
+	(up-modify-goal gl-naval-opportunity-next c:+ 6)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-IDLE)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-COMMAND)
+	(goal gl-home-defense-state NO)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-naval-opportunity-source-x)
+	(up-filter-distance c: -1 c: 32)
+	(up-find-local c: scout-galley-line c: 30)
+	(up-find-local c: polyreme-line c: 30)
+	(up-find-local c: hemiolia-line c: 30)
+	(up-find-local c: quadrireme-line c: 30)
+	(up-find-local c: liburna-line c: 30)
+	(up-find-local c: fire-ship-line c: 30)
+	(up-find-local c: fire-galley c: 30)
+	(up-find-local c: boarding-ship c: 30)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-action == actionid-explore)
+	(up-remove-objects search-local object-data-action == actionid-follow)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-opportunity-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 12)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-naval-opportunity-ship-count g:= local-total)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-player)
+	(up-add-object-by-id search-remote g: gl-naval-opportunity-target-id)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-VERIFY)
+)
+
+;The selected ship list and enemy object ID are both revalidated immediately
+;before issuing the order. This keeps stale searches from producing false
+;success telemetry or commanding an empty list.
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-VERIFY)
+	(up-compare-goal gl-naval-opportunity-ship-count c:> 0)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-target-objects 1 action-default -1 stance-aggressive)
+	(up-modify-goal gl-naval-opportunity-active-id g:= gl-naval-opportunity-target-id)
+	(up-modify-goal gl-naval-opportunity-refresh g:= gl-game-time)
+	(up-modify-goal gl-naval-opportunity-refresh c:+ 30)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-FINISH)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-VERIFY)
+	(up-compare-goal gl-naval-opportunity-ship-count c:<= 0)
+=>
+	(chat-local-to-self "naval opportunity failed: no eligible ships")
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-focus)
+	(set-goal gl-naval-opportunity-active-id -1)
+	(set-goal gl-naval-opportunity-rejected-id -1)
+	(set-goal gl-naval-opportunity-rejected-id2 -1)
+	(set-goal gl-naval-opportunity-reject-count 0)
+	(up-modify-goal gl-naval-opportunity-next g:= gl-game-time)
+	(up-modify-goal gl-naval-opportunity-next c:+ 6)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-IDLE)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-VERIFY)
+	(up-compare-goal gl-naval-opportunity-ship-count c:> 0)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-chat-data-to-self "naval opportunity failed: target lost %d" g: gl-naval-opportunity-target-id)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-focus)
+	(set-goal gl-naval-opportunity-active-id -1)
+	(set-goal gl-naval-opportunity-rejected-id -1)
+	(set-goal gl-naval-opportunity-rejected-id2 -1)
+	(set-goal gl-naval-opportunity-reject-count 0)
+	(up-modify-goal gl-naval-opportunity-next g:= gl-game-time)
+	(up-modify-goal gl-naval-opportunity-next c:+ 6)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-IDLE)
+)
+
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-FINISH)
+=>
+	(up-chat-data-to-self "naval opportunity target kind: %d" g: gl-naval-opportunity-target-kind)
+	(up-chat-data-to-self "naval opportunity ships: %d" g: gl-naval-opportunity-ship-count)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-focus)
+	(set-goal gl-naval-opportunity-rejected-id -1)
+	(set-goal gl-naval-opportunity-rejected-id2 -1)
+	(set-goal gl-naval-opportunity-reject-count 0)
+	(set-goal gl-naval-opportunity-rejected-zone -1)
+	(set-goal gl-naval-opportunity-rejected-zone2 -1)
+	(set-goal gl-naval-opportunity-rejected-zone3 -1)
+	(up-modify-goal gl-naval-opportunity-next g:= gl-game-time)
+	(up-modify-goal gl-naval-opportunity-next c:+ 6)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-IDLE)
+)
+
+;Home defense or loss of the naval-theater gate may occur between source
+;selection and command. Restore borrowed focus before abandoning the intercept.
+(defrule
+	(not (goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-IDLE))
+	(or
+		(goal gl-home-defense-state YES)
+		(goal gl-naval-theater NO)
+	)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-focus)
+	(set-goal gl-naval-opportunity-active-id -1)
+	(set-goal gl-naval-opportunity-rejected-id -1)
+	(set-goal gl-naval-opportunity-rejected-id2 -1)
+	(set-goal gl-naval-opportunity-reject-count 0)
+	(set-goal gl-naval-opportunity-rejected-zone -1)
+	(set-goal gl-naval-opportunity-rejected-zone2 -1)
+	(set-goal gl-naval-opportunity-rejected-zone3 -1)
+	(up-modify-goal gl-naval-opportunity-next g:= gl-game-time)
+	(up-modify-goal gl-naval-opportunity-next c:+ 8)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-IDLE)
 )
 
 ;Track the actual Transport Ship capacity used by the current civilization.
@@ -5244,10 +5875,11 @@
 	(set-goal gl-siege-target-state SIEGE-TARGET-IDLE)
 )
 
-;Juggernauts and Octeres have different range envelopes, so they own distinct
-;persistent bombardment groups. Each family receives up to two nearby light or
-;medium escorts, and only the capital group is ordered onto fortifications.
-;Alternating the families keeps one timer owner while refreshing both missions.
+;Juggernauts and Octeres have different range envelopes but the engine exposes
+;only DUC groups 0..9. Both families remain reserved in one valid shared group;
+;the consumer filters that group to the active family before issuing a target.
+;Escorts are rebuilt from a positive light-hull allowlist and guard the exact
+;capital without consuming a second persistent group slot.
 (defrule
 	(up-timer-status t-naval-siege == timer-triggered)
 	(goal gl-naval-siege-state SIEGE-TARGET-IDLE)
@@ -5261,8 +5893,6 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-modify-group-flag 0 c: juggernaut-bombardment-group)
 	(up-reset-group c: juggernaut-bombardment-group)
-	(up-modify-group-flag 0 c: juggernaut-bombardment-escort-group)
-	(up-reset-group c: juggernaut-bombardment-escort-group)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-SELECT)
 )
 
@@ -5279,8 +5909,6 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-modify-group-flag 0 c: octeres-bombardment-group)
 	(up-reset-group c: octeres-bombardment-group)
-	(up-modify-group-flag 0 c: octeres-bombardment-escort-group)
-	(up-reset-group c: octeres-bombardment-escort-group)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-SELECT)
 )
 
@@ -5292,8 +5920,6 @@
 =>
 	(up-modify-group-flag 0 c: juggernaut-bombardment-group)
 	(up-reset-group c: juggernaut-bombardment-group)
-	(up-modify-group-flag 0 c: juggernaut-bombardment-escort-group)
-	(up-reset-group c: juggernaut-bombardment-escort-group)
 	(set-goal gl-naval-siege-family 1)
 )
 
@@ -5305,8 +5931,6 @@
 =>
 	(up-modify-group-flag 0 c: octeres-bombardment-group)
 	(up-reset-group c: octeres-bombardment-group)
-	(up-modify-group-flag 0 c: octeres-bombardment-escort-group)
-	(up-reset-group c: octeres-bombardment-escort-group)
 	(set-goal gl-naval-siege-family 0)
 	(up-set-timer c: t-naval-siege c: 12)
 )
@@ -5351,24 +5975,6 @@
 )
 
 (defrule
-	(goal gl-naval-siege-state SIEGE-TARGET-ESCORT)
-	(goal gl-naval-siege-family 0)
-=>
-	(up-full-reset-search)
-	(up-add-object-by-id search-remote g: gl-naval-siege-source-id)
-	(up-set-group search-local c: juggernaut-bombardment-escort-group)
-	(up-target-objects 0 action-guard -1 stance-aggressive)
-	(up-find-player enemy find-closest gl-naval-siege-player)
-	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-player)
-	(up-full-reset-search)
-	(up-set-target-point gl-naval-siege-target-x)
-	(up-filter-distance c: -1 c: 120)
-	(up-find-remote c: sea-tower c: 20)
-	(up-clean-search search-remote object-data-distance search-order-asc)
-	(set-goal gl-naval-siege-state SIEGE-TARGET-FIND-STRUCTURE)
-)
-
-(defrule
 	(goal gl-naval-siege-state SIEGE-TARGET-FIND-UNIT)
 	(goal gl-naval-siege-family 1)
 	(up-set-target-object search-local c: 0)
@@ -5394,6 +6000,11 @@
 	(up-modify-goal gl-naval-siege-escort-count g:= local-total)
 	(up-modify-goal gl-naval-siege-escort-count c:* 2)
 	(up-modify-goal gl-naval-siege-escort-count c:min 8)
+	;Keep the other capital family reserved while this family is active.
+	(up-find-local c: octeres c: 200)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
 	(up-create-group 0 0 c: juggernaut-bombardment-group)
 	(up-modify-group-flag 1 c: juggernaut-bombardment-group)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-ESCORT-SELECT)
@@ -5414,6 +6025,11 @@
 	(up-modify-goal gl-naval-siege-escort-count g:= local-total)
 	(up-modify-goal gl-naval-siege-escort-count c:* 2)
 	(up-modify-goal gl-naval-siege-escort-count c:min 8)
+	;Keep the other capital family reserved while this family is active.
+	(up-find-local c: juggernaut-line c: 200)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
 	(up-create-group 0 0 c: octeres-bombardment-group)
 	(up-modify-group-flag 1 c: octeres-bombardment-group)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-ESCORT-SELECT)
@@ -5423,25 +6039,6 @@
 	(goal gl-naval-siege-state SIEGE-TARGET-ESCORT-SELECT)
 	(goal gl-naval-siege-family 0)
 =>
-	(up-full-reset-search)
-	(up-set-target-point gl-naval-siege-target-x)
-	(up-find-local c: scout-galley-line c: 30)
-	(up-find-local c: polyreme-line c: 30)
-	(up-find-local c: hemiolia-line c: 30)
-	(up-find-local c: quadrireme-line c: 30)
-	(up-find-local c: liburna-line c: 30)
-	(up-find-local c: fire-ship-line c: 30)
-	(up-find-local c: fire-galley c: 30)
-	(up-find-local c: boarding-ship c: 30)
-	(up-remove-objects search-local object-data-under-attack > 0)
-	(up-remove-objects search-local object-data-group-flag >= 0)
-	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
-	(up-clean-search search-local object-data-distance search-order-asc)
-	(up-remove-objects search-local object-data-index g:>= gl-naval-siege-escort-count)
-	(up-get-search-state local-total)
-	(up-modify-goal gl-naval-siege-escort-count g:= local-total)
-	(up-create-group 0 0 c: juggernaut-bombardment-escort-group)
-	(up-modify-group-flag 1 c: juggernaut-bombardment-escort-group)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-ESCORT)
 )
 
@@ -5449,6 +6046,17 @@
 	(goal gl-naval-siege-state SIEGE-TARGET-ESCORT-SELECT)
 	(goal gl-naval-siege-family 1)
 =>
+	(set-goal gl-naval-siege-state SIEGE-TARGET-ESCORT)
+)
+
+;Rebuild escorts in the consumer rule so no shared search list has to survive a
+;state boundary. Guard orders reserve these ungrouped lights by action while
+;the valid shared capital group remains available for structure targeting.
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-ESCORT)
+	(up-group-size c: juggernaut-bombardment-group > 0)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-set-target-point gl-naval-siege-target-x)
 	(up-find-local c: scout-galley-line c: 30)
@@ -5466,18 +6074,7 @@
 	(up-remove-objects search-local object-data-index g:>= gl-naval-siege-escort-count)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-naval-siege-escort-count g:= local-total)
-	(up-create-group 0 0 c: octeres-bombardment-escort-group)
-	(up-modify-group-flag 1 c: octeres-bombardment-escort-group)
-	(set-goal gl-naval-siege-state SIEGE-TARGET-ESCORT)
-)
-
-(defrule
-	(goal gl-naval-siege-state SIEGE-TARGET-ESCORT)
-	(goal gl-naval-siege-family 1)
-=>
-	(up-full-reset-search)
 	(up-add-object-by-id search-remote g: gl-naval-siege-source-id)
-	(up-set-group search-local c: octeres-bombardment-escort-group)
 	(up-target-objects 0 action-guard -1 stance-aggressive)
 	(up-find-player enemy find-closest gl-naval-siege-player)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-player)
@@ -5490,6 +6087,30 @@
 )
 
 (defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-ESCORT)
+	(goal gl-naval-siege-family 0)
+	(up-group-size c: juggernaut-bombardment-group <= 0)
+=>
+	(up-chat-data-to-self "Juggernaut group formation failed: %d" g: gl-naval-siege-source-id)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
+	(set-goal gl-naval-siege-family 1)
+	(up-set-timer c: t-naval-siege c: 12)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-ESCORT)
+	(goal gl-naval-siege-family 1)
+	(up-group-size c: octeres-bombardment-group <= 0)
+=>
+	(up-chat-data-to-self "Octeres group formation failed: %d" g: gl-naval-siege-source-id)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
+	(set-goal gl-naval-siege-family 0)
+	(up-set-timer c: t-naval-siege c: 12)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+)
+
+(defrule
 	(goal gl-naval-siege-state SIEGE-TARGET-FIND-UNIT)
 	(goal gl-naval-siege-family 0)
 	(not (up-set-target-object search-local c: 0))
@@ -5497,8 +6118,6 @@
 	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
 	(up-modify-group-flag 0 c: juggernaut-bombardment-group)
 	(up-reset-group c: juggernaut-bombardment-group)
-	(up-modify-group-flag 0 c: juggernaut-bombardment-escort-group)
-	(up-reset-group c: juggernaut-bombardment-escort-group)
 	(set-goal gl-naval-siege-family 1)
 	(up-set-timer c: t-naval-siege c: 12)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
@@ -5512,8 +6131,6 @@
 	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
 	(up-modify-group-flag 0 c: octeres-bombardment-group)
 	(up-reset-group c: octeres-bombardment-group)
-	(up-modify-group-flag 0 c: octeres-bombardment-escort-group)
-	(up-reset-group c: octeres-bombardment-escort-group)
 	(set-goal gl-naval-siege-family 0)
 	(up-set-timer c: t-naval-siege c: 12)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
@@ -5529,6 +6146,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-reset-search 1 1 0 0)
 	(up-set-group search-local c: juggernaut-bombardment-group)
+	(up-remove-objects search-local object-data-type == octeres)
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
 	(up-get-search-state local-total)
@@ -5546,6 +6164,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-reset-search 1 1 0 0)
 	(up-set-group search-local c: octeres-bombardment-group)
+	(up-remove-objects search-local object-data-type != octeres)
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
 	(up-get-search-state local-total)
@@ -5634,6 +6253,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-reset-search 1 1 0 0)
 	(up-set-group search-local c: juggernaut-bombardment-group)
+	(up-remove-objects search-local object-data-type == octeres)
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
 	(up-get-search-state local-total)
@@ -5651,6 +6271,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-reset-search 1 1 0 0)
 	(up-set-group search-local c: octeres-bombardment-group)
+	(up-remove-objects search-local object-data-type != octeres)
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
 	(up-get-search-state local-total)
@@ -5787,6 +6408,7 @@
 ;defense activates, then release its ownership flag.
 (defrule
 	(goal gl-home-defense-state YES)
+	(goal map-type LAND)
 	(up-group-size c: opportunistic-raid-group > 0)
 =>
 	(set-strategic-number sn-focus-player-number my-player-number)
@@ -7303,10 +7925,10 @@
 	)
 =>
 	(chat-local-to-self "naval attack")
-	(up-modify-sn sn-percent-attack-boats g:= naval-attack-percentage)
-	(attack-now)
-	(up-chat-data-to-self "naval dispatch: %d" g: naval-attack-percentage)
-	(set-strategic-number sn-percent-attack-boats 0)
+	;Wake the vessel-priority controller. attack-now is global and was sending
+	;ordinary ships onto Town Centers and towers regardless of local opportunity.
+	(up-modify-goal gl-naval-opportunity-next g:= gl-game-time)
+	(up-chat-data-to-self "naval opportunity dispatch: %d" g: naval-attack-percentage)
 	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 )
 
@@ -7412,12 +8034,8 @@
 	)
 =>
 	(chat-local-to-self "naval attack")
-	(up-modify-sn sn-percent-attack-boats g:= naval-attack-percentage)
-	(up-modify-sn sn-maximum-town-size c:= 250)
-	(attack-now)
-	(up-chat-data-to-self "naval dispatch: %d" g: naval-attack-percentage)
-	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
-	(set-strategic-number sn-percent-attack-boats 0)
+	(up-modify-goal gl-naval-opportunity-next g:= gl-game-time)
+	(up-chat-data-to-self "naval opportunity dispatch: %d" g: naval-attack-percentage)
 	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 )
 
@@ -7461,7 +8079,9 @@
 	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 	(chat-local-to-self "periodic attack")
 	(up-modify-sn sn-percent-attack-soldiers g:= land-attack-percentage)
-	(up-modify-sn sn-percent-attack-boats g:= naval-attack-percentage)
+	;The periodic land producer is also a global attack-now path. Explicitly
+	;exclude boats so it cannot steal light fleets from opportunity ownership.
+	(set-strategic-number sn-percent-attack-boats 0)
 	(up-modify-sn sn-maximum-town-size c:= 250)
 	(attack-now)
 	(up-modify-sn sn-maximum-town-size g:= outer-townsize)

@@ -40,6 +40,11 @@ MAX_RULE_ELEMENTS = 32
 MIN_TIMER_ID = 1
 MAX_TIMER_ID = 50
 
+# The DUC group table has ten slots. Values outside 0..9 parse as ordinary
+# identifiers but cannot provide dependable runtime ownership.
+MIN_DUC_GROUP_ID = 0
+MAX_DUC_GROUP_ID = 9
+
 # These DUC commands mutate search state and are only valid on the action side
 # of a rule. AoE reports ERR2005 when one is accidentally used as a fact.
 ACTION_ONLY_RULE_COMMANDS = {
@@ -133,6 +138,21 @@ def project_defconsts() -> frozenset[str]:
     return frozenset(names)
 
 
+def project_defconst_values() -> dict[str, int]:
+    """Collect numeric project constants for cross-file operand validation."""
+    values: dict[str, int] = {}
+    for path in ROOT.glob("*.per"):
+        text = "\n".join(
+            code_without_comments_or_strings(line)
+            for line in path.read_text(encoding="utf-8-sig").splitlines()
+        )
+        for name, value in re.findall(
+            r"\(defconst\s+([^\s()]+)\s+(-?\d+)\s*\)", text
+        ):
+            values.setdefault(name.casefold(), int(value))
+    return values
+
+
 def validate_timer_sources(
     sources: dict[str, str],
 ) -> dict[str, list[dict[str, object]]]:
@@ -195,7 +215,10 @@ def validate_timer_definitions(
 TARGET_ACTION_CONSTANTS = constants_with_prefix("action-")
 TARGET_ACTION_VALUES = constant_values_with_prefix("action-")
 POSITION_SOURCE_CONSTANTS = constants_with_prefix("position-")
+ACTION_ID_CONSTANTS = constants_with_prefix("actionid-")
+ORDER_ID_CONSTANTS = constants_with_prefix("orderid-")
 PROJECT_DEFCONSTS = project_defconsts()
+PROJECT_DEFCONST_VALUES = project_defconst_values()
 
 
 def defrule_blocks(lines: list[str]) -> list[tuple[int, str]]:
@@ -227,6 +250,90 @@ def validate_command_domains(lines: list[str]) -> list[dict[str, object]]:
     """Catch technology/unit operand swaps and guarded research mismatches."""
     issues: list[dict[str, object]] = []
     code = "\n".join(code_without_comments_or_strings(line) for line in lines)
+
+    # Resolve both repository-wide constants and constants declared by an
+    # isolated test fixture, then enforce the engine's 0..9 DUC group domain.
+    constant_values = dict(PROJECT_DEFCONST_VALUES)
+    constant_values.update(
+        {
+            name.casefold(): int(value)
+            for name, value in re.findall(
+                r"\(defconst\s+([^\s()]+)\s+(-?\d+)\s*\)", code
+            )
+        }
+    )
+    group_operand_patterns = (
+        re.compile(
+            r"\(up-create-group\s+\S+\s+\S+\s+c:\s*(?P<group>[^\s)]+)",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\(up-set-group\s+\S+\s+c:\s*(?P<group>[^\s)]+)",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\(up-reset-group\s+c:\s*(?P<group>[^\s)]+)",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\(up-modify-group-flag\s+\S+\s+c:\s*(?P<group>[^\s)]+)",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\(up-group-size\s+c:\s*(?P<group>[^\s)]+)",
+            re.IGNORECASE,
+        ),
+    )
+    for pattern in group_operand_patterns:
+        for match in pattern.finditer(code):
+            operand = match.group("group")
+            value = (
+                int(operand)
+                if re.fullmatch(r"-?\d+", operand)
+                else constant_values.get(operand.casefold())
+            )
+            line = code.count("\n", 0, match.start("group")) + 1
+            if value is None:
+                issues.append(
+                    {
+                        "kind": "unknown_duc_group_identifier",
+                        "identifier": operand,
+                        "line": line,
+                    }
+                )
+            elif not MIN_DUC_GROUP_ID <= value <= MAX_DUC_GROUP_ID:
+                issues.append(
+                    {
+                        "kind": "duc_group_id_out_of_range",
+                        "identifier": operand,
+                        "value": value,
+                        "line": line,
+                        "minimum": MIN_DUC_GROUP_ID,
+                        "maximum": MAX_DUC_GROUP_ID,
+                    }
+                )
+
+    # ActionId and OrderId are separate engine domains from TargetAction. A
+    # plausible invented name (for example actionid-guard) produces ERR2005
+    # even though the corresponding TargetAction action-guard is valid.
+    for prefix, known, kind in (
+        ("actionid-", ACTION_ID_CONSTANTS, "undefined_action_id_constant"),
+        ("orderid-", ORDER_ID_CONSTANTS, "undefined_order_id_constant"),
+    ):
+        for match in re.finditer(
+            rf"\b(?P<identifier>{re.escape(prefix)}[a-z0-9-]+)\b",
+            code,
+            re.IGNORECASE,
+        ):
+            identifier = match.group("identifier")
+            if identifier.casefold() not in known:
+                issues.append(
+                    {
+                        "kind": kind,
+                        "identifier": identifier,
+                        "line": code.count("\n", 0, match.start()) + 1,
+                    }
+                )
     invalid_compare_assignment = re.compile(
         r"\((?P<command>up-compare-goal|up-compare-sn)\s+[^\s)]+\s+"
         r"(?P<operator>[cgs]:=)(?=\s)",

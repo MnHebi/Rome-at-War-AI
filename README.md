@@ -26,7 +26,8 @@ Bundled AI validation and maintenance tools live in the `tools` directory:
 - `sync_civ_strategies.py` validates both difficulty profiles and updates every
   civ PER;
 - `validate_per.py` checks PER structure, preprocessor balance, constants,
-  technology/training operand domains, and guarded research alignment;
+  technology/training operands, TargetAction/ActionId/OrderId domains, DUC
+  group IDs, and guarded research alignment;
 - `validate_strategy_execution.py` checks unit-role coverage, unit-line actions,
   rush activation/execution, every manifest-listed unique production path,
   calibrated Roman/Briton technology escrow, the enemy matchup matrix, and every

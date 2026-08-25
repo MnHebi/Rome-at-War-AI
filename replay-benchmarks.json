@@ -709,6 +709,64 @@
         "Cross-export tech-tree evidence remains inconsistent for Roman Empire: the standalone BYZANTINES export has 144 nodes while the aggregate ROMAN EMPIRE export has 162. Requested Crossbowman, Legionary, Scorpion, Juggernaut, and Octeres IDs agree with authoritative DAT evidence, but the eighteen extra aggregate nodes must not silently alter other Roman family evaluations until the export discrepancy is resolved."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-rome-vs-britons-20260825-163749",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.25 163749.aoe2record",
+        "sha256": "CDD083E9933A3FE06591FD7DF9D8E77433E81A4379B2C40B9367B6BC17BB2249",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain (test context)",
+        "players": [
+          "Roman Empire",
+          "Britons"
+        ],
+        "duration_seconds": 2268
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and lasted 37:48. No RAWAI-P3B19 marker was decoded; repeated P3B19-specific naval-scout telemetry is a partial semantic fingerprint, not proof that every deployed file matched the repository.",
+        "Rome requested four Transport Ships (unit 545), seven Scout Galley-family ships (1877), eight Fire Galleys (1103), and eight Galley-family ships (539).",
+        "Neither player requested a Juggernaut (420 or elite 691) or Octeres (1884), so Rome had no dedicated capital bombardment hull in this recording.",
+        "Rome emitted seven serialized `naval dispatch: 80` records from approximately 18:44 through 35:05, repeatedly releasing eighty percent of its ordinary warships through the generic naval attack executor.",
+        "Roman warboat telemetry rose to twelve. At approximately 29:06 it reported seven current warboats and five current losses; at 30:06 it reported six current warboats, six current losses, and eleven total losses.",
+        "The user visually observed Roman warships ignoring enemy Transport and Fishing Ships, including an apparently loaded transport, and repeatedly attacking a tower instead. Target identity and exact combat orders are not decoded by the replay parser, so those observations remain user-supplied match evidence."
+      ],
+      "implementation_inferences": [
+        "The P3B19 naval dispatch path set `sn-percent-attack-boats` and called global `attack-now`. That broad engine owner is sufficient to bypass the dedicated capital-ship rules and explains why ordinary ships could prefer hard structures even though vessel target priorities were already high.",
+        "Configured target priority eleven for transports and fishing ships did not provide en-route retargeting for a multi-unit generic attack group; increasing the same priority would therefore be an untested repetition rather than a fix.",
+        "P3B19 assigned naval scout, Juggernaut, Octeres, relic-ferry, and siege-objective controllers to DUC group IDs 10 through 16. The documented runtime group domain is 0 through 9, so those ownership and exclusion guarantees could not be trusted even when structural syntax passed.",
+        "Because this recording contained no Juggernaut or Octeres, every attack on a tower, Fort-class castle, or Town Center by the ordinary fleet should have been considered an avoidable high-risk engagement rather than supported bombardment."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B20 and require a source-matched deployment before attributing fresh behavior to this patch.",
+        "Keep every DUC group operand in the engine's 0-through-9 domain, add structural validation for that operand domain, and require post-create group-size evidence for naval scout and capital ownership. Multiplex the land-only raid/scout and idle-route relic/screen slots only behind mutually exclusive gates; reserve both capital families together on one valid slot and filter the active family only when commanding it.",
+        "Replace autonomous naval `attack-now` dispatch with a game-time-driven light-fleet opportunity controller restricted to primary or competitive naval roles. Randomize the live target-owner selector, select an own unreserved light hull and its water zone, retain a three-zone ring of exhausted basins, then search the same basin in the order loaded Transport, positively allowlisted light warship, empty Transport, and Fishing Ship.",
+        "Reject an opportunity if any live enemy owns a known Sea Tower, tower, Fort/castle, or Town Center within eighteen tiles of the target or within a conservative thirty-two-tile midpoint corridor covering the bounded sixty-tile intercept. Walk the live-enemy set with an ordered focus-player cycle; across a rule-sweep boundary retain only the next player ID, restore borrowed focus, and rebuild the remote defense list in a fresh producer immediately before its consumer. Try up to two candidates in the same class before descending and explicitly exclude loaded hulls from the later empty-Transport class.",
+        "Rebuild the eligible local list and re-resolve the exact enemy object immediately before command. Issue no order and no success telemetry if either list is empty. Reissue an unchanged live target no more than once per thirty seconds, rescan every six to eight seconds, and immediately abandon opportunity ownership when home defense activates.",
+        "Exclude capital hulls, transports, direct-control groups, Scout Ship explorers, and capital guards from the opportunity source list. Rebuild ungrouped positive-allowlist escorts around the exact Juggernaut or Octeres, keep both capital families reserved in the shared valid DUC slot, filter commands to the active family, and prevent transport-escort selection from stealing follow/guard reservations.",
+        "Set warship targeting mode to its fortification-aware setting, preserve disabled built-in tower priority across all difficulty and age writers, initialize boat attack percentage to zero, and explicitly keep boats at zero in the periodic land `attack-now` producer."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B20 near match start.",
+        "When a same-water-zone loaded Transport is known within sixty tiles and the screened corridor contains no known hard defense, replay telemetry reports opportunity target kind one and ordinary light ships attack it rather than continuing toward an unrelated waypoint.",
+        "With no safe transport or enemy combat ship, an exposed Fishing Ship produces opportunity target kind four and a bounded group of at most twelve same-basin light ships attacks it.",
+        "A Transport or Fishing Ship beside a known tower, Fort/castle, or Town Center is rejected; ordinary light ships do not enter the screened target or midpoint defense corridor merely to take that opportunity.",
+        "If the closest opportunity in a class is defended but a second same-class vessel is safe, the controller rejects the first and attacks the second; after two defended candidates it descends to the next target class, and three consecutively exhausted water basins remain excluded while a fourth basin is considered.",
+        "In a multiplayer test, a vessel owned by one enemy is rejected when its target disk or midpoint corridor is covered only by another live enemy's known tower, Fort/castle, or Town Center.",
+        "A support-role navy does not launch an independent opportunity attack, while its reserved transport-screen and capital-bombardment duties remain available.",
+        "No autonomous naval-dispatch record is followed by broad boat `attack-now` behavior. Juggernauts and Octeres, when present in a separate test, retain dedicated fortification bombardment while their rebuilt light escorts guard the exact capital.",
+        "Naval scout, relic ferry, land siege, and alternating capital telemetry all show nonzero post-create ownership where expected, and no runtime group command uses or behaves as if it used an ID above nine.",
+        "An unchanged opportunity target does not receive a new attack order every six seconds; command telemetry refreshes at roughly thirty-second intervals unless the target changes or home defense aborts it."
+      ],
+      "known_limits": [
+        "No decoded RAWAI marker proves the exact source build used for this replay. The P3B19-specific scout messages establish only a partial source fingerprint.",
+        "The replay parser does not decode exact target types, target switching, DUC group membership, individual hull paths, garrison occupancy, or tower range. The user's visual target observations are therefore recorded separately from parser-derived telemetry.",
+        "The AI API exposes no dependable arbitrary ship-path query. The all-live-enemy target-radius and midpoint-disk checks deliberately over-reject known fortifications and cannot detect an unseen defense or prove the engine's eventual path remains inside the sampled corridor.",
+        "The opportunity controller uses a positive light-hull allowlist rather than the broad warship class, so Juggernauts and Octeres cannot be strength-blindly pulled into vessel interception. Other future unique light ships must be added explicitly after their role and data are audited.",
+        "The exhausted-basin ring retains three water-zone IDs. It prevents the observed two-basin alternation and reaches a fourth basin, but a map with more than three simultaneously empty, closer basins can eventually revisit an older basin; fresh multi-basin telemetry must determine whether a larger ring is justified.",
+        "Multiplexing is an engine-slot constraint. Structural validation proves IDs are in range, while fresh runtime telemetry is still required to prove the mutually exclusive map and route gates prevent ownership collisions."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

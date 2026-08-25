@@ -907,6 +907,31 @@
 (defconst gl-naval-scout-target-zone 998)
 (defconst gl-home-stone-count 999)
 (defconst gl-relic-ferry-return-attempts 1000)
+(defconst gl-naval-opportunity-state 1001)
+(defconst gl-naval-opportunity-focus 1002)
+(defconst gl-naval-opportunity-player 1003)
+(defconst gl-naval-opportunity-source-id 1004)
+(defconst gl-naval-opportunity-target-id 1005)
+(defconst gl-naval-opportunity-active-id 1006)
+(defconst gl-naval-opportunity-zone 1007)
+(defconst gl-naval-opportunity-source-x 1008)
+(defconst gl-naval-opportunity-source-y 1009)
+(defconst gl-naval-opportunity-target-x 1010)
+(defconst gl-naval-opportunity-target-y 1011)
+(defconst gl-naval-opportunity-route-x 1012)
+(defconst gl-naval-opportunity-route-y 1013)
+(defconst gl-naval-opportunity-target-kind 1014)
+(defconst gl-naval-opportunity-rejected-id 1015)
+(defconst gl-naval-opportunity-ship-count 1016)
+(defconst gl-naval-opportunity-next 1017)
+(defconst gl-naval-opportunity-refresh 1018)
+(defconst gl-naval-opportunity-rejected-zone 1019)
+(defconst gl-naval-opportunity-rejected-id2 1020)
+(defconst gl-naval-opportunity-reject-count 1021)
+(defconst gl-naval-opportunity-rejected-zone2 1022)
+(defconst gl-naval-opportunity-rejected-zone3 1023)
+(defconst gl-naval-opportunity-defense-player 1024)
+(defconst gl-naval-opportunity-defense-first 1025)
 
 ; Goal Values
 
@@ -1059,19 +1084,47 @@
 ;route-screen scout reserved from exploration, escort, and response retasking
 (defconst transport-screen-group 7)
 
+;The engine exposes only direct-control groups 0..9. Multiplex group slots only
+;between controllers whose map/route gates are mutually exclusive: naval
+;scouting shares the land-only raid slot, and relic ferry ownership shares the
+;loaded-route screen slot. Naval capital families remain reserved together on
+;one slot and are filtered to the active family only when commanded.
 ;short-lived direct-control ownership for units answering a home incursion
 (defconst home-defense-response-group 6)
 (defconst home-naval-response-group 5)
-(defconst naval-scout-group 10)
-(defconst juggernaut-bombardment-group 11)
-(defconst juggernaut-bombardment-escort-group 12)
-(defconst octeres-bombardment-group 13)
-(defconst octeres-bombardment-escort-group 14)
-(defconst relic-ferry-transport-group 15)
-(defconst siege-objective-group 16)
+(defconst naval-scout-group 8)
+(defconst juggernaut-bombardment-group 2)
+(defconst octeres-bombardment-group 2)
+(defconst relic-ferry-transport-group 7)
+(defconst siege-objective-group 1)
 (defconst NAVAL-SCOUT-IDLE 0)
 (defconst NAVAL-SCOUT-CHECK 1)
 (defconst NAVAL-SCOUT-TARGET 2)
+
+;light-fleet target-of-opportunity controller
+(defconst NAVAL-OPPORTUNITY-IDLE 0)
+(defconst NAVAL-OPPORTUNITY-FIND-SOURCE 1)
+(defconst NAVAL-OPPORTUNITY-SCAN-LOADED 2)
+(defconst NAVAL-OPPORTUNITY-SCAN-WARSHIP 3)
+(defconst NAVAL-OPPORTUNITY-SCAN-TRANSPORT 4)
+(defconst NAVAL-OPPORTUNITY-SCAN-FISHING 5)
+(defconst NAVAL-OPPORTUNITY-CHECK-TARGET 6)
+(defconst NAVAL-OPPORTUNITY-CHECK-ROUTE 7)
+(defconst NAVAL-OPPORTUNITY-REJECT 8)
+(defconst NAVAL-OPPORTUNITY-PREPARE 9)
+(defconst NAVAL-OPPORTUNITY-COMMAND 10)
+(defconst NAVAL-OPPORTUNITY-VERIFY 11)
+(defconst NAVAL-OPPORTUNITY-FINISH 12)
+(defconst NAVAL-OPPORTUNITY-START-TARGET-DEFENSE 13)
+(defconst NAVAL-OPPORTUNITY-ADVANCE-TARGET-DEFENSE 14)
+(defconst NAVAL-OPPORTUNITY-NEXT-TARGET-DEFENSE 15)
+(defconst NAVAL-OPPORTUNITY-ADVANCE-ROUTE-DEFENSE 16)
+(defconst NAVAL-OPPORTUNITY-NEXT-ROUTE-DEFENSE 17)
+(defconst NAVAL-OPPORTUNITY-START-ROUTE-DEFENSE 18)
+(defconst NAVAL-OPPORTUNITY-LOADED 1)
+(defconst NAVAL-OPPORTUNITY-WARSHIP 2)
+(defconst NAVAL-OPPORTUNITY-TRANSPORT 3)
+(defconst NAVAL-OPPORTUNITY-FISHING 4)
 
 ;loaded transport route-safety state
 (defconst TRANSPORT-ROUTE-IDLE 0)
@@ -1495,6 +1548,7 @@
 	(set-strategic-number sn-percent-enemy-sighted-response 100)
 	(set-strategic-number sn-number-explore-groups 0)
 	(set-strategic-number sn-percent-attack-soldiers 0)
+	(set-strategic-number sn-percent-attack-boats 0)
 	(set-strategic-number sn-task-ungrouped-soldiers 0)
 	(set-strategic-number sn-number-attack-groups 0)
 	(set-strategic-number sn-enemy-sighted-response-distance 6)
@@ -1515,6 +1569,10 @@
 	(set-strategic-number sn-wall-targeting-mode 0)
 	(set-strategic-number sn-easiest-reaction-percentage 20)
 	(set-strategic-number sn-easier-reaction-percentage 60)
+	;Ordinary light ships must prefer reachable vessels and must not inherit the
+	;built-in hard-structure priority used by dedicated capital bombardment.
+	(set-strategic-number sn-warship-targeting-mode 1)
+	(set-strategic-number sn-disable-tower-priority 1)
 	(up-get-point position-self position-self-x)
 	(disable-self)
 )

@@ -253,6 +253,52 @@ class PerDomainTests(unittest.TestCase):
         self.assertIn("timer_id_out_of_range", kinds)
         self.assertIn("duplicate_timer_id", kinds)
 
+    def test_duc_group_ids_must_be_between_zero_and_nine(self) -> None:
+        issues = self.validate_text(
+            """(defconst invalid-naval-group 10)
+(defrule
+    (up-group-size c: invalid-naval-group > 0)
+=>
+    (up-reset-group c: invalid-naval-group)
+)
+"""
+        )
+        self.assertEqual(
+            2,
+            [issue["kind"] for issue in issues].count(
+                "duc_group_id_out_of_range"
+            ),
+        )
+
+    def test_valid_symbolic_duc_group_is_accepted(self) -> None:
+        self.assertEqual(
+            [],
+            self.validate_text(
+                """(defconst valid-naval-group 9)
+(defrule
+    (true)
+=>
+    (up-create-group 0 0 c: valid-naval-group)
+    (up-modify-group-flag 1 c: valid-naval-group)
+)
+"""
+            ),
+        )
+
+    def test_target_action_name_cannot_be_invented_as_an_action_id(self) -> None:
+        issues = self.validate_text(
+            """(defrule
+    (true)
+=>
+    (up-remove-objects search-local object-data-action == actionid-guard)
+)
+"""
+        )
+        self.assertIn(
+            "undefined_action_id_constant",
+            [issue["kind"] for issue in issues],
+        )
+
     def test_undefined_target_point_is_rejected(self) -> None:
         issues = self.validate_text(
             """(defrule
@@ -435,6 +481,9 @@ class FarmPolicyTests(unittest.TestCase):
             encoding="utf-8-sig"
         )
         cls.research = (root / "rawai-research.per").read_text(encoding="utf-8-sig")
+        cls.sn_defines = (root / "rawai-sn-defines.per").read_text(
+            encoding="utf-8-sig"
+        )
         cls.romeemp = (root / "rawai-civ-romeemp.per").read_text(encoding="utf-8-sig")
         cls.specialplacement = (root / "rawai-specialplacement.per").read_text(
             encoding="utf-8-sig"
@@ -572,7 +621,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B19", self.init_goals)
+        self.assertIn("RAWAI-P3B20", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -593,6 +642,303 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertEqual(len(calculators), 2)
         self.assertTrue(all(rule[1] < telemetry[0][0] for rule in calculators))
         self.assertIn("(up-timer-status t-farm-report != timer-running)", self.timers)
+
+    def test_naval_duc_groups_stay_inside_the_engine_domain(self) -> None:
+        groups = {
+            name: int(value)
+            for name, value in re.findall(
+                r"\(defconst\s+([a-z0-9-]*group)\s+(-?\d+)\)",
+                self.customconstants,
+                re.IGNORECASE,
+            )
+        }
+        self.assertTrue(groups)
+        self.assertTrue(all(0 <= value <= 9 for value in groups.values()))
+        self.assertEqual(groups["naval-scout-group"], groups["opportunistic-raid-group"])
+        self.assertEqual(groups["relic-ferry-transport-group"], groups["transport-screen-group"])
+        self.assertEqual(
+            groups["juggernaut-bombardment-group"],
+            groups["octeres-bombardment-group"],
+        )
+        self.assertIn("up-group-size c: naval-scout-group > 0", self.military)
+        self.assertIn("up-group-size c: juggernaut-bombardment-group > 0", self.military)
+        raid_release = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-home-defense-state YES)",
+                "(goal map-type LAND)",
+                "up-group-size c: opportunistic-raid-group > 0",
+            ),
+        )
+        self.assertEqual(len(raid_release), 1)
+
+    def test_naval_opportunities_are_vessel_first_and_fortification_averse(self) -> None:
+        trigger = matching_rules(
+            self.military,
+            facts=(
+                "gl-game-time g:>= gl-naval-opportunity-next",
+                "NAVAL-OPPORTUNITY-IDLE",
+                "gl-naval-theater YES",
+                "gl-naval-role c:<= NAVAL-ROLE-COMPETITIVE",
+                "gl-naval-role c:>= NAVAL-ROLE-PRIMARY",
+            ),
+            actions=(
+                "up-find-player enemy find-random",
+                "up-get-point position-focus gl-naval-opportunity-source-x",
+                "up-find-local c: scout-galley-line",
+                "object-data-action == actionid-explore",
+                "object-data-action == actionid-follow",
+                "object-data-map-zone-id g:== gl-naval-opportunity-rejected-zone",
+                "object-data-map-zone-id g:== gl-naval-opportunity-rejected-zone2",
+                "object-data-map-zone-id g:== gl-naval-opportunity-rejected-zone3",
+                "NAVAL-OPPORTUNITY-FIND-SOURCE",
+            ),
+        )
+        self.assertEqual(len(trigger), 1)
+        source = matching_rules(
+            self.military,
+            facts=(
+                "NAVAL-OPPORTUNITY-FIND-SOURCE",
+                "up-set-target-object search-local c: 0",
+            ),
+            actions=(
+                "object-data-map-zone-id gl-naval-opportunity-zone",
+                "up-find-remote c: transport-ship",
+                "object-data-garrison-count <= 0",
+                "NAVAL-OPPORTUNITY-SCAN-LOADED",
+            ),
+        )
+        self.assertEqual(len(source), 1)
+        self.assertIn("NAVAL-OPPORTUNITY-SCAN-WARSHIP", self.military)
+        self.assertIn("NAVAL-OPPORTUNITY-SCAN-TRANSPORT", self.military)
+        self.assertIn("NAVAL-OPPORTUNITY-SCAN-FISHING", self.military)
+        self.assertIn("up-find-remote c: fishing-ship-class", self.military)
+        self.assertIn("up-filter-distance c: -1 c: 18", self.military)
+        self.assertIn("up-filter-distance c: -1 c: 32", self.military)
+        self.assertIn(
+            "up-lerp-percent gl-naval-opportunity-route-x "
+            "gl-naval-opportunity-source-x c: 50",
+            self.military,
+        )
+        for hard_target in ("sea-tower", "tower-class", "castle", "town-center"):
+            self.assertIn(f"up-find-remote c: {hard_target}", self.military)
+
+        target_start = matching_rules(
+            self.military,
+            facts=("NAVAL-OPPORTUNITY-START-TARGET-DEFENSE",),
+            actions=(
+                "gl-naval-opportunity-defense-player",
+                "up-filter-distance c: -1 c: 18",
+                "NAVAL-OPPORTUNITY-CHECK-TARGET",
+            ),
+        )
+        self.assertEqual(len(target_start), 1)
+        target_advance = matching_rules(
+            self.military,
+            facts=("NAVAL-OPPORTUNITY-ADVANCE-TARGET-DEFENSE",),
+            actions=(
+                "up-find-next-player enemy find-ordered",
+                "NAVAL-OPPORTUNITY-NEXT-TARGET-DEFENSE",
+            ),
+        )
+        route_advance = matching_rules(
+            self.military,
+            facts=("NAVAL-OPPORTUNITY-ADVANCE-ROUTE-DEFENSE",),
+            actions=(
+                "up-find-next-player enemy find-ordered",
+                "NAVAL-OPPORTUNITY-NEXT-ROUTE-DEFENSE",
+            ),
+        )
+        self.assertEqual(len(target_advance), 1)
+        self.assertEqual(len(route_advance), 1)
+        next_target = matching_rules(
+            self.military,
+            facts=(
+                "NAVAL-OPPORTUNITY-NEXT-TARGET-DEFENSE",
+                "gl-naval-opportunity-defense-player g:!= gl-naval-opportunity-defense-first",
+            ),
+            actions=(
+                "sn-focus-player-number g:= gl-naval-opportunity-focus",
+                "NAVAL-OPPORTUNITY-START-TARGET-DEFENSE",
+            ),
+        )
+        next_route = matching_rules(
+            self.military,
+            facts=(
+                "NAVAL-OPPORTUNITY-NEXT-ROUTE-DEFENSE",
+                "gl-naval-opportunity-defense-player g:!= gl-naval-opportunity-defense-first",
+            ),
+            actions=(
+                "sn-focus-player-number g:= gl-naval-opportunity-focus",
+                "NAVAL-OPPORTUNITY-START-ROUTE-DEFENSE",
+            ),
+        )
+        self.assertEqual(len(next_target), 1)
+        self.assertEqual(len(next_route), 1)
+        self.assertNotIn("up-find-remote", next_target[0][4])
+        self.assertNotIn("up-find-remote", next_route[0][4])
+        route_start = matching_rules(
+            self.military,
+            facts=("NAVAL-OPPORTUNITY-START-ROUTE-DEFENSE",),
+            actions=(
+                "gl-naval-opportunity-defense-player",
+                "up-filter-distance c: -1 c: 32",
+                "NAVAL-OPPORTUNITY-CHECK-ROUTE",
+            ),
+        )
+        self.assertEqual(len(route_start), 1)
+        all_enemies_clear = matching_rules(
+            self.military,
+            facts=(
+                "NAVAL-OPPORTUNITY-NEXT-ROUTE-DEFENSE",
+                "gl-naval-opportunity-defense-player g:== gl-naval-opportunity-defense-first",
+            ),
+            actions=("NAVAL-OPPORTUNITY-PREPARE",),
+        )
+        self.assertEqual(len(all_enemies_clear), 1)
+
+        basin_ring = matching_rules(
+            self.military,
+            facts=("NAVAL-OPPORTUNITY-SCAN-FISHING",),
+            actions=(
+                "gl-naval-opportunity-rejected-zone3 g:= gl-naval-opportunity-rejected-zone2",
+                "gl-naval-opportunity-rejected-zone2 g:= gl-naval-opportunity-rejected-zone",
+                "gl-naval-opportunity-rejected-zone g:= gl-naval-opportunity-zone",
+                "NAVAL-OPPORTUNITY-IDLE",
+            ),
+        )
+        self.assertGreaterEqual(len(basin_ring), 1)
+
+        retry_loaded = matching_rules(
+            self.military,
+            facts=(
+                "NAVAL-OPPORTUNITY-REJECT",
+                "NAVAL-OPPORTUNITY-LOADED",
+                "gl-naval-opportunity-reject-count c:< 2",
+            ),
+            actions=(
+                "object-data-garrison-count <= 0",
+                "object-data-id g:== gl-naval-opportunity-rejected-id",
+                "object-data-id g:== gl-naval-opportunity-rejected-id2",
+                "NAVAL-OPPORTUNITY-SCAN-LOADED",
+            ),
+        )
+        self.assertEqual(len(retry_loaded), 1)
+        empty_transport_searches = matching_rules(
+            self.military,
+            actions=(
+                "up-find-remote c: transport-ship",
+                "object-data-garrison-count > 0",
+                "NAVAL-OPPORTUNITY-SCAN-TRANSPORT",
+            ),
+        )
+        self.assertGreaterEqual(len(empty_transport_searches), 2)
+
+        verified_command = matching_rules(
+            self.military,
+            facts=(
+                "NAVAL-OPPORTUNITY-VERIFY",
+                "gl-naval-opportunity-ship-count c:> 0",
+                "up-set-target-object search-remote c: 0",
+            ),
+            actions=(
+                "up-target-objects 1 action-default",
+                "NAVAL-OPPORTUNITY-FINISH",
+            ),
+        )
+        self.assertEqual(len(verified_command), 1)
+        failed_verify = matching_rules(
+            self.military,
+            facts=("NAVAL-OPPORTUNITY-VERIFY",),
+            actions=("NAVAL-OPPORTUNITY-IDLE",),
+        )
+        self.assertEqual(len(failed_verify), 2)
+
+    def test_ordinary_navy_is_not_released_through_autonomous_attack_now(self) -> None:
+        naval_dispatches = matching_rules(
+            self.military,
+            facts=("ATTACK-DISPATCH-NAVAL",),
+            actions=("naval opportunity dispatch: %d",),
+        )
+        self.assertEqual(len(naval_dispatches), 2)
+        self.assertTrue(all("(attack-now)" not in rule[4] for rule in naval_dispatches))
+        periodic_land = matching_rules(
+            self.military,
+            facts=("(goal map-type LAND)",),
+            actions=(
+                "(set-strategic-number sn-percent-attack-boats 0)",
+                "(attack-now)",
+            ),
+        )
+        self.assertEqual(len(periodic_land), 1)
+        self.assertIn("(set-strategic-number sn-warship-targeting-mode 1)", self.customconstants)
+        self.assertIn("(set-strategic-number sn-disable-tower-priority 1)", self.customconstants)
+        self.assertNotIn(
+            "(set-strategic-number sn-disable-tower-priority 0)",
+            self.sn_defines,
+        )
+
+    def test_capital_escorts_do_not_consume_an_invalid_second_group(self) -> None:
+        self.assertNotIn(
+            "up-create-group 0 0 c: juggernaut-bombardment-escort-group",
+            self.military,
+        )
+        self.assertNotIn(
+            "up-create-group 0 0 c: octeres-bombardment-escort-group",
+            self.military,
+        )
+        escort = matching_rules(
+            self.military,
+            facts=(
+                "SIEGE-TARGET-ESCORT",
+                "up-group-size c: juggernaut-bombardment-group > 0",
+            ),
+            actions=(
+                "up-find-local c: scout-galley-line",
+                "up-find-local c: boarding-ship",
+                "up-add-object-by-id search-remote g: gl-naval-siege-source-id",
+                "up-target-objects 0 action-guard",
+            ),
+        )
+        self.assertEqual(len(escort), 1)
+        group_builders = matching_rules(
+            self.military,
+            facts=("SIEGE-TARGET-GROUP",),
+            actions=(
+                "up-find-local c: juggernaut-line",
+                "up-find-local c: octeres",
+                "up-create-group 0 0 c:",
+            ),
+        )
+        self.assertEqual(len(group_builders), 2)
+        juggernaut_commands = matching_rules(
+            self.military,
+            facts=("SIEGE-TARGET-FIND-STRUCTURE", "gl-naval-siege-family 0"),
+            actions=(
+                "up-set-group search-local c: juggernaut-bombardment-group",
+                "object-data-type == octeres",
+            ),
+        )
+        octeres_commands = matching_rules(
+            self.military,
+            facts=("SIEGE-TARGET-FIND-STRUCTURE", "gl-naval-siege-family 1"),
+            actions=(
+                "up-set-group search-local c: octeres-bombardment-group",
+                "object-data-type != octeres",
+            ),
+        )
+        self.assertEqual(len(juggernaut_commands), 1)
+        self.assertEqual(len(octeres_commands), 1)
+
+        transport_escort = matching_rules(
+            self.military,
+            facts=("ESCORT-SELECT",),
+            actions=(
+                "object-data-action == actionid-explore",
+                "object-data-action == actionid-follow",
+            ),
+        )
+        self.assertEqual(len(transport_escort), 1)
 
     def test_relic_carrier_reboards_the_reserved_transport(self) -> None:
         wait = matching_rules(
