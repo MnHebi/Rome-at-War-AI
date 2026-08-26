@@ -621,7 +621,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B20", self.init_goals)
+        self.assertIn("RAWAI-P3B21", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -1345,20 +1345,255 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertEqual(len(mining_unrelated_reset), 1)
 
-        opening_mill = matching_rules(
+        opening_mill_search = matching_rules(
             self.homebase,
             facts=(
+                "(game-time >= 60)",
+                "(game-time < 300)",
+                "(up-timer-status t-opening-mill == timer-triggered)",
+                "(goal gl-opening-mill-state OPENING-MILL-IDLE)",
+                "(goal gl-migration-placement-lock NO)",
                 "(up-object-type-count-total c: mill == 0)",
+                "(not (up-pending-placement c: mill))",
                 "(can-afford-building mill)",
                 "(up-can-build 0 c: mill)",
             ),
             actions=(
-                "(up-build place-normal 0 c: mill)",
-                "(set-goal gl-opening-mill-requested YES)",
+                "sn-focus-player-number 0",
+                "(up-set-target-point gl-home-anchor-x)",
+                "(up-filter-distance c: -1 c: 32)",
+                "(up-find-remote c: forage-class c: 20)",
+                "object-data-map-zone-id g:!= gl-home-zone",
+                "object-data-index g:!= gl-opening-mill-candidate-index",
+                "OPENING-MILL-FIND-RESOURCE",
             ),
         )
-        self.assertEqual(len(opening_mill), 1)
-        self.assertNotIn("(set-goal gl-escrow", opening_mill[0][4])
+        self.assertEqual(len(opening_mill_search), 1)
+        self.assertNotIn("(set-goal gl-escrow", opening_mill_search[0][4])
+
+        resource_producer = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-opening-mill-state OPENING-MILL-FIND-RESOURCE)",
+                "(up-object-data object-data-class == forage-class)",
+            ),
+            actions=(
+                "object-data-id gl-opening-mill-resource-id",
+                "object-data-map-zone-id gl-opening-mill-resource-zone",
+                "position-object gl-opening-mill-target-x",
+                "(up-filter-distance c: -1 c: 8)",
+                "(up-find-remote c: forage-class c: 20)",
+                "(up-get-search-state local-total)",
+                "OPENING-MILL-CHECK-RESOURCE",
+            ),
+        )
+        cluster_consumer = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-opening-mill-state OPENING-MILL-CHECK-RESOURCE)",
+                "(up-compare-goal remote-total c:>= 3)",
+            ),
+            actions=(
+                "gl-opening-mill-cluster-count g:= remote-total",
+                "OPENING-MILL-PLACE",
+            ),
+        )
+        self.assertEqual(len(resource_producer), 1)
+        self.assertEqual(len(cluster_consumer), 1)
+        self.assertLess(resource_producer[0][1], cluster_consumer[0][0])
+
+        allied_resource_producer = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-opening-mill-state OPENING-MILL-FIND-RESOURCE)",
+                "(up-object-data object-data-class == forage-class)",
+                "(player-in-game any-ally)",
+            ),
+            actions=(
+                "position-object gl-opening-mill-target-x",
+                "up-find-player ally find-ordered gl-opening-mill-ally-player",
+                "gl-opening-mill-ally-first g:= gl-opening-mill-ally-player",
+                "OPENING-MILL-START-ALLY-CHECK",
+            ),
+        )
+        ally_search = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-opening-mill-state OPENING-MILL-START-ALLY-CHECK)",
+            ),
+            actions=(
+                "sn-focus-player-number g:= gl-opening-mill-ally-player",
+                "(up-set-target-point gl-opening-mill-target-x)",
+                "(up-filter-distance c: -1 c: 18)",
+                "(up-find-remote c: town-center c: 10)",
+                "OPENING-MILL-CHECK-ALLY-TC",
+            ),
+        )
+        ally_rejection = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-opening-mill-state OPENING-MILL-CHECK-ALLY-TC)",
+                "(up-set-target-object search-remote c: 0)",
+            ),
+            actions=(
+                "opening Mill rejected allied-base forage",
+                "gl-opening-mill-candidate-index c:+ 1",
+                "(set-goal gl-migration-placement-lock NO)",
+            ),
+        )
+        ally_iterator = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-opening-mill-state OPENING-MILL-ADVANCE-ALLY)",
+            ),
+            actions=(
+                "up-find-next-player ally find-ordered gl-opening-mill-ally-player",
+                "OPENING-MILL-NEXT-ALLY",
+            ),
+        )
+        ally_cluster_producer = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-opening-mill-state OPENING-MILL-NEXT-ALLY)",
+                "gl-opening-mill-ally-player g:== gl-opening-mill-ally-first",
+            ),
+            actions=(
+                "sn-focus-player-number 0",
+                "(up-find-remote c: forage-class c: 20)",
+                "(up-get-search-state local-total)",
+                "OPENING-MILL-CHECK-RESOURCE",
+            ),
+        )
+        self.assertEqual(len(allied_resource_producer), 1)
+        self.assertEqual(len(ally_search), 1)
+        self.assertEqual(len(ally_rejection), 1)
+        self.assertEqual(len(ally_iterator), 1)
+        self.assertEqual(len(ally_cluster_producer), 1)
+        self.assertLess(ally_cluster_producer[0][1], cluster_consumer[0][0])
+
+        mill_point_placements = matching_rules(
+            self.homebase,
+            facts=("(goal gl-opening-mill-state OPENING-MILL-PLACE)",),
+            actions=(
+                "(up-build place-point 0 c: mill)",
+                "(set-goal gl-opening-mill-requested YES)",
+                "OPENING-MILL-WAIT",
+            ),
+        )
+        self.assertEqual(len(mill_point_placements), 4)
+
+        mill_fallback = matching_rules(
+            self.homebase,
+            facts=("(goal gl-opening-mill-state OPENING-MILL-FALLBACK)",),
+            actions=(
+                "(up-build place-normal 0 c: mill)",
+                "(set-goal gl-opening-mill-requested YES)",
+                "OPENING-MILL-FALLBACK-WAIT",
+            ),
+        )
+        self.assertEqual(len(mill_fallback), 1)
+        self.assertEqual(self.homebase.count("(up-build place-normal 0 c: mill)"), 2)
+
+        unconditional_fallback = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-opening-mill-state OPENING-MILL-FIND-RESOURCE)",
+                "(not (up-set-target-object search-remote c: 0))",
+                "(game-time >= 300)",
+            ),
+            actions=("OPENING-MILL-FALLBACK",),
+        )
+        emergency_fallback = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-opening-mill-state OPENING-MILL-FIND-RESOURCE)",
+                "(not (up-set-target-object search-remote c: 0))",
+                "(game-time >= 180)",
+                "(goal gl-home-defense-state YES)",
+                "(goal resources-depleted YES)",
+                "(not (goal rush-rushing NO))",
+            ),
+            actions=("OPENING-MILL-FALLBACK",),
+        )
+        self.assertEqual(len(unconditional_fallback), 1)
+        self.assertEqual(len(emergency_fallback), 1)
+
+        deadline_fallback = matching_rules(
+            self.homebase,
+            facts=(
+                "(game-time >= 300)",
+                "(goal gl-opening-mill-state OPENING-MILL-IDLE)",
+                "(goal gl-opening-mill-requested NO)",
+                "(not (up-pending-placement c: mill))",
+            ),
+            actions=(
+                "(set-goal gl-migration-placement-lock YES)",
+                "OPENING-MILL-FALLBACK",
+            ),
+        )
+        self.assertEqual(len(deadline_fallback), 1)
+
+        destroyed_mill_reset = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-opening-mill-state OPENING-MILL-IDLE)",
+                "(goal gl-opening-mill-requested YES)",
+                "(building-type-count-total mill == 0)",
+                "(up-pending-objects c: mill <= 0)",
+                "(not (up-pending-placement c: mill))",
+                "(up-timer-status t-opening-mill == timer-triggered)",
+            ),
+            actions=(
+                "(up-reset-placement c: mill)",
+                "(set-goal gl-opening-mill-requested NO)",
+            ),
+        )
+        self.assertEqual(len(destroyed_mill_reset), 1)
+
+        pending_verifier = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-opening-mill-state OPENING-MILL-WAIT)",
+                "(up-pending-objects c: mill >= 1)",
+            ),
+            actions=(
+                "status-pending",
+                "object-data-map-zone-id g:!= gl-opening-mill-resource-zone",
+                "OPENING-MILL-CHECK-FOUNDATION",
+            ),
+        )
+        ready_verifier = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-opening-mill-state OPENING-MILL-WAIT)",
+                "(up-pending-objects c: mill <= 0)",
+                "(building-type-count-total mill >= 1)",
+            ),
+            actions=(
+                "status-ready",
+                "object-data-map-zone-id g:!= gl-opening-mill-resource-zone",
+                "OPENING-MILL-FIND-COMPLETED",
+            ),
+        )
+        self.assertEqual(len(pending_verifier), 1)
+        self.assertEqual(len(ready_verifier), 1)
+        self.assertNotIn("action-delete", pending_verifier[0][4] + ready_verifier[0][4])
+
+        candidate_rejections = matching_rules(
+            self.homebase,
+            actions=("gl-opening-mill-candidate-index c:+ 1",),
+        )
+        self.assertEqual(len(candidate_rejections), 3)
+        self.assertTrue(
+            all(
+                "(set-goal gl-migration-placement-lock NO)" in rule[4]
+                for rule in candidate_rejections
+            )
+        )
+        self.assertNotIn(
+            "gl-opening-mill-candidate-index g:+ gl-opening-mill-cluster-count",
+            self.homebase,
+        )
 
         migration_validation = matching_rules(
             self.military,
