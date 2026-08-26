@@ -1490,9 +1490,9 @@
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-FIND-RESOURCE)
 )
 
-;After the bootstrap, the desired count is a ceiling. A live woodcutter target
-;owns each additional request, and its exact target must still be a useful
-;same-zone tree cluster before point placement is issued.
+;After the bootstrap, the desired count is a ceiling. A live same-zone
+;woodcutter owns each additional request, and a nearby tree must still belong
+;to a useful cluster before point placement is issued.
 (defrule
 	(up-timer-status t-lumbercamp-placement == timer-triggered)
 	(goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
@@ -1511,13 +1511,17 @@
 	(up-set-target-point gl-home-anchor-x)
 	(up-find-local c: villager-class c: 160)
 	(up-remove-objects search-local object-data-gather-type != wood)
-	(up-remove-objects search-local object-data-action != actionid-gather)
-	(up-remove-objects search-local object-data-target-id == -1)
-	(up-remove-objects search-local object-data-target-id g:== gl-lumbercamp-rejected-resource-id)
-	(up-remove-objects search-local object-data-target-id g:== gl-lumbercamp-rejected-resource-id2)
-	(up-remove-objects search-local object-data-target-id g:== gl-lumbercamp-rejected-resource-id3)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-lumbercamp-worker-count g:= local-total)
+	;Walking to a tree, returning a load, and dropping it off are all valid
+	;wood-worker states. The old instantaneous actionid-gather filter discarded
+	;those workers and could suppress every later camp request.
+	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
 	(up-clean-search search-local object-data-distance search-order-desc)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-lumbercamp-candidate-count g:= local-total)
+	(up-chat-data-to-self "lumber camp live candidates: %d" g: gl-lumbercamp-candidate-count)
 	(set-goal gl-lumbercamp-placement-attempts 0)
 	(up-set-timer c: t-lumbercamp-placement c: 120)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-ASSESS)
@@ -1527,10 +1531,21 @@
 	(goal gl-lumbercamp-placement-state PLACEMENT-ASSESS)
 	(up-set-target-object search-local c: 0)
 =>
-	(up-get-object-data object-data-target-id gl-lumbercamp-resource-id)
+	;A returning woodcutter targets a drop site rather than a tree. Anchor the
+	;resource search on the worker's own position so walking, gathering, and
+	;returning workers can all reveal the distant wood line.
+	(up-get-object-data object-data-map-zone-id gl-lumbercamp-resource-zone)
+	(up-get-point position-object gl-lumbercamp-target-x)
 	(set-strategic-number sn-focus-player-number 0)
 	(up-full-reset-search)
-	(up-add-object-by-id search-remote g: gl-lumbercamp-resource-id)
+	(up-set-target-point gl-lumbercamp-target-x)
+	(up-filter-distance c: -1 c: 12)
+	(up-find-remote c: tree-class c: 20)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-lumbercamp-resource-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-lumbercamp-rejected-resource-id)
+	(up-remove-objects search-remote object-data-id g:== gl-lumbercamp-rejected-resource-id2)
+	(up-remove-objects search-remote object-data-id g:== gl-lumbercamp-rejected-resource-id3)
+	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-FIND-RESOURCE)
 )
 
@@ -1770,6 +1785,23 @@
 	(up-object-data object-data-map-zone-id g:== gl-lumbercamp-resource-zone)
 =>
 	(up-chat-data-to-self "lumber camp accepted live resource: %d" g: gl-lumbercamp-resource-id)
+	;Assign only nearby wood workers to the exact validated foundation. This
+	;finishes the camp without exposing shepherds or hunters to global builder
+	;assistance.
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-lumbercamp-foundation-id)
+	(up-set-target-point gl-lumbercamp-target-x)
+	(up-filter-distance c: -1 c: 12)
+	(up-find-local c: villager-class c: 20)
+	(up-remove-objects search-local object-data-gather-type != wood)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-lumbercamp-resource-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index g:>= 2)
+	(up-get-search-state local-total)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+	(up-chat-data-to-self "lumber camp builders assigned: %d" g: local-total)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
 	(set-goal gl-lumbercamp-placement-attempts 0)
 	(set-goal gl-lumbercamp-candidate-index 0)

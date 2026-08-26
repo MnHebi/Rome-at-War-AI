@@ -356,7 +356,34 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B23: %d" c: 23)
+	(up-chat-data-to-self "RAWAI-P3B24: %d" c: 24)
+	(disable-self)
+)
+
+;P3B24 transport, scout, target-zone, flare, and Lumber Camp diagnostics stay
+;in a separate startup rule so the replay marker and older initializers remain
+;comfortably below ERR6002.
+(defrule
+	(true)
+=>
+	(generate-random-number 4)
+	(up-get-fact random-number 0 gl-naval-scout-leg)
+	(set-goal gl-island-migration-landing-attempts 0)
+	(set-goal gl-delete-flare-candidates 0)
+	(set-goal gl-delete-flare-id -1)
+	(set-goal gl-lumbercamp-worker-count 0)
+	(set-goal gl-lumbercamp-candidate-count 0)
+	(set-goal gl-land-target-scan-state LAND-TARGET-SCAN-IDLE)
+	(set-goal gl-land-target-scan-next 1)
+	(set-goal gl-land-target-scan-focus 0)
+	(set-goal gl-land-target-zone -1)
+	(set-goal gl-land-target-needs-transport YES)
+	(set-goal gl-land-target-scan-player -1)
+	(set-goal gl-land-target-current-player -1)
+	(set-goal gl-quarantine-transport-id -1)
+	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)
+	(set-goal gl-quarantine-transport-next 0)
+	(set-goal gl-quarantine-transport-focus 0)
 	(disable-self)
 )
 

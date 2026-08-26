@@ -817,6 +817,64 @@
         "The user-reported color identities conflict with standard parser slot/color assumptions. Player 8 owns the decoded WALL commands; the visible color and civilization of that slot remain unresolved and are not guessed."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260826-145623",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.26 145623.aoe2record",
+        "sha256": "A421DDB835D463BAC216CCCE1284D5EB72779A0D73B8457D2DDEF70034F5CBED",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain (user-provided 4v4 test context)",
+        "players": [
+          "Eight AI players in two teams; exact civilization and color mapping is unresolved from the modded replay header"
+        ],
+        "duration_seconds": 3247
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and lasted 54:07. The user identified it as predating the latest changes, and no decoded RAWAI marker proves the exact deployed source.",
+        "Every parser player slot issued exactly one Lumber Camp build command (building 562), all between 00:16 and 00:32; no later Lumber Camp build command was decoded.",
+        "Every player requested both Market and Port infrastructure, but the replay contains zero Trade Cart (unit 128) and zero Trade Cog (unit 17) production requests.",
+        "Every player requested Transport Ships. One recorded scout-ferry sequence aborted empty at 13:02, then boarded at 17:03 and reached a route waypoint at 18:17 without confirming a landing; it entered repeated return retries and alternate-home recovery through 23:07.",
+        "The AI reported eight land-dispatch decisions from 13:42 through 41:11—three town-size releases and five eighty-percent releases—while its military-superiority telemetry remained 3 (superior). The user's match observation was nevertheless high military passivity.",
+        "Only three PATROL actions were decoded across all eight players. The user observed allied Scout Ships converging near Red's University and transported scouts reboarding rather than exploring after unloading.",
+        "Human taunt 69 was decoded at 44:09, 44:31, and 44:48. No replay telemetry proves that a flared structure was selected or deleted; the user observed that the ship-blocking building remained.",
+        "All players reached Middle Antiquity between 14:50 and 19:27, and none reached Imperial Antiquity before the replay ended."
+      ],
+      "implementation_inferences": [
+        "The naval scout owner repeatedly selected a shared farthest Gaia target, so allied scouts could converge on one already-known land object instead of covering different map sectors.",
+        "The ferry owner recalled its Transport before proving the scout had accepted an exploration order, constrained success to a small target radius, and used a water-position hull origin as an unload destination. Together these conditions can explain failed landings, immediate reboarding, and repeated return recovery.",
+        "The RIVERS readiness branch bypassed transport requirements without checking whether the selected enemy target shared the active-home land zone. The eight dispatch messages therefore prove cadence but not that the released army had a reachable target.",
+        "Phase three explicitly held both desired trade counts at zero. The route scanner could establish a valid modality, but no production demand existed to use it.",
+        "The later Lumber Camp selector required workers to be in the exact gather action. Woodcutters walking to trees or returning wood were excluded even when their live same-zone wood target demonstrated a distant usable wood line.",
+        "Taunt 69 jumped past both its selector and consumer, searched only two tiles around the flare, and provided no retained candidate proof before its delete action."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B24 and rotate each reserved Scout Ship through four player-relative map legs on a ninety-second cadence without using a shared Gaia target.",
+        "Keep a transported scout ashore, clear stale boarding orders, issue an explicit patrol fallback when no known natural-resource target exists, and only then release scout ownership and recall the hull.",
+        "Unload Transports toward the active-home land anchor, try four bounded diagonal destination-point attempts at twenty-second intervals, and detach one occupied recovery hull into exact-ID quarantine. Exclude only that hull from readiness, escort, repair, berth clearing, attack, stranded-unit, and relic-ferry selectors; build one bounded replacement above the normal full-lift target; and hold another migration at its idle gate while retrying once per minute until the hull is empty or dead, so placement and unrelated Transport work can resume without creating a second blocked owner.",
+        "Scan a ready building belonging to the current enemy target, latch that player ID independently of military-superiority state, and compare its land zone with the active-home zone. Invalidate readiness immediately if the current target changes; on LAKE or RIVERS maps, require a full or bounded utility lift only for a disconnected target and allow ordinary land readiness for a same-zone target, including opening-rush dispatches.",
+        "Set a three-unit phase-three demand for both Trade Carts and Trade Cogs while preserving the existing route scanner's mutually exclusive same-land-zone Market or same-water-zone Port permission.",
+        "Select later Lumber Camp sites from the position of same-zone wood gatherers regardless of their instantaneous action or return target, validate a nearby tree cluster and the exact accepted foundation, and bind at most two matching workers to it.",
+        "Process taunt 69 without rule jumps, search a six-tile flare radius for owned ready or pending buildings, towers, walls, and gates, retain only the nearest candidate, and delete only after a nonzero candidate and target-object check."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B24 near match start.",
+        "Allied Scout Ships report different rotating route legs over time and do not remain gathered around one allied building or shared Gaia target; each reserved hull remains a Scout Ship rather than a capital vessel.",
+        "A successfully landed scout is explicitly found in the destination land zone, then receives a land patrol or resource-scout order before its Transport returns home and does not immediately reboard. A failed landing tries at most four destination points; one occupied home-return hull remains exact-ID reserved and retries at low frequency until empty or dead, a replacement hull can be trained above the normal lift target, unrelated Transport utilities continue using different hulls, and another migration does not start until quarantine clears.",
+        "A same-land-zone enemy on Real World Britain permits the next eligible land or opening-rush attack, while an enemy on a disconnected land zone reports transport-required state and does not consume an ordinary or rush dispatch without a current-target full lift.",
+        "Once a connected allied Market or Port route exists in phase three, the matching trade unit is requested up to its three-unit baseline; no Trade Cart is requested for a water-disconnected Market route and no Trade Cog is requested without a shared Port water zone.",
+        "After wood workers repeatedly travel beyond the configured camp distance, a later Lumber Camp is requested at a validated same-zone tree cluster and up to two matching wood workers within twelve tiles construct that exact foundation.",
+        "A human /69 flare within six tiles of an owned blocking structure produces exactly one deleted-object-ID message and removes that structure. A flare with no owned structure produces one no-candidate message and deletes no unit.",
+        "A superior army's replay-visible dispatch is followed by actual movement toward a reachable enemy front; if not, the next investigation distinguishes formation ownership and path execution from timer reachability."
+      ],
+      "known_limits": [
+        "The parser does not expose individual AI-owned ship routes, object-level target selection, group membership, garrison-order intent, successful building completion, or the identity of the structure nearest a flare. The user's visual pathing and deletion observations are therefore retained separately from decoded commands.",
+        "The exact source build is not decoded from this replay, and the user states that it predates the latest changes. It is diagnostic evidence only and cannot validate P3B24.",
+        "Map-zone equality proves only engine connectivity classification, not that the generated path is tactically safe or unobstructed. Fresh runtime behavior is required for scout coverage, Transport landing, trade movement, and attack execution.",
+        "A six-tile taunt radius is intentionally bounded. The human must flare near the owned building footprint, and the AI will not fall back to deleting an arbitrary unit when no structure is proven.",
+        "Detached Transport quarantine has one exact-ID slot. Further migration remains paused at the idle gate until that hull becomes empty or is lost; this avoids a second global-owner deadlock but can indefinitely suspend migration if the engine can never find a viable unload path. Placement, defensive response, and unrelated Transport utilities remain available meanwhile."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

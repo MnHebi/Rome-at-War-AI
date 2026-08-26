@@ -206,7 +206,6 @@
 	(chat-to-player-using-id every-ally 22153); "39 At once, sire!"
 	(set-goal deletion-flare YES)
 	(set-goal target-action YES)
-	(up-jump-rule 1)
 )
 	
 (defrule
@@ -217,32 +216,69 @@
 	(unit-type-count flare > 0)
 =>
 	(up-find-player-flare any-human-ally gl-flared-delete-x)
-	(up-set-target-point gl-flared-delete-x)	
-    (up-full-reset-search)
-    (up-filter-distance c: -1 c: 2)
-    (up-find-local c: building-class c: 1)
-    (up-find-local c: tower-class c: 1)
-    (up-find-local c: wall-class c: 1)
-    (up-find-local c: gate-class c: 1)
-    (up-filter-status c: status-pending c: list-active)
-    (up-find-status-local c: building-class c: 1)
-    (up-find-status-local c: tower-class c: 1)
-    (up-find-status-local c: wall-class c: 1)
-    (up-find-status-local c: gate-class c: 1)
-	(up-jump-rule 1)
+	(up-set-target-point gl-flared-delete-x)
+	(up-full-reset-search)
+	;A flare can land beside the center point of a large coastal footprint. Six
+	;tiles remains bounded but is tolerant of Ports, Shipyards, and Forts.
+	(up-filter-distance c: -1 c: 6)
+	(up-find-local c: building-class c: 8)
+	(up-find-local c: tower-class c: 4)
+	(up-find-local c: wall-class c: 4)
+	(up-find-local c: gate-class c: 4)
+	(up-filter-status c: status-pending c: list-active)
+	(up-find-status-local c: building-class c: 8)
+	(up-find-status-local c: tower-class c: 4)
+	(up-find-status-local c: wall-class c: 4)
+	(up-find-status-local c: gate-class c: 4)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 1)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-delete-flare-candidates g:= local-total)
+	(set-goal deletion-flare MAYBE)
 )
 
 (defrule
 	(and
 		(goal target-action YES)
-		(goal deletion-flare YES)
+		(goal deletion-flare MAYBE)
 	)
+	(up-compare-goal gl-delete-flare-candidates c:> 0)
+	(up-set-target-object search-local c: 0)
 =>
-    (up-clean-search search-local object-data-distance search-order-asc)
-    (up-find-local c: all-units-class c: 1)
-    (up-remove-objects search-local object-data-index >= 1)
-    (up-target-point 0 action-delete -1 -1)
-   	(set-goal deletion-flare NO)
+	(up-get-object-data object-data-id gl-delete-flare-id)
+	(up-target-point 0 action-delete -1 -1)
+	(up-chat-data-to-self "taunt 69 deleted structure id: %d" g: gl-delete-flare-id)
+	(set-goal gl-delete-flare-candidates 0)
+	(set-goal deletion-flare NO)
+	(set-goal target-action NO)
+)
+
+(defrule
+	(and
+		(goal target-action YES)
+		(goal deletion-flare MAYBE)
+	)
+	(up-compare-goal gl-delete-flare-candidates c:> 0)
+	(not (up-set-target-object search-local c: 0))
+=>
+	;The selected foundation can disappear between the search and consumer. Do
+	;not leave taunt 69 permanently owning the shared target-action channel.
+	(up-chat-data-to-self "taunt 69 structure candidate vanished: %d" g: gl-delete-flare-id)
+	(set-goal gl-delete-flare-candidates 0)
+	(set-goal deletion-flare NO)
+	(set-goal target-action NO)
+)
+
+(defrule
+	(and
+		(goal target-action YES)
+		(goal deletion-flare MAYBE)
+	)
+	(up-compare-goal gl-delete-flare-candidates c:<= 0)
+=>
+	(up-chat-data-to-self "taunt 69 no structure candidates: %d" g: gl-delete-flare-candidates)
+	(set-goal gl-delete-flare-candidates 0)
+	(set-goal deletion-flare NO)
 	(set-goal target-action NO)
 )
 

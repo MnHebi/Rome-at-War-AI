@@ -477,6 +477,7 @@ class FarmPolicyTests(unittest.TestCase):
         cls.homebase = (root / "rawai-homebase.per").read_text(encoding="utf-8-sig")
         cls.init_goals = (root / "rawai-init-goals.per").read_text(encoding="utf-8-sig")
         cls.military = (root / "rawai-military.per").read_text(encoding="utf-8-sig")
+        cls.pop = (root / "rawai-pop.per").read_text(encoding="utf-8-sig")
         cls.military_common = (root / "rawai-military-units-common.per").read_text(
             encoding="utf-8-sig"
         )
@@ -626,7 +627,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B23", self.init_goals)
+        self.assertIn("RAWAI-P3B24", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -661,6 +662,15 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn('"Pocket position"', pocket_block)
 
     def test_trade_units_require_same_zone_endpoint_routes(self) -> None:
+        phase_three = matching_rules(
+            self.pop,
+            facts=("(goal current-phase 3)",),
+            actions=(
+                "(set-goal desired-number-carts 3)",
+                "(set-goal desired-number-cogs 3)",
+            ),
+        )
+        self.assertEqual(len(phase_three), 1)
         cart = matching_rules(
             self.economy,
             facts=(
@@ -699,6 +709,62 @@ class FarmPolicyTests(unittest.TestCase):
             cog[0][3],
         )
         self.assertNotIn("players-building-type-count any-ally market", cart[0][3])
+
+    def test_taunt_69_proves_a_nearby_owned_structure_before_delete(self) -> None:
+        trigger = matching_rules(
+            self.taunts,
+            facts=("(taunt-detected any-ally 69)",),
+            actions=(
+                "(set-goal deletion-flare YES)",
+                "(set-goal target-action YES)",
+            ),
+        )
+        self.assertEqual(len(trigger), 1)
+        self.assertNotIn("up-jump-rule", trigger[0][4])
+        selector = matching_rules(
+            self.taunts,
+            facts=(
+                "(goal deletion-flare YES)",
+                "(unit-type-count flare > 0)",
+            ),
+            actions=(
+                "(up-filter-distance c: -1 c: 6)",
+                "(up-modify-goal gl-delete-flare-candidates g:= local-total)",
+                "(set-goal deletion-flare MAYBE)",
+            ),
+        )
+        self.assertEqual(len(selector), 1)
+        self.assertNotIn("up-jump-rule", selector[0][4])
+        delete = matching_rules(
+            self.taunts,
+            facts=(
+                "(goal deletion-flare MAYBE)",
+                "gl-delete-flare-candidates c:> 0",
+                "(up-set-target-object search-local c: 0)",
+            ),
+            actions=(
+                "(up-get-object-data object-data-id gl-delete-flare-id)",
+                "(up-target-point 0 action-delete -1 -1)",
+                "taunt 69 deleted structure id: %d",
+            ),
+        )
+        self.assertEqual(len(delete), 1)
+        vanished = matching_rules(
+            self.taunts,
+            facts=(
+                "(goal deletion-flare MAYBE)",
+                "gl-delete-flare-candidates c:> 0",
+                "(not (up-set-target-object search-local c: 0))",
+            ),
+            actions=(
+                "taunt 69 structure candidate vanished: %d",
+                "(set-goal deletion-flare NO)",
+                "(set-goal target-action NO)",
+            ),
+        )
+        self.assertEqual(len(vanished), 1)
+        self.assertNotIn("all-units-class", self.taunts)
+        self.assertIn("taunt 69 no structure candidates: %d", self.taunts)
 
     def test_crowded_placement_recovery_is_persistent_and_bounded(self) -> None:
         self.assertIn("c:+ 24", self.homebase)
@@ -1242,18 +1308,54 @@ class FarmPolicyTests(unittest.TestCase):
                 "lumber-camp g:< desired-number-lumbercamps",
             ),
             actions=(
-                "object-data-action != actionid-gather",
-                "object-data-target-id == -1",
+                "object-data-gather-type != wood",
+                "lumber camp live candidates: %d",
                 "PLACEMENT-ASSESS",
             ),
         )
         self.assertEqual(len(later_lumber), 1)
+        self.assertNotIn("object-data-action != actionid-gather", later_lumber[0][4])
+        self.assertNotIn("object-data-target-id", later_lumber[0][4])
+
+        lumber_worker_anchor = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-lumbercamp-placement-state PLACEMENT-ASSESS)",
+                "(up-set-target-object search-local c: 0)",
+            ),
+            actions=(
+                "object-data-map-zone-id gl-lumbercamp-resource-zone",
+                "position-object gl-lumbercamp-target-x",
+                "(up-filter-distance c: -1 c: 12)",
+                "(up-find-remote c: tree-class c: 20)",
+                "PLACEMENT-FIND-RESOURCE",
+            ),
+        )
+        self.assertEqual(len(lumber_worker_anchor), 1)
         for rejected_id in (
             "gl-lumbercamp-rejected-resource-id",
             "gl-lumbercamp-rejected-resource-id2",
             "gl-lumbercamp-rejected-resource-id3",
         ):
-            self.assertIn(f"object-data-target-id g:== {rejected_id}", later_lumber[0][4])
+            self.assertIn(f"object-data-id g:== {rejected_id}", lumber_worker_anchor[0][4])
+
+        lumber_assignment = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-lumbercamp-placement-state PLACEMENT-VALIDATE-FOUNDATION-RESOURCE)",
+                "object-data-map-zone-id g:== gl-lumbercamp-resource-zone",
+            ),
+            actions=(
+                "(up-add-object-by-id search-remote g: gl-lumbercamp-foundation-id)",
+                "(up-filter-distance c: -1 c: 12)",
+                "object-data-gather-type != wood",
+                "object-data-index g:>= 2",
+                "(up-target-objects 0 action-default -1 stance-no-attack)",
+            ),
+        )
+        self.assertEqual(len(lumber_assignment), 1)
+        self.assertNotIn("villager-shepherd", lumber_assignment[0][4])
+        self.assertNotIn("villager-hunter", lumber_assignment[0][4])
 
         lumber_builds = matching_rules(
             self.homebase,
@@ -1279,8 +1381,7 @@ class FarmPolicyTests(unittest.TestCase):
             },
         )
         for evidence in (
-            "object-data-target-id gl-lumbercamp-resource-id",
-            "object-data-action != actionid-gather",
+            "position-object gl-lumbercamp-target-x",
             "(up-object-data object-data-class == tree-class)",
             "object-data-map-zone-id gl-lumbercamp-resource-zone",
             "(up-compare-goal remote-total c:>= 3)",
@@ -2204,7 +2305,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "migration boarding abort loaded: %d",
                 "(up-set-group search-local c: migration-boarding-group)",
                 "position-self-x action-stop",
-                "gl-island-migration-origin-x action-unload",
+                "gl-home-anchor-x action-unload",
                 "MIGRATION-RETURNING",
             ),
         )
@@ -2218,7 +2319,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "(not (goal gl-island-migration-state MIGRATION-IDLE))",
             ),
             actions=(
-                "gl-island-migration-origin-x action-unload",
+                "gl-home-anchor-x action-unload",
                 "MIGRATION-RETURNING",
             ),
         )
@@ -2295,8 +2396,17 @@ class FarmPolicyTests(unittest.TestCase):
                 "action-move",
             ),
         )
-        self.assertEqual(len(target_rules), 2)
-        self.assertTrue(any("position-enemy" in rule[4] for rule in target_rules))
+        self.assertEqual(len(target_rules), 4)
+        self.assertEqual(
+            {0, 1, 2, 3},
+            {
+                int(re.search(r"gl-naval-scout-leg\s+(\d+)", rule[3]).group(1))
+                for rule in target_rules
+            },
+        )
+        scout_block = self.military[: self.military.find(";Ordinary light ships intercept")]
+        self.assertNotIn("(up-find-remote c: gold-mine", scout_block)
+        self.assertNotIn("object-data-map-zone-id g:== gl-home-zone", scout_block)
         for _, _, _, _, target_actions in target_rules:
             self.assertNotIn("juggernaut", target_actions.lower())
             self.assertNotIn("octeres", target_actions.lower())
@@ -2363,6 +2473,7 @@ class FarmPolicyTests(unittest.TestCase):
             self.economy,
             facts=(
                 "(goal gl-home-resource-pressure YES)",
+                "gl-quarantine-transport-id c:< 0",
                 "(wood-amount >= 225)",
                 "(can-train transport-ship)",
             ),
@@ -2388,7 +2499,7 @@ class FarmPolicyTests(unittest.TestCase):
             actions=(
                 "(up-find-local c: transport-ship c: 40)",
                 "object-data-id g:!= gl-transport-route-id",
-                "gl-transport-route-origin-x action-unload",
+                "gl-home-anchor-x action-unload",
                 "TRANSPORT-ROUTE-RECOVERY-WAIT",
             ),
         )
@@ -2533,7 +2644,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "object-data-garrison-count g:>= gl-island-migration-load-target",
             ),
             actions=(
-                "gl-island-migration-origin-x action-unload",
+                "gl-home-anchor-x action-unload",
                 "(set-goal gl-island-migration-state MIGRATION-RETURNING)",
             ),
         )
@@ -2616,6 +2727,7 @@ class FarmPolicyTests(unittest.TestCase):
         quarantine_ready = matching_rules(
             self.economy,
             facts=(
+                "(goal map-type ISLANDS)",
                 "gl-available-transport-count g:>= gl-transport-required",
                 "(goal gl-island-migration-state MIGRATION-QUARANTINED)",
             ),
@@ -2625,6 +2737,7 @@ class FarmPolicyTests(unittest.TestCase):
         busy_controller = matching_rules(
             self.economy,
             facts=(
+                "(goal map-type ISLANDS)",
                 "(goal gl-island-migration-state MIGRATION-IDLE)",
                 "(goal gl-island-migration-state MIGRATION-QUARANTINED)",
                 "(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))",
@@ -2641,12 +2754,97 @@ class FarmPolicyTests(unittest.TestCase):
             actions=("(attack-now)",),
         )
         self.assertEqual(len(land_dispatches), 4)
+        for dispatch in land_dispatches:
+            self.assertIn(
+                "gl-land-target-scan-player g:== gl-land-target-current-player",
+                dispatch[3],
+            )
         persisted_land_dispatches = matching_rules(
             self.military,
             facts=("(goal gl-attack-dispatch-owner ATTACK-DISPATCH-LAND)",),
             actions=("up-chat-data-to-self \"land dispatch",),
         )
         self.assertEqual(len(persisted_land_dispatches), 4)
+
+    def test_hybrid_land_dispatch_depends_on_target_land_zone(self) -> None:
+        scanner = matching_rules(
+            self.military,
+            facts=(
+                "gl-game-time g:>= gl-land-target-scan-next",
+                "LAND-TARGET-SCAN-IDLE",
+                "(players-building-count target-player >= 1)",
+            ),
+            actions=(
+                "gl-land-target-scan-player s:= sn-target-player-number",
+                "sn-focus-player-number s:= sn-target-player-number",
+                "(up-find-remote c: building-class c: 40)",
+                "LAND-TARGET-SCAN-CHECK",
+            ),
+        )
+        self.assertEqual(len(scanner), 1)
+        self.assertIn(
+            "object-data-map-zone-id gl-land-target-zone", self.military
+        )
+        self.assertIn(
+            "gl-land-target-current-player s:= sn-target-player-number",
+            self.military,
+        )
+        stale_target = matching_rules(
+            self.military,
+            facts=(
+                "gl-land-target-scan-player g:!= gl-land-target-current-player",
+                "(goal gl-land-target-needs-transport NO)",
+            ),
+            actions=(
+                "(set-goal gl-land-target-needs-transport YES)",
+                "land target scan stale player: %d",
+            ),
+        )
+        self.assertEqual(len(stale_target), 1)
+        guarded_land_dispatches = matching_rules(
+            self.military,
+            facts=("(goal gl-land-transport-ready YES)",),
+            actions=("(attack-now)",),
+        )
+        self.assertEqual(len(guarded_land_dispatches), 6)
+        for dispatch in guarded_land_dispatches:
+            self.assertIn(
+                "gl-land-target-scan-player g:== gl-land-target-current-player",
+                dispatch[3],
+            )
+        hybrid_wait = matching_rules(
+            self.economy,
+            facts=(
+                "(goal map-type RIVERS)",
+                "(goal gl-land-target-needs-transport YES)",
+                "gl-available-transport-count g:< gl-transport-required",
+            ),
+            actions=("(set-goal gl-land-transport-ready NO)",),
+        )
+        self.assertEqual(len(hybrid_wait), 1)
+        same_zone = matching_rules(
+            self.economy,
+            facts=(
+                "(goal map-type RIVERS)",
+                "(goal gl-land-target-needs-transport NO)",
+            ),
+            actions=("(set-goal gl-land-transport-ready YES)",),
+        )
+        self.assertEqual(len(same_zone), 1)
+        target_shadow = matching_rules(
+            self.military,
+            facts=(
+                "(players-building-count target-player >= 1)",
+                "(player-in-game target-player)",
+                "(not (stance-toward target-player ally))",
+            ),
+            actions=(
+                "sn-focus-player-number s:= sn-target-player-number",
+                "gl-land-target-current-player s:= sn-target-player-number",
+            ),
+        )
+        self.assertEqual(len(target_shadow), 1)
+        self.assertNotIn("military-superiority", target_shadow[0][3])
 
     def test_sustained_age_advantage_adds_safe_hybrid_pressure(self) -> None:
         latches = matching_rules(
@@ -2733,9 +2931,11 @@ class FarmPolicyTests(unittest.TestCase):
             ),
             actions=(
                 "sn-focus-player-number s:= sn-target-player-number",
+                "gl-land-target-current-player s:= sn-target-player-number",
             ),
         )
         self.assertEqual(len(focus_sync), 1)
+        self.assertNotIn("military-superiority", focus_sync[0][3])
         invalid_target = matching_rules(
             self.military,
             facts=(
@@ -2779,6 +2979,25 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(rush_attack), 1)
+        rush_facts = re.sub(r"\s+", " ", rush_attack[0][3])
+        self.assertIn("(goal map-type LAND)", rush_facts)
+        self.assertIn("(goal gl-land-transport-ready YES)", rush_facts)
+        self.assertIn(
+            "(up-compare-goal gl-land-target-current-player c:>= 1)",
+            rush_facts,
+        )
+        self.assertIn(
+            "(up-compare-goal gl-land-target-current-player c:<= 8)",
+            rush_facts,
+        )
+        self.assertIn(
+            "(up-compare-goal gl-land-target-scan-player "
+            "g:== gl-land-target-current-player)",
+            rush_facts,
+        )
+        self.assertIn("(player-in-game target-player)", rush_facts)
+        self.assertIn("(not (stance-toward target-player ally))", rush_facts)
+        self.assertIn("(players-building-count target-player >= 1)", rush_facts)
         cleanup = matching_rules(
             self.timers,
             facts=(
@@ -2832,7 +3051,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "(up-compare-goal gl-island-migration-route-waits c:< 4)",
             ),
             actions=(
-                "gl-island-migration-origin-x action-unload",
+                "gl-home-anchor-x action-unload",
                 "(up-modify-goal gl-island-migration-route-waits c:+ 1)",
             ),
         )
@@ -2868,11 +3087,167 @@ class FarmPolicyTests(unittest.TestCase):
                 "(up-timer-status t-island-migration == timer-triggered)",
             ),
             actions=(
-                "(up-set-timer c: t-island-migration c: 1)",
-                "(set-goal gl-island-migration-state MIGRATION-RETURNING)",
+                "(up-add-object-by-id search-local g: gl-island-migration-transport-id)",
+                "MIGRATION-QUARANTINE-CHECK",
             ),
         )
         self.assertEqual(len(quarantine_check), 1)
+        quarantine_terminal = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-QUARANTINE-CHECK)",
+                "object-data-garrison-count <= 0",
+            ),
+            actions=(
+                "(up-modify-group-flag 0 c: migration-transport-group)",
+                "(set-goal gl-island-migration-transport-id -1)",
+                "(set-goal gl-island-migration-state MIGRATION-IDLE)",
+            ),
+        )
+        self.assertEqual(len(quarantine_terminal), 1)
+        detached_quarantine = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-QUARANTINE-CHECK)",
+                "object-data-garrison-count > 0",
+                "gl-quarantine-transport-id c:< 0",
+            ),
+            actions=(
+                "gl-quarantine-transport-id g:= gl-island-migration-transport-id",
+                "(up-modify-group-flag 0 c: migration-boarding-group)",
+                "(up-modify-group-flag 0 c: migration-transport-group)",
+                "migration quarantined hull detached: %d",
+                "(set-goal gl-island-migration-transport-id -1)",
+                "(set-goal gl-island-migration-state MIGRATION-IDLE)",
+            ),
+        )
+        self.assertEqual(len(detached_quarantine), 1)
+        slot_busy = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-QUARANTINE-CHECK)",
+                "object-data-garrison-count > 0",
+                "gl-quarantine-transport-id c:>= 0",
+            ),
+            actions=(
+                "gl-home-anchor-x action-unload",
+                "migration quarantine slot busy: %d",
+                "(set-goal gl-island-migration-state MIGRATION-QUARANTINED)",
+            ),
+        )
+        self.assertEqual(len(slot_busy), 1)
+        self.assertNotIn(
+            "gl-quarantine-transport-id g:= gl-island-migration-transport-id",
+            slot_busy[0][4],
+        )
+        detached_scan = matching_rules(
+            self.military,
+            facts=(
+                "gl-quarantine-transport-id c:>= 0",
+                "TRANSPORT-QUARANTINE-IDLE",
+                "gl-game-time g:>= gl-quarantine-transport-next",
+            ),
+            actions=(
+                "up-add-object-by-id search-local g: gl-quarantine-transport-id",
+                "TRANSPORT-QUARANTINE-CHECK",
+            ),
+        )
+        self.assertEqual(len(detached_scan), 1)
+        detached_retry = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-QUARANTINE-CHECK",
+                "object-data-garrison-count > 0",
+            ),
+            actions=(
+                "gl-home-anchor-x action-unload",
+                "detached quarantine retry: %d",
+                "TRANSPORT-QUARANTINE-IDLE",
+            ),
+        )
+        self.assertEqual(len(detached_retry), 1)
+        detached_recovered = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-QUARANTINE-CHECK",
+                "object-data-garrison-count <= 0",
+            ),
+            actions=(
+                "detached quarantine recovered: %d",
+                "(set-goal gl-quarantine-transport-id -1)",
+            ),
+        )
+        self.assertEqual(len(detached_recovered), 1)
+        detached_lost = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-QUARANTINE-CHECK",
+                "(not (up-set-target-object search-local c: 0))",
+            ),
+            actions=(
+                "detached quarantine hull lost: %d",
+                "(set-goal gl-quarantine-transport-id -1)",
+            ),
+        )
+        self.assertEqual(len(detached_lost), 1)
+        quarantine_exclusion = (
+            "(up-remove-objects search-local object-data-id "
+            "g:== gl-quarantine-transport-id)"
+        )
+        remote_quarantine_exclusion = (
+            "(up-remove-objects search-remote object-data-id "
+            "g:== gl-quarantine-transport-id)"
+        )
+        self.assertEqual(self.economy.count(quarantine_exclusion), 1)
+        self.assertEqual(self.military.count(quarantine_exclusion), 2)
+        self.assertEqual(self.military.count(remote_quarantine_exclusion), 8)
+        escort_selector = matching_rules(
+            self.military,
+            facts=(
+                "t-transport-escort == timer-triggered",
+                "ESCORT-IDLE",
+            ),
+            actions=(
+                "(up-find-remote c: transport-ship c: 40)",
+                remote_quarantine_exclusion,
+                "object-data-garrison-count <= 0",
+            ),
+        )
+        self.assertEqual(len(escort_selector), 1)
+        migration_gate = matching_rules(
+            self.military,
+            facts=(
+                "t-island-migration == timer-triggered",
+                "(goal gl-island-migration-state MIGRATION-IDLE)",
+                "gl-quarantine-transport-id c:< 0",
+                "(goal gl-colony-towncenter-state COLONY-TC-IDLE)",
+            ),
+            actions=(
+                "(set-goal gl-island-migration-state MIGRATION-GATE-OWNER)",
+            ),
+        )
+        self.assertEqual(len(migration_gate), 1)
+        replacement = matching_rules(
+            self.economy,
+            facts=(
+                "gl-quarantine-transport-id c:>= 0",
+                "transport-ship g:<= gl-transport-required",
+                "(can-train transport-ship)",
+            ),
+            actions=("(train transport-ship)",),
+        )
+        self.assertEqual(len(replacement), 1)
+        ordinary_producers = matching_rules(
+            self.economy,
+            facts=("gl-quarantine-transport-id c:< 0",),
+            actions=("(train transport-ship)",),
+        )
+        self.assertEqual(len(ordinary_producers), 2)
+        self.assertIn("(set-goal gl-quarantine-transport-id -1)", self.init_goals)
+        self.assertIn(
+            "(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)",
+            self.init_goals,
+        )
         watchdog = matching_rules(
             self.military,
             facts=(
@@ -2882,6 +3257,100 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertEqual(len(watchdog), 1)
         self.assertNotIn("gl-island-migration-route-waits 0", watchdog[0][4])
+
+    def test_migration_uses_bounded_destination_landings_and_scout_release(self) -> None:
+        first_unload = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-CHECK)",
+                "object-data-distance <= 8",
+            ),
+            actions=(
+                "gl-island-migration-target-x action-unload",
+                "(set-goal gl-island-migration-landing-attempts 0)",
+                "(up-set-timer c: t-island-migration c: 20)",
+            ),
+        )
+        self.assertEqual(len(first_unload), 1)
+        alternates = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-CHECK-LANDING)",
+                "object-data-garrison-count > 0",
+                "(up-timer-status t-island-migration == timer-triggered)",
+                "(goal gl-island-migration-landing-attempts",
+            ),
+            actions=(
+                "migration alternate landing: %d",
+                "action-unload",
+                "MIGRATION-SAILING",
+            ),
+        )
+        self.assertEqual(len(alternates), 4)
+        self.assertIn("migration landing rejected zone: %d", self.military)
+        scout_release = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-CHECK-LANDING)",
+                "(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)",
+                "object-data-garrison-count <= 0",
+            ),
+            actions=(
+                "(up-set-group search-local c: migration-boarding-group)",
+                "MIGRATION-VERIFY-SCOUT-LANDING",
+            ),
+        )
+        self.assertEqual(len(scout_release), 1)
+        self.assertNotIn("gl-island-migration-origin-x action-move", scout_release[0][4])
+        scout_landed = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-VERIFY-SCOUT-LANDING)",
+                "(up-set-target-object search-local c: 0)",
+            ),
+            actions=(
+                "position-self-x action-stop",
+                "MIGRATION-TASK-SCOUT",
+            ),
+        )
+        self.assertEqual(len(scout_landed), 1)
+        scout_not_landed = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-VERIFY-SCOUT-LANDING)",
+                "(not (up-set-target-object search-local c: 0))",
+            ),
+            actions=(
+                "migration scout not landed: %d",
+                "gl-island-migration-origin-x action-move",
+                "MIGRATION-IDLE",
+            ),
+        )
+        self.assertEqual(len(scout_not_landed), 1)
+        self.assertIn("migration scout fallback patrol: %d", self.military)
+        self.assertIn("(up-copy-point point2-x gl-island-migration-target-x)", self.military)
+        self.assertIn("(up-bound-point point3-x point2-x)", self.military)
+        self.assertIn("(up-target-point point3-x action-patrol -1 stance-no-attack)", self.military)
+        self.assertNotIn("position-opposite point2-x", self.military)
+        fallback_confirm = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT-FALLBACK)",
+                "(up-set-target-object search-local c: 0)",
+            ),
+            actions=(
+                "point3-x action-patrol",
+                "migration scout fallback patrol: %d",
+            ),
+        )
+        self.assertEqual(len(fallback_confirm), 1)
+        scout_confirm = matching_rules(
+            self.military,
+            facts=("(goal gl-island-migration-state MIGRATION-FIND-SCOUT-PATROL)",),
+            actions=("(set-goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT)",),
+        )
+        self.assertEqual(len(scout_confirm), 1)
+        self.assertNotIn("object-data-distance > 20", scout_confirm[0][4])
 
     def test_unreachable_threat_without_responders_cannot_latch_defense(self) -> None:
         latches = matching_rules(

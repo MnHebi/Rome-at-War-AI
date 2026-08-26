@@ -70,6 +70,7 @@
 	(up-full-reset-search)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-find-remote c: transport-ship c: 40)
+	(up-remove-objects search-remote object-data-id g:== gl-quarantine-transport-id)
 	(up-remove-objects search-remote object-data-garrison-count <= 0)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(up-get-search-state local-total)
@@ -377,52 +378,90 @@
 	(up-remove-objects search-local object-data-index g:>= desired-naval-explorers)
 	(up-create-group 0 0 c: naval-scout-group)
 	(up-modify-group-flag 1 c: naval-scout-group)
-	;Prefer a known resource-bearing land mass outside the mutable home zone.
-	;The fallback still pressures unexplored coast toward the current enemy.
-	(set-strategic-number sn-focus-player-number 0)
-	(up-full-reset-search)
-	(up-set-target-point gl-home-anchor-x)
-	(up-find-remote c: gold-mine c: 20)
-	(up-find-remote c: stone-mine c: 20)
-	(up-find-remote c: relic-class c: 10)
-	(up-find-remote c: tree-class c: 40)
-	(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)
-	(up-clean-search search-remote object-data-distance search-order-desc)
 	(set-goal gl-naval-scout-state NAVAL-SCOUT-TARGET)
 )
 
+;Known Gaia resources are shared through team vision, so using the farthest one
+;made every ally converge on the same already-settled shore. Rotate four broad
+;map-relative legs instead. Each ally starts on a randomized leg, advances after
+;every order, and therefore cannot indefinitely refresh one allied object.
 (defrule
 	(goal gl-naval-scout-state NAVAL-SCOUT-TARGET)
 	(up-group-size c: naval-scout-group > 0)
-	(up-set-target-object search-remote c: 0)
+	(goal gl-naval-scout-leg 0)
 =>
-	(up-get-point position-object gl-naval-scout-target-x)
-	(up-get-object-data object-data-map-zone-id gl-naval-scout-target-zone)
 	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-get-point position-opposite gl-naval-scout-target-x)
+	(up-cross-tiles gl-naval-scout-target-x gl-home-anchor-x c: 24)
+	(up-bound-point point4-x gl-naval-scout-target-x)
 	(up-full-reset-search)
 	(up-set-group search-local c: naval-scout-group)
-	(up-target-point gl-naval-scout-target-x action-move -1 stance-no-attack)
-	(up-chat-data-to-self "naval scout external land zone: %d" g: gl-naval-scout-target-zone)
+	(up-target-point point4-x action-move -1 stance-no-attack)
+	(up-chat-data-to-self "naval scout route leg: %d" c: 0)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-scout-focus)
 	(up-modify-goal gl-naval-scout-next g:= gl-game-time)
-	(up-modify-goal gl-naval-scout-next c:+ 45)
+	(up-modify-goal gl-naval-scout-next c:+ 90)
+	(set-goal gl-naval-scout-leg 1)
 	(set-goal gl-naval-scout-state NAVAL-SCOUT-IDLE)
 )
 
 (defrule
 	(goal gl-naval-scout-state NAVAL-SCOUT-TARGET)
 	(up-group-size c: naval-scout-group > 0)
-	(not (up-set-target-object search-remote c: 0))
+	(goal gl-naval-scout-leg 1)
 =>
 	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-get-point position-corner gl-naval-scout-target-x)
+	(up-cross-tiles gl-naval-scout-target-x gl-home-anchor-x c: -24)
+	(up-bound-point point4-x gl-naval-scout-target-x)
 	(up-full-reset-search)
 	(up-set-group search-local c: naval-scout-group)
-	(up-get-point position-enemy point4-x)
 	(up-target-point point4-x action-move -1 stance-no-attack)
-	(up-chat-data-to-self "naval scout enemy-coast fallback: %d" g: gl-naval-scout-count)
+	(up-chat-data-to-self "naval scout route leg: %d" c: 1)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-scout-focus)
 	(up-modify-goal gl-naval-scout-next g:= gl-game-time)
-	(up-modify-goal gl-naval-scout-next c:+ 45)
+	(up-modify-goal gl-naval-scout-next c:+ 90)
+	(set-goal gl-naval-scout-leg 2)
+	(set-goal gl-naval-scout-state NAVAL-SCOUT-IDLE)
+)
+
+(defrule
+	(goal gl-naval-scout-state NAVAL-SCOUT-TARGET)
+	(up-group-size c: naval-scout-group > 0)
+	(goal gl-naval-scout-leg 2)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-get-point position-mirror gl-naval-scout-target-x)
+	(up-cross-tiles gl-naval-scout-target-x gl-home-anchor-x c: 36)
+	(up-bound-point point4-x gl-naval-scout-target-x)
+	(up-full-reset-search)
+	(up-set-group search-local c: naval-scout-group)
+	(up-target-point point4-x action-move -1 stance-no-attack)
+	(up-chat-data-to-self "naval scout route leg: %d" c: 2)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-scout-focus)
+	(up-modify-goal gl-naval-scout-next g:= gl-game-time)
+	(up-modify-goal gl-naval-scout-next c:+ 90)
+	(set-goal gl-naval-scout-leg 3)
+	(set-goal gl-naval-scout-state NAVAL-SCOUT-IDLE)
+)
+
+(defrule
+	(goal gl-naval-scout-state NAVAL-SCOUT-TARGET)
+	(up-group-size c: naval-scout-group > 0)
+	(goal gl-naval-scout-leg 3)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-get-point position-flank gl-naval-scout-target-x)
+	(up-cross-tiles gl-naval-scout-target-x gl-home-anchor-x c: -36)
+	(up-bound-point point4-x gl-naval-scout-target-x)
+	(up-full-reset-search)
+	(up-set-group search-local c: naval-scout-group)
+	(up-target-point point4-x action-move -1 stance-no-attack)
+	(up-chat-data-to-self "naval scout route leg: %d" c: 3)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-scout-focus)
+	(up-modify-goal gl-naval-scout-next g:= gl-game-time)
+	(up-modify-goal gl-naval-scout-next c:+ 90)
+	(set-goal gl-naval-scout-leg 0)
 	(set-goal gl-naval-scout-state NAVAL-SCOUT-IDLE)
 )
 
@@ -1276,6 +1315,7 @@
 (defrule
 	(up-timer-status t-island-migration == timer-triggered)
 	(goal gl-island-migration-state MIGRATION-IDLE)
+	(up-compare-goal gl-quarantine-transport-id c:< 0)
 	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
 	(up-pending-objects c: town-center <= 0)
 	(not (up-pending-placement c: town-center))
@@ -1485,6 +1525,7 @@
 	(up-full-reset-search)
 	(up-set-target-point gl-home-anchor-x)
 	(up-find-remote c: transport-ship c: 40)
+	(up-remove-objects search-remote object-data-id g:== gl-quarantine-transport-id)
 	(up-remove-objects search-remote object-data-garrison-count > 0)
 	(up-remove-objects search-remote object-data-idling != 1)
 	(up-remove-objects search-remote object-data-under-attack > 0)
@@ -1523,6 +1564,7 @@
 	(up-full-reset-search)
 	(up-set-target-point gl-home-anchor-x)
 	(up-find-remote c: transport-ship c: 40)
+	(up-remove-objects search-remote object-data-id g:== gl-quarantine-transport-id)
 	(up-remove-objects search-remote object-data-garrison-count > 0)
 	(up-remove-objects search-remote object-data-idling != 1)
 	(up-remove-objects search-remote object-data-under-attack > 0)
@@ -1557,6 +1599,7 @@
 	(up-full-reset-search)
 	(up-set-target-point gl-home-anchor-x)
 	(up-find-remote c: transport-ship c: 40)
+	(up-remove-objects search-remote object-data-id g:== gl-quarantine-transport-id)
 	(up-remove-objects search-remote object-data-garrison-count > 0)
 	(up-remove-objects search-remote object-data-idling != 1)
 	(up-remove-objects search-remote object-data-under-attack > 0)
@@ -1883,7 +1926,7 @@
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
-	(up-target-point gl-island-migration-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-goal gl-island-migration-rejected-zone3 g:= gl-island-migration-rejected-zone2)
 	(up-modify-goal gl-island-migration-rejected-zone2 g:= gl-island-migration-rejected-zone)
 	(up-modify-goal gl-island-migration-rejected-zone g:= gl-island-migration-zone)
@@ -2014,7 +2057,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
-	(up-target-point gl-island-migration-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-chat-data-to-self "migration route held: %d" c: 1)
 	(up-modify-goal gl-island-migration-rejected-zone3 g:= gl-island-migration-rejected-zone2)
@@ -2089,7 +2132,8 @@
 	(up-target-point gl-island-migration-target-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-chat-data-to-self "migration route waypoint reached: %d" g: gl-island-migration-route-waits)
-	(up-set-timer c: t-island-migration c: 180)
+	(set-goal gl-island-migration-landing-attempts 0)
+	(up-set-timer c: t-island-migration c: 20)
 	(set-goal gl-island-migration-state MIGRATION-SAILING)
 )
 
@@ -2131,7 +2175,7 @@
 	(up-object-data object-data-distance g:>= gl-island-migration-route-distance)
 	(up-compare-goal gl-island-migration-route-waits c:>= 4)
 =>
-	(up-target-point gl-island-migration-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-chat-data-to-self "migration route unreachable: %d" g: gl-island-migration-transport-id)
 	(up-modify-goal gl-island-migration-rejected-zone3 g:= gl-island-migration-rejected-zone2)
@@ -2172,7 +2216,7 @@
 	;Recovered workers may still carry the island resource. Send them to the
 	;nearest home Town Center before normal economy allocation can retask them.
 	(up-full-reset-search)
-	(up-set-target-point gl-island-migration-origin-x)
+	(up-set-target-point gl-home-anchor-x)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
@@ -2225,7 +2269,7 @@
 	(up-object-data object-data-garrison-count > 0)
 	(up-compare-goal gl-island-migration-route-waits c:< 4)
 =>
-	(up-target-point gl-island-migration-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-modify-goal gl-island-migration-route-waits c:+ 1)
 	(up-chat-data-to-self "migration return retry: %d" g: gl-island-migration-route-waits)
@@ -2272,10 +2316,137 @@
 	(goal gl-island-migration-state MIGRATION-QUARANTINED)
 	(up-timer-status t-island-migration == timer-triggered)
 =>
-	;Re-enter the exact-hull occupancy check on the next sweep. A successful
-	;alternate unload reaches IDLE; an occupied hull remains quarantined.
-	(up-set-timer c: t-island-migration c: 1)
-	(set-goal gl-island-migration-state MIGRATION-RETURNING)
+	;Inspect the one alternate-home attempt exactly once. Re-entering the normal
+	;four-retry owner with its exhausted counter caused an endless failed/alternate
+	;return loop in the replay.
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(set-goal gl-island-migration-state MIGRATION-QUARANTINE-CHECK)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-QUARANTINE-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count <= 0)
+=>
+	;Only an empty hull is a successful quarantine terminal. Release both direct
+	;control groups here, not while passengers remain aboard.
+	(up-modify-group-flag 0 c: migration-boarding-group)
+	(up-reset-group c: migration-boarding-group)
+	(up-modify-group-flag 0 c: migration-transport-group)
+	(up-reset-group c: migration-transport-group)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-transport-id -1)
+	(up-set-timer c: t-island-migration c: 60)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-QUARANTINE-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+	(up-compare-goal gl-quarantine-transport-id c:< 0)
+=>
+	;Detach the one blocked hull by exact ID. Utility selectors exclude that ID,
+	;while the main migration state returns to IDLE so economy and other hulls are
+	;not frozen by one impossible beach.
+	(up-modify-goal gl-quarantine-transport-id g:= gl-island-migration-transport-id)
+	(up-modify-goal gl-quarantine-transport-next g:= gl-game-time)
+	(up-modify-goal gl-quarantine-transport-next c:+ 60)
+	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)
+	(up-modify-group-flag 0 c: migration-boarding-group)
+	(up-reset-group c: migration-boarding-group)
+	(up-modify-group-flag 0 c: migration-transport-group)
+	(up-reset-group c: migration-transport-group)
+	(set-goal gl-migration-placement-lock NO)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(up-chat-data-to-self "migration quarantined hull detached: %d" g: gl-quarantine-transport-id)
+	(set-goal gl-island-migration-transport-id -1)
+	(up-set-timer c: t-island-migration c: 60)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-QUARANTINE-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+	(up-compare-goal gl-quarantine-transport-id c:>= 0)
+=>
+	;A second simultaneous quarantine remains owned by the main controller until
+	;the detached slot clears; never overwrite and abandon the first exact ID.
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
+	(up-chat-data-to-self "migration quarantine slot busy: %d" g: gl-island-migration-transport-id)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(up-set-timer c: t-island-migration c: 60)
+	(set-goal gl-island-migration-state MIGRATION-QUARANTINED)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-QUARANTINE-CHECK)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-group-flag 0 c: migration-boarding-group)
+	(up-reset-group c: migration-boarding-group)
+	(up-modify-group-flag 0 c: migration-transport-group)
+	(up-reset-group c: migration-transport-group)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-transport-id -1)
+	(up-set-timer c: t-island-migration c: 60)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+;Detached quarantine ownership is exact-ID based rather than a scarce DUC
+;group. Every Transport utility excludes this ID until the hull is proven empty
+;or dead; one retry per minute cannot monopolize the migration state machine.
+(defrule
+	(up-compare-goal gl-quarantine-transport-id c:>= 0)
+	(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-quarantine-transport-next)
+=>
+	(up-modify-goal gl-quarantine-transport-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-quarantine-transport-id)
+	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-CHECK)
+)
+
+(defrule
+	(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+=>
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
+	(up-chat-data-to-self "detached quarantine retry: %d" g: gl-quarantine-transport-id)
+	(up-modify-sn sn-focus-player-number g:= gl-quarantine-transport-focus)
+	(up-modify-goal gl-quarantine-transport-next g:= gl-game-time)
+	(up-modify-goal gl-quarantine-transport-next c:+ 60)
+	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)
+)
+
+(defrule
+	(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count <= 0)
+=>
+	(up-chat-data-to-self "detached quarantine recovered: %d" g: gl-quarantine-transport-id)
+	(up-modify-sn sn-focus-player-number g:= gl-quarantine-transport-focus)
+	(set-goal gl-quarantine-transport-id -1)
+	(up-modify-goal gl-quarantine-transport-next g:= gl-game-time)
+	(up-modify-goal gl-quarantine-transport-next c:+ 60)
+	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)
+)
+
+(defrule
+	(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-CHECK)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-chat-data-to-self "detached quarantine hull lost: %d" g: gl-quarantine-transport-id)
+	(up-modify-sn sn-focus-player-number g:= gl-quarantine-transport-focus)
+	(set-goal gl-quarantine-transport-id -1)
+	(up-modify-goal gl-quarantine-transport-next g:= gl-game-time)
+	(up-modify-goal gl-quarantine-transport-next c:+ 60)
+	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)
 )
 
 (defrule
@@ -2331,7 +2502,6 @@
 	(up-full-reset-search)
 	(up-set-target-point gl-island-migration-target-x)
 	(up-set-group search-local c: migration-boarding-group)
-	(up-remove-objects search-local object-data-distance > 40)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
@@ -2345,10 +2515,40 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count <= 0)
 =>
+	;Rebuild and prove the reserved scout on the requested land zone before any
+	;mission success, patrol command, or Transport recall is permitted.
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-island-migration-state MIGRATION-VERIFY-SCOUT-LANDING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-VERIFY-SCOUT-LANDING)
+	(up-set-target-object search-local c: 0)
+=>
+	;Now that the reserved scout is proven ashore in the destination zone, clear
+	;its stale board order before the empty Transport is allowed to move.
+	(up-target-point position-self-x action-stop -1 stance-no-attack)
+	(set-goal gl-island-migration-state MIGRATION-TASK-SCOUT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-VERIFY-SCOUT-LANDING)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-chat-data-to-self "migration scout not landed: %d" g: gl-island-migration-zone)
+	(up-modify-group-flag 0 c: migration-boarding-group)
+	(up-reset-group c: migration-boarding-group)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
 	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
-	(set-goal gl-island-migration-state MIGRATION-TASK-MINING)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(up-set-timer c: t-island-migration c: 60)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
 )
 
 (defrule
@@ -3254,7 +3454,7 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count g:>= gl-island-migration-load-target)
 =>
-	(up-target-point gl-island-migration-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-route-waits 0)
 	(up-set-timer c: t-island-migration c: 15)
@@ -3268,7 +3468,7 @@
 	(up-object-data object-data-garrison-count > 0)
 	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
 =>
-	(up-target-point gl-island-migration-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-route-waits 0)
 	(up-set-timer c: t-island-migration c: 15)
@@ -3320,6 +3520,7 @@
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-TASK-SCOUT)
+	(up-set-target-object search-local c: 0)
 =>
 	(set-strategic-number sn-focus-player-number 0)
 	(up-full-reset-search)
@@ -3333,6 +3534,21 @@
 )
 
 (defrule
+	(goal gl-island-migration-state MIGRATION-TASK-SCOUT)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-chat-data-to-self "migration scout ownership lost: %d" g: gl-island-migration-zone)
+	(up-modify-group-flag 0 c: migration-boarding-group)
+	(up-reset-group c: migration-boarding-group)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(up-set-timer c: t-island-migration c: 60)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+(defrule
 	(goal gl-island-migration-state MIGRATION-FIND-SCOUT-PATROL)
 	(up-set-target-object search-remote c: 0)
 =>
@@ -3341,7 +3557,6 @@
 	(up-full-reset-search)
 	(up-set-target-point gl-island-migration-target-x)
 	(up-set-group search-local c: migration-boarding-group)
-	(up-remove-objects search-local object-data-distance > 20)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
@@ -3353,6 +3568,28 @@
 	(not (up-set-target-object search-remote c: 0))
 =>
 	(set-strategic-number sn-focus-player-number my-player-number)
+	;A barren or still-dark land mass is exactly where a scout is useful. Patrol
+	;across the landing neighborhood instead of issuing an unreachable command
+	;toward the opposite side of the whole map.
+	(up-copy-point point2-x gl-island-migration-target-x)
+	(up-modify-goal point2-x c:+ 12)
+	(up-modify-goal point2-y c:+ 12)
+	(up-bound-point point3-x point2-x)
+	(up-full-reset-search)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT-FALLBACK)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT-FALLBACK)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-target-point point3-x action-patrol -1 stance-no-attack)
+	(up-modify-goal gl-island-scout-missions c:+ 1)
+	(up-chat-data-to-self "migration scout fallback patrol: %d" g: gl-island-migration-zone)
 	(up-modify-group-flag 0 c: migration-boarding-group)
 	(up-reset-group c: migration-boarding-group)
 	(up-full-reset-search)
@@ -3381,7 +3618,10 @@
 )
 
 (defrule
-	(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT)
+	(or
+		(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT)
+		(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT-FALLBACK)
+	)
 	(not (up-set-target-object search-local c: 0))
 =>
 	(up-chat-data-to-self "migration scout wrong zone: %d" g: gl-island-migration-zone)
@@ -3403,8 +3643,103 @@
 	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count > 0)
+	(up-timer-status t-island-migration == timer-running)
 =>
 	(set-goal gl-island-migration-state MIGRATION-SAILING)
+)
+
+;A resource anchor can be inland from the first viable beach. Try four bounded
+;shoreline approaches before rejecting the destination; do not wait three
+;minutes on one impossible unload point.
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-landing-attempts 0)
+=>
+	(up-copy-point point3-x gl-island-migration-target-x)
+	(up-modify-goal point3-x c:+ 8)
+	(up-modify-goal point3-y c:+ 8)
+	(up-bound-point point4-x point3-x)
+	(up-target-point point4-x action-unload -1 stance-no-attack)
+	(set-goal gl-island-migration-landing-attempts 1)
+	(up-chat-data-to-self "migration alternate landing: %d" c: 1)
+	(up-set-timer c: t-island-migration c: 20)
+	(set-goal gl-island-migration-state MIGRATION-SAILING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-landing-attempts 1)
+=>
+	(up-copy-point point3-x gl-island-migration-target-x)
+	(up-modify-goal point3-x c:- 8)
+	(up-modify-goal point3-y c:+ 8)
+	(up-bound-point point4-x point3-x)
+	(up-target-point point4-x action-unload -1 stance-no-attack)
+	(set-goal gl-island-migration-landing-attempts 2)
+	(up-chat-data-to-self "migration alternate landing: %d" c: 2)
+	(up-set-timer c: t-island-migration c: 20)
+	(set-goal gl-island-migration-state MIGRATION-SAILING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-landing-attempts 2)
+=>
+	(up-copy-point point3-x gl-island-migration-target-x)
+	(up-modify-goal point3-x c:+ 8)
+	(up-modify-goal point3-y c:- 8)
+	(up-bound-point point4-x point3-x)
+	(up-target-point point4-x action-unload -1 stance-no-attack)
+	(set-goal gl-island-migration-landing-attempts 3)
+	(up-chat-data-to-self "migration alternate landing: %d" c: 3)
+	(up-set-timer c: t-island-migration c: 20)
+	(set-goal gl-island-migration-state MIGRATION-SAILING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-landing-attempts 3)
+=>
+	(up-copy-point point3-x gl-island-migration-target-x)
+	(up-modify-goal point3-x c:- 8)
+	(up-modify-goal point3-y c:- 8)
+	(up-bound-point point4-x point3-x)
+	(up-target-point point4-x action-unload -1 stance-no-attack)
+	(set-goal gl-island-migration-landing-attempts 4)
+	(up-chat-data-to-self "migration alternate landing: %d" c: 4)
+	(up-set-timer c: t-island-migration c: 20)
+	(set-goal gl-island-migration-state MIGRATION-SAILING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+	(up-timer-status t-island-migration == timer-triggered)
+	(up-compare-goal gl-island-migration-landing-attempts c:>= 4)
+=>
+	(up-chat-data-to-self "migration landing rejected zone: %d" g: gl-island-migration-zone)
+	(up-modify-goal gl-island-migration-rejected-zone3 g:= gl-island-migration-rejected-zone2)
+	(up-modify-goal gl-island-migration-rejected-zone2 g:= gl-island-migration-rejected-zone)
+	(up-modify-goal gl-island-migration-rejected-zone g:= gl-island-migration-zone)
+	(set-goal gl-island-migration-rejection-armed NO)
+	(set-goal gl-island-migration-route-waits 0)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(up-set-timer c: t-island-migration c: 15)
+	(set-goal gl-island-migration-state MIGRATION-RETURNING)
 )
 
 (defrule
@@ -3439,7 +3774,7 @@
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
-	(up-target-point gl-island-migration-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 15)
 	(set-goal gl-island-migration-state MIGRATION-RETURNING)
@@ -3478,6 +3813,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-find-local c: transport-ship c: 5)
+	(up-remove-objects search-local object-data-id g:== gl-quarantine-transport-id)
 	(up-remove-objects search-local object-data-garrison-count > 0)
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-clean-search search-local object-data-hitpoints search-order-asc)
@@ -3604,6 +3940,7 @@
 	(up-filter-distance c: -1 c: 8)
 	(up-filter-status c: status-ready c: list-active)
 	(up-find-local c: transport-ship c: 10)
+	(up-remove-objects search-local object-data-id g:== gl-quarantine-transport-id)
 	(up-remove-objects search-local object-data-garrison-count > 0)
 	(up-remove-objects search-local object-data-idling != 1)
 	(up-clean-search search-local object-data-distance search-order-asc)
@@ -3698,6 +4035,7 @@
 	(up-full-reset-search)
 	(up-set-target-point position-self-x)
 	(up-find-remote c: transport-ship c: 40)
+	(up-remove-objects search-remote object-data-id g:== gl-quarantine-transport-id)
 	(up-remove-objects search-remote object-data-garrison-count g:< gl-transport-min-load)
 	(up-clean-search search-remote object-data-distance search-order-desc)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-FIND)
@@ -3826,7 +4164,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
-	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 15)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
@@ -3986,7 +4324,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
-	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 15)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
@@ -4092,7 +4430,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
-	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-modify-group-flag 0 c: transport-screen-group)
 	(up-reset-group c: transport-screen-group)
@@ -4124,7 +4462,7 @@
 	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
-	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-modify-group-flag 0 c: transport-screen-group)
 	(up-reset-group c: transport-screen-group)
@@ -4181,7 +4519,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
-	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-modify-group-flag 0 c: transport-screen-group)
 	(up-reset-group c: transport-screen-group)
@@ -4212,7 +4550,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
-	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-modify-group-flag 0 c: transport-screen-group)
 	(up-reset-group c: transport-screen-group)
@@ -4326,7 +4664,7 @@
 	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
-	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-modify-group-flag 0 c: transport-screen-group)
 	(up-reset-group c: transport-screen-group)
@@ -4382,7 +4720,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
-	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(set-goal gl-transport-screen-id -1)
 	(up-set-timer c: t-transport-route c: 15)
@@ -4457,7 +4795,7 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count > 0)
 =>
-	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 15)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
@@ -4572,6 +4910,7 @@
 	(up-full-reset-search)
 	(up-set-target-point gl-transport-recovery-unit-x)
 	(up-find-remote c: transport-ship c: 40)
+	(up-remove-objects search-remote object-data-id g:== gl-quarantine-transport-id)
 	(up-remove-objects search-remote object-data-garrison-count > 0)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-transport-recovery-state TRANSPORT-RECOVERY-FIND-TRANSPORT)
@@ -4749,6 +5088,7 @@
 	(up-full-reset-search)
 	(up-set-target-point gl-relic-ferry-target-x)
 	(up-find-remote c: transport-ship c: 40)
+	(up-remove-objects search-remote object-data-id g:== gl-quarantine-transport-id)
 	(up-remove-objects search-remote object-data-garrison-count > 0)
 	(up-remove-objects search-remote object-data-under-attack > 0)
 	(up-remove-objects search-remote object-data-group-flag >= 0)
@@ -4805,6 +5145,7 @@
 	(up-full-reset-search)
 	(up-set-target-point gl-transport-recovery-unit-x)
 	(up-find-remote c: transport-ship c: 40)
+	(up-remove-objects search-remote object-data-id g:== gl-quarantine-transport-id)
 	(up-remove-objects search-remote object-data-garrison-count > 0)
 	(up-remove-objects search-remote object-data-under-attack > 0)
 	(up-remove-objects search-remote object-data-group-flag >= 0)
@@ -6384,7 +6725,7 @@
 	(up-full-reset-search)
 	(up-find-local c: transport-ship c: 40)
 	(up-remove-objects search-local object-data-id g:!= gl-transport-route-id)
-	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-modify-group-flag 0 c: transport-screen-group)
 	(up-reset-group c: transport-screen-group)
@@ -7609,12 +7950,86 @@
 ;Resynchronize it here so target-player facts and focus-relative searches use
 ;the same live building-owning enemy selected above.
 (defrule
-	(up-compare-goal military-superiority c:>= TOLERABLE)
 	(players-building-count target-player >= 1)
 	(player-in-game target-player)
 	(not (stance-toward target-player ally))
 =>
 	(up-modify-sn sn-focus-player-number s:= sn-target-player-number)
+	(up-modify-goal gl-land-target-current-player s:= sn-target-player-number)
+)
+
+;Hybrid maps can contain both reachable land fronts and enemies across water.
+;Classify the current live target from a known ready building instead of making
+;every RIVERS attack pretend that transport reachability is irrelevant.
+(defrule
+	(up-compare-goal gl-game-time g:>= gl-land-target-scan-next)
+	(goal gl-land-target-scan-state LAND-TARGET-SCAN-IDLE)
+	(players-building-count target-player >= 1)
+	(player-in-game target-player)
+	(not (stance-toward target-player ally))
+=>
+	(up-modify-goal gl-land-target-scan-focus s:= sn-focus-player-number)
+	(up-modify-goal gl-land-target-scan-player s:= sn-target-player-number)
+	(up-modify-sn sn-focus-player-number s:= sn-target-player-number)
+	(up-full-reset-search)
+	(up-get-point position-focus point4-x)
+	(up-set-target-point point4-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-remote c: building-class c: 40)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-land-target-scan-state LAND-TARGET-SCAN-CHECK)
+)
+
+(defrule
+	(goal gl-land-target-scan-state LAND-TARGET-SCAN-CHECK)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-map-zone-id gl-land-target-zone)
+	(up-modify-sn sn-focus-player-number g:= gl-land-target-scan-focus)
+	(up-modify-goal gl-land-target-scan-next g:= gl-game-time)
+	(up-modify-goal gl-land-target-scan-next c:+ 5)
+	(set-goal gl-land-target-scan-state LAND-TARGET-SCAN-IDLE)
+)
+
+(defrule
+	(goal gl-land-target-scan-state LAND-TARGET-SCAN-CHECK)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-land-target-zone -1)
+	(set-goal gl-land-target-needs-transport YES)
+	(up-modify-sn sn-focus-player-number g:= gl-land-target-scan-focus)
+	(up-modify-goal gl-land-target-scan-next g:= gl-game-time)
+	(up-modify-goal gl-land-target-scan-next c:+ 5)
+	(set-goal gl-land-target-scan-state LAND-TARGET-SCAN-IDLE)
+)
+
+(defrule
+	(up-compare-goal gl-land-target-zone g:== gl-home-zone)
+	(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)
+	(goal gl-land-target-needs-transport YES)
+=>
+	(set-goal gl-land-target-needs-transport NO)
+	(up-chat-data-to-self "land target same zone: %d" g: gl-land-target-zone)
+)
+
+(defrule
+	(up-compare-goal gl-land-target-zone g:!= gl-home-zone)
+	(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)
+	(goal gl-land-target-needs-transport NO)
+=>
+	(set-goal gl-land-target-needs-transport YES)
+	(up-chat-data-to-self "land target transport zone: %d" g: gl-land-target-zone)
+)
+
+(defrule
+	(up-compare-goal gl-land-target-scan-player g:!= gl-land-target-current-player)
+	(goal gl-land-target-needs-transport NO)
+=>
+	;A new target invalidates the previous five-second zone result immediately.
+	;No dispatch may reuse enemy A's land reachability for enemy B.
+	(set-goal gl-land-target-needs-transport YES)
+	(up-chat-data-to-self "land target scan stale player: %d" g: gl-land-target-current-player)
 )
 
 ;Age advantage is a pressure signal, not permission to ignore defense, failed
@@ -7735,6 +8150,7 @@
 	)
 	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(goal gl-land-transport-ready YES)
+	(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)
 	(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
 	(up-compare-goal military-superiority c:>= TOLERABLE)
 	(soldier-count g:>= gl-ten-percent)
@@ -7773,6 +8189,7 @@
 	)
 	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(goal gl-land-transport-ready YES)
+	(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)
 	(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
 	(up-compare-goal military-superiority c:>= TOLERABLE)
 	(soldier-count g:>= gl-ten-percent)
@@ -7884,6 +8301,7 @@
 	)
 	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(goal gl-land-transport-ready YES)
+	(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)
 	(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
 	(and
 		(up-compare-goal attack-type-land c:== PERCENTAGE)
@@ -7943,6 +8361,7 @@
 	)
 	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(goal gl-land-transport-ready YES)
+	(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)
 	(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
 	(and
 		(up-compare-goal attack-type-land c:== TOWN-SIZE)
@@ -7973,6 +8392,7 @@
 	)
 	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(goal gl-land-transport-ready YES)
+	(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)
 	(goal gl-attack-escalation-state ATTACK-ESCALATION-REGROUP)
 	(up-compare-goal gl-game-time g:>= land-attack-delay)
 	(soldier-count g:>= gl-fifteen-percent)
@@ -7998,6 +8418,7 @@
 	)
 	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(goal gl-land-transport-ready YES)
+	(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)
 	(goal gl-attack-escalation-state ATTACK-ESCALATION-SIEGE)
 	(goal have-siege YES)
 	(up-compare-goal gl-game-time g:>= land-attack-delay)

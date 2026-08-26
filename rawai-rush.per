@@ -519,6 +519,28 @@
 	(game-time g:> gl-rush-attack-delay)
 	(current-age <= middle-antiquity-age)
 	(soldier-count >= 4)
+	(or
+		(goal map-type LAND)
+		(and
+			(goal gl-land-transport-ready YES)
+			(and
+				(up-compare-goal gl-land-target-current-player c:>= 1)
+				(and
+					(up-compare-goal gl-land-target-current-player c:<= 8)
+					(and
+						(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)
+						(and
+							(player-in-game target-player)
+							(and
+								(not (stance-toward target-player ally))
+								(players-building-count target-player >= 1)
+							)
+						)
+					)
+				)
+			)
+		)
+	)
 	(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)
 	(nor
 		(goal current-action ACTION-ATTACK)
