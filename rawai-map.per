@@ -1028,12 +1028,13 @@
 )
 
 #load-if-not-defined UP-POCKET-POSITION
-;set flank position goal to 0, since we are pocket player
+;The engine defines UP-POCKET-POSITION only for an actual pocket. Therefore a
+;missing symbol is a flank, not a pocket.
 (defrule
 	(true)
 =>
-	(set-goal flank-position 0)
-	(chat-local-to-self "Pocket position")
+	(set-goal flank-position 1)
+	(chat-local-to-self "Flank position")
 	
 	(disable-self)
 )
@@ -1041,12 +1042,13 @@
 #end-if
 
 #load-if-defined UP-POCKET-POSITION
-;set flank position goal to 1, since we are flank player
+;Pocket players retain value zero; civilization strategy data and defensive
+;posture rules use one for the exposed flank role.
 (defrule
 	(true)
 =>
-	(set-goal flank-position 1)
-	(chat-local-to-self "Flank position")
+	(set-goal flank-position 0)
+	(chat-local-to-self "Pocket position")
 	
 	(disable-self)
 )

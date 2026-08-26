@@ -492,6 +492,10 @@ class FarmPolicyTests(unittest.TestCase):
         cls.main = (root / "AI RAW.per").read_text(encoding="utf-8-sig")
         cls.timers = (root / "rawai-timers.per").read_text(encoding="utf-8-sig")
         cls.trade = (root / "rawai-trade.per").read_text(encoding="utf-8-sig")
+        cls.map = (root / "rawai-map.per").read_text(encoding="utf-8-sig")
+        cls.germani = (root / "rawai-civ-germani.per").read_text(
+            encoding="utf-8-sig"
+        )
 
     def test_dependent_farm_demand_bounds_fisherman_substitution(self) -> None:
         rules = matching_rules(
@@ -621,7 +625,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B21", self.init_goals)
+        self.assertIn("RAWAI-P3B22", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -642,6 +646,134 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertEqual(len(calculators), 2)
         self.assertTrue(all(rule[1] < telemetry[0][0] for rule in calculators))
         self.assertIn("(up-timer-status t-farm-report != timer-running)", self.timers)
+
+    def test_pocket_preprocessor_role_is_not_inverted(self) -> None:
+        flank_block = self.map.split(
+            "#load-if-not-defined UP-POCKET-POSITION", 1
+        )[1].split("#end-if", 1)[0]
+        pocket_block = self.map.split(
+            "#load-if-defined UP-POCKET-POSITION", 1
+        )[1].split("#end-if", 1)[0]
+        self.assertIn("(set-goal flank-position 1)", flank_block)
+        self.assertIn('"Flank position"', flank_block)
+        self.assertIn("(set-goal flank-position 0)", pocket_block)
+        self.assertIn('"Pocket position"', pocket_block)
+
+    def test_trade_units_require_same_zone_endpoint_routes(self) -> None:
+        cart = matching_rules(
+            self.economy,
+            facts=(
+                "(goal gl-land-trade-route YES)",
+                "trade-cart g:< desired-number-carts",
+            ),
+            actions=("(train trade-cart)",),
+        )
+        self.assertEqual(len(cart), 1)
+        cog = matching_rules(
+            self.economy,
+            facts=(
+                "(goal gl-land-trade-route NO)",
+                "(goal gl-water-trade-route YES)",
+                "(goal map-type RIVERS)",
+                "(goal map-type TEAM-ISLANDS)",
+            ),
+            actions=("(train trade-cog)",),
+        )
+        self.assertEqual(len(cog), 1)
+        self.assertIn(
+            "object-data-map-zone-id g:!= gl-trade-land-zone", self.economy
+        )
+        self.assertIn(
+            "object-data-map-zone-id g:!= gl-trade-water-zone", self.economy
+        )
+        self.assertIn("TRADE-ROUTE-LAND-SOURCE", self.economy)
+        self.assertIn("(not (player-in-game any-ally))", self.economy)
+        self.assertIn("gl-trade-valid-producer-total", self.economy)
+        self.assertIn(
+            "building-type-count market g:== gl-trade-own-producer-total",
+            cart[0][3],
+        )
+        self.assertIn(
+            "building-type-count dock g:== gl-trade-own-producer-total",
+            cog[0][3],
+        )
+        self.assertNotIn("players-building-type-count any-ally market", cart[0][3])
+
+    def test_crowded_placement_recovery_is_persistent_and_bounded(self) -> None:
+        self.assertIn("c:+ 24", self.homebase)
+        self.assertIn("g:min gl-placement-pressure-cap", self.homebase)
+        self.assertIn("crowded town placement saturated size", self.homebase)
+        self.assertIn("PLACEMENT-KIND-ECONOMY", self.homebase)
+        self.assertIn("PLACEMENT-KIND-MILITARY", self.homebase)
+        self.assertIn("PLACEMENT-KIND-DEFENSE", self.homebase)
+        for building in (
+            "house",
+            "barracks",
+            "archery-range",
+            "stable",
+            "siege-workshop",
+            "blacksmith",
+            "university",
+            "monastery",
+            "castle",
+            "watch-tower",
+            "outpost",
+            "wonder",
+        ):
+            self.assertIn(f"(up-reset-placement c: {building})", self.homebase)
+        economy_reset = matching_rules(
+            self.homebase,
+            facts=(
+                "PLACEMENT-PRESSURE-CHECK-ECONOMY",
+                "up-pending-placement c: house",
+            ),
+            actions=("up-reset-placement c: house",),
+        )
+        self.assertEqual(len(economy_reset), 1)
+        for managed in ("town-center", "farm", "market"):
+            self.assertNotIn(f"up-reset-placement c: {managed}", economy_reset[0][4])
+        self.assertIn("(not (up-can-build 0 c: market))", self.homebase)
+        self.assertIn("(not (up-can-build 0 c: farm))", self.homebase)
+        self.assertIn("(not (up-can-build 0 c: castle))", self.homebase)
+        self.assertNotRegex(
+            self.homebase,
+            r"\(up-modify-sn\s+sn-maximum-town-size\s+[cg]:[<>]=?",
+        )
+
+    def test_wall_owner_uses_correct_role_and_backs_off(self) -> None:
+        self.assertIn("(goal flank-position 1)", self.homebase)
+        self.assertIn("object-data-map-zone-id g:!= gl-wall-land-zone", self.homebase)
+        self.assertIn("Wall placement no-progress backoff", self.homebase)
+        self.assertIn("gl-wall-retries c:>= 3", self.homebase)
+        self.assertIn("gl-wall-next c:+ 180", self.homebase)
+        wall_builders = matching_rules(
+            self.homebase,
+            facts=("wall-completed-percentage 2 < 100",),
+            actions=("(build-wall 2",),
+        )
+        self.assertTrue(wall_builders)
+        for _, _, _, facts, actions in wall_builders:
+            self.assertIn("gl-wall-next", facts)
+            self.assertIn("gl-wall-retries", facts)
+            self.assertIn("gl-wall-next", actions)
+
+    def test_dejbjerg_moves_persistent_form_without_unpacking(self) -> None:
+        self.assertIn("c: dejbjerg-wagon-stationary c: 10", self.germani)
+        self.assertIn("object-data-action != actionid-gather", self.germani)
+        self.assertIn("local-total c:>= 3", self.germani)
+        self.assertIn("DEJBJERG-SEARCH-WORKERS", self.germani)
+        self.assertIn("gl-dejbjerg-rejected-id1", self.germani)
+        self.assertIn("DEJBJERG-CHECK-CURRENT", self.germani)
+        self.assertIn("gl-dejbjerg-home-distance c:>= 14", self.germani)
+        self.assertIn(
+            "(up-target-point gl-dejbjerg-target-x action-move -1 stance-no-attack)",
+            self.germani,
+        )
+        self.assertFalse(
+            matching_rules(self.germani, actions=("action-unpack",))
+        )
+        self.assertIn("dejbjerg-wagon-mobile < 1", self.germani)
+        self.assertIn("dejbjerg-wagon-stationary < 1", self.germani)
 
     def test_naval_duc_groups_stay_inside_the_engine_domain(self) -> None:
         groups = {

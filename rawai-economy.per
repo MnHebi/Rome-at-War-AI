@@ -1005,49 +1005,319 @@
 	(train transport-ship)
 )
 
+;Team trade modality is selected from actual endpoint reachability, never from
+;the map label alone. Real World Britain is a hybrid RIVERS map: several starts
+;share water while their Markets occupy disconnected land zones.
 (defrule
+	(goal team-game YES)
+	(not (player-in-game any-ally))
 	(or
-		(goal map-type TEAM-ISLANDS)
+		(goal gl-land-trade-route YES)
 		(or
-			(goal map-type LAND)
-			(goal map-type RIVERS)
+			(goal gl-water-trade-route YES)
+			(not (goal gl-trade-route-state TRADE-ROUTE-IDLE))
 		)
 	)
+=>
+	(set-goal gl-land-trade-route NO)
+	(set-goal gl-water-trade-route NO)
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+	(up-modify-goal gl-trade-route-next g:= gl-game-time)
+	(up-modify-goal gl-trade-route-next c:+ 60)
+)
+
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal team-game YES)
+	(player-in-game any-ally)
+	(goal gl-trade-route-state TRADE-ROUTE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-trade-route-next)
+	(goal gl-island-colony-established NO)
+=>
+	(up-modify-goal gl-trade-route-focus s:= sn-focus-player-number)
+	(up-modify-goal gl-trade-land-zone g:= gl-home-zone)
+	(set-goal gl-land-trade-route NO)
+	(set-goal gl-water-trade-route NO)
+	(set-goal gl-trade-own-producer-total 0)
+	(set-goal gl-trade-valid-producer-total 0)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-local c: market c: 20)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-own-producer-total g:= local-total)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-trade-land-zone)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-valid-producer-total g:= local-total)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-SOURCE)
+)
+
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal team-game YES)
+	(player-in-game any-ally)
+	(goal gl-trade-route-state TRADE-ROUTE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-trade-route-next)
+	(goal gl-island-colony-established YES)
+=>
+	(up-modify-goal gl-trade-route-focus s:= sn-focus-player-number)
+	(up-modify-goal gl-trade-land-zone g:= gl-island-colony-zone)
+	(set-goal gl-land-trade-route NO)
+	(set-goal gl-water-trade-route NO)
+	(set-goal gl-trade-own-producer-total 0)
+	(set-goal gl-trade-valid-producer-total 0)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-colony-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-local c: market c: 20)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-own-producer-total g:= local-total)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-trade-land-zone)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-valid-producer-total g:= local-total)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-SOURCE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-SOURCE)
+	(up-set-target-object search-local c: 0)
+	(up-compare-goal gl-trade-valid-producer-total g:== gl-trade-own-producer-total)
+=>
+	(up-find-player ally find-ordered gl-trade-route-player)
+	(up-modify-goal gl-trade-route-first g:= gl-trade-route-player)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-START)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-SOURCE)
+	(or
+		(not (up-set-target-object search-local c: 0))
+		(up-compare-goal gl-trade-valid-producer-total g:!= gl-trade-own-producer-total)
+	)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-local c: dock c: 20)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-own-producer-total g:= local-total)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-SOURCE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-START)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-remote c: market c: 20)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-trade-land-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-goal gl-land-trade-route YES)
+	(up-modify-goal gl-trade-route-next g:= gl-game-time)
+	(up-modify-goal gl-trade-route-next c:+ 90)
+	(up-chat-data-to-self "reachable ally land trade: %d" g: gl-trade-route-player)
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-ADVANCE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-ADVANCE)
+=>
+	(up-find-next-player ally find-ordered gl-trade-route-player)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-NEXT)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-NEXT)
+	(up-compare-goal gl-trade-route-player g:!= gl-trade-route-first)
+=>
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-START)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-NEXT)
+	(up-compare-goal gl-trade-route-player g:== gl-trade-route-first)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-local c: dock c: 20)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-own-producer-total g:= local-total)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-SOURCE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-SOURCE)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-map-zone-id gl-trade-water-zone)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-trade-water-zone)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-valid-producer-total g:= local-total)
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-VALIDATE-SOURCE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-VALIDATE-SOURCE)
+	(up-compare-goal gl-trade-valid-producer-total g:== gl-trade-own-producer-total)
+=>
+	(up-find-player ally find-ordered gl-trade-route-player)
+	(up-modify-goal gl-trade-route-first g:= gl-trade-route-player)
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-START)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-VALIDATE-SOURCE)
+	(up-compare-goal gl-trade-valid-producer-total g:!= gl-trade-own-producer-total)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(up-modify-goal gl-trade-route-next g:= gl-game-time)
+	(up-modify-goal gl-trade-route-next c:+ 60)
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-SOURCE)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(up-modify-goal gl-trade-route-next g:= gl-game-time)
+	(up-modify-goal gl-trade-route-next c:+ 60)
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-START)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-remote c: dock c: 20)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-trade-water-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-CHECK)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-CHECK)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-goal gl-water-trade-route YES)
+	(up-modify-goal gl-trade-route-next g:= gl-game-time)
+	(up-modify-goal gl-trade-route-next c:+ 90)
+	(up-chat-data-to-self "reachable ally water trade: %d" g: gl-trade-route-player)
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-CHECK)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-ADVANCE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-ADVANCE)
+=>
+	(up-find-next-player ally find-ordered gl-trade-route-player)
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-NEXT)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-NEXT)
+	(up-compare-goal gl-trade-route-player g:!= gl-trade-route-first)
+=>
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-START)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-NEXT)
+	(up-compare-goal gl-trade-route-player g:== gl-trade-route-first)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(up-modify-goal gl-trade-route-next g:= gl-game-time)
+	(up-modify-goal gl-trade-route-next c:+ 60)
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-land-trade-route YES)
+	(building-type-count market g:== gl-trade-own-producer-total)
 	(unit-type-count-total trade-cart g:< desired-number-carts)
 	(goal wait-techup-requirements NO)
-	(or	
-		(players-building-type-count any-ally market >= 1)
-		(players-building-type-count any-neutral market >= 1)
-	)
 	(can-train trade-cart)
 =>
 	(train trade-cart)
 )
 
 (defrule
+	(goal gl-land-trade-route NO)
+	(goal gl-water-trade-route YES)
+	(building-type-count dock g:== gl-trade-own-producer-total)
 	(or
 		(goal map-type LAKE)
-		(goal map-type ISLANDS)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
 	)
 	(unit-type-count-total trade-cog g:< desired-number-cogs)
 	(goal wait-techup-requirements NO)
 	(wood-amount > 200)
-	(or	
-		(players-building-type-count any-ally dock >= 1)
-		(players-building-type-count any-neutral dock >= 1)
-	)
 	(can-train trade-cog)
 =>
 	(train trade-cog)
 )
 
-;Increase trade carts massively after resources are depleted.
+;Resource depletion increases only the reachable trade modality. These remain
+;live rules because a colony can later connect the AI to its allies by land.
 (defrule
 	(goal resources-depleted YES)
+	(goal gl-land-trade-route YES)
 =>
 	(up-modify-goal desired-number-carts g:= gl-thirty-percent)
-	
-	(disable-self)
+)
+
+(defrule
+	(goal resources-depleted YES)
+	(goal gl-land-trade-route NO)
+	(goal gl-water-trade-route YES)
+=>
+	(up-modify-goal desired-number-cogs g:= gl-thirty-percent)
 )
 
 ;Cow trainable from Mill due to Pict team bonus

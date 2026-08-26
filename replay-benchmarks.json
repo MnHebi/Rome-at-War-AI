@@ -767,6 +767,54 @@
         "Multiplexing is an engine-slot constraint. Structural validation proves IDs are in range, while fresh runtime telemetry is still required to prove the mutually exclusive map and route gates prevent ownership collisions."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260826-125406",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.26 125406.aoe2record",
+        "sha256": "0609ADD1C51253736784675313D8A7864D6126F8D3212A9FC27491623C5F4236",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain (user-provided 4v4 test context)",
+        "players": [
+          "Eight AI players in two teams; exact civilization and color mapping is unresolved from the modded replay header"
+        ],
+        "duration_seconds": 3795
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and lasted 63:15. No RAWAI-P3B21 marker was decoded, so the exact deployed source is not proven by the recording.",
+        "All eight parser player slots requested Trade Carts (unit 128), for 234 requests total: p1 11, p2 30, p3 11, p4 42, p5 34, p6 62, p7 15, and p8 29. No player requested a Trade Cog (unit 17).",
+        "Player 7 requested four Dejbjerg Wagon production forms (unit 2513) at approximately 10:05, 11:34, 12:15, and 13:13. MAKE records do not reveal the spawned position or the later DAT-owned transformation into persistent form 1815; the user's observation that the transformed wagons remained at the Town Center is therefore recorded as visual match evidence.",
+        "All 117 decoded WALL commands came from parser player 8, including 112 between approximately 41:49 and 62:35. The user's color account says Gray walled while Blue and Yellow did not; standard color-to-slot assumptions conflict with that account and are not used to overwrite it.",
+        "The replay contains 522 empty ERROR action records without a decoded payload or reliable rule attribution. They are not evidence of a particular placement failure or script defect."
+      ],
+      "implementation_inferences": [
+        "Trade mode was selected from broad map labels rather than a reachable teammate route: any allied Market permitted carts, while the RIVERS classification excluded Trade Cogs. That is sufficient to explain universal cart requests and zero cogs on separated Britain land zones.",
+        "The authoritative DAT makes unit 2513 a short-lived transformation dummy and leaves unit 1815 as the persistent movable multi-resource drop-site. The AI had a production owner but no movement owner, so directly commanding exact form 1815 is the least-assumptive correction; an unpack command is neither required nor justified by the data.",
+        "The old generic placement recovery stopped at the configured outer town size and used comparison tokens as strategic-number modification operators. It therefore could not provide a bounded, persistent recovery path for a crowded town, although the replay's payload-free ERROR records cannot identify which structures failed.",
+        "The engine-defined UP-POCKET-POSITION branch was inverted, assigning actual pockets the flank flag and actual flanks the pocket flag. This can explain wall posture being attached to the wrong team roles.",
+        "The old wall owner had no no-progress retry budget. The repeated player-8 WALL stream is consistent with an endlessly reissued placement command, but does not establish which visible color or civilization owned parser player 8."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B22 and initialize separate bounded controllers for placement pressure, teammate trade-route discovery, wall progress, and the Germani Dejbjerg Wagon.",
+        "Cap Dejbjerg production at one until runtime movement is proven. Find exact persistent form 1815, leave it in place only while at least three active gatherers remain nearby and it is at least fourteen tiles from the active home anchor, persist up to three rejected sparse-site IDs while rebuilding shared search state, test at most four same-zone clusters, verify arrival, and back off for two minutes without issuing action-unpack.",
+        "Select trade modality from infrastructure connectivity rather than the map label: require every ready own Market to share the active land zone with an allied Market before training carts; otherwise require every ready own Port to share one water zone with an allied Port before training Trade Cogs. Recheck the live own-producer count at production and allow the water path on RIVERS, ISLANDS, TEAM-ISLANDS, and LAKE maps.",
+        "When an unmanaged placement remains pending for twelve seconds, reset only its retained economy, military, or defense category and expand maximum town size and camp distance by three. Also enter recovery directly from an affordable desired-count deficit when up-can-build is already false and no pending placement can exist; managed Market and Town Center owners retain reset control. Clamp recovery at twenty-four tiles beyond the first captured baseline and switch to a sixty-second diagnostic cadence at the cap.",
+        "Correct UP-POCKET-POSITION handling, let actual flanks and threatened same-zone routes request walling, sample wall completion in twenty-five-percent quarters, allow at most three wall commands without quarter progress, and then back off for three minutes."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B22 near match start.",
+        "A Germani AI creates no more than one Dejbjerg Wagon deployment; it leaves form 1815 only beside an already useful remote cluster at least fourteen tiles from the active home anchor, or telemetry shows it moving from the Town Center to a same-land-zone cluster of at least three active gatherers and arriving within eight tiles without an unpack or sparse-site loop.",
+        "An AI separated by water from allied Markets does not request Trade Carts solely because an allied Market exists in another land zone. Once all ready own Ports and an allied Port share one water zone, it reports a valid water trade route and requests Trade Cogs; a genuinely same-land-zone Market set still permits carts, while a newly completed producer in another zone immediately blocks production by changing the live count.",
+        "A desired affordable ordinary structure whose up-can-build predicate is false triggers recovery even though no placement is pending; a later persistent unmanaged placement is reset only within its retained category. Construction can complete beyond the former outer-town boundary, never expands more than twenty-four tiles beyond the first captured baseline, and does not reset managed Market, Town Center, Port, Shipyard, Lumber Camp, Mining Camp, Mill, or Farm owners.",
+        "Actual flank players initialize as flanks and receive the flank wall posture. A known same-land-zone enemy route can also request walls, but each no-progress completion quarter produces at most three commands followed by approximately 180 seconds without another wall issue."
+      ],
+      "known_limits": [
+        "The replay does not expose exact Dejbjerg object positions, transformation completion, transportable building action semantics, successful building placement, or trade-path reachability. Every runtime claim in this patch requires a fresh P3B22 match.",
+        "Land-zone equality is stronger evidence than map classification but does not prove that terrain within a zone has no impassable obstruction. Water-zone equality similarly does not prove a Trade Cog's full path is safe or unobstructed. Ordinary train cannot bind an object ID, so production conservatively requires all currently ready own producers to share the validated zone and blocks if their live count changes.",
+        "The wall route scan depends on known enemy structures in the active-home land zone. It cannot infer unseen choke points, and completion-percentage quarters prove engine wall progress rather than strategic enclosure quality.",
+        "The user-reported color identities conflict with standard parser slot/color assumptions. Player 8 owns the decoded WALL commands; the visible color and civilization of that slot remain unresolved and are not guessed."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

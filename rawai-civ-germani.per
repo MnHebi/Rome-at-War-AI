@@ -1479,13 +1479,235 @@
 		(up-object-type-count c: mill >= 1)
 	)
 	(and
-		(up-object-type-count-total c: dejbjerg-wagon-mobile < 4)
-		(up-object-type-count-total c: dejbjerg-wagon-stationary < 4)
+		;The current DAT creates a short-lived 2513 transform dummy and leaves
+		;the persistent movable drop-site as 1815. Keep one audited deployment
+		;until a fresh match confirms direct movement of the persistent form.
+		(up-object-type-count-total c: dejbjerg-wagon-mobile < 1)
+		(up-object-type-count-total c: dejbjerg-wagon-stationary < 1)
 	)
 	(can-train-with-escrow dejbjerg-wagon-mobile)
 =>
 	(release-escrow wood)
 	(train dejbjerg-wagon-mobile)
+)
+
+;Move the persistent Dejbjerg drop-site to a useful same-land-zone gathering
+;cluster. The controller never calls action-unpack: the DAT, not the AI, owns
+;the 2513 -> 1815 transform. Sparse single-worker sites are rejected and a
+;stalled move is retried only four times before a two-minute backoff.
+(defrule
+	(goal gl-dejbjerg-state DEJBJERG-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-dejbjerg-next)
+	(up-object-type-count-total c: dejbjerg-wagon-stationary >= 1)
+=>
+	(up-modify-goal gl-dejbjerg-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-find-local c: dejbjerg-wagon-stationary c: 10)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-dejbjerg-state DEJBJERG-FIND-WAGON)
+)
+
+(defrule
+	(goal gl-dejbjerg-state DEJBJERG-FIND-WAGON)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-dejbjerg-id)
+	(up-get-object-data object-data-map-zone-id gl-dejbjerg-zone)
+	(up-get-object-data object-data-distance gl-dejbjerg-home-distance)
+	(up-get-point position-object gl-dejbjerg-origin-x)
+	(set-goal gl-dejbjerg-rejected-id1 -1)
+	(set-goal gl-dejbjerg-rejected-id2 -1)
+	(set-goal gl-dejbjerg-rejected-id3 -1)
+	(set-goal gl-dejbjerg-worker-attempts 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-dejbjerg-origin-x)
+	(up-filter-distance c: -1 c: 10)
+	(up-find-local c: villager-class c: 40)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action != actionid-gather)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-dejbjerg-zone)
+	(up-get-search-state local-total)
+	(set-goal gl-dejbjerg-state DEJBJERG-CHECK-CURRENT)
+)
+
+(defrule
+	(goal gl-dejbjerg-state DEJBJERG-CHECK-CURRENT)
+	(up-compare-goal local-total c:>= 3)
+	(up-compare-goal gl-dejbjerg-home-distance c:>= 14)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-dejbjerg-focus)
+	(up-modify-goal gl-dejbjerg-next g:= gl-game-time)
+	(up-modify-goal gl-dejbjerg-next c:+ 120)
+	(set-goal gl-dejbjerg-state DEJBJERG-IDLE)
+)
+
+(defrule
+	(goal gl-dejbjerg-state DEJBJERG-CHECK-CURRENT)
+	(or
+		(up-compare-goal local-total c:< 3)
+		(up-compare-goal gl-dejbjerg-home-distance c:< 14)
+	)
+=>
+	(set-goal gl-dejbjerg-state DEJBJERG-SEARCH-WORKERS)
+)
+
+;Rebuild the candidate list on every retry. DUC searches are shared engine
+;state and cannot be carried across a full rule sweep; the persisted rejection
+;ring is the only cross-sweep candidate state.
+(defrule
+	(goal gl-dejbjerg-state DEJBJERG-SEARCH-WORKERS)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-dejbjerg-origin-x)
+	(up-filter-distance c: 14 c: 120)
+	(up-find-remote c: villager-class c: 240)
+	(up-remove-objects search-remote object-data-garrisoned == 1)
+	(up-remove-objects search-remote object-data-action != actionid-gather)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-dejbjerg-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-dejbjerg-rejected-id1)
+	(up-remove-objects search-remote object-data-id g:== gl-dejbjerg-rejected-id2)
+	(up-remove-objects search-remote object-data-id g:== gl-dejbjerg-rejected-id3)
+	(up-clean-search search-remote object-data-distance search-order-desc)
+	(set-goal gl-dejbjerg-state DEJBJERG-FIND-WORKER)
+)
+
+(defrule
+	(goal gl-dejbjerg-state DEJBJERG-FIND-WAGON)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-dejbjerg-focus)
+	(up-modify-goal gl-dejbjerg-next g:= gl-game-time)
+	(up-modify-goal gl-dejbjerg-next c:+ 60)
+	(set-goal gl-dejbjerg-state DEJBJERG-IDLE)
+)
+
+(defrule
+	(goal gl-dejbjerg-state DEJBJERG-FIND-WORKER)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-dejbjerg-worker-id)
+	(up-get-point position-object gl-dejbjerg-target-x)
+	;Keep the distance-sorted candidates while measuring the selected cluster.
+	(up-reset-search 1 1 0 0)
+	(up-set-target-point gl-dejbjerg-target-x)
+	(up-filter-distance c: -1 c: 10)
+	(up-find-local c: villager-class c: 40)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action != actionid-gather)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-dejbjerg-zone)
+	(up-get-search-state local-total)
+	(set-goal gl-dejbjerg-state DEJBJERG-CHECK-CLUSTER)
+)
+
+(defrule
+	(goal gl-dejbjerg-state DEJBJERG-FIND-WORKER)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-dejbjerg-focus)
+	(up-modify-goal gl-dejbjerg-next g:= gl-game-time)
+	(up-modify-goal gl-dejbjerg-next c:+ 60)
+	(set-goal gl-dejbjerg-state DEJBJERG-IDLE)
+)
+
+(defrule
+	(goal gl-dejbjerg-state DEJBJERG-CHECK-CLUSTER)
+	(up-compare-goal local-total c:< 3)
+	(up-compare-goal gl-dejbjerg-worker-attempts c:< 3)
+=>
+	(up-modify-goal gl-dejbjerg-rejected-id3 g:= gl-dejbjerg-rejected-id2)
+	(up-modify-goal gl-dejbjerg-rejected-id2 g:= gl-dejbjerg-rejected-id1)
+	(up-modify-goal gl-dejbjerg-rejected-id1 g:= gl-dejbjerg-worker-id)
+	(up-modify-goal gl-dejbjerg-worker-attempts c:+ 1)
+	(set-goal gl-dejbjerg-state DEJBJERG-SEARCH-WORKERS)
+)
+
+(defrule
+	(goal gl-dejbjerg-state DEJBJERG-CHECK-CLUSTER)
+	(up-compare-goal local-total c:< 3)
+	(up-compare-goal gl-dejbjerg-worker-attempts c:>= 3)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-dejbjerg-focus)
+	(up-modify-goal gl-dejbjerg-next g:= gl-game-time)
+	(up-modify-goal gl-dejbjerg-next c:+ 120)
+	(up-chat-data-to-self "Dejbjerg Wagon found no useful cluster: %d" g: gl-dejbjerg-id)
+	(set-goal gl-dejbjerg-state DEJBJERG-IDLE)
+)
+
+(defrule
+	(goal gl-dejbjerg-state DEJBJERG-CHECK-CLUSTER)
+	(up-compare-goal local-total c:>= 3)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-dejbjerg-id)
+	(up-target-point gl-dejbjerg-target-x action-move -1 stance-no-attack)
+	(set-goal gl-dejbjerg-attempts 1)
+	(up-modify-goal gl-dejbjerg-next g:= gl-game-time)
+	(up-modify-goal gl-dejbjerg-next c:+ 15)
+	(up-modify-sn sn-focus-player-number g:= gl-dejbjerg-focus)
+	(up-chat-data-to-self "Dejbjerg Wagon moving to cluster: %d" g: local-total)
+	(set-goal gl-dejbjerg-state DEJBJERG-MOVING)
+)
+
+(defrule
+	(goal gl-dejbjerg-state DEJBJERG-MOVING)
+	(up-compare-goal gl-game-time g:>= gl-dejbjerg-next)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-dejbjerg-target-x)
+	(up-add-object-by-id search-local g: gl-dejbjerg-id)
+)
+
+(defrule
+	(goal gl-dejbjerg-state DEJBJERG-MOVING)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance <= 8)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-dejbjerg-focus)
+	(up-modify-goal gl-dejbjerg-next g:= gl-game-time)
+	(up-modify-goal gl-dejbjerg-next c:+ 120)
+	(up-chat-data-to-self "Dejbjerg Wagon deployed: %d" g: gl-dejbjerg-id)
+	(set-goal gl-dejbjerg-state DEJBJERG-IDLE)
+)
+
+(defrule
+	(goal gl-dejbjerg-state DEJBJERG-MOVING)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance > 8)
+	(up-compare-goal gl-dejbjerg-attempts c:< 4)
+=>
+	(up-target-point gl-dejbjerg-target-x action-move -1 stance-no-attack)
+	(up-modify-goal gl-dejbjerg-attempts c:+ 1)
+	(up-modify-goal gl-dejbjerg-next g:= gl-game-time)
+	(up-modify-goal gl-dejbjerg-next c:+ 15)
+	(up-modify-sn sn-focus-player-number g:= gl-dejbjerg-focus)
+)
+
+(defrule
+	(goal gl-dejbjerg-state DEJBJERG-MOVING)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance > 8)
+	(up-compare-goal gl-dejbjerg-attempts c:>= 4)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-dejbjerg-focus)
+	(up-modify-goal gl-dejbjerg-next g:= gl-game-time)
+	(up-modify-goal gl-dejbjerg-next c:+ 120)
+	(up-chat-data-to-self "Dejbjerg Wagon movement stalled: %d" g: gl-dejbjerg-id)
+	(set-goal gl-dejbjerg-state DEJBJERG-IDLE)
+)
+
+(defrule
+	(goal gl-dejbjerg-state DEJBJERG-MOVING)
+	(up-compare-goal gl-game-time g:>= gl-dejbjerg-next)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-dejbjerg-focus)
+	(up-modify-goal gl-dejbjerg-next g:= gl-game-time)
+	(up-modify-goal gl-dejbjerg-next c:+ 60)
+	(set-goal gl-dejbjerg-state DEJBJERG-IDLE)
 )
 
 ; Upgrade Comite

@@ -132,6 +132,23 @@
 (defconst train-type 100)
 (defconst ship-train 101)
 
+;Bounded placement-pressure owner. These reclaim previously unused goal slots
+;below the historical strategy block rather than extending the goal table.
+(defconst gl-placement-pressure-state 102)
+(defconst gl-placement-pressure-next 103)
+(defconst gl-placement-pressure-cap 104)
+(defconst gl-placement-pressure-saturated 105)
+(defconst gl-placement-pressure-category 342)
+
+;Reachability-audited team trade routes.
+(defconst gl-trade-route-state 106)
+(defconst gl-trade-route-focus 107)
+(defconst gl-trade-route-player 108)
+(defconst gl-trade-route-first 109)
+(defconst gl-land-trade-route 110)
+(defconst gl-water-trade-route 111)
+(defconst gl-trade-water-zone 112)
+
 (defconst has-horus 113)
 (defconst train-crossbow 114)
 (defconst current-action 115)
@@ -140,6 +157,7 @@
 (defconst gl-total-soldier-losses 118)
 (defconst gl-total-warboat-losses 119)
 ;empty goal 120, used to be a unit countering goal
+(defconst gl-trade-land-zone 120)
 
 (defconst train-scoutships 121)
 (defconst train-remes 122)
@@ -192,6 +210,9 @@
 (defconst gl-ninetyfive-percent 168)
 (defconst gl-onehundred-percent 169)
 (defconst gl-calculator 170)
+
+;The old percentage gap is used for the trade scanner's game-time deadline.
+(defconst gl-trade-route-next 166)
 
 (defconst gl-shipyard-placement 171)
 
@@ -365,6 +386,10 @@
 
 (defconst has-illumination 314)
 
+;Wall posture and progress ownership. 315/316 and 336+ were unused goal slots.
+(defconst gl-wall-scan-focus 315)
+(defconst gl-wall-scan-player 316)
+
 (defconst rush-drush 317) ;iron age militia rush
 (defconst rush-fcast 318) ;fast forward castle, combined with rush-fc
 (defconst rush-trush 319) ;build-forward tower at the enemy
@@ -384,6 +409,37 @@
 (defconst rush-fc 333) ;fast castle
 (defconst rush-threshold 334) ;highest active opening-affinity tier
 (defconst rush-affinities-ready 335) ;base profile and matchup modifiers are ready
+
+(defconst gl-wall-scan-first 336)
+(defconst gl-wall-land-zone 337)
+(defconst gl-hostile-land-route 338)
+(defconst gl-wall-needed 339)
+(defconst gl-wall-next 340)
+(defconst gl-wall-last-percent 341)
+(defconst gl-wall-retries 343)
+(defconst gl-wall-enabled 344)
+(defconst gl-wall-scan-state 345)
+(defconst gl-wall-scan-next 346)
+
+;Germani Dejbjerg Wagon deployment owner.
+(defconst gl-dejbjerg-state 351)
+(defconst gl-dejbjerg-focus 352)
+(defconst gl-dejbjerg-id 353)
+(defconst gl-dejbjerg-zone 354)
+(defconst gl-dejbjerg-worker-id 355)
+(defconst gl-dejbjerg-target-x 356)
+(defconst gl-dejbjerg-target-y 357)
+(defconst gl-dejbjerg-next 358)
+(defconst gl-dejbjerg-attempts 359)
+(defconst gl-dejbjerg-rejected-id1 360)
+(defconst gl-dejbjerg-rejected-id2 361)
+(defconst gl-dejbjerg-rejected-id3 362)
+(defconst gl-dejbjerg-origin-x 363)
+(defconst gl-dejbjerg-origin-y 364)
+(defconst gl-dejbjerg-worker-attempts 365)
+(defconst gl-trade-own-producer-total 366)
+(defconst gl-trade-valid-producer-total 367)
+(defconst gl-dejbjerg-home-distance 368)
 
 (defconst rush-rushing 350)
 
@@ -1152,6 +1208,48 @@
 (defconst OPENING-MILL-CHECK-ALLY-TC 11)
 (defconst OPENING-MILL-ADVANCE-ALLY 12)
 (defconst OPENING-MILL-NEXT-ALLY 13)
+
+;bounded crowded-town placement recovery
+(defconst PLACEMENT-PRESSURE-IDLE 0)
+(defconst PLACEMENT-PRESSURE-WAIT 1)
+(defconst PLACEMENT-PRESSURE-CHECK-ECONOMY 2)
+(defconst PLACEMENT-PRESSURE-CHECK-MILITARY 3)
+(defconst PLACEMENT-PRESSURE-CHECK-DEFENSE 4)
+(defconst PLACEMENT-PRESSURE-EXPAND 5)
+(defconst PLACEMENT-KIND-NONE 0)
+(defconst PLACEMENT-KIND-ECONOMY 1)
+(defconst PLACEMENT-KIND-MILITARY 2)
+(defconst PLACEMENT-KIND-DEFENSE 3)
+
+;same-zone team trade reachability scan
+(defconst TRADE-ROUTE-IDLE 0)
+(defconst TRADE-ROUTE-LAND-START 1)
+(defconst TRADE-ROUTE-LAND-CHECK 2)
+(defconst TRADE-ROUTE-LAND-ADVANCE 3)
+(defconst TRADE-ROUTE-LAND-NEXT 4)
+(defconst TRADE-ROUTE-WATER-SOURCE 5)
+(defconst TRADE-ROUTE-WATER-START 6)
+(defconst TRADE-ROUTE-WATER-CHECK 7)
+(defconst TRADE-ROUTE-WATER-ADVANCE 8)
+(defconst TRADE-ROUTE-WATER-NEXT 9)
+(defconst TRADE-ROUTE-LAND-SOURCE 10)
+(defconst TRADE-ROUTE-WATER-VALIDATE-SOURCE 11)
+
+;known same-land-zone enemy and bounded wall-progress scan
+(defconst WALL-SCAN-IDLE 0)
+(defconst WALL-SCAN-START 1)
+(defconst WALL-SCAN-CHECK 2)
+(defconst WALL-SCAN-ADVANCE 3)
+(defconst WALL-SCAN-NEXT 4)
+
+;persistent Dejbjerg drop-site movement states
+(defconst DEJBJERG-IDLE 0)
+(defconst DEJBJERG-FIND-WAGON 1)
+(defconst DEJBJERG-FIND-WORKER 2)
+(defconst DEJBJERG-CHECK-CLUSTER 3)
+(defconst DEJBJERG-MOVING 4)
+(defconst DEJBJERG-SEARCH-WORKERS 5)
+(defconst DEJBJERG-CHECK-CURRENT 6)
 
 ;loaded transport route-safety state
 (defconst TRANSPORT-ROUTE-IDLE 0)

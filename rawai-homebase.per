@@ -125,171 +125,519 @@
 	(set-strategic-number sn-percent-civilian-gatherers 85)
 )
 
+;A pending placement must persist for twelve seconds before it is classified as
+;crowding. Naval and exact point-placement owners are intentionally excluded:
+;increasing a land town radius cannot fix an impossible shoreline or a rejected
+;resource cluster.
 (defrule
-	(current-age == iron-age)
-	(and
-		(up-compare-sn sn-maximum-town-size c:> 0)
-		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
-	)
-	(up-timer-status t-town-size != timer-running)
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(goal gl-placement-pressure-cap 0)
 	(or
-		(up-pending-placement c: town-center)
+		(up-pending-placement c: house)
 		(or
-			(up-pending-placement c: farm)
-			(or	
-				(up-pending-placement c: house)
-				(or	
-					(up-pending-placement c: barracks)
-					(up-pending-placement c: dock)
-				)
-			)
-		)
-	)
-=>
-	(up-modify-sn sn-maximum-town-size c:+ 1)
-	(up-modify-sn sn-maximum-town-size g:<= outer-townsize)
-	(up-modify-sn sn-maximum-town-size g:> 0)
-	(up-chat-data-to-self "pending placement resize sn-maximum-town-size; %d" s: sn-maximum-town-size)
-	(enable-timer t-town-size 6)
-)
-
-(defrule
-	(current-age == early-antiquity-age)
-	(and
-		(up-compare-sn sn-maximum-town-size c:> 0)
-		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
-	)
-	(up-timer-status t-town-size != timer-running)
-	(or	
-		(up-pending-placement c: town-center)
-		(or	
-			(up-pending-placement c: farm)
-			(or	
-				(up-pending-placement c: house)
-				(or	
-					(up-pending-placement c: barracks)
-					(or	
-						(up-pending-placement c: archery-range)
-						(or	
-							(up-pending-placement c: stable)
-							(or	
-								(up-pending-placement c: siege-workshop)
-								(or	
-									(up-pending-placement c: blacksmith)
-									(or	
-										(up-pending-placement c: market)
-										(up-pending-placement c: watch-tower)
-									)
-								)
-							)
-						)
+			(up-pending-placement c: barracks)
+			(or
+				(up-pending-placement c: archery-range)
+				(or
+					(up-pending-placement c: stable)
+					(or
+						(up-pending-placement c: siege-workshop)
+						(up-pending-placement c: blacksmith)
 					)
 				)
 			)
 		)
 	)
 =>
-	(up-modify-sn sn-maximum-town-size c:+ 1)
-	(up-modify-sn sn-maximum-town-size c:> 0)
-	(up-modify-sn sn-maximum-town-size g:< outer-townsize)
-	(up-chat-data-to-self "pending placement resize sn-maximum-town-size; %d" s: sn-maximum-town-size)
-	(enable-timer t-town-size 6)
+	(up-modify-goal gl-placement-pressure-cap s:= sn-maximum-town-size)
+	(up-modify-goal gl-placement-pressure-cap c:+ 24)
 )
 
 (defrule
-	(current-age == early-antiquity-age)
-	(and
-		(up-compare-sn sn-maximum-town-size c:> 0)
-		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
-	)
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(goal gl-placement-pressure-cap 0)
 	(or
-		(up-pending-placement c: dock)
-		(up-pending-placement c: shipyard)
-	)
-=>
-	(up-modify-sn sn-maximum-town-size c:+ 1)
-	(up-modify-sn sn-maximum-town-size c:> 0)
-	(up-modify-sn sn-maximum-town-size g:< outer-townsize)
-	(up-chat-data-to-self "pending placement resize sn-maximum-town-size; %d" s: sn-maximum-town-size)
-)
-
-(defrule
-	(current-age >= middle-antiquity-age)
-	(and
-		(up-compare-sn sn-maximum-town-size c:> 0)
-		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
-	)
-	(up-timer-status t-town-size != timer-running)
-	(or	
-		(up-pending-placement c: town-center)
-		(or	
-			(up-pending-placement c: farm)
-			(or	
-				(up-pending-placement c: house)
-				(or	
-					(up-pending-placement c: barracks)
-					(or	
-						(up-pending-placement c: archery-range)
-						(or	
-							(up-pending-placement c: stable)
-							(or	
-								(up-pending-placement c: siege-workshop)
-								(or	
-									(up-pending-placement c: blacksmith)
-									(or	
-										(up-pending-placement c: market)
-										(or	
-											(up-pending-placement c: dock)
-											(up-pending-placement c: university)
-										)
-									)
-								)
-							)
-						)
+		(up-pending-placement c: university)
+		(or
+			(up-pending-placement c: monastery)
+			(or
+				(up-pending-placement c: castle)
+				(or
+					(up-pending-placement c: watch-tower)
+					(or
+						(up-pending-placement c: outpost)
+						(up-pending-placement c: wonder)
 					)
 				)
 			)
 		)
 	)
 =>
-	(up-modify-sn sn-maximum-town-size c:+ 1)
-	(up-modify-sn sn-maximum-town-size c:> 0)
-	(up-modify-sn sn-maximum-town-size g:< outer-townsize)
-	(up-chat-data-to-self "pending placement resize sn-maximum-town-size; %d" s: sn-maximum-town-size)
-	(enable-timer t-town-size 6)
-	(up-jump-rule 1)
+	(up-modify-goal gl-placement-pressure-cap s:= sn-maximum-town-size)
+	(up-modify-goal gl-placement-pressure-cap c:+ 24)
 )
 
 (defrule
-	(current-age >= middle-antiquity-age)
-	(and
-		(up-compare-sn sn-maximum-town-size c:> 0)
-		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
-	)
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-pending-placement c: house)
+=>
+	(up-modify-goal gl-placement-pressure-next g:= gl-game-time)
+	(up-modify-goal gl-placement-pressure-next c:+ 12)
+	(set-goal gl-placement-pressure-saturated NO)
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-ECONOMY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
 	(or
-		(up-pending-placement c: monastery)
+		(up-pending-placement c: barracks)
 		(or
-			(up-pending-placement c: castle)
-			(or	
-				(up-pending-placement c: watch-tower)
-				(or	
-					(up-pending-placement c: shipyard)
-					(up-pending-placement c: outpost)
+			(up-pending-placement c: archery-range)
+			(or
+				(up-pending-placement c: stable)
+				(or
+					(up-pending-placement c: siege-workshop)
+					(up-pending-placement c: blacksmith)
 				)
 			)
 		)
 	)
 =>
-	(up-modify-sn sn-maximum-town-size c:+ 1)
-	(up-modify-sn sn-maximum-town-size c:> 0)
-	(up-modify-sn sn-maximum-town-size g:< outer-townsize)
-	(up-chat-data-to-self "pending placement resize sn-maximum-town-size; %d" s: sn-maximum-town-size)
+	(up-modify-goal gl-placement-pressure-next g:= gl-game-time)
+	(up-modify-goal gl-placement-pressure-next c:+ 12)
+	(set-goal gl-placement-pressure-saturated NO)
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(or
+		(up-pending-placement c: university)
+		(or
+			(up-pending-placement c: monastery)
+			(or
+				(up-pending-placement c: castle)
+				(or
+					(up-pending-placement c: watch-tower)
+					(or
+						(up-pending-placement c: outpost)
+						(up-pending-placement c: wonder)
+					)
+				)
+			)
+		)
+	)
+=>
+	(up-modify-goal gl-placement-pressure-next g:= gl-game-time)
+	(up-modify-goal gl-placement-pressure-next c:+ 12)
+	(set-goal gl-placement-pressure-saturated NO)
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
+	(goal gl-placement-pressure-category PLACEMENT-KIND-ECONOMY)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+=>
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-ECONOMY)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
+	(goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+=>
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-MILITARY)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
+	(goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+=>
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-DEFENSE)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-ECONOMY)
+	(up-pending-placement c: house)
+=>
+	(up-reset-placement c: house)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-ECONOMY)
+	(not (up-pending-placement c: house))
+=>
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-NONE)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-MILITARY)
+	(or
+		(up-pending-placement c: barracks)
+		(or
+			(up-pending-placement c: archery-range)
+			(or
+				(up-pending-placement c: stable)
+				(or
+					(up-pending-placement c: siege-workshop)
+					(up-pending-placement c: blacksmith)
+				)
+			)
+		)
+	)
+=>
+	(up-reset-placement c: barracks)
+	(up-reset-placement c: archery-range)
+	(up-reset-placement c: stable)
+	(up-reset-placement c: siege-workshop)
+	(up-reset-placement c: blacksmith)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-MILITARY)
+	(nor
+		(up-pending-placement c: barracks)
+		(or
+			(up-pending-placement c: archery-range)
+			(or
+				(up-pending-placement c: stable)
+				(or
+					(up-pending-placement c: siege-workshop)
+					(up-pending-placement c: blacksmith)
+				)
+			)
+		)
+	)
+=>
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-NONE)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-DEFENSE)
+	(or
+		(up-pending-placement c: university)
+		(or
+			(up-pending-placement c: monastery)
+			(or
+				(up-pending-placement c: castle)
+				(or
+					(up-pending-placement c: watch-tower)
+					(or
+						(up-pending-placement c: outpost)
+						(up-pending-placement c: wonder)
+					)
+				)
+			)
+		)
+	)
+=>
+	(up-reset-placement c: university)
+	(up-reset-placement c: monastery)
+	(up-reset-placement c: castle)
+	(up-reset-placement c: watch-tower)
+	(up-reset-placement c: outpost)
+	(up-reset-placement c: wonder)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-DEFENSE)
+	(nor
+		(up-pending-placement c: university)
+		(or
+			(up-pending-placement c: monastery)
+			(or
+				(up-pending-placement c: castle)
+				(or
+					(up-pending-placement c: watch-tower)
+					(or
+						(up-pending-placement c: outpost)
+						(up-pending-placement c: wonder)
+					)
+				)
+			)
+		)
+	)
+=>
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-NONE)
+)
+
+;If the town is already too crowded for up-can-build to return a placement,
+;there is no pending request for the watchdog above to observe. These demand
+;facts enter the same bounded expansion owner directly. Managed Market and Town
+;Center state machines keep their own placement/reset ownership; this owner
+;only enlarges their legal search radius.
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(goal allow-houses YES)
+	(goal gl-migration-placement-lock NO)
+	(housing-headroom < 5)
+	(up-pending-objects c: house <= 0)
+	(not (up-pending-placement c: house))
+	(can-afford-building house)
+	(not (up-can-build 0 c: house))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-ECONOMY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= early-antiquity-age)
+	(goal gl-migration-placement-lock NO)
+	(building-type-count-total market g:< desired-number-markets)
+	(up-pending-objects c: market <= 0)
+	(not (up-pending-placement c: market))
+	(can-afford-building market)
+	(not (up-can-build 0 c: market))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-ECONOMY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+;Farm demand can be the only symptom of a full core. It may enlarge the shared
+;radius, but its existing owner retains exclusive reset/placement control.
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(goal gl-farm-placement-suspended NO)
+	(up-compare-goal gl-farm-build-target c:> 0)
+	(building-type-count mill >= 1)
+	(building-type-count-total farm g:< gl-farm-build-target)
+	(up-pending-objects c: farm <= 0)
+	(not (up-pending-placement c: farm))
+	(can-afford-building farm)
+	(not (up-can-build 0 c: farm))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-ECONOMY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-home-resource-pressure NO)
+	(building-type-count-total town-center g:< desired-number-towncenters)
+	(up-pending-objects c: town-center <= 0)
+	(not (up-pending-placement c: town-center))
+	(can-afford-building town-center)
+	(not (up-can-build 0 c: town-center))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-ECONOMY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(goal gl-opening-drop-sites-ready YES)
+	(goal wait-techup-requirements NO)
+	(building-type-count-total barracks g:< desired-number-barracks)
+	(up-pending-objects c: barracks <= 0)
+	(not (up-pending-placement c: barracks))
+	(can-afford-building barracks)
+	(not (up-can-build 0 c: barracks))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= early-antiquity-age)
+	(goal wait-techup-requirements NO)
+	(building-type-count-total barracks > 0)
+	(building-type-count-total archery-range g:< desired-number-ranges)
+	(up-pending-objects c: archery-range <= 0)
+	(not (up-pending-placement c: archery-range))
+	(can-afford-building archery-range)
+	(not (up-can-build 0 c: archery-range))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= early-antiquity-age)
+	(goal wait-techup-requirements NO)
+	(building-type-count-total barracks > 0)
+	(building-type-count-total stable g:< desired-number-stables)
+	(up-pending-objects c: stable <= 0)
+	(not (up-pending-placement c: stable))
+	(can-afford-building stable)
+	(not (up-can-build 0 c: stable))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= middle-antiquity-age)
+	(goal wait-techup-requirements NO)
+	(building-type-count-total siege-workshop g:< desired-number-workshops)
+	(up-pending-objects c: siege-workshop <= 0)
+	(not (up-pending-placement c: siege-workshop))
+	(can-afford-building siege-workshop)
+	(not (up-can-build 0 c: siege-workshop))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= early-antiquity-age)
+	(building-type-count-total blacksmith g:< desired-number-blacksmiths)
+	(up-pending-objects c: blacksmith <= 0)
+	(not (up-pending-placement c: blacksmith))
+	(can-afford-building blacksmith)
+	(not (up-can-build 0 c: blacksmith))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= middle-antiquity-age)
+	(building-type-count-total university g:< desired-number-universities)
+	(up-pending-objects c: university <= 0)
+	(not (up-pending-placement c: university))
+	(can-afford-building university)
+	(not (up-can-build 0 c: university))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= middle-antiquity-age)
+	(building-type-count-total monastery g:< desired-number-monasteries)
+	(up-pending-objects c: monastery <= 0)
+	(not (up-pending-placement c: monastery))
+	(can-afford-building monastery)
+	(not (up-can-build 0 c: monastery))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= middle-antiquity-age)
+	(building-type-count town-center >= 2)
+	(building-type-count-total castle g:< desired-number-castles)
+	(up-pending-objects c: castle <= 0)
+	(not (up-pending-placement c: castle))
+	(can-afford-building castle)
+	(not (up-can-build 0 c: castle))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= middle-antiquity-age)
+	(building-type-count town-center >= 2)
+	(building-type-count-total outpost g:< desired-number-outposts)
+	(up-pending-objects c: outpost <= 0)
+	(not (up-pending-placement c: outpost))
+	(can-afford-building outpost)
+	(not (up-can-build 0 c: outpost))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= early-antiquity-age)
+	(building-type-count-total watch-tower g:< desired-number-watchtowers)
+	(up-pending-objects c: watch-tower <= 0)
+	(not (up-pending-placement c: watch-tower))
+	(can-afford-building watch-tower)
+	(not (up-can-build 0 c: watch-tower))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+	(goal gl-placement-pressure-cap 0)
+=>
+	(up-modify-goal gl-placement-pressure-cap s:= sn-maximum-town-size)
+	(up-modify-goal gl-placement-pressure-cap c:+ 24)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+	(up-compare-sn sn-maximum-town-size g:< gl-placement-pressure-cap)
+=>
+	(up-modify-sn sn-maximum-town-size c:+ 3)
+	(up-modify-sn sn-maximum-town-size g:min gl-placement-pressure-cap)
+	(up-modify-goal outer-townsize s:max sn-maximum-town-size)
+	(up-modify-sn sn-camp-max-distance s:max sn-maximum-town-size)
+	(up-modify-goal gl-placement-pressure-next g:= gl-game-time)
+	(up-modify-goal gl-placement-pressure-next c:+ 12)
+	(up-chat-data-to-self "crowded town placement retry size: %d" s: sn-maximum-town-size)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+	(up-compare-sn sn-maximum-town-size g:>= gl-placement-pressure-cap)
+	(goal gl-placement-pressure-saturated NO)
+=>
+	(up-chat-data-to-self "crowded town placement saturated size: %d" s: sn-maximum-town-size)
+	(set-goal gl-placement-pressure-saturated YES)
+	(up-modify-goal gl-placement-pressure-next g:= gl-game-time)
+	(up-modify-goal gl-placement-pressure-next c:+ 60)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+	(up-compare-sn sn-maximum-town-size g:>= gl-placement-pressure-cap)
+	(goal gl-placement-pressure-saturated YES)
+=>
+	(up-modify-goal gl-placement-pressure-next g:= gl-game-time)
+	(up-modify-goal gl-placement-pressure-next c:+ 60)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
 )
 
 ;Enemy structures can contract placement toward the protected core, but the
 ;strict comparison must turn false at safe-townsize or this rule never settles.
 (defrule
 	(enemy-buildings-in-town)
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
 	(up-compare-sn sn-maximum-town-size g:> safe-townsize)
 	(up-compare-sn sn-maximum-town-size g:<= outer-townsize)
 	(up-timer-status t-town-size != timer-running)
@@ -3364,106 +3712,233 @@
 	(up-build place-control 0 c: watch-tower)
 )
 
-;does not function
-;cause unknown
-
-#load-if-not-defined CHINESE-CIV
-
+;Wall posture starts with the actual exposed flank role. Pocket detection was
+;formerly inverted in rawai-map, which gave this doctrine to the wrong players.
 (defrule
-	(and
-		(current-age >= early-antiquity-age)
-		(goal flank-position 1)
-	)
+	(current-age >= early-antiquity-age)
+	(goal flank-position 1)
+	(goal gl-wall-needed NO)
 =>
-	(enable-wall-placement 2)
-	(set-strategic-number sn-gate-type-for-wall 1)
-	(chat-local-to-self "Enable walls for flank position")
-	(disable-self)
+	(set-goal gl-wall-needed YES)
+	(chat-local-to-self "Wall posture: exposed flank")
 )
 
 (defrule
-	(and
-		(current-age >= early-antiquity-age)
-		(goal flank-position 1)
+	(current-age >= early-antiquity-age)
+	(or
+		(goal gl-home-defense-state YES)
+		(or
+			(enemy-buildings-in-town)
+			(goal taunt-wall YES)
+		)
 	)
+	(goal gl-wall-needed NO)
+=>
+	(set-goal gl-wall-needed YES)
+	(chat-local-to-self "Wall posture: local threat")
+)
+
+;A known enemy economy or military structure in the same active land zone is
+;the engine-visible reachability proxy for a mainland opponent. This avoids
+;walling an isolated island merely because the Real World map is hybrid.
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal gl-wall-scan-state WALL-SCAN-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-wall-scan-next)
+	(goal gl-island-colony-established NO)
+=>
+	(up-modify-goal gl-wall-scan-focus s:= sn-focus-player-number)
+	(up-modify-goal gl-wall-land-zone g:= gl-home-zone)
+	(set-goal gl-hostile-land-route NO)
+	(up-find-player enemy find-ordered gl-wall-scan-player)
+	(up-modify-goal gl-wall-scan-first g:= gl-wall-scan-player)
+	(set-goal gl-wall-scan-state WALL-SCAN-START)
+)
+
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal gl-wall-scan-state WALL-SCAN-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-wall-scan-next)
+	(goal gl-island-colony-established YES)
+=>
+	(up-modify-goal gl-wall-scan-focus s:= sn-focus-player-number)
+	(up-modify-goal gl-wall-land-zone g:= gl-island-colony-zone)
+	(set-goal gl-hostile-land-route NO)
+	(up-find-player enemy find-ordered gl-wall-scan-player)
+	(up-modify-goal gl-wall-scan-first g:= gl-wall-scan-player)
+	(set-goal gl-wall-scan-state WALL-SCAN-START)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-START)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-wall-scan-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-find-remote c: town-center c: 20)
+	(up-find-remote c: barracks c: 20)
+	(up-find-remote c: archery-range c: 20)
+	(up-find-remote c: stable c: 20)
+	(up-find-remote c: castle c: 10)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-wall-land-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-wall-scan-focus)
+	(set-goal gl-wall-scan-state WALL-SCAN-CHECK)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-CHECK)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-goal gl-hostile-land-route YES)
+	(set-goal gl-wall-needed YES)
+	(up-modify-goal gl-wall-scan-next g:= gl-game-time)
+	(up-modify-goal gl-wall-scan-next c:+ 90)
+	(up-chat-data-to-self "Wall posture same-zone enemy: %d" g: gl-wall-scan-player)
+	(set-goal gl-wall-scan-state WALL-SCAN-IDLE)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-CHECK)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-wall-scan-state WALL-SCAN-ADVANCE)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-ADVANCE)
+=>
+	(up-find-next-player enemy find-ordered gl-wall-scan-player)
+	(set-goal gl-wall-scan-state WALL-SCAN-NEXT)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-NEXT)
+	(up-compare-goal gl-wall-scan-player g:!= gl-wall-scan-first)
+=>
+	(set-goal gl-wall-scan-state WALL-SCAN-START)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-NEXT)
+	(up-compare-goal gl-wall-scan-player g:== gl-wall-scan-first)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-wall-scan-focus)
+	(up-modify-goal gl-wall-scan-next g:= gl-game-time)
+	(up-modify-goal gl-wall-scan-next c:+ 90)
+	(set-goal gl-wall-scan-state WALL-SCAN-IDLE)
+)
+
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal gl-wall-needed YES)
+	(goal gl-wall-enabled NO)
+=>
+	(enable-wall-placement 2)
+	(set-goal gl-wall-enabled YES)
+	(chat-local-to-self "Wall placement owner enabled")
+)
+
+;Completion quarters act as a progress latch using only classic wall facts.
+;Each new quarter clears the no-progress retry count. Three commands without a
+;new quarter trigger a three-minute backoff, preventing the replayed identical-
+;segment loop from multiplying across every newly eligible AI.
+(defrule
+	(wall-completed-percentage 2 >= 25)
+	(up-compare-goal gl-wall-last-percent c:< 25)
+=>
+	(set-goal gl-wall-last-percent 25)
+	(set-goal gl-wall-retries 0)
+)
+
+(defrule
+	(wall-completed-percentage 2 >= 50)
+	(up-compare-goal gl-wall-last-percent c:< 50)
+=>
+	(set-goal gl-wall-last-percent 50)
+	(set-goal gl-wall-retries 0)
+)
+
+(defrule
+	(wall-completed-percentage 2 >= 75)
+	(up-compare-goal gl-wall-last-percent c:< 75)
+=>
+	(set-goal gl-wall-last-percent 75)
+	(set-goal gl-wall-retries 0)
+)
+
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal gl-wall-needed YES)
+	(up-compare-goal gl-game-time g:>= gl-wall-next)
+	(up-compare-goal gl-wall-retries c:< 3)
+	(wall-completed-percentage 2 < 100)
+	(can-build-wall-with-escrow 2 stone-wall-line)
+=>
+	(set-strategic-number sn-gate-type-for-wall 0)
+	(release-escrow stone)
+	(build-wall 2 stone-wall-line)
+	(up-modify-goal gl-wall-retries c:+ 1)
+	(up-modify-goal gl-wall-next g:= gl-game-time)
+	(up-modify-goal gl-wall-next c:+ 45)
+	(chat-local-to-self "Wall owner issued stone line")
+)
+
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal gl-wall-needed YES)
+	(up-compare-goal gl-game-time g:>= gl-wall-next)
+	(up-compare-goal gl-wall-retries c:< 3)
 	(wall-completed-percentage 2 < 100)
 	(can-build-wall-with-escrow 2 palisade-wall)
 =>
+	(set-strategic-number sn-gate-type-for-wall 1)
 	(release-escrow wood)
 	(build-wall 2 palisade-wall)
-	(chat-local-to-self "Place walls")
+	(up-modify-goal gl-wall-retries c:+ 1)
+	(up-modify-goal gl-wall-next g:= gl-game-time)
+	(up-modify-goal gl-wall-next c:+ 45)
+	(chat-local-to-self "Wall owner issued palisade line")
 )
 
 (defrule
-	(and
-		(current-age >= early-antiquity-age)
-		(goal flank-position 1)
-	)
-	(building-type-count-total gate < 4)
+	(goal gl-wall-needed YES)
+	(up-compare-goal gl-game-time g:>= gl-wall-next)
+	(up-compare-goal gl-wall-retries c:< 3)
+	(wall-completed-percentage 2 < 100)
+	(not (can-build-wall-with-escrow 2 stone-wall-line))
+	(not (can-build-wall-with-escrow 2 palisade-wall))
+=>
+	(up-modify-goal gl-wall-next g:= gl-game-time)
+	(up-modify-goal gl-wall-next c:+ 60)
+)
+
+(defrule
+	(goal gl-wall-needed YES)
+	(up-compare-goal gl-game-time g:>= gl-wall-next)
+	(up-compare-goal gl-wall-retries c:>= 3)
+	(wall-completed-percentage 2 < 100)
+=>
+	(set-goal gl-wall-retries 0)
+	(up-modify-goal gl-wall-next g:= gl-game-time)
+	(up-modify-goal gl-wall-next c:+ 180)
+	(up-chat-data-to-self "Wall placement no-progress backoff: %d" g: gl-wall-last-percent)
+)
+
+(defrule
+	(goal gl-wall-needed YES)
+	(wall-completed-percentage 2 >= 100)
+	(building-type-count-total gate < 2)
+	(up-compare-goal gl-game-time g:>= gl-wall-next)
 	(can-build-gate-with-escrow 2)
 =>
 	(release-escrow wood)
-	(build-gate 2)
-	(chat-local-to-self "Place gates")
-)
-
-(defrule
-	(goal taunt-wall YES)
-	(current-age >= early-antiquity-age)
-	(wall-completed-percentage 2 < 100)
-	(can-build-wall-with-escrow 2 stone-wall-line)
-=>
-	(release-escrow stone)
-	(build-wall 2 stone-wall-line)
-	(chat-local-to-self "Place walls")
-)
-
-(defrule
-	(goal taunt-wall YES)
-	(current-age >= early-antiquity-age)
-	(building-type-count-total gate < 4)
-	(can-build-gate-with-escrow 2)
-=>
-	(set-strategic-number sn-gate-type-for-wall 0)
 	(release-escrow stone)
 	(build-gate 2)
-	(chat-local-to-self "Place gates")
+	(up-modify-goal gl-wall-next g:= gl-game-time)
+	(up-modify-goal gl-wall-next c:+ 60)
+	(chat-local-to-self "Wall owner issued gate")
 )
-
-#end-if
-
-#load-if-defined CHINESE-CIV
-
-(defrule
-	(true)
-=>
-	(enable-wall-placement 2)
-	(set-strategic-number sn-gate-type-for-wall 0)
-	(chat-local-to-self "Enable walls for Chinese")
-	(disable-self)
-)
-
-(defrule
-	(goal age-up-started EARLY-ANTIQUITY)
-	(wall-completed-percentage 2 < 100)
-	(can-build-wall-with-escrow 2 stone-wall-line)
-=>
-	(release-escrow stone)
-	(build-wall 2 stone-wall-line)
-	(chat-local-to-self "Place walls")
-)
-
-(defrule
-	(goal age-up-started EARLY-ANTIQUITY)
-	(building-type-count-total gate < 4)
-	(can-build-gate-with-escrow 2)
-=>
-	(release-escrow stone)
-	(build-gate 2)
-	(chat-local-to-self "Place gates")
-)
-
-#end-if
 
 ;farm fallback
 
