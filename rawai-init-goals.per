@@ -356,11 +356,11 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B24: %d" c: 24)
+	(up-chat-data-to-self "RAWAI-P3B25: %d" c: 25)
 	(disable-self)
 )
 
-;P3B24 transport, scout, target-zone, flare, and Lumber Camp diagnostics stay
+;P3B25 transport, scout, target-zone, flare, Lumber Camp, and hunting state stay
 ;in a separate startup rule so the replay marker and older initializers remain
 ;comfortably below ERR6002.
 (defrule
@@ -384,6 +384,14 @@
 	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)
 	(set-goal gl-quarantine-transport-next 0)
 	(set-goal gl-quarantine-transport-focus 0)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
+	(set-goal gl-boar-commit-deadline 0)
+	(set-goal gl-boar-lurer-id -1)
+	(set-goal gl-boar-target-id -1)
+	(set-goal gl-boar-commit-focus 0)
+	(set-goal gl-boar-target-x 0)
+	(set-goal gl-boar-target-y 0)
+	(set-goal gl-boar-target-zone -1)
 	(disable-self)
 )
 

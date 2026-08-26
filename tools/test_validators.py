@@ -475,6 +475,7 @@ class FarmPolicyTests(unittest.TestCase):
         cls.economy = (root / "rawai-economy.per").read_text(encoding="utf-8-sig")
         cls.general = (root / "rawai-general.per").read_text(encoding="utf-8-sig")
         cls.homebase = (root / "rawai-homebase.per").read_text(encoding="utf-8-sig")
+        cls.hunt = (root / "rawai-hunt.per").read_text(encoding="utf-8-sig")
         cls.init_goals = (root / "rawai-init-goals.per").read_text(encoding="utf-8-sig")
         cls.military = (root / "rawai-military.per").read_text(encoding="utf-8-sig")
         cls.pop = (root / "rawai-pop.per").read_text(encoding="utf-8-sig")
@@ -486,6 +487,9 @@ class FarmPolicyTests(unittest.TestCase):
             encoding="utf-8-sig"
         )
         cls.romeemp = (root / "rawai-civ-romeemp.per").read_text(encoding="utf-8-sig")
+        cls.scythians = (root / "rawai-civ-scythians.per").read_text(
+            encoding="utf-8-sig"
+        )
         cls.specialplacement = (root / "rawai-specialplacement.per").read_text(
             encoding="utf-8-sig"
         )
@@ -627,7 +631,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B24", self.init_goals)
+        self.assertIn("RAWAI-P3B25", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -648,6 +652,438 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertEqual(len(calculators), 2)
         self.assertTrue(all(rule[1] < telemetry[0][0] for rule in calculators))
         self.assertIn("(up-timer-status t-farm-report != timer-running)", self.timers)
+
+    def test_boar_commit_preserves_shepherds_and_bounds_support(self) -> None:
+        startup = matching_rules(
+            self.customconstants,
+            actions=("(set-strategic-number sn-enable-boar-hunting 0)",),
+        )
+        self.assertEqual(len(startup), 1)
+        self.assertIn("(true)", startup[0][3])
+        self.assertIn(
+            "(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)",
+            self.init_goals,
+        )
+        self.assertIn("(set-goal gl-boar-target-zone -1)", self.init_goals)
+
+        candidates = matching_rules(
+            self.hunt,
+            facts=("(goal gl-boar-commit-state BOAR-COMMIT-IDLE)",),
+            actions=(
+                "gl-boar-commit-focus s:= sn-focus-player-number",
+                "BOAR-COMMIT-CHECK-",
+            ),
+        )
+        self.assertEqual(len(candidates), 2)
+        for candidate in candidates:
+            facts = candidate[3]
+            self.assertIn("(unit-type-count livestock-class <= 0)", facts)
+            self.assertIn("(unit-type-count villager-shepherd <= 0)", facts)
+            self.assertIn("(unit-type-count villager-hunter <= 0)", facts)
+            self.assertIn("(dropsite-min-distance live-boar >= 0)", facts)
+            self.assertIn("(up-compare-goal gl-home-zone c:>= 0)", facts)
+        self.assertNotIn("(dropsite-min-distance livestock-class", self.hunt)
+
+        sheep_scan = matching_rules(
+            self.hunt,
+            facts=(
+                "BOAR-COMMIT-CHECK-OPENING-SHEEP",
+                "BOAR-COMMIT-CHECK-LATER-SHEEP",
+                "BOAR-COMMIT-CHECK-ACTIVE-SHEEP",
+            ),
+            actions=(
+                "(up-set-target-point gl-home-anchor-x)",
+                "(up-find-remote c: livestock-class c: 40)",
+                "object-data-map-zone-id g:!= gl-home-zone",
+                "object-data-index >= 1",
+            ),
+        )
+        self.assertEqual(len(sheep_scan), 1)
+        sheep_block = matching_rules(
+            self.hunt,
+            facts=(
+                "BOAR-COMMIT-CHECK-OPENING-SHEEP",
+                "BOAR-COMMIT-CHECK-LATER-SHEEP",
+                "(up-set-target-object search-remote c: 0)",
+            ),
+            actions=(
+                "(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)",
+                "boar commit waiting for sheep food: %d",
+                "sn-focus-player-number g:= gl-boar-commit-focus",
+            ),
+        )
+        self.assertEqual(len(sheep_block), 1)
+
+        authorizations = matching_rules(
+            self.hunt,
+            facts=("(not (up-set-target-object search-remote c: 0))",),
+            actions=(
+                "(set-goal gl-boar-commit-state BOAR-COMMIT-ARMED)",
+                "gl-boar-commit-deadline g:= gl-game-time",
+                "boar commit armed: %d",
+            ),
+        )
+        self.assertEqual(len(authorizations), 2)
+        for authorization in authorizations:
+            self.assertIn(
+                "(set-strategic-number sn-minimum-boar-hunt-group-size 1)",
+                authorization[4],
+            )
+            self.assertIn(
+                "sn-focus-player-number g:= gl-boar-commit-focus",
+                authorization[4],
+            )
+
+        verifier = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-ARMED)",
+            ),
+            actions=(
+                "object-data-target != boar-class",
+                "(set-goal gl-boar-commit-state BOAR-COMMIT-VERIFY)",
+            ),
+        )
+        self.assertEqual(len(verifier), 1)
+        self.assertIn("(up-find-local c: villager-class c: 240)", verifier[0][4])
+
+        accepted = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-VERIFY)",
+                "(up-set-target-object search-local c: 0)",
+                "(unit-type-count livestock-class <= 0)",
+                "(unit-type-count villager-shepherd <= 0)",
+            ),
+            actions=(
+                "(set-goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)",
+                "gl-boar-commit-deadline c:+ 600",
+                "object-data-id gl-boar-lurer-id",
+                "object-data-target-id gl-boar-target-id",
+                "(up-request-hunters",
+                "(enable-timer t-boar-support 3)",
+                "sn-focus-player-number g:= gl-boar-commit-focus",
+            ),
+        )
+        self.assertEqual(len(accepted), 2)
+        for acceptance in accepted:
+            self.assertIn(
+                "(set-strategic-number sn-minimum-boar-lure-group-size 300)",
+                acceptance[4],
+            )
+        sheep_cancel = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-VERIFY)",
+                "(not (up-set-target-object search-local c: 0))",
+                "(unit-type-count villager-shepherd >= 1)",
+            ),
+            actions=(
+                "(set-strategic-number sn-enable-boar-hunting 0)",
+                "boar commit cancelled for sheep: %d",
+            ),
+        )
+        self.assertEqual(len(sheep_cancel), 1)
+
+        late_sheep = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-VERIFY)",
+                "(up-set-target-object search-local c: 0)",
+                "(unit-type-count villager-shepherd >= 1)",
+            ),
+            actions=(
+                "object-data-id gl-boar-lurer-id",
+                "object-data-target-id gl-boar-target-id",
+                "(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-FIND)",
+            ),
+        )
+        self.assertEqual(len(late_sheep), 1)
+        rescue_find = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-FIND)",
+            ),
+            actions=(
+                "search-remote g: gl-boar-target-id",
+                "BOAR-COMMIT-RESCUE-ANCHOR",
+            ),
+        )
+        self.assertEqual(len(rescue_find), 1)
+        rescue_anchor = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-ANCHOR)",
+                "(up-set-target-object search-remote c: 0)",
+            ),
+            actions=(
+                "(up-get-point position-object gl-boar-target-x)",
+                "object-data-map-zone-id gl-boar-target-zone",
+                "(up-set-target-point gl-boar-target-x)",
+                "(up-find-local c: villager-class c: 240)",
+                "object-data-map-zone-id g:!= gl-boar-target-zone",
+                "object-data-action == actionid-hunt",
+            ),
+        )
+        self.assertEqual(len(rescue_anchor), 1)
+        rescue_target_gone = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-ANCHOR)",
+                "(not (up-set-target-object search-remote c: 0))",
+            ),
+            actions=(
+                "(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)",
+                "sn-focus-player-number g:= gl-boar-commit-focus",
+            ),
+        )
+        self.assertEqual(len(rescue_target_gone), 1)
+        rescue_filter = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-FILTER)",
+            ),
+            actions=(
+                "object-data-target == prey-animal-class",
+                "object-data-target == livestock-class",
+                "object-data-language-id == lid-villager-shepherd",
+                "object-data-language-id == lid-villager-hunter",
+            ),
+        )
+        self.assertEqual(len(rescue_filter), 2)
+        rescue_send = []
+        for state, minimum in (
+            ("BOAR-COMMIT-RESCUE-SEND-SIX", 5),
+            ("BOAR-COMMIT-RESCUE-SEND-SEVEN", 6),
+        ):
+            rules = matching_rules(
+                self.hunt,
+                facts=(
+                    f"(goal gl-boar-commit-state {state})",
+                    f"(up-compare-goal local-total c:>= {minimum})",
+                ),
+                actions=(
+                    "search-remote g: gl-boar-target-id",
+                    "(up-target-objects 0 action-default -1 stance-no-attack)",
+                    "boar rescue non-shepherds: %d",
+                    "sn-focus-player-number g:= gl-boar-commit-focus",
+                ),
+            )
+            self.assertEqual(len(rules), 1)
+            self.assertNotIn("(up-reset-search", rules[0][4])
+            rescue_send.extend(rules)
+        self.assertEqual(len(rescue_send), 2)
+        rescue_shortfall = matching_rules(
+            self.hunt,
+            facts=(
+                "BOAR-COMMIT-RESCUE-SEND-",
+                "(up-compare-goal local-total c:<",
+            ),
+            actions=(
+                "(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-GARRISON)",
+            ),
+        )
+        self.assertEqual(len(rescue_shortfall), 2)
+        rescue_fallback_find = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-GARRISON)",
+            ),
+            actions=(
+                "search-local g: gl-boar-lurer-id",
+                "(set-strategic-number sn-focus-player-number my-player-number)",
+                "object-data-map-zone-id g:!= gl-boar-target-zone",
+                "object-data-index >= 1",
+                "BOAR-COMMIT-RESCUE-GARRISON-SEND",
+            ),
+        )
+        self.assertEqual(len(rescue_fallback_find), 1)
+        rescue_fallback_send = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-GARRISON-SEND)",
+                "(up-set-target-object search-local c: 0)",
+                "(up-set-target-object search-remote c: 0)",
+            ),
+            actions=(
+                "(up-target-objects 0 action-garrison -1 stance-no-attack)",
+                "(set-strategic-number sn-enable-boar-hunting 0)",
+                "sn-focus-player-number g:= gl-boar-commit-focus",
+            ),
+        )
+        self.assertEqual(len(rescue_fallback_send), 1)
+        rescue_fallback_wait = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-GARRISON-SEND)",
+                "(up-set-target-object search-local c: 0)",
+                "(not (up-set-target-object search-remote c: 0))",
+            ),
+            actions=(
+                "gl-boar-commit-deadline g:= gl-game-time",
+                "gl-boar-commit-deadline c:+ 5",
+                "(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-GARRISON)",
+                "sn-focus-player-number g:= gl-boar-commit-focus",
+            ),
+        )
+        self.assertEqual(len(rescue_fallback_wait), 1)
+
+        support = matching_rules(
+            self.hunt,
+            actions=("(up-request-hunters",),
+        )
+        self.assertEqual(len(support), 4)
+        for support_rule in support:
+            facts = support_rule[3]
+            self.assertIn("(unit-type-count livestock-class <= 0)", facts)
+            self.assertIn("(unit-type-count villager-shepherd <= 0)", facts)
+            self.assertIn(
+                "(set-strategic-number sn-minimum-boar-lure-group-size 300)",
+                support_rule[4],
+            )
+        self.assertNotIn("(up-reset-search 0 1 0 0)", self.hunt)
+        self.assertEqual(
+            {"(up-request-hunters c: 6)", "(up-request-hunters c: 7)"},
+            {
+                next(
+                    action.strip()
+                    for action in rule[4].splitlines()
+                    if "up-request-hunters" in action
+                )
+                for rule in support
+            },
+        )
+
+        active_retry_gate = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)",
+                "(up-timer-status t-boar-support != timer-running)",
+                "(unit-type-count livestock-class <= 0)",
+                "(unit-type-count villager-shepherd <= 0)",
+                "(unit-type-count villager-hunter <",
+            ),
+            actions=(
+                "gl-boar-commit-focus s:= sn-focus-player-number",
+                "BOAR-COMMIT-CHECK-ACTIVE-SHEEP",
+            ),
+        )
+        self.assertEqual(len(active_retry_gate), 2)
+        retry_verify = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-RETRY-VERIFY)",
+            ),
+            actions=(
+                "search-local g: gl-boar-lurer-id",
+                "object-data-target-id g:!= gl-boar-target-id",
+                "search-remote g: gl-boar-target-id",
+                "BOAR-COMMIT-RETRY-COMMIT",
+            ),
+        )
+        self.assertEqual(len(retry_verify), 1)
+        retry_requests = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-RETRY-COMMIT)",
+                "(up-set-target-object search-local c: 0)",
+                "(up-set-target-object search-remote c: 0)",
+            ),
+            actions=(
+                "(up-request-hunters",
+                "sn-focus-player-number g:= gl-boar-commit-focus",
+            ),
+        )
+        self.assertEqual(len(retry_requests), 2)
+        retry_target_gone = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-RETRY-COMMIT)",
+                "(not (up-set-target-object search-local c: 0))",
+                "(not (up-set-target-object search-remote c: 0))",
+            ),
+            actions=(
+                "(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)",
+                "boar retry exact target gone: %d",
+                "sn-focus-player-number g:= gl-boar-commit-focus",
+            ),
+        )
+        self.assertEqual(len(retry_target_gone), 1)
+
+        active_carcass_rescue = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-CHECK-ACTIVE-SHEEP)",
+                "(up-set-target-object search-remote c: 0)",
+            ),
+            actions=(
+                "(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-FIND)",
+                "boar retry preserving sheep food: %d",
+            ),
+        )
+        self.assertEqual(len(active_carcass_rescue), 1)
+
+        active_late_sheep = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)",
+                "(up-timer-status t-boar-support != timer-running)",
+                "(unit-type-count villager-hunter <",
+                "(unit-type-count villager-shepherd >= 1)",
+            ),
+            actions=(
+                "gl-boar-commit-focus s:= sn-focus-player-number",
+                "(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-FIND)",
+            ),
+        )
+        self.assertEqual(len(active_late_sheep), 2)
+
+        carcass_owners = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)",
+                "(dropsite-min-distance boar-hunting >= 0)",
+                "(dropsite-min-distance boar-hunting <= 9)",
+                "(unit-type-count villager-shepherd <= 0)",
+            ),
+            actions=(
+                "(set-strategic-number sn-minimum-boar-lure-group-size 300)",
+            ),
+        )
+        self.assertEqual(len(carcass_owners), 2)
+        sheep_hold = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)",
+                "(dropsite-min-distance boar-hunting >= 0)",
+                "(unit-type-count villager-shepherd >= 1)",
+            ),
+            actions=(
+                "(set-strategic-number sn-minimum-boar-lure-group-size 300)",
+                "(set-strategic-number sn-minimum-boar-hunt-group-size 1)",
+                "(set-strategic-number sn-minimum-number-hunters 1)",
+            ),
+        )
+        self.assertEqual(len(sheep_hold), 1)
+        release = matching_rules(
+            self.hunt,
+            facts=(
+                "(goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)",
+                "(up-remaining-boar-amount == 65535)",
+                "gl-game-time g:>= gl-boar-commit-deadline",
+            ),
+            actions=(
+                "(set-strategic-number sn-enable-boar-hunting 0)",
+                "(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)",
+                "boar commit released: %d",
+            ),
+        )
+        self.assertEqual(len(release), 1)
+        self.assertNotIn("villager-hunter", release[0][3])
+
+        # The old host-Cumans/Scythian block bypassed the generic owner after
+        # load order. No civilization file may directly reactivate boar hunting.
+        self.assertNotIn("sn-enable-boar-hunting", self.scythians)
 
     def test_pocket_preprocessor_role_is_not_inverted(self) -> None:
         flank_block = self.map.split(

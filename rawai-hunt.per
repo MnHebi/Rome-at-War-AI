@@ -1,102 +1,674 @@
 
-#load-if-not-defined CUMANS-CIV
+;The tactical AI chooses support hunters itself, and up-request-hunters has no
+;operand that can exclude shepherds. Own the whole boar lifecycle explicitly:
+;finish living livestock and visible sheep-food carcasses first, arm exactly
+;one lure, retain that commitment through the kill, then block another lure
+;before it can take the sheep line. A sheep found after the lurer is already
+;active triggers non-shepherd rescue support instead of cancelling the lure.
+
 (defrule
-	(up-compare-goal current-phase <= 1)
-    (dropsite-min-distance live-boar s:< sn-maximum-hunt-drop-distance)
+	(goal gl-boar-commit-state BOAR-COMMIT-IDLE)
+	(or
+		(unit-type-count livestock-class >= 1)
+		(unit-type-count villager-shepherd >= 1)
+	)
+	(strategic-number sn-enable-boar-hunting != 0)
+=>
+	(set-strategic-number sn-enable-boar-hunting 0)
+	(set-strategic-number sn-minimum-boar-lure-group-size 1)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+)
+
+;Opening lure authorization. The previous CUMANS exclusion only existed for a
+;stale Scythian override and is intentionally gone: every civilization now uses
+;the same sheep-safe owner.
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-boar-commit-deadline)
+	(up-compare-goal current-phase c:<= 1)
+	(up-compare-goal gl-home-zone c:>= 0)
+	(unit-type-count livestock-class <= 0)
+	(unit-type-count villager-shepherd <= 0)
+	(unit-type-count villager-hunter <= 0)
+	(dropsite-min-distance live-boar >= 0)
+	(dropsite-min-distance live-boar s:< sn-maximum-hunt-drop-distance)
 	(or
 		(dropsite-min-distance boar-hunting < 0)
 		(dropsite-min-distance boar-hunting > 9)
 	)
 	(unit-type-count villager >= 8)
-(or	(research-completed ri-loom)
-    (dropsite-min-distance live-boar < 15))
+	(or
+		(research-completed ri-loom)
+		(dropsite-min-distance live-boar < 15)
+	)
 =>
-   (set-strategic-number sn-enable-boar-hunting 2)
-   (set-strategic-number sn-minimum-boar-lure-group-size 1)
-   ;The lurer works alone, but the engine must not start the kill phase until
-   ;the support group is ready. A one-villager kill group caused sequential
-   ;Town Center ungarrisons while the live boar retained its target.
-   (set-strategic-number sn-minimum-boar-hunt-group-size 6)
-   (set-strategic-number sn-minimum-number-hunters 1)
-)
-#end-if
-
-(defrule
-	(up-compare-goal current-phase >= 2)
-=>
-   (set-strategic-number sn-enable-boar-hunting 1)
+	(up-modify-goal gl-boar-commit-focus s:= sn-focus-player-number)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-CHECK-OPENING-SHEEP)
 )
 
-;Request support before the lured boar is killed. Stage the support group while
-;the lurer is still approaching so the Town Center never feeds it one villager
-;at a time.
+;Later phases use normal rather than forced lure mode, but still cannot begin a
+;new hunt while any owned livestock or active shepherd remains.
 (defrule
-	(up-timer-status t-boar-support != timer-running)
+	(goal gl-boar-commit-state BOAR-COMMIT-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-boar-commit-deadline)
+	(up-compare-goal current-phase c:>= 2)
+	(up-compare-goal gl-home-zone c:>= 0)
+	(unit-type-count livestock-class <= 0)
+	(unit-type-count villager-shepherd <= 0)
+	(unit-type-count villager-hunter <= 0)
 	(dropsite-min-distance live-boar >= 0)
-	(dropsite-min-distance live-boar <= 12)
+	(dropsite-min-distance live-boar s:< sn-maximum-hunt-drop-distance)
+	(unit-type-count villager >= 8)
+=>
+	(up-modify-goal gl-boar-commit-focus s:= sn-focus-player-number)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-CHECK-LATER-SHEEP)
+)
+
+;The AIRef/UserPatch object table records that a slaughtered sheep with food
+;remains Gaia object 594 in class 958; only the exhausted object becomes 595.
+;Search that class directly near the active home anchor instead of passing it
+;to dropsite-min-distance, whose documented special operands exclude class 958.
+(defrule
+	(or
+		(goal gl-boar-commit-state BOAR-COMMIT-CHECK-OPENING-SHEEP)
+		(or
+			(goal gl-boar-commit-state BOAR-COMMIT-CHECK-LATER-SHEEP)
+			(goal gl-boar-commit-state BOAR-COMMIT-CHECK-ACTIVE-SHEEP)
+		)
+	)
+=>
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-distance c: -1 c: 24)
+	(up-find-remote c: livestock-class c: 40)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-home-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-remove-objects search-remote object-data-index >= 1)
+)
+
+(defrule
+	(or
+		(goal gl-boar-commit-state BOAR-COMMIT-CHECK-OPENING-SHEEP)
+		(goal gl-boar-commit-state BOAR-COMMIT-CHECK-LATER-SHEEP)
+	)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-strategic-number sn-enable-boar-hunting 0)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
+	(up-modify-goal gl-boar-commit-deadline g:= gl-game-time)
+	(up-modify-goal gl-boar-commit-deadline c:+ 15)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+	(up-chat-data-to-self "boar commit waiting for sheep food: %d" c: 1)
+)
+
+;A support retry must pass the same sheep-food gate as the initial lure. If a
+;carcass appeared after activation, preserve that food line and rescue the
+;already committed lurer with directly selected non-animal workers.
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-CHECK-ACTIVE-SHEEP)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-strategic-number sn-minimum-boar-lure-group-size 300)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-FIND)
+	(up-chat-data-to-self "boar retry preserving sheep food: %d" c: 1)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-CHECK-ACTIVE-SHEEP)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-boar-commit-state BOAR-COMMIT-RETRY-VERIFY)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-CHECK-OPENING-SHEEP)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-boar-commit-state BOAR-COMMIT-ARMED)
+	(up-modify-goal gl-boar-commit-deadline g:= gl-game-time)
+	(up-modify-goal gl-boar-commit-deadline c:+ 45)
+	(set-strategic-number sn-enable-boar-hunting 2)
+	(set-strategic-number sn-minimum-boar-lure-group-size 1)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+	(up-chat-data-to-self "boar commit armed: %d" g: gl-boar-commit-deadline)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-CHECK-LATER-SHEEP)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-boar-commit-state BOAR-COMMIT-ARMED)
+	(up-modify-goal gl-boar-commit-deadline g:= gl-game-time)
+	(up-modify-goal gl-boar-commit-deadline c:+ 45)
+	(set-strategic-number sn-enable-boar-hunting 1)
+	(set-strategic-number sn-minimum-boar-lure-group-size 1)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+	(up-chat-data-to-self "boar commit armed: %d" g: gl-boar-commit-deadline)
+)
+
+;Bind activation to one villager whose current target is in the boar resource
+;class. Target ownership remains valid while a lurer is moving or garrisoning;
+;a global hunter count cannot distinguish an unrelated deer worker.
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-ARMED)
+=>
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point position-self-x)
+	(up-filter-distance c: -1 g: map-size)
+	(up-find-local c: villager-class c: 240)
+	(up-remove-objects search-local object-data-target != boar-class)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 1)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-VERIFY)
+)
+
+;The lurer was accepted while the sheep line remained empty. Request a total
+;kill group immediately in the same script pass, before another worker role can
+;become eligible for the tactical support selector.
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-VERIFY)
+	(up-set-target-object search-local c: 0)
+	(unit-type-count livestock-class <= 0)
+	(unit-type-count villager-shepherd <= 0)
 	(unit-type-count villager >= 8)
 	(unit-type-count villager < 10)
 =>
+	(up-get-object-data object-data-id gl-boar-lurer-id)
+	(up-get-object-data object-data-target-id gl-boar-target-id)
+	(set-strategic-number sn-minimum-boar-lure-group-size 300)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 6)
+	(set-strategic-number sn-minimum-number-hunters 6)
+	(up-request-hunters c: 6)
 	(enable-timer t-boar-support 3)
-    (set-strategic-number sn-minimum-boar-hunt-group-size 6)
-    (set-strategic-number sn-minimum-number-hunters 6)
-    (up-request-hunters c: 5)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
+	(up-modify-goal gl-boar-commit-deadline g:= gl-game-time)
+	(up-modify-goal gl-boar-commit-deadline c:+ 600)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+	(up-chat-data-to-self "boar commit active hunters: %d" c: 6)
 )
 
 (defrule
-	(up-timer-status t-boar-support != timer-running)
-	(dropsite-min-distance live-boar >= 0)
-	(dropsite-min-distance live-boar <= 12)
+	(goal gl-boar-commit-state BOAR-COMMIT-VERIFY)
+	(up-set-target-object search-local c: 0)
+	(unit-type-count livestock-class <= 0)
+	(unit-type-count villager-shepherd <= 0)
 	(unit-type-count villager >= 10)
 =>
-	(enable-timer t-boar-support 3)
+	(up-get-object-data object-data-id gl-boar-lurer-id)
+	(up-get-object-data object-data-target-id gl-boar-target-id)
+	(set-strategic-number sn-minimum-boar-lure-group-size 300)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 7)
 	(set-strategic-number sn-minimum-number-hunters 7)
-	(up-request-hunters c: 6)
+	(up-request-hunters c: 7)
+	(enable-timer t-boar-support 3)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
+	(up-modify-goal gl-boar-commit-deadline g:= gl-game-time)
+	(up-modify-goal gl-boar-commit-deadline c:+ 600)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+	(up-chat-data-to-self "boar commit active hunters: %d" c: 7)
 )
 
-;Keep the full group on a nearby boar carcass. Otherwise the next visible live
-;boar can reduce sn-minimum-number-hunters to one while food remains here.
+;If newly discovered sheep arrives after the lurer has already targeted the
+;boar, keep the shepherds in place. Preserve the exact lurer and boar IDs, then
+;direct only non-animal workers to rescue the kill.
 (defrule
-	(dropsite-min-distance boar-hunting >= 0)
-	(dropsite-min-distance boar-hunting <= 9)
+	(goal gl-boar-commit-state BOAR-COMMIT-VERIFY)
+	(up-set-target-object search-local c: 0)
+	(or
+		(unit-type-count livestock-class >= 1)
+		(unit-type-count villager-shepherd >= 1)
+	)
+=>
+	(up-get-object-data object-data-id gl-boar-lurer-id)
+	(up-get-object-data object-data-target-id gl-boar-target-id)
+	(set-strategic-number sn-minimum-boar-lure-group-size 300)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-FIND)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-VERIFY)
+	(not (up-set-target-object search-local c: 0))
+	(or
+		(unit-type-count livestock-class >= 1)
+		(unit-type-count villager-shepherd >= 1)
+	)
+=>
+	(set-strategic-number sn-enable-boar-hunting 0)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+	(up-chat-data-to-self "boar commit cancelled for sheep: %d" c: 1)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-VERIFY)
+	(not (up-set-target-object search-local c: 0))
+	(up-compare-goal gl-game-time g:>= gl-boar-commit-deadline)
+=>
+	(set-strategic-number sn-enable-boar-hunting 0)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+	(up-chat-data-to-self "boar commit timed out: %d" g: gl-boar-commit-deadline)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-VERIFY)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(set-goal gl-boar-commit-state BOAR-COMMIT-ARMED)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+)
+
+;Late-sheep rescue is split across small rules so no one rule approaches the
+;engine's ERR6002 limit. It may borrow miners, lumberjacks, or farmers, but it
+;excludes every hunter, shepherd, prey target, builder, repairer, and migrant.
+;First revalidate and capture the exact boar, so a remote-colony lure never
+;searches for support around the immutable starting position.
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-FIND)
+=>
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-boar-target-id)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-ANCHOR)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-ANCHOR)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-point position-object gl-boar-target-x)
+	(up-get-object-data object-data-map-zone-id gl-boar-target-zone)
+	(up-full-reset-search)
+	(up-set-target-point gl-boar-target-x)
+	(up-filter-distance c: -1 c: 24)
+	(up-find-local c: villager-class c: 240)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-hunt)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-boar-target-zone)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-FILTER)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-ANCHOR)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-strategic-number sn-enable-boar-hunting 0)
+	(set-strategic-number sn-minimum-boar-lure-group-size 1)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+	(up-chat-data-to-self "boar rescue target gone: %d" g: gl-boar-target-id)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-FILTER)
+	(unit-type-count villager < 10)
+=>
+	(up-remove-objects search-local object-data-action == actionid-build)
+	(up-remove-objects search-local object-data-action == actionid-repair)
+	(up-remove-objects search-local object-data-target == prey-animal-class)
+	(up-remove-objects search-local object-data-target == livestock-class)
+	(up-remove-objects search-local object-data-language-id == lid-villager-shepherd)
+	(up-remove-objects search-local object-data-language-id == lid-villager-hunter)
+	(up-remove-objects search-local object-data-group-flag == migration-boarding-group)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 5)
+	(up-get-search-state local-total)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-SEND-SIX)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-FILTER)
+	(unit-type-count villager >= 10)
+=>
+	(up-remove-objects search-local object-data-action == actionid-build)
+	(up-remove-objects search-local object-data-action == actionid-repair)
+	(up-remove-objects search-local object-data-target == prey-animal-class)
+	(up-remove-objects search-local object-data-target == livestock-class)
+	(up-remove-objects search-local object-data-language-id == lid-villager-shepherd)
+	(up-remove-objects search-local object-data-language-id == lid-villager-hunter)
+	(up-remove-objects search-local object-data-group-flag == migration-boarding-group)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 6)
+	(up-get-search-state local-total)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-SEND-SEVEN)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-SEND-SIX)
+	(up-compare-goal local-total c:>= 5)
+=>
+	(up-add-object-by-id search-remote g: gl-boar-target-id)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+	(set-strategic-number sn-minimum-boar-lure-group-size 300)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+	(enable-timer t-boar-support 3)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
+	(up-modify-goal gl-boar-commit-deadline g:= gl-game-time)
+	(up-modify-goal gl-boar-commit-deadline c:+ 600)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+	(up-chat-data-to-self "boar rescue non-shepherds: %d" g: local-total)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-SEND-SEVEN)
+	(up-compare-goal local-total c:>= 6)
+=>
+	(up-add-object-by-id search-remote g: gl-boar-target-id)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+	(set-strategic-number sn-minimum-boar-lure-group-size 300)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+	(enable-timer t-boar-support 3)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
+	(up-modify-goal gl-boar-commit-deadline g:= gl-game-time)
+	(up-modify-goal gl-boar-commit-deadline c:+ 600)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+	(up-chat-data-to-self "boar rescue non-shepherds: %d" g: local-total)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-SEND-SIX)
+	(up-compare-goal local-total c:< 5)
+=>
+	(set-strategic-number sn-enable-boar-hunting 0)
+	(set-strategic-number sn-minimum-boar-lure-group-size 300)
+	(up-modify-goal gl-boar-commit-deadline g:= gl-game-time)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-GARRISON)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-SEND-SEVEN)
+	(up-compare-goal local-total c:< 6)
+=>
+	(set-strategic-number sn-enable-boar-hunting 0)
+	(set-strategic-number sn-minimum-boar-lure-group-size 300)
+	(up-modify-goal gl-boar-commit-deadline g:= gl-game-time)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-GARRISON)
+)
+
+;Without a safe full support group, put the exact lurer inside the Town Center
+;rather than drafting the sheep line. Only a ready same-zone Town Center is a
+;valid refuge; if none exists, retain ownership and retry instead of releasing
+;the lurer after an unreachable or empty command.
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-GARRISON)
+	(up-compare-goal gl-game-time g:>= gl-boar-commit-deadline)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-boar-lurer-id)
+	(up-set-target-point gl-boar-target-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-boar-target-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-remove-objects search-remote object-data-index >= 1)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-GARRISON-SEND)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-GARRISON-SEND)
+	(up-set-target-object search-local c: 0)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(set-strategic-number sn-enable-boar-hunting 0)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+	(up-chat-data-to-self "boar rescue garrisoned lurer: %d" g: gl-boar-lurer-id)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-GARRISON-SEND)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(set-strategic-number sn-enable-boar-hunting 0)
+	(set-strategic-number sn-minimum-boar-lure-group-size 1)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+	(up-chat-data-to-self "boar rescue lurer gone: %d" g: gl-boar-lurer-id)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-GARRISON-SEND)
+	(up-set-target-object search-local c: 0)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-modify-goal gl-boar-commit-deadline g:= gl-game-time)
+	(up-modify-goal gl-boar-commit-deadline c:+ 5)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-GARRISON)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+)
+
+;Retry a partially satisfied normal request only while the same boar remains
+;active and no living sheep, sheep carcass, or shepherd is available.
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
+	(up-timer-status t-boar-support != timer-running)
+	(unit-type-count livestock-class <= 0)
+	(unit-type-count villager-shepherd <= 0)
+	(unit-type-count villager-hunter >= 1)
+	(unit-type-count villager-hunter < 6)
 	(unit-type-count villager >= 8)
 	(unit-type-count villager < 10)
 =>
+	(up-modify-goal gl-boar-commit-focus s:= sn-focus-player-number)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-CHECK-ACTIVE-SHEEP)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
+	(up-timer-status t-boar-support != timer-running)
+	(unit-type-count livestock-class <= 0)
+	(unit-type-count villager-shepherd <= 0)
+	(unit-type-count villager-hunter >= 1)
+	(unit-type-count villager-hunter < 7)
+	(unit-type-count villager >= 10)
+=>
+	(up-modify-goal gl-boar-commit-focus s:= sn-focus-player-number)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-CHECK-ACTIVE-SHEEP)
+)
+
+;After the sheep-food rescan, revalidate both immutable IDs. This prevents a
+;global support request from attaching to another boar after the committed
+;target disappeared.
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RETRY-VERIFY)
+=>
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-boar-lurer-id)
+	(up-remove-objects search-local object-data-target-id g:!= gl-boar-target-id)
+	(up-add-object-by-id search-remote g: gl-boar-target-id)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-RETRY-COMMIT)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RETRY-COMMIT)
+	(up-set-target-object search-local c: 0)
+	(up-set-target-object search-remote c: 0)
+	(unit-type-count livestock-class <= 0)
+	(unit-type-count villager-shepherd <= 0)
+	(unit-type-count villager >= 8)
+	(unit-type-count villager < 10)
+=>
+	(set-strategic-number sn-minimum-boar-lure-group-size 300)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 6)
+	(set-strategic-number sn-minimum-number-hunters 6)
+	(up-request-hunters c: 6)
+	(enable-timer t-boar-support 3)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RETRY-COMMIT)
+	(up-set-target-object search-local c: 0)
+	(up-set-target-object search-remote c: 0)
+	(unit-type-count livestock-class <= 0)
+	(unit-type-count villager-shepherd <= 0)
+	(unit-type-count villager >= 10)
+=>
+	(set-strategic-number sn-minimum-boar-lure-group-size 300)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 7)
+	(set-strategic-number sn-minimum-number-hunters 7)
+	(up-request-hunters c: 7)
+	(enable-timer t-boar-support 3)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RETRY-COMMIT)
+	(up-set-target-object search-local c: 0)
+	(up-set-target-object search-remote c: 0)
+	(or
+		(unit-type-count livestock-class >= 1)
+		(unit-type-count villager-shepherd >= 1)
+	)
+=>
+	(set-strategic-number sn-minimum-boar-lure-group-size 300)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-FIND)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-RETRY-COMMIT)
+	(or
+		(not (up-set-target-object search-local c: 0))
+		(not (up-set-target-object search-remote c: 0))
+	)
+=>
+	(set-strategic-number sn-enable-boar-hunting 0)
+	(set-strategic-number sn-minimum-boar-lure-group-size 1)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
+	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
+	(up-chat-data-to-self "boar retry exact target gone: %d" g: gl-boar-target-id)
+)
+
+;A sheep line can appear after the first support request was only partially
+;fulfilled. Re-enter the exact-target rescue only when the safe total is still
+;missing; a complete hunter group remains committed and drafts nobody else.
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
+	(up-timer-status t-boar-support != timer-running)
+	(or
+		(unit-type-count livestock-class >= 1)
+		(unit-type-count villager-shepherd >= 1)
+	)
+	(unit-type-count villager-hunter < 6)
+	(unit-type-count villager >= 8)
+	(unit-type-count villager < 10)
+=>
+	(up-modify-goal gl-boar-commit-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-FIND)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
+	(up-timer-status t-boar-support != timer-running)
+	(or
+		(unit-type-count livestock-class >= 1)
+		(unit-type-count villager-shepherd >= 1)
+	)
+	(unit-type-count villager-hunter < 7)
+	(unit-type-count villager >= 10)
+=>
+	(up-modify-goal gl-boar-commit-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-FIND)
+)
+
+;Keep the committed group on the nearby boar and block concurrent lures with
+;the documented unreachable lure floor. Unlike disabling boar hunting, this
+;does not risk interrupting a still-live current target.
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
+	(dropsite-min-distance boar-hunting >= 0)
+	(dropsite-min-distance boar-hunting <= 9)
+	(or
+		(unit-type-count livestock-class >= 1)
+		(unit-type-count villager-shepherd >= 1)
+	)
+=>
+	(set-strategic-number sn-minimum-boar-lure-group-size 300)
+	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
+	(set-strategic-number sn-minimum-number-hunters 1)
+)
+
+(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
+	(dropsite-min-distance boar-hunting >= 0)
+	(dropsite-min-distance boar-hunting <= 9)
+	(unit-type-count livestock-class <= 0)
+	(unit-type-count villager-shepherd <= 0)
+	(unit-type-count villager >= 8)
+	(unit-type-count villager < 10)
+=>
+	(set-strategic-number sn-minimum-boar-lure-group-size 300)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 6)
 	(set-strategic-number sn-minimum-number-hunters 6)
 )
 
 (defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
 	(dropsite-min-distance boar-hunting >= 0)
 	(dropsite-min-distance boar-hunting <= 9)
+	(unit-type-count livestock-class <= 0)
+	(unit-type-count villager-shepherd <= 0)
 	(unit-type-count villager >= 10)
 =>
+	(set-strategic-number sn-minimum-boar-lure-group-size 300)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 7)
 	(set-strategic-number sn-minimum-number-hunters 7)
 )
 
+;Release only after the current carcass is gone. The engine's boar fact avoids
+;letting a deer hunter deadlock this owner; the ten-minute watchdog recovers if
+;the engine retains a stale boar target. The next lure must pass the sheep gate.
 (defrule
-    (dropsite-min-distance live-boar > 12)
-    (dropsite-min-distance live-boar s:< sn-maximum-hunt-drop-distance)
-    (unit-type-count villager-hunter < 1)
-	(unit-type-count villager >= 6)
-(or	(research-completed ri-loom)
-    (dropsite-min-distance live-boar < 15))
-=>
-    (set-strategic-number sn-minimum-boar-hunt-group-size 6)
-    (set-strategic-number sn-minimum-number-hunters 1)
-    (up-request-hunters c: 1)
-)
-
-(defrule
+	(goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
 	(or
 		(dropsite-min-distance boar-hunting < 0)
 		(dropsite-min-distance boar-hunting > 9)
 	)
-	(dropsite-min-distance live-boar < 0)
-	(strategic-number sn-minimum-number-hunters > 1)
+	(or
+		(up-remaining-boar-amount == 65535)
+		(up-compare-goal gl-game-time g:>= gl-boar-commit-deadline)
+	)
 =>
+	(set-strategic-number sn-enable-boar-hunting 0)
+	(set-strategic-number sn-minimum-boar-lure-group-size 1)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
 	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
+	(up-chat-data-to-self "boar commit released: %d" c: 1)
 )

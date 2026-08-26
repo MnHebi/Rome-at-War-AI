@@ -1023,6 +1023,14 @@
 (defconst gl-quarantine-transport-state 1051)
 (defconst gl-quarantine-transport-next 1052)
 (defconst gl-quarantine-transport-focus 1053)
+(defconst gl-boar-commit-state 1054)
+(defconst gl-boar-commit-deadline 1055)
+(defconst gl-boar-lurer-id 1056)
+(defconst gl-boar-target-id 1057)
+(defconst gl-boar-commit-focus 1058)
+(defconst gl-boar-target-x 1059)
+(defconst gl-boar-target-y 1060)
+(defconst gl-boar-target-zone 1061)
 
 ; Goal Values
 
@@ -1370,6 +1378,22 @@
 (defconst MIGRATION-CONFIRM-SCOUT-FALLBACK 52)
 (defconst TRANSPORT-QUARANTINE-IDLE 0)
 (defconst TRANSPORT-QUARANTINE-CHECK 1)
+(defconst BOAR-COMMIT-IDLE 0)
+(defconst BOAR-COMMIT-CHECK-OPENING-SHEEP 1)
+(defconst BOAR-COMMIT-CHECK-LATER-SHEEP 2)
+(defconst BOAR-COMMIT-ARMED 3)
+(defconst BOAR-COMMIT-VERIFY 4)
+(defconst BOAR-COMMIT-RESCUE-FIND 5)
+(defconst BOAR-COMMIT-RESCUE-FILTER 6)
+(defconst BOAR-COMMIT-RESCUE-SEND-SIX 7)
+(defconst BOAR-COMMIT-RESCUE-SEND-SEVEN 8)
+(defconst BOAR-COMMIT-RESCUE-GARRISON 9)
+(defconst BOAR-COMMIT-ACTIVE 10)
+(defconst BOAR-COMMIT-CHECK-ACTIVE-SHEEP 11)
+(defconst BOAR-COMMIT-RETRY-VERIFY 12)
+(defconst BOAR-COMMIT-RETRY-COMMIT 13)
+(defconst BOAR-COMMIT-RESCUE-ANCHOR 14)
+(defconst BOAR-COMMIT-RESCUE-GARRISON-SEND 15)
 (defconst MIGRATION-MISSION-MINING 1)
 (defconst MIGRATION-MISSION-SCOUT 2)
 (defconst migration-boarding-group 4)
@@ -1726,7 +1750,10 @@
 =>
 	(up-get-point position-map-size temporary-goal2)
 	(up-modify-goal map-size g:= temporary-goal2)
-    (set-strategic-number sn-enable-boar-hunting 1)
+	;rawai-hunt owns the complete lure lifecycle. Starting enabled lets the
+	;engine recruit shepherds before the script has proved that livestock food is
+	;finished.
+    (set-strategic-number sn-enable-boar-hunting 0)
 	(set-goal spread-units 0)
 	(set-strategic-number sn-wall-targeting-mode 0)
 	(set-strategic-number sn-easiest-reaction-percentage 20)
