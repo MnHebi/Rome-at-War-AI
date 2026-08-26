@@ -19,3 +19,16 @@
 	(set-goal dont-spam-taunts YES)
 )
 
+;The formal town fact misses attacked colonies, wall sites, and small raiding
+;parties. A sustained local threat with no same-zone responder is the stronger
+;reason to ask teammates for relief, independent of the global team ratio.
+(defrule
+	(goal dont-spam-taunts NO)
+	(goal gl-local-threat-active YES)
+	(up-compare-goal gl-local-response-threats c:>= 1)
+	(up-compare-goal gl-local-response-responders c:<= 0)
+=>
+	(chat-to-allies "48 I'm under attack and have no local defenders!")
+	(set-goal dont-spam-taunts YES)
+)
+

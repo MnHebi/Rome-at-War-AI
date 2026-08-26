@@ -1233,6 +1233,7 @@
 	(up-set-target-object search-remote c: 0)
 =>
 	(set-goal gl-land-trade-route YES)
+	(set-goal gl-trade-route-failures 0)
 	(up-modify-goal gl-trade-route-next g:= gl-game-time)
 	(up-modify-goal gl-trade-route-next c:+ 90)
 	(up-chat-data-to-self "reachable ally land trade: %d" g: gl-trade-route-player)
@@ -1300,6 +1301,9 @@
 	(goal gl-trade-route-state TRADE-ROUTE-WATER-VALIDATE-SOURCE)
 	(up-compare-goal gl-trade-valid-producer-total g:!= gl-trade-own-producer-total)
 =>
+	(up-modify-goal gl-trade-route-failures c:+ 1)
+	(up-chat-data-to-self "trade water source valid: %d" g: gl-trade-valid-producer-total)
+	(up-chat-data-to-self "trade water source total: %d" g: gl-trade-own-producer-total)
 	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
 	(up-modify-goal gl-trade-route-next g:= gl-game-time)
 	(up-modify-goal gl-trade-route-next c:+ 60)
@@ -1310,6 +1314,8 @@
 	(goal gl-trade-route-state TRADE-ROUTE-WATER-SOURCE)
 	(not (up-set-target-object search-local c: 0))
 =>
+	(up-modify-goal gl-trade-route-failures c:+ 1)
+	(up-chat-data-to-self "trade water source missing: %d" g: gl-trade-route-failures)
 	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
 	(up-modify-goal gl-trade-route-next g:= gl-game-time)
 	(up-modify-goal gl-trade-route-next c:+ 60)
@@ -1335,6 +1341,7 @@
 	(up-set-target-object search-remote c: 0)
 =>
 	(set-goal gl-water-trade-route YES)
+	(set-goal gl-trade-route-failures 0)
 	(up-modify-goal gl-trade-route-next g:= gl-game-time)
 	(up-modify-goal gl-trade-route-next c:+ 90)
 	(up-chat-data-to-self "reachable ally water trade: %d" g: gl-trade-route-player)
@@ -1366,6 +1373,8 @@
 	(goal gl-trade-route-state TRADE-ROUTE-WATER-NEXT)
 	(up-compare-goal gl-trade-route-player g:== gl-trade-route-first)
 =>
+	(up-modify-goal gl-trade-route-failures c:+ 1)
+	(up-chat-data-to-self "trade no shared water zone: %d" g: gl-trade-route-failures)
 	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
 	(up-modify-goal gl-trade-route-next g:= gl-game-time)
 	(up-modify-goal gl-trade-route-next c:+ 60)
@@ -1402,6 +1411,39 @@
 	(can-train trade-cog)
 =>
 	(train trade-cog)
+)
+
+;The engine's generic train command cannot bind a specific Dock. If three full
+;endpoint scans fail on an aquatic team map, allow only a three-ship probe.
+;This converts a silent all-game deadlock into bounded evidence without
+;committing the economy to an unverified route or relaxing the normal source
+;ownership invariant.
+(defrule
+	(goal team-game YES)
+	(player-in-game any-ally)
+	(goal gl-land-trade-route NO)
+	(goal gl-water-trade-route NO)
+	(up-compare-goal gl-trade-route-failures c:>= 3)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(building-type-count dock >= 1)
+	(unit-type-count-total trade-cog < 3)
+	(up-compare-goal gl-trade-probe-trained c:< 3)
+	(goal wait-techup-requirements NO)
+	(wood-amount > 200)
+	(can-train trade-cog)
+=>
+	(train trade-cog)
+	(up-modify-goal gl-trade-probe-trained c:+ 1)
+	(up-chat-data-to-self "bounded trade cog probe: %d" g: gl-trade-route-failures)
 )
 
 ;Resource depletion increases only the reachable trade modality. These remain

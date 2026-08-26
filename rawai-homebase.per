@@ -3485,6 +3485,37 @@
 =>
 	(up-build place-normal 0 c: barracks))
 
+;A player whose last army and Barracks were destroyed has no responder with
+;which to raise gl-home-defense-state. Rebuild the foundational producer even
+;while age-up escrow is active; this rule is threat-gated and cannot restore the
+;old opening Barracks regression.
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal gl-local-threat-active YES)
+	(building-type-count-total barracks < 1)
+	(up-pending-objects c: barracks <= 0)
+	(not (up-pending-placement c: barracks))
+	(can-afford-building barracks)
+	(up-can-build 0 c: barracks)
+=>
+	(up-build place-normal 0 c: barracks)
+	(chat-local-to-self "Emergency Barracks requested after local attack")
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(goal gl-local-threat-active YES)
+	(building-type-count-total barracks < 1)
+	(up-pending-objects c: barracks <= 0)
+	(not (up-pending-placement c: barracks))
+	(can-afford-building barracks)
+	(not (up-can-build 0 c: barracks))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
 (defrule
 	(current-age >= early-antiquity-age)
 	(goal wait-techup-requirements NO)
@@ -3928,6 +3959,7 @@
 	(goal gl-wall-needed YES)
 	(goal gl-wall-material WALL-MATERIAL-STONE)
 	(up-compare-goal gl-game-time g:>= gl-wall-next)
+	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(up-compare-goal gl-wall-retries c:< 3)
 	(wall-completed-percentage 2 < 100)
 	(can-build-wall-with-escrow 2 stone-wall-line)
@@ -3945,6 +3977,7 @@
 	(goal gl-wall-needed YES)
 	(goal gl-wall-material WALL-MATERIAL-PALISADE)
 	(up-compare-goal gl-game-time g:>= gl-wall-next)
+	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(up-compare-goal gl-wall-retries c:< 3)
 	(wall-completed-percentage 2 < 100)
 	(can-build-wall-with-escrow 2 palisade-wall)
@@ -4017,6 +4050,7 @@
 	(goal gl-wall-gates-issued 0)
 	(wall-completed-percentage 2 >= 25)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
+	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(can-build-gate-with-escrow 2)
 =>
 	(release-escrow stone)
@@ -4035,6 +4069,7 @@
 	(goal gl-wall-gates-issued 0)
 	(wall-completed-percentage 2 >= 25)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
+	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(can-build-gate-with-escrow 2)
 =>
 	(release-escrow wood)
@@ -4053,6 +4088,7 @@
 	(goal gl-wall-gates-issued 1)
 	(wall-completed-percentage 2 >= 75)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
+	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(can-build-gate-with-escrow 2)
 =>
 	(release-escrow stone)
@@ -4071,6 +4107,7 @@
 	(goal gl-wall-gates-issued 1)
 	(wall-completed-percentage 2 >= 75)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
+	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(can-build-gate-with-escrow 2)
 =>
 	(release-escrow wood)

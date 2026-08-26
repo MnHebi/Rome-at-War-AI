@@ -356,11 +356,38 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B25: %d" c: 25)
+	(up-chat-data-to-self "RAWAI-P3B26: %d" c: 26)
 	(disable-self)
 )
 
-;P3B25 transport, scout, target-zone, flare, Lumber Camp, and hunting state stay
+;P3B26 keeps replay-driven threat, scout-novelty, stranded-unit, berth, and
+;trade-fallback state separate from the earlier startup blocks for ERR6002.
+(defrule
+	(true)
+=>
+	(set-goal gl-local-threat-active NO)
+	(set-goal gl-local-threat-until 0)
+	(set-goal gl-wall-danger-until 0)
+	(set-goal gl-island-scout-visited-zone -1)
+	(set-goal gl-island-scout-visited-zone2 -1)
+	(set-goal gl-island-scout-visited-zone3 -1)
+	(set-goal gl-island-scout-player -1)
+	(set-goal gl-island-scout-first -1)
+	(set-goal gl-island-scout-patrol-x 0)
+	(set-goal gl-island-scout-patrol-y 0)
+	(set-goal gl-transport-recovery-zone -1)
+	(set-goal gl-transport-clear-attempts 0)
+	(set-goal gl-trade-route-failures 0)
+	(set-goal gl-transport-recovery-attempts 0)
+	(set-goal gl-transport-recovery-target-zone -1)
+	(set-goal gl-trade-probe-trained 0)
+	(set-goal gl-transport-recovery-landing-zone -1)
+	(set-goal gl-island-scout-zone-rejections 0)
+	(set-goal gl-transport-clear-water-zone -1)
+	(disable-self)
+)
+
+;P3B26 transport, scout, target-zone, flare, Lumber Camp, and hunting state stay
 ;in a separate startup rule so the replay marker and older initializers remain
 ;comfortably below ERR6002.
 (defrule

@@ -776,7 +776,14 @@
         "game_build": "101.103.48987.0",
         "map": "Real World Britain (user-provided 4v4 test context)",
         "players": [
-          "Eight AI players in two teams; exact civilization and color mapping is unresolved from the modded replay header"
+          "p1 Gray Roman Empire (team 2)",
+          "p2 Yellow Roman Empire (team 2)",
+          "p3 Blue Roman Empire (team 2)",
+          "p4 Green Roman Empire (team 2)",
+          "p5 Purple Picts (team 3)",
+          "p6 Red Britons (team 3)",
+          "p7 Cyan Germani (team 3)",
+          "p8 Orange Gauls (team 3)"
         ],
         "duration_seconds": 3795
       },
@@ -811,10 +818,10 @@
         "Once a wall has reached twenty-five percent and can-build-gate-with-escrow becomes true, it receives one gate request without waiting for one-hundred-percent completion; once it has reached seventy-five percent and the predicate becomes true again, it receives at most one additional request. If no replaceable span or matching resource is available, telemetry shows three sixty-second checks followed by an approximately 180-second gate-only backoff. Stone lines release only stone escrow, palisade lines release only wood escrow, gate retries do not move the wall deadline, and no unrelated pre-existing gate suppresses this perimeter's bounded requests."
       ],
       "known_limits": [
-        "The replay does not expose exact Dejbjerg object positions, transformation completion, transportable building action semantics, successful building placement, gate-slot selection, or trade-path reachability. Every runtime claim in this patch requires a fresh P3B23 match.",
+        "The DE header now resolves p1 Gray Roman Empire, p2 Yellow Roman Empire, p3 Blue Roman Empire, p4 Green Roman Empire, p5 Purple Picts, p6 Red Britons, p7 Cyan Germani, and p8 Orange Gauls. It does not expose exact Dejbjerg object positions, transformation completion, transportable building action semantics, successful building placement, gate-slot selection, or trade-path reachability. Every runtime claim in this patch requires a fresh P3B23 match.",
         "Land-zone equality is stronger evidence than map classification but does not prove that terrain within a zone has no impassable obstruction. Water-zone equality similarly does not prove a Trade Cog's full path is safe or unobstructed. Ordinary train cannot bind an object ID, so production conservatively requires all currently ready own producers to share the validated zone and blocks if their live count changes.",
         "The wall route scan depends on known enemy structures in the active-home land zone. It cannot infer unseen choke points, and completion-percentage quarters prove engine wall progress rather than strategic enclosure quality.",
-        "The user-reported color identities conflict with standard parser slot/color assumptions. Player 8 owns the decoded WALL commands; the visible color and civilization of that slot remain unresolved and are not guessed."
+        "The DE header identifies parser player 8 as Orange Gauls, while the user visually reported Gray as the walling player. The command stream proves that p8 issued the WALL records but does not prove completed wall ownership; this evidence conflict remains explicit rather than assigning those records to Gray."
       ],
       "validation_status": "fresh-replay-required"
     },
@@ -826,7 +833,14 @@
         "game_build": "101.103.48987.0",
         "map": "Real World Britain (user-provided 4v4 test context)",
         "players": [
-          "Eight AI players in two teams; exact civilization and color mapping is unresolved from the modded replay header"
+          "p1 Blue Roman Empire (team 2)",
+          "p2 Yellow Roman Empire (team 2)",
+          "p3 Gray Roman Empire (team 2)",
+          "p4 Green Roman Empire (team 2)",
+          "p5 Red Picts (team 3)",
+          "p6 Cyan Britons (team 3)",
+          "p7 Purple Germani (team 3)",
+          "p8 Orange Gauls (team 3)"
         ],
         "duration_seconds": 3247
       },
@@ -873,6 +887,72 @@
         "Map-zone equality proves only engine connectivity classification, not that the generated path is tactically safe or unobstructed. Fresh runtime behavior is required for scout coverage, Transport landing, trade movement, and attack execution.",
         "A six-tile taunt radius is intentionally bounded. The human must flare near the owned building footprint, and the AI will not fall back to deleting an arbitrary unit when no structure is proven.",
         "Detached Transport quarantine has one exact-ID slot. Further migration remains paused at the idle gate until that hull becomes empty or is lost; this avoids a second global-owner deadlock but can indefinitely suspend migration if the engine can never find a viable unload path. Placement, defensive response, and unrelated Transport utilities remain available meanwhile."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260826-165259",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.26 165259.aoe2record",
+        "sha256": "6DBDBE2296E218C925999A973D8A2E4C45C78F319568E288C8BEAA19044FDBBE",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain",
+        "players": [
+          "p1 Cyan Roman Empire (team 2)",
+          "p2 Yellow Roman Empire (team 2)",
+          "p3 Orange Roman Empire (team 2)",
+          "p4 Gray Roman Empire (team 2)",
+          "p5 Purple Picts (team 3)",
+          "p6 Green Britons (team 3)",
+          "p7 Blue Germani (team 3)",
+          "p8 Red Gauls (team 3)"
+        ],
+        "duration_seconds": 3331
+      },
+      "direct_replay_observations": [
+        "The replay parsed 352016 actions and 2865 chat records without command-stream errors and lasted 55:31. The DE header reports Extreme difficulty, 400 population, shared exploration, map ID 50, and the exact player/color/civilization mapping in this entry.",
+        "No RAWAI startup marker was decoded. The match began after the P3B24 commit and before the later P3B25 commit, so P3B24 is consistent with the test chronology but not proven by the recording.",
+        "Purple p5 issued Barracks build requests at 09:05, 29:03, 31:07, 31:27, and 31:44. Purple also requested 42 Spearmen, 22 Pikemen, 27 Scouts, six Rams, six Mangonels, two Priests, and seventeen Transport Ships. These are requests rather than proof that a Barracks or army survived the later attacks, but they disprove the literal match-wide claim that Purple never requested a Barracks or military.",
+        "Purple object 31842 received 53246 AI_ORDER stop records from 25:40 through 55:31, with roughly four thousand records per minute during the largest bursts. Later combat orders also included that object. The stream directly proves a persistent object-order loop but does not expose the object's unit type or the engine reason for rejecting movement.",
+        "No player requested a Trade Cart (unit 128) or Trade Cog (unit 17), although all eight players issued Market and Port build requests.",
+        "The replay's detailed self-chat belongs to p1. Its transported-scout missions began at 21:03, 23:44, and 26:15; the first reported landing zone 3 at 22:44. The historical selector did not record visited zones or reject allied settlements under shared exploration.",
+        "Player 1 emitted land-dispatch telemetry at 32:21 and 45:56 and an age-up dispatch at 45:46, so this replay does not prove universal timer-level passivity. It does not contain equivalent diagnostic state for Orange, Yellow, or Green.",
+        "Player 1 reported partially loaded Transports for sustained intervals, including one at 39:07 and 39:27 and two from 46:51 through 48:11. Purple issued no decoded WALL action, so the visually observed wall-villager losses are separate evidence and are not attributed to Purple's order loop."
+      ],
+      "implementation_inferences": [
+        "The local-response controller latched home defense only when at least one same-zone responder already existed. With zero responders it logged and returned idle, while the ordinary Middle-Antiquity Barracks rule could still require a second Town Center, home defense, or rush state. This circular dependency could prevent recovery after a Barracks and army were destroyed.",
+        "The allied-help request required at least five enemies inside the formal town and did not consume the broader attacked-asset response. An outlying or island attack with zero local defenders could therefore remain silent.",
+        "The scout-ferry selector chose the farthest known Gaia natural object and neither excluded an allied settled land zone nor remembered a successful destination. Shared exploration therefore biased later missions toward already-known teammate land.",
+        "The scout group was released immediately after one patrol order. The persistent p5 order loop cannot be assigned to a scout from the command stream, but the lack of a post-order progress check made a gate or beach obstruction unrecoverable without manual movement.",
+        "The stranded-unit recovery search selected active or already-grouped soldiers, reserved neither passenger nor hull, and returned to loading until a 120-second watchdog published idle after an asynchronous unload command. That ownership gap is sufficient to steal an attack group or recreate load/unload behavior after its task changes.",
+        "Wall placement had retry backoff for construction progress but no threat suspension or builder evacuation. Reissuing a strategically valid wall while its construction site remained occupied could repeatedly expose replacement builders.",
+        "The trade scanner conservatively required every current own producer to inhabit one validated land or water zone. The replay proves a zero-production outcome but does not expose the exact completed endpoint set, so the specific failing route predicate remains unproven."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B26 and initialize separate local-threat, wall-danger, scout-novelty, stranded-recovery, stale-transport, and trade-failure state in a short ERR6002-safe startup block.",
+        "Latch a same-zone local threat for ninety seconds even with zero responders, request allied help on the existing cooldown, and permit one emergency Barracks plus bounded placement expansion independently of age-up escrow and the second-Town-Center opening gate.",
+        "Stop only wall- or gate-building villagers within eighteen tiles of the attacked same-zone point, garrison them only in a ready same-zone Town Center proven at least twelve tiles from that hostile, and prevent new wall or gate commands until the ninety-second danger deadline expires.",
+        "Reject transported-scout candidate zones containing any allied ready building, retain the three most recent allied or successfully scouted land zones, and abort one mission after three allied-zone rejections instead of rotating a fourth zone forever. Hold scout ownership for a fifteen-second progress check; if the scout remains more than twelve tiles from its patrol point, issue one different bounded land move before releasing it.",
+        "Limit stranded recovery to idle, ungrouped, unattacked units on one captured land zone and to an idle, empty, ungrouped hull. Reserve the exact passenger and transport groups, depart with a useful partial load at the deadline, and require a reserved passenger in the intended target land zone before declaring success. Reboard same-zone survivors after a wrong-beach unload, recall a rejected mission, and quarantine a repeatedly failing exact hull.",
+        "Before ordinary Port-berth clearing, detect one idle partial-load Transport whose former task has disappeared, retry local unload twice, return an emptied hull to the active home, or quarantine the exact still-loaded hull. Separately return an idle, empty, ungrouped completed-task hull from a distant shoreline to the nearest ready Port or Shipyard in its exact water zone.",
+        "Count and expose failed water-trade scans. Preserve the all-own-producer route invariant, but after three complete failures on an aquatic team map permit at most three lifetime provisional Trade Cog training requests; losses cannot recreate the probe without a newly validated ordinary route."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B26 near match start.",
+        "When an attacked player has no same-zone military responder and no Barracks, it reports the local-threat hold, asks allies for help once per cooldown, requests an emergency Barracks despite age-up escrow, and later trains a viable response instead of remaining in the zero-responder cycle.",
+        "If wall builders are attacked, nearby wall/gate builders stop and enter a same-zone Town Center only when that anchor is at least twelve tiles from the detected hostile; neither build-wall nor build-gate is reissued for approximately ninety seconds. Construction can resume after the quiet deadline without a stream of replacement-villager deaths.",
+        "A scout candidate on an allied settled zone emits the rejection message and another non-home, non-recent zone is chosen; three allied-zone rejections end that mission with a bounded backoff. A landed scout either reaches the patrol point within fifteen seconds or receives exactly one bounded retry and does not reboard immediately.",
+        "Stranded recovery never claims a non-idle or already-grouped attack unit. Its passenger list remains one land zone, a lost or retasked passenger cannot sustain a load-check loop beyond the deadline, and an empty hull does not count as success unless a reserved passenger is found in the intended target zone. Wrong-zone survivors reboard for bounded retries or the exact hull is quarantined.",
+        "An idle partially loaded Transport is emptied and returned, or emits one quarantine result after the bounded retries. An idle empty completed-task hull more than twenty-four tiles from home moves to a ready same-water-zone Port or Shipyard; a completed attack or dead passenger group does not leave the same hull inert for the rest of the match.",
+        "Each team AI reports either a validated land/water route or explicit failed-scan telemetry. A valid route produces its three-unit phase baseline; after three aquatic scan failures the provisional path issues no more than three Trade Cog train commands across the match even if ships are lost.",
+        "Replay-visible dispatches are followed by actual movement toward a reachable enemy front. If Orange, Yellow, or Green remain passive despite no defense, migration, route, escalation, or force-size blocker, their own P3B26 diagnostic chat is required before changing attack cadence."
+      ],
+      "known_limits": [
+        "Only p1's self-chat exposes detailed AI goals. The command stream records other players' actions but not their local response, route, superiority, or attack-owner state, so the reported passivity of Orange, Yellow, and Green cannot yet be assigned to one code gate.",
+        "BUILD and MAKE commands are requests, not completion evidence. Purple's earlier Barracks and unit requests correct the literal observation but do not prove that usable production infrastructure or responders existed during the later sustained attack.",
+        "Object 31842's order flood is direct evidence, but the replay does not serialize its unit type, group flags, path result, or nearby gate/transport obstruction. P3B26 narrows likely ownership loops; a fresh replay must identify whether the object and symptoms disappear.",
+        "The engine exposes no arbitrary path-safety query and generic train cannot bind a specific Dock. The bounded Trade Cog fallback is capped because structural validation cannot prove which producer receives the order or that the resulting ship finds a profitable ally route.",
+        "Structural validation proves state ownership, filters, bounds, and command domains. It does not prove asynchronous garrison completion, wall-site safety, scout pathability, completed construction, actual trading, or battlefield initiative."
       ],
       "validation_status": "fresh-replay-required"
     }
