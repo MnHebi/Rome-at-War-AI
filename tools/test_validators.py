@@ -493,6 +493,7 @@ class FarmPolicyTests(unittest.TestCase):
         cls.timers = (root / "rawai-timers.per").read_text(encoding="utf-8-sig")
         cls.trade = (root / "rawai-trade.per").read_text(encoding="utf-8-sig")
         cls.map = (root / "rawai-map.per").read_text(encoding="utf-8-sig")
+        cls.taunts = (root / "rawai-tauntcommands.per").read_text(encoding="utf-8-sig")
         cls.germani = (root / "rawai-civ-germani.per").read_text(
             encoding="utf-8-sig"
         )
@@ -625,7 +626,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B22", self.init_goals)
+        self.assertIn("RAWAI-P3B23", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -756,6 +757,37 @@ class FarmPolicyTests(unittest.TestCase):
             self.assertIn("gl-wall-next", facts)
             self.assertIn("gl-wall-retries", facts)
             self.assertIn("gl-wall-next", actions)
+
+        self.assertIn("gl-wall-material WALL-MATERIAL-UNSET", self.homebase)
+        self.assertIn("Wall owner latched stone perimeter", self.homebase)
+        self.assertIn("Wall owner latched palisade perimeter", self.homebase)
+        self.assertNotIn("sn-gate-type-for-wall", self.taunts)
+        gate_builders = matching_rules(
+            self.homebase,
+            facts=("can-build-gate-with-escrow 2",),
+            actions=("(build-gate 2)",),
+        )
+        self.assertEqual(len(gate_builders), 4)
+        self.assertTrue(any("wall-completed-percentage 2 >= 25" in rule[3] for rule in gate_builders))
+        self.assertTrue(any("wall-completed-percentage 2 >= 75" in rule[3] for rule in gate_builders))
+        for _, _, _, facts, actions in gate_builders:
+            self.assertIn("gl-wall-gate-next", facts)
+            self.assertNotIn("gl-wall-next", facts)
+            self.assertIn("gl-wall-gates-issued", actions)
+            self.assertIn("gl-wall-gate-next", actions)
+            self.assertNotIn("building-type-count-total gate", facts)
+            self.assertFalse("release-escrow wood" in actions and "release-escrow stone" in actions)
+            if "WALL-MATERIAL-STONE" in facts:
+                self.assertIn("release-escrow stone", actions)
+                self.assertNotIn("release-escrow wood", actions)
+            if "WALL-MATERIAL-PALISADE" in facts:
+                self.assertIn("release-escrow wood", actions)
+                self.assertNotIn("release-escrow stone", actions)
+        self.assertNotIn(
+            "wall-completed-percentage 2 >= 100)\n\t(building-type-count-total gate",
+            self.homebase,
+        )
+        self.assertIn("Wall gate availability backoff", self.homebase)
 
     def test_dejbjerg_moves_persistent_form_without_unpacking(self) -> None:
         self.assertIn("c: dejbjerg-wagon-stationary c: 10", self.germani)
