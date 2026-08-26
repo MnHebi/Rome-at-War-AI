@@ -1025,6 +1025,23 @@
 	(set-goal gl-land-transport-ready YES)
 )
 
+;Target connectivity is the final authority. Empty completed hulls are a
+;production budget, not an executing lift: the scripted route owner must board
+;and sail disconnected attacks itself. This override is deliberately after the
+;legacy capacity rules above so generic attack-now cannot consume a cross-water
+;dispatch merely because enough empty Transports exist.
+(defrule
+	(goal gl-land-target-needs-transport YES)
+=>
+	(set-goal gl-land-transport-ready NO)
+)
+
+(defrule
+	(goal gl-land-target-needs-transport NO)
+=>
+	(set-goal gl-land-transport-ready YES)
+)
+
 (defrule
 	(current-age >= early-antiquity-age)
 	(goal gl-home-resource-pressure YES)

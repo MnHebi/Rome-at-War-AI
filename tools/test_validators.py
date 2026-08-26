@@ -632,7 +632,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B26", self.init_goals)
+        self.assertIn("RAWAI-P3B27", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -1343,6 +1343,9 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertTrue(all(0 <= value <= 9 for value in groups.values()))
         self.assertEqual(groups["naval-scout-group"], groups["opportunistic-raid-group"])
         self.assertEqual(groups["relic-ferry-transport-group"], groups["transport-screen-group"])
+        self.assertNotEqual(groups["attack-boarding-group"], 0)
+        self.assertEqual(groups["attack-boarding-group"], groups["migration-boarding-group"])
+        self.assertEqual(groups["attack-transport-group"], groups["migration-transport-group"])
         self.assertEqual(
             groups["juggernaut-bombardment-group"],
             groups["octeres-bombardment-group"],
@@ -2545,6 +2548,40 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertEqual(len(watchdog), 1)
         self.assertEqual(len(release), 1)
 
+        timed_check = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-RETURN)",
+                "(up-timer-status t-relic-ferry == timer-triggered)",
+            ),
+            actions=("RELIC-FERRY-WATCHDOG-CHECK",),
+        )
+        retry = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-CHECK)",
+                "object-data-garrison-count > 0",
+                "gl-relic-ferry-return-attempts c:< 3",
+            ),
+            actions=(
+                "gl-home-anchor-x action-unload",
+                "gl-relic-ferry-return-attempts c:+ 1",
+                "(up-set-timer c: t-relic-ferry c: 30)",
+                "RELIC-FERRY-WATCHDOG-RETURN",
+            ),
+        )
+        self.assertEqual(len(timed_check), 1)
+        self.assertEqual(len(retry), 1)
+        terminal = matching_rules(
+            self.military,
+            facts=(
+                "(up-timer-status t-relic-ferry == timer-triggered)",
+                "gl-relic-ferry-return-attempts c:>= 3",
+            ),
+            actions=("relic ferry watchdog abort: %d", "RELIC-FERRY-IDLE"),
+        )
+        self.assertEqual(len(terminal), 1)
+
         abort = matching_rules(
             self.military,
             facts=(
@@ -3673,7 +3710,7 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertEqual(self.economy.count(quarantine_exclusion), 1)
         self.assertEqual(self.military.count(quarantine_exclusion), 2)
-        self.assertEqual(self.military.count(remote_quarantine_exclusion), 9)
+        self.assertEqual(self.military.count(remote_quarantine_exclusion), 10)
         escort_selector = matching_rules(
             self.military,
             facts=(
@@ -4059,7 +4096,235 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(berth), 1)
-        self.assertIn("empty transport returned to berth: %d", self.military)
+        stage = matching_rules(
+            self.military,
+            facts=("TRANSPORT-CLEAR-EMPTY-PORT",),
+            actions=(
+                "object-data-distance < 24",
+                "object-data-map-zone-id g:!= gl-transport-clear-water-zone",
+                "TRANSPORT-CLEAR-EMPTY-STAGE",
+            ),
+        )
+        self.assertEqual(len(stage), 1)
+        self.assertIn("empty transport staged clear: %d", self.military)
+        self.assertNotIn("empty transport returned to berth: %d", self.military)
+        blocker = matching_rules(
+            self.military,
+            facts=("TRANSPORT-CLEAR-ANCHOR",),
+            actions=(
+                "up-find-local c: fishing-ship-class",
+                "up-find-local c: warship-class",
+                "up-find-local c: boarding-ship",
+                "up-find-local c: transport-ship",
+                "object-data-idling != 1",
+                "object-data-under-attack > 0",
+                "object-data-group-flag >= 0",
+                "object-data-map-zone-id g:!= gl-transport-clear-water-zone",
+            ),
+        )
+        self.assertEqual(len(blocker), 1)
+
+    def test_ally_help_announces_only_after_reachable_dispatch(self) -> None:
+        self.assertNotIn("I will send whatever troops I can spare", self.taunts)
+        self_defense = matching_rules(
+            self.taunts,
+            facts=(
+                "(goal gl-home-defense-state YES)",
+                "(taunt-detected any-ally 48)",
+            ),
+            actions=(
+                "(acknowledge-taunt this-any-ally 48)",
+                "cannot spare troops while my own town is under attack",
+            ),
+        )
+        self.assertEqual(len(self_defense), 1)
+        for player in range(1, 9):
+            captures = matching_rules(
+                self.taunts,
+                facts=(
+                    "(goal gl-ally-help-state ALLY-HELP-IDLE)",
+                    f"(taunt-detected {player} 48)",
+                    f"(stance-toward {player} ally)",
+                ),
+                actions=(
+                    f"(acknowledge-taunt {player} 48)",
+                    f"(set-goal gl-ally-help-player {player})",
+                    "ALLY-HELP-FIND-ASSET",
+                ),
+            )
+            self.assertEqual(len(captures), 1)
+
+        dispatch = matching_rules(
+            self.taunts,
+            facts=(
+                "(goal gl-ally-help-state ALLY-HELP-DISPATCH)",
+                "gl-ally-help-responders c:> 0",
+                "(up-set-target-object search-remote c: 0)",
+            ),
+            actions=(
+                "(up-target-objects 1 action-default -1 stance-aggressive)",
+                "ally relief responders: %d",
+                "Reinforcements have been dispatched",
+            ),
+        )
+        self.assertEqual(len(dispatch), 1)
+        unavailable = matching_rules(
+            self.taunts,
+            facts=("(goal gl-ally-help-state ALLY-HELP-DISPATCH)",),
+            actions=("no reachable spare troops", "ALLY-HELP-IDLE"),
+        )
+        self.assertEqual(len(unavailable), 1)
+
+    def test_cross_water_attack_builds_a_full_scripted_lift(self) -> None:
+        blocked_empty_capacity = matching_rules(
+            self.economy,
+            facts=("(goal gl-land-target-needs-transport YES)",),
+            actions=("(set-goal gl-land-transport-ready NO)",),
+        )
+        reachable_override = matching_rules(
+            self.economy,
+            facts=("(goal gl-land-target-needs-transport NO)",),
+            actions=("(set-goal gl-land-transport-ready YES)",),
+        )
+        self.assertGreaterEqual(len(blocked_empty_capacity), 1)
+        self.assertGreaterEqual(len(reachable_override), 1)
+
+        start = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-transport-route-state TRANSPORT-ROUTE-FIND)",
+                "not (up-set-target-object search-remote c: 0)",
+                "(goal gl-land-target-needs-transport YES)",
+                "gl-land-target-scan-player g:== gl-land-target-current-player",
+            ),
+            actions=(
+                "object-data-garrison-count > 0",
+                "object-data-group-flag >= 0",
+                "TRANSPORT-ROUTE-LOAD-FIND",
+            ),
+        )
+        self.assertEqual(len(start), 1)
+        board = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-LOAD-ISSUE",
+                "gl-transport-route-load-target g:>= gl-transport-min-load",
+            ),
+            actions=(
+                "(up-target-objects 0 action-garrison -1 stance-no-attack)",
+                "(set-goal gl-transport-route-script-load YES)",
+                "gl-transport-route-load-deadline c:+ 30",
+                "attack lift boarding target: %d",
+            ),
+        )
+        ready = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-LOAD-CHECK",
+                "object-data-garrison-count g:>= gl-transport-route-load-target",
+            ),
+            actions=("attack lift ready: %d", "TRANSPORT-ROUTE-LOAD-READY"),
+        )
+        ready_rebuild = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-LOAD-READY",
+                "(goal gl-home-defense-state NO)",
+                "gl-transport-route-load-player g:== gl-land-target-current-player",
+                "(goal gl-land-target-needs-transport YES)",
+            ),
+            actions=(
+                "(set-strategic-number sn-focus-player-number my-player-number)",
+                "up-add-object-by-id search-remote g: gl-transport-route-id",
+                "TRANSPORT-ROUTE-FIND",
+            ),
+        )
+        abort = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-LOAD-CHECK",
+                "gl-game-time g:>= gl-transport-route-load-deadline",
+            ),
+            actions=("attack lift boarding aborted: %d", "TRANSPORT-ROUTE-RECOVERY-WAIT"),
+        )
+        landed = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-RETURN-CHECK",
+                "(goal gl-transport-route-script-load YES)",
+                "object-data-garrison-count <= 0",
+            ),
+            actions=(
+                "attack-boarding-group",
+                "gl-transport-route-target-x action-move -1 stance-aggressive",
+                "attack lift landed: %d",
+            ),
+        )
+        self.assertEqual(len(board), 1)
+        self.assertEqual(len(ready), 1)
+        self.assertEqual(len(ready_rebuild), 1)
+        self.assertEqual(len(abort), 1)
+        self.assertEqual(len(landed), 1)
+        invalidated = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-LOAD-READY",
+                "gl-transport-route-load-player g:!= gl-land-target-current-player",
+            ),
+            actions=(
+                "attack lift target invalidated: %d",
+                "TRANSPORT-ROUTE-RECOVERY-WAIT",
+            ),
+        )
+        self.assertEqual(len(invalidated), 1)
+        self.assertFalse(
+            matching_rules(
+                self.military,
+                facts=(
+                    "(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)",
+                    "(goal gl-transport-route-script-load YES)",
+                ),
+            )
+        )
+        lost_terminals = matching_rules(
+            self.military,
+            facts=("not (up-set-target-object search-local c: 0)",),
+            actions=(
+                "(up-reset-group c: attack-boarding-group)",
+                "(up-reset-group c: attack-transport-group)",
+                "(set-goal gl-transport-route-script-load NO)",
+                "(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)",
+            ),
+        )
+        self.assertGreaterEqual(len(lost_terminals), 3)
+
+    def test_port_clearance_includes_trade_cogs(self) -> None:
+        berth_scans = matching_rules(
+            self.military,
+            facts=("TRANSPORT-CLEAR-ANCHOR",),
+            actions=("(up-find-local c: trade-cog-class c: 10)",),
+        )
+        destination_scans = matching_rules(
+            self.military,
+            facts=("TRANSPORT-CLEAR-DESTINATION",),
+            actions=("(up-find-local c: trade-cog-class c: 10)",),
+        )
+        self.assertEqual(len(berth_scans), 1)
+        self.assertEqual(len(destination_scans), 1)
+
+    def test_simultaneous_naval_dispatch_preserves_land_retry(self) -> None:
+        collision = matching_rules(
+            self.military,
+            facts=(
+                "(up-timer-status t-land-attack == timer-triggered)",
+                "(up-timer-status t-naval-attack == timer-triggered)",
+            ),
+            actions=(
+                "(up-set-timer c: t-land-attack c: 20)",
+                "ATTACK-DISPATCH-NAVAL",
+            ),
+        )
+        self.assertEqual(len(collision), 1)
 
     def test_unreachable_threat_without_responders_cannot_latch_defense(self) -> None:
         latches = matching_rules(

@@ -356,7 +356,7 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B26: %d" c: 26)
+	(up-chat-data-to-self "RAWAI-P3B27: %d" c: 27)
 	(disable-self)
 )
 
@@ -384,6 +384,27 @@
 	(set-goal gl-transport-recovery-landing-zone -1)
 	(set-goal gl-island-scout-zone-rejections 0)
 	(set-goal gl-transport-clear-water-zone -1)
+	(disable-self)
+)
+
+;P3B27 keeps attack-lift and allied-relief ownership out of the already dense
+;startup rules.  The separate initializer also remains safely below ERR6002.
+(defrule
+	(true)
+=>
+	(set-goal gl-transport-route-script-load NO)
+	(set-goal gl-transport-route-load-target 0)
+	(set-goal gl-transport-route-load-deadline 0)
+	(set-goal gl-transport-route-load-next 0)
+	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
+	(set-goal gl-ally-help-player -1)
+	(set-goal gl-ally-help-focus 0)
+	(set-goal gl-ally-help-target-x 0)
+	(set-goal gl-ally-help-target-y 0)
+	(set-goal gl-ally-help-zone -1)
+	(set-goal gl-ally-help-enemy-player -1)
+	(set-goal gl-ally-help-responders 0)
+	(set-goal gl-transport-route-load-player -1)
 	(disable-self)
 )
 

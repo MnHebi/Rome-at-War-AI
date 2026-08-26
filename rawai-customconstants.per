@@ -1050,6 +1050,19 @@
 (defconst gl-transport-recovery-landing-zone 1078)
 (defconst gl-island-scout-zone-rejections 1079)
 (defconst gl-transport-clear-water-zone 1080)
+(defconst gl-transport-route-script-load 1081)
+(defconst gl-transport-route-load-target 1082)
+(defconst gl-transport-route-load-deadline 1083)
+(defconst gl-transport-route-load-next 1084)
+(defconst gl-ally-help-state 1085)
+(defconst gl-ally-help-player 1086)
+(defconst gl-ally-help-focus 1087)
+(defconst gl-ally-help-target-x 1088)
+(defconst gl-ally-help-target-y 1089)
+(defconst gl-ally-help-zone 1090)
+(defconst gl-ally-help-enemy-player 1091)
+(defconst gl-ally-help-responders 1092)
+(defconst gl-transport-route-load-player 1093)
 
 ; Goal Values
 
@@ -1210,6 +1223,12 @@
 ;short-lived direct-control ownership for units answering a home incursion
 (defconst home-defense-response-group 6)
 (defconst home-naval-response-group 5)
+(defconst attack-boarding-group 4)
+;The route owner excludes migration while it uses these slots: scripted attack
+;passengers share migration's group four, while their hull temporarily shares
+;migration's group three. The general villager cleaner owns group zero every
+;sweep, so it cannot safely retain military passengers.
+(defconst attack-transport-group 3)
 (defconst naval-scout-group 8)
 (defconst juggernaut-bombardment-group 2)
 (defconst octeres-bombardment-group 2)
@@ -1341,6 +1360,12 @@
 (defconst TRANSPORT-ROUTE-SCREEN-LANDING-THREAT 27)
 (defconst TRANSPORT-ROUTE-SCREEN-LANDING-APPLY 28)
 (defconst TRANSPORT-ROUTE-SCREEN-RECALL 29)
+(defconst TRANSPORT-ROUTE-LOAD-FIND 30)
+(defconst TRANSPORT-ROUTE-LOAD-SELECT 31)
+(defconst TRANSPORT-ROUTE-LOAD-ISSUE 32)
+(defconst TRANSPORT-ROUTE-LOAD-WAIT 33)
+(defconst TRANSPORT-ROUTE-LOAD-CHECK 34)
+(defconst TRANSPORT-ROUTE-LOAD-READY 35)
 
 ;idle-villager island migration state
 (defconst MIGRATION-IDLE 0)
@@ -1529,6 +1554,14 @@
 (defconst TRANSPORT-CLEAR-STALE-CHECK 6)
 (defconst TRANSPORT-CLEAR-EMPTY-FIND 7)
 (defconst TRANSPORT-CLEAR-EMPTY-PORT 8)
+(defconst TRANSPORT-CLEAR-EMPTY-STAGE 9)
+
+;Ally relief acknowledges a request only after a same-zone response was issued.
+(defconst ALLY-HELP-IDLE 0)
+(defconst ALLY-HELP-FIND-ASSET 1)
+(defconst ALLY-HELP-FIND-THREAT 2)
+(defconst ALLY-HELP-FIND-RESPONDERS 3)
+(defconst ALLY-HELP-DISPATCH 4)
 
 ;adaptive attack escalation state
 (defconst ATTACK-ESCALATION-NORMAL 0)

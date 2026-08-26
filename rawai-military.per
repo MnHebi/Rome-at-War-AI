@@ -4125,7 +4125,13 @@
 	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
 	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(up-compare-goal gl-quarantine-transport-id c:< 0)
-	(unit-type-count transport-ship >= 1)
+	(or
+		(unit-type-count transport-ship >= 1)
+		(or
+			(building-type-count-total port >= 1)
+			(building-type-count-total shipyard >= 1)
+		)
+	)
 =>
 	(up-modify-goal gl-transport-clear-focus s:= sn-focus-player-number)
 	(set-strategic-number sn-focus-player-number my-player-number)
@@ -4247,9 +4253,10 @@
 	(set-goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
 )
 
-;Return an abandoned empty utility or attack hull from a distant shoreline to
-;the nearest ready production berth in its exact water zone. This handles the
-;completed-task case separately from the partial-load watchdog above.
+;Stage an abandoned empty utility or attack hull from a distant shoreline near
+;another proven ship in its exact producer water zone. Never send a completed
+;hull back onto the production footprint. This handles the completed-task case
+;separately from the partial-load watchdog above.
 
 (defrule
 	(goal gl-transport-clear-state TRANSPORT-CLEAR-EMPTY-FIND)
@@ -4271,11 +4278,15 @@
 (defrule
 	(goal gl-transport-clear-state TRANSPORT-CLEAR-EMPTY-FIND)
 	(not (up-set-target-object search-remote c: 0))
-	(building-type-count-total port >= 1)
+	(or
+		(building-type-count-total port >= 1)
+		(building-type-count-total shipyard >= 1)
+	)
 =>
 	(up-full-reset-search)
 	(up-filter-status c: status-ready c: list-active)
 	(up-find-local c: port c: 10)
+	(up-find-local c: shipyard c: 10)
 	(up-clean-search search-local object-data-id search-order-asc)
 	(set-goal gl-transport-clear-state TRANSPORT-CLEAR-ANCHOR)
 )
@@ -4284,6 +4295,7 @@
 	(goal gl-transport-clear-state TRANSPORT-CLEAR-EMPTY-FIND)
 	(not (up-set-target-object search-remote c: 0))
 	(building-type-count-total port < 1)
+	(building-type-count-total shipyard < 1)
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-transport-clear-focus)
 	(up-set-timer c: t-transport-clear c: 30)
@@ -4296,22 +4308,64 @@
 =>
 	(up-get-point position-object point3-x)
 	(up-full-reset-search)
+	(up-set-target-point point3-x)
+	(up-filter-distance c: -1 c: 40)
+	(up-find-local c: fishing-ship-class c: 20)
+	(up-find-local c: trade-cog-class c: 10)
+	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
+	(up-find-local c: transport-ship c: 10)
+	;Move outside the producer reacquisition radius so this completed-hull pass
+	;cannot select and restage the same vessel every cycle.
+	(up-remove-objects search-local object-data-distance < 24)
+	(up-remove-objects search-local object-data-id g:== gl-transport-clear-id)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-transport-clear-water-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-transport-clear-state TRANSPORT-CLEAR-EMPTY-STAGE)
+)
+
+;A completed hull stages at another proven same-basin ship position, never on
+;the production footprint itself.  Without such a point, leave it where it is
+;and continue into the ordinary producer-obstruction scan.
+(defrule
+	(goal gl-transport-clear-state TRANSPORT-CLEAR-EMPTY-STAGE)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-point position-object point2-x)
+	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-clear-id)
-	(up-target-point point3-x action-move -1 stance-no-attack)
-	(up-chat-data-to-self "empty transport returned to berth: %d" g: gl-transport-clear-id)
+	(up-target-point point2-x action-move -1 stance-no-attack)
+	(up-chat-data-to-self "empty transport staged clear: %d" g: gl-transport-clear-id)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-clear-focus)
 	(up-set-timer c: t-transport-clear c: 45)
 	(set-goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
 )
 
 (defrule
+	(goal gl-transport-clear-state TRANSPORT-CLEAR-EMPTY-STAGE)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-chat-data-to-self "empty transport no staging point: %d" g: gl-transport-clear-id)
+	(up-full-reset-search)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-local c: port c: 10)
+	(up-find-local c: shipyard c: 10)
+	(up-clean-search search-local object-data-id search-order-asc)
+	(set-goal gl-transport-clear-state TRANSPORT-CLEAR-ANCHOR)
+)
+
+(defrule
 	(goal gl-transport-clear-state TRANSPORT-CLEAR-EMPTY-PORT)
 	(not (up-set-target-object search-local c: 0))
-	(building-type-count-total port >= 1)
+	(or
+		(building-type-count-total port >= 1)
+		(building-type-count-total shipyard >= 1)
+	)
 =>
 	(up-full-reset-search)
 	(up-filter-status c: status-ready c: list-active)
 	(up-find-local c: port c: 10)
+	(up-find-local c: shipyard c: 10)
 	(up-clean-search search-local object-data-id search-order-asc)
 	(set-goal gl-transport-clear-state TRANSPORT-CLEAR-ANCHOR)
 )
@@ -4320,16 +4374,18 @@
 	(goal gl-transport-clear-state TRANSPORT-CLEAR-EMPTY-PORT)
 	(not (up-set-target-object search-local c: 0))
 	(building-type-count-total port < 1)
+	(building-type-count-total shipyard < 1)
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-transport-clear-focus)
 	(up-set-timer c: t-transport-clear c: 45)
 	(set-goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
 )
 
-;Clear one idle, empty Transport Ship from a Port berth. Cycle through every
-;ready Port so neither an older nor a newer berth can monopolize the check. Use
-;another ship's position as a demonstrably-water destination rather than
-;projecting an unchecked point across the shoreline.
+;Clear one idle, empty ship, including a Trade Cog, from a Port or Shipyard
+;berth. Cycle through every
+;ready producer so neither an older nor a newer berth can monopolize the check.
+;Use another ship's same-zone position as a demonstrably-water destination
+;rather than projecting an unchecked point across the shoreline.
 (defrule
 	(up-timer-status t-transport-clear == timer-triggered)
 	(goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
@@ -4339,8 +4395,10 @@
 	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
 	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(up-compare-goal gl-quarantine-transport-id c:>= 0)
-	(unit-type-count transport-ship >= 1)
-	(building-type-count-total port >= 1)
+	(or
+		(building-type-count-total port >= 1)
+		(building-type-count-total shipyard >= 1)
+	)
 =>
 	;A detached exact-ID quarantine must not disable berth clearing for every
 	;other empty hull. Skip stale recovery, which could need the occupied slot.
@@ -4349,6 +4407,7 @@
 	(up-full-reset-search)
 	(up-filter-status c: status-ready c: list-active)
 	(up-find-local c: port c: 10)
+	(up-find-local c: shipyard c: 10)
 	(up-clean-search search-local object-data-id search-order-asc)
 	(set-goal gl-transport-clear-state TRANSPORT-CLEAR-ANCHOR)
 )
@@ -4358,15 +4417,23 @@
 	(up-set-target-object search-local g: gl-transport-clear-port-index)
 =>
 	(up-get-point position-object point-x)
+	(up-get-object-data object-data-map-zone-id gl-transport-clear-water-zone)
 	(up-modify-goal gl-transport-clear-port-index c:+ 1)
 	(up-full-reset-search)
 	(up-set-target-point point-x)
 	(up-filter-distance c: -1 c: 8)
 	(up-filter-status c: status-ready c: list-active)
+	(up-find-local c: fishing-ship-class c: 20)
+	(up-find-local c: trade-cog-class c: 10)
+	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
 	(up-find-local c: transport-ship c: 10)
 	(up-remove-objects search-local object-data-id g:== gl-quarantine-transport-id)
 	(up-remove-objects search-local object-data-garrison-count > 0)
 	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-transport-clear-water-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(set-goal gl-transport-clear-state TRANSPORT-CLEAR-DESTINATION)
 )
@@ -4390,11 +4457,13 @@
 	(up-set-target-point point-x)
 	(up-filter-distance c: -1 c: 40)
 	(up-find-local c: fishing-ship-class c: 20)
+	(up-find-local c: trade-cog-class c: 10)
 	(up-find-local c: warship-class c: 40)
 	(up-find-local c: boarding-ship c: 10)
 	(up-find-local c: transport-ship c: 10)
 	(up-remove-objects search-local object-data-distance < 12)
 	(up-remove-objects search-local object-data-id g:== gl-transport-clear-id)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-transport-clear-water-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(set-goal gl-transport-clear-state TRANSPORT-CLEAR-FIND)
 )
@@ -4466,6 +4535,53 @@
 )
 
 (defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)
+	(goal gl-home-defense-state NO)
+	(up-compare-goal gl-transport-route-load-player g:== gl-land-target-current-player)
+	(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)
+	(goal gl-land-target-needs-transport YES)
+	(player-in-game target-player)
+	(not (stance-toward target-player ally))
+	(players-building-count target-player >= 1)
+=>
+	;Rebuild the saved exact hull in the same sweep that the ordinary FIND
+	;consumer runs. Shared searches cannot be assumed to survive a rule pass.
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-FIND)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)
+	(goal gl-home-defense-state NO)
+	(or
+		(up-compare-goal gl-transport-route-load-player g:!= gl-land-target-current-player)
+		(or
+			(up-compare-goal gl-land-target-scan-player g:!= gl-land-target-current-player)
+			(or
+				(goal gl-land-target-needs-transport NO)
+				(or
+					(not (player-in-game target-player))
+					(or
+						(stance-toward target-player ally)
+						(players-building-count target-player <= 0)
+					)
+				)
+			)
+		)
+	)
+=>
+	;The thirty-second boarding window cannot silently retarget a full lift.
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-chat-data-to-self "attack lift target invalidated: %d" g: gl-transport-route-load-player)
+	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
+)
+
+(defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-FIND)
 	(up-set-target-object search-remote c: 0)
 =>
@@ -4485,6 +4601,217 @@
 	(up-find-remote c: castle c: 10)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-TARGET)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-FIND)
+	(not (up-set-target-object search-remote c: 0))
+	(goal gl-land-target-needs-transport YES)
+	(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)
+	(up-compare-goal military-superiority c:>= TOLERABLE)
+	(soldier-count g:>= gl-ten-percent)
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+=>
+	;The engine repeatedly accepted attack-now while seven empty hulls remained
+	;unused.  Build one exact, fully occupied lift under script ownership instead
+	;of treating empty capacity as proof that an attack can execute.
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-modify-goal gl-transport-route-load-player g:= gl-land-target-current-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-find-remote c: transport-ship c: 40)
+	(up-remove-objects search-remote object-data-id g:== gl-quarantine-transport-id)
+	;Do not turn a stale civilian or relic partial load into a military attack.
+	(up-remove-objects search-remote object-data-garrison-count > 0)
+	(up-remove-objects search-remote object-data-idling != 1)
+	(up-remove-objects search-remote object-data-under-attack > 0)
+	(up-remove-objects search-remote object-data-group-flag >= 0)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-FIND)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-FIND)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-transport-route-id)
+	(up-get-point position-object gl-transport-route-origin-x)
+	(up-modify-group-flag 0 c: attack-transport-group)
+	(up-reset-group c: attack-transport-group)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-create-group 0 0 c: attack-transport-group)
+	(up-modify-group-flag 1 c: attack-transport-group)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-SELECT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-FIND)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-chat-data-to-self "attack lift unavailable: %d" c: 0)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-set-timer c: t-transport-route c: 30)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-SELECT)
+=>
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-set-target-object search-remote c: 0)
+	(up-get-point position-object point-x)
+	(up-set-target-point point-x)
+	(up-find-local c: scout-cavalry-class c: 40)
+	(up-find-local c: cavalry-archer-class c: 40)
+	(up-find-local c: cavalry-class c: 40)
+	(up-find-local c: infantry-class c: 40)
+	(up-find-local c: archery-class c: 40)
+	(up-find-local c: siege-weapon-class c: 40)
+	(up-remove-objects search-local object-data-type == palintonon)
+	(up-remove-objects search-local object-data-type == palintonon-packed)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index g:>= gl-transport-capacity)
+	(up-create-group 0 0 c: attack-boarding-group)
+	(up-modify-group-flag 1 c: attack-boarding-group)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-transport-route-load-target g:= local-total)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)
+	(up-compare-goal gl-transport-route-load-target g:>= gl-transport-min-load)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(set-goal gl-transport-route-script-load YES)
+	(up-modify-goal gl-transport-route-load-deadline g:= gl-game-time)
+	(up-modify-goal gl-transport-route-load-deadline c:+ 30)
+	(up-modify-goal gl-transport-route-load-next g:= gl-game-time)
+	(up-modify-goal gl-transport-route-load-next c:+ 4)
+	(up-chat-data-to-self "attack lift boarding target: %d" g: gl-transport-route-load-target)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)
+	(or
+		(up-compare-goal gl-transport-route-load-target g:< gl-transport-min-load)
+		(not (up-set-target-object search-remote c: 0))
+	)
+=>
+	(up-chat-data-to-self "attack lift passengers unavailable: %d" g: gl-transport-route-load-target)
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
+	(up-modify-group-flag 0 c: attack-transport-group)
+	(up-reset-group c: attack-transport-group)
+	(set-goal gl-transport-route-script-load NO)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-set-timer c: t-transport-route c: 30)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-CHECK)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count g:>= gl-transport-route-load-target)
+=>
+	(up-chat-data-to-self "attack lift ready: %d" g: gl-transport-route-load-target)
+	(up-modify-group-flag 0 c: attack-transport-group)
+	(up-reset-group c: attack-transport-group)
+	(up-full-reset-search)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count g:< gl-transport-route-load-target)
+	(up-compare-goal gl-game-time g:< gl-transport-route-load-deadline)
+	(up-compare-goal gl-game-time g:>= gl-transport-route-load-next)
+=>
+	;A unit can lose its boarding order while walking. Reissue only on the bounded
+	;four-second cadence and only to the still-reserved passengers ashore.
+	(up-full-reset-search)
+	(up-set-group search-local c: attack-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(up-modify-goal gl-transport-route-load-next g:= gl-game-time)
+	(up-modify-goal gl-transport-route-load-next c:+ 4)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count g:< gl-transport-route-load-target)
+	(up-compare-goal gl-game-time g:< gl-transport-route-load-next)
+=>
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count g:< gl-transport-route-load-target)
+	(up-compare-goal gl-game-time g:>= gl-transport-route-load-deadline)
+=>
+	;Do not launch the underfilled attacks observed in earlier tests.
+	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-chat-data-to-self "attack lift boarding aborted: %d" g: gl-transport-route-load-target)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	;Retain both exact groups until the recovery owner proves the hull empty and
+	;back at its origin. Releasing here lets another subsystem steal a partial.
+	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-CHECK)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
+	(up-modify-group-flag 0 c: attack-transport-group)
+	(up-reset-group c: attack-transport-group)
+	(set-goal gl-transport-route-script-load NO)
+	(up-chat-data-to-self "attack lift transport lost: %d" g: gl-transport-route-id)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-set-timer c: t-transport-route c: 30)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+(defrule
+	(up-compare-goal gl-transport-route-state c:>= TRANSPORT-ROUTE-LOAD-FIND)
+	(up-compare-goal gl-transport-route-state c:<= TRANSPORT-ROUTE-LOAD-READY)
+	(goal gl-home-defense-state YES)
+=>
+	;An attack lift still beside home yields immediately to a real home defense.
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	;The partial hull remains owned until the recovery check proves it empty.
+	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 )
 
 (defrule
@@ -5132,6 +5459,13 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-CHECK)
 	(not (up-set-target-object search-local c: 0))
 =>
+	;The exact hull vanished. Release script-only passenger ownership before
+	;publishing IDLE so migration cannot claim and then lose shared groups.
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
+	(up-modify-group-flag 0 c: attack-transport-group)
+	(up-reset-group c: attack-transport-group)
+	(set-goal gl-transport-route-script-load NO)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 )
 
@@ -5164,6 +5498,32 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-CHECK)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count <= 0)
+	(goal gl-transport-route-script-load YES)
+=>
+	;The reserved passengers are now ashore. Give them an aggressive land order
+	;before releasing their passenger group, then withdraw the empty hull from
+	;the beach.
+	(up-full-reset-search)
+	(up-set-group search-local c: attack-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-target-point gl-transport-route-target-x action-move -1 stance-aggressive)
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
+	(set-goal gl-transport-route-script-load NO)
+	(up-chat-data-to-self "attack lift landed: %d" g: gl-transport-route-load-target)
+	(set-goal gl-transport-screen-id -1)
+	(up-set-timer c: t-transport-route c: 45)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count <= 0)
+	(goal gl-transport-route-script-load NO)
 =>
 	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
 	(set-goal gl-transport-screen-id -1)
@@ -5183,6 +5543,11 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-CHECK)
 	(not (up-set-target-object search-local c: 0))
 =>
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
+	(up-modify-group-flag 0 c: attack-transport-group)
+	(up-reset-group c: attack-transport-group)
+	(set-goal gl-transport-route-script-load NO)
 	(set-goal gl-transport-screen-id -1)
 	(up-set-timer c: t-transport-route c: 45)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
@@ -5207,6 +5572,27 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count <= 0)
 	(up-object-data object-data-distance <= 12)
+	(goal gl-transport-route-script-load YES)
+=>
+	;A screened route was rejected and the scripted passengers are back home.
+	;Release them without converting the failed voyage into a land attack.
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
+	(up-modify-group-flag 0 c: attack-transport-group)
+	(up-reset-group c: attack-transport-group)
+	(set-goal gl-transport-route-script-load NO)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-transport-screen-id -1)
+	(up-set-timer c: t-transport-route c: 90)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count <= 0)
+	(up-object-data object-data-distance <= 12)
+	(goal gl-transport-route-script-load NO)
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(set-goal gl-transport-screen-id -1)
@@ -5241,6 +5627,11 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK)
 	(not (up-set-target-object search-local c: 0))
 =>
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
+	(up-modify-group-flag 0 c: attack-transport-group)
+	(up-reset-group c: attack-transport-group)
+	(set-goal gl-transport-route-script-load NO)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(set-goal gl-transport-screen-id -1)
 	(up-set-timer c: t-transport-route c: 90)
@@ -5991,6 +6382,10 @@
 (defrule
 	(up-timer-status t-relic-ferry == timer-triggered)
 	(not (goal gl-relic-ferry-state RELIC-FERRY-IDLE))
+	(nor
+		(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-RETURN)
+		(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-CHECK)
+	)
 	(up-compare-goal gl-relic-ferry-return-attempts c:< 3)
 =>
 	(set-strategic-number sn-focus-player-number my-player-number)
@@ -6006,6 +6401,7 @@
 
 (defrule
 	(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-RETURN)
+	(up-timer-status t-relic-ferry == timer-triggered)
 =>
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
@@ -6031,6 +6427,7 @@
 (defrule
 	(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-CHECK)
 	(up-set-target-object search-local c: 0)
+	(up-compare-goal gl-relic-ferry-return-attempts c:< 3)
 	(or
 		(up-object-data object-data-garrison-count > 0)
 		(up-object-data object-data-distance > 16)
@@ -6039,6 +6436,8 @@
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-relic-ferry-transport-id)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
+	(up-modify-goal gl-relic-ferry-return-attempts c:+ 1)
+	(up-set-timer c: t-relic-ferry c: 30)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-RETURN)
 )
 
@@ -8992,6 +9391,9 @@
 =>
 	(set-goal current-action ACTION-ATTACK)
 	;attack-now is global, so a ready navy owns the rare simultaneous collision.
+	;Preserve the unserved land channel on a short retry instead of letting the
+	;timer loader silently restart it for a full normal interval.
+	(up-set-timer c: t-land-attack c: 20)
 	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NAVAL)
 )
 

@@ -28,16 +28,241 @@
 
 ;48 "I'm being attacked, please help!"
 (defrule
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(goal gl-home-defense-state NO)
+	(taunt-detected 1 48)
+	(stance-toward 1 ally)
+=>
+	(acknowledge-taunt 1 48)
+	(set-goal gl-ally-help-player 1)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(goal gl-home-defense-state NO)
+	(taunt-detected 2 48)
+	(stance-toward 2 ally)
+=>
+	(acknowledge-taunt 2 48)
+	(set-goal gl-ally-help-player 2)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(goal gl-home-defense-state NO)
+	(taunt-detected 3 48)
+	(stance-toward 3 ally)
+=>
+	(acknowledge-taunt 3 48)
+	(set-goal gl-ally-help-player 3)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(goal gl-home-defense-state NO)
+	(taunt-detected 4 48)
+	(stance-toward 4 ally)
+=>
+	(acknowledge-taunt 4 48)
+	(set-goal gl-ally-help-player 4)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(goal gl-home-defense-state NO)
+	(taunt-detected 5 48)
+	(stance-toward 5 ally)
+=>
+	(acknowledge-taunt 5 48)
+	(set-goal gl-ally-help-player 5)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(goal gl-home-defense-state NO)
+	(taunt-detected 6 48)
+	(stance-toward 6 ally)
+=>
+	(acknowledge-taunt 6 48)
+	(set-goal gl-ally-help-player 6)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(goal gl-home-defense-state NO)
+	(taunt-detected 7 48)
+	(stance-toward 7 ally)
+=>
+	(acknowledge-taunt 7 48)
+	(set-goal gl-ally-help-player 7)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(goal gl-home-defense-state NO)
+	(taunt-detected 8 48)
+	(stance-toward 8 ally)
+=>
+	(acknowledge-taunt 8 48)
+	(set-goal gl-ally-help-player 8)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+)
+
+(defrule
+	(goal gl-home-defense-state YES)
 	(taunt-detected any-ally 48)
-	(military-population > 1)
 =>
 	(acknowledge-taunt this-any-ally 48)
-	(up-modify-sn sn-target-player-number c:= -1)
-	(set-goal land-attack-percentage 90)
-	(up-modify-sn sn-maximum-town-size c:= 120)
-	(attack-now)
-	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
-	(chat-to-allies "39 I will send whatever troops I can spare!")
+	(chat-to-allies "42 I cannot spare troops while my own town is under attack.")
+)
+
+;Resolve the requester's attacked asset and the exact hostile beside it.  The
+;old handler erased the enemy target and announced help before it had selected
+;either a destination or a single responder.
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+	(goal gl-home-defense-state NO)
+=>
+	(up-modify-goal gl-ally-help-focus s:= sn-focus-player-number)
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-player)
+	(up-get-point position-focus gl-ally-help-target-x)
+	(up-full-reset-search)
+	(up-set-target-point gl-ally-help-target-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: villager-class c: 240)
+	(up-find-remote c: town-center c: 20)
+	(up-find-remote c: mining-camp c: 20)
+	(up-find-remote c: lumber-camp c: 20)
+	(up-find-remote c: mill c: 20)
+	(up-find-remote c: market c: 10)
+	(up-find-remote c: barracks c: 10)
+	(up-find-remote c: archery-range c: 10)
+	(up-find-remote c: stable c: 10)
+	(up-find-remote c: siege-workshop c: 10)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: dock c: 20)
+	(up-find-remote c: port c: 20)
+	(up-find-remote c: shipyard c: 20)
+	(up-remove-objects search-remote object-data-under-attack <= 0)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-THREAT)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-FIND-THREAT)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-point position-object gl-ally-help-target-x)
+	(up-get-object-data object-data-map-zone-id gl-ally-help-zone)
+	(up-find-player enemy find-attacker gl-ally-help-enemy-player)
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-enemy-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-ally-help-target-x)
+	(up-filter-distance c: -1 c: 32)
+	(up-find-remote c: scout-cavalry-class c: 40)
+	(up-find-remote c: cavalry-archer-class c: 40)
+	(up-find-remote c: cavalry-class c: 40)
+	(up-find-remote c: infantry-class c: 40)
+	(up-find-remote c: archery-class c: 40)
+	(up-find-remote c: siege-weapon-class c: 40)
+	(up-find-remote c: priest c: 10)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-ally-help-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-RESPONDERS)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-FIND-THREAT)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
+	(chat-to-allies "42 I cannot verify a reachable attack on that ally.")
+	(set-goal gl-ally-help-player -1)
+	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-FIND-RESPONDERS)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	;Preserve the verified hostile as search-remote while rebuilding own sources.
+	(up-reset-search 1 1 0 0)
+	(up-set-target-point gl-ally-help-target-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-local c: scout-cavalry-class c: 40)
+	(up-find-local c: cavalry-archer-class c: 40)
+	(up-find-local c: cavalry-class c: 40)
+	(up-find-local c: infantry-class c: 40)
+	(up-find-local c: archery-class c: 40)
+	(up-find-local c: siege-weapon-class c: 40)
+	(up-remove-objects search-local object-data-type == palintonon)
+	(up-remove-objects search-local object-data-type == palintonon-packed)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-ally-help-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 12)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ally-help-responders g:= local-total)
+	(set-goal gl-ally-help-state ALLY-HELP-DISPATCH)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-FIND-RESPONDERS)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
+	(chat-to-allies "42 The attacker is no longer at the reported position.")
+	(set-goal gl-ally-help-player -1)
+	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-DISPATCH)
+	(goal gl-home-defense-state NO)
+	(up-compare-goal gl-ally-help-responders c:> 0)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-target-objects 1 action-default -1 stance-aggressive)
+	(up-chat-data-to-self "ally relief responders: %d" g: gl-ally-help-responders)
+	;Only now is the original promise true.
+	(chat-to-allies "39 Reinforcements have been dispatched to the attacked ally.")
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
+	(set-goal gl-ally-help-player -1)
+	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-DISPATCH)
+	(goal gl-home-defense-state NO)
+	(or
+		(up-compare-goal gl-ally-help-responders c:<= 0)
+		(not (up-set-target-object search-remote c: 0))
+	)
+=>
+	(chat-to-allies "42 I have no reachable spare troops for that position.")
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
+	(set-goal gl-ally-help-player -1)
+	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
+)
+
+(defrule
+	(not (goal gl-ally-help-state ALLY-HELP-IDLE))
+	(goal gl-home-defense-state YES)
+=>
+	(chat-to-allies "42 I cannot spare troops while my own town is under attack.")
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
+	(set-goal gl-ally-help-player -1)
+	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
 )
 
 ;52 "Build a market at the flared location."

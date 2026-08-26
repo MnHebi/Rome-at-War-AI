@@ -955,6 +955,64 @@
         "Structural validation proves state ownership, filters, bounds, and command domains. It does not prove asynchronous garrison completion, wall-site safety, scout pathability, completed construction, actual trading, or battlefield initiative."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260826-201652",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.26 201652.aoe2record",
+        "sha256": "C9222F91A2D3EFDD1F424C67350A2520EC59CE2109D1A5AF9109F79DD3F4C837",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain",
+        "players": [
+          "p1 Purple Roman Empire (team 2)",
+          "p2 Yellow Roman Empire (team 2)",
+          "p3 Green Roman Empire (team 2)",
+          "p4 Orange Roman Empire (team 2)",
+          "p5 Gray Picts (team 3)",
+          "p6 Red Britons (team 3)",
+          "p7 Cyan Germani (team 3)",
+          "p8 Blue Gauls (team 3)"
+        ],
+        "duration_seconds": 4085
+      },
+      "direct_replay_observations": [
+        "The replay parsed 3767 chat records and lasted 68:05. The DE header reports Extreme difficulty, 400 population, shared exploration, map ID 50, and the exact player/color/civilization mapping in this entry. No decoded startup marker proves the precise deployed source revision.",
+        "Players 2 and 3 issued 31 taunt-48 help requests: ten from p2 and twenty-one from p3. Their teammates emitted 93 promises to send spare troops: p1 Purple and p4 each emitted 31, p2 emitted 21, and p3 emitted 10. These records prove requests and acknowledgements, not arrival of assistance.",
+        "Purple p1 emitted thirteen land-dispatch and seventeen naval-opportunity-dispatch messages while repeatedly reporting military-superiority 3 (superior). This disproves timer-level passivity, although an eleven-minute land-dispatch gap occurred from 38:51 to 50:14.",
+        "Purple reported loaded transports 156 times: 144 reports were zero and only twelve were one. It also reported seven available migration-gate transports while the loaded count remained zero, so completed hull capacity did not become an executing military lift.",
+        "Purple issued six `empty transport returned to berth` messages. One of those exact hulls, DUC ID 30541, was later used by the relic ferry and received 77 unload commands from 58:44 through 68:05; during the final forty seconds the repeated order was issued roughly twice per second at the same point.",
+        "At 55:42 Purple emitted a naval-opportunity dispatch and refreshed both attack timers, but emitted no land dispatch for the simultaneously expired land channel."
+      ],
+      "implementation_inferences": [
+        "The taunt-48 handler promised help before selecting troops or a relief destination. It set the target player to minus one, changed only the goal copy of the percentage, and called generic attack-now without retaining the requesting ally, attacked point, land zone, or proof of reachable responders.",
+        "The transport-readiness calculation counted empty, ungrouped hulls as a completed lift. Generic attack-now was therefore released against a disconnected target even though the route controller could only act after some other system had already filled a Transport; no script owner performed that military boarding step.",
+        "Completed-task recovery moved an empty Transport directly onto the nearest Port or Shipyard object position, announced success without arrival evidence, and restarted the timer before ordinary berth clearing could run. The clearing selector then considered only Transport Ships and did not require its destination ship to share the berth water zone.",
+        "The relic-ferry watchdog changed RETURN to CHECK and a failed CHECK directly back to RETURN without a timer boundary. That deterministic same-sweep cycle explains the exact repeated-unload command stream.",
+        "When land and naval timers expired together, the naval owner won the global dispatch but did not preserve the unserved land channel. The timer loader later restarted the still-triggered land timer for a full interval, explaining the observed collision at 55:42."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B27 and initialize separate scripted attack-lift and ally-relief state in an ERR6002-safe startup rule.",
+        "Resolve taunt 48 to one exact requesting player, find an actually attacked allied asset and same-zone hostile, select at most twelve reachable unreserved own responders in that land zone, and announce reinforcements only after issuing the direct attack order. Report an honest inability when no threat or responder is reachable, or when home defense takes priority.",
+        "When the selected enemy is across water and no already loaded Transport exists, reserve one empty exact hull and a migration-exclusive passenger group, select a full bounded group of eligible home-zone soldiers, reissue interrupted boarding at four-second intervals, and retain exact ownership through recovery if loading aborts. Revalidate the latched enemy before sailing; then hand a full valid lift to the screened route controller, task landed passengers toward the observed enemy anchor, and withdraw the hull.",
+        "Stage a distant empty Transport at another same-water-zone ship position twenty-four to forty tiles from its Port or Shipyard instead of moving onto the production footprint or repeatedly reacquiring the same hull. Scan both Ports and Shipyards and clear any idle, empty, ungrouped, unattacked fishing, trade, war, boarding, or transport hull to a destination in the same validated basin.",
+        "Put a thirty-second timer boundary between relic-ferry watchdog retries, increment the bounded retry count once per new unload command, and preserve a simultaneously unserved land attack on a twenty-second retry when naval dispatch owns the collision."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B27 near match start.",
+        "A taunt-48 requester receives the reinforcement promise only when telemetry reports a positive `ally relief responders` count and those same-zone troops move toward the verified hostile beside the attacked allied asset. A disconnected or empty response reports inability without a false promise.",
+        "Against a disconnected enemy, `attack lift boarding target` is followed by either one full `attack lift ready` and a screened voyage or one bounded abort after approximately thirty seconds. No underfilled lift departs, retasked passengers receive at most one boarding refresh per four seconds, and a successful landing produces an aggressive passenger order plus `attack lift landed` telemetry.",
+        "No completed empty hull is ordered onto a Port or Shipyard footprint. `empty transport staged clear` uses a same-water-zone ship position at least twenty-four tiles from the producer, and an idle unreserved Fishing Ship, Trade Cog, warship, Boarding Ship, or Transport near either producer type is moved to a same-basin destination.",
+        "The same relic-ferry hull receives no more than one unload command per thirty-second watchdog deadline and exits or aborts after the bounded attempts rather than producing a per-sweep command stream.",
+        "If both attack timers expire together, the naval action is followed by an eligible land retry in roughly twenty seconds rather than a full normal land interval. Purple's cross-water dispatch telemetry is followed by a nonzero loaded-transport report and observable landing or a specific bounded safety rejection."
+      ],
+      "known_limits": [
+        "Only Purple p1 serialized detailed self-chat. The command stream does not expose the private help, route, or military state of the other seven AIs, so their individual passivity and Port obstruction causes require fresh P3B27 telemetry.",
+        "The parser proves taunts, promises, dispatch messages, and command issuance but not troop arrival, path reachability, garrison completion, production-footprint clearance, or tactical effectiveness. Those remain fresh-match acceptance criteria.",
+        "Map-zone equality proves engine connectivity classification, not a safe unobstructed path. The military lift retains the existing route-screen and known-fortification rejection logic; unseen defenses can still invalidate a voyage.",
+        "The scripted attack loader deliberately owns one Transport at a time so route screening and retreat remain exact-ID bounded. Fresh tests must determine whether serial full lifts provide enough throughput before safely expanding to coordinated multi-hull ownership.",
+        "Structural validators can prove state coverage, bounded group IDs, retry timing, and source filters. They cannot prove that the engine honors an asynchronous garrison order or that released passengers continue the intended attack after landing."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }
