@@ -40,6 +40,80 @@ def validate() -> list[str]:
     if payload.get("schema_version") != 1:
         errors.append("schema_version must be 1")
 
+    pending_setups = payload.get("pending_match_setups", [])
+    if not isinstance(pending_setups, list):
+        errors.append("pending_match_setups must be a list")
+    else:
+        pending_ids: set[str] = set()
+        for setup in pending_setups:
+            if not isinstance(setup, dict):
+                errors.append("every pending match setup must be an object")
+                continue
+            setup_id = setup.get("id")
+            if not isinstance(setup_id, str) or not setup_id.strip():
+                errors.append("every pending match setup requires a non-empty id")
+            elif setup_id in pending_ids:
+                errors.append(f"duplicate pending match setup id: {setup_id}")
+            else:
+                pending_ids.add(setup_id)
+            if setup.get("status") != "awaiting-replay":
+                errors.append(f"{setup_id}: pending setup status must be awaiting-replay")
+
+            setup_source = setup.get("source")
+            if not isinstance(setup_source, dict):
+                errors.append(f"{setup_id}: pending setup source must be an object")
+            else:
+                basename = setup_source.get("image_basename")
+                if (
+                    not isinstance(basename, str)
+                    or "/" in basename
+                    or "\\" in basename
+                    or Path(basename).name != basename
+                ):
+                    errors.append(f"{setup_id}: image_basename must not contain a path")
+                digest = setup_source.get("sha256")
+                if not isinstance(digest, str) or not SHA256.fullmatch(digest):
+                    errors.append(
+                        f"{setup_id}: setup sha256 must be 64 uppercase hexadecimal digits"
+                    )
+
+            settings = setup.get("settings")
+            if not isinstance(settings, dict) or not settings:
+                errors.append(f"{setup_id}: pending setup settings must be an object")
+
+            players = setup.get("players")
+            if not isinstance(players, list) or len(players) < 2:
+                errors.append(f"{setup_id}: pending setup requires at least two players")
+            else:
+                color_ids: set[int] = set()
+                colors: set[str] = set()
+                for index, player in enumerate(players):
+                    if not isinstance(player, dict):
+                        errors.append(f"{setup_id}: players[{index}] must be an object")
+                        continue
+                    color_id = player.get("color_id")
+                    color = player.get("color")
+                    civilization = player.get("civilization")
+                    team = player.get("team")
+                    if not isinstance(color_id, int) or color_id <= 0:
+                        errors.append(f"{setup_id}: players[{index}] has invalid color_id")
+                    elif color_id in color_ids:
+                        errors.append(f"{setup_id}: duplicate color_id {color_id}")
+                    else:
+                        color_ids.add(color_id)
+                    if not isinstance(color, str) or not color.strip():
+                        errors.append(f"{setup_id}: players[{index}] has invalid color")
+                    elif color in colors:
+                        errors.append(f"{setup_id}: duplicate color {color}")
+                    else:
+                        colors.add(color)
+                    if not isinstance(civilization, str) or not civilization.strip():
+                        errors.append(
+                            f"{setup_id}: players[{index}] has invalid civilization"
+                        )
+                    if not isinstance(team, int) or team <= 0:
+                        errors.append(f"{setup_id}: players[{index}] has invalid team")
+
     benchmarks = payload.get("benchmarks")
     if not isinstance(benchmarks, list) or not benchmarks:
         return errors + ["benchmarks must be a non-empty list"]
