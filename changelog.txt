@@ -1,4 +1,7 @@
 28/8/2026
+*Emit RAWAI-P3B34 and fix the allied-relief chatter: the decline replies to a help request used taunt 42 ("What age are you in?") instead of the ally acknowledgment 39, a single scout could raise a false "I'm under attack" call, and an AI answered its own help call. Decline replies now carry taunt 39, the relief request needs two same-zone threats, and an AI ignores its own taunt 48.
+
+28/8/2026
 *Emit RAWAI-P3B33 and give every completed attack-now dispatch a bounded forty-five-second commitment window: a lone enemy unit can no longer immediately global-retreat the army back into the home-defense latch. Raise the land and naval defense-latch trigger from one to two same-zone threats, keep a severe-threat override (five land or four naval units) that still latches inside the window, and release sub-threshold or in-window candidates quietly with replay-visible telemetry.
 *Separate the two naval-timer executors into their own wake ownership because they arm the opportunistic-vessel controller instead of issuing attack-now; that wake no longer arms the attack-commitment window that would otherwise suppress land home defense on naval maps.
 *Raise the loaded-Transport home-recall threshold from one to two threats so a single home-zone raider no longer aborts an assault lift, while two or more still recall it through the existing recovery lifecycle.

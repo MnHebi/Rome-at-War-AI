@@ -120,7 +120,17 @@
 	(taunt-detected any-ally 48)
 =>
 	(acknowledge-taunt this-any-ally 48)
-	(chat-to-allies "42 I cannot spare troops while my own town is under attack.")
+	(chat-to-allies "39 I cannot spare troops while my own town is under attack.")
+)
+
+;The AI's own help call also reaches its own taunt detector. Ignore it so a
+;player never dispatches its own relief flow in answer to its own request.
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+	(up-compare-goal gl-ally-help-player c:== gl-self-player-number)
+=>
+	(set-goal gl-ally-help-player -1)
+	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
 )
 
 ;Resolve the requester's attacked asset and the exact hostile beside it.  The
@@ -224,7 +234,7 @@
 	(up-compare-goal gl-ally-help-enemy-player g:== gl-ally-help-first-enemy)
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
-	(chat-to-allies "42 I cannot verify a reachable attack on that ally.")
+	(chat-to-allies "39 I cannot verify a reachable attack on that ally.")
 	(set-goal gl-ally-help-player -1)
 	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
 )
@@ -234,7 +244,7 @@
 	(not (up-set-target-object search-remote c: 0))
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
-	(chat-to-allies "42 I cannot verify a reachable attack on that ally.")
+	(chat-to-allies "39 I cannot verify a reachable attack on that ally.")
 	(set-goal gl-ally-help-player -1)
 	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
 )
@@ -272,7 +282,7 @@
 	(not (up-set-target-object search-remote c: 0))
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
-	(chat-to-allies "42 The attacker is no longer at the reported position.")
+	(chat-to-allies "39 The attacker is no longer at the reported position.")
 	(set-goal gl-ally-help-player -1)
 	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
 )
@@ -300,7 +310,7 @@
 		(not (up-set-target-object search-remote c: 0))
 	)
 =>
-	(chat-to-allies "42 I have no reachable spare troops for that position.")
+	(chat-to-allies "39 I have no reachable spare troops for that position.")
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
 	(set-goal gl-ally-help-player -1)
 	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
@@ -310,7 +320,7 @@
 	(not (goal gl-ally-help-state ALLY-HELP-IDLE))
 	(goal gl-home-defense-state YES)
 =>
-	(chat-to-allies "42 I cannot spare troops while my own town is under attack.")
+	(chat-to-allies "39 I cannot spare troops while my own town is under attack.")
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
 	(set-goal gl-ally-help-player -1)
 	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
