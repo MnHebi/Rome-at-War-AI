@@ -1610,41 +1610,75 @@
 )
 
 ;Legionaries are unique and keep a bounded baseline even when Champion is not
-;part of the generic focus-sheet composition. Use the concrete DAT-backed
-;producer IDs: replay evidence showed that the semantic line operand never
-;issued a MAKE command even with an available Barracks and resources.
+;part of the generic focus-sheet composition. Probe both ranged and melee
+;concrete forms, prefer elite upgrades, and serialize every producer copy with
+;the shared family cadence.
 (defrule
 	(up-compare-goal current-phase >= 5)
 	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
 	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: elite-legionary)
 =>
 	(up-train gl-unitescrow-state c: elite-legionary)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
 	(up-chat-data-to-self "Roman baseline Legionary: %d" c: elite-legionary)
 )
 
 (defrule
 	(up-compare-goal current-phase >= 5)
 	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
+=>
+	(up-train gl-unitescrow-state c: elite-legionary-melee)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman baseline Legionary: %d" c: elite-legionary-melee)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
 	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: legionary)
 =>
 	(up-train gl-unitescrow-state c: legionary)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
 	(up-chat-data-to-self "Roman baseline Legionary: %d" c: legionary)
 )
 
-;The 14:38 replay contained no concrete Roman Empire Legionary MAKE commands.
-;Record whether the technology exposes either concrete unit before changing
-;production semantics again; replay absence alone does not identify the gate.
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary-melee)
+=>
+	(up-train gl-unitescrow-state c: legionary-melee)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman baseline Legionary: %d" c: legionary-melee)
+)
+
+;These one-shot messages report engine facts only. Dynamic stance effects may
+;make unit-available differ from concrete up-can-train at a given instant.
 (defrule
 	(up-compare-goal current-phase >= 5)
 	(building-type-count barracks >= 1)
 	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
 	(food-amount > 180)
 	(not (unit-available elite-legionary))
+	(not (unit-available elite-legionary-melee))
 	(not (unit-available legionary))
+	(not (unit-available legionary-melee))
 =>
-	(up-chat-data-to-self "Roman Legionary availability missing: %d" g: gl-legionary-family-count)
+	(up-chat-data-to-self "Roman Legionary engine reports all forms unavailable: %d" g: gl-legionary-family-count)
 	(disable-self)
 )
 
@@ -1652,15 +1686,24 @@
 	(up-compare-goal current-phase >= 5)
 	(building-type-count barracks >= 1)
 	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
 	(food-amount > 180)
 	(or
 		(unit-available elite-legionary)
-		(unit-available legionary)
+		(or
+			(unit-available elite-legionary-melee)
+			(or
+				(unit-available legionary)
+				(unit-available legionary-melee)
+			)
+		)
 	)
 	(not (up-can-train gl-unitescrow-state c: elite-legionary))
+	(not (up-can-train gl-unitescrow-state c: elite-legionary-melee))
 	(not (up-can-train gl-unitescrow-state c: legionary))
+	(not (up-can-train gl-unitescrow-state c: legionary-melee))
 =>
-	(up-chat-data-to-self "Roman Legionary trainability blocked: %d" g: gl-legionary-family-count)
+	(up-chat-data-to-self "Roman Legionary all-form trainability blocked: %d" g: gl-legionary-family-count)
 	(disable-self)
 )
 

@@ -350,12 +350,15 @@
 )
 
 ;request resources
+;The request names a team-wide target. In a 4v4, each of the other three allies
+;may independently answer with a 200-resource tranche, so the nominal response
+;is bounded at 600 rather than multiplying a 600-resource tribute three times.
 (defrule
 	(goal dont-spam-requests NO)
 	(players-building-type-count any-ally market >= 1)
 	(food-amount < 100)
 =>
-	(chat-to-allies "3 I need food, please send me 100 food")
+	(chat-to-allies "3 Critically low on food; team please send 600 food")
 	(set-goal dont-spam-requests YES)
 )
 
@@ -364,7 +367,7 @@
 	(players-building-type-count any-ally market >= 1)
 	(wood-amount < 100)
 =>
-	(chat-to-allies "4 I need wood, please send me 100 wood")
+	(chat-to-allies "4 Critically low on wood; team please send 600 wood")
 	(set-goal dont-spam-requests YES)
 )
 
@@ -373,7 +376,7 @@
 	(players-building-type-count any-ally market >= 1)
 	(gold-amount < 100)
 =>
-	(chat-to-allies "5 I need gold, please send me 100 gold")
+	(chat-to-allies "5 Critically low on gold; team please send 600 gold")
 	(set-goal dont-spam-requests YES)
 )
 
@@ -382,139 +385,469 @@
 	(players-building-type-count any-ally market >= 1)
 	(stone-amount < 100)
 =>
-	(chat-to-allies "6 I need stone, please send me 100 stone")
+	(chat-to-allies "6 Critically low on stone; team please send 600 stone")
 	(set-goal dont-spam-requests YES)
 )
 
 ;send resources
+;Explicit player rules keep the acknowledgment, tribute target, and visible
+;recipient label identical. Player numbers are stable engine IDs; colors remain
+;independent lobby choices and are resolved only by replay metadata.
+;Food donors retain at least the audited 1000-food Imperial reserve. Wood and
+;stone donors retain 600, while gold donors retain the audited 800-gold reserve
+;until Imperial Age and a 500-gold operating reserve afterward.
 (defrule
-	(current-age == early-antiquity-age)
-	(taunt-detected any-ally 3)
-	(building-type-count market > 0)
-	(food-amount >= 1000)
-=>
-	(acknowledge-taunt this-any-ally 3)
-	(tribute-to-player this-any-ally food 100)
-	(chat-to-allies "1 I'll send you 100 food")
-)
-
-(defrule
-	(current-age == middle-antiquity-age)
-	(taunt-detected any-ally 3)
+	(taunt-detected 1 3)
+	(stance-toward 1 ally)
 	(building-type-count market > 0)
 	(food-amount >= 1200)
 =>
-	(acknowledge-taunt this-any-ally 3)
-	(tribute-to-player this-any-ally food 100)
-	(chat-to-allies "1 I'll send you 100 food")
+	(acknowledge-taunt 1 3)
+	(tribute-to-player 1 food 200)
+	(chat-to-allies "Sending 200 food to player 1")
+)
+
+(defrule
+	(taunt-detected 2 3)
+	(stance-toward 2 ally)
+	(building-type-count market > 0)
+	(food-amount >= 1200)
+=>
+	(acknowledge-taunt 2 3)
+	(tribute-to-player 2 food 200)
+	(chat-to-allies "Sending 200 food to player 2")
+)
+
+(defrule
+	(taunt-detected 3 3)
+	(stance-toward 3 ally)
+	(building-type-count market > 0)
+	(food-amount >= 1200)
+=>
+	(acknowledge-taunt 3 3)
+	(tribute-to-player 3 food 200)
+	(chat-to-allies "Sending 200 food to player 3")
+)
+
+(defrule
+	(taunt-detected 4 3)
+	(stance-toward 4 ally)
+	(building-type-count market > 0)
+	(food-amount >= 1200)
+=>
+	(acknowledge-taunt 4 3)
+	(tribute-to-player 4 food 200)
+	(chat-to-allies "Sending 200 food to player 4")
+)
+
+(defrule
+	(taunt-detected 5 3)
+	(stance-toward 5 ally)
+	(building-type-count market > 0)
+	(food-amount >= 1200)
+=>
+	(acknowledge-taunt 5 3)
+	(tribute-to-player 5 food 200)
+	(chat-to-allies "Sending 200 food to player 5")
+)
+
+(defrule
+	(taunt-detected 6 3)
+	(stance-toward 6 ally)
+	(building-type-count market > 0)
+	(food-amount >= 1200)
+=>
+	(acknowledge-taunt 6 3)
+	(tribute-to-player 6 food 200)
+	(chat-to-allies "Sending 200 food to player 6")
+)
+
+(defrule
+	(taunt-detected 7 3)
+	(stance-toward 7 ally)
+	(building-type-count market > 0)
+	(food-amount >= 1200)
+=>
+	(acknowledge-taunt 7 3)
+	(tribute-to-player 7 food 200)
+	(chat-to-allies "Sending 200 food to player 7")
+)
+
+(defrule
+	(taunt-detected 8 3)
+	(stance-toward 8 ally)
+	(building-type-count market > 0)
+	(food-amount >= 1200)
+=>
+	(acknowledge-taunt 8 3)
+	(tribute-to-player 8 food 200)
+	(chat-to-allies "Sending 200 food to player 8")
+)
+
+(defrule
+	(taunt-detected 1 4)
+	(stance-toward 1 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 800)
+=>
+	(acknowledge-taunt 1 4)
+	(tribute-to-player 1 wood 200)
+	(chat-to-allies "Sending 200 wood to player 1")
+)
+
+(defrule
+	(taunt-detected 2 4)
+	(stance-toward 2 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 800)
+=>
+	(acknowledge-taunt 2 4)
+	(tribute-to-player 2 wood 200)
+	(chat-to-allies "Sending 200 wood to player 2")
+)
+
+(defrule
+	(taunt-detected 3 4)
+	(stance-toward 3 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 800)
+=>
+	(acknowledge-taunt 3 4)
+	(tribute-to-player 3 wood 200)
+	(chat-to-allies "Sending 200 wood to player 3")
+)
+
+(defrule
+	(taunt-detected 4 4)
+	(stance-toward 4 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 800)
+=>
+	(acknowledge-taunt 4 4)
+	(tribute-to-player 4 wood 200)
+	(chat-to-allies "Sending 200 wood to player 4")
+)
+
+(defrule
+	(taunt-detected 5 4)
+	(stance-toward 5 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 800)
+=>
+	(acknowledge-taunt 5 4)
+	(tribute-to-player 5 wood 200)
+	(chat-to-allies "Sending 200 wood to player 5")
+)
+
+(defrule
+	(taunt-detected 6 4)
+	(stance-toward 6 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 800)
+=>
+	(acknowledge-taunt 6 4)
+	(tribute-to-player 6 wood 200)
+	(chat-to-allies "Sending 200 wood to player 6")
+)
+
+(defrule
+	(taunt-detected 7 4)
+	(stance-toward 7 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 800)
+=>
+	(acknowledge-taunt 7 4)
+	(tribute-to-player 7 wood 200)
+	(chat-to-allies "Sending 200 wood to player 7")
+)
+
+(defrule
+	(taunt-detected 8 4)
+	(stance-toward 8 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 800)
+=>
+	(acknowledge-taunt 8 4)
+	(tribute-to-player 8 wood 200)
+	(chat-to-allies "Sending 200 wood to player 8")
+)
+
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 1 5)
+	(stance-toward 1 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1000)
+=>
+	(acknowledge-taunt 1 5)
+	(tribute-to-player 1 gold 200)
+	(chat-to-allies "Sending 200 gold to player 1")
+)
+
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 2 5)
+	(stance-toward 2 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1000)
+=>
+	(acknowledge-taunt 2 5)
+	(tribute-to-player 2 gold 200)
+	(chat-to-allies "Sending 200 gold to player 2")
+)
+
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 3 5)
+	(stance-toward 3 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1000)
+=>
+	(acknowledge-taunt 3 5)
+	(tribute-to-player 3 gold 200)
+	(chat-to-allies "Sending 200 gold to player 3")
+)
+
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 4 5)
+	(stance-toward 4 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1000)
+=>
+	(acknowledge-taunt 4 5)
+	(tribute-to-player 4 gold 200)
+	(chat-to-allies "Sending 200 gold to player 4")
+)
+
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 5 5)
+	(stance-toward 5 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1000)
+=>
+	(acknowledge-taunt 5 5)
+	(tribute-to-player 5 gold 200)
+	(chat-to-allies "Sending 200 gold to player 5")
+)
+
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 6 5)
+	(stance-toward 6 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1000)
+=>
+	(acknowledge-taunt 6 5)
+	(tribute-to-player 6 gold 200)
+	(chat-to-allies "Sending 200 gold to player 6")
+)
+
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 7 5)
+	(stance-toward 7 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1000)
+=>
+	(acknowledge-taunt 7 5)
+	(tribute-to-player 7 gold 200)
+	(chat-to-allies "Sending 200 gold to player 7")
+)
+
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 8 5)
+	(stance-toward 8 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1000)
+=>
+	(acknowledge-taunt 8 5)
+	(tribute-to-player 8 gold 200)
+	(chat-to-allies "Sending 200 gold to player 8")
 )
 
 (defrule
 	(current-age == imperial-age)
-	(taunt-detected any-ally 3)
+	(taunt-detected 1 5)
+	(stance-toward 1 ally)
 	(building-type-count market > 0)
-	(food-amount >= 1500)
+	(gold-amount >= 700)
 =>
-	(acknowledge-taunt this-any-ally 3)
-	(tribute-to-player this-any-ally food 100)
-	(chat-to-allies "1 I'll send you 100 food")
-)
-
-(defrule
-	(current-age == early-antiquity-age)
-	(taunt-detected any-ally 4)
-	(building-type-count market > 0)
-	(wood-amount >= 1000)
-=>
-	(acknowledge-taunt this-any-ally 4)
-	(tribute-to-player this-any-ally wood 100)
-	(chat-to-allies "1 I'll send you 100 wood")
-)
-
-(defrule
-	(current-age == middle-antiquity-age)
-	(taunt-detected any-ally 4)
-	(building-type-count market > 0)
-	(wood-amount >= 1200)
-=>
-	(acknowledge-taunt this-any-ally 4)
-	(tribute-to-player this-any-ally wood 100)
-	(chat-to-allies "1 I'll send you 100 wood")
+	(acknowledge-taunt 1 5)
+	(tribute-to-player 1 gold 200)
+	(chat-to-allies "Sending 200 gold to player 1")
 )
 
 (defrule
 	(current-age == imperial-age)
-	(taunt-detected any-ally 4)
+	(taunt-detected 2 5)
+	(stance-toward 2 ally)
 	(building-type-count market > 0)
-	(wood-amount >= 1500)
+	(gold-amount >= 700)
 =>
-	(acknowledge-taunt this-any-ally 4)
-	(tribute-to-player this-any-ally wood 100)
-	(chat-to-allies "1 I'll send you 100 wood")
-)
-
-(defrule
-	(current-age == early-antiquity-age)
-	(taunt-detected any-ally 5)
-	(building-type-count market > 0)
-	(gold-amount >= 500)
-=>
-	(acknowledge-taunt this-any-ally 5)
-	(tribute-to-player this-any-ally gold 100)
-	(chat-to-allies "1 I'll send you 100 gold")
-)
-
-(defrule
-	(current-age == middle-antiquity-age)
-	(taunt-detected any-ally 5)
-	(building-type-count market > 0)
-	(gold-amount >= 500)
-=>
-	(acknowledge-taunt this-any-ally 5)
-	(tribute-to-player this-any-ally gold 100)
-	(chat-to-allies "1 I'll send you 100 gold")
+	(acknowledge-taunt 2 5)
+	(tribute-to-player 2 gold 200)
+	(chat-to-allies "Sending 200 gold to player 2")
 )
 
 (defrule
 	(current-age == imperial-age)
-	(taunt-detected any-ally 5)
+	(taunt-detected 3 5)
+	(stance-toward 3 ally)
 	(building-type-count market > 0)
-	(gold-amount >= 500)
+	(gold-amount >= 700)
 =>
-	(acknowledge-taunt this-any-ally 5)
-	(tribute-to-player this-any-ally gold 100)
-	(chat-to-allies "1 I'll send you 100 gold")
-)
-
-(defrule
-	(current-age == early-antiquity-age)
-	(taunt-detected any-ally 6)
-	(building-type-count market > 0)
-	(stone-amount >= 1000)
-=>
-	(acknowledge-taunt this-any-ally 6)
-	(tribute-to-player this-any-ally stone 100)
-	(chat-to-allies "1 I'll send you 100 stone")
-)
-
-(defrule
-	(current-age == middle-antiquity-age)
-	(taunt-detected any-ally 6)
-	(building-type-count market > 0)
-	(stone-amount >= 1200)
-=>
-	(acknowledge-taunt this-any-ally 6)
-	(tribute-to-player this-any-ally stone 100)
-	(chat-to-allies "1 I'll send you 100 stone")
+	(acknowledge-taunt 3 5)
+	(tribute-to-player 3 gold 200)
+	(chat-to-allies "Sending 200 gold to player 3")
 )
 
 (defrule
 	(current-age == imperial-age)
-	(taunt-detected any-ally 6)
+	(taunt-detected 4 5)
+	(stance-toward 4 ally)
 	(building-type-count market > 0)
-	(stone-amount >= 1500)
+	(gold-amount >= 700)
 =>
-	(acknowledge-taunt this-any-ally 6)
-	(tribute-to-player this-any-ally stone 100)
-	(chat-to-allies "1 I'll send you 100 stone")
+	(acknowledge-taunt 4 5)
+	(tribute-to-player 4 gold 200)
+	(chat-to-allies "Sending 200 gold to player 4")
+)
+
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 5 5)
+	(stance-toward 5 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 700)
+=>
+	(acknowledge-taunt 5 5)
+	(tribute-to-player 5 gold 200)
+	(chat-to-allies "Sending 200 gold to player 5")
+)
+
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 6 5)
+	(stance-toward 6 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 700)
+=>
+	(acknowledge-taunt 6 5)
+	(tribute-to-player 6 gold 200)
+	(chat-to-allies "Sending 200 gold to player 6")
+)
+
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 7 5)
+	(stance-toward 7 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 700)
+=>
+	(acknowledge-taunt 7 5)
+	(tribute-to-player 7 gold 200)
+	(chat-to-allies "Sending 200 gold to player 7")
+)
+
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 8 5)
+	(stance-toward 8 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 700)
+=>
+	(acknowledge-taunt 8 5)
+	(tribute-to-player 8 gold 200)
+	(chat-to-allies "Sending 200 gold to player 8")
+)
+
+(defrule
+	(taunt-detected 1 6)
+	(stance-toward 1 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 800)
+=>
+	(acknowledge-taunt 1 6)
+	(tribute-to-player 1 stone 200)
+	(chat-to-allies "Sending 200 stone to player 1")
+)
+
+(defrule
+	(taunt-detected 2 6)
+	(stance-toward 2 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 800)
+=>
+	(acknowledge-taunt 2 6)
+	(tribute-to-player 2 stone 200)
+	(chat-to-allies "Sending 200 stone to player 2")
+)
+
+(defrule
+	(taunt-detected 3 6)
+	(stance-toward 3 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 800)
+=>
+	(acknowledge-taunt 3 6)
+	(tribute-to-player 3 stone 200)
+	(chat-to-allies "Sending 200 stone to player 3")
+)
+
+(defrule
+	(taunt-detected 4 6)
+	(stance-toward 4 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 800)
+=>
+	(acknowledge-taunt 4 6)
+	(tribute-to-player 4 stone 200)
+	(chat-to-allies "Sending 200 stone to player 4")
+)
+
+(defrule
+	(taunt-detected 5 6)
+	(stance-toward 5 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 800)
+=>
+	(acknowledge-taunt 5 6)
+	(tribute-to-player 5 stone 200)
+	(chat-to-allies "Sending 200 stone to player 5")
+)
+
+(defrule
+	(taunt-detected 6 6)
+	(stance-toward 6 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 800)
+=>
+	(acknowledge-taunt 6 6)
+	(tribute-to-player 6 stone 200)
+	(chat-to-allies "Sending 200 stone to player 6")
+)
+
+(defrule
+	(taunt-detected 7 6)
+	(stance-toward 7 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 800)
+=>
+	(acknowledge-taunt 7 6)
+	(tribute-to-player 7 stone 200)
+	(chat-to-allies "Sending 200 stone to player 7")
+)
+
+(defrule
+	(taunt-detected 8 6)
+	(stance-toward 8 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 800)
+=>
+	(acknowledge-taunt 8 6)
+	(tribute-to-player 8 stone 200)
+	(chat-to-allies "Sending 200 stone to player 8")
 )

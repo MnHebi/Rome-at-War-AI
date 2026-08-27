@@ -1257,6 +1257,67 @@
         "The late-game command flood is a serious performance problem, but this replay contains no process exception or dump and does not prove that command volume corrupts game memory. The earlier heap-corruption dumps still identify only the detection stack, not the corrupting writer."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260827-164510",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.27 164510.aoe2record",
+        "sha256": "F617D137A8450DE33933193726F327F2353DA64341969721C59DCA35B71C9436",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The corrected full-header join matches the user's explicit confirmation that this replay preserved the original lobby. Players are identified by selected visible color, never by row or slot order.",
+        "duration_seconds": 6413
+      },
+      "direct_replay_observations": [
+        "The replay parsed without reported errors and lasted 106:53. It contains no replay-visible RAWAI-P3B31 startup marker, so behavioral attribution still depends on the separately synchronized runtime rather than embedded proof.",
+        "The user visually observed Green repeatedly trying to place a Shipyard on an unreachable beach behind cliffs and trying to load Transports across cliffs. Green issued 54 Shipyard BUILD commands from about 32:04 through 82:25 and repeatedly reused several coordinates; the command stream does not expose terrain reachability or the engine's placement-rejection reason.",
+        "Red issued exactly two Merchant Vessel MAKE commands, at about 13:23 and 15:14. A trade route was reported verified from about 14:48 onward, but Red issued no later Merchant Vessel request despite the intended large-scale trade growth.",
+        "No MAKE command for Legionary IDs 866, 868, 1658, or 1661 appears for any Roman Empire player. Red emitted `Roman Legionary availability missing: 0` at about 28:48, but that P3B31 diagnostic tested only ranged IDs 866 and 868.",
+        "Purple issued 24 explicit wood-request chats from about 28:10 through 102:40 and bought wood at the Market 20 times from about 49:47 through 106:11. The user confirmed that the earlier impression of no requests came from Purple remaining without wood for a prolonged period, so the resolved evidence is that requests occurred but relief was ineffective.",
+        "The old fulfillment message said only that an ally would send 100 of a resource. It did not identify the requesting player, and the replay cannot associate any such response with Purple or prove the net tribute received.",
+        "Red reported thirteen attack-lift boarding targets, five aborts, eight ready departures, and only one landing. The user visually observed a high incidence of assault-transport loading failure.",
+        "The user visually observed Red's military largely frozen around its Town Center late in the match. From about 90:00 to the end, Red issued 27099 ORDER commands from fourteen object IDs toward object 34518 at exact point 186,182; that point matches Red's first Town Center placement, but the replay does not expose the target object's type."
+      ],
+      "implementation_inferences": [
+        "The Roman Empire baseline and role producers probed only the ranged concrete forms, while the authoritative stance technologies can enable the separate melee forms. The diagnostic therefore could report both ranged forms unavailable while the active melee form remained untested.",
+        "Probing all four concrete forms is necessary, but every baseline and role copy must share a request cadence because multiple transiently trainable forms or stale aggregate counts could otherwise issue several same-sweep train commands.",
+        "The fixed 100-resource request and fixed 100-resource tribute were too small for a player at or near zero in a 400-population match. Because every eligible ally independently sees the same request, a safe 4v4 design treats 600 as the team target and bounds each donor to a 200-resource tranche while protecting operating and age-up reserves.",
+        "Explicit numeric player-1-through-player-8 fulfillment rules are required for trustworthy recipient labels: the rule-scoped `this-any-ally` selector can target acknowledgment and tribute but cannot safely be formatted as numeric chat data.",
+        "Green's Shipyard and cliff-loading observations remain consistent with missing land-reachability validation around selected shore points; this replay does not identify a safe engine primitive that proves builder access before placement.",
+        "Red's late Town Center-directed order loop is a separate controller-ownership problem. The exact target unit and issuing controller remain unresolved, so no speculative fix is included in this batch."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B32. Probe elite and base Legionary units in both ranged and melee forms for Roman Empire and Roman Republic baseline and role production, aggregate both stance lines under the existing family bounds, and serialize every producer through one shared request deadline of at least ten seconds.",
+        "Replace the two-form Roman Empire diagnostic and add equivalent Republic telemetry: report all four engine availability facts separately from the state where at least one form is reported available but every concrete up-can-train probe is blocked.",
+        "When an ally falls below 100 of a resource, request a nominal team total of 600 no more than once per 120 seconds. Let each eligible ally send one 200-resource tranche, cap a 4v4 response at 600 nominal, and preserve 1000 food, 600 wood/stone, 800 pre-Imperial gold, or 500 Imperial gold after the send.",
+        "Bind every fulfillment rule to an explicit allied player number and announce `Sending 200 RESOURCE to player N` to all allies, with the acknowledgment, tribute target, and displayed recipient kept identical."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports exact runtime synchronization and replay chat contains RAWAI-P3B32 near match start.",
+        "After Middle Antiquity unlocks Legionaries, each Roman civilization trains whichever concrete melee or ranged base/elite form is currently trainable. No player emits multiple Legionary MAKE requests in one sweep or more than one cadence interval, and a failure produces an all-four diagnostic instead of a ranged-only conclusion.",
+        "A player below 100 wood requests a team total of 600 rather than 100. Each donor sends at most one nominal 200 tranche for that request, every response names the exact requesting player number, and a 4v4 produces no more than three responses or 600 nominal total.",
+        "Food, wood, gold, and stone donations occur only at their protected reserve thresholds. Replay evidence records the actual donor count and net tribute received rather than treating the nominal tribute command as proof of delivery.",
+        "Green does not repeat an unreachable behind-cliff Shipyard point or attempt to load across cliffs; Red's verified trade route grows beyond its two-vessel plateau; attack lifts reach their selected landing or emit a bounded abort; and no late controller freezes Red's army in a Town Center-directed order loop."
+      ],
+      "known_limits": [
+        "Only Red p1 serialized detailed self-chat, so the private Legionary, transport, trade, and economic gates of Green, Yellow, and Purple remain unavailable.",
+        "The replay parser does not expose terrain walk connectivity, placement rejection, arbitrary route success, transport occupancy, tribute tax or net receipt, or the type of every targeted object. Fresh visual observation remains necessary.",
+        "Explicit response labels use stable engine player numbers, not colors. Colors are independent lobby choices and are resolved only through validated replay selected-color metadata.",
+        "All eligible allies may independently answer one resource request. The 200-resource per-donor tranche bounds a 4v4 response at 600 nominal but does not elect a single donor or prevent tribute tax.",
+        "The Shipyard/cliff pathing, Merchant Vessel plateau, attack-transport failures, and Red Town Center order loop remain recorded unresolved work; this batch does not infer fixes without stronger engine-state evidence."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

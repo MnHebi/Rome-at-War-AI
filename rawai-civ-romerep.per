@@ -1520,26 +1520,100 @@
 	(train praetorian-guard-line)
 )
 
-;The Republic uses the melee Legionary stance independently of generic
-;Champion focus. Keep the allowance small enough to protect villager food.
+;The Republic keeps the same role-independent baseline while preferring its
+;melee stance. Both weapon forms share one family bound and request cadence.
 (defrule
 	(up-compare-goal current-phase >= 5)
 	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
 	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
 =>
 	(up-train gl-unitescrow-state c: elite-legionary-melee)
-	(up-chat-data-to-self "Roman Republic elite Legionary requested: %d" c: 1661)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic baseline Legionary: %d" c: elite-legionary-melee)
 )
 
 (defrule
 	(up-compare-goal current-phase >= 5)
 	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: elite-legionary)
+=>
+	(up-train gl-unitescrow-state c: elite-legionary)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic baseline Legionary: %d" c: elite-legionary)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
 	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: legionary-melee)
 =>
 	(up-train gl-unitescrow-state c: legionary-melee)
-	(up-chat-data-to-self "Roman Republic Legionary requested: %d" c: 1658)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic baseline Legionary: %d" c: legionary-melee)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary)
+=>
+	(up-train gl-unitescrow-state c: legionary)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic baseline Legionary: %d" c: legionary)
+)
+
+;These one-shot messages report engine facts only. Dynamic stance effects may
+;make unit-available differ from concrete up-can-train at a given instant.
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(building-type-count barracks >= 1)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
+	(food-amount > 180)
+	(not (unit-available elite-legionary))
+	(not (unit-available elite-legionary-melee))
+	(not (unit-available legionary))
+	(not (unit-available legionary-melee))
+=>
+	(up-chat-data-to-self "Roman Republic Legionary engine reports all forms unavailable: %d" g: gl-legionary-family-count)
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(building-type-count barracks >= 1)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
+	(food-amount > 180)
+	(or
+		(unit-available elite-legionary)
+		(or
+			(unit-available elite-legionary-melee)
+			(or
+				(unit-available legionary)
+				(unit-available legionary-melee)
+			)
+		)
+	)
+	(not (up-can-train gl-unitescrow-state c: elite-legionary))
+	(not (up-can-train gl-unitescrow-state c: elite-legionary-melee))
+	(not (up-can-train gl-unitescrow-state c: legionary))
+	(not (up-can-train gl-unitescrow-state c: legionary-melee))
+=>
+	(up-chat-data-to-self "Roman Republic Legionary all-form trainability blocked: %d" g: gl-legionary-family-count)
+	(disable-self)
 )
 
 ; Upgrade Praetorian Guard

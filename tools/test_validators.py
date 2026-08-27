@@ -598,11 +598,18 @@ class FarmPolicyTests(unittest.TestCase):
         cls.military_common = (root / "rawai-military-units-common.per").read_text(
             encoding="utf-8-sig"
         )
+        cls.military_common_hard = (
+            root / "rawai-military-units-common-hard.per"
+        ).read_text(encoding="utf-8-sig")
         cls.research = (root / "rawai-research.per").read_text(encoding="utf-8-sig")
         cls.sn_defines = (root / "rawai-sn-defines.per").read_text(
             encoding="utf-8-sig"
         )
         cls.romeemp = (root / "rawai-civ-romeemp.per").read_text(encoding="utf-8-sig")
+        cls.romerep = (root / "rawai-civ-romerep.per").read_text(encoding="utf-8-sig")
+        cls.unique_manifest = json.loads(
+            (root / "unique-unit-production.json").read_text(encoding="utf-8")
+        )
         cls.scythians = (root / "rawai-civ-scythians.per").read_text(
             encoding="utf-8-sig"
         )
@@ -747,7 +754,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B31", self.init_goals)
+        self.assertIn("RAWAI-P3B32", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -1899,13 +1906,128 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertEqual(len(reboard), 1)
 
     def test_roman_legionary_and_scorpion_producers_use_concrete_units(self) -> None:
-        for unit in ("elite-legionary", "legionary"):
-            rules = matching_rules(
-                self.military_common,
-                facts=("gl-legionary-family-count g:< gl-ten-percent",),
-                actions=(f"(up-train gl-unitescrow-state c: {unit})",),
+        legionaries = (
+            "elite-legionary",
+            "elite-legionary-melee",
+            "legionary",
+            "legionary-melee",
+        )
+        cadence_fact = "gl-game-time g:>= gl-legionary-request-next"
+        cadence_actions = (
+            "gl-legionary-request-next g:= gl-game-time",
+            "gl-legionary-request-next c:+ 10",
+        )
+        empire_order = (
+            "elite-legionary",
+            "elite-legionary-melee",
+            "legionary",
+            "legionary-melee",
+        )
+        republic_order = (
+            "elite-legionary-melee",
+            "elite-legionary",
+            "legionary-melee",
+            "legionary",
+        )
+        self.assertIn("(set-goal gl-legionary-request-next 0)", self.init_goals)
+        for common in (self.military_common, self.military_common_hard):
+            empire_rules = []
+            for unit in empire_order:
+                rules = matching_rules(
+                    common,
+                    facts=(
+                        "gl-legionary-family-count g:< gl-ten-percent",
+                        cadence_fact,
+                    ),
+                    actions=(
+                        f"(up-train gl-unitescrow-state c: {unit})",
+                        "Roman Legionary request: %d",
+                        *cadence_actions,
+                    ),
+                )
+                self.assertEqual(len(rules), 1)
+                empire_rules.extend(rules)
+            self.assertEqual(
+                tuple(
+                    re.search(r"\(up-train\s+\S+\s+c:\s+([^\s)]+)", rule[4]).group(1)
+                    for rule in sorted(empire_rules)
+                ),
+                empire_order,
             )
-            self.assertEqual(len(rules), 1)
+
+            for bound in (
+                "gl-ten-percent",
+                "gl-five-percent",
+                "gl-two-percent",
+                "gl-one-percent",
+            ):
+                republic_rules = []
+                for unit in republic_order:
+                    rules = matching_rules(
+                        common,
+                        facts=(
+                            f"gl-legionary-family-count g:< {bound}",
+                            cadence_fact,
+                        ),
+                        actions=(
+                            f"(up-train gl-unitescrow-state c: {unit})",
+                            "Roman Republic Legionary request: %d",
+                            *cadence_actions,
+                        ),
+                    )
+                    self.assertEqual(len(rules), 1)
+                    republic_rules.extend(rules)
+                self.assertEqual(
+                    tuple(
+                        re.search(
+                            r"\(up-train\s+\S+\s+c:\s+([^\s)]+)", rule[4]
+                        ).group(1)
+                        for rule in sorted(republic_rules)
+                    ),
+                    republic_order,
+                )
+            for invalid_train_operand in (
+                "c: legionary-ranged-line",
+                "c: legionary-melee-line",
+            ):
+                self.assertNotIn(invalid_train_operand, common)
+
+        for civ, label, expected_order in (
+            (self.romeemp, "Roman baseline Legionary", empire_order),
+            (self.romerep, "Roman Republic baseline Legionary", republic_order),
+        ):
+            baseline_rules = []
+            for unit in expected_order:
+                baseline = matching_rules(
+                    civ,
+                    facts=(
+                        "gl-legionary-family-count g:< gl-two-percent",
+                        cadence_fact,
+                    ),
+                    actions=(
+                        f"(up-train gl-unitescrow-state c: {unit})",
+                        f"{label}: %d",
+                        *cadence_actions,
+                    ),
+                )
+                self.assertEqual(len(baseline), 1)
+                baseline_rules.extend(baseline)
+            self.assertEqual(
+                tuple(
+                    re.search(r"\(up-train\s+\S+\s+c:\s+([^\s)]+)", rule[4]).group(1)
+                    for rule in sorted(baseline_rules)
+                ),
+                expected_order,
+            )
+
+        for civ_name in ("romeemp", "romerep"):
+            legionary_family = next(
+                family
+                for family in self.unique_manifest["civs"][civ_name]["families"]
+                if family["name"] == "Legionary"
+            )
+            self.assertEqual(set(legionary_family["train_units"]), set(legionaries))
+
         for unit in ("heavy-scorpion", "scorpion"):
             rules = matching_rules(
                 self.military_common,
@@ -1914,33 +2036,115 @@ class FarmPolicyTests(unittest.TestCase):
             )
             self.assertEqual(len(rules), 1)
         for invalid_train_operand in (
-            "c: legionary-ranged-line",
-            "c: legionary-melee-line",
             "c: scorpion-line",
         ):
             self.assertNotIn(invalid_train_operand, self.military_common)
 
-        unavailable = matching_rules(
-            self.romeemp,
-            facts=(
-                "(building-type-count barracks >= 1)",
-                "(not (unit-available elite-legionary))",
-                "(not (unit-available legionary))",
-            ),
-            actions=("Roman Legionary availability missing: %d", "(disable-self)"),
+        for civ, label in (
+            (self.romeemp, "Roman Legionary"),
+            (self.romerep, "Roman Republic Legionary"),
+        ):
+            unavailable = matching_rules(
+                civ,
+                facts=tuple(
+                    f"(not (unit-available {unit}))" for unit in legionaries
+                ),
+                actions=(
+                    f"{label} engine reports all forms unavailable: %d",
+                    "(disable-self)",
+                ),
+            )
+            blocked = matching_rules(
+                civ,
+                facts=tuple(
+                    f"(not (up-can-train gl-unitescrow-state c: {unit}))"
+                    for unit in legionaries
+                ),
+                actions=(
+                    f"{label} all-form trainability blocked: %d",
+                    "(disable-self)",
+                ),
+            )
+            self.assertEqual(len(unavailable), 1)
+            self.assertEqual(len(blocked), 1)
+            for unit in legionaries:
+                self.assertIn(f"(unit-available {unit})", blocked[0][3])
+
+    def test_allied_resource_aid_is_scaled_identified_and_reserve_safe(self) -> None:
+        for taunt, resource in ((3, "food"), (4, "wood"), (5, "gold"), (6, "stone")):
+            requests = matching_rules(
+                self.trade,
+                facts=(f"({resource}-amount < 100)",),
+                actions=(f"team please send 600 {resource}",),
+            )
+            self.assertEqual(len(requests), 1)
+
+            for player in range(1, 9):
+                replies = matching_rules(
+                    self.trade,
+                    facts=(
+                        f"(taunt-detected {player} {taunt})",
+                        f"(stance-toward {player} ally)",
+                    ),
+                    actions=(
+                        f"(acknowledge-taunt {player} {taunt})",
+                        f"(tribute-to-player {player} {resource} 200)",
+                        f'Sending 200 {resource} to player {player}',
+                    ),
+                )
+                self.assertEqual(len(replies), 2 if resource == "gold" else 1)
+
+        self.assertNotIn("send me 100", self.trade)
+        self.assertNotIn("this-any-ally", self.trade)
+        self.assertNotRegex(self.trade, r"\bplayer[1-8]\b")
+        self.assertNotRegex(
+            self.trade,
+            r"\(tribute-to-player\s+[1-8]\s+(?:food|wood|gold|stone)\s+100\)",
         )
-        blocked = matching_rules(
-            self.romeemp,
-            facts=(
-                "(unit-available elite-legionary)",
-                "(unit-available legionary)",
-                "(not (up-can-train gl-unitescrow-state c: elite-legionary))",
-                "(not (up-can-train gl-unitescrow-state c: legionary))",
+        self.assertEqual(
+            len(
+                matching_rules(
+                    self.trade,
+                    facts=("(food-amount >= 1200)",),
+                    actions=(" food 200)",),
+                )
             ),
-            actions=("Roman Legionary trainability blocked: %d", "(disable-self)"),
+            8,
         )
-        self.assertEqual(len(unavailable), 1)
-        self.assertEqual(len(blocked), 1)
+        for resource in ("wood", "stone"):
+            self.assertEqual(
+                len(
+                    matching_rules(
+                        self.trade,
+                        facts=(f"({resource}-amount >= 800)",),
+                        actions=(f" {resource} 200)",),
+                    )
+                ),
+                8,
+            )
+        self.assertEqual(
+            len(
+                matching_rules(
+                    self.trade,
+                    facts=("(current-age < imperial-age)", "(gold-amount >= 1000)"),
+                    actions=(" gold 200)",),
+                )
+            ),
+            8,
+        )
+        self.assertEqual(
+            len(
+                matching_rules(
+                    self.trade,
+                    facts=(
+                        "(current-age == imperial-age)",
+                        "(gold-amount >= 700)",
+                    ),
+                    actions=(" gold 200)",),
+                )
+            ),
+            8,
+        )
 
     def test_pict_team_cows_have_a_persistent_request_budget(self) -> None:
         cow = matching_rules(

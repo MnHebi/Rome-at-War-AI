@@ -173,14 +173,19 @@
 	(up-train gl-unitescrow-state c: militiaman-line)
 )
 
+;Probe every concrete weapon form. A shared at-least-ten-second deadline serializes the
+;baseline and role copies even if more than one stance is transiently exposed.
 (defrule
 	(current-age >= middle-antiquity-age)
 	(goal train-champion YES)
 	(up-compare-goal gl-legionary-family-count g:< gl-ten-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
 	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: elite-legionary)
 =>
 	(up-train gl-unitescrow-state c: elite-legionary)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
 	(up-chat-data-to-self "Roman Legionary request: %d" c: elite-legionary)
 )
 
@@ -188,11 +193,42 @@
 	(current-age >= middle-antiquity-age)
 	(goal train-champion YES)
 	(up-compare-goal gl-legionary-family-count g:< gl-ten-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
+=>
+	(up-train gl-unitescrow-state c: elite-legionary-melee)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Legionary request: %d" c: elite-legionary-melee)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(goal train-champion YES)
+	(up-compare-goal gl-legionary-family-count g:< gl-ten-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
 	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: legionary)
 =>
 	(up-train gl-unitescrow-state c: legionary)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
 	(up-chat-data-to-self "Roman Legionary request: %d" c: legionary)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(goal train-champion YES)
+	(up-compare-goal gl-legionary-family-count g:< gl-ten-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary-melee)
+=>
+	(up-train gl-unitescrow-state c: legionary-melee)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Legionary request: %d" c: legionary-melee)
 )
 
 ;Roman Imperial ranges switch completely from Improved Bowmen to the separate
@@ -295,10 +331,14 @@
 		(goal primary-unit CHAMPION)
 	)
 	(up-compare-goal gl-legionary-family-count g:< gl-ten-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
 	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
 =>
 	(up-train gl-unitescrow-state c: elite-legionary-melee)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic Legionary request: %d" c: elite-legionary-melee)
 )
 
 (defrule
@@ -308,10 +348,48 @@
 		(goal primary-unit CHAMPION)
 	)
 	(up-compare-goal gl-legionary-family-count g:< gl-ten-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: elite-legionary)
+=>
+	(up-train gl-unitescrow-state c: elite-legionary)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic Legionary request: %d" c: elite-legionary)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal primary-unit CHAMPION)
+	)
+	(up-compare-goal gl-legionary-family-count g:< gl-ten-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
 	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: legionary-melee)
 =>
 	(up-train gl-unitescrow-state c: legionary-melee)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic Legionary request: %d" c: legionary-melee)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal primary-unit CHAMPION)
+	)
+	(up-compare-goal gl-legionary-family-count g:< gl-ten-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary)
+=>
+	(up-train gl-unitescrow-state c: legionary)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic Legionary request: %d" c: legionary)
 )
 
 (defrule
@@ -321,10 +399,14 @@
 		(goal secondary-unit CHAMPION)
 	)
 	(up-compare-goal gl-legionary-family-count g:< gl-five-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
 	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
 =>
 	(up-train gl-unitescrow-state c: elite-legionary-melee)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic Legionary request: %d" c: elite-legionary-melee)
 )
 
 (defrule
@@ -334,10 +416,48 @@
 		(goal secondary-unit CHAMPION)
 	)
 	(up-compare-goal gl-legionary-family-count g:< gl-five-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: elite-legionary)
+=>
+	(up-train gl-unitescrow-state c: elite-legionary)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic Legionary request: %d" c: elite-legionary)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal secondary-unit CHAMPION)
+	)
+	(up-compare-goal gl-legionary-family-count g:< gl-five-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
 	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: legionary-melee)
 =>
 	(up-train gl-unitescrow-state c: legionary-melee)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic Legionary request: %d" c: legionary-melee)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal secondary-unit CHAMPION)
+	)
+	(up-compare-goal gl-legionary-family-count g:< gl-five-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary)
+=>
+	(up-train gl-unitescrow-state c: legionary)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic Legionary request: %d" c: legionary)
 )
 
 (defrule
@@ -347,10 +467,14 @@
 		(goal tertiary-unit CHAMPION)
 	)
 	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
 	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
 =>
 	(up-train gl-unitescrow-state c: elite-legionary-melee)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic Legionary request: %d" c: elite-legionary-melee)
 )
 
 (defrule
@@ -360,10 +484,48 @@
 		(goal tertiary-unit CHAMPION)
 	)
 	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: elite-legionary)
+=>
+	(up-train gl-unitescrow-state c: elite-legionary)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic Legionary request: %d" c: elite-legionary)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal tertiary-unit CHAMPION)
+	)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
 	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: legionary-melee)
 =>
 	(up-train gl-unitescrow-state c: legionary-melee)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic Legionary request: %d" c: legionary-melee)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal tertiary-unit CHAMPION)
+	)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary)
+=>
+	(up-train gl-unitescrow-state c: legionary)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic Legionary request: %d" c: legionary)
 )
 
 (defrule
@@ -373,10 +535,14 @@
 		(goal quaternary-unit CHAMPION)
 	)
 	(up-compare-goal gl-legionary-family-count g:< gl-one-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
 	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
 =>
 	(up-train gl-unitescrow-state c: elite-legionary-melee)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic Legionary request: %d" c: elite-legionary-melee)
 )
 
 (defrule
@@ -386,10 +552,48 @@
 		(goal quaternary-unit CHAMPION)
 	)
 	(up-compare-goal gl-legionary-family-count g:< gl-one-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: elite-legionary)
+=>
+	(up-train gl-unitescrow-state c: elite-legionary)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic Legionary request: %d" c: elite-legionary)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal quaternary-unit CHAMPION)
+	)
+	(up-compare-goal gl-legionary-family-count g:< gl-one-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
 	(food-amount > 180)
 	(up-can-train gl-unitescrow-state c: legionary-melee)
 =>
 	(up-train gl-unitescrow-state c: legionary-melee)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic Legionary request: %d" c: legionary-melee)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal quaternary-unit CHAMPION)
+	)
+	(up-compare-goal gl-legionary-family-count g:< gl-one-percent)
+	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: legionary)
+=>
+	(up-train gl-unitescrow-state c: legionary)
+	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
+	(up-modify-goal gl-legionary-request-next c:+ 10)
+	(up-chat-data-to-self "Roman Republic Legionary request: %d" c: legionary)
 )
 
 #end-if
