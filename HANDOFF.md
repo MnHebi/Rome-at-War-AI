@@ -5,10 +5,10 @@
 - Canonical working directory: `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
 - Git repository root: `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
 - Active branch: `codex/replay-economy-build-order`
-- Recorded HEAD: `ef96d9e5ebba21584c0ce039a675b9e5ad39b382`
+- Recorded HEAD: `93f78b500a1d50d1faa8104bdde0a12f6720d5a3`
 - Pull request: <https://github.com/MnHebi/Rome-at-War-AI/pull/4>
-- Installed runtime marker: `RAWAI-P3B32:32`
-- Installed 68-file runtime SHA-256: `BD4FCB3CB8D25C3C247AA3B7CB748B1897AEAF92310C6CEEE30532E61CEC636E`
+- Installed runtime marker: `RAWAI-P3B33:33`
+- Installed 68-file runtime SHA-256: `6AD8D3F22A1D6785E5D904E83B09797A1C6C5CFB246BE35AB0042AC578860819`
 
 The legacy directory
 `G:\Projects\Codex\Rome at War AI\Rome-at-War-AI-main` is a noncanonical
@@ -19,14 +19,9 @@ and legacy `AGENTS.md` copies now all identify the canonical path above.
 
 At the time this handoff was initialized, the recorded HEAD was synchronized
 with `origin/codex/replay-economy-build-order` and the working tree was clean.
-The working tree is now dirty with the uncommitted P3B33 military-stance change
-set (see "Important recent changes"): an attack-commitment dwell, a two-unit
-defense-latch trigger, a distinct naval-wake dispatch owner, and a
-transport-recall threshold raised to two, across `rawai-customconstants.per`,
-`rawai-init-goals.per`, `rawai-military.per`, `rawai-timers.per`, and the
-matching `tools/test_validators.py` expectations. This change set is owned by
-the current development task and is validated (110 tests, PER, replay-benchmark
-validators) but not yet committed or installed.
+Commit `93f78b5` (`RAWAI-P3B33`) then landed the military-stance change set
+described below and is pushed to the PR branch; the installed test AI is
+re-synchronized to the same runtime SHA-256.
 
 ## Current milestone
 
@@ -75,11 +70,11 @@ source evidence.
 
 ## Important recent changes
 
-- Uncommitted P3B33 (working tree): a forty-five-second attack-commitment
-  window plus a two-unit defense-latch trigger (five land / four naval severe
-  override) stop the attack/defend flip-flop; the two naval-timer executors use
-  a distinct wake owner so they do not arm the dwell; and the loaded-Transport
-  home-recall threshold is raised from one to two threats.
+- `93f78b5` (`RAWAI-P3B33`): a forty-five-second attack-commitment window plus
+  a two-unit defense-latch trigger (five land / four naval severe override) stop
+  the attack/defend flip-flop; the two naval-timer executors use a distinct
+  wake owner so they do not arm the dwell; and the loaded-Transport home-recall
+  threshold is raised from one to two threats.
 - `ef96d9e` (`RAWAI-P3B32`) probes all four concrete Legionary forms for Roman
   Empire and Roman Republic production under one aggregate family bound and a
   shared request deadline.
