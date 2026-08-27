@@ -5,10 +5,10 @@
 - Canonical working directory: `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
 - Git repository root: `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
 - Active branch: `codex/replay-economy-build-order`
-- Recorded HEAD: `2674e7a09ecd116a40cb053249873171386e39bd`
+- Recorded HEAD: `f8a83aeb9950cd3f25e77168b3607a023ebe6112`
 - Pull request: <https://github.com/MnHebi/Rome-at-War-AI/pull/4>
-- Installed runtime marker: `RAWAI-P3B34:34`
-- Installed 68-file runtime SHA-256: `0E69742F798AE2A2E9B0F02A44C5E26A8CCEE6306641C1E0474EAD4C5F5217AE`
+- Installed runtime marker: `RAWAI-P3B35:35`
+- Installed 68-file runtime SHA-256: `2A951401E947422EBB0D53020AA6FD4B51CFA3C3D3BFDCA50EBDAAFB9B8FFBD6`
 
 The legacy directory
 `G:\Projects\Codex\Rome at War AI\Rome-at-War-AI-main` is a noncanonical
@@ -74,6 +74,12 @@ source evidence.
   raiding less-defended outlying resources.
 - Migration has reached a remote island, but passenger retasking and sustained
   resource work after drop-site completion require fresh confirmation.
+- Command flood (28/8 replay, 410,021 ACTION ops / 61 min): the largest source
+  (165,882 villager WORK retasks) is fixed in P3B35. Two sources remain: a
+  single DUC-owned ship ordered ~22,000 times over 33:20-45:28 (likely a
+  naval controller re-ordering to a fixed point each pass), and ~37,000 attack
+  orders by player 6 against one object (engine TSA re-targeting). Both need a
+  fresh P3B35 replay to identify the exact owner.
 - Port collision recovery, Palintonon packed-state recovery, Transport path
   safety, and naval opportunity engagement remain unverified in a fresh match.
 - Cross-water allied relief is not implemented, and some tactically idle ships
@@ -83,6 +89,10 @@ source evidence.
 
 ## Important recent changes
 
+- `f8a83ae` (`RAWAI-P3B35`): the four post-depletion gatherer-allocation rules
+  are now one-shot, stopping the per-sweep rewrite of the gatherer percentages
+  that drove the 165,882 WORK (villager retask) actions in the 28/8 replay; each
+  allocation logs a replay-visible reason.
 - `2674e7a` (`RAWAI-P3B34`): help-decline replies use taunt 39 instead of the
   unrelated 42, a relief request needs two same-zone threats, and an AI ignores
   its own taunt 48 instead of answering its own call for help.
@@ -146,9 +156,10 @@ source evidence.
 
 1. Before editing, compare the current Git root, branch, HEAD, and working-tree
    state with the canonical workspace recorded above.
-2. In the next fresh match, verify `RAWAI-P3B34` and that help declines use
-   taunt 39, relief requests fire only on two-plus threats, and no AI answers
-   its own help call.
+2. In the next fresh match, verify `RAWAI-P3B35` and that the per-minute WORK
+   retask count drops sharply once resources deplete (the P3B35 fix), then
+   confirm the remaining DUC-loop and attack-retarget flood owners from the
+   AI_ORDER/ORDER stream.
 3. Confirm the P3B33 stance behavior: the army no longer alternates
    attack/home-defense on lone raiders, a real multi-unit raid still latches
    defense, and assault Transports board, depart, and land without being
