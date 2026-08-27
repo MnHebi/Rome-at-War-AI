@@ -1190,6 +1190,74 @@
         "The order-flood source objects are likely units managed by the engine explorer scheduler, but their exact unit types remain inference because the replay does not serialize them. Removal of the unconditional setters is a bounded mitigation pending runtime confirmation."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260827-143808",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.27 143808.aoe2record",
+        "sha256": "03778B6E269D164C56177E1C44D012C7346E319C6ACB846DE6AA67C8599DB5D9",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "decoded p1 Roman Empire (color_id 0; visible color unresolved)",
+          "decoded p2 Roman Empire (color_id 7; visible color unresolved)",
+          "decoded p3 Roman Empire (color_id 1; visible color unresolved)",
+          "decoded p4 Roman Empire (color_id 3; visible color unresolved)",
+          "decoded p5 Picts (color_id 4; visible color unresolved)",
+          "decoded p6 Britons (color_id 5; visible color unresolved)",
+          "decoded p7 Germani (color_id 6; visible color unresolved)",
+          "decoded p8 Gauls (color_id 2; visible color unresolved)"
+        ],
+        "team_mapping_basis": "unresolved",
+        "team_mapping_note": "The user visually identified Red as the migrating Roman. The decoder associates the migration self-chat with p1 and reports p1 color_id 0, which conventionally corresponds to Blue. This exact visual/parser conflict remains unresolved pending confirmation of whether the 14:38 match reused lobby fixture britain-4v4-lobby-20260827-6969d5e2; neither account is silently used to relabel the other.",
+        "duration_seconds": 5190
+      },
+      "direct_replay_observations": [
+        "The replay parsed cleanly, lasted 86:30, and contained 145036 AI_ORDER, 103069 ORDER, 99124 WORK, 3274 MAKE, 2543 BUILD, 553 payloadless ERROR, 222 DELETE, 60 WALL, 677 GUARD, and three FLARE actions. No replay-visible RAWAI-P3B30 marker proves the exact deployed source revision.",
+        "The user visually observed that Picts and Gauls had economic problems, that Gauls lagged in age, and suspected Pict-team-bonus Cow overproduction. The decoded Gaul player p8 reached the Middle Age at 26:38 and never reached the Imperial Age by 86:30; every other decoded player reached Imperial, with p5 Picts last among them at 40:11.",
+        "The four decoded non-Roman players issued 499 Mill Cow MAKE commands: p5 Picts 72, p6 Britons 186, p7 Germani 210, and p8 Gauls 31. The Germani player trained the most Cows yet was the first member of that decoded side to reach both the Middle and Imperial Ages, so Cow training alone does not explain the Gaul age failure.",
+        "Decoded p1 reported home resource pressure at 63:44, selected a remote stone anchor in zone 7 at 65:55, departed partially loaded at 66:26, recovered from a wrong landing-zone result at 68:06, assigned settlers to mining-camp foundation 57316 at 68:07, and reported the drop site complete at 69:16. The user visually observed Red migrate once but then leave the island gold and stone untouched with idle Villagers.",
+        "Five attack-lift missions reported a boarding target of 20 between 61:12 and 73:51; all five reported `attack lift boarding aborted` roughly twenty-five to thirty seconds later. No `attack lift ready` or `attack lift landed` record appeared. The user visually observed attack Transports loading and later unloading or remaining loaded without moving.",
+        "The replay contains flares at about 25:07, 25:18, and 73:49 and taunt 69 at about 25:08, 25:20, 25:23, and 73:50. Only the first command produced allied acknowledgments, and no taunt-69 selector, deleted-structure, or no-flare diagnostic was recorded. The user again observed no deletion at the requested structure.",
+        "No MAKE command for Roman Empire Legionary IDs 866, 868, 1658, or 1661 appears for any of the four decoded Roman players. All four requested Barracks and reached at least the Middle Age, but the replay contains no runtime diagnostic that identifies whether availability, resources, queue state, or the concrete trainability test blocked production.",
+        "During the final 31:30, the replay contains 98530 combined AI_ORDER, ORDER, and BUILD commands. Several objects produced tens of thousands of alternating or repeated explore/stop orders. Separately, decoded p3 issued 897 Castle BUILD commands, 896 of them at the identical point x106 y38 from 70:28 through 86:19."
+      ],
+      "implementation_inferences": [
+        "The Cow rule maintained a live cap of four but had no lifetime request budget, so every consumed Cow reopened production. At 35 food plus 15 wood per Cow this can divert resources and create hundreds of livestock objects, although the age timings prove that it is not a sufficient explanation for every weak economy.",
+        "The completed-drop-site branch published the colony and immediately released the reserved settler group without retasking it from construction back to the validated resource. That state transition directly explains how a successful migration could end with idle builders beside an unused mine.",
+        "The attack loader selected up to the full 20-unit transport capacity and required that exact count before departure. One distant or interrupted passenger therefore forced the observed timeout and unload; launching the partial group would be unsafe because home stragglers would remain members of the later landing-order group.",
+        "The flare selector used `any-human-ally`. Replay serialization labels the taunt-and-flare player as an AI, and the engine patch semantics attach flare objects to recipient players rather than exposing a reliable human sender classification. Searching `any-ally`, which excludes self but does not require the ally to be classified human, is the supported bounded correction. A deadline is also required because the first failed command retained the shared target-action owner and blocked later requests.",
+        "Mismatch-guarding the explorer strategic-number writers removed per-sweep writes but did not stop late-game ownership conflict. The replay shows the engine explorer scheduler and other tactical owners still alternating commands on the same objects, so the engine explorer budget must be released after the early phases while the explicit DUC scouts remain bounded.",
+        "The Castle rule repeatedly used fixed placement-control data at point 106,38 without checking migration placement ownership, placement-pressure ownership, a pending Castle, or a retry cadence. This is a direct source of BUILD-command flooding; the replay cannot prove whether collision, terrain, or another placement rejection made that point invalid.",
+        "Legionary absence supports adding replay-visible gate diagnostics, not changing the concrete DAT-backed producer operands again without knowing which availability or trainability condition failed."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B31. Limit Pict-team-bonus Mill Cow production to four issued requests per AI per match while retaining the existing live cap, resource gates, and can-train check.",
+        "After a remote resource drop site completes, keep the migration group reserved, revalidate the exact selected resource by ID, class, and land zone, refresh only the same resource class within sixteen tiles if the original node expired, issue the final gather order, and then release the settlers and transport.",
+        "Select an exact attack manifest no larger than ten and no larger than current transport capacity, permit a bounded mission with at least five eligible passengers, and retain the existing exact-full-manifest departure and abort/recovery ownership.",
+        "Use `any-ally` for taunt-52 and taunt-69 flare detection and coordinate lookup. Give the shared flare command an eight-second deadline and clear its candidate, object ID, search, and ownership state on success, absence, disappearance, or timeout.",
+        "Set the engine military and civilian explorer budgets to zero from phase four onward and set total engine explorers to zero under a separate phase-gated mismatch writer. Preserve early two-explorer budgets and the explicit bounded Scout Ship and transported-scout controllers.",
+        "Require idle migration and placement owners, no pending Castle object or placement, and a dedicated thirty-second request cadence before using normal Castle placement. Remove the fixed placement-control point implicated by 896 identical requests.",
+        "Add one-shot Roman Empire replay diagnostics that distinguish both Legionary concrete units being unavailable from both concrete up-can-train checks being blocked; do not alter the existing bounded baseline producers until new evidence identifies the failing gate."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports exact runtime synchronization and replay chat contains RAWAI-P3B31 near match start.",
+        "No AI requests more than four Mill Cows during the match. Pict-team economies continue normal Villager and age progression without a replacement-Cow stream consuming hundreds of MAKE actions.",
+        "A completed remote mining, lumber, or food drop site is followed by `migration settlers retasked` with a positive count and visible resource work. An expired anchor either refreshes to the same resource class in the colony zone or emits one bounded exhausted-resource result before ownership release.",
+        "An attack lift reports a boarding target from five through ten, reaches that exact count and sails through the screened route, or emits one bounded abort. No home straggler receives the remote landing order and no recovered hull remains indefinitely loaded.",
+        "A flare within six tiles of an owned Port followed by taunt 69 produces one acknowledgment, a selected deletion ID, and visible deletion. A missing or stale flare releases target-action within eight seconds so a later taunt can be acknowledged and processed.",
+        "After phase four, no object receives a sustained explore/stop alternation from the engine explorer owner. Castle requests occur no more often than the dedicated cadence and do not repeat one rejected fixed point hundreds of times; aggregate late-game command volume remains materially below this replay.",
+        "Each Roman Empire either trains concrete Legionaries or emits an availability-missing or trainability-blocked diagnostic that identifies the next gate to investigate."
+      ],
+      "known_limits": [
+        "The visible-color account and decoded player-index color field conflict for the migrating Roman. Until the user confirms the lobby setup, this benchmark records decoded players without visible color or team labels and preserves the visual observation separately.",
+        "Only decoded p1 serialized detailed self-chat. The private economic, migration, transport, flare, Castle-placement, and Legionary state of other players remains unavailable.",
+        "The replay parser does not expose object type for the explorer-order source objects, DUC group membership, arbitrary path success, passenger positions, resource delivery, or placement rejection reason. The identified ownership and fixed-placement explanations remain implementation inferences pending fresh runtime evidence.",
+        "Using `any-ally` can select another ally's most recent flare when multiple allies flare close together because the engine does not expose the taunt sender through `up-find-player-flare`. The command remains bounded by the owned-structure radius and deadline.",
+        "The reduced exact attack manifest improves attainability but does not implement coordinated multi-hull invasions or cross-water allied relief. Path screening still relies on known threats and can reject or miss an unsafe route.",
+        "The late-game command flood is a serious performance problem, but this replay contains no process exception or dump and does not prove that command volume corrupts game memory. The earlier heap-corruption dumps still identify only the detection stack, not the corrupting writer."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

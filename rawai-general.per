@@ -21,13 +21,20 @@
 	(set-strategic-number sn-number-boat-explore-groups 0))
 
 (defrule
+	(up-compare-goal current-phase c:< 4)
 	(up-compare-sn sn-total-number-explorers c:!= 2)
 =>
-	;Every current phase budgets two total explorers: one military plus one
-	;civilian in phase one, then two military explorers in later phases. Keep
-	;this a single edge-triggered write so the engine explorer owner is not
-	;reset twice on every rule sweep.
+	;The engine owns at most two early explorers. Late-phase scouting belongs to
+	;the bounded naval and military DUC controllers instead.
 	(set-strategic-number sn-total-number-explorers 2))
+
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(up-compare-sn sn-total-number-explorers c:!= 0)
+=>
+	;Retire the engine explorer owner after the Middle Age so it cannot alternate
+	;explore and stop orders with attack, defense, or trade controllers.
+	(set-strategic-number sn-total-number-explorers 0))
 
 (defrule
 	(up-compare-goal villager-count <= 0)

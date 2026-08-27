@@ -632,7 +632,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B30", self.init_goals)
+        self.assertIn("RAWAI-P3B31", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -1237,9 +1237,10 @@ class FarmPolicyTests(unittest.TestCase):
             self.taunts,
             facts=(
                 "(goal deletion-flare YES)",
-                "(cc-players-unit-type-count any-human-ally flare >= 1)",
+                "(cc-players-unit-type-count any-ally flare >= 1)",
             ),
             actions=(
+                "(up-find-player-flare any-ally gl-flared-delete-x)",
                 "(up-filter-distance c: -1 c: 6)",
                 "(up-modify-goal gl-delete-flare-candidates g:= local-total)",
                 "(set-goal deletion-flare MAYBE)",
@@ -1284,7 +1285,7 @@ class FarmPolicyTests(unittest.TestCase):
             self.taunts,
             facts=(
                 "(goal deletion-flare YES)",
-                "(cc-players-unit-type-count any-human-ally flare <= 0)",
+                "(cc-players-unit-type-count any-ally flare <= 0)",
             ),
             actions=(
                 "(set-goal deletion-flare NO)",
@@ -1293,16 +1294,31 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertEqual(len(no_flare), 1)
 
-    def test_taunt_52_uses_the_human_ally_flare(self) -> None:
+        watchdog = matching_rules(
+            self.taunts,
+            facts=(
+                "(goal target-action YES)",
+                "gl-game-time g:>= gl-flare-command-deadline",
+            ),
+            actions=(
+                "Structure deletion flare command expired",
+                "(set-goal gl-delete-flare-id -1)",
+                "(set-goal gl-delete-flare-candidates 0)",
+                "(set-goal target-action NO)",
+            ),
+        )
+        self.assertEqual(len(watchdog), 1)
+
+    def test_taunt_52_uses_an_allied_flare_with_a_deadline(self) -> None:
         selector = matching_rules(
             self.taunts,
             facts=(
                 "(goal market-flare YES)",
-                "(cc-players-unit-type-count any-human-ally flare >= 1)",
+                "(cc-players-unit-type-count any-ally flare >= 1)",
                 "(can-build market)",
             ),
             actions=(
-                "(up-find-player-flare any-human-ally gl-flared-market-x)",
+                "(up-find-player-flare any-ally gl-flared-market-x)",
                 "(up-build place-point 0 c: market)",
             ),
         )
@@ -1312,7 +1328,7 @@ class FarmPolicyTests(unittest.TestCase):
             self.taunts,
             facts=(
                 "(goal market-flare YES)",
-                "(cc-players-unit-type-count any-human-ally flare <= 0)",
+                "(cc-players-unit-type-count any-ally flare <= 0)",
             ),
             actions=(
                 "(set-goal market-flare NO)",
@@ -1320,6 +1336,8 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(no_flare), 1)
+        self.assertIn("gl-flare-command-deadline c:+ 8", self.taunts)
+        self.assertIn("Market flare command expired", self.taunts)
 
     def test_crowded_placement_recovery_is_persistent_and_bounded(self) -> None:
         self.assertIn("c:+ 24", self.homebase)
@@ -1786,6 +1804,61 @@ class FarmPolicyTests(unittest.TestCase):
             "c: scorpion-line",
         ):
             self.assertNotIn(invalid_train_operand, self.military_common)
+
+        unavailable = matching_rules(
+            self.romeemp,
+            facts=(
+                "(building-type-count barracks >= 1)",
+                "(not (unit-available elite-legionary))",
+                "(not (unit-available legionary))",
+            ),
+            actions=("Roman Legionary availability missing: %d", "(disable-self)"),
+        )
+        blocked = matching_rules(
+            self.romeemp,
+            facts=(
+                "(unit-available elite-legionary)",
+                "(unit-available legionary)",
+                "(not (up-can-train gl-unitescrow-state c: elite-legionary))",
+                "(not (up-can-train gl-unitescrow-state c: legionary))",
+            ),
+            actions=("Roman Legionary trainability blocked: %d", "(disable-self)"),
+        )
+        self.assertEqual(len(unavailable), 1)
+        self.assertEqual(len(blocked), 1)
+
+    def test_pict_team_cows_have_a_persistent_request_budget(self) -> None:
+        cow = matching_rules(
+            self.economy,
+            facts=(
+                "gl-pict-cow-requests c:< 4",
+                "unit-type-count-total mill-cow g:< gl-one-percent",
+                "(can-train mill-cow)",
+            ),
+            actions=(
+                "(train mill-cow)",
+                "(up-modify-goal gl-pict-cow-requests c:+ 1)",
+            ),
+        )
+        self.assertEqual(len(cow), 1)
+
+    def test_castle_requests_are_placement_safe_and_cadenced(self) -> None:
+        castle = matching_rules(
+            self.homebase,
+            facts=(
+                "(goal gl-migration-placement-lock NO)",
+                "(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)",
+                "gl-game-time g:>= gl-castle-request-next",
+                "(up-pending-objects c: castle <= 0)",
+                "(not (up-pending-placement c: castle))",
+            ),
+            actions=(
+                "(up-build place-normal 0 c: castle)",
+                "gl-castle-request-next g:= gl-game-time",
+                "gl-castle-request-next c:+ 30",
+            ),
+        )
+        self.assertEqual(len(castle), 1)
 
     def test_roman_shipyards_are_requested_before_late_land_structures(self) -> None:
         phase_two = matching_rules(
@@ -3133,6 +3206,10 @@ class FarmPolicyTests(unittest.TestCase):
                 "(up-compare-sn sn-total-number-explorers c:!= 2)",
                 "(set-strategic-number sn-total-number-explorers 2)",
             ),
+            (
+                "(up-compare-sn sn-total-number-explorers c:!= 0)",
+                "(set-strategic-number sn-total-number-explorers 0)",
+            ),
         )
         for fact, action in guarded_writes:
             self.assertEqual(
@@ -3147,8 +3224,8 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertEqual(unconditional_writers, [])
 
-    def test_every_phase_budgets_two_total_engine_explorers(self) -> None:
-        expected = {1: (1, 1), 2: (2, 0), 3: (2, 0), 4: (2, 0), 5: (2, 0)}
+    def test_late_phases_release_engine_explorer_ownership(self) -> None:
+        expected = {1: (1, 1), 2: (2, 0), 3: (2, 0), 4: (0, 0), 5: (0, 0)}
         for phase, (military, civilian) in expected.items():
             rules = matching_rules(
                 self.pop,
@@ -3174,7 +3251,7 @@ class FarmPolicyTests(unittest.TestCase):
             self.assertIsNotNone(civilian_assignment)
             self.assertEqual(int(military_assignment.group(1)), military)
             self.assertEqual(int(civilian_assignment.group(1)), civilian)
-            self.assertEqual(military + civilian, 2)
+            self.assertEqual(military + civilian, 2 if phase < 4 else 0)
 
     def test_migration_rejects_failed_zone_for_a_bounded_window(self) -> None:
         self.assertGreaterEqual(
@@ -3367,13 +3444,34 @@ class FarmPolicyTests(unittest.TestCase):
                 "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE)",
                 "(up-object-data object-data-status == status-ready)",
             ),
-            actions=("(set-goal gl-island-colony-established YES)",),
+            actions=(
+                "(set-goal gl-island-colony-established YES)",
+                "MIGRATION-RETASK-DROPSITE",
+            ),
         )
         self.assertEqual(len(publish), 1)
         self.assertEqual(
             self.military.count("(set-goal gl-island-colony-established YES)"),
             1,
         )
+
+        retask = matching_rules(
+            self.military,
+            facts=("MIGRATION-ASSIGN-RETASK-ANCHOR",),
+            actions=(
+                "(up-set-group search-local c: migration-boarding-group)",
+                "search-remote g: gl-island-migration-anchor-id",
+                "(up-target-objects 0 action-default -1 stance-no-attack)",
+                "migration settlers retasked: %d",
+                "MIGRATION-RELEASE-COLONY",
+            ),
+        )
+        self.assertEqual(len(retask), 1)
+        self.assertIn(
+            "(up-find-remote g: gl-island-migration-anchor-class c: 20)",
+            self.military,
+        )
+        self.assertIn("migration post-build resource exhausted: %d", self.military)
 
     def test_failed_remote_dropsite_recalls_workers_with_cargo(self) -> None:
         recall = matching_rules(
@@ -4523,7 +4621,7 @@ class FarmPolicyTests(unittest.TestCase):
             self.military,
             facts=(
                 "TRANSPORT-ROUTE-LOAD-ISSUE",
-                "gl-transport-route-load-target g:>= gl-transport-min-load",
+                "gl-transport-route-load-target c:>= 5",
             ),
             actions=(
                 "(up-target-objects 0 action-garrison -1 stance-no-attack)",
@@ -4532,6 +4630,16 @@ class FarmPolicyTests(unittest.TestCase):
                 "attack lift boarding target: %d",
             ),
         )
+        manifest = matching_rules(
+            self.military,
+            facts=("TRANSPORT-ROUTE-LOAD-SELECT",),
+            actions=(
+                "gl-transport-route-load-target g:= gl-transport-capacity",
+                "gl-transport-route-load-target c:min 10",
+                "object-data-index g:>= gl-transport-route-load-target",
+            ),
+        )
+        self.assertEqual(len(manifest), 1)
         ready = matching_rules(
             self.military,
             facts=(

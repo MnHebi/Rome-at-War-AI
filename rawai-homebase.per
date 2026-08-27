@@ -3734,18 +3734,20 @@
 (defrule
 	(current-age >= middle-antiquity-age)
 	(building-type-count town-center >= 2)
+	(goal gl-migration-placement-lock NO)
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-castle-request-next)
 	(can-afford-building castle)
 	(building-type-count-total castle g:< desired-number-castles)
+	(up-pending-objects c: castle <= 0)
+	(not (up-pending-placement c: castle))
 	(up-can-build 0 c: castle)
 =>
-;	(up-get-fact building-type-count castle gl-number-castles)	
-;	(up-modify-goal gl-castle-placement c:= 10)
-;	(up-modify-goal gl-castle-placement g:* gl-number-castles)
-;	(up-modify-goal gl-castle-placement c:+ 10)
-;	(up-modify-goal gl-castle-placement s:min sn-maximum-town-size)
-	(up-set-placement-data my-player-number -1 c: 20)	
-;	(up-set-placement-data my-player-number -1 g: gl-castle-placement)
-	(up-build place-control 0 c: castle)
+	;Normal placement may choose another valid point after a crowded location
+	;fails. A dedicated cadence prevents hundreds of identical BUILD requests.
+	(up-build place-normal 0 c: castle)
+	(up-modify-goal gl-castle-request-next g:= gl-game-time)
+	(up-modify-goal gl-castle-request-next c:+ 30)
 )
 
 (defrule

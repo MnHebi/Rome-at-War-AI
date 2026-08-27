@@ -324,31 +324,46 @@
 	(acknowledge-taunt this-any-ally 52)
 	(set-goal target-action YES)
 	(set-goal market-flare YES)
+	(up-modify-goal gl-flare-command-deadline g:= gl-game-time)
+	(up-modify-goal gl-flare-command-deadline c:+ 8)
 	(up-jump-rule 1)
 )
 
 (defrule
 	(goal market-flare YES)
 	(goal gl-migration-placement-lock NO)
-	(cc-players-unit-type-count any-human-ally flare >= 1)
+	(cc-players-unit-type-count any-ally flare >= 1)
 	(can-build market)
 =>
-	(up-find-player-flare any-human-ally gl-flared-market-x)
+	(up-find-player-flare any-ally gl-flared-market-x)
 	(up-set-target-point gl-flared-market-x)
 	(up-build place-point 0 c: market)
 	;(set-goal place-flare-market YES)
 	(set-goal market-flare NO)
 	(set-goal target-action NO)
+	(set-goal gl-flare-command-deadline 0)
 	(chat-to-allies "39 Placed the Market you requested.")
 )
 
 (defrule
 	(goal market-flare YES)
-	(cc-players-unit-type-count any-human-ally flare <= 0)
+	(cc-players-unit-type-count any-ally flare <= 0)
 =>
 	(set-goal market-flare NO)
 	(set-goal target-action NO)
+	(set-goal gl-flare-command-deadline 0)
 	(chat-local-to-self "No flare detected to place market")
+)
+
+(defrule
+	(goal target-action YES)
+	(goal market-flare YES)
+	(up-compare-goal gl-game-time g:>= gl-flare-command-deadline)
+=>
+	(set-goal market-flare NO)
+	(set-goal target-action NO)
+	(set-goal gl-flare-command-deadline 0)
+	(chat-local-to-self "Market flare command expired")
 )
 
 ;55 "Build a wall around your town"
@@ -481,8 +496,11 @@
 	(acknowledge-taunt this-any-ally 69)
 	(chat-to-player-using-id every-ally 22153); "39 At once, sire!"
 	(set-goal gl-delete-flare-id -1)
+	(set-goal gl-delete-flare-candidates 0)
 	(set-goal deletion-flare YES)
 	(set-goal target-action YES)
+	(up-modify-goal gl-flare-command-deadline g:= gl-game-time)
+	(up-modify-goal gl-flare-command-deadline c:+ 8)
 )
 	
 (defrule
@@ -490,9 +508,9 @@
 		(goal target-action YES)
 		(goal deletion-flare YES)
 	)
-	(cc-players-unit-type-count any-human-ally flare >= 1)
+	(cc-players-unit-type-count any-ally flare >= 1)
 =>
-	(up-find-player-flare any-human-ally gl-flared-delete-x)
+	(up-find-player-flare any-ally gl-flared-delete-x)
 	(up-set-target-point gl-flared-delete-x)
 	(up-full-reset-search)
 	;A flare can land beside the center point of a large coastal footprint. Six
@@ -526,8 +544,10 @@
 	(up-target-point 0 action-delete -1 -1)
 	(up-chat-data-to-self "taunt 69 deleted structure id: %d" g: gl-delete-flare-id)
 	(set-goal gl-delete-flare-candidates 0)
+	(set-goal gl-delete-flare-id -1)
 	(set-goal deletion-flare NO)
 	(set-goal target-action NO)
+	(set-goal gl-flare-command-deadline 0)
 )
 
 (defrule
@@ -542,8 +562,10 @@
 	;not leave taunt 69 permanently owning the shared target-action channel.
 	(up-chat-data-to-self "taunt 69 structure candidate vanished: %d" g: gl-delete-flare-id)
 	(set-goal gl-delete-flare-candidates 0)
+	(set-goal gl-delete-flare-id -1)
 	(set-goal deletion-flare NO)
 	(set-goal target-action NO)
+	(set-goal gl-flare-command-deadline 0)
 )
 
 (defrule
@@ -555,8 +577,10 @@
 =>
 	(up-chat-data-to-self "taunt 69 no structure candidates: %d" g: gl-delete-flare-candidates)
 	(set-goal gl-delete-flare-candidates 0)
+	(set-goal gl-delete-flare-id -1)
 	(set-goal deletion-flare NO)
 	(set-goal target-action NO)
+	(set-goal gl-flare-command-deadline 0)
 )
 
 (defrule
@@ -564,11 +588,31 @@
 		(goal target-action YES)
 		(goal deletion-flare YES)
 	)
-	(cc-players-unit-type-count any-human-ally flare <= 0)
+	(cc-players-unit-type-count any-ally flare <= 0)
 =>
 	(set-goal target-action NO)
 	(set-goal deletion-flare NO)
+	(set-goal gl-delete-flare-id -1)
+	(set-goal gl-delete-flare-candidates 0)
+	(set-goal gl-flare-command-deadline 0)
 	(chat-local-to-self "No flare detected for structure deletion")
+)
+
+(defrule
+	(goal target-action YES)
+	(or
+		(goal deletion-flare YES)
+		(goal deletion-flare MAYBE)
+	)
+	(up-compare-goal gl-game-time g:>= gl-flare-command-deadline)
+=>
+	(set-goal target-action NO)
+	(set-goal deletion-flare NO)
+	(set-goal gl-delete-flare-id -1)
+	(set-goal gl-delete-flare-candidates 0)
+	(set-goal gl-flare-command-deadline 0)
+	(up-full-reset-search)
+	(chat-local-to-self "Structure deletion flare command expired")
 )
 
 ;104 "Don't resign!"

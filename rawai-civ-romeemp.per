@@ -1633,6 +1633,37 @@
 	(up-chat-data-to-self "Roman baseline Legionary: %d" c: legionary)
 )
 
+;The 14:38 replay contained no concrete Roman Empire Legionary MAKE commands.
+;Record whether the technology exposes either concrete unit before changing
+;production semantics again; replay absence alone does not identify the gate.
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(building-type-count barracks >= 1)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(food-amount > 180)
+	(not (unit-available elite-legionary))
+	(not (unit-available legionary))
+=>
+	(up-chat-data-to-self "Roman Legionary availability missing: %d" g: gl-legionary-family-count)
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 5)
+	(building-type-count barracks >= 1)
+	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
+	(food-amount > 180)
+	(or
+		(unit-available elite-legionary)
+		(unit-available legionary)
+	)
+	(not (up-can-train gl-unitescrow-state c: elite-legionary))
+	(not (up-can-train gl-unitescrow-state c: legionary))
+=>
+	(up-chat-data-to-self "Roman Legionary trainability blocked: %d" g: gl-legionary-family-count)
+	(disable-self)
+)
+
 ;Naval specialist detachments are now generated from the DAT-backed capability
 ;manifest in rawai-naval-doctrine.per and shared by every eligible civilization.
 

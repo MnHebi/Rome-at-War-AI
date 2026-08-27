@@ -3566,10 +3566,127 @@
 	(set-goal gl-island-migration-rejected-zone2 -1)
 	(set-goal gl-island-migration-rejected-zone3 -1)
 	(set-goal gl-island-migration-rejection-armed NO)
-	(set-goal gl-migration-placement-lock NO)
 	(set-goal gl-island-migration-placement-attempts 0)
+	;The builders have just completed their drop site. Retain ownership long
+	;enough to revalidate the resource and give the settlers a final gather
+	;order; releasing them here left successful colonies standing idle.
+	(set-goal gl-island-migration-state MIGRATION-RETASK-DROPSITE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RETASK-DROPSITE)
+=>
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-island-migration-anchor-id)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-RETASK-ANCHOR)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-RETASK-ANCHOR)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-class g:== gl-island-migration-anchor-class)
+	(up-object-data object-data-map-zone-id g:== gl-island-migration-zone)
+=>
+	(up-get-point position-object gl-island-migration-target-x)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-state MIGRATION-ASSIGN-RETASK-ANCHOR)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-RETASK-ANCHOR)
+	(up-set-target-object search-remote c: 0)
+	(or
+		(up-object-data object-data-class g:!= gl-island-migration-anchor-class)
+		(up-object-data object-data-map-zone-id g:!= gl-island-migration-zone)
+	)
+=>
+	(set-goal gl-island-migration-state MIGRATION-REFRESH-RETASK-ANCHOR)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-RETASK-ANCHOR)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-island-migration-state MIGRATION-REFRESH-RETASK-ANCHOR)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-REFRESH-RETASK-ANCHOR)
+=>
+	;The original node can expire while the camp is built. Refresh only the same
+	;resource class near the completed colony and consume the list next sweep.
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-filter-distance c: -1 c: 16)
+	(up-find-remote g: gl-island-migration-anchor-class c: 20)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-RETASK-REFRESH)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-RETASK-REFRESH)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-class g:== gl-island-migration-anchor-class)
+	(up-object-data object-data-map-zone-id g:== gl-island-migration-zone)
+=>
+	(up-get-object-data object-data-id gl-island-migration-anchor-id)
+	(up-get-point position-object gl-island-migration-target-x)
+	(up-chat-data-to-self "migration refreshed post-build resource: %d" g: gl-island-migration-anchor-id)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-state MIGRATION-ASSIGN-RETASK-ANCHOR)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-RETASK-REFRESH)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-chat-data-to-self "migration post-build resource exhausted: %d" g: gl-island-migration-anchor-class)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-state MIGRATION-RELEASE-COLONY)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-RETASK-REFRESH)
+	(up-set-target-object search-remote c: 0)
+	(or
+		(up-object-data object-data-class g:!= gl-island-migration-anchor-class)
+		(up-object-data object-data-map-zone-id g:!= gl-island-migration-zone)
+	)
+=>
+	(up-chat-data-to-self "migration post-build refresh invalid: %d" g: gl-island-migration-zone)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-state MIGRATION-RELEASE-COLONY)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ASSIGN-RETASK-ANCHOR)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-get-search-state local-total)
+	(set-strategic-number sn-focus-player-number 0)
+	(up-add-object-by-id search-remote g: gl-island-migration-anchor-id)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+	(up-chat-data-to-self "migration settlers retasked: %d" g: local-total)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-state MIGRATION-RELEASE-COLONY)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RELEASE-COLONY)
+=>
+	(set-goal gl-migration-placement-lock NO)
 	(up-modify-group-flag 0 c: migration-boarding-group)
 	(up-reset-group c: migration-boarding-group)
+	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
 	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
@@ -4826,6 +4943,10 @@
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-SELECT)
 =>
+	;Select an exact, attainable manifest. A capacity-linked target of twenty
+	;caused every observed lift to time out when one distant unit missed boarding.
+	(up-modify-goal gl-transport-route-load-target g:= gl-transport-capacity)
+	(up-modify-goal gl-transport-route-load-target c:min 10)
 	(up-modify-group-flag 0 c: attack-boarding-group)
 	(up-reset-group c: attack-boarding-group)
 	(up-full-reset-search)
@@ -4846,7 +4967,7 @@
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
-	(up-remove-objects search-local object-data-index g:>= gl-transport-capacity)
+	(up-remove-objects search-local object-data-index g:>= gl-transport-route-load-target)
 	(up-create-group 0 0 c: attack-boarding-group)
 	(up-modify-group-flag 1 c: attack-boarding-group)
 	(up-get-search-state local-total)
@@ -4856,7 +4977,7 @@
 
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)
-	(up-compare-goal gl-transport-route-load-target g:>= gl-transport-min-load)
+	(up-compare-goal gl-transport-route-load-target c:>= 5)
 	(up-set-target-object search-remote c: 0)
 =>
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
@@ -4872,7 +4993,7 @@
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)
 	(or
-		(up-compare-goal gl-transport-route-load-target g:< gl-transport-min-load)
+		(up-compare-goal gl-transport-route-load-target c:< 5)
 		(not (up-set-target-object search-remote c: 0))
 	)
 =>
