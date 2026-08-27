@@ -10,13 +10,21 @@
 - Installed runtime marker: `RAWAI-P3B32:32`
 - Installed 68-file runtime SHA-256: `BD4FCB3CB8D25C3C247AA3B7CB748B1897AEAF92310C6CEEE30532E61CEC636E`
 
+The legacy directory
+`G:\Projects\Codex\Rome at War AI\Rome-at-War-AI-main` is a noncanonical
+extracted source snapshot and has no `.git` metadata. A full Git clone was
+created at the canonical path on 2026-08-23 16:27:54 +03:00. The move to that
+clone was not reported to the user at the time. The workspace-root, canonical,
+and legacy `AGENTS.md` copies now all identify the canonical path above.
+
 At the time this handoff was initialized, the recorded HEAD was synchronized
 with `origin/codex/replay-economy-build-order` and the working tree was clean.
 During this rules-only task, concurrent modifications appeared in
 `rawai-customconstants.per`, `rawai-init-goals.per`, `rawai-military.per`, and
-`rawai-timers.per`. They were not created, inspected, staged, or altered by this
-task. Treat the working tree as dirty and establish their owner and purpose
-before beginning unrelated edits.
+`rawai-timers.per`; `tools/test_validators.py` was modified later during the
+workspace investigation. They were not created, inspected, staged, or altered
+by this task. Treat the working tree as dirty and establish their owner and
+purpose before beginning unrelated edits.
 
 ## Current milestone
 
@@ -28,6 +36,10 @@ source evidence.
 
 ## Unresolved defects
 
+- DeepSeek edited the noncanonical `Rome-at-War-AI-main` snapshot before the
+  canonical-workspace discrepancy was discovered. Do not infer that those
+  edits belong in the Git repository; audit and reconcile them deliberately if
+  the user requests recovery of any of that work.
 - Taunt 69 has repeatedly acknowledged the command without visibly deleting
   the intended flared structure. P3B31 changed flare ownership and command-state
   cleanup, but successful visible deletion still needs fresh confirmation.

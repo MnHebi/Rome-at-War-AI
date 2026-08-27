@@ -92,6 +92,63 @@ fixtures.
   project evidence, document the conflict and ask the user instead of silently
   selecting one source.
 
+## User-reported defects are mandatory work items
+
+- When the user reports that intended game behavior is absent, incorrect,
+  ineffective, or broken, treat that report as a request to investigate and
+  resolve the defect unless the user explicitly says otherwise. Do not merely
+  acknowledge, document, or work around it.
+- Own the defect through the full cycle: reproduce or establish evidence,
+  identify the root cause, add diagnostic instrumentation when necessary,
+  implement a fix, and verify the behavior in the strongest available way.
+- A defect remains unresolved until it is fixed, proven not to exist, proven to
+  be outside the project's control, or explicitly deferred by the user.
+- Repeated mentions of the same unresolved defect increase its priority. Never
+  require the user to reformulate a reported defect as “investigate why X
+  happens” before beginning root-cause analysis.
+
+### Do not confuse logging with resolution
+
+Logging, tracing, replay analysis, and diagnostic tooling are intermediate
+steps. After obtaining enough evidence to identify the cause, continue directly
+into implementation and validation unless blocked.
+
+## Workspace and handoff rules
+
+The single canonical development workspace is
+`G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`.
+
+1. There must be exactly one documented canonical development workspace.
+2. Before editing anything, determine and report:
+   - the absolute repository/worktree path;
+   - the Git repository root;
+   - the current branch;
+   - the current HEAD commit; and
+   - whether the working tree is dirty.
+3. Never move, replace, clone, re-create, or switch the canonical development
+   directory without explicitly telling the user.
+4. If a new worktree, clone, sandbox, or alternate development directory is
+   created, immediately record:
+   - its absolute path;
+   - its purpose;
+   - whether it replaces the previous canonical workspace; and
+   - which workspace future agents must use.
+5. Maintain a repository-local `HANDOFF.md` containing:
+   - the canonical working directory;
+   - the active branch;
+   - the current milestone/objective;
+   - unresolved defects;
+   - important recent changes;
+   - generated diagnostic artifacts;
+   - tests and replays already performed; and
+   - next recommended actions.
+6. Update `HANDOFF.md` before ending any substantial development session.
+7. A handoff to another agent must not rely on conversational context.
+   Everything necessary to resume work must be recoverable from the repository
+   and `HANDOFF.md`.
+8. Before beginning substantial work, verify that the current directory agrees
+   with `HANDOFF.md`. If it does not, stop editing and resolve the discrepancy.
+
 ## Review and validation
 
 - Use an adversarial, read-only review pass for replay-driven or cross-system AI
