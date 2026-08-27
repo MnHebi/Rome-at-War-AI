@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import unittest
 from pathlib import Path
@@ -12,7 +13,7 @@ from validate_good_units import EXPECTED_CATEGORIES, validate_document, validate
 from validate_strategy_execution import bounded_direct_train_blocks
 from validate_naval_doctrine import matching_rules
 from sync_naval_capabilities import competitive_enemy_ceiling, runtime_score
-from analyze_replay import unavailable_players, validated_players
+from analyze_replay import json_default, unavailable_players, validated_players
 
 
 class ReplayMetadataTests(unittest.TestCase):
@@ -96,6 +97,36 @@ class ReplayMetadataTests(unittest.TestCase):
             [player["internal_color_id"] for player in players], [0, 7]
         )
         self.assertNotIn("team_id", players[0])
+
+    def test_binary_replay_payload_is_serialized_without_guessing_text(self) -> None:
+        for payload in (b"\x00\xff", bytearray(b"\x00\xff"), memoryview(b"\x00\xff")):
+            with self.subTest(type=type(payload).__name__):
+                self.assertEqual(
+                    json_default(payload), {"encoding": "hex", "value": "00ff"}
+                )
+        rendered = json.dumps(
+            {"nested": [b"\x02"]}, default=json_default, allow_nan=False
+        )
+        self.assertEqual(
+            json.loads(rendered),
+            {"nested": [{"encoding": "hex", "value": "02"}]},
+        )
+
+    def test_parser_mapping_is_preserved_but_arbitrary_iterable_is_rejected(self) -> None:
+        class ParserContainer(dict):
+            pass
+
+        self.assertEqual(json_default(ParserContainer(value=3)), {"value": 3})
+        with self.assertRaisesRegex(TypeError, "cannot serialize replay value"):
+            json_default({("value", 3)})
+        with self.assertRaisesRegex(TypeError, "cannot serialize replay value"):
+            json_default(object())
+
+    def test_nonfinite_number_is_rejected(self) -> None:
+        with self.assertRaises(ValueError):
+            json.dumps(
+                {"value": float("nan")}, default=json_default, allow_nan=False
+            )
 
 
 class PerDomainTests(unittest.TestCase):

@@ -139,8 +139,17 @@ def validated_players(
     return players
 
 
+def json_default(value: object) -> object:
+    """Serialize parser containers and preserve otherwise opaque binary payloads."""
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        return {"encoding": "hex", "value": bytes(value).hex()}
+    if isinstance(value, Mapping):
+        return dict(value)  # Construct containers are Mapping implementations.
+    raise TypeError(f"cannot serialize replay value of type {type(value).__name__}")
+
+
 def emit_report(report: dict[str, object], output: Path | None) -> None:
-    rendered = json.dumps(report, indent=2, default=dict)
+    rendered = json.dumps(report, indent=2, default=json_default, allow_nan=False)
     if output:
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(rendered + "\n", encoding="utf-8")
