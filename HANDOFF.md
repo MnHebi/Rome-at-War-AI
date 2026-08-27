@@ -5,10 +5,10 @@
 - Canonical working directory: `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
 - Git repository root: `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
 - Active branch: `codex/replay-economy-build-order`
-- Recorded HEAD: `93f78b500a1d50d1faa8104bdde0a12f6720d5a3`
+- Recorded HEAD: `2674e7a09ecd116a40cb053249873171386e39bd`
 - Pull request: <https://github.com/MnHebi/Rome-at-War-AI/pull/4>
-- Installed runtime marker: `RAWAI-P3B33:33`
-- Installed 68-file runtime SHA-256: `6AD8D3F22A1D6785E5D904E83B09797A1C6C5CFB246BE35AB0042AC578860819`
+- Installed runtime marker: `RAWAI-P3B34:34`
+- Installed 68-file runtime SHA-256: `0E69742F798AE2A2E9B0F02A44C5E26A8CCEE6306641C1E0474EAD4C5F5217AE`
 
 The legacy directory
 `G:\Projects\Codex\Rome at War AI\Rome-at-War-AI-main` is a noncanonical
@@ -52,13 +52,26 @@ source evidence.
   200-resource donor tranches, and identifies the recipient player; actual
   delivery and net tribute remain unverified.
 - Assault Transport missions still show frequent boarding aborts, unloads, or
-  loaded hulls that fail to depart or land. The uncommitted P3B33 change raises
-  the home-recall threshold and dampens the attack/defend flip-flop, but a
-  fresh replay must still confirm boarding, departure, and landing.
-- Red's late army became largely frozen around its Town Center. The latest
-  replay contains a sustained order loop toward object 34518 at point 186,182,
-  but the target object type and owning controller remain unresolved. P3B33
-  addresses the flip-flop half of this; the order-loop half is still open.
+  loaded hulls that fail to depart or land. P3B33 raised the home-recall
+  threshold and dampened the flip-flop; P3B34 fixed the relief chatter. The
+  28/8 replay still shows one loaded lift repeatedly loading/unloading (possible
+  trading-vessel pathing obstruction) and a migration that unloaded settlers but
+  produced no resource drop site.
+- Red's late army became largely frozen around its Town Center; P3B33 addresses
+  the flip-flop half, but the late order loop toward object 34518 remains
+  unresolved.
+- Taunt chatter is fixed for the help path (42 to 39, two-unit threshold,
+  self-response), but a random per-AI response delay is still wanted so three
+  allies do not answer the same taunt in the same instant.
+- Idle empty Transports still stage at their Port when no other same-basin ship
+  is at least 24 tiles away ("port hull staging failed" / "empty transport no
+  staging point"), blocking fishing/merchant dropoffs; a safe offset-from-port
+  fallback staging point is still needed.
+- Wall planning does not reject a route that enters an enemy town perimeter,
+  risking the wall-building villagers.
+- Priests attached to attack groups stand idle instead of healing or converting.
+- Units attack enemy Town Centers without a sufficient force, instead of
+  raiding less-defended outlying resources.
 - Migration has reached a remote island, but passenger retasking and sustained
   resource work after drop-site completion require fresh confirmation.
 - Port collision recovery, Palintonon packed-state recovery, Transport path
@@ -70,6 +83,9 @@ source evidence.
 
 ## Important recent changes
 
+- `2674e7a` (`RAWAI-P3B34`): help-decline replies use taunt 39 instead of the
+  unrelated 42, a relief request needs two same-zone threats, and an AI ignores
+  its own taunt 48 instead of answering its own call for help.
 - `93f78b5` (`RAWAI-P3B33`): a forty-five-second attack-commitment window plus
   a two-unit defense-latch trigger (five land / four naval severe override) stop
   the attack/defend flip-flop; the two naval-timer executors use a distinct
@@ -93,9 +109,11 @@ source evidence.
 
 ## Generated diagnostic artifacts
 
-- Latest full replay report:
+- Latest compact replay report (28/8 crash test):
+  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260828-005137-compact.json`
+- Prior full replay report:
   `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260827-164510-full.json`
-- Latest compact replay report:
+- Prior compact replay report:
   `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260827-164510-compact.json`
 - Replay benchmark knowledge: `replay-benchmarks.json`
 - Unique production audit: `unique-unit-production.json`
@@ -115,33 +133,34 @@ source evidence.
 - Installed test runtime matched all 68 repository runtime files at the SHA-256
   recorded above.
 - Latest analyzed replay:
-  `SP Replay v101.103.48987.0 @2026.08.27 164510.aoe2record`
-- Latest replay SHA-256:
-  `F617D137A8450DE33933193726F327F2353DA64341969721C59DCA35B71C9436`
-- Latest replay duration: 6413 seconds (106:53).
-- Confirmed lobby: Red/Green/Yellow/Purple Roman Empire versus Orange Picts,
-  Cyan Britons, Blue Germani, and Gray Gauls on Britannia.
+  `SP Replay v101.103.48987.0 @2026.08.28 005137.aoe2record`
+- Latest replay duration: 3672 seconds (61:12); the game crashed before a normal
+  end, so no postgame record was decoded. Observations: taunt-42 help replies,
+  an AI answering its own help call, simultaneous ally replies, false help
+  calls, Transports staging at Ports, an attack lift repeatedly loading and
+  unloading, a migration unload with no drop site, idle priests, under-strength
+  Town Center attacks, plus confirmed Legionary production, Battering Ram
+  coordination, and much-improved Transport usage.
 
 ## Next recommended actions
 
 1. Before editing, compare the current Git root, branch, HEAD, and working-tree
    state with the canonical workspace recorded above.
-2. Commit the P3B33 military-stance change set and synchronize the installed
-   test AI, then run a fresh match and verify `RAWAI-P3B33` near startup.
-3. In the fresh replay, confirm the army no longer alternates attack/home-defense
-   on lone raiders, that a real multi-unit raid still latches defense, and that
-   assault Transports board, depart, and land without being recalled by single
-   raiders.
-4. Confirm concrete Legionary MAKE commands or capture the new all-four gate
-   diagnostic, and check that no same-sweep production burst occurs.
-4. Drive one player below 100 wood, observe the 600-resource team request, count
-   the 200-resource donor responses, verify their named recipient, and measure
-   actual net tribute received.
-5. Re-test taunt 69 against a clearly owned structure at the flare and continue
-   through root-cause implementation if visible deletion still fails.
-6. Exercise behind-cliff shore placement and Transport loading, verified trade
-   growth, attack-lift departure/landing, migration resource work, and the late
-   Town Center order-loop scenario.
-7. Analyze the replay with `tools/analyze_replay.py`, update
+2. In the next fresh match, verify `RAWAI-P3B34` and that help declines use
+   taunt 39, relief requests fire only on two-plus threats, and no AI answers
+   its own help call.
+3. Confirm the P3B33 stance behavior: the army no longer alternates
+   attack/home-defense on lone raiders, a real multi-unit raid still latches
+   defense, and assault Transports board, depart, and land without being
+   recalled by single raiders.
+4. Implement a random per-AI taunt-response delay so allies stop answering the
+   same taunt in the same instant.
+5. Add a safe offset-from-Port fallback staging point so idle Transports no
+   longer block fishing/merchant dropoffs when no other ship is 24-plus tiles
+   away.
+6. Continue taunt-69 visible deletion, behind-cliff Shipyard placement,
+   attack-lift load/unload churn, migration drop-site work, idle priests,
+   under-strength Town Center attacks, and the late Town Center order loop.
+7. Analyze the next replay with `tools/analyze_replay.py`, update
    `replay-benchmarks.json`, rerun the complete validation set, synchronize the
    installed test AI, and update this handoff before ending the session.
