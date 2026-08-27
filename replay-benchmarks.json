@@ -1013,6 +1013,86 @@
         "Structural validators can prove state coverage, bounded group IDs, retry timing, and source filters. They cannot prove that the engine honors an asynchronous garrison order or that released passengers continue the intended attack after landing."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260827-103244",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.27 103244.aoe2record",
+        "sha256": "B902C5E8EDD1515D0670D1C6EBBF3760CC40A909752CCF540CDA38F9394692DC",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain",
+        "players": [
+          "p1 Red Roman Empire (team 2)",
+          "p2 Orange Roman Empire (team 2)",
+          "p3 Gray Roman Empire (team 2)",
+          "p4 Yellow Roman Empire (team 2)",
+          "p5 Purple Picts (team 3)",
+          "p6 Cyan Britons (team 3)",
+          "p7 Green Germani (team 3)",
+          "p8 Blue Gauls (team 3)"
+        ],
+        "duration_seconds": 5173,
+        "supporting_files": [
+          "Main.txt sha256 95BB771CA6A507DB1A2AFB2874D5A9E4BEC7D3C02E2393A54874F56DE72FC706",
+          "MainLog.txt sha256 18D4F6AA2AD0DA5C577625C7E50E866AC5E7775E10B4924AED82419B943E5DD7",
+          "Age2CrashReport.txt sha256 068E1E4336C0EDD9685C8688A28070C6B0CA29F43B9BACE41DFE05C210E1CDFD"
+        ]
+      },
+      "direct_replay_observations": [
+        "The replay parsed 435301 actions and lasted 86:13. The DE header reports Extreme difficulty, 400 population, shared exploration, map ID 50, and the exact player/color/civilization mapping in this entry.",
+        "Every player requested exactly three Trade Cogs and zero Trade Carts. Player 1 reported `trade no shared water zone` 76 times, so the three-cog fallback produced ships but no validated trade route.",
+        "The final decoded Villager request totals were p1 245, p2 239, p3 271, p4 197, p5 267, p6 31, p7 124, and p8 241. No decoded transition moved a working 400-population economy toward 100 or more trade units.",
+        "Player 1 repeatedly reported 39 home-zone mine objects, no global resource depletion, zero idle/fisherman migration bucket, and no home-resource-pressure transition. Its migration owner therefore did not treat low accessible gold as a reason to start a resource lift.",
+        "Player 1 emitted 25 naval-opportunity dispatch messages but only about six successful target/ship command pairs, with no successful pair after 55:50. The dispatch messages prove wakeups, not that an eligible vessel or target was commanded.",
+        "The replay contains 845 GUARD actions and large repeated escort-order bursts. All players trained Transport Ships, while the user visually observed Purple and Green utility hulls obstructing Ports and one another.",
+        "Thirty-eight wall actions were decoded: thirty by p3, three by p6, and five by p7. The user visually observed Cyan losing replacement wall builders after its Town Center was gone.",
+        "The replay contains 555 payloadless command-stream ERROR records, but no AI script error dialog or decoded identifier failure. They do not identify the later process crash.",
+        "Age2CrashReport.txt records the crash time but contains no exception code, faulting module, or call stack. MainLog.txt reaches BugSplat at 11:25:31 and contains repeated network-resolution failures throughout the session; chronology alone does not make those failures causal. No crash dump was present under the game directory for this run.",
+        "The user visually observed unpacked Palintonons remaining immobile, no automatic resource migration, idle navies, blocked merchant and transport hulls, and wall-builder attrition. The reported Orange/Gray failure to help Blue/Cyan is not ally-help evidence in this replay because the decoded metadata places those colors on opposing teams."
+      ],
+      "implementation_inferences": [
+        "The three-Trade-Cog fallback was a probe ceiling, not a large-game trade policy. Raising that ceiling without proving an engine `actionid-trade` would create a larger idle fleet and worsen Port congestion.",
+        "The global Gaia depletion goal and a coarse count of every observed mine object in the home land zone did not represent locally usable resource access. Low banked gold is useful only with sustained evidence that no Villager is presently assigned to gold; low bank alone can also mean a healthy economy is spending what it mines.",
+        "Completed utility hulls could remain excluded by a persistent group flag, while successful berth clearance was announced immediately after a move order. Another recovery branch explicitly sent an emptied Transport toward the normally inland home anchor. These paths can explain both Port obstruction and naval assembly at impossible land points.",
+        "The opportunity controller rejected every grouped source ship at both selection and command rebuild. Repeated guard ownership can therefore leave tactically idle ordinary warships invisible, but stealing an arbitrary grouped ship would also violate live escort, scout, screen, or response ownership. Terminal owners must release groups explicitly before opportunity control can safely use those hulls.",
+        "The siege objective group remained persistent after interruption or target loss. If no new enemy building objective was available, the zero-speed unpacked Palintonon had no independent idle recovery path back to its movable packed form.",
+        "The ally-relief implementation can directly dispatch only same-land-zone responders. It now avoids a false promise when none exist, but it has no separate cross-water relief loader; the replay cannot validate a transport-based response to an ally on another island.",
+        "The logs are insufficient to attribute the crash. A ProcDump `.dmp` or Windows Application Error event containing exception code and faulting module is required before any crash fix can be justified."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B29. On RIVERS/ISLANDS/TEAM-ISLANDS only, count one low-gold sample when banked gold is below 200 and no `villager-gold` task is active; latch active-home resource pressure after three consecutive timer re-arms of 45 seconds, and clear the sample history when gold reaches 300 or a gold miner resumes. Mine exhaustion and home-tree pressure remain independent signals.",
+        "Require a live Trade Cart or Trade Cog `actionid-trade` before entering the high-population transition. Unverified endpoint candidates may create no more than three probes. Re-sample as many as 240 merchants every fifteen seconds and cap growth at twice the active-trader count plus three, so one working merchant cannot unlock a blocked fleet. At 400 population, target 100 traders/160 Villagers on a verified route; a sustained local-pressure episode latches the scarce stage at 160 traders/100 Villagers to avoid destructive target oscillation. Retirement is split below ERR6002, requires fewer than two population slots and at least three currently active traders, and deletes at most one idle protected candidate every two seconds; active remote workers are never retirement candidates.",
+        "Give the complete wall and gate classes `up-assign-builders = 0`, require a completed Town Center, at least twenty Villagers, no home-defense state, and the existing danger/backoff gates before issuing either a wall or its gates. This permits the initial builder but prevents an attacked line from consuming replacement Villagers indefinitely.",
+        "Prioritize idle empty Trade Cogs and Transport Ships when clearing a Port or Shipyard, including stale grouped utility hulls. Select another ship at least twenty tiles from the producer and use that ship's exact same-water-zone position rather than an unchecked interpolation across land. Report success only after exact-ID arrival within six tiles; retry twice and report failure instead of looping.",
+        "Route a newly emptied stale Transport through same-water producer staging rather than the inland home anchor, use current-shore unloads for stale-partial quarantine, and exclude idle loaded Transports from ordinary escort acquisition. Stop detached retries after three one-minute attempts in a terminal exact-ID reservation, and allow the migration gate to continue with other empty hulls instead of freezing behind that reservation.",
+        "Keep group ownership protected in both naval opportunity selection and command rebuild. Rename timer telemetry to `naval opportunity wake` so it cannot be mistaken for a completed command; known terminal controllers must release their groups before the opportunity owner may select those ships.",
+        "Release interrupted siege-objective ownership and issue `action-pack` to idle, unthreatened unpacked Palintonons when home defense or the absence of a same-zone objective leaves them stranded. Iterate every enemy for a fortification in the engine's land zone; for a live objective, wait three seconds after the asynchronous pack order, then rebuild and revalidate the exact fortification before issuing group/default.",
+        "Resolve ally help by selecting only a currently attacked allied asset, iterating every enemy, and accepting only a verified hostile beside it; then announce reinforcements only after a positive same-zone responder command. Taunt 48 has no coordinates, so absence of an engine under-attack flag yields an honest rejection. Cross-water ally relief remains a separately recorded missing implementation rather than a claimed fix."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B29 near match start.",
+        "On an aquatic map, when an island economy has gold below 200 and no `villager-gold` task for three timer-separated resource scans despite remaining coarse mine objects, `home resource pressure` is followed by a remote gold/stone selection, a reserved Transport, passenger boarding, a safe landing, and construction of the matching resource drop-off. A live gold miner or gold at 300 clears the low-gold sample history. The mission either succeeds or emits one bounded rejection/quarantine result rather than remaining at the idle gate.",
+        "Three provisional Trade Cogs remain the maximum before route proof. A working merchant emits `merchant route action verified`; growth never exceeds twice the currently trading count plus three and is re-proved about every fifteen seconds. At population 400, the target can reach 100 only through staged live activity; sustained home-resource pressure can raise it to 160 and lower the Villager target to 100. Deletion occurs only below two population headroom with at least three active traders, proceeds no faster than one idle protected Villager per two seconds, never selects an active colony worker, and stops if live proof is lost.",
+        "An idle empty merchant or Transport occupying a Port/Shipyard is moved toward another ship's exact same-water-zone position selected at least twenty tiles from the producer. `port hull staged clear` appears only after exact-ID arrival; two blocked retries produce one `port hull staging failed` result. The stale-empty and stale-partial quarantine branches issue no move or unload toward the inland home anchor; collision behavior at the destination remains a fresh-replay check.",
+        "A wall is not issued with no Town Center, fewer than twenty Villagers, active home defense, or a live wall-danger hold. If the original builder dies or is retasked, no stream of replacement builders is sacrificed to that line; one or more gates remain governed by the existing quarter-progress owner.",
+        "An idle unpacked Palintonon without a valid fortification objective emits `idle Palintonons packed` and changes to its movable packed form. If any enemy owns a same-zone fortification within the bounded search, the enemy iterator selects it; for a live out-of-range objective, `action-pack` is followed by a three-second wait and exact-target revalidation before group/default. An in-range firing or under-attack engine is not packed by the idle recovery rule.",
+        "Naval timer messages are counted as wakes, while `naval opportunity target kind` plus a positive ship count prove commands. Idle ungrouped ordinary warships attack safe loaded Transports, warships, empty Transports, or Fishing Ships in their basin; grouped scouts, escorts, screens, and responders retain their owner until that owner explicitly releases them.",
+        "A same-land-zone ally-help promise is anchored to a currently attacked allied asset, preceded by a positive responder count, and followed by observable movement to the verified hostile. A request with no currently attacked asset or a disconnected ally receives an honest no-reachable-response result until a dedicated cross-water relief owner is implemented.",
+        "A future crash report includes either a ProcDump dump or an Application Error event with exception code and faulting module; without that evidence the crash remains unassigned."
+      ],
+      "known_limits": [
+        "Only p1 serialized detailed self-chat. Other players' route, migration, help, siege, and naval-owner goals cannot be reconstructed from their command requests, so color-specific visual observations require fresh P3B29 telemetry before assigning a private code gate.",
+        "The parser does not expose arbitrary path success, object group identity, producer footprint occupancy, wall-builder replacement decisions, Palintonon packed state over time, resource accessibility, or completed profitable trade. Structural validation cannot substitute for the fresh-match acceptance criteria.",
+        "Map-zone equality proves engine connectivity classification, not safe water routing or an unobstructed berth. The staging controller selects a point occupied by a same-zone ship and validates arrival, but cannot ask the engine for a general collision-free path or prove how several hulls separate around that occupied point.",
+        "A live `actionid-trade` proves current route use, not gold delivery or long-term profitability. Staged growth and frequent re-proof bound this limitation, while a fresh match must confirm actual gold flow.",
+        "Grouped idle warships remain deliberately unavailable to the opportunity owner because the group flag may represent a live escort, screen, scout, or defense contract. A future fix requires explicit stale-owner release, not speculative ownership theft.",
+        "The scarce trade stage is intentionally latched after one sustained local-pressure episode while route proof remains live. This avoids repeated Villager deletion/retraining, but a fresh 400-population replay must test whether recovery to the 100-trader route stage is ever strategically preferable.",
+        "One exact-ID terminal quarantine slot is available. Three failed current-shore unload retries no longer freeze new migration missions, but another simultaneously impossible loaded hull cannot receive independent terminal ownership until the first is recovered or destroyed.",
+        "Cross-water ally relief is not implemented by the direct same-zone taunt owner. Reusing the military attack loader without separate target and passenger ownership would risk stealing an attack mission, so this remains explicit unresolved project work.",
+        "The wall builder setting prevents replacement assignment but does not make an already placed wall site safe. Existing threat suspension and progress backoff remain necessary.",
+        "No crash dump, exception code, faulting module, or call stack was supplied. Network errors in MainLog.txt are concurrent context, not proof of the crash cause."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

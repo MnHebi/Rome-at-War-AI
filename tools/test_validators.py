@@ -632,7 +632,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B27", self.init_goals)
+        self.assertIn("RAWAI-P3B29", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -1164,6 +1164,63 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertEqual(len(probe), 1)
         self.assertIn("trade water source valid: %d", self.economy)
         self.assertIn("trade no shared water zone: %d", self.economy)
+        self.assertIn("object-data-action != actionid-trade", self.economy)
+        self.assertIn("(up-find-local c: trade-cog-class c: 240)", self.economy)
+        self.assertIn("(up-find-local c: trade-cart c: 240)", self.economy)
+        self.assertIn("gl-trade-growth-limit c:* 2", self.economy)
+        self.assertIn("gl-trade-growth-limit c:+ 3", self.economy)
+        transition = matching_rules(
+            self.economy,
+            facts=(
+                "population-cap >= 300",
+                "gl-trade-action-verified YES",
+                "TRADE-TRANSITION-NONE",
+            ),
+            actions=("TRADE-TRANSITION-ROUTE",),
+        )
+        self.assertEqual(len(transition), 1)
+        route_targets = matching_rules(
+            self.economy,
+            facts=("TRADE-TRANSITION-ROUTE",),
+            actions=(
+                "desired-number-villagers g:= gl-fourty-percent",
+                "desired-number-carts g:= gl-twentyfive-percent",
+                "desired-number-cogs g:= gl-twentyfive-percent",
+            ),
+        )
+        scarce_targets = matching_rules(
+            self.economy,
+            facts=("TRADE-TRANSITION-SCARCE",),
+            actions=(
+                "desired-number-villagers g:= gl-twentyfive-percent",
+                "desired-number-carts g:= gl-fourty-percent",
+                "desired-number-cogs g:= gl-fourty-percent",
+            ),
+        )
+        self.assertEqual(len(route_targets), 1)
+        self.assertEqual(len(scarce_targets), 1)
+        retirement_gates = matching_rules(
+            self.economy,
+            facts=(
+                "gl-trade-action-verified YES",
+                "population-headroom < 2",
+                "villager-class g:> desired-number-villagers",
+                "gl-trade-active-count c:>= 3",
+            ),
+            actions=("gl-trade-retirement-state TRADE-RETIRE-SELECT",),
+        )
+        self.assertEqual(len(retirement_gates), 1)
+        retirement_delete = matching_rules(
+            self.economy,
+            facts=(
+                "TRADE-RETIRE-CHECK",
+                "population-headroom < 2",
+                "gl-trade-action-verified YES",
+                "gl-trade-active-count c:>= 3",
+            ),
+            actions=("position-self-x action-delete", "gl-trade-retirement-next c:+ 2"),
+        )
+        self.assertEqual(len(retirement_delete), 1)
 
     def test_taunt_69_proves_a_nearby_owned_structure_before_delete(self) -> None:
         trigger = matching_rules(
@@ -1265,6 +1322,8 @@ class FarmPolicyTests(unittest.TestCase):
     def test_wall_owner_uses_correct_role_and_backs_off(self) -> None:
         self.assertIn("(goal flank-position 1)", self.homebase)
         self.assertIn("object-data-map-zone-id g:!= gl-wall-land-zone", self.homebase)
+        self.assertIn("(up-assign-builders c: wall-class c: 0)", self.homebase)
+        self.assertIn("(up-assign-builders c: gate-class c: 0)", self.homebase)
         self.assertIn("Wall placement no-progress backoff", self.homebase)
         self.assertIn("gl-wall-retries c:>= 3", self.homebase)
         self.assertIn("gl-wall-next c:+ 180", self.homebase)
@@ -1278,6 +1337,9 @@ class FarmPolicyTests(unittest.TestCase):
             self.assertIn("gl-wall-next", facts)
             self.assertIn("gl-wall-retries", facts)
             self.assertIn("gl-wall-danger-until", facts)
+            self.assertIn("building-type-count town-center >= 1", facts)
+            self.assertIn("villager-class >= 20", facts)
+            self.assertIn("gl-home-defense-state NO", facts)
             self.assertIn("gl-wall-next", actions)
 
         self.assertIn("gl-wall-material WALL-MATERIAL-UNSET", self.homebase)
@@ -1295,6 +1357,9 @@ class FarmPolicyTests(unittest.TestCase):
         for _, _, _, facts, actions in gate_builders:
             self.assertIn("gl-wall-gate-next", facts)
             self.assertIn("gl-wall-danger-until", facts)
+            self.assertIn("building-type-count town-center >= 1", facts)
+            self.assertIn("villager-class >= 20", facts)
+            self.assertIn("gl-home-defense-state NO", facts)
             self.assertNotIn("gl-wall-next", facts)
             self.assertIn("gl-wall-gates-issued", actions)
             self.assertIn("gl-wall-gate-next", actions)
@@ -1376,6 +1441,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "up-find-player enemy find-random",
                 "up-get-point position-focus gl-naval-opportunity-source-x",
                 "up-find-local c: scout-galley-line",
+                "object-data-idling != 1",
                 "object-data-action == actionid-explore",
                 "object-data-action == actionid-follow",
                 "object-data-map-zone-id g:== gl-naval-opportunity-rejected-zone",
@@ -1385,6 +1451,7 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(trigger), 1)
+        self.assertIn("object-data-group-flag >= 0", trigger[0][4])
         source = matching_rules(
             self.military,
             facts=(
@@ -1548,7 +1615,7 @@ class FarmPolicyTests(unittest.TestCase):
         naval_dispatches = matching_rules(
             self.military,
             facts=("ATTACK-DISPATCH-NAVAL",),
-            actions=("naval opportunity dispatch: %d",),
+            actions=("naval opportunity wake: %d",),
         )
         self.assertEqual(len(naval_dispatches), 2)
         self.assertTrue(all("(attack-now)" not in rule[4] for rule in naval_dispatches))
@@ -2401,6 +2468,29 @@ class FarmPolicyTests(unittest.TestCase):
     def test_home_resource_pressure_evacuates_assigned_fishermen(self) -> None:
         self.assertIn("home resource pressure: %d", self.military)
         self.assertIn("home trees low: %d", self.military)
+        low_gold = matching_rules(
+            self.military,
+            facts=(
+                "t-home-resource-pressure == timer-triggered",
+                "gold-amount < 200",
+                "unit-type-count villager-gold < 1",
+                "gl-home-low-gold-samples c:< 4",
+            ),
+            actions=("gl-home-low-gold-samples c:+ 1",),
+        )
+        reset_gold = matching_rules(
+            self.military,
+            facts=("t-home-resource-pressure == timer-triggered",),
+            actions=("set-goal gl-home-low-gold-samples 0",),
+        )
+        self.assertEqual(len(low_gold), 1)
+        self.assertEqual(len(reset_gold), 1)
+        pressure = matching_rules(
+            self.military,
+            facts=("gl-home-resource-pressure NO", "gl-home-low-gold-samples c:>= 3"),
+            actions=("set-goal gl-home-resource-pressure YES",),
+        )
+        self.assertEqual(len(pressure), 1)
         civilian_gate = matching_rules(
             self.military,
             facts=(
@@ -2650,14 +2740,26 @@ class FarmPolicyTests(unittest.TestCase):
                 "(up-find-local c: palintonon-packed c: 20)",
             ),
         )
-        grouping = matching_rules(
+        pack_wait = matching_rules(
             self.military,
             facts=("(goal gl-siege-target-state SIEGE-TARGET-FIND-STRUCTURE)",),
             actions=(
                 "(up-find-local c: palintonon c: 20)",
                 "object-data-map-zone-id g:!= gl-siege-target-zone",
+                "action-pack",
+                "SIEGE-TARGET-PACK-WAIT",
+            ),
+        )
+        grouping = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-siege-target-state SIEGE-TARGET-PACK-WAIT)",
+                "t-siege-target == timer-triggered",
+            ),
+            actions=(
+                "up-add-object-by-id search-remote g: gl-siege-target-id",
                 "(up-create-group 0 0 c: siege-objective-group)",
-                "SIEGE-TARGET-COMMAND",
+                "SIEGE-TARGET-PACK-CHECK",
             ),
         )
         command = matching_rules(
@@ -2672,8 +2774,40 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(selection), 1)
+        self.assertEqual(len(pack_wait), 1)
         self.assertEqual(len(grouping), 1)
         self.assertEqual(len(command), 1)
+        self.assertIn("up-find-player enemy find-ordered gl-siege-target-player", self.military)
+        self.assertIn("up-find-next-player enemy find-ordered gl-siege-target-player", self.military)
+        self.assertIn("SIEGE-TARGET-ADVANCE-PLAYER", self.military)
+        self.assertIn("SIEGE-TARGET-NEXT-PLAYER", self.military)
+        idle_pack = matching_rules(
+            self.military,
+            facts=(
+                "gl-siege-target-state SIEGE-TARGET-FALLBACK",
+                "up-set-target-object search-local c: 0",
+            ),
+            actions=(
+                "up-target-objects 1 action-pack",
+                "idle Palintonons packed: %d",
+                "SIEGE-TARGET-IDLE",
+            ),
+        )
+        self.assertEqual(len(idle_pack), 1)
+        idle_pack_selection = matching_rules(
+            self.military,
+            facts=(
+                "t-siege-target == timer-triggered",
+                "unit-type-count-total palintonon >= 1",
+                "players-building-count any-enemy < 1",
+            ),
+            actions=(
+                "up-reset-group c: siege-objective-group",
+                "object-data-idling != 1",
+                "SIEGE-TARGET-FALLBACK",
+            ),
+        )
+        self.assertEqual(len(idle_pack_selection), 1)
 
     def test_completed_farms_are_restaffed_same_zone(self) -> None:
         start = matching_rules(
@@ -3640,9 +3774,12 @@ class FarmPolicyTests(unittest.TestCase):
                 "gl-quarantine-transport-id c:>= 0",
             ),
             actions=(
-                "gl-home-anchor-x action-unload",
+                "position-object point-x",
+                "point-x action-unload",
                 "migration quarantine slot busy: %d",
-                "(set-goal gl-island-migration-state MIGRATION-QUARANTINED)",
+                "(up-modify-group-flag 0 c: migration-transport-group)",
+                "(set-goal gl-island-migration-transport-id -1)",
+                "(set-goal gl-island-migration-state MIGRATION-IDLE)",
             ),
         )
         self.assertEqual(len(slot_busy), 1)
@@ -3670,12 +3807,26 @@ class FarmPolicyTests(unittest.TestCase):
                 "object-data-garrison-count > 0",
             ),
             actions=(
-                "gl-home-anchor-x action-unload",
+                "position-object point-x",
+                "point-x action-unload",
                 "detached quarantine retry: %d",
                 "TRANSPORT-QUARANTINE-IDLE",
             ),
         )
         self.assertEqual(len(detached_retry), 1)
+        terminal_quarantine = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-QUARANTINE-CHECK",
+                "object-data-garrison-count > 0",
+                "gl-quarantine-transport-attempts c:>= 3",
+            ),
+            actions=(
+                "detached quarantine terminal: %d",
+                "TRANSPORT-QUARANTINE-TERMINAL",
+            ),
+        )
+        self.assertEqual(len(terminal_quarantine), 1)
         detached_recovered = matching_rules(
             self.military,
             facts=(
@@ -3729,7 +3880,6 @@ class FarmPolicyTests(unittest.TestCase):
             facts=(
                 "t-island-migration == timer-triggered",
                 "(goal gl-island-migration-state MIGRATION-IDLE)",
-                "gl-quarantine-transport-id c:< 0",
                 "(goal gl-colony-towncenter-state COLONY-TC-IDLE)",
             ),
             actions=(
@@ -3737,6 +3887,7 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(migration_gate), 1)
+        self.assertNotIn("gl-quarantine-transport-id c:< 0", migration_gate[0][3])
         replacement = matching_rules(
             self.economy,
             facts=(
@@ -4041,7 +4192,6 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(stale), 1)
-        self.assertIn("stale transport cleared: %d", self.military)
         self.assertIn("stale transport quarantined: %d", self.military)
         empty_return = matching_rules(
             self.military,
@@ -4053,7 +4203,6 @@ class FarmPolicyTests(unittest.TestCase):
                 "up-filter-distance c: 24 c: -1",
                 "object-data-garrison-count > 0",
                 "object-data-idling != 1",
-                "object-data-group-flag >= 0",
                 "TRANSPORT-CLEAR-EMPTY-FIND",
             ),
         )
@@ -4106,26 +4255,84 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(stage), 1)
-        self.assertIn("empty transport staged clear: %d", self.military)
+        self.assertIn("position-object gl-transport-clear-target-x", self.military)
+        self.assertNotIn("gl-transport-clear-target-x c:* 4", self.military)
+        stale_quarantine = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-CLEAR-STALE-CHECK",
+                "gl-transport-clear-attempts c:>= 2",
+            ),
+            actions=("stale transport quarantined: %d",),
+        )
+        self.assertEqual(len(stale_quarantine), 1)
+        self.assertNotIn("gl-home-anchor-x action-unload", stale_quarantine[0][4])
+        detached_retry = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-QUARANTINE-CHECK",
+                "object-data-garrison-count > 0",
+            ),
+            actions=("detached quarantine retry: %d",),
+        )
+        self.assertEqual(len(detached_retry), 1)
+        self.assertIn("position-object point-x", detached_retry[0][4])
+        self.assertIn("point-x action-unload", detached_retry[0][4])
+        self.assertNotIn("gl-home-anchor-x action-unload", detached_retry[0][4])
+        self.assertIn("port hull staged clear: %d", self.military)
+        self.assertIn("port hull staging failed: %d", self.military)
         self.assertNotIn("empty transport returned to berth: %d", self.military)
-        blocker = matching_rules(
+        utility_blocker = matching_rules(
             self.military,
             facts=("TRANSPORT-CLEAR-ANCHOR",),
+            actions=(
+                "up-find-local c: trade-cog-class",
+                "up-find-local c: transport-ship",
+                "object-data-idling != 1",
+                "object-data-under-attack > 0",
+                "object-data-map-zone-id g:!= gl-transport-clear-water-zone",
+                "TRANSPORT-CLEAR-UTILITY-CHECK",
+            ),
+        )
+        self.assertEqual(len(utility_blocker), 1)
+        self.assertNotIn("object-data-group-flag >= 0", utility_blocker[0][4])
+        fallback_blocker = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-CLEAR-UTILITY-CHECK",
+                "not (up-set-target-object search-local c: 0)",
+            ),
             actions=(
                 "up-find-local c: fishing-ship-class",
                 "up-find-local c: warship-class",
                 "up-find-local c: boarding-ship",
-                "up-find-local c: transport-ship",
-                "object-data-idling != 1",
-                "object-data-under-attack > 0",
                 "object-data-group-flag >= 0",
-                "object-data-map-zone-id g:!= gl-transport-clear-water-zone",
+                "TRANSPORT-CLEAR-DESTINATION",
             ),
         )
-        self.assertEqual(len(blocker), 1)
+        self.assertEqual(len(fallback_blocker), 1)
+        verified_move = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-CLEAR-MOVE-CHECK",
+                "up-set-target-object search-local c: 0",
+            ),
+            actions=(
+                "port hull staged clear: %d",
+                "TRANSPORT-CLEAR-IDLE",
+            ),
+        )
+        self.assertEqual(len(verified_move), 1)
 
     def test_ally_help_announces_only_after_reachable_dispatch(self) -> None:
         self.assertNotIn("I will send whatever troops I can spare", self.taunts)
+        self.assertNotIn("up-find-player enemy find-closest", self.taunts)
+        self.assertIn("up-find-player enemy find-ordered", self.taunts)
+        self.assertIn("up-find-next-player enemy find-ordered", self.taunts)
+        self.assertIn(
+            "up-remove-objects search-remote object-data-under-attack <= 0",
+            self.taunts,
+        )
         self_defense = matching_rules(
             self.taunts,
             facts=(

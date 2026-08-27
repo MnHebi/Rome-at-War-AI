@@ -150,6 +150,9 @@
 	(up-find-remote c: dock c: 20)
 	(up-find-remote c: port c: 20)
 	(up-find-remote c: shipyard c: 20)
+	;Taunt 48 carries no flare or coordinates. Only a currently attacked allied
+	;asset can safely anchor a reinforcement promise; an arbitrary nearest base
+	;object could miss an outlying raid or misdirect help to an unrelated threat.
 	(up-remove-objects search-remote object-data-under-attack <= 0)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-ally-help-state ALLY-HELP-FIND-THREAT)
@@ -161,7 +164,16 @@
 =>
 	(up-get-point position-object gl-ally-help-target-x)
 	(up-get-object-data object-data-map-zone-id gl-ally-help-zone)
-	(up-find-player enemy find-attacker gl-ally-help-enemy-player)
+	;Walk every enemy because find-closest is relative to this AI, not to the
+	;retained attacked allied asset.
+	(up-find-player enemy find-ordered gl-ally-help-enemy-player)
+	(up-modify-goal gl-ally-help-first-enemy g:= gl-ally-help-enemy-player)
+	(set-goal gl-ally-help-state ALLY-HELP-SCAN-THREAT)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-SCAN-THREAT)
+=>
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-enemy-player)
 	(up-full-reset-search)
 	(up-set-target-point gl-ally-help-target-x)
@@ -175,7 +187,46 @@
 	(up-find-remote c: priest c: 10)
 	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-ally-help-zone)
 	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
+	(set-goal gl-ally-help-state ALLY-HELP-CHECK-THREAT)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-CHECK-THREAT)
+	(up-set-target-object search-remote c: 0)
+=>
 	(set-goal gl-ally-help-state ALLY-HELP-FIND-RESPONDERS)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-CHECK-THREAT)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-ally-help-state ALLY-HELP-ADVANCE-THREAT)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-ADVANCE-THREAT)
+=>
+	(up-find-next-player enemy find-ordered gl-ally-help-enemy-player)
+	(set-goal gl-ally-help-state ALLY-HELP-NEXT-THREAT)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-NEXT-THREAT)
+	(up-compare-goal gl-ally-help-enemy-player g:!= gl-ally-help-first-enemy)
+=>
+	(set-goal gl-ally-help-state ALLY-HELP-SCAN-THREAT)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-NEXT-THREAT)
+	(up-compare-goal gl-ally-help-enemy-player g:== gl-ally-help-first-enemy)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
+	(chat-to-allies "42 I cannot verify a reachable attack on that ally.")
+	(set-goal gl-ally-help-player -1)
+	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
 )
 
 (defrule

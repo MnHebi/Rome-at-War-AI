@@ -1063,6 +1063,19 @@
 (defconst gl-ally-help-enemy-player 1091)
 (defconst gl-ally-help-responders 1092)
 (defconst gl-transport-route-load-player 1093)
+(defconst gl-trade-transition 1094)
+(defconst gl-trade-retirement-next 1095)
+(defconst gl-trade-action-verified 1096)
+(defconst gl-transport-clear-target-x 1097)
+(defconst gl-transport-clear-target-y 1098)
+(defconst gl-ally-help-first-enemy 1099)
+(defconst gl-trade-retirement-state 1100)
+(defconst gl-home-low-gold-samples 1101)
+(defconst gl-trade-active-count 1102)
+(defconst gl-trade-growth-limit 1103)
+(defconst gl-siege-target-id 1104)
+(defconst gl-siege-first-player 1105)
+(defconst gl-quarantine-transport-attempts 1106)
 
 ; Goal Values
 
@@ -1308,6 +1321,22 @@
 (defconst TRADE-ROUTE-WATER-NEXT 9)
 (defconst TRADE-ROUTE-LAND-SOURCE 10)
 (defconst TRADE-ROUTE-WATER-VALIDATE-SOURCE 11)
+(defconst TRADE-ROUTE-WATER-PROOF-CHECK 12)
+(defconst TRADE-ROUTE-ACTION-PROOF-CHECK 13)
+
+;A verified merchant route can claim a bounded share of very large games.
+;The scarce stage is deliberately latched only after a probe is actually
+;performing the engine trade action; it is not inferred from map labels.
+(defconst TRADE-TRANSITION-NONE 0)
+(defconst TRADE-TRANSITION-ROUTE 1)
+(defconst TRADE-TRANSITION-SCARCE 2)
+
+;Villager retirement is deliberately split across rule sweeps. This keeps each
+;DUC selection rule below ERR6002 and lets the consumer verify that a candidate
+;exists before issuing the destructive command.
+(defconst TRADE-RETIRE-IDLE 0)
+(defconst TRADE-RETIRE-SELECT-IDLE 1)
+(defconst TRADE-RETIRE-CHECK 3)
 
 ;known same-land-zone enemy and bounded wall-progress scan
 (defconst WALL-SCAN-IDLE 0)
@@ -1429,6 +1458,7 @@
 (defconst MIGRATION-SCOUT-RETRY-LANDING 59)
 (defconst TRANSPORT-QUARANTINE-IDLE 0)
 (defconst TRANSPORT-QUARANTINE-CHECK 1)
+(defconst TRANSPORT-QUARANTINE-TERMINAL 2)
 (defconst BOAR-COMMIT-IDLE 0)
 (defconst BOAR-COMMIT-CHECK-OPENING-SHEEP 1)
 (defconst BOAR-COMMIT-CHECK-LATER-SHEEP 2)
@@ -1543,6 +1573,10 @@
 (defconst SIEGE-TARGET-GROUP 6)
 (defconst SIEGE-TARGET-ESCORT-SELECT 7)
 (defconst SIEGE-TARGET-FALLBACK 8)
+(defconst SIEGE-TARGET-PACK-WAIT 9)
+(defconst SIEGE-TARGET-PACK-CHECK 10)
+(defconst SIEGE-TARGET-ADVANCE-PLAYER 11)
+(defconst SIEGE-TARGET-NEXT-PLAYER 12)
 
 ;post-production Transport Ship clearance
 (defconst TRANSPORT-CLEAR-IDLE 0)
@@ -1555,6 +1589,9 @@
 (defconst TRANSPORT-CLEAR-EMPTY-FIND 7)
 (defconst TRANSPORT-CLEAR-EMPTY-PORT 8)
 (defconst TRANSPORT-CLEAR-EMPTY-STAGE 9)
+(defconst TRANSPORT-CLEAR-UTILITY-CHECK 10)
+(defconst TRANSPORT-CLEAR-MOVE-WAIT 11)
+(defconst TRANSPORT-CLEAR-MOVE-CHECK 12)
 
 ;Ally relief acknowledges a request only after a same-zone response was issued.
 (defconst ALLY-HELP-IDLE 0)
@@ -1562,6 +1599,10 @@
 (defconst ALLY-HELP-FIND-THREAT 2)
 (defconst ALLY-HELP-FIND-RESPONDERS 3)
 (defconst ALLY-HELP-DISPATCH 4)
+(defconst ALLY-HELP-SCAN-THREAT 5)
+(defconst ALLY-HELP-CHECK-THREAT 6)
+(defconst ALLY-HELP-ADVANCE-THREAT 7)
+(defconst ALLY-HELP-NEXT-THREAT 8)
 
 ;adaptive attack escalation state
 (defconst ATTACK-ESCALATION-NORMAL 0)

@@ -317,6 +317,8 @@
 	(set-goal gl-siege-target-state SIEGE-TARGET-IDLE)
 	(set-goal gl-siege-target-focus 0)
 	(set-goal gl-siege-target-player 0)
+	(set-goal gl-siege-target-id -1)
+	(set-goal gl-siege-first-player -1)
 	(set-goal gl-siege-target-zone -1)
 	(set-goal gl-siege-source-id -1)
 	(set-goal gl-siege-source-count 0)
@@ -356,7 +358,7 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B27: %d" c: 27)
+	(up-chat-data-to-self "RAWAI-P3B29: %d" c: 29)
 	(disable-self)
 )
 
@@ -387,7 +389,8 @@
 	(disable-self)
 )
 
-;P3B27 keeps attack-lift and allied-relief ownership out of the already dense
+;P3B29 keeps attack-lift, allied-relief, and verified-trade transition state
+;out of the already dense
 ;startup rules.  The separate initializer also remains safely below ERR6002.
 (defrule
 	(true)
@@ -405,6 +408,16 @@
 	(set-goal gl-ally-help-enemy-player -1)
 	(set-goal gl-ally-help-responders 0)
 	(set-goal gl-transport-route-load-player -1)
+	(set-goal gl-trade-transition TRADE-TRANSITION-NONE)
+	(set-goal gl-trade-retirement-next 0)
+	(set-goal gl-trade-action-verified NO)
+	(set-goal gl-trade-retirement-state TRADE-RETIRE-IDLE)
+	(set-goal gl-trade-active-count 0)
+	(set-goal gl-trade-growth-limit 3)
+	(set-goal gl-quarantine-transport-attempts 0)
+	(set-goal gl-transport-clear-target-x 0)
+	(set-goal gl-transport-clear-target-y 0)
+	(set-goal gl-ally-help-first-enemy -1)
 	(disable-self)
 )
 
@@ -540,6 +553,7 @@
 	(true)
 =>
 	(set-goal gl-home-resource-pressure NO)
+	(set-goal gl-home-low-gold-samples 0)
 	(set-goal gl-home-mine-count 1)
 	(set-goal gl-home-resource-focus 0)
 	(set-goal gl-island-migration-origin-x 0)
