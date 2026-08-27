@@ -1468,8 +1468,11 @@
 	(set-goal desired-number-fishing 5)
 	(set-goal desired-age middle-antiquity-age)
 	(set-goal desired-ageup-villagers 27)
-	(set-goal desired-number-carts 0)
-	(set-goal desired-number-cogs 0)
+	;The route scanner permits only one actually connected modality. Keep a
+	;small Middle-Age team-trade baseline so a prolonged phase-three game does
+	;not spend fifty minutes with completed Markets and Ports but zero trade.
+	(set-goal desired-number-carts 3)
+	(set-goal desired-number-cogs 3)
 	(chat-local-to-self "Phase 3 civilian caps setup.")
 	
 	(disable-self)
@@ -1479,7 +1482,7 @@
 	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 4)
 =>
-	(set-goal desired-military-explorers 2)
+	(set-goal desired-military-explorers 0)
 	(set-goal desired-civilian-explorers 0)
 	(set-goal desired-naval-explorers 2)
 	(up-modify-goal desired-food-gatherers g:= gl-fifteen-percent)
@@ -1500,7 +1503,7 @@
 	(up-compare-goal current-phase g:!= previous-phase)
 	(goal current-phase 5)
 =>
-	(set-goal desired-military-explorers 2)
+	(set-goal desired-military-explorers 0)
 	(set-goal desired-civilian-explorers 0)
 	(set-goal desired-naval-explorers 2)
 	(up-modify-goal desired-food-gatherers g:= gl-fifteen-percent)

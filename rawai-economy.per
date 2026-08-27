@@ -880,6 +880,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-find-local c: transport-ship c: 40)
+	(up-remove-objects search-local object-data-id g:== gl-quarantine-transport-id)
 	(up-remove-objects search-local object-data-garrison-count > 0)
 	(up-remove-objects search-local object-data-idling != 1)
 	(up-remove-objects search-local object-data-under-attack > 0)
@@ -904,9 +905,49 @@
 
 (defrule
 	(or
+		(goal map-type LAKE)
+		(goal map-type RIVERS)
+	)
+	(goal gl-land-target-needs-transport YES)
+	(up-compare-goal gl-available-transport-count g:< gl-transport-required)
+=>
+	(set-goal gl-land-transport-ready NO)
+)
+
+(defrule
+	(or
 		(goal map-type ISLANDS)
 		(goal map-type TEAM-ISLANDS)
 	)
+	(or
+		(nor
+			(goal gl-island-migration-state MIGRATION-IDLE)
+			(goal gl-island-migration-state MIGRATION-QUARANTINED)
+		)
+		(or
+			(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))
+			(or
+				(not (goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE))
+				(or
+					(not (goal gl-relic-ferry-state RELIC-FERRY-IDLE))
+					(or
+						(not (goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE))
+						(not (goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE))
+					)
+				)
+			)
+		)
+	)
+=>
+	(set-goal gl-land-transport-ready NO)
+)
+
+(defrule
+	(or
+		(goal map-type LAKE)
+		(goal map-type RIVERS)
+	)
+	(goal gl-land-target-needs-transport YES)
 	(or
 		(nor
 			(goal gl-island-migration-state MIGRATION-IDLE)
@@ -950,10 +991,53 @@
 )
 
 (defrule
-	(nor
-		(goal map-type ISLANDS)
-		(goal map-type TEAM-ISLANDS)
+	(or
+		(goal map-type LAKE)
+		(goal map-type RIVERS)
 	)
+	(goal gl-land-target-needs-transport YES)
+	(up-compare-goal gl-available-transport-count g:>= gl-transport-required)
+	(or
+		(goal gl-island-migration-state MIGRATION-IDLE)
+		(goal gl-island-migration-state MIGRATION-QUARANTINED)
+	)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
+	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
+	(goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
+=>
+	(set-goal gl-land-transport-ready YES)
+)
+
+(defrule
+	(or
+		(goal map-type LAND)
+		(and
+			(or
+				(goal map-type LAKE)
+				(goal map-type RIVERS)
+			)
+			(goal gl-land-target-needs-transport NO)
+		)
+	)
+=>
+	(set-goal gl-land-transport-ready YES)
+)
+
+;Target connectivity is the final authority. Empty completed hulls are a
+;production budget, not an executing lift: the scripted route owner must board
+;and sail disconnected attacks itself. This override is deliberately after the
+;legacy capacity rules above so generic attack-now cannot consume a cross-water
+;dispatch merely because enough empty Transports exist.
+(defrule
+	(goal gl-land-target-needs-transport YES)
+=>
+	(set-goal gl-land-transport-ready NO)
+)
+
+(defrule
+	(goal gl-land-target-needs-transport NO)
 =>
 	(set-goal gl-land-transport-ready YES)
 )
@@ -968,6 +1052,7 @@
 			(goal map-type TEAM-ISLANDS)
 		)
 	)
+	(up-compare-goal gl-quarantine-transport-id c:< 0)
 	;The authoritative DAT costs are 125 wood for the hull and 100 for either
 	;resource camp. Require the complete 225-wood package when the hull is
 	;requested; the relocation Market bridge continues replenishing wood while
@@ -999,65 +1084,728 @@
 		)
 	)
 	(wood-amount > 160)
+	(up-compare-goal gl-quarantine-transport-id c:< 0)
 	(unit-type-count-total transport-ship g:< gl-transport-required)
 	(can-train transport-ship)
 =>
 	(train transport-ship)
 )
 
+;A detached occupied hull is deliberately unavailable, so it must not satisfy
+;the production ceiling. Build exactly one bounded replacement above the normal
+;full-lift target; the one-slot quarantine makes required+1 a hard ceiling.
 (defrule
+	(current-age >= early-antiquity-age)
 	(or
-		(goal map-type TEAM-ISLANDS)
+		(goal map-type LAKE)
 		(or
-			(goal map-type LAND)
 			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
 		)
 	)
-	(unit-type-count-total trade-cart g:< desired-number-carts)
-	(goal wait-techup-requirements NO)
-	(or	
-		(players-building-type-count any-ally market >= 1)
-		(players-building-type-count any-neutral market >= 1)
+	(up-compare-goal gl-quarantine-transport-id c:>= 0)
+	(or
+		(and
+			(goal gl-home-resource-pressure YES)
+			(wood-amount >= 225)
+		)
+		(and
+			(goal gl-home-resource-pressure NO)
+			(wood-amount > 160)
+		)
 	)
+	(unit-type-count-total transport-ship g:<= gl-transport-required)
+	(can-train transport-ship)
+=>
+	(train transport-ship)
+)
+
+;Team trade modality is selected from actual endpoint reachability, never from
+;the map label alone. Real World Britain is a hybrid RIVERS map: several starts
+;share water while their Markets occupy disconnected land zones.
+(defrule
+	(goal team-game YES)
+	(not (player-in-game any-ally))
+	(or
+		(goal gl-land-trade-route YES)
+		(or
+			(goal gl-water-trade-route YES)
+			(not (goal gl-trade-route-state TRADE-ROUTE-IDLE))
+		)
+	)
+=>
+	(set-goal gl-land-trade-route NO)
+	(set-goal gl-water-trade-route NO)
+	(set-goal gl-trade-action-verified NO)
+	(set-goal gl-trade-active-count 0)
+	(set-goal gl-trade-growth-limit 3)
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+	(up-modify-goal gl-trade-route-next g:= gl-game-time)
+	(up-modify-goal gl-trade-route-next c:+ 60)
+)
+
+;Dock/Port map-zone equality proved insufficient in the 2026-08-27 Britain
+;replay. Once the bounded probes exist, accept water trade only from the
+;engine's live trade action on a merchant hull. This is both a reachability and
+;route-use proof; a merely completed or idle ship does not qualify.
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal team-game YES)
+	(player-in-game any-ally)
+	(goal gl-trade-route-state TRADE-ROUTE-IDLE)
+	(goal gl-land-trade-route NO)
+	(up-compare-goal gl-game-time g:>= gl-trade-route-next)
+	(or
+		(up-compare-goal gl-trade-probe-trained c:>= 1)
+		(goal gl-water-trade-route YES)
+	)
+	(unit-type-count-total trade-cog >= 1)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+=>
+	(up-modify-goal gl-trade-route-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	;The 400-population scarce target is 160 merchants. A 40-object proof list
+	;would hard-cap staged growth at 83 even if every listed ship were trading.
+	(up-find-local c: trade-cog-class c: 240)
+	(up-remove-objects search-local object-data-action != actionid-trade)
+	(up-clean-search search-local object-data-id search-order-asc)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-active-count g:= local-total)
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-PROOF-CHECK)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-PROOF-CHECK)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-map-zone-id gl-trade-water-zone)
+	(set-goal gl-water-trade-route YES)
+	(set-goal gl-trade-action-verified YES)
+	(set-goal gl-trade-route-failures 0)
+	(up-modify-goal gl-trade-growth-limit g:= gl-trade-active-count)
+	(up-modify-goal gl-trade-growth-limit c:* 2)
+	(up-modify-goal gl-trade-growth-limit c:+ 3)
+	(up-chat-data-to-self "merchant route action verified: %d" g: gl-trade-water-zone)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(up-modify-goal gl-trade-route-next g:= gl-game-time)
+	(up-modify-goal gl-trade-route-next c:+ 15)
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-PROOF-CHECK)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(set-goal gl-water-trade-route NO)
+	(set-goal gl-trade-action-verified NO)
+	(set-goal gl-trade-active-count 0)
+	(set-goal gl-trade-growth-limit 3)
+	(up-chat-data-to-self "merchant probes idle: %d" g: gl-trade-probe-trained)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(up-modify-goal gl-trade-route-next g:= gl-game-time)
+	(up-modify-goal gl-trade-route-next c:+ 30)
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+)
+
+;Land endpoint zone equality is also only a candidate route. Require an actual
+;Trade Cart action before a large-population trade transition can retire any
+;villagers. An idle first cart invalidates the candidate and triggers a fresh
+;endpoint scan instead of allowing a stranded fleet to grow.
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal team-game YES)
+	(player-in-game any-ally)
+	(goal gl-trade-route-state TRADE-ROUTE-IDLE)
+	(goal gl-land-trade-route YES)
+	(up-compare-goal gl-game-time g:>= gl-trade-route-next)
+	(unit-type-count-total trade-cart >= 1)
+=>
+	(up-modify-goal gl-trade-route-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-find-local c: trade-cart c: 240)
+	(up-remove-objects search-local object-data-action != actionid-trade)
+	(up-clean-search search-local object-data-id search-order-asc)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-active-count g:= local-total)
+	(set-goal gl-trade-route-state TRADE-ROUTE-ACTION-PROOF-CHECK)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-ACTION-PROOF-CHECK)
+	(up-set-target-object search-local c: 0)
+=>
+	(set-goal gl-trade-action-verified YES)
+	(set-goal gl-trade-route-failures 0)
+	(up-modify-goal gl-trade-growth-limit g:= gl-trade-active-count)
+	(up-modify-goal gl-trade-growth-limit c:* 2)
+	(up-modify-goal gl-trade-growth-limit c:+ 3)
+	(chat-local-to-self "merchant land route action verified")
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(up-modify-goal gl-trade-route-next g:= gl-game-time)
+	(up-modify-goal gl-trade-route-next c:+ 15)
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-ACTION-PROOF-CHECK)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(set-goal gl-land-trade-route NO)
+	(set-goal gl-trade-action-verified NO)
+	(set-goal gl-trade-active-count 0)
+	(set-goal gl-trade-growth-limit 3)
+	(chat-local-to-self "merchant land route idle")
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(up-modify-goal gl-trade-route-next g:= gl-game-time)
+	(up-modify-goal gl-trade-route-next c:+ 30)
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+)
+
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal team-game YES)
+	(player-in-game any-ally)
+	(goal gl-trade-route-state TRADE-ROUTE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-trade-route-next)
+	(goal gl-island-colony-established NO)
+=>
+	(up-modify-goal gl-trade-route-focus s:= sn-focus-player-number)
+	(up-modify-goal gl-trade-land-zone g:= gl-home-zone)
+	(set-goal gl-land-trade-route NO)
+	(set-goal gl-water-trade-route NO)
+	(set-goal gl-trade-action-verified NO)
+	(set-goal gl-trade-active-count 0)
+	(set-goal gl-trade-growth-limit 3)
+	(set-goal gl-trade-own-producer-total 0)
+	(set-goal gl-trade-valid-producer-total 0)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-local c: market c: 20)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-own-producer-total g:= local-total)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-trade-land-zone)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-valid-producer-total g:= local-total)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-SOURCE)
+)
+
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal team-game YES)
+	(player-in-game any-ally)
+	(goal gl-trade-route-state TRADE-ROUTE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-trade-route-next)
+	(goal gl-island-colony-established YES)
+=>
+	(up-modify-goal gl-trade-route-focus s:= sn-focus-player-number)
+	(up-modify-goal gl-trade-land-zone g:= gl-island-colony-zone)
+	(set-goal gl-land-trade-route NO)
+	(set-goal gl-water-trade-route NO)
+	(set-goal gl-trade-action-verified NO)
+	(set-goal gl-trade-active-count 0)
+	(set-goal gl-trade-growth-limit 3)
+	(set-goal gl-trade-own-producer-total 0)
+	(set-goal gl-trade-valid-producer-total 0)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-colony-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-local c: market c: 20)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-own-producer-total g:= local-total)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-trade-land-zone)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-valid-producer-total g:= local-total)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-SOURCE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-SOURCE)
+	(up-set-target-object search-local c: 0)
+	(up-compare-goal gl-trade-valid-producer-total g:== gl-trade-own-producer-total)
+=>
+	(up-find-player ally find-ordered gl-trade-route-player)
+	(up-modify-goal gl-trade-route-first g:= gl-trade-route-player)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-START)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-SOURCE)
+	(or
+		(not (up-set-target-object search-local c: 0))
+		(up-compare-goal gl-trade-valid-producer-total g:!= gl-trade-own-producer-total)
+	)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-local c: dock c: 20)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-own-producer-total g:= local-total)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-SOURCE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-START)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-remote c: market c: 20)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-trade-land-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-goal gl-land-trade-route YES)
+	(set-goal gl-trade-route-failures 0)
+	(up-modify-goal gl-trade-route-next g:= gl-game-time)
+	(up-modify-goal gl-trade-route-next c:+ 90)
+	(up-chat-data-to-self "reachable ally land trade: %d" g: gl-trade-route-player)
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-ADVANCE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-ADVANCE)
+=>
+	(up-find-next-player ally find-ordered gl-trade-route-player)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-NEXT)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-NEXT)
+	(up-compare-goal gl-trade-route-player g:!= gl-trade-route-first)
+=>
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-START)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-NEXT)
+	(up-compare-goal gl-trade-route-player g:== gl-trade-route-first)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-local c: dock c: 20)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-own-producer-total g:= local-total)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-SOURCE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-SOURCE)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-map-zone-id gl-trade-water-zone)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-trade-water-zone)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-valid-producer-total g:= local-total)
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-VALIDATE-SOURCE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-VALIDATE-SOURCE)
+	(up-compare-goal gl-trade-valid-producer-total g:== gl-trade-own-producer-total)
+=>
+	(up-find-player ally find-ordered gl-trade-route-player)
+	(up-modify-goal gl-trade-route-first g:= gl-trade-route-player)
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-START)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-VALIDATE-SOURCE)
+	(up-compare-goal gl-trade-valid-producer-total g:!= gl-trade-own-producer-total)
+=>
+	(up-modify-goal gl-trade-route-failures c:+ 1)
+	(up-chat-data-to-self "trade water source valid: %d" g: gl-trade-valid-producer-total)
+	(up-chat-data-to-self "trade water source total: %d" g: gl-trade-own-producer-total)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(up-modify-goal gl-trade-route-next g:= gl-game-time)
+	(up-modify-goal gl-trade-route-next c:+ 60)
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-SOURCE)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-goal gl-trade-route-failures c:+ 1)
+	(up-chat-data-to-self "trade water source missing: %d" g: gl-trade-route-failures)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(up-modify-goal gl-trade-route-next g:= gl-game-time)
+	(up-modify-goal gl-trade-route-next c:+ 60)
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-START)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-remote c: dock c: 20)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-trade-water-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-CHECK)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-CHECK)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-goal gl-water-trade-route YES)
+	(set-goal gl-trade-route-failures 0)
+	(up-modify-goal gl-trade-route-next g:= gl-game-time)
+	(up-modify-goal gl-trade-route-next c:+ 90)
+	(up-chat-data-to-self "reachable ally water trade: %d" g: gl-trade-route-player)
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-CHECK)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-ADVANCE)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-ADVANCE)
+=>
+	(up-find-next-player ally find-ordered gl-trade-route-player)
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-NEXT)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-NEXT)
+	(up-compare-goal gl-trade-route-player g:!= gl-trade-route-first)
+=>
+	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-START)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-WATER-NEXT)
+	(up-compare-goal gl-trade-route-player g:== gl-trade-route-first)
+=>
+	(up-modify-goal gl-trade-route-failures c:+ 1)
+	(up-chat-data-to-self "trade no shared water zone: %d" g: gl-trade-route-failures)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(up-modify-goal gl-trade-route-next g:= gl-game-time)
+	(up-modify-goal gl-trade-route-next c:+ 60)
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-land-trade-route YES)
+	(goal gl-trade-action-verified YES)
+	(building-type-count market g:== gl-trade-own-producer-total)
+	(unit-type-count-total trade-cart g:< desired-number-carts)
+	(unit-type-count-total trade-cart g:< gl-trade-growth-limit)
+	(goal wait-techup-requirements NO)
 	(can-train trade-cart)
 =>
 	(train trade-cart)
 )
 
 (defrule
+	(goal gl-land-trade-route NO)
+	(goal gl-water-trade-route YES)
+	(goal gl-trade-action-verified YES)
+	(building-type-count dock g:== gl-trade-own-producer-total)
 	(or
 		(goal map-type LAKE)
-		(goal map-type ISLANDS)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
 	)
 	(unit-type-count-total trade-cog g:< desired-number-cogs)
+	(unit-type-count-total trade-cog g:< gl-trade-growth-limit)
 	(goal wait-techup-requirements NO)
 	(wood-amount > 200)
-	(or	
-		(players-building-type-count any-ally dock >= 1)
-		(players-building-type-count any-neutral dock >= 1)
-	)
 	(can-train trade-cog)
 =>
 	(train trade-cog)
 )
 
-;Increase trade carts massively after resources are depleted.
+;Endpoint equality is only a candidate. Permit at most three merchant probes
+;until the engine proves that one is currently executing actionid-trade.
+(defrule
+	(goal gl-land-trade-route YES)
+	(goal gl-trade-action-verified NO)
+	(building-type-count market g:== gl-trade-own-producer-total)
+	(unit-type-count-total trade-cart < 3)
+	(goal wait-techup-requirements NO)
+	(can-train trade-cart)
+=>
+	(train trade-cart)
+)
+
+(defrule
+	(goal gl-land-trade-route NO)
+	(goal gl-water-trade-route YES)
+	(goal gl-trade-action-verified NO)
+	(building-type-count dock g:== gl-trade-own-producer-total)
+	(unit-type-count-total trade-cog < 3)
+	(goal wait-techup-requirements NO)
+	(wood-amount > 200)
+	(can-train trade-cog)
+=>
+	(train trade-cog)
+)
+
+;The engine's generic train command cannot bind a specific Dock. If three full
+;endpoint scans fail on an aquatic team map, allow only a three-ship probe.
+;This converts a silent all-game deadlock into bounded evidence without
+;committing the economy to an unverified route or relaxing the normal source
+;ownership invariant.
+(defrule
+	(goal team-game YES)
+	(player-in-game any-ally)
+	(goal gl-land-trade-route NO)
+	(goal gl-water-trade-route NO)
+	(up-compare-goal gl-trade-route-failures c:>= 3)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(building-type-count dock >= 1)
+	(unit-type-count-total trade-cog < 3)
+	(up-compare-goal gl-trade-probe-trained c:< 3)
+	(goal wait-techup-requirements NO)
+	(wood-amount > 200)
+	(can-train trade-cog)
+=>
+	(train trade-cog)
+	(up-modify-goal gl-trade-probe-trained c:+ 1)
+	(up-chat-data-to-self "bounded trade cog probe: %d" g: gl-trade-route-failures)
+)
+
+;A live route, rather than the global Gaia-depletion flag, owns the large-game
+;trade transition. At 400 population the route stage means 100 traders and 160
+;villagers; sustained local resource pressure raises trade to 160 and retires
+;villagers toward 100. Lower population caps use the same bounded percentages.
+(defrule
+	(current-age == imperial-age)
+	(population-cap >= 300)
+	(game-time >= 1800)
+	(goal gl-trade-transition TRADE-TRANSITION-NONE)
+	(goal gl-trade-action-verified YES)
+	(or
+		(goal gl-land-trade-route YES)
+		(goal gl-water-trade-route YES)
+	)
+=>
+	(set-goal gl-trade-transition TRADE-TRANSITION-ROUTE)
+	(chat-local-to-self "Verified late trade transition")
+)
+
+(defrule
+	(goal gl-trade-transition TRADE-TRANSITION-ROUTE)
+	(or
+		(goal resources-depleted YES)
+		(goal gl-home-resource-pressure YES)
+	)
+=>
+	(set-goal gl-trade-transition TRADE-TRANSITION-SCARCE)
+	(chat-local-to-self "Verified scarce-economy trade transition")
+)
+
+(defrule
+	(goal gl-trade-transition TRADE-TRANSITION-ROUTE)
+=>
+	(up-modify-goal desired-number-villagers g:= gl-fourty-percent)
+	(up-modify-goal desired-depleted-villagers g:= gl-fourty-percent)
+	(up-modify-goal desired-number-carts g:= gl-twentyfive-percent)
+	(up-modify-goal desired-number-cogs g:= gl-twentyfive-percent)
+)
+
+(defrule
+	(goal gl-trade-transition TRADE-TRANSITION-SCARCE)
+=>
+	(up-modify-goal desired-number-villagers g:= gl-twentyfive-percent)
+	(up-modify-goal desired-depleted-villagers g:= gl-twentyfive-percent)
+	(up-modify-goal desired-number-carts g:= gl-fourty-percent)
+	(up-modify-goal desired-number-cogs g:= gl-fourty-percent)
+)
+
+;If the engine ceases performing trade, restore the ordinary Imperial civilian
+;profile before any further retirement. A later live proof may latch it again.
+(defrule
+	(up-compare-goal gl-trade-transition c:> TRADE-TRANSITION-NONE)
+	(or
+		(goal gl-trade-action-verified NO)
+		(and
+			(goal gl-land-trade-route NO)
+			(goal gl-water-trade-route NO)
+		)
+	)
+=>
+	(set-goal gl-trade-transition TRADE-TRANSITION-NONE)
+	(up-modify-goal desired-number-villagers g:= gl-sixty-percent)
+	(up-modify-goal desired-depleted-villagers g:= gl-sixty-percent)
+	(up-modify-goal desired-number-carts g:= gl-ten-percent)
+	(up-modify-goal desired-number-cogs g:= gl-ten-percent)
+)
+
+;Retire at most one safe non-food villager every two seconds, and only at an
+;actual population block. Three currently active traders are the minimum proof
+;that deletion can create useful merchant capacity. Only engine-idle Villagers
+;are eligible: deleting an active faraway worker would preferentially destroy
+;the remote miners and lumberjacks that make island migration useful.
+(defrule
+	(goal gl-trade-retirement-state TRADE-RETIRE-IDLE)
+	(up-compare-goal gl-trade-transition c:> TRADE-TRANSITION-NONE)
+	(up-compare-goal gl-game-time g:>= gl-trade-retirement-next)
+	(up-object-type-count-total c: villager-class g:> desired-number-villagers)
+	(population-headroom < 2)
+	(up-idle-unit-count idle-type-villager >= 1)
+	(goal gl-home-defense-state NO)
+	(goal gl-island-colony-threat NO)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-trade-action-verified YES)
+	(up-compare-goal gl-trade-active-count c:>= 3)
+	(or
+		(goal gl-land-trade-route YES)
+		(goal gl-water-trade-route YES)
+	)
+=>
+	(set-goal gl-trade-retirement-state TRADE-RETIRE-SELECT-IDLE)
+)
+
+(defrule
+	(goal gl-trade-retirement-state TRADE-RETIRE-SELECT-IDLE)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-find-local c: villager-class c: 240)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-language-id == lid-villager-farmer)
+	(up-remove-objects search-local object-data-language-id == lid-villager-fisherman)
+	(up-remove-objects search-local object-data-language-id == lid-villager-shepherd)
+	(up-remove-objects search-local object-data-language-id == lid-villager-forager)
+	(up-remove-objects search-local object-data-language-id == lid-villager-hunter)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-clean-search search-local object-data-distance search-order-desc)
+	(up-remove-objects search-local object-data-index >= 1)
+	(set-goal gl-trade-retirement-state TRADE-RETIRE-CHECK)
+)
+
+(defrule
+	(goal gl-trade-retirement-state TRADE-RETIRE-CHECK)
+	(up-set-target-object search-local c: 0)
+	(population-headroom < 2)
+	(goal gl-trade-action-verified YES)
+	(up-compare-goal gl-trade-active-count c:>= 3)
+=>
+	(up-target-point position-self-x action-delete -1 stance-no-attack)
+	(up-modify-goal gl-trade-retirement-next g:= gl-game-time)
+	(up-modify-goal gl-trade-retirement-next c:+ 2)
+	(set-goal gl-trade-retirement-state TRADE-RETIRE-IDLE)
+)
+
+(defrule
+	(not (goal gl-trade-retirement-state TRADE-RETIRE-IDLE))
+	(or
+		(goal gl-trade-action-verified NO)
+		(population-headroom >= 2)
+	)
+=>
+	(up-modify-goal gl-trade-retirement-next g:= gl-game-time)
+	(up-modify-goal gl-trade-retirement-next c:+ 2)
+	(set-goal gl-trade-retirement-state TRADE-RETIRE-IDLE)
+)
+
+(defrule
+	(goal gl-trade-retirement-state TRADE-RETIRE-CHECK)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-goal gl-trade-retirement-next g:= gl-game-time)
+	(up-modify-goal gl-trade-retirement-next c:+ 2)
+	(set-goal gl-trade-retirement-state TRADE-RETIRE-IDLE)
+)
+
+;Global depletion still raises a route that was already verified in small games.
+;These remain live because a colony can later connect the AI to allies by land.
 (defrule
 	(goal resources-depleted YES)
+	(goal gl-land-trade-route YES)
+	(goal gl-trade-action-verified YES)
 =>
-	(up-modify-goal desired-number-carts g:= gl-thirty-percent)
-	
-	(disable-self)
+	(up-modify-goal desired-number-carts g:= gl-fourty-percent)
+)
+
+(defrule
+	(goal resources-depleted YES)
+	(goal gl-land-trade-route NO)
+	(goal gl-water-trade-route YES)
+	(goal gl-trade-action-verified YES)
+=>
+	(up-modify-goal desired-number-cogs g:= gl-fourty-percent)
 )
 
 ;Cow trainable from Mill due to Pict team bonus
 (defrule
 	(food-amount > 50)
 	(wood-amount > 50)
+	(up-compare-goal gl-pict-cow-requests c:< 4)
 	(unit-type-count-total mill-cow g:< gl-one-percent)
 	(can-train mill-cow)
 =>
 	(train mill-cow)
+	(up-modify-goal gl-pict-cow-requests c:+ 1)
 )
 
 ;Fish traps and sea towers need work before these are useful, atm they just stop villagers from doing construction projects

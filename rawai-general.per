@@ -1,14 +1,40 @@
 (defrule
-	(true)
+	(up-compare-sn sn-number-explore-groups g:!= desired-military-explorers)
 =>
-	(up-modify-sn sn-number-explore-groups g:= desired-military-explorers)
-	(up-modify-sn sn-cap-civilian-explorers g:= desired-civilian-explorers)
-	(up-modify-sn sn-minimum-civilian-explorers g:= desired-civilian-explorers)
+	(up-modify-sn sn-number-explore-groups g:= desired-military-explorers))
+
+(defrule
+	(up-compare-sn sn-cap-civilian-explorers g:!= desired-civilian-explorers)
+=>
+	(up-modify-sn sn-cap-civilian-explorers g:= desired-civilian-explorers))
+
+(defrule
+	(up-compare-sn sn-minimum-civilian-explorers g:!= desired-civilian-explorers)
+=>
+	(up-modify-sn sn-minimum-civilian-explorers g:= desired-civilian-explorers))
+
+(defrule
+	(up-compare-sn sn-number-boat-explore-groups c:!= 0)
+=>
 	;The engine boat-explorer selector has no hull allowlist and can draft siege
 	;ships. A DUC controller in rawai-military owns Scout Ship exploration.
-	(set-strategic-number sn-number-boat-explore-groups 0)
-	(up-modify-sn sn-total-number-explorers g:= desired-military-explorers)
-	(up-modify-sn sn-total-number-explorers g:+ desired-civilian-explorers))
+	(set-strategic-number sn-number-boat-explore-groups 0))
+
+(defrule
+	(up-compare-goal current-phase c:< 4)
+	(up-compare-sn sn-total-number-explorers c:!= 2)
+=>
+	;The engine owns at most two early explorers. Late-phase scouting belongs to
+	;the bounded naval and military DUC controllers instead.
+	(set-strategic-number sn-total-number-explorers 2))
+
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(up-compare-sn sn-total-number-explorers c:!= 0)
+=>
+	;Retire the engine explorer owner after the Middle Age so it cannot alternate
+	;explore and stop orders with attack, defense, or trade controllers.
+	(set-strategic-number sn-total-number-explorers 0))
 
 (defrule
 	(up-compare-goal villager-count <= 0)

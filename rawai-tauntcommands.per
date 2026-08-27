@@ -28,16 +28,292 @@
 
 ;48 "I'm being attacked, please help!"
 (defrule
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(goal gl-home-defense-state NO)
+	(taunt-detected 1 48)
+	(stance-toward 1 ally)
+=>
+	(acknowledge-taunt 1 48)
+	(set-goal gl-ally-help-player 1)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(goal gl-home-defense-state NO)
+	(taunt-detected 2 48)
+	(stance-toward 2 ally)
+=>
+	(acknowledge-taunt 2 48)
+	(set-goal gl-ally-help-player 2)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(goal gl-home-defense-state NO)
+	(taunt-detected 3 48)
+	(stance-toward 3 ally)
+=>
+	(acknowledge-taunt 3 48)
+	(set-goal gl-ally-help-player 3)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(goal gl-home-defense-state NO)
+	(taunt-detected 4 48)
+	(stance-toward 4 ally)
+=>
+	(acknowledge-taunt 4 48)
+	(set-goal gl-ally-help-player 4)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(goal gl-home-defense-state NO)
+	(taunt-detected 5 48)
+	(stance-toward 5 ally)
+=>
+	(acknowledge-taunt 5 48)
+	(set-goal gl-ally-help-player 5)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(goal gl-home-defense-state NO)
+	(taunt-detected 6 48)
+	(stance-toward 6 ally)
+=>
+	(acknowledge-taunt 6 48)
+	(set-goal gl-ally-help-player 6)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(goal gl-home-defense-state NO)
+	(taunt-detected 7 48)
+	(stance-toward 7 ally)
+=>
+	(acknowledge-taunt 7 48)
+	(set-goal gl-ally-help-player 7)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(goal gl-home-defense-state NO)
+	(taunt-detected 8 48)
+	(stance-toward 8 ally)
+=>
+	(acknowledge-taunt 8 48)
+	(set-goal gl-ally-help-player 8)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+)
+
+(defrule
+	(goal gl-home-defense-state YES)
 	(taunt-detected any-ally 48)
-	(military-population > 1)
 =>
 	(acknowledge-taunt this-any-ally 48)
-	(up-modify-sn sn-target-player-number c:= -1)
-	(set-goal land-attack-percentage 90)
-	(up-modify-sn sn-maximum-town-size c:= 120)
-	(attack-now)
-	(up-modify-sn sn-maximum-town-size g:= outer-townsize)
-	(chat-to-allies "39 I will send whatever troops I can spare!")
+	(chat-to-allies "42 I cannot spare troops while my own town is under attack.")
+)
+
+;Resolve the requester's attacked asset and the exact hostile beside it.  The
+;old handler erased the enemy target and announced help before it had selected
+;either a destination or a single responder.
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+	(goal gl-home-defense-state NO)
+=>
+	(up-modify-goal gl-ally-help-focus s:= sn-focus-player-number)
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-player)
+	(up-get-point position-focus gl-ally-help-target-x)
+	(up-full-reset-search)
+	(up-set-target-point gl-ally-help-target-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: villager-class c: 240)
+	(up-find-remote c: town-center c: 20)
+	(up-find-remote c: mining-camp c: 20)
+	(up-find-remote c: lumber-camp c: 20)
+	(up-find-remote c: mill c: 20)
+	(up-find-remote c: market c: 10)
+	(up-find-remote c: barracks c: 10)
+	(up-find-remote c: archery-range c: 10)
+	(up-find-remote c: stable c: 10)
+	(up-find-remote c: siege-workshop c: 10)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: dock c: 20)
+	(up-find-remote c: port c: 20)
+	(up-find-remote c: shipyard c: 20)
+	;Taunt 48 carries no flare or coordinates. Only a currently attacked allied
+	;asset can safely anchor a reinforcement promise; an arbitrary nearest base
+	;object could miss an outlying raid or misdirect help to an unrelated threat.
+	(up-remove-objects search-remote object-data-under-attack <= 0)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-THREAT)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-FIND-THREAT)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-point position-object gl-ally-help-target-x)
+	(up-get-object-data object-data-map-zone-id gl-ally-help-zone)
+	;Walk every enemy because find-closest is relative to this AI, not to the
+	;retained attacked allied asset.
+	(up-find-player enemy find-ordered gl-ally-help-enemy-player)
+	(up-modify-goal gl-ally-help-first-enemy g:= gl-ally-help-enemy-player)
+	(set-goal gl-ally-help-state ALLY-HELP-SCAN-THREAT)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-SCAN-THREAT)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-enemy-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-ally-help-target-x)
+	(up-filter-distance c: -1 c: 32)
+	(up-find-remote c: scout-cavalry-class c: 40)
+	(up-find-remote c: cavalry-archer-class c: 40)
+	(up-find-remote c: cavalry-class c: 40)
+	(up-find-remote c: infantry-class c: 40)
+	(up-find-remote c: archery-class c: 40)
+	(up-find-remote c: siege-weapon-class c: 40)
+	(up-find-remote c: priest c: 10)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-ally-help-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
+	(set-goal gl-ally-help-state ALLY-HELP-CHECK-THREAT)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-CHECK-THREAT)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-RESPONDERS)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-CHECK-THREAT)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-ally-help-state ALLY-HELP-ADVANCE-THREAT)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-ADVANCE-THREAT)
+=>
+	(up-find-next-player enemy find-ordered gl-ally-help-enemy-player)
+	(set-goal gl-ally-help-state ALLY-HELP-NEXT-THREAT)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-NEXT-THREAT)
+	(up-compare-goal gl-ally-help-enemy-player g:!= gl-ally-help-first-enemy)
+=>
+	(set-goal gl-ally-help-state ALLY-HELP-SCAN-THREAT)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-NEXT-THREAT)
+	(up-compare-goal gl-ally-help-enemy-player g:== gl-ally-help-first-enemy)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
+	(chat-to-allies "42 I cannot verify a reachable attack on that ally.")
+	(set-goal gl-ally-help-player -1)
+	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-FIND-THREAT)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
+	(chat-to-allies "42 I cannot verify a reachable attack on that ally.")
+	(set-goal gl-ally-help-player -1)
+	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-FIND-RESPONDERS)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	;Preserve the verified hostile as search-remote while rebuilding own sources.
+	(up-reset-search 1 1 0 0)
+	(up-set-target-point gl-ally-help-target-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-local c: scout-cavalry-class c: 40)
+	(up-find-local c: cavalry-archer-class c: 40)
+	(up-find-local c: cavalry-class c: 40)
+	(up-find-local c: infantry-class c: 40)
+	(up-find-local c: archery-class c: 40)
+	(up-find-local c: siege-weapon-class c: 40)
+	(up-remove-objects search-local object-data-type == palintonon)
+	(up-remove-objects search-local object-data-type == palintonon-packed)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-ally-help-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 12)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ally-help-responders g:= local-total)
+	(set-goal gl-ally-help-state ALLY-HELP-DISPATCH)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-FIND-RESPONDERS)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
+	(chat-to-allies "42 The attacker is no longer at the reported position.")
+	(set-goal gl-ally-help-player -1)
+	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-DISPATCH)
+	(goal gl-home-defense-state NO)
+	(up-compare-goal gl-ally-help-responders c:> 0)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-target-objects 1 action-default -1 stance-aggressive)
+	(up-chat-data-to-self "ally relief responders: %d" g: gl-ally-help-responders)
+	;Only now is the original promise true.
+	(chat-to-allies "39 Reinforcements have been dispatched to the attacked ally.")
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
+	(set-goal gl-ally-help-player -1)
+	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-DISPATCH)
+	(goal gl-home-defense-state NO)
+	(or
+		(up-compare-goal gl-ally-help-responders c:<= 0)
+		(not (up-set-target-object search-remote c: 0))
+	)
+=>
+	(chat-to-allies "42 I have no reachable spare troops for that position.")
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
+	(set-goal gl-ally-help-player -1)
+	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
+)
+
+(defrule
+	(not (goal gl-ally-help-state ALLY-HELP-IDLE))
+	(goal gl-home-defense-state YES)
+=>
+	(chat-to-allies "42 I cannot spare troops while my own town is under attack.")
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
+	(set-goal gl-ally-help-player -1)
+	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
 )
 
 ;52 "Build a market at the flared location."
@@ -48,31 +324,46 @@
 	(acknowledge-taunt this-any-ally 52)
 	(set-goal target-action YES)
 	(set-goal market-flare YES)
+	(up-modify-goal gl-flare-command-deadline g:= gl-game-time)
+	(up-modify-goal gl-flare-command-deadline c:+ 8)
 	(up-jump-rule 1)
 )
 
 (defrule
 	(goal market-flare YES)
 	(goal gl-migration-placement-lock NO)
-	(unit-type-count flare > 0)
+	(cc-players-unit-type-count any-ally flare >= 1)
 	(can-build market)
 =>
-	(up-find-player-flare any-human-ally gl-flared-market-x)
+	(up-find-player-flare any-ally gl-flared-market-x)
 	(up-set-target-point gl-flared-market-x)
 	(up-build place-point 0 c: market)
 	;(set-goal place-flare-market YES)
 	(set-goal market-flare NO)
 	(set-goal target-action NO)
+	(set-goal gl-flare-command-deadline 0)
 	(chat-to-allies "39 Placed the Market you requested.")
 )
 
 (defrule
 	(goal market-flare YES)
-	(unit-type-count flare == 0)
+	(cc-players-unit-type-count any-ally flare <= 0)
 =>
 	(set-goal market-flare NO)
 	(set-goal target-action NO)
+	(set-goal gl-flare-command-deadline 0)
 	(chat-local-to-self "No flare detected to place market")
+)
+
+(defrule
+	(goal target-action YES)
+	(goal market-flare YES)
+	(up-compare-goal gl-game-time g:>= gl-flare-command-deadline)
+=>
+	(set-goal market-flare NO)
+	(set-goal target-action NO)
+	(set-goal gl-flare-command-deadline 0)
+	(chat-local-to-self "Market flare command expired")
 )
 
 ;55 "Build a wall around your town"
@@ -80,10 +371,8 @@
 	(taunt-detected any-ally 55)
 =>
 	(acknowledge-taunt this-any-ally 55)
-	(enable-wall-placement 2)
-	(set-strategic-number sn-gate-type-for-wall 0)
-	(chat-local-to-self "Enable walls, response to taunt")
 	(set-goal taunt-wall YES)
+	(chat-local-to-self "Request walls, response to taunt")
 	(chat-to-allies "39 Very well, I will build a wall around my base.")
 	(disable-self)
 )
@@ -206,9 +495,12 @@
 =>
 	(acknowledge-taunt this-any-ally 69)
 	(chat-to-player-using-id every-ally 22153); "39 At once, sire!"
+	(set-goal gl-delete-flare-id -1)
+	(set-goal gl-delete-flare-candidates 0)
 	(set-goal deletion-flare YES)
 	(set-goal target-action YES)
-	(up-jump-rule 1)
+	(up-modify-goal gl-flare-command-deadline g:= gl-game-time)
+	(up-modify-goal gl-flare-command-deadline c:+ 8)
 )
 	
 (defrule
@@ -216,36 +508,79 @@
 		(goal target-action YES)
 		(goal deletion-flare YES)
 	)
-	(unit-type-count flare > 0)
+	(cc-players-unit-type-count any-ally flare >= 1)
 =>
-	(up-find-player-flare any-human-ally gl-flared-delete-x)
-	(up-set-target-point gl-flared-delete-x)	
-    (up-full-reset-search)
-    (up-filter-distance c: -1 c: 2)
-    (up-find-local c: building-class c: 1)
-    (up-find-local c: tower-class c: 1)
-    (up-find-local c: wall-class c: 1)
-    (up-find-local c: gate-class c: 1)
-    (up-filter-status c: status-pending c: list-active)
-    (up-find-status-local c: building-class c: 1)
-    (up-find-status-local c: tower-class c: 1)
-    (up-find-status-local c: wall-class c: 1)
-    (up-find-status-local c: gate-class c: 1)
-	(up-jump-rule 1)
+	(up-find-player-flare any-ally gl-flared-delete-x)
+	(up-set-target-point gl-flared-delete-x)
+	(up-full-reset-search)
+	;A flare can land beside the center point of a large coastal footprint. Six
+	;tiles remains bounded but is tolerant of Ports, Shipyards, and Forts.
+	(up-filter-distance c: -1 c: 6)
+	(up-find-local c: building-class c: 8)
+	(up-find-local c: tower-class c: 4)
+	(up-find-local c: wall-class c: 4)
+	(up-find-local c: gate-class c: 4)
+	(up-filter-status c: status-pending c: list-active)
+	(up-find-status-local c: building-class c: 8)
+	(up-find-status-local c: tower-class c: 4)
+	(up-find-status-local c: wall-class c: 4)
+	(up-find-status-local c: gate-class c: 4)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 1)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-delete-flare-candidates g:= local-total)
+	(set-goal deletion-flare MAYBE)
 )
 
 (defrule
 	(and
 		(goal target-action YES)
-		(goal deletion-flare YES)
+		(goal deletion-flare MAYBE)
 	)
+	(up-compare-goal gl-delete-flare-candidates c:> 0)
+	(up-set-target-object search-local c: 0)
 =>
-    (up-clean-search search-local object-data-distance search-order-asc)
-    (up-find-local c: all-units-class c: 1)
-    (up-remove-objects search-local object-data-index >= 1)
-    (up-target-point 0 action-delete -1 -1)
-   	(set-goal deletion-flare NO)
+	(up-get-object-data object-data-id gl-delete-flare-id)
+	(up-target-point 0 action-delete -1 -1)
+	(up-chat-data-to-self "taunt 69 deleted structure id: %d" g: gl-delete-flare-id)
+	(set-goal gl-delete-flare-candidates 0)
+	(set-goal gl-delete-flare-id -1)
+	(set-goal deletion-flare NO)
 	(set-goal target-action NO)
+	(set-goal gl-flare-command-deadline 0)
+)
+
+(defrule
+	(and
+		(goal target-action YES)
+		(goal deletion-flare MAYBE)
+	)
+	(up-compare-goal gl-delete-flare-candidates c:> 0)
+	(not (up-set-target-object search-local c: 0))
+=>
+	;The selected foundation can disappear between the search and consumer. Do
+	;not leave taunt 69 permanently owning the shared target-action channel.
+	(up-chat-data-to-self "taunt 69 structure candidate vanished: %d" g: gl-delete-flare-id)
+	(set-goal gl-delete-flare-candidates 0)
+	(set-goal gl-delete-flare-id -1)
+	(set-goal deletion-flare NO)
+	(set-goal target-action NO)
+	(set-goal gl-flare-command-deadline 0)
+)
+
+(defrule
+	(and
+		(goal target-action YES)
+		(goal deletion-flare MAYBE)
+	)
+	(up-compare-goal gl-delete-flare-candidates c:<= 0)
+=>
+	(up-chat-data-to-self "taunt 69 no structure candidates: %d" g: gl-delete-flare-candidates)
+	(set-goal gl-delete-flare-candidates 0)
+	(set-goal gl-delete-flare-id -1)
+	(set-goal deletion-flare NO)
+	(set-goal target-action NO)
+	(set-goal gl-flare-command-deadline 0)
 )
 
 (defrule
@@ -253,11 +588,31 @@
 		(goal target-action YES)
 		(goal deletion-flare YES)
 	)
-	(unit-type-count flare == 0)
+	(cc-players-unit-type-count any-ally flare <= 0)
 =>
 	(set-goal target-action NO)
 	(set-goal deletion-flare NO)
+	(set-goal gl-delete-flare-id -1)
+	(set-goal gl-delete-flare-candidates 0)
+	(set-goal gl-flare-command-deadline 0)
 	(chat-local-to-self "No flare detected for structure deletion")
+)
+
+(defrule
+	(goal target-action YES)
+	(or
+		(goal deletion-flare YES)
+		(goal deletion-flare MAYBE)
+	)
+	(up-compare-goal gl-game-time g:>= gl-flare-command-deadline)
+=>
+	(set-goal target-action NO)
+	(set-goal deletion-flare NO)
+	(set-goal gl-delete-flare-id -1)
+	(set-goal gl-delete-flare-candidates 0)
+	(set-goal gl-flare-command-deadline 0)
+	(up-full-reset-search)
+	(chat-local-to-self "Structure deletion flare command expired")
 )
 
 ;104 "Don't resign!"

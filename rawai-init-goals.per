@@ -317,6 +317,8 @@
 	(set-goal gl-siege-target-state SIEGE-TARGET-IDLE)
 	(set-goal gl-siege-target-focus 0)
 	(set-goal gl-siege-target-player 0)
+	(set-goal gl-siege-target-id -1)
+	(set-goal gl-siege-first-player -1)
 	(set-goal gl-siege-target-zone -1)
 	(set-goal gl-siege-source-id -1)
 	(set-goal gl-siege-source-count 0)
@@ -340,6 +342,7 @@
 	(set-goal gl-naval-siege-target-type -1)
 	(set-goal gl-juggernaut-evasion-zone -1)
 	(set-goal gl-legionary-family-count 0)
+	(set-goal gl-legionary-request-next 0)
 	(set-goal gl-naval-scout-target-x 0)
 	(set-goal gl-naval-scout-target-y 0)
 	(set-goal gl-naval-scout-target-zone -1)
@@ -356,7 +359,112 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B20: %d" c: 20)
+	(up-chat-data-to-self "RAWAI-P3B32: %d" c: 32)
+	(disable-self)
+)
+
+;P3B26 keeps replay-driven threat, scout-novelty, stranded-unit, berth, and
+;trade-fallback state separate from the earlier startup blocks for ERR6002.
+(defrule
+	(true)
+=>
+	(set-goal gl-local-threat-active NO)
+	(set-goal gl-local-threat-until 0)
+	(set-goal gl-wall-danger-until 0)
+	(set-goal gl-island-scout-visited-zone -1)
+	(set-goal gl-island-scout-visited-zone2 -1)
+	(set-goal gl-island-scout-visited-zone3 -1)
+	(set-goal gl-island-scout-player -1)
+	(set-goal gl-island-scout-first -1)
+	(set-goal gl-island-scout-patrol-x 0)
+	(set-goal gl-island-scout-patrol-y 0)
+	(set-goal gl-transport-recovery-zone -1)
+	(set-goal gl-transport-clear-attempts 0)
+	(set-goal gl-trade-route-failures 0)
+	(set-goal gl-transport-recovery-attempts 0)
+	(set-goal gl-transport-recovery-target-zone -1)
+	(set-goal gl-trade-probe-trained 0)
+	(set-goal gl-transport-recovery-landing-zone -1)
+	(set-goal gl-island-scout-zone-rejections 0)
+	(set-goal gl-transport-clear-water-zone -1)
+	(disable-self)
+)
+
+;P3B29 keeps attack-lift, allied-relief, and verified-trade transition state
+;out of the already dense
+;startup rules.  The separate initializer also remains safely below ERR6002.
+(defrule
+	(true)
+=>
+	(set-goal gl-transport-route-script-load NO)
+	(set-goal gl-transport-route-load-target 0)
+	(set-goal gl-transport-route-load-deadline 0)
+	(set-goal gl-transport-route-load-next 0)
+	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
+	(set-goal gl-ally-help-player -1)
+	(set-goal gl-ally-help-focus 0)
+	(set-goal gl-ally-help-target-x 0)
+	(set-goal gl-ally-help-target-y 0)
+	(set-goal gl-ally-help-zone -1)
+	(set-goal gl-ally-help-enemy-player -1)
+	(set-goal gl-ally-help-responders 0)
+	(set-goal gl-transport-route-load-player -1)
+	(set-goal gl-trade-transition TRADE-TRANSITION-NONE)
+	(set-goal gl-trade-retirement-next 0)
+	(set-goal gl-trade-action-verified NO)
+	(set-goal gl-trade-retirement-state TRADE-RETIRE-IDLE)
+	(set-goal gl-trade-active-count 0)
+	(set-goal gl-trade-growth-limit 3)
+	(set-goal gl-quarantine-transport-attempts 0)
+	(set-goal gl-transport-clear-target-x 0)
+	(set-goal gl-transport-clear-target-y 0)
+	(set-goal gl-ally-help-first-enemy -1)
+	(disable-self)
+)
+
+;P3B31 gives cow production, flare commands, and Castle requests independent
+;persistent bounds without enlarging any of the established startup blocks.
+(defrule
+	(true)
+=>
+	(set-goal gl-pict-cow-requests 0)
+	(set-goal gl-flare-command-deadline 0)
+	(set-goal gl-castle-request-next 0)
+	(disable-self)
+)
+
+;P3B26 transport, scout, target-zone, flare, Lumber Camp, and hunting state stay
+;in a separate startup rule so the replay marker and older initializers remain
+;comfortably below ERR6002.
+(defrule
+	(true)
+=>
+	(generate-random-number 4)
+	(up-get-fact random-number 0 gl-naval-scout-leg)
+	(set-goal gl-island-migration-landing-attempts 0)
+	(set-goal gl-delete-flare-candidates 0)
+	(set-goal gl-delete-flare-id -1)
+	(set-goal gl-lumbercamp-worker-count 0)
+	(set-goal gl-lumbercamp-candidate-count 0)
+	(set-goal gl-land-target-scan-state LAND-TARGET-SCAN-IDLE)
+	(set-goal gl-land-target-scan-next 1)
+	(set-goal gl-land-target-scan-focus 0)
+	(set-goal gl-land-target-zone -1)
+	(set-goal gl-land-target-needs-transport YES)
+	(set-goal gl-land-target-scan-player -1)
+	(set-goal gl-land-target-current-player -1)
+	(set-goal gl-quarantine-transport-id -1)
+	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)
+	(set-goal gl-quarantine-transport-next 0)
+	(set-goal gl-quarantine-transport-focus 0)
+	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
+	(set-goal gl-boar-commit-deadline 0)
+	(set-goal gl-boar-lurer-id -1)
+	(set-goal gl-boar-target-id -1)
+	(set-goal gl-boar-commit-focus 0)
+	(set-goal gl-boar-target-x 0)
+	(set-goal gl-boar-target-y 0)
+	(set-goal gl-boar-target-zone -1)
 	(disable-self)
 )
 
@@ -457,6 +565,7 @@
 	(true)
 =>
 	(set-goal gl-home-resource-pressure NO)
+	(set-goal gl-home-low-gold-samples 0)
 	(set-goal gl-home-mine-count 1)
 	(set-goal gl-home-resource-focus 0)
 	(set-goal gl-island-migration-origin-x 0)
@@ -734,7 +843,6 @@
 	(set-goal gl-island-colony-established NO)
 	(set-goal gl-island-migration-utility-blocks 0)
 	(set-goal gl-opening-drop-sites-ready NO)
-	(set-goal gl-opening-mill-requested NO)
 	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
 	(set-goal gl-miningcamp-placement-focus 0)
 	(set-goal gl-miningcamp-target-x 0)
@@ -746,7 +854,108 @@
 	(up-set-timer c: t-market-placement c: 1)
 	(up-set-timer c: t-lumbercamp-placement c: 1)
 	(up-set-timer c: t-miningcamp-placement c: 1)
+	(disable-self)
+)
+
+;The opening Mill has its own discovery and point-placement owner. Keep this
+;initializer separate from the placement initializer to avoid ERR6002.
+(defrule
+	(true)
+=>
+	(set-goal gl-opening-mill-state OPENING-MILL-IDLE)
+	(set-goal gl-opening-mill-requested NO)
+	(set-goal gl-opening-mill-focus 0)
+	(set-goal gl-opening-mill-resource-id -1)
+	(set-goal gl-opening-mill-resource-zone -1)
+	(set-goal gl-opening-mill-target-x 0)
+	(set-goal gl-opening-mill-target-y 0)
+	(set-goal gl-opening-mill-placement-attempts 0)
+	(set-goal gl-opening-mill-candidate-index 0)
+	(set-goal gl-opening-mill-cluster-count 0)
+	(set-goal gl-opening-mill-ally-player -1)
+	(set-goal gl-opening-mill-ally-first -1)
 	(up-set-timer c: t-opening-mill c: 1)
+	(disable-self)
+)
+
+;Crowded-town recovery is a persistent, bounded owner rather than the former
+;age-specific one-tile rules. The first supported pending placement or direct
+;up-can-build failure captures one match-wide cap, so an impossible placement
+;cannot expand the town forever.
+(defrule
+	(true)
+=>
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(set-goal gl-placement-pressure-next 0)
+	(set-goal gl-placement-pressure-cap 0)
+	(set-goal gl-placement-pressure-saturated NO)
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-NONE)
+	(disable-self)
+)
+
+;Trade route and wall posture scanners borrow focus only while producing a
+;search and restore it before another controller can consume the global SN.
+(defrule
+	(true)
+=>
+	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
+	(set-goal gl-trade-route-focus 0)
+	(set-goal gl-trade-route-player -1)
+	(set-goal gl-trade-route-first -1)
+	(set-goal gl-land-trade-route NO)
+	(set-goal gl-water-trade-route NO)
+	(set-goal gl-trade-water-zone -1)
+	(set-goal gl-trade-land-zone -1)
+	(set-goal gl-trade-own-producer-total 0)
+	(set-goal gl-trade-valid-producer-total 0)
+	(set-goal gl-trade-route-next 0)
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(set-goal gl-wall-scan-state WALL-SCAN-IDLE)
+	(set-goal gl-wall-scan-focus 0)
+	(set-goal gl-wall-scan-player -1)
+	(set-goal gl-wall-scan-first -1)
+	(set-goal gl-wall-land-zone -1)
+	(set-goal gl-hostile-land-route NO)
+	(set-goal gl-wall-needed NO)
+	(set-goal gl-wall-next 0)
+	(set-goal gl-wall-last-percent -1)
+	(set-goal gl-wall-retries 0)
+	(set-goal gl-wall-enabled NO)
+	(set-goal gl-wall-scan-next 0)
+	(set-goal gl-wall-material WALL-MATERIAL-UNSET)
+	(set-goal gl-wall-gate-next 0)
+	(set-goal gl-wall-gates-issued 0)
+	(set-goal gl-wall-gate-attempts 0)
+	(disable-self)
+)
+
+;The DAT turns the trained 2513 dummy into the persistent, movable 1815
+;drop-site. Its civ-specific controller initializes here so every terminal path
+;has an explicit deadline and exact object owner.
+(defrule
+	(true)
+=>
+	(set-goal gl-dejbjerg-state DEJBJERG-IDLE)
+	(set-goal gl-dejbjerg-focus 0)
+	(set-goal gl-dejbjerg-id -1)
+	(set-goal gl-dejbjerg-zone -1)
+	(set-goal gl-dejbjerg-worker-id -1)
+	(set-goal gl-dejbjerg-target-x 0)
+	(set-goal gl-dejbjerg-target-y 0)
+	(set-goal gl-dejbjerg-next 30)
+	(set-goal gl-dejbjerg-attempts 0)
+	(set-goal gl-dejbjerg-rejected-id1 -1)
+	(set-goal gl-dejbjerg-rejected-id2 -1)
+	(set-goal gl-dejbjerg-rejected-id3 -1)
+	(set-goal gl-dejbjerg-origin-x 0)
+	(set-goal gl-dejbjerg-origin-y 0)
+	(set-goal gl-dejbjerg-worker-attempts 0)
+	(set-goal gl-dejbjerg-home-distance 0)
 	(disable-self)
 )
 

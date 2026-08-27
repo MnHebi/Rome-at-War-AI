@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "pending_match_setups": [],
   "benchmarks": [
     {
       "id": "britannia-rome-vs-britons-20260824-090234",
@@ -765,6 +766,556 @@
         "The opportunity controller uses a positive light-hull allowlist rather than the broad warship class, so Juggernauts and Octeres cannot be strength-blindly pulled into vessel interception. Other future unique light ships must be added explicitly after their role and data are audited.",
         "The exhausted-basin ring retains three water-zone IDs. It prevents the observed two-basin alternation and reaches a fourth basin, but a map with more than three simultaneously empty, closer basins can eventually revisit an older basin; fresh multi-basin telemetry must determine whether a larger ring is justified.",
         "Multiplexing is an engine-slot constraint. Structural validation proves IDs are in range, while fresh runtime telemetry is still required to prove the mutually exclusive map and route gates prevent ownership collisions."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260826-125406",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.26 125406.aoe2record",
+        "sha256": "0609ADD1C51253736784675313D8A7864D6126F8D3212A9FC27491623C5F4236",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain (user-provided 4v4 test context)",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The full DE header's selected_color and resolved_team_id fields were joined to the command-stream player index by validated player_number, internal color, civilization, and resolved team. Raw resolved teams 2 and 3 are logical teams 1 and 2 respectively.",
+        "duration_seconds": 3795
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and lasted 63:15. No RAWAI-P3B21 marker was decoded, so the exact deployed source is not proven by the recording.",
+        "All eight parser player slots requested Trade Carts (unit 128), for 234 requests total: p1 11, p2 30, p3 11, p4 42, p5 34, p6 62, p7 15, and p8 29. No player requested a Trade Cog (unit 17).",
+        "Player 7 requested four Dejbjerg Wagon production forms (unit 2513) at approximately 10:05, 11:34, 12:15, and 13:13. MAKE records do not reveal the spawned position or the later DAT-owned transformation into persistent form 1815; the user's observation that the transformed wagons remained at the Town Center is therefore recorded as visual match evidence.",
+        "All 117 decoded WALL commands came from p8 Gray Gauls, including 112 between approximately 41:49 and 62:35, matching the user's visual account that Gray walled while Blue and Yellow did not.",
+        "The replay contains 522 empty ERROR action records without a decoded payload or reliable rule attribution. They are not evidence of a particular placement failure or script defect."
+      ],
+      "implementation_inferences": [
+        "Trade mode was selected from broad map labels rather than a reachable teammate route: any allied Market permitted carts, while the RIVERS classification excluded Trade Cogs. That is sufficient to explain universal cart requests and zero cogs on separated Britain land zones.",
+        "The authoritative DAT makes unit 2513 a short-lived transformation dummy and leaves unit 1815 as the persistent movable multi-resource drop-site. The AI had a production owner but no movement owner, so directly commanding exact form 1815 is the least-assumptive correction; an unpack command is neither required nor justified by the data.",
+        "The old generic placement recovery stopped at the configured outer town size and used comparison tokens as strategic-number modification operators. It therefore could not provide a bounded, persistent recovery path for a crowded town, although the replay's payload-free ERROR records cannot identify which structures failed.",
+        "The engine-defined UP-POCKET-POSITION branch was inverted, assigning actual pockets the flank flag and actual flanks the pocket flag. This can explain wall posture being attached to the wrong team roles.",
+        "The old wall owner had no no-progress retry budget. The repeated p8 Gray Gauls WALL stream is consistent with an endlessly reissued placement command."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B23 and initialize separate bounded controllers for placement pressure, teammate trade-route discovery, wall progress and gates, and the Germani Dejbjerg Wagon.",
+        "Cap Dejbjerg production at one until runtime movement is proven. Find exact persistent form 1815, leave it in place only while at least three active gatherers remain nearby and it is at least fourteen tiles from the active home anchor, persist up to three rejected sparse-site IDs while rebuilding shared search state, test at most four same-zone clusters, verify arrival, and back off for two minutes without issuing action-unpack.",
+        "Select trade modality from infrastructure connectivity rather than the map label: require every ready own Market to share the active land zone with an allied Market before training carts; otherwise require every ready own Port to share one water zone with an allied Port before training Trade Cogs. Recheck the live own-producer count at production and allow the water path on RIVERS, ISLANDS, TEAM-ISLANDS, and LAKE maps.",
+        "When an unmanaged placement remains pending for twelve seconds, reset only its retained economy, military, or defense category and expand maximum town size and camp distance by three. Also enter recovery directly from an affordable desired-count deficit when up-can-build is already false and no pending placement can exist; managed Market and Town Center owners retain reset control. Clamp recovery at twenty-four tiles beyond the first captured baseline and switch to a sixty-second diagnostic cadence at the cap.",
+        "Correct UP-POCKET-POSITION handling, let actual flanks and threatened same-zone routes request walling, sample wall completion in twenty-five-percent quarters, allow at most three wall commands without quarter progress, and then back off for three minutes.",
+        "Latch perimeter 2 to its first viable stone or palisade material. Request a matching-material first gate at twenty-five-percent wall completion and an optional second at seventy-five percent, cap ownership at two issued gate commands independent of unrelated global gate counts, and poll unavailable gate spans on a separate bounded deadline that cannot delay the wall owner."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B23 near match start.",
+        "A Germani AI creates no more than one Dejbjerg Wagon deployment; it leaves form 1815 only beside an already useful remote cluster at least fourteen tiles from the active home anchor, or telemetry shows it moving from the Town Center to a same-land-zone cluster of at least three active gatherers and arriving within eight tiles without an unpack or sparse-site loop.",
+        "An AI separated by water from allied Markets does not request Trade Carts solely because an allied Market exists in another land zone. Once all ready own Ports and an allied Port share one water zone, it reports a valid water trade route and requests Trade Cogs; a genuinely same-land-zone Market set still permits carts, while a newly completed producer in another zone immediately blocks production by changing the live count.",
+        "A desired affordable ordinary structure whose up-can-build predicate is false triggers recovery even though no placement is pending; a later persistent unmanaged placement is reset only within its retained category. Construction can complete beyond the former outer-town boundary, never expands more than twenty-four tiles beyond the first captured baseline, and does not reset managed Market, Town Center, Port, Shipyard, Lumber Camp, Mining Camp, Mill, or Farm owners.",
+        "Actual flank players initialize as flanks and receive the flank wall posture. A known same-land-zone enemy route can also request walls, but each no-progress completion quarter produces at most three commands followed by approximately 180 seconds without another wall issue.",
+        "Once a wall has reached twenty-five percent and can-build-gate-with-escrow becomes true, it receives one gate request without waiting for one-hundred-percent completion; once it has reached seventy-five percent and the predicate becomes true again, it receives at most one additional request. If no replaceable span or matching resource is available, telemetry shows three sixty-second checks followed by an approximately 180-second gate-only backoff. Stone lines release only stone escrow, palisade lines release only wood escrow, gate retries do not move the wall deadline, and no unrelated pre-existing gate suppresses this perimeter's bounded requests."
+      ],
+      "known_limits": [
+        "The selected-color-aware DE header resolves the visible player mapping in this entry. It does not expose exact Dejbjerg object positions, transformation completion, transportable building action semantics, successful building placement, gate-slot selection, or trade-path reachability. Every runtime claim in this patch requires a fresh P3B23 match.",
+        "Land-zone equality is stronger evidence than map classification but does not prove that terrain within a zone has no impassable obstruction. Water-zone equality similarly does not prove a Trade Cog's full path is safe or unobstructed. Ordinary train cannot bind an object ID, so production conservatively requires all currently ready own producers to share the validated zone and blocks if their live count changes.",
+        "The wall route scan depends on known enemy structures in the active-home land zone. It cannot infer unseen choke points, and completion-percentage quarters prove engine wall progress rather than strategic enclosure quality."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260826-145623",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.26 145623.aoe2record",
+        "sha256": "A421DDB835D463BAC216CCCE1284D5EB72779A0D73B8457D2DDEF70034F5CBED",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain (user-provided 4v4 test context)",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The full DE header's selected_color and resolved_team_id fields were joined to the command-stream player index by validated player_number, internal color, civilization, and resolved team. Raw resolved teams 2 and 3 are logical teams 1 and 2 respectively.",
+        "duration_seconds": 3247
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors and lasted 54:07. The user identified it as predating the latest changes, and no decoded RAWAI marker proves the exact deployed source.",
+        "Every parser player slot issued exactly one Lumber Camp build command (building 562), all between 00:16 and 00:32; no later Lumber Camp build command was decoded.",
+        "Every player requested both Market and Port infrastructure, but the replay contains zero Trade Cart (unit 128) and zero Trade Cog (unit 17) production requests.",
+        "Every player requested Transport Ships. One recorded scout-ferry sequence aborted empty at 13:02, then boarded at 17:03 and reached a route waypoint at 18:17 without confirming a landing; it entered repeated return retries and alternate-home recovery through 23:07.",
+        "The AI reported eight land-dispatch decisions from 13:42 through 41:11—three town-size releases and five eighty-percent releases—while its military-superiority telemetry remained 3 (superior). The user's match observation was nevertheless high military passivity.",
+        "Only three PATROL actions were decoded across all eight players. The user observed allied Scout Ships converging near Red's University and transported scouts reboarding rather than exploring after unloading.",
+        "Human taunt 69 was decoded at 44:09, 44:31, and 44:48. No replay telemetry proves that a flared structure was selected or deleted; the user observed that the ship-blocking building remained.",
+        "All players reached Middle Antiquity between 14:50 and 19:27, and none reached Imperial Antiquity before the replay ended."
+      ],
+      "implementation_inferences": [
+        "The naval scout owner repeatedly selected a shared farthest Gaia target, so allied scouts could converge on one already-known land object instead of covering different map sectors.",
+        "The ferry owner recalled its Transport before proving the scout had accepted an exploration order, constrained success to a small target radius, and used a water-position hull origin as an unload destination. Together these conditions can explain failed landings, immediate reboarding, and repeated return recovery.",
+        "The RIVERS readiness branch bypassed transport requirements without checking whether the selected enemy target shared the active-home land zone. The eight dispatch messages therefore prove cadence but not that the released army had a reachable target.",
+        "Phase three explicitly held both desired trade counts at zero. The route scanner could establish a valid modality, but no production demand existed to use it.",
+        "The later Lumber Camp selector required workers to be in the exact gather action. Woodcutters walking to trees or returning wood were excluded even when their live same-zone wood target demonstrated a distant usable wood line.",
+        "Taunt 69 jumped past both its selector and consumer, searched only two tiles around the flare, and provided no retained candidate proof before its delete action."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B24 and rotate each reserved Scout Ship through four player-relative map legs on a ninety-second cadence without using a shared Gaia target.",
+        "Keep a transported scout ashore, clear stale boarding orders, issue an explicit patrol fallback when no known natural-resource target exists, and only then release scout ownership and recall the hull.",
+        "Unload Transports toward the active-home land anchor, try four bounded diagonal destination-point attempts at twenty-second intervals, and detach one occupied recovery hull into exact-ID quarantine. Exclude only that hull from readiness, escort, repair, berth clearing, attack, stranded-unit, and relic-ferry selectors; build one bounded replacement above the normal full-lift target; and hold another migration at its idle gate while retrying once per minute until the hull is empty or dead, so placement and unrelated Transport work can resume without creating a second blocked owner.",
+        "Scan a ready building belonging to the current enemy target, latch that player ID independently of military-superiority state, and compare its land zone with the active-home zone. Invalidate readiness immediately if the current target changes; on LAKE or RIVERS maps, require a full or bounded utility lift only for a disconnected target and allow ordinary land readiness for a same-zone target, including opening-rush dispatches.",
+        "Set a three-unit phase-three demand for both Trade Carts and Trade Cogs while preserving the existing route scanner's mutually exclusive same-land-zone Market or same-water-zone Port permission.",
+        "Select later Lumber Camp sites from the position of same-zone wood gatherers regardless of their instantaneous action or return target, validate a nearby tree cluster and the exact accepted foundation, and bind at most two matching workers to it.",
+        "Process taunt 69 without rule jumps, search a six-tile flare radius for owned ready or pending buildings, towers, walls, and gates, retain only the nearest candidate, and delete only after a nonzero candidate and target-object check."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B24 near match start.",
+        "Allied Scout Ships report different rotating route legs over time and do not remain gathered around one allied building or shared Gaia target; each reserved hull remains a Scout Ship rather than a capital vessel.",
+        "A successfully landed scout is explicitly found in the destination land zone, then receives a land patrol or resource-scout order before its Transport returns home and does not immediately reboard. A failed landing tries at most four destination points; one occupied home-return hull remains exact-ID reserved and retries at low frequency until empty or dead, a replacement hull can be trained above the normal lift target, unrelated Transport utilities continue using different hulls, and another migration does not start until quarantine clears.",
+        "A same-land-zone enemy on Real World Britain permits the next eligible land or opening-rush attack, while an enemy on a disconnected land zone reports transport-required state and does not consume an ordinary or rush dispatch without a current-target full lift.",
+        "Once a connected allied Market or Port route exists in phase three, the matching trade unit is requested up to its three-unit baseline; no Trade Cart is requested for a water-disconnected Market route and no Trade Cog is requested without a shared Port water zone.",
+        "After wood workers repeatedly travel beyond the configured camp distance, a later Lumber Camp is requested at a validated same-zone tree cluster and up to two matching wood workers within twelve tiles construct that exact foundation.",
+        "A human /69 flare within six tiles of an owned blocking structure produces exactly one deleted-object-ID message and removes that structure. A flare with no owned structure produces one no-candidate message and deletes no unit.",
+        "A superior army's replay-visible dispatch is followed by actual movement toward a reachable enemy front; if not, the next investigation distinguishes formation ownership and path execution from timer reachability."
+      ],
+      "known_limits": [
+        "The parser does not expose individual AI-owned ship routes, object-level target selection, group membership, garrison-order intent, successful building completion, or the identity of the structure nearest a flare. The user's visual pathing and deletion observations are therefore retained separately from decoded commands.",
+        "The exact source build is not decoded from this replay, and the user states that it predates the latest changes. It is diagnostic evidence only and cannot validate P3B24.",
+        "Map-zone equality proves only engine connectivity classification, not that the generated path is tactically safe or unobstructed. Fresh runtime behavior is required for scout coverage, Transport landing, trade movement, and attack execution.",
+        "A six-tile taunt radius is intentionally bounded. The human must flare near the owned building footprint, and the AI will not fall back to deleting an arbitrary unit when no structure is proven.",
+        "Detached Transport quarantine has one exact-ID slot. Further migration remains paused at the idle gate until that hull becomes empty or is lost; this avoids a second global-owner deadlock but can indefinitely suspend migration if the engine can never find a viable unload path. Placement, defensive response, and unrelated Transport utilities remain available meanwhile."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260826-165259",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.26 165259.aoe2record",
+        "sha256": "6DBDBE2296E218C925999A973D8A2E4C45C78F319568E288C8BEAA19044FDBBE",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The full DE header's selected_color and resolved_team_id fields were joined to the command-stream player index by validated player_number, internal color, civilization, and resolved team. Raw resolved teams 2 and 3 are logical teams 1 and 2 respectively.",
+        "duration_seconds": 3331
+      },
+      "direct_replay_observations": [
+        "The replay parsed 352016 actions and 2865 chat records without command-stream errors and lasted 55:31. The DE header reports Extreme difficulty, 400 population, shared exploration, map ID 50, and the exact player/color/civilization mapping in this entry.",
+        "No RAWAI startup marker was decoded. The match began after the P3B24 commit and before the later P3B25 commit, so P3B24 is consistent with the test chronology but not proven by the recording.",
+        "Orange p5 issued Barracks build requests at 09:05, 29:03, 31:07, 31:27, and 31:44. Orange also requested 42 Spearmen, 22 Pikemen, 27 Scouts, six Rams, six Mangonels, two Priests, and seventeen Transport Ships. These are requests rather than proof that a Barracks or army survived the later attacks, but they disprove the literal match-wide claim that Orange never requested a Barracks or military.",
+        "Orange object 31842 received 53246 AI_ORDER stop records from 25:40 through 55:31, with roughly four thousand records per minute during the largest bursts. Later combat orders also included that object. The stream directly proves a persistent object-order loop but does not expose the object's unit type or the engine reason for rejecting movement.",
+        "No player requested a Trade Cart (unit 128) or Trade Cog (unit 17), although all eight players issued Market and Port build requests.",
+        "The replay's detailed self-chat belongs to p1. Its transported-scout missions began at 21:03, 23:44, and 26:15; the first reported landing zone 3 at 22:44. The historical selector did not record visited zones or reject allied settlements under shared exploration.",
+        "Red p1 emitted land-dispatch telemetry at 32:21 and 45:56 and an age-up dispatch at 45:46, so this replay does not prove universal timer-level passivity. It does not contain equivalent diagnostic state for Orange, Yellow, or Green.",
+        "Red p1 reported partially loaded Transports for sustained intervals, including one at 39:07 and 39:27 and two from 46:51 through 48:11. Orange p5 issued no decoded WALL action, so the visually observed Purple wall-villager losses are separate evidence and are not attributed to Orange's order loop."
+      ],
+      "implementation_inferences": [
+        "The local-response controller latched home defense only when at least one same-zone responder already existed. With zero responders it logged and returned idle, while the ordinary Middle-Antiquity Barracks rule could still require a second Town Center, home defense, or rush state. This circular dependency could prevent recovery after a Barracks and army were destroyed.",
+        "The allied-help request required at least five enemies inside the formal town and did not consume the broader attacked-asset response. An outlying or island attack with zero local defenders could therefore remain silent.",
+        "The scout-ferry selector chose the farthest known Gaia natural object and neither excluded an allied settled land zone nor remembered a successful destination. Shared exploration therefore biased later missions toward already-known teammate land.",
+        "The scout group was released immediately after one patrol order. The persistent p5 order loop cannot be assigned to a scout from the command stream, but the lack of a post-order progress check made a gate or beach obstruction unrecoverable without manual movement.",
+        "The stranded-unit recovery search selected active or already-grouped soldiers, reserved neither passenger nor hull, and returned to loading until a 120-second watchdog published idle after an asynchronous unload command. That ownership gap is sufficient to steal an attack group or recreate load/unload behavior after its task changes.",
+        "Wall placement had retry backoff for construction progress but no threat suspension or builder evacuation. Reissuing a strategically valid wall while its construction site remained occupied could repeatedly expose replacement builders.",
+        "The trade scanner conservatively required every current own producer to inhabit one validated land or water zone. The replay proves a zero-production outcome but does not expose the exact completed endpoint set, so the specific failing route predicate remains unproven."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B26 and initialize separate local-threat, wall-danger, scout-novelty, stranded-recovery, stale-transport, and trade-failure state in a short ERR6002-safe startup block.",
+        "Latch a same-zone local threat for ninety seconds even with zero responders, request allied help on the existing cooldown, and permit one emergency Barracks plus bounded placement expansion independently of age-up escrow and the second-Town-Center opening gate.",
+        "Stop only wall- or gate-building villagers within eighteen tiles of the attacked same-zone point, garrison them only in a ready same-zone Town Center proven at least twelve tiles from that hostile, and prevent new wall or gate commands until the ninety-second danger deadline expires.",
+        "Reject transported-scout candidate zones containing any allied ready building, retain the three most recent allied or successfully scouted land zones, and abort one mission after three allied-zone rejections instead of rotating a fourth zone forever. Hold scout ownership for a fifteen-second progress check; if the scout remains more than twelve tiles from its patrol point, issue one different bounded land move before releasing it.",
+        "Limit stranded recovery to idle, ungrouped, unattacked units on one captured land zone and to an idle, empty, ungrouped hull. Reserve the exact passenger and transport groups, depart with a useful partial load at the deadline, and require a reserved passenger in the intended target land zone before declaring success. Reboard same-zone survivors after a wrong-beach unload, recall a rejected mission, and quarantine a repeatedly failing exact hull.",
+        "Before ordinary Port-berth clearing, detect one idle partial-load Transport whose former task has disappeared, retry local unload twice, return an emptied hull to the active home, or quarantine the exact still-loaded hull. Separately return an idle, empty, ungrouped completed-task hull from a distant shoreline to the nearest ready Port or Shipyard in its exact water zone.",
+        "Count and expose failed water-trade scans. Preserve the all-own-producer route invariant, but after three complete failures on an aquatic team map permit at most three lifetime provisional Trade Cog training requests; losses cannot recreate the probe without a newly validated ordinary route."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B26 near match start.",
+        "When an attacked player has no same-zone military responder and no Barracks, it reports the local-threat hold, asks allies for help once per cooldown, requests an emergency Barracks despite age-up escrow, and later trains a viable response instead of remaining in the zero-responder cycle.",
+        "If wall builders are attacked, nearby wall/gate builders stop and enter a same-zone Town Center only when that anchor is at least twelve tiles from the detected hostile; neither build-wall nor build-gate is reissued for approximately ninety seconds. Construction can resume after the quiet deadline without a stream of replacement-villager deaths.",
+        "A scout candidate on an allied settled zone emits the rejection message and another non-home, non-recent zone is chosen; three allied-zone rejections end that mission with a bounded backoff. A landed scout either reaches the patrol point within fifteen seconds or receives exactly one bounded retry and does not reboard immediately.",
+        "Stranded recovery never claims a non-idle or already-grouped attack unit. Its passenger list remains one land zone, a lost or retasked passenger cannot sustain a load-check loop beyond the deadline, and an empty hull does not count as success unless a reserved passenger is found in the intended target zone. Wrong-zone survivors reboard for bounded retries or the exact hull is quarantined.",
+        "An idle partially loaded Transport is emptied and returned, or emits one quarantine result after the bounded retries. An idle empty completed-task hull more than twenty-four tiles from home moves to a ready same-water-zone Port or Shipyard; a completed attack or dead passenger group does not leave the same hull inert for the rest of the match.",
+        "Each team AI reports either a validated land/water route or explicit failed-scan telemetry. A valid route produces its three-unit phase baseline; after three aquatic scan failures the provisional path issues no more than three Trade Cog train commands across the match even if ships are lost.",
+        "Replay-visible dispatches are followed by actual movement toward a reachable enemy front. If Orange, Yellow, or Green remain passive despite no defense, migration, route, escalation, or force-size blocker, their own P3B26 diagnostic chat is required before changing attack cadence."
+      ],
+      "known_limits": [
+        "Only p1's self-chat exposes detailed AI goals. The command stream records other players' actions but not their local response, route, superiority, or attack-owner state, so the reported passivity of Orange, Yellow, and Green cannot yet be assigned to one code gate.",
+        "BUILD and MAKE commands are requests, not completion evidence. Orange's earlier Barracks and unit requests correct the literal observation but do not prove that usable production infrastructure or responders existed during the later sustained attack.",
+        "Object 31842's order flood is direct evidence, but the replay does not serialize its unit type, group flags, path result, or nearby gate/transport obstruction. P3B26 narrows likely ownership loops; a fresh replay must identify whether the object and symptoms disappear.",
+        "The engine exposes no arbitrary path-safety query and generic train cannot bind a specific Dock. The bounded Trade Cog fallback is capped because structural validation cannot prove which producer receives the order or that the resulting ship finds a profitable ally route.",
+        "Structural validation proves state ownership, filters, bounds, and command domains. It does not prove asynchronous garrison completion, wall-site safety, scout pathability, completed construction, actual trading, or battlefield initiative."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260826-201652",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.26 201652.aoe2record",
+        "sha256": "C9222F91A2D3EFDD1F424C67350A2520EC59CE2109D1A5AF9109F79DD3F4C837",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The full DE header's selected_color and resolved_team_id fields were joined to the command-stream player index by validated player_number, internal color, civilization, and resolved team. Raw resolved teams 2 and 3 are logical teams 1 and 2 respectively.",
+        "duration_seconds": 4085
+      },
+      "direct_replay_observations": [
+        "The replay parsed 3767 chat records and lasted 68:05. The DE header reports Extreme difficulty, 400 population, shared exploration, map ID 50, and the exact player/color/civilization mapping in this entry. No decoded startup marker proves the precise deployed source revision.",
+        "Green p2 and Yellow p3 issued 31 taunt-48 help requests: ten from Green and twenty-one from Yellow. Their teammates emitted 93 promises to send spare troops: Red p1 and Purple p4 each emitted 31, Green p2 emitted 21, and Yellow p3 emitted 10. These records prove requests and acknowledgements, not arrival of assistance.",
+        "Red p1 emitted thirteen land-dispatch and seventeen naval-opportunity-dispatch messages while repeatedly reporting military-superiority 3 (superior). This disproves timer-level passivity, although an eleven-minute land-dispatch gap occurred from 38:51 to 50:14.",
+        "Red reported loaded transports 156 times: 144 reports were zero and only twelve were one. It also reported seven available migration-gate transports while the loaded count remained zero, so completed hull capacity did not become an executing military lift.",
+        "Red issued six `empty transport returned to berth` messages. One of those exact hulls, DUC ID 30541, was later used by the relic ferry and received 77 unload commands from 58:44 through 68:05; during the final forty seconds the repeated order was issued roughly twice per second at the same point.",
+        "At 55:42 Red emitted a naval-opportunity dispatch and refreshed both attack timers, but emitted no land dispatch for the simultaneously expired land channel."
+      ],
+      "implementation_inferences": [
+        "The taunt-48 handler promised help before selecting troops or a relief destination. It set the target player to minus one, changed only the goal copy of the percentage, and called generic attack-now without retaining the requesting ally, attacked point, land zone, or proof of reachable responders.",
+        "The transport-readiness calculation counted empty, ungrouped hulls as a completed lift. Generic attack-now was therefore released against a disconnected target even though the route controller could only act after some other system had already filled a Transport; no script owner performed that military boarding step.",
+        "Completed-task recovery moved an empty Transport directly onto the nearest Port or Shipyard object position, announced success without arrival evidence, and restarted the timer before ordinary berth clearing could run. The clearing selector then considered only Transport Ships and did not require its destination ship to share the berth water zone.",
+        "The relic-ferry watchdog changed RETURN to CHECK and a failed CHECK directly back to RETURN without a timer boundary. That deterministic same-sweep cycle explains the exact repeated-unload command stream.",
+        "When land and naval timers expired together, the naval owner won the global dispatch but did not preserve the unserved land channel. The timer loader later restarted the still-triggered land timer for a full interval, explaining the observed collision at 55:42."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B27 and initialize separate scripted attack-lift and ally-relief state in an ERR6002-safe startup rule.",
+        "Resolve taunt 48 to one exact requesting player, find an actually attacked allied asset and same-zone hostile, select at most twelve reachable unreserved own responders in that land zone, and announce reinforcements only after issuing the direct attack order. Report an honest inability when no threat or responder is reachable, or when home defense takes priority.",
+        "When the selected enemy is across water and no already loaded Transport exists, reserve one empty exact hull and a migration-exclusive passenger group, select a full bounded group of eligible home-zone soldiers, reissue interrupted boarding at four-second intervals, and retain exact ownership through recovery if loading aborts. Revalidate the latched enemy before sailing; then hand a full valid lift to the screened route controller, task landed passengers toward the observed enemy anchor, and withdraw the hull.",
+        "Stage a distant empty Transport at another same-water-zone ship position twenty-four to forty tiles from its Port or Shipyard instead of moving onto the production footprint or repeatedly reacquiring the same hull. Scan both Ports and Shipyards and clear any idle, empty, ungrouped, unattacked fishing, trade, war, boarding, or transport hull to a destination in the same validated basin.",
+        "Put a thirty-second timer boundary between relic-ferry watchdog retries, increment the bounded retry count once per new unload command, and preserve a simultaneously unserved land attack on a twenty-second retry when naval dispatch owns the collision."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B27 near match start.",
+        "A taunt-48 requester receives the reinforcement promise only when telemetry reports a positive `ally relief responders` count and those same-zone troops move toward the verified hostile beside the attacked allied asset. A disconnected or empty response reports inability without a false promise.",
+        "Against a disconnected enemy, `attack lift boarding target` is followed by either one full `attack lift ready` and a screened voyage or one bounded abort after approximately thirty seconds. No underfilled lift departs, retasked passengers receive at most one boarding refresh per four seconds, and a successful landing produces an aggressive passenger order plus `attack lift landed` telemetry.",
+        "No completed empty hull is ordered onto a Port or Shipyard footprint. `empty transport staged clear` uses a same-water-zone ship position at least twenty-four tiles from the producer, and an idle unreserved Fishing Ship, Trade Cog, warship, Boarding Ship, or Transport near either producer type is moved to a same-basin destination.",
+        "The same relic-ferry hull receives no more than one unload command per thirty-second watchdog deadline and exits or aborts after the bounded attempts rather than producing a per-sweep command stream.",
+        "If both attack timers expire together, the naval action is followed by an eligible land retry in roughly twenty seconds rather than a full normal land interval. Red's cross-water dispatch telemetry is followed by a nonzero loaded-transport report and observable landing or a specific bounded safety rejection."
+      ],
+      "known_limits": [
+        "Only Red p1 serialized detailed self-chat. The command stream does not expose the private help, route, or military state of the other seven AIs, so their individual passivity and Port obstruction causes require fresh P3B27 telemetry.",
+        "The parser proves taunts, promises, dispatch messages, and command issuance but not troop arrival, path reachability, garrison completion, production-footprint clearance, or tactical effectiveness. Those remain fresh-match acceptance criteria.",
+        "Map-zone equality proves engine connectivity classification, not a safe unobstructed path. The military lift retains the existing route-screen and known-fortification rejection logic; unseen defenses can still invalidate a voyage.",
+        "The scripted attack loader deliberately owns one Transport at a time so route screening and retreat remain exact-ID bounded. Fresh tests must determine whether serial full lifts provide enough throughput before safely expanding to coordinated multi-hull ownership.",
+        "Structural validators can prove state coverage, bounded group IDs, retry timing, and source filters. They cannot prove that the engine honors an asynchronous garrison order or that released passengers continue the intended attack after landing."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260827-103244",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.27 103244.aoe2record",
+        "sha256": "B902C5E8EDD1515D0670D1C6EBBF3760CC40A909752CCF540CDA38F9394692DC",
+        "game_build": "101.103.48987.0",
+        "map": "Real World Britain",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "user-verified-match-setup",
+        "team_mapping_note": "User correction on 2026-08-27 established the visible setup in this entry. The corrected full-header extraction independently matches it by joining selected_color and resolved_team_id to the command-stream player_number; the former color_id export was an internal nonvisual color field.",
+        "duration_seconds": 5173,
+        "supporting_files": [
+          "Main.txt sha256 95BB771CA6A507DB1A2AFB2874D5A9E4BEC7D3C02E2393A54874F56DE72FC706",
+          "MainLog.txt sha256 18D4F6AA2AD0DA5C577625C7E50E866AC5E7775E10B4924AED82419B943E5DD7",
+          "Age2CrashReport.txt sha256 068E1E4336C0EDD9685C8688A28070C6B0CA29F43B9BACE41DFE05C210E1CDFD"
+        ]
+      },
+      "direct_replay_observations": [
+        "The replay parsed 435301 actions and lasted 86:13. The DE header reports Extreme difficulty, 400 population, shared exploration, map ID 50, and selected_color plus resolved_team_id exactly matching the user-verified player mapping in this entry.",
+        "Every player requested exactly three Trade Cogs and zero Trade Carts. Player 1 reported `trade no shared water zone` 76 times, so the three-cog fallback produced ships but no validated trade route.",
+        "The final decoded Villager request totals were p1 245, p2 239, p3 271, p4 197, p5 267, p6 31, p7 124, and p8 241. No decoded transition moved a working 400-population economy toward 100 or more trade units.",
+        "Player 1 repeatedly reported 39 home-zone mine objects, no global resource depletion, zero idle/fisherman migration bucket, and no home-resource-pressure transition. Its migration owner therefore did not treat low accessible gold as a reason to start a resource lift.",
+        "Player 1 emitted 25 naval-opportunity dispatch messages but only about six successful target/ship command pairs, with no successful pair after 55:50. The dispatch messages prove wakeups, not that an eligible vessel or target was commanded.",
+        "The replay contains 845 GUARD actions and large repeated escort-order bursts. All players trained Transport Ships, while the user visually observed Purple and Green utility hulls obstructing Ports and one another.",
+        "Thirty-eight wall actions were decoded: thirty by p3, three by p6, and five by p7. The user visually observed Cyan losing replacement wall builders after its Town Center was gone.",
+        "The replay contains 555 payloadless command-stream ERROR records, but no AI script error dialog or decoded identifier failure. They do not identify the later process crash.",
+        "Age2CrashReport.txt records the crash time but contains no exception code, faulting module, or call stack. MainLog.txt reaches BugSplat at 11:25:31 and contains repeated network-resolution failures throughout the session; chronology alone does not make those failures causal. No crash dump was present under the game directory for this run.",
+        "The user visually observed unpacked Palintonons remaining immobile, no automatic resource migration, idle navies, blocked merchant and transport hulls, and wall-builder attrition. The user-verified setup places Orange, Gray, Blue, and Cyan together on team 2, so Orange and Gray failing to help Blue or Cyan is valid ally-help evidence; the replay still does not expose their private route or responder state."
+      ],
+      "implementation_inferences": [
+        "The three-Trade-Cog fallback was a probe ceiling, not a large-game trade policy. Raising that ceiling without proving an engine `actionid-trade` would create a larger idle fleet and worsen Port congestion.",
+        "The global Gaia depletion goal and a coarse count of every observed mine object in the home land zone did not represent locally usable resource access. Low banked gold is useful only with sustained evidence that no Villager is presently assigned to gold; low bank alone can also mean a healthy economy is spending what it mines.",
+        "Completed utility hulls could remain excluded by a persistent group flag, while successful berth clearance was announced immediately after a move order. Another recovery branch explicitly sent an emptied Transport toward the normally inland home anchor. These paths can explain both Port obstruction and naval assembly at impossible land points.",
+        "The opportunity controller rejected every grouped source ship at both selection and command rebuild. Repeated guard ownership can therefore leave tactically idle ordinary warships invisible, but stealing an arbitrary grouped ship would also violate live escort, scout, screen, or response ownership. Terminal owners must release groups explicitly before opportunity control can safely use those hulls.",
+        "The siege objective group remained persistent after interruption or target loss. If no new enemy building objective was available, the zero-speed unpacked Palintonon had no independent idle recovery path back to its movable packed form.",
+        "The ally-relief implementation can directly dispatch only same-land-zone responders. It now avoids a false promise when none exist, but it has no separate cross-water relief loader; the replay cannot validate a transport-based response to an ally on another island.",
+        "The logs are insufficient to attribute the crash. A ProcDump `.dmp` or Windows Application Error event containing exception code and faulting module is required before any crash fix can be justified."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B29. On RIVERS/ISLANDS/TEAM-ISLANDS only, count one low-gold sample when banked gold is below 200 and no `villager-gold` task is active; latch active-home resource pressure after three consecutive timer re-arms of 45 seconds, and clear the sample history when gold reaches 300 or a gold miner resumes. Mine exhaustion and home-tree pressure remain independent signals.",
+        "Require a live Trade Cart or Trade Cog `actionid-trade` before entering the high-population transition. Unverified endpoint candidates may create no more than three probes. Re-sample as many as 240 merchants every fifteen seconds and cap growth at twice the active-trader count plus three, so one working merchant cannot unlock a blocked fleet. At 400 population, target 100 traders/160 Villagers on a verified route; a sustained local-pressure episode latches the scarce stage at 160 traders/100 Villagers to avoid destructive target oscillation. Retirement is split below ERR6002, requires fewer than two population slots and at least three currently active traders, and deletes at most one idle protected candidate every two seconds; active remote workers are never retirement candidates.",
+        "Give the complete wall and gate classes `up-assign-builders = 0`, require a completed Town Center, at least twenty Villagers, no home-defense state, and the existing danger/backoff gates before issuing either a wall or its gates. This permits the initial builder but prevents an attacked line from consuming replacement Villagers indefinitely.",
+        "Prioritize idle empty Trade Cogs and Transport Ships when clearing a Port or Shipyard, including stale grouped utility hulls. Select another ship at least twenty tiles from the producer and use that ship's exact same-water-zone position rather than an unchecked interpolation across land. Report success only after exact-ID arrival within six tiles; retry twice and report failure instead of looping.",
+        "Route a newly emptied stale Transport through same-water producer staging rather than the inland home anchor, use current-shore unloads for stale-partial quarantine, and exclude idle loaded Transports from ordinary escort acquisition. Stop detached retries after three one-minute attempts in a terminal exact-ID reservation, and allow the migration gate to continue with other empty hulls instead of freezing behind that reservation.",
+        "Keep group ownership protected in both naval opportunity selection and command rebuild. Rename timer telemetry to `naval opportunity wake` so it cannot be mistaken for a completed command; known terminal controllers must release their groups before the opportunity owner may select those ships.",
+        "Release interrupted siege-objective ownership and issue `action-pack` to idle, unthreatened unpacked Palintonons when home defense or the absence of a same-zone objective leaves them stranded. Iterate every enemy for a fortification in the engine's land zone; for a live objective, wait three seconds after the asynchronous pack order, then rebuild and revalidate the exact fortification before issuing group/default.",
+        "Resolve ally help by selecting only a currently attacked allied asset, iterating every enemy, and accepting only a verified hostile beside it; then announce reinforcements only after a positive same-zone responder command. Taunt 48 has no coordinates, so absence of an engine under-attack flag yields an honest rejection. Cross-water ally relief remains a separately recorded missing implementation rather than a claimed fix."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports identical runtime files and replay chat contains RAWAI-P3B29 near match start.",
+        "On an aquatic map, when an island economy has gold below 200 and no `villager-gold` task for three timer-separated resource scans despite remaining coarse mine objects, `home resource pressure` is followed by a remote gold/stone selection, a reserved Transport, passenger boarding, a safe landing, and construction of the matching resource drop-off. A live gold miner or gold at 300 clears the low-gold sample history. The mission either succeeds or emits one bounded rejection/quarantine result rather than remaining at the idle gate.",
+        "Three provisional Trade Cogs remain the maximum before route proof. A working merchant emits `merchant route action verified`; growth never exceeds twice the currently trading count plus three and is re-proved about every fifteen seconds. At population 400, the target can reach 100 only through staged live activity; sustained home-resource pressure can raise it to 160 and lower the Villager target to 100. Deletion occurs only below two population headroom with at least three active traders, proceeds no faster than one idle protected Villager per two seconds, never selects an active colony worker, and stops if live proof is lost.",
+        "An idle empty merchant or Transport occupying a Port/Shipyard is moved toward another ship's exact same-water-zone position selected at least twenty tiles from the producer. `port hull staged clear` appears only after exact-ID arrival; two blocked retries produce one `port hull staging failed` result. The stale-empty and stale-partial quarantine branches issue no move or unload toward the inland home anchor; collision behavior at the destination remains a fresh-replay check.",
+        "A wall is not issued with no Town Center, fewer than twenty Villagers, active home defense, or a live wall-danger hold. If the original builder dies or is retasked, no stream of replacement builders is sacrificed to that line; one or more gates remain governed by the existing quarter-progress owner.",
+        "An idle unpacked Palintonon without a valid fortification objective emits `idle Palintonons packed` and changes to its movable packed form. If any enemy owns a same-zone fortification within the bounded search, the enemy iterator selects it; for a live out-of-range objective, `action-pack` is followed by a three-second wait and exact-target revalidation before group/default. An in-range firing or under-attack engine is not packed by the idle recovery rule.",
+        "Naval timer messages are counted as wakes, while `naval opportunity target kind` plus a positive ship count prove commands. Idle ungrouped ordinary warships attack safe loaded Transports, warships, empty Transports, or Fishing Ships in their basin; grouped scouts, escorts, screens, and responders retain their owner until that owner explicitly releases them.",
+        "A same-land-zone ally-help promise is anchored to a currently attacked allied asset, preceded by a positive responder count, and followed by observable movement to the verified hostile. A request with no currently attacked asset or a disconnected ally receives an honest no-reachable-response result until a dedicated cross-water relief owner is implemented.",
+        "A future crash report includes either a ProcDump dump or an Application Error event with exception code and faulting module; without that evidence the crash remains unassigned."
+      ],
+      "known_limits": [
+        "Only p1 serialized detailed self-chat. Other players' route, migration, help, siege, and naval-owner goals cannot be reconstructed from their command requests, so color-specific visual observations require fresh P3B29 telemetry before assigning a private code gate.",
+        "The corrected extractor exposes selected_team_id and resolved_team_id separately and validates resolved team against the fast header before assigning a visible color. The former fast team_id value was the resolved-team byte and the former color_id was an internal nonvisual field; consumers must not restore those ambiguous labels.",
+        "The parser does not expose arbitrary path success, object group identity, producer footprint occupancy, wall-builder replacement decisions, Palintonon packed state over time, resource accessibility, or completed profitable trade. Structural validation cannot substitute for the fresh-match acceptance criteria.",
+        "Map-zone equality proves engine connectivity classification, not safe water routing or an unobstructed berth. The staging controller selects a point occupied by a same-zone ship and validates arrival, but cannot ask the engine for a general collision-free path or prove how several hulls separate around that occupied point.",
+        "A live `actionid-trade` proves current route use, not gold delivery or long-term profitability. Staged growth and frequent re-proof bound this limitation, while a fresh match must confirm actual gold flow.",
+        "Grouped idle warships remain deliberately unavailable to the opportunity owner because the group flag may represent a live escort, screen, scout, or defense contract. A future fix requires explicit stale-owner release, not speculative ownership theft.",
+        "The scarce trade stage is intentionally latched after one sustained local-pressure episode while route proof remains live. This avoids repeated Villager deletion/retraining, but a fresh 400-population replay must test whether recovery to the 100-trader route stage is ever strategically preferable.",
+        "One exact-ID terminal quarantine slot is available. Three failed current-shore unload retries no longer freeze new migration missions, but another simultaneously impossible loaded hull cannot receive independent terminal ownership until the first is recovered or destroyed.",
+        "Cross-water ally relief is not implemented by the direct same-zone taunt owner. Reusing the military attack loader without separate target and passenger ownership would risk stealing an attack mission, so this remains explicit unresolved project work.",
+        "The wall builder setting prevents replacement assignment but does not make an already placed wall site safe. Existing threat suspension and progress backoff remain necessary.",
+        "No crash dump, exception code, faulting module, or call stack was supplied. Network errors in MainLog.txt are concurrent context, not proof of the crash cause."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260827-125840",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.27 125840.aoe2record",
+        "sha256": "70418EF971CC1D231DF56D6E606B20082680EE0AC4363DE7B8EB0A32C9735AB5",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "user-verified-match-setup",
+        "team_mapping_note": "User confirmation on 2026-08-27 established that the match followed lobby fixture britain-4v4-lobby-20260827-6969d5e2. The corrected full-header extraction independently matches the same colors, civilizations, teams, and player indexes through selected_color and resolved_team_id.",
+        "duration_seconds": 2438,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C",
+        "settings": {
+          "data_mod": "RaW data fix",
+          "game_mode": "Random Map",
+          "map_size": "Huge (240)",
+          "difficulty": "Extreme",
+          "resources": "Standard",
+          "population": 400,
+          "game_speed": "Normal",
+          "lock_teams": true,
+          "team_together": true,
+          "shared_exploration": true,
+          "record_game": true
+        },
+        "supporting_files": [
+          "Lobby screenshot sha256 6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C",
+          "AoE2DE_s.exe_260827_131920.dmp sha256 17612F8492E21FB4488F710A2016F5D66EAC38CE1840A956197F1941A3A5E5AB",
+          "AoE2DE_s.exe_260827_132003.dmp sha256 EDF11BCBE3ACD4BD6CA55A18FEC7CD054DAB04C08015D847D6CB204565626367"
+        ]
+      },
+      "direct_replay_observations": [
+        "The replay lasted 40:38 and yielded 2617 chat records, 304362 AI_ORDER records, 20 delete actions, 406 payloadless command-stream ERROR records, and no parser exception. No replay-visible RAWAI-P3B29 marker proves the exact deployed revision.",
+        "The selected-color-aware header maps p1 through p8 to Red, Green, Yellow, Purple, Orange, Cyan, Blue, and Gray and matches the user-confirmed setup. The old Red, Blue, Orange, Yellow, Green, Purple, Cyan, Gray sequence came from the engine's internal nonvisual color_id field.",
+        "The human player flared at about 25:54, 26:45, and 26:53 and sent taunt 69 at about 25:57, 26:08, 26:47, and 26:56. The three allied recipients acknowledged each request with `At once, sire!`, while the user visually observed that Purple did not delete the requested Port.",
+        "One recorded player index deleted unknown object 33901 at about 26:09. The replay export does not expose that object's type, so it neither overrides the user's Port observation nor proves taunt-69 success.",
+        "Purple p4 emitted 297109 of all 304362 AI_ORDER records. Object IDs 32020, 32293, and 32345 contributed 293317 records by alternating engine order IDs 705 and 706, `explore` and `stop`, from about 13:11 until the crash at roughly 10700 to 11000 orders per minute.",
+        "Red p1's transported-scout mission boarded and departed at 15:03, retried alternate landing points, reported `migration scout landed:3` at 17:07, and issued a patrol retry at 17:23. No home-resource-pressure transition, civilian resource migration, or remote drop-off construction was observed.",
+        "Red p1 requested eleven Trade Cogs between 15:43 and 27:12. `merchant route action verified` intermittently reported three active traders, but mostly reported zero; the short match did not exercise profitable growth toward 100 or the scarce-resource target of 160 traders.",
+        "Port-clearing telemetry repeatedly reported `port hull staged clear` for object 32446 and later 32305, while object 32446 also produced fourteen `empty transport no staging point` records in about seventy seconds. The replay does not prove collision recovery and suggests repeated reacquisition or retry-cadence pressure remains.",
+        "Thirty-six `idle Palintonons packed:0` records appeared from 29:54 through 40:31, with no packed-state success. No `naval opportunity target kind` record proved an opportunity engagement. Allied-help telemetry rejected unverifiable or unreachable responses rather than making an unsupported promise.",
+        "Both ProcDump files capture PID 5784 at the same exception context and absolute stack, 42.507 seconds apart. Windows Error Reporting and the dumps identify `STATUS_HEAP_CORRUPTION` 0xC0000374 in ntdll.dll; the detected path reaches ucrtbase free from AoE2DE_s.exe while replacing a game-owned array of four-byte entries."
+      ],
+      "implementation_inferences": [
+        "Taunt 69 acknowledged the request before its selector, but the selector tested `(unit-type-count flare > 0)`, which counts the AI's own flare objects. A flare created by the human ally therefore allowed the acknowledgment while leaving the deletion owner to clear without selecting the requested structure. Taunt 52 had the same ownership defect.",
+        "The unconditional explorer strategic-number rule rewrote five engine explorer settings on every rule sweep and wrote the total twice. Repeated explorer-manager reconfiguration is the leading explanation for the long explore/stop alternation, although only a fresh replay can exclude an independent engine path or rejection loop.",
+        "The two dumps are duplicate captures of the same stopped crash, not two independent crashes. Heap corruption was detected during an old-buffer free, but the dumps do not identify the earlier writer, distinguish invalid or double free from unrelated heap damage, or justify attributing the crash to the AI order flood.",
+        "Repeated successful staging announcements followed by no-staging-point retries do not validate Port clearance. Exact hull location, footprint occupancy, and collision-free pathing remain unavailable from the command stream.",
+        "The match ended too early, or did not enter the required state, to validate 100/160-unit trade growth, resource-migration drop-off construction, Palintonon packed-state recovery, or naval opportunity engagement."
+      ],
+      "changes_under_test": [
+        "Retain the P3B29 trade, migration, Port-clearing, Palintonon, wall, naval-opportunity, and allied-help changes as fresh-replay work; this replay provides only the partial observations listed above.",
+        "Emit RAWAI-P3B30 and detect taunt-52 and taunt-69 flares with `cc-players-unit-type-count any-human-ally flare`, including the no-flare cleanup path. Reset the taunt-69 diagnostic object ID at each request while retaining the existing bounded nearest-owned ready or pending structure search and six-tile radius.",
+        "Replace the per-sweep explorer strategic-number writer with five independent mismatch-guarded writes. Preserve two total engine explorers in every current phase, preserve zero generic boat explorer groups, and keep naval reconnaissance under the audited Scout Ship controller."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports an exact P3B30 runtime match and replay chat contains RAWAI-P3B30 near match start.",
+        "After a human ally flares within six tiles of an owned Port and sends taunt 69, the recipient acknowledges once, reports the selected deletion object ID, and the visible Port is deleted. A flare with no owned ready or pending structure reports no candidate without deleting an unrelated distant structure.",
+        "No object receives a minutes-long consecutive-tick alternation of order IDs 705 and 706 after explorer phase changes. Aggregate AI_ORDER volume remains bounded instead of one player producing roughly eleven thousand explorer orders per minute.",
+        "A verified active trade route grows beyond the three-unit probe under the staged live-trader bound and can progress toward 100 traders, or 160 only after sustained resource scarcity, while producing observable gold income. Idle-Villager retirement remains population-blocked and never selects active workers.",
+        "Sustained low gold with no active gold miners triggers passenger reservation, boarding, screened transport, safe landing, and construction of the resource-matching drop-off. A failed or quarantined hull does not block another eligible migration mission.",
+        "Port-clearing telemetry corresponds to exact-ID movement away from the producer footprint; repeated staging does not oscillate back into `no staging point`, and an impossible route reaches one bounded failure rather than continuous reacquisition.",
+        "An eligible idle Palintonon changes to its packed form before moving and revalidates an enemy fortification after the wait. An eligible ungrouped warship produces a naval-opportunity target and engagement while active escort, scout, screen, and response ownership remains protected.",
+        "Any future crash investigation preserves a first-chance dump or PageHeap/Application Verifier evidence capable of identifying the corrupting allocation or earlier writer; a heap-corruption detection stack alone is not treated as an AI crash cause."
+      ],
+      "known_limits": [
+        "The selected-color-aware extraction now agrees with the user-confirmed colors, civilizations, and teams and reliably joins command-stream player indexes by player_number. The internal color_id field is retained only as nonvisual validation data.",
+        "Only recorded player index p1 serialized detailed self-chat. The private trade, migration, Port, siege, naval, and allied-help state of the other players remains unavailable.",
+        "The replay parser does not expose object type for every delete or AI_ORDER, DUC group ownership, arbitrary path success, transport occupancy, producer-footprint collision, resource delivery, or Palintonon packed state. Visual confirmation and a fresh replay remain necessary.",
+        "The absence of a replay-visible startup marker prevents this recording from proving the exact installed source revision even though the deployment checker found the P3B29 runtime files synchronized after the match.",
+        "The heap-corruption exception reports where Windows detected damaged allocator state, not where the memory was originally corrupted. The full dumps lack private AoE symbols, PageHeap metadata, and a recoverable heap triage record, so no crash fix is proposed.",
+        "The order-flood source objects are likely units managed by the engine explorer scheduler, but their exact unit types remain inference because the replay does not serialize them. Removal of the unconditional setters is a bounded mitigation pending runtime confirmation."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260827-143808",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.27 143808.aoe2record",
+        "sha256": "03778B6E269D164C56177E1C44D012C7346E319C6ACB846DE6AA67C8599DB5D9",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The full DE header's selected_color and resolved_team_id fields were joined to the command-stream player index by validated player_number, internal color, civilization, and resolved team. The resulting setup exactly matches the user's confirmation that this replay preserved the original lobby.",
+        "duration_seconds": 5190
+      },
+      "direct_replay_observations": [
+        "The replay parsed cleanly, lasted 86:30, and contained 145036 AI_ORDER, 103069 ORDER, 99124 WORK, 3274 MAKE, 2543 BUILD, 553 payloadless ERROR, 222 DELETE, 60 WALL, 677 GUARD, and three FLARE actions. No replay-visible RAWAI-P3B30 marker proves the exact deployed source revision.",
+        "The user visually observed that Orange Picts and Gray Gauls had economic problems, that Gray Gauls lagged in age, and suspected Pict-team-bonus Cow overproduction. Gray p8 reached the Middle Age at 26:38 and never reached the Imperial Age by 86:30; every other player reached Imperial, with Orange p5 Picts last among them at 40:11.",
+        "The four non-Roman players issued 499 Mill Cow MAKE commands: Orange p5 Picts 72, Cyan p6 Britons 186, Blue p7 Germani 210, and Gray p8 Gauls 31. Blue Germani trained the most Cows yet was the first member of that side to reach both the Middle and Imperial Ages, so Cow training alone does not explain Gray Gauls' age failure.",
+        "Red p1 reported home resource pressure at 63:44, selected a remote stone anchor in zone 7 at 65:55, departed partially loaded at 66:26, recovered from a wrong landing-zone result at 68:06, assigned settlers to mining-camp foundation 57316 at 68:07, and reported the drop site complete at 69:16. The user visually observed Red migrate once but then leave the island gold and stone untouched with idle Villagers.",
+        "Five attack-lift missions reported a boarding target of 20 between 61:12 and 73:51; all five reported `attack lift boarding aborted` roughly twenty-five to thirty seconds later. No `attack lift ready` or `attack lift landed` record appeared. The user visually observed attack Transports loading and later unloading or remaining loaded without moving.",
+        "The replay contains flares at about 25:07, 25:18, and 73:49 and taunt 69 at about 25:08, 25:20, 25:23, and 73:50. Only the first command produced allied acknowledgments, and no taunt-69 selector, deleted-structure, or no-flare diagnostic was recorded. The user again observed no deletion at the requested structure.",
+        "No MAKE command for Roman Empire Legionary IDs 866, 868, 1658, or 1661 appears for Red, Green, Yellow, or Purple. All four requested Barracks and reached at least the Middle Age, but the replay contains no runtime diagnostic that identifies whether availability, resources, queue state, or the concrete trainability test blocked production.",
+        "During the final 31:30, the replay contains 98530 combined AI_ORDER, ORDER, and BUILD commands. Several objects produced tens of thousands of alternating or repeated explore/stop orders. Separately, Yellow p3 issued 897 Castle BUILD commands, 896 of them at the identical point x106 y38 from 70:28 through 86:19."
+      ],
+      "implementation_inferences": [
+        "The Cow rule maintained a live cap of four but had no lifetime request budget, so every consumed Cow reopened production. At 35 food plus 15 wood per Cow this can divert resources and create hundreds of livestock objects, although the age timings prove that it is not a sufficient explanation for every weak economy.",
+        "The completed-drop-site branch published the colony and immediately released the reserved settler group without retasking it from construction back to the validated resource. That state transition directly explains how a successful migration could end with idle builders beside an unused mine.",
+        "The attack loader selected up to the full 20-unit transport capacity and required that exact count before departure. One distant or interrupted passenger therefore forced the observed timeout and unload; launching the partial group would be unsafe because home stragglers would remain members of the later landing-order group.",
+        "The flare selector used `any-human-ally`. Replay serialization labels the taunt-and-flare player as an AI, and the engine patch semantics attach flare objects to recipient players rather than exposing a reliable human sender classification. Searching `any-ally`, which excludes self but does not require the ally to be classified human, is the supported bounded correction. A deadline is also required because the first failed command retained the shared target-action owner and blocked later requests.",
+        "Mismatch-guarding the explorer strategic-number writers removed per-sweep writes but did not stop late-game ownership conflict. The replay shows the engine explorer scheduler and other tactical owners still alternating commands on the same objects, so the engine explorer budget must be released after the early phases while the explicit DUC scouts remain bounded.",
+        "The Castle rule repeatedly used fixed placement-control data at point 106,38 without checking migration placement ownership, placement-pressure ownership, a pending Castle, or a retry cadence. This is a direct source of BUILD-command flooding; the replay cannot prove whether collision, terrain, or another placement rejection made that point invalid.",
+        "Legionary absence supports adding replay-visible gate diagnostics, not changing the concrete DAT-backed producer operands again without knowing which availability or trainability condition failed."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B31. Limit Pict-team-bonus Mill Cow production to four issued requests per AI per match while retaining the existing live cap, resource gates, and can-train check.",
+        "After a remote resource drop site completes, keep the migration group reserved, revalidate the exact selected resource by ID, class, and land zone, refresh only the same resource class within sixteen tiles if the original node expired, issue the final gather order, and then release the settlers and transport.",
+        "Select an exact attack manifest no larger than ten and no larger than current transport capacity, permit a bounded mission with at least five eligible passengers, and retain the existing exact-full-manifest departure and abort/recovery ownership.",
+        "Use `any-ally` for taunt-52 and taunt-69 flare detection and coordinate lookup. Give the shared flare command an eight-second deadline and clear its candidate, object ID, search, and ownership state on success, absence, disappearance, or timeout.",
+        "Set the engine military and civilian explorer budgets to zero from phase four onward and set total engine explorers to zero under a separate phase-gated mismatch writer. Preserve early two-explorer budgets and the explicit bounded Scout Ship and transported-scout controllers.",
+        "Require idle migration and placement owners, no pending Castle object or placement, and a dedicated thirty-second request cadence before using normal Castle placement. Remove the fixed placement-control point implicated by 896 identical requests.",
+        "Add one-shot Roman Empire replay diagnostics that distinguish both Legionary concrete units being unavailable from both concrete up-can-train checks being blocked; do not alter the existing bounded baseline producers until new evidence identifies the failing gate."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports exact runtime synchronization and replay chat contains RAWAI-P3B31 near match start.",
+        "No AI requests more than four Mill Cows during the match. Pict-team economies continue normal Villager and age progression without a replacement-Cow stream consuming hundreds of MAKE actions.",
+        "A completed remote mining, lumber, or food drop site is followed by `migration settlers retasked` with a positive count and visible resource work. An expired anchor either refreshes to the same resource class in the colony zone or emits one bounded exhausted-resource result before ownership release.",
+        "An attack lift reports a boarding target from five through ten, reaches that exact count and sails through the screened route, or emits one bounded abort. No home straggler receives the remote landing order and no recovered hull remains indefinitely loaded.",
+        "A flare within six tiles of an owned Port followed by taunt 69 produces one acknowledgment, a selected deletion ID, and visible deletion. A missing or stale flare releases target-action within eight seconds so a later taunt can be acknowledged and processed.",
+        "After phase four, no object receives a sustained explore/stop alternation from the engine explorer owner. Castle requests occur no more often than the dedicated cadence and do not repeat one rejected fixed point hundreds of times; aggregate late-game command volume remains materially below this replay.",
+        "Each Roman Empire either trains concrete Legionaries or emits an availability-missing or trainability-blocked diagnostic that identifies the next gate to investigate."
+      ],
+      "known_limits": [
+        "The corrected selected_color extraction matches the user-confirmed lobby setup. The former conflict came from treating the internal color_id field as visible color; that field is now retained only as nonvisual validation data.",
+        "Only decoded p1 serialized detailed self-chat. The private economic, migration, transport, flare, Castle-placement, and Legionary state of other players remains unavailable.",
+        "The replay parser does not expose object type for the explorer-order source objects, DUC group membership, arbitrary path success, passenger positions, resource delivery, or placement rejection reason. The identified ownership and fixed-placement explanations remain implementation inferences pending fresh runtime evidence.",
+        "Using `any-ally` can select another ally's most recent flare when multiple allies flare close together because the engine does not expose the taunt sender through `up-find-player-flare`. The command remains bounded by the owned-structure radius and deadline.",
+        "The reduced exact attack manifest improves attainability but does not implement coordinated multi-hull invasions or cross-water allied relief. Path screening still relies on known threats and can reject or miss an unsafe route.",
+        "The late-game command flood is a serious performance problem, but this replay contains no process exception or dump and does not prove that command volume corrupts game memory. The earlier heap-corruption dumps still identify only the detection stack, not the corrupting writer."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260827-164510",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.27 164510.aoe2record",
+        "sha256": "F617D137A8450DE33933193726F327F2353DA64341969721C59DCA35B71C9436",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The corrected full-header join matches the user's explicit confirmation that this replay preserved the original lobby. Players are identified by selected visible color, never by row or slot order.",
+        "duration_seconds": 6413
+      },
+      "direct_replay_observations": [
+        "The replay parsed without reported errors and lasted 106:53. It contains no replay-visible RAWAI-P3B31 startup marker, so behavioral attribution still depends on the separately synchronized runtime rather than embedded proof.",
+        "The user visually observed Green repeatedly trying to place a Shipyard on an unreachable beach behind cliffs and trying to load Transports across cliffs. Green issued 54 Shipyard BUILD commands from about 32:04 through 82:25 and repeatedly reused several coordinates; the command stream does not expose terrain reachability or the engine's placement-rejection reason.",
+        "Red issued exactly two Merchant Vessel MAKE commands, at about 13:23 and 15:14. A trade route was reported verified from about 14:48 onward, but Red issued no later Merchant Vessel request despite the intended large-scale trade growth.",
+        "No MAKE command for Legionary IDs 866, 868, 1658, or 1661 appears for any Roman Empire player. Red emitted `Roman Legionary availability missing: 0` at about 28:48, but that P3B31 diagnostic tested only ranged IDs 866 and 868.",
+        "Purple issued 24 explicit wood-request chats from about 28:10 through 102:40 and bought wood at the Market 20 times from about 49:47 through 106:11. The user confirmed that the earlier impression of no requests came from Purple remaining without wood for a prolonged period, so the resolved evidence is that requests occurred but relief was ineffective.",
+        "The old fulfillment message said only that an ally would send 100 of a resource. It did not identify the requesting player, and the replay cannot associate any such response with Purple or prove the net tribute received.",
+        "Red reported thirteen attack-lift boarding targets, five aborts, eight ready departures, and only one landing. The user visually observed a high incidence of assault-transport loading failure.",
+        "The user visually observed Red's military largely frozen around its Town Center late in the match. From about 90:00 to the end, Red issued 27099 ORDER commands from fourteen object IDs toward object 34518 at exact point 186,182; that point matches Red's first Town Center placement, but the replay does not expose the target object's type."
+      ],
+      "implementation_inferences": [
+        "The Roman Empire baseline and role producers probed only the ranged concrete forms, while the authoritative stance technologies can enable the separate melee forms. The diagnostic therefore could report both ranged forms unavailable while the active melee form remained untested.",
+        "Probing all four concrete forms is necessary, but every baseline and role copy must share a request cadence because multiple transiently trainable forms or stale aggregate counts could otherwise issue several same-sweep train commands.",
+        "The fixed 100-resource request and fixed 100-resource tribute were too small for a player at or near zero in a 400-population match. Because every eligible ally independently sees the same request, a safe 4v4 design treats 600 as the team target and bounds each donor to a 200-resource tranche while protecting operating and age-up reserves.",
+        "Explicit numeric player-1-through-player-8 fulfillment rules are required for trustworthy recipient labels: the rule-scoped `this-any-ally` selector can target acknowledgment and tribute but cannot safely be formatted as numeric chat data.",
+        "Green's Shipyard and cliff-loading observations remain consistent with missing land-reachability validation around selected shore points; this replay does not identify a safe engine primitive that proves builder access before placement.",
+        "Red's late Town Center-directed order loop is a separate controller-ownership problem. The exact target unit and issuing controller remain unresolved, so no speculative fix is included in this batch."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B32. Probe elite and base Legionary units in both ranged and melee forms for Roman Empire and Roman Republic baseline and role production, aggregate both stance lines under the existing family bounds, and serialize every producer through one shared request deadline of at least ten seconds.",
+        "Replace the two-form Roman Empire diagnostic and add equivalent Republic telemetry: report all four engine availability facts separately from the state where at least one form is reported available but every concrete up-can-train probe is blocked.",
+        "When an ally falls below 100 of a resource, request a nominal team total of 600 no more than once per 120 seconds. Let each eligible ally send one 200-resource tranche, cap a 4v4 response at 600 nominal, and preserve 1000 food, 600 wood/stone, 800 pre-Imperial gold, or 500 Imperial gold after the send.",
+        "Bind every fulfillment rule to an explicit allied player number and announce `Sending 200 RESOURCE to player N` to all allies, with the acknowledgment, tribute target, and displayed recipient kept identical."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports exact runtime synchronization and replay chat contains RAWAI-P3B32 near match start.",
+        "After Middle Antiquity unlocks Legionaries, each Roman civilization trains whichever concrete melee or ranged base/elite form is currently trainable. No player emits multiple Legionary MAKE requests in one sweep or more than one cadence interval, and a failure produces an all-four diagnostic instead of a ranged-only conclusion.",
+        "A player below 100 wood requests a team total of 600 rather than 100. Each donor sends at most one nominal 200 tranche for that request, every response names the exact requesting player number, and a 4v4 produces no more than three responses or 600 nominal total.",
+        "Food, wood, gold, and stone donations occur only at their protected reserve thresholds. Replay evidence records the actual donor count and net tribute received rather than treating the nominal tribute command as proof of delivery.",
+        "Green does not repeat an unreachable behind-cliff Shipyard point or attempt to load across cliffs; Red's verified trade route grows beyond its two-vessel plateau; attack lifts reach their selected landing or emit a bounded abort; and no late controller freezes Red's army in a Town Center-directed order loop."
+      ],
+      "known_limits": [
+        "Only Red p1 serialized detailed self-chat, so the private Legionary, transport, trade, and economic gates of Green, Yellow, and Purple remain unavailable.",
+        "The replay parser does not expose terrain walk connectivity, placement rejection, arbitrary route success, transport occupancy, tribute tax or net receipt, or the type of every targeted object. Fresh visual observation remains necessary.",
+        "Explicit response labels use stable engine player numbers, not colors. Colors are independent lobby choices and are resolved only through validated replay selected-color metadata.",
+        "All eligible allies may independently answer one resource request. The 200-resource per-donor tranche bounds a 4v4 response at 600 nominal but does not elect a single donor or prevent tribute tax.",
+        "The Shipyard/cliff pathing, Merchant Vessel plateau, attack-transport failures, and Red Town Center order loop remain recorded unresolved work; this batch does not infer fixes without stronger engine-state evidence."
       ],
       "validation_status": "fresh-replay-required"
     }

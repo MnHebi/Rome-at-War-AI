@@ -132,6 +132,23 @@
 (defconst train-type 100)
 (defconst ship-train 101)
 
+;Bounded placement-pressure owner. These reclaim previously unused goal slots
+;below the historical strategy block rather than extending the goal table.
+(defconst gl-placement-pressure-state 102)
+(defconst gl-placement-pressure-next 103)
+(defconst gl-placement-pressure-cap 104)
+(defconst gl-placement-pressure-saturated 105)
+(defconst gl-placement-pressure-category 342)
+
+;Reachability-audited team trade routes.
+(defconst gl-trade-route-state 106)
+(defconst gl-trade-route-focus 107)
+(defconst gl-trade-route-player 108)
+(defconst gl-trade-route-first 109)
+(defconst gl-land-trade-route 110)
+(defconst gl-water-trade-route 111)
+(defconst gl-trade-water-zone 112)
+
 (defconst has-horus 113)
 (defconst train-crossbow 114)
 (defconst current-action 115)
@@ -140,6 +157,7 @@
 (defconst gl-total-soldier-losses 118)
 (defconst gl-total-warboat-losses 119)
 ;empty goal 120, used to be a unit countering goal
+(defconst gl-trade-land-zone 120)
 
 (defconst train-scoutships 121)
 (defconst train-remes 122)
@@ -192,6 +210,9 @@
 (defconst gl-ninetyfive-percent 168)
 (defconst gl-onehundred-percent 169)
 (defconst gl-calculator 170)
+
+;The old percentage gap is used for the trade scanner's game-time deadline.
+(defconst gl-trade-route-next 166)
 
 (defconst gl-shipyard-placement 171)
 
@@ -365,6 +386,10 @@
 
 (defconst has-illumination 314)
 
+;Wall posture and progress ownership. 315/316 and 336+ were unused goal slots.
+(defconst gl-wall-scan-focus 315)
+(defconst gl-wall-scan-player 316)
+
 (defconst rush-drush 317) ;iron age militia rush
 (defconst rush-fcast 318) ;fast forward castle, combined with rush-fc
 (defconst rush-trush 319) ;build-forward tower at the enemy
@@ -384,6 +409,44 @@
 (defconst rush-fc 333) ;fast castle
 (defconst rush-threshold 334) ;highest active opening-affinity tier
 (defconst rush-affinities-ready 335) ;base profile and matchup modifiers are ready
+
+(defconst gl-wall-scan-first 336)
+(defconst gl-wall-land-zone 337)
+(defconst gl-hostile-land-route 338)
+(defconst gl-wall-needed 339)
+(defconst gl-wall-next 340)
+(defconst gl-wall-last-percent 341)
+(defconst gl-wall-retries 343)
+(defconst gl-wall-enabled 344)
+(defconst gl-wall-scan-state 345)
+(defconst gl-wall-scan-next 346)
+
+;Germani Dejbjerg Wagon deployment owner.
+(defconst gl-dejbjerg-state 351)
+(defconst gl-dejbjerg-focus 352)
+(defconst gl-dejbjerg-id 353)
+(defconst gl-dejbjerg-zone 354)
+(defconst gl-dejbjerg-worker-id 355)
+(defconst gl-dejbjerg-target-x 356)
+(defconst gl-dejbjerg-target-y 357)
+(defconst gl-dejbjerg-next 358)
+(defconst gl-dejbjerg-attempts 359)
+(defconst gl-dejbjerg-rejected-id1 360)
+(defconst gl-dejbjerg-rejected-id2 361)
+(defconst gl-dejbjerg-rejected-id3 362)
+(defconst gl-dejbjerg-origin-x 363)
+(defconst gl-dejbjerg-origin-y 364)
+(defconst gl-dejbjerg-worker-attempts 365)
+(defconst gl-trade-own-producer-total 366)
+(defconst gl-trade-valid-producer-total 367)
+(defconst gl-dejbjerg-home-distance 368)
+
+;Perimeter material is latched after the first viable wall choice. Gate requests
+;have their own deadline and retry budget so openings cannot delay wall progress.
+(defconst gl-wall-material 369)
+(defconst gl-wall-gate-next 370)
+(defconst gl-wall-gates-issued 371)
+(defconst gl-wall-gate-attempts 372)
 
 (defconst rush-rushing 350)
 
@@ -932,6 +995,91 @@
 (defconst gl-naval-opportunity-rejected-zone3 1023)
 (defconst gl-naval-opportunity-defense-player 1024)
 (defconst gl-naval-opportunity-defense-first 1025)
+(defconst gl-opening-mill-state 1026)
+(defconst gl-opening-mill-focus 1027)
+(defconst gl-opening-mill-resource-id 1028)
+(defconst gl-opening-mill-resource-zone 1029)
+(defconst gl-opening-mill-target-x 1030)
+(defconst gl-opening-mill-target-y 1031)
+(defconst gl-opening-mill-placement-attempts 1032)
+(defconst gl-opening-mill-candidate-index 1033)
+(defconst gl-opening-mill-cluster-count 1034)
+(defconst gl-opening-mill-ally-player 1035)
+(defconst gl-opening-mill-ally-first 1036)
+(defconst gl-naval-scout-leg 1037)
+(defconst gl-island-migration-landing-attempts 1038)
+(defconst gl-delete-flare-candidates 1039)
+(defconst gl-delete-flare-id 1040)
+(defconst gl-lumbercamp-worker-count 1041)
+(defconst gl-lumbercamp-candidate-count 1042)
+(defconst gl-land-target-scan-state 1043)
+(defconst gl-land-target-scan-next 1044)
+(defconst gl-land-target-scan-focus 1045)
+(defconst gl-land-target-zone 1046)
+(defconst gl-land-target-needs-transport 1047)
+(defconst gl-land-target-scan-player 1048)
+(defconst gl-land-target-current-player 1049)
+(defconst gl-quarantine-transport-id 1050)
+(defconst gl-quarantine-transport-state 1051)
+(defconst gl-quarantine-transport-next 1052)
+(defconst gl-quarantine-transport-focus 1053)
+(defconst gl-boar-commit-state 1054)
+(defconst gl-boar-commit-deadline 1055)
+(defconst gl-boar-lurer-id 1056)
+(defconst gl-boar-target-id 1057)
+(defconst gl-boar-commit-focus 1058)
+(defconst gl-boar-target-x 1059)
+(defconst gl-boar-target-y 1060)
+(defconst gl-boar-target-zone 1061)
+(defconst gl-local-threat-active 1062)
+(defconst gl-local-threat-until 1063)
+(defconst gl-wall-danger-until 1064)
+(defconst gl-island-scout-visited-zone 1065)
+(defconst gl-island-scout-visited-zone2 1066)
+(defconst gl-island-scout-visited-zone3 1067)
+(defconst gl-island-scout-player 1068)
+(defconst gl-island-scout-first 1069)
+(defconst gl-island-scout-patrol-x 1070)
+(defconst gl-island-scout-patrol-y 1071)
+(defconst gl-transport-recovery-zone 1072)
+(defconst gl-transport-clear-attempts 1073)
+(defconst gl-trade-route-failures 1074)
+(defconst gl-transport-recovery-attempts 1075)
+(defconst gl-transport-recovery-target-zone 1076)
+(defconst gl-trade-probe-trained 1077)
+(defconst gl-transport-recovery-landing-zone 1078)
+(defconst gl-island-scout-zone-rejections 1079)
+(defconst gl-transport-clear-water-zone 1080)
+(defconst gl-transport-route-script-load 1081)
+(defconst gl-transport-route-load-target 1082)
+(defconst gl-transport-route-load-deadline 1083)
+(defconst gl-transport-route-load-next 1084)
+(defconst gl-ally-help-state 1085)
+(defconst gl-ally-help-player 1086)
+(defconst gl-ally-help-focus 1087)
+(defconst gl-ally-help-target-x 1088)
+(defconst gl-ally-help-target-y 1089)
+(defconst gl-ally-help-zone 1090)
+(defconst gl-ally-help-enemy-player 1091)
+(defconst gl-ally-help-responders 1092)
+(defconst gl-transport-route-load-player 1093)
+(defconst gl-trade-transition 1094)
+(defconst gl-trade-retirement-next 1095)
+(defconst gl-trade-action-verified 1096)
+(defconst gl-transport-clear-target-x 1097)
+(defconst gl-transport-clear-target-y 1098)
+(defconst gl-ally-help-first-enemy 1099)
+(defconst gl-trade-retirement-state 1100)
+(defconst gl-home-low-gold-samples 1101)
+(defconst gl-trade-active-count 1102)
+(defconst gl-trade-growth-limit 1103)
+(defconst gl-siege-target-id 1104)
+(defconst gl-siege-first-player 1105)
+(defconst gl-quarantine-transport-attempts 1106)
+(defconst gl-pict-cow-requests 1107)
+(defconst gl-flare-command-deadline 1108)
+(defconst gl-castle-request-next 1109)
+(defconst gl-legionary-request-next 1110)
 
 ; Goal Values
 
@@ -1092,6 +1240,12 @@
 ;short-lived direct-control ownership for units answering a home incursion
 (defconst home-defense-response-group 6)
 (defconst home-naval-response-group 5)
+(defconst attack-boarding-group 4)
+;The route owner excludes migration while it uses these slots: scripted attack
+;passengers share migration's group four, while their hull temporarily shares
+;migration's group three. The general villager cleaner owns group zero every
+;sweep, so it cannot safely retain military passengers.
+(defconst attack-transport-group 3)
 (defconst naval-scout-group 8)
 (defconst juggernaut-bombardment-group 2)
 (defconst octeres-bombardment-group 2)
@@ -1100,6 +1254,10 @@
 (defconst NAVAL-SCOUT-IDLE 0)
 (defconst NAVAL-SCOUT-CHECK 1)
 (defconst NAVAL-SCOUT-TARGET 2)
+
+;land attack target-zone scanner
+(defconst LAND-TARGET-SCAN-IDLE 0)
+(defconst LAND-TARGET-SCAN-CHECK 1)
 
 ;light-fleet target-of-opportunity controller
 (defconst NAVAL-OPPORTUNITY-IDLE 0)
@@ -1125,6 +1283,84 @@
 (defconst NAVAL-OPPORTUNITY-WARSHIP 2)
 (defconst NAVAL-OPPORTUNITY-TRANSPORT 3)
 (defconst NAVAL-OPPORTUNITY-FISHING 4)
+
+;opening forage discovery and managed Mill placement
+(defconst OPENING-MILL-IDLE 0)
+(defconst OPENING-MILL-FIND-RESOURCE 1)
+(defconst OPENING-MILL-CHECK-RESOURCE 2)
+(defconst OPENING-MILL-PLACE 3)
+(defconst OPENING-MILL-WAIT 4)
+(defconst OPENING-MILL-CHECK-FOUNDATION 5)
+(defconst OPENING-MILL-FIND-COMPLETED 6)
+(defconst OPENING-MILL-FALLBACK 7)
+(defconst OPENING-MILL-FALLBACK-WAIT 8)
+(defconst OPENING-MILL-REJECT-CANDIDATE 9)
+(defconst OPENING-MILL-START-ALLY-CHECK 10)
+(defconst OPENING-MILL-CHECK-ALLY-TC 11)
+(defconst OPENING-MILL-ADVANCE-ALLY 12)
+(defconst OPENING-MILL-NEXT-ALLY 13)
+
+;bounded crowded-town placement recovery
+(defconst PLACEMENT-PRESSURE-IDLE 0)
+(defconst PLACEMENT-PRESSURE-WAIT 1)
+(defconst PLACEMENT-PRESSURE-CHECK-ECONOMY 2)
+(defconst PLACEMENT-PRESSURE-CHECK-MILITARY 3)
+(defconst PLACEMENT-PRESSURE-CHECK-DEFENSE 4)
+(defconst PLACEMENT-PRESSURE-EXPAND 5)
+(defconst PLACEMENT-KIND-NONE 0)
+(defconst PLACEMENT-KIND-ECONOMY 1)
+(defconst PLACEMENT-KIND-MILITARY 2)
+(defconst PLACEMENT-KIND-DEFENSE 3)
+
+;same-zone team trade reachability scan
+(defconst TRADE-ROUTE-IDLE 0)
+(defconst TRADE-ROUTE-LAND-START 1)
+(defconst TRADE-ROUTE-LAND-CHECK 2)
+(defconst TRADE-ROUTE-LAND-ADVANCE 3)
+(defconst TRADE-ROUTE-LAND-NEXT 4)
+(defconst TRADE-ROUTE-WATER-SOURCE 5)
+(defconst TRADE-ROUTE-WATER-START 6)
+(defconst TRADE-ROUTE-WATER-CHECK 7)
+(defconst TRADE-ROUTE-WATER-ADVANCE 8)
+(defconst TRADE-ROUTE-WATER-NEXT 9)
+(defconst TRADE-ROUTE-LAND-SOURCE 10)
+(defconst TRADE-ROUTE-WATER-VALIDATE-SOURCE 11)
+(defconst TRADE-ROUTE-WATER-PROOF-CHECK 12)
+(defconst TRADE-ROUTE-ACTION-PROOF-CHECK 13)
+
+;A verified merchant route can claim a bounded share of very large games.
+;The scarce stage is deliberately latched only after a probe is actually
+;performing the engine trade action; it is not inferred from map labels.
+(defconst TRADE-TRANSITION-NONE 0)
+(defconst TRADE-TRANSITION-ROUTE 1)
+(defconst TRADE-TRANSITION-SCARCE 2)
+
+;Villager retirement is deliberately split across rule sweeps. This keeps each
+;DUC selection rule below ERR6002 and lets the consumer verify that a candidate
+;exists before issuing the destructive command.
+(defconst TRADE-RETIRE-IDLE 0)
+(defconst TRADE-RETIRE-SELECT-IDLE 1)
+(defconst TRADE-RETIRE-CHECK 3)
+
+;known same-land-zone enemy and bounded wall-progress scan
+(defconst WALL-SCAN-IDLE 0)
+(defconst WALL-SCAN-START 1)
+(defconst WALL-SCAN-CHECK 2)
+(defconst WALL-SCAN-ADVANCE 3)
+(defconst WALL-SCAN-NEXT 4)
+
+(defconst WALL-MATERIAL-UNSET -1)
+(defconst WALL-MATERIAL-STONE 0)
+(defconst WALL-MATERIAL-PALISADE 1)
+
+;persistent Dejbjerg drop-site movement states
+(defconst DEJBJERG-IDLE 0)
+(defconst DEJBJERG-FIND-WAGON 1)
+(defconst DEJBJERG-FIND-WORKER 2)
+(defconst DEJBJERG-CHECK-CLUSTER 3)
+(defconst DEJBJERG-MOVING 4)
+(defconst DEJBJERG-SEARCH-WORKERS 5)
+(defconst DEJBJERG-CHECK-CURRENT 6)
 
 ;loaded transport route-safety state
 (defconst TRANSPORT-ROUTE-IDLE 0)
@@ -1157,6 +1393,12 @@
 (defconst TRANSPORT-ROUTE-SCREEN-LANDING-THREAT 27)
 (defconst TRANSPORT-ROUTE-SCREEN-LANDING-APPLY 28)
 (defconst TRANSPORT-ROUTE-SCREEN-RECALL 29)
+(defconst TRANSPORT-ROUTE-LOAD-FIND 30)
+(defconst TRANSPORT-ROUTE-LOAD-SELECT 31)
+(defconst TRANSPORT-ROUTE-LOAD-ISSUE 32)
+(defconst TRANSPORT-ROUTE-LOAD-WAIT 33)
+(defconst TRANSPORT-ROUTE-LOAD-CHECK 34)
+(defconst TRANSPORT-ROUTE-LOAD-READY 35)
 
 ;idle-villager island migration state
 (defconst MIGRATION-IDLE 0)
@@ -1208,6 +1450,41 @@
 (defconst MIGRATION-CHECK-DROPSITE-NONTREE 47)
 (defconst MIGRATION-REFRESH-DROPSITE-TREES 48)
 (defconst MIGRATION-QUARANTINED 49)
+(defconst MIGRATION-QUARANTINE-CHECK 50)
+(defconst MIGRATION-VERIFY-SCOUT-LANDING 51)
+(defconst MIGRATION-CONFIRM-SCOUT-FALLBACK 52)
+(defconst MIGRATION-SCOUT-ALLY-START 53)
+(defconst MIGRATION-SCOUT-ALLY-CHECK 54)
+(defconst MIGRATION-SCOUT-ALLY-ADVANCE 55)
+(defconst MIGRATION-SCOUT-ALLY-NEXT 56)
+(defconst MIGRATION-SCOUT-PATROL-WAIT 57)
+(defconst MIGRATION-SCOUT-PATROL-CHECK 58)
+(defconst MIGRATION-SCOUT-RETRY-LANDING 59)
+(defconst MIGRATION-RETASK-DROPSITE 60)
+(defconst MIGRATION-CHECK-RETASK-ANCHOR 61)
+(defconst MIGRATION-REFRESH-RETASK-ANCHOR 62)
+(defconst MIGRATION-CHECK-RETASK-REFRESH 63)
+(defconst MIGRATION-ASSIGN-RETASK-ANCHOR 64)
+(defconst MIGRATION-RELEASE-COLONY 65)
+(defconst TRANSPORT-QUARANTINE-IDLE 0)
+(defconst TRANSPORT-QUARANTINE-CHECK 1)
+(defconst TRANSPORT-QUARANTINE-TERMINAL 2)
+(defconst BOAR-COMMIT-IDLE 0)
+(defconst BOAR-COMMIT-CHECK-OPENING-SHEEP 1)
+(defconst BOAR-COMMIT-CHECK-LATER-SHEEP 2)
+(defconst BOAR-COMMIT-ARMED 3)
+(defconst BOAR-COMMIT-VERIFY 4)
+(defconst BOAR-COMMIT-RESCUE-FIND 5)
+(defconst BOAR-COMMIT-RESCUE-FILTER 6)
+(defconst BOAR-COMMIT-RESCUE-SEND-SIX 7)
+(defconst BOAR-COMMIT-RESCUE-SEND-SEVEN 8)
+(defconst BOAR-COMMIT-RESCUE-GARRISON 9)
+(defconst BOAR-COMMIT-ACTIVE 10)
+(defconst BOAR-COMMIT-CHECK-ACTIVE-SHEEP 11)
+(defconst BOAR-COMMIT-RETRY-VERIFY 12)
+(defconst BOAR-COMMIT-RETRY-COMMIT 13)
+(defconst BOAR-COMMIT-RESCUE-ANCHOR 14)
+(defconst BOAR-COMMIT-RESCUE-GARRISON-SEND 15)
 (defconst MIGRATION-MISSION-MINING 1)
 (defconst MIGRATION-MISSION-SCOUT 2)
 (defconst migration-boarding-group 4)
@@ -1229,6 +1506,8 @@
 (defconst TRANSPORT-RECOVERY-SAILING 5)
 (defconst TRANSPORT-RECOVERY-CHECK-LANDING 6)
 (defconst TRANSPORT-RECOVERY-LOADING 7)
+(defconst TRANSPORT-RECOVERY-VERIFY-LANDING 8)
+(defconst TRANSPORT-RECOVERY-FIND-WRONG-ZONE 9)
 
 ;relic ferry state and trip direction
 (defconst RELIC-FERRY-IDLE 0)
@@ -1260,6 +1539,7 @@
 (defconst LOCAL-RESPONSE-DISPATCH 3)
 (defconst LOCAL-RESPONSE-ASSET-FIND 4)
 (defconst LOCAL-RESPONSE-ASSET-THREAT 5)
+(defconst LOCAL-RESPONSE-REBUILD 6)
 
 ;naval local response and Juggernaut evasion states
 (defconst NAVAL-RESPONSE-IDLE 0)
@@ -1303,12 +1583,36 @@
 (defconst SIEGE-TARGET-GROUP 6)
 (defconst SIEGE-TARGET-ESCORT-SELECT 7)
 (defconst SIEGE-TARGET-FALLBACK 8)
+(defconst SIEGE-TARGET-PACK-WAIT 9)
+(defconst SIEGE-TARGET-PACK-CHECK 10)
+(defconst SIEGE-TARGET-ADVANCE-PLAYER 11)
+(defconst SIEGE-TARGET-NEXT-PLAYER 12)
 
 ;post-production Transport Ship clearance
 (defconst TRANSPORT-CLEAR-IDLE 0)
 (defconst TRANSPORT-CLEAR-ANCHOR 1)
 (defconst TRANSPORT-CLEAR-DESTINATION 2)
 (defconst TRANSPORT-CLEAR-FIND 3)
+(defconst TRANSPORT-CLEAR-STALE-FIND 4)
+(defconst TRANSPORT-CLEAR-STALE-WAIT 5)
+(defconst TRANSPORT-CLEAR-STALE-CHECK 6)
+(defconst TRANSPORT-CLEAR-EMPTY-FIND 7)
+(defconst TRANSPORT-CLEAR-EMPTY-PORT 8)
+(defconst TRANSPORT-CLEAR-EMPTY-STAGE 9)
+(defconst TRANSPORT-CLEAR-UTILITY-CHECK 10)
+(defconst TRANSPORT-CLEAR-MOVE-WAIT 11)
+(defconst TRANSPORT-CLEAR-MOVE-CHECK 12)
+
+;Ally relief acknowledges a request only after a same-zone response was issued.
+(defconst ALLY-HELP-IDLE 0)
+(defconst ALLY-HELP-FIND-ASSET 1)
+(defconst ALLY-HELP-FIND-THREAT 2)
+(defconst ALLY-HELP-FIND-RESPONDERS 3)
+(defconst ALLY-HELP-DISPATCH 4)
+(defconst ALLY-HELP-SCAN-THREAT 5)
+(defconst ALLY-HELP-CHECK-THREAT 6)
+(defconst ALLY-HELP-ADVANCE-THREAT 7)
+(defconst ALLY-HELP-NEXT-THREAT 8)
 
 ;adaptive attack escalation state
 (defconst ATTACK-ESCALATION-NORMAL 0)
@@ -1564,7 +1868,10 @@
 =>
 	(up-get-point position-map-size temporary-goal2)
 	(up-modify-goal map-size g:= temporary-goal2)
-    (set-strategic-number sn-enable-boar-hunting 1)
+	;rawai-hunt owns the complete lure lifecycle. Starting enabled lets the
+	;engine recruit shepherds before the script has proved that livestock food is
+	;finished.
+    (set-strategic-number sn-enable-boar-hunting 0)
 	(set-goal spread-units 0)
 	(set-strategic-number sn-wall-targeting-mode 0)
 	(set-strategic-number sn-easiest-reaction-percentage 20)

@@ -77,6 +77,12 @@ fixtures.
   observation can update evaluations, benchmarks, and issue records, but must
   be separated from the proposed explanation until the code or data supports
   that explanation.
+- When the user's match observation or match-setup account conflicts with a
+  replay parser field, decoded metadata, or an interpretation of the replay,
+  stop before choosing between them. State the exact conflict and ask the user
+  to confirm the observed setup or behavior. Until confirmation, preserve both
+  accounts as unresolved evidence and do not silently reject, overwrite, or
+  relabel the user's account from parser-derived inference.
 - Treat `civ-strategy-data.json` and
   `civ-strategy-historical-overrides.json` as the machine-readable strategy
   sources for generated civilization files. Edit generated PER blocks through

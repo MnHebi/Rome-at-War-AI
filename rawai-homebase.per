@@ -17,6 +17,13 @@
 	(up-assign-builders c: caravanserai c: 4)
 	(up-assign-builders c: castle c: 10)
 	(up-assign-builders c: wonder c: 15)
+	;build-wall owns a perimeter rather than one ordinary foundation.  Zero lets
+	;the first builder work but prevents the engine from feeding replacement
+	;villagers into a repeatedly attacked or orphaned line.
+	;Class operands cover every mod wall and gate copy. Zero permits the initial
+	;builder but prevents automatic replacement after attack or retasking.
+	(up-assign-builders c: wall-class c: 0)
+	(up-assign-builders c: gate-class c: 0)
 	(disable-self)
 )
 
@@ -125,171 +132,519 @@
 	(set-strategic-number sn-percent-civilian-gatherers 85)
 )
 
+;A pending placement must persist for twelve seconds before it is classified as
+;crowding. Naval and exact point-placement owners are intentionally excluded:
+;increasing a land town radius cannot fix an impossible shoreline or a rejected
+;resource cluster.
 (defrule
-	(current-age == iron-age)
-	(and
-		(up-compare-sn sn-maximum-town-size c:> 0)
-		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
-	)
-	(up-timer-status t-town-size != timer-running)
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(goal gl-placement-pressure-cap 0)
 	(or
-		(up-pending-placement c: town-center)
+		(up-pending-placement c: house)
 		(or
-			(up-pending-placement c: farm)
-			(or	
-				(up-pending-placement c: house)
-				(or	
-					(up-pending-placement c: barracks)
-					(up-pending-placement c: dock)
-				)
-			)
-		)
-	)
-=>
-	(up-modify-sn sn-maximum-town-size c:+ 1)
-	(up-modify-sn sn-maximum-town-size g:<= outer-townsize)
-	(up-modify-sn sn-maximum-town-size g:> 0)
-	(up-chat-data-to-self "pending placement resize sn-maximum-town-size; %d" s: sn-maximum-town-size)
-	(enable-timer t-town-size 6)
-)
-
-(defrule
-	(current-age == early-antiquity-age)
-	(and
-		(up-compare-sn sn-maximum-town-size c:> 0)
-		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
-	)
-	(up-timer-status t-town-size != timer-running)
-	(or	
-		(up-pending-placement c: town-center)
-		(or	
-			(up-pending-placement c: farm)
-			(or	
-				(up-pending-placement c: house)
-				(or	
-					(up-pending-placement c: barracks)
-					(or	
-						(up-pending-placement c: archery-range)
-						(or	
-							(up-pending-placement c: stable)
-							(or	
-								(up-pending-placement c: siege-workshop)
-								(or	
-									(up-pending-placement c: blacksmith)
-									(or	
-										(up-pending-placement c: market)
-										(up-pending-placement c: watch-tower)
-									)
-								)
-							)
-						)
+			(up-pending-placement c: barracks)
+			(or
+				(up-pending-placement c: archery-range)
+				(or
+					(up-pending-placement c: stable)
+					(or
+						(up-pending-placement c: siege-workshop)
+						(up-pending-placement c: blacksmith)
 					)
 				)
 			)
 		)
 	)
 =>
-	(up-modify-sn sn-maximum-town-size c:+ 1)
-	(up-modify-sn sn-maximum-town-size c:> 0)
-	(up-modify-sn sn-maximum-town-size g:< outer-townsize)
-	(up-chat-data-to-self "pending placement resize sn-maximum-town-size; %d" s: sn-maximum-town-size)
-	(enable-timer t-town-size 6)
+	(up-modify-goal gl-placement-pressure-cap s:= sn-maximum-town-size)
+	(up-modify-goal gl-placement-pressure-cap c:+ 24)
 )
 
 (defrule
-	(current-age == early-antiquity-age)
-	(and
-		(up-compare-sn sn-maximum-town-size c:> 0)
-		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
-	)
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(goal gl-placement-pressure-cap 0)
 	(or
-		(up-pending-placement c: dock)
-		(up-pending-placement c: shipyard)
-	)
-=>
-	(up-modify-sn sn-maximum-town-size c:+ 1)
-	(up-modify-sn sn-maximum-town-size c:> 0)
-	(up-modify-sn sn-maximum-town-size g:< outer-townsize)
-	(up-chat-data-to-self "pending placement resize sn-maximum-town-size; %d" s: sn-maximum-town-size)
-)
-
-(defrule
-	(current-age >= middle-antiquity-age)
-	(and
-		(up-compare-sn sn-maximum-town-size c:> 0)
-		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
-	)
-	(up-timer-status t-town-size != timer-running)
-	(or	
-		(up-pending-placement c: town-center)
-		(or	
-			(up-pending-placement c: farm)
-			(or	
-				(up-pending-placement c: house)
-				(or	
-					(up-pending-placement c: barracks)
-					(or	
-						(up-pending-placement c: archery-range)
-						(or	
-							(up-pending-placement c: stable)
-							(or	
-								(up-pending-placement c: siege-workshop)
-								(or	
-									(up-pending-placement c: blacksmith)
-									(or	
-										(up-pending-placement c: market)
-										(or	
-											(up-pending-placement c: dock)
-											(up-pending-placement c: university)
-										)
-									)
-								)
-							)
-						)
+		(up-pending-placement c: university)
+		(or
+			(up-pending-placement c: monastery)
+			(or
+				(up-pending-placement c: castle)
+				(or
+					(up-pending-placement c: watch-tower)
+					(or
+						(up-pending-placement c: outpost)
+						(up-pending-placement c: wonder)
 					)
 				)
 			)
 		)
 	)
 =>
-	(up-modify-sn sn-maximum-town-size c:+ 1)
-	(up-modify-sn sn-maximum-town-size c:> 0)
-	(up-modify-sn sn-maximum-town-size g:< outer-townsize)
-	(up-chat-data-to-self "pending placement resize sn-maximum-town-size; %d" s: sn-maximum-town-size)
-	(enable-timer t-town-size 6)
-	(up-jump-rule 1)
+	(up-modify-goal gl-placement-pressure-cap s:= sn-maximum-town-size)
+	(up-modify-goal gl-placement-pressure-cap c:+ 24)
 )
 
 (defrule
-	(current-age >= middle-antiquity-age)
-	(and
-		(up-compare-sn sn-maximum-town-size c:> 0)
-		(up-compare-sn sn-maximum-town-size g:< outer-townsize)
-	)
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-pending-placement c: house)
+=>
+	(up-modify-goal gl-placement-pressure-next g:= gl-game-time)
+	(up-modify-goal gl-placement-pressure-next c:+ 12)
+	(set-goal gl-placement-pressure-saturated NO)
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-ECONOMY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
 	(or
-		(up-pending-placement c: monastery)
+		(up-pending-placement c: barracks)
 		(or
-			(up-pending-placement c: castle)
-			(or	
-				(up-pending-placement c: watch-tower)
-				(or	
-					(up-pending-placement c: shipyard)
-					(up-pending-placement c: outpost)
+			(up-pending-placement c: archery-range)
+			(or
+				(up-pending-placement c: stable)
+				(or
+					(up-pending-placement c: siege-workshop)
+					(up-pending-placement c: blacksmith)
 				)
 			)
 		)
 	)
 =>
-	(up-modify-sn sn-maximum-town-size c:+ 1)
-	(up-modify-sn sn-maximum-town-size c:> 0)
-	(up-modify-sn sn-maximum-town-size g:< outer-townsize)
-	(up-chat-data-to-self "pending placement resize sn-maximum-town-size; %d" s: sn-maximum-town-size)
+	(up-modify-goal gl-placement-pressure-next g:= gl-game-time)
+	(up-modify-goal gl-placement-pressure-next c:+ 12)
+	(set-goal gl-placement-pressure-saturated NO)
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(or
+		(up-pending-placement c: university)
+		(or
+			(up-pending-placement c: monastery)
+			(or
+				(up-pending-placement c: castle)
+				(or
+					(up-pending-placement c: watch-tower)
+					(or
+						(up-pending-placement c: outpost)
+						(up-pending-placement c: wonder)
+					)
+				)
+			)
+		)
+	)
+=>
+	(up-modify-goal gl-placement-pressure-next g:= gl-game-time)
+	(up-modify-goal gl-placement-pressure-next c:+ 12)
+	(set-goal gl-placement-pressure-saturated NO)
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
+	(goal gl-placement-pressure-category PLACEMENT-KIND-ECONOMY)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+=>
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-ECONOMY)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
+	(goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+=>
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-MILITARY)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
+	(goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+=>
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-DEFENSE)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-ECONOMY)
+	(up-pending-placement c: house)
+=>
+	(up-reset-placement c: house)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-ECONOMY)
+	(not (up-pending-placement c: house))
+=>
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-NONE)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-MILITARY)
+	(or
+		(up-pending-placement c: barracks)
+		(or
+			(up-pending-placement c: archery-range)
+			(or
+				(up-pending-placement c: stable)
+				(or
+					(up-pending-placement c: siege-workshop)
+					(up-pending-placement c: blacksmith)
+				)
+			)
+		)
+	)
+=>
+	(up-reset-placement c: barracks)
+	(up-reset-placement c: archery-range)
+	(up-reset-placement c: stable)
+	(up-reset-placement c: siege-workshop)
+	(up-reset-placement c: blacksmith)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-MILITARY)
+	(nor
+		(up-pending-placement c: barracks)
+		(or
+			(up-pending-placement c: archery-range)
+			(or
+				(up-pending-placement c: stable)
+				(or
+					(up-pending-placement c: siege-workshop)
+					(up-pending-placement c: blacksmith)
+				)
+			)
+		)
+	)
+=>
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-NONE)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-DEFENSE)
+	(or
+		(up-pending-placement c: university)
+		(or
+			(up-pending-placement c: monastery)
+			(or
+				(up-pending-placement c: castle)
+				(or
+					(up-pending-placement c: watch-tower)
+					(or
+						(up-pending-placement c: outpost)
+						(up-pending-placement c: wonder)
+					)
+				)
+			)
+		)
+	)
+=>
+	(up-reset-placement c: university)
+	(up-reset-placement c: monastery)
+	(up-reset-placement c: castle)
+	(up-reset-placement c: watch-tower)
+	(up-reset-placement c: outpost)
+	(up-reset-placement c: wonder)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-CHECK-DEFENSE)
+	(nor
+		(up-pending-placement c: university)
+		(or
+			(up-pending-placement c: monastery)
+			(or
+				(up-pending-placement c: castle)
+				(or
+					(up-pending-placement c: watch-tower)
+					(or
+						(up-pending-placement c: outpost)
+						(up-pending-placement c: wonder)
+					)
+				)
+			)
+		)
+	)
+=>
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-NONE)
+)
+
+;If the town is already too crowded for up-can-build to return a placement,
+;there is no pending request for the watchdog above to observe. These demand
+;facts enter the same bounded expansion owner directly. Managed Market and Town
+;Center state machines keep their own placement/reset ownership; this owner
+;only enlarges their legal search radius.
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(goal allow-houses YES)
+	(goal gl-migration-placement-lock NO)
+	(housing-headroom < 5)
+	(up-pending-objects c: house <= 0)
+	(not (up-pending-placement c: house))
+	(can-afford-building house)
+	(not (up-can-build 0 c: house))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-ECONOMY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= early-antiquity-age)
+	(goal gl-migration-placement-lock NO)
+	(building-type-count-total market g:< desired-number-markets)
+	(up-pending-objects c: market <= 0)
+	(not (up-pending-placement c: market))
+	(can-afford-building market)
+	(not (up-can-build 0 c: market))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-ECONOMY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+;Farm demand can be the only symptom of a full core. It may enlarge the shared
+;radius, but its existing owner retains exclusive reset/placement control.
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(goal gl-farm-placement-suspended NO)
+	(up-compare-goal gl-farm-build-target c:> 0)
+	(building-type-count mill >= 1)
+	(building-type-count-total farm g:< gl-farm-build-target)
+	(up-pending-objects c: farm <= 0)
+	(not (up-pending-placement c: farm))
+	(can-afford-building farm)
+	(not (up-can-build 0 c: farm))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-ECONOMY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-home-resource-pressure NO)
+	(building-type-count-total town-center g:< desired-number-towncenters)
+	(up-pending-objects c: town-center <= 0)
+	(not (up-pending-placement c: town-center))
+	(can-afford-building town-center)
+	(not (up-can-build 0 c: town-center))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-ECONOMY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(goal gl-opening-drop-sites-ready YES)
+	(goal wait-techup-requirements NO)
+	(building-type-count-total barracks g:< desired-number-barracks)
+	(up-pending-objects c: barracks <= 0)
+	(not (up-pending-placement c: barracks))
+	(can-afford-building barracks)
+	(not (up-can-build 0 c: barracks))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= early-antiquity-age)
+	(goal wait-techup-requirements NO)
+	(building-type-count-total barracks > 0)
+	(building-type-count-total archery-range g:< desired-number-ranges)
+	(up-pending-objects c: archery-range <= 0)
+	(not (up-pending-placement c: archery-range))
+	(can-afford-building archery-range)
+	(not (up-can-build 0 c: archery-range))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= early-antiquity-age)
+	(goal wait-techup-requirements NO)
+	(building-type-count-total barracks > 0)
+	(building-type-count-total stable g:< desired-number-stables)
+	(up-pending-objects c: stable <= 0)
+	(not (up-pending-placement c: stable))
+	(can-afford-building stable)
+	(not (up-can-build 0 c: stable))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= middle-antiquity-age)
+	(goal wait-techup-requirements NO)
+	(building-type-count-total siege-workshop g:< desired-number-workshops)
+	(up-pending-objects c: siege-workshop <= 0)
+	(not (up-pending-placement c: siege-workshop))
+	(can-afford-building siege-workshop)
+	(not (up-can-build 0 c: siege-workshop))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= early-antiquity-age)
+	(building-type-count-total blacksmith g:< desired-number-blacksmiths)
+	(up-pending-objects c: blacksmith <= 0)
+	(not (up-pending-placement c: blacksmith))
+	(can-afford-building blacksmith)
+	(not (up-can-build 0 c: blacksmith))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= middle-antiquity-age)
+	(building-type-count-total university g:< desired-number-universities)
+	(up-pending-objects c: university <= 0)
+	(not (up-pending-placement c: university))
+	(can-afford-building university)
+	(not (up-can-build 0 c: university))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= middle-antiquity-age)
+	(building-type-count-total monastery g:< desired-number-monasteries)
+	(up-pending-objects c: monastery <= 0)
+	(not (up-pending-placement c: monastery))
+	(can-afford-building monastery)
+	(not (up-can-build 0 c: monastery))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= middle-antiquity-age)
+	(building-type-count town-center >= 2)
+	(building-type-count-total castle g:< desired-number-castles)
+	(up-pending-objects c: castle <= 0)
+	(not (up-pending-placement c: castle))
+	(can-afford-building castle)
+	(not (up-can-build 0 c: castle))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= middle-antiquity-age)
+	(building-type-count town-center >= 2)
+	(building-type-count-total outpost g:< desired-number-outposts)
+	(up-pending-objects c: outpost <= 0)
+	(not (up-pending-placement c: outpost))
+	(can-afford-building outpost)
+	(not (up-can-build 0 c: outpost))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(current-age >= early-antiquity-age)
+	(building-type-count-total watch-tower g:< desired-number-watchtowers)
+	(up-pending-objects c: watch-tower <= 0)
+	(not (up-pending-placement c: watch-tower))
+	(can-afford-building watch-tower)
+	(not (up-can-build 0 c: watch-tower))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+	(goal gl-placement-pressure-cap 0)
+=>
+	(up-modify-goal gl-placement-pressure-cap s:= sn-maximum-town-size)
+	(up-modify-goal gl-placement-pressure-cap c:+ 24)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+	(up-compare-sn sn-maximum-town-size g:< gl-placement-pressure-cap)
+=>
+	(up-modify-sn sn-maximum-town-size c:+ 3)
+	(up-modify-sn sn-maximum-town-size g:min gl-placement-pressure-cap)
+	(up-modify-goal outer-townsize s:max sn-maximum-town-size)
+	(up-modify-sn sn-camp-max-distance s:max sn-maximum-town-size)
+	(up-modify-goal gl-placement-pressure-next g:= gl-game-time)
+	(up-modify-goal gl-placement-pressure-next c:+ 12)
+	(up-chat-data-to-self "crowded town placement retry size: %d" s: sn-maximum-town-size)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+	(up-compare-sn sn-maximum-town-size g:>= gl-placement-pressure-cap)
+	(goal gl-placement-pressure-saturated NO)
+=>
+	(up-chat-data-to-self "crowded town placement saturated size: %d" s: sn-maximum-town-size)
+	(set-goal gl-placement-pressure-saturated YES)
+	(up-modify-goal gl-placement-pressure-next g:= gl-game-time)
+	(up-modify-goal gl-placement-pressure-next c:+ 60)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+	(up-compare-sn sn-maximum-town-size g:>= gl-placement-pressure-cap)
+	(goal gl-placement-pressure-saturated YES)
+=>
+	(up-modify-goal gl-placement-pressure-next g:= gl-game-time)
+	(up-modify-goal gl-placement-pressure-next c:+ 60)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
 )
 
 ;Enemy structures can contract placement toward the protected core, but the
 ;strict comparison must turn false at safe-townsize or this rule never settles.
 (defrule
 	(enemy-buildings-in-town)
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
 	(up-compare-sn sn-maximum-town-size g:> safe-townsize)
 	(up-compare-sn sn-maximum-town-size g:<= outer-townsize)
 	(up-timer-status t-town-size != timer-running)
@@ -1142,9 +1497,9 @@
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-FIND-RESOURCE)
 )
 
-;After the bootstrap, the desired count is a ceiling. A live woodcutter target
-;owns each additional request, and its exact target must still be a useful
-;same-zone tree cluster before point placement is issued.
+;After the bootstrap, the desired count is a ceiling. A live same-zone
+;woodcutter owns each additional request, and a nearby tree must still belong
+;to a useful cluster before point placement is issued.
 (defrule
 	(up-timer-status t-lumbercamp-placement == timer-triggered)
 	(goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
@@ -1163,13 +1518,17 @@
 	(up-set-target-point gl-home-anchor-x)
 	(up-find-local c: villager-class c: 160)
 	(up-remove-objects search-local object-data-gather-type != wood)
-	(up-remove-objects search-local object-data-action != actionid-gather)
-	(up-remove-objects search-local object-data-target-id == -1)
-	(up-remove-objects search-local object-data-target-id g:== gl-lumbercamp-rejected-resource-id)
-	(up-remove-objects search-local object-data-target-id g:== gl-lumbercamp-rejected-resource-id2)
-	(up-remove-objects search-local object-data-target-id g:== gl-lumbercamp-rejected-resource-id3)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-lumbercamp-worker-count g:= local-total)
+	;Walking to a tree, returning a load, and dropping it off are all valid
+	;wood-worker states. The old instantaneous actionid-gather filter discarded
+	;those workers and could suppress every later camp request.
+	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
 	(up-clean-search search-local object-data-distance search-order-desc)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-lumbercamp-candidate-count g:= local-total)
+	(up-chat-data-to-self "lumber camp live candidates: %d" g: gl-lumbercamp-candidate-count)
 	(set-goal gl-lumbercamp-placement-attempts 0)
 	(up-set-timer c: t-lumbercamp-placement c: 120)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-ASSESS)
@@ -1179,10 +1538,21 @@
 	(goal gl-lumbercamp-placement-state PLACEMENT-ASSESS)
 	(up-set-target-object search-local c: 0)
 =>
-	(up-get-object-data object-data-target-id gl-lumbercamp-resource-id)
+	;A returning woodcutter targets a drop site rather than a tree. Anchor the
+	;resource search on the worker's own position so walking, gathering, and
+	;returning workers can all reveal the distant wood line.
+	(up-get-object-data object-data-map-zone-id gl-lumbercamp-resource-zone)
+	(up-get-point position-object gl-lumbercamp-target-x)
 	(set-strategic-number sn-focus-player-number 0)
 	(up-full-reset-search)
-	(up-add-object-by-id search-remote g: gl-lumbercamp-resource-id)
+	(up-set-target-point gl-lumbercamp-target-x)
+	(up-filter-distance c: -1 c: 12)
+	(up-find-remote c: tree-class c: 20)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-lumbercamp-resource-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-lumbercamp-rejected-resource-id)
+	(up-remove-objects search-remote object-data-id g:== gl-lumbercamp-rejected-resource-id2)
+	(up-remove-objects search-remote object-data-id g:== gl-lumbercamp-rejected-resource-id3)
+	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-FIND-RESOURCE)
 )
 
@@ -1422,6 +1792,23 @@
 	(up-object-data object-data-map-zone-id g:== gl-lumbercamp-resource-zone)
 =>
 	(up-chat-data-to-self "lumber camp accepted live resource: %d" g: gl-lumbercamp-resource-id)
+	;Assign only nearby wood workers to the exact validated foundation. This
+	;finishes the camp without exposing shepherds or hunters to global builder
+	;assistance.
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-lumbercamp-foundation-id)
+	(up-set-target-point gl-lumbercamp-target-x)
+	(up-filter-distance c: -1 c: 12)
+	(up-find-local c: villager-class c: 20)
+	(up-remove-objects search-local object-data-gather-type != wood)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-lumbercamp-resource-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index g:>= 2)
+	(up-get-search-state local-total)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+	(up-chat-data-to-self "lumber camp builders assigned: %d" g: local-total)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
 	(set-goal gl-lumbercamp-placement-attempts 0)
 	(set-goal gl-lumbercamp-candidate-index 0)
@@ -2066,32 +2453,481 @@
 	(up-build place-normal 0 c: town-center)
 )
 
+;The opening Mill must not be placed before the home explorers have had a real
+;chance to reveal forage. Search from the active-home Town Center under Gaia
+;focus and require a useful same-zone cluster before point placement. The
+;32-tile radius is a provisional home-base bound. Team vision may also reveal
+;nearby allied forage, so reject candidates close to every allied Town Center.
 (defrule
+	(game-time >= 300)
+	(up-timer-status t-opening-mill == timer-triggered)
+	(goal gl-opening-mill-state OPENING-MILL-IDLE)
+	(goal gl-opening-mill-requested NO)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-migration-placement-lock NO)
 	(up-object-type-count-total c: town-center > 0)
 	(up-object-type-count-total c: lumber-camp > 0)
 	(up-object-type-count-total c: mill == 0)
-	(goal gl-opening-mill-requested NO)
-	(goal gl-island-migration-state MIGRATION-IDLE)
 	(up-pending-objects c: mill <= 0)
+	(not (up-pending-placement c: mill))
 	(can-afford-building mill)
 	(up-can-build 0 c: mill)
 =>
-	(up-build place-normal 0 c: mill)
-	(set-goal gl-opening-mill-requested YES)
-	(up-set-timer c: t-opening-mill c: 90)
+	(up-modify-goal gl-opening-mill-focus s:= sn-focus-player-number)
+	(set-goal gl-migration-placement-lock YES)
+	(set-goal gl-opening-mill-state OPENING-MILL-FALLBACK)
 )
 
-;A failed managed placement must not permanently consume the one-shot opening
-;Mill owner. Reset only when no Mill object or foundation appeared.
 (defrule
-	(goal gl-opening-mill-requested YES)
+	(game-time >= 60)
+	(game-time < 300)
+	(up-timer-status t-opening-mill == timer-triggered)
+	(goal gl-opening-mill-state OPENING-MILL-IDLE)
+	(goal gl-opening-mill-requested NO)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-migration-placement-lock NO)
+	(up-compare-goal gl-home-zone c:>= 0)
+	(up-object-type-count-total c: town-center > 0)
+	(up-object-type-count-total c: lumber-camp > 0)
+	(up-object-type-count-total c: mill == 0)
+	(up-pending-objects c: mill <= 0)
+	(not (up-pending-placement c: mill))
+	(can-afford-building mill)
+	(up-can-build 0 c: mill)
+=>
+	(up-modify-goal gl-opening-mill-focus s:= sn-focus-player-number)
+	(set-goal gl-migration-placement-lock YES)
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-distance c: -1 c: 32)
+	(up-find-remote c: forage-class c: 20)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-home-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-remove-objects search-remote object-data-index g:!= gl-opening-mill-candidate-index)
+	(up-set-timer c: t-opening-mill c: 120)
+	(set-goal gl-opening-mill-state OPENING-MILL-FIND-RESOURCE)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-FIND-RESOURCE)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-class == forage-class)
+	(not (player-in-game any-ally))
+=>
+	(up-get-object-data object-data-id gl-opening-mill-resource-id)
+	(up-get-object-data object-data-map-zone-id gl-opening-mill-resource-zone)
+	(up-get-point position-object gl-opening-mill-target-x)
+	(up-full-reset-search)
+	(up-set-target-point gl-opening-mill-target-x)
+	(up-filter-distance c: -1 c: 8)
+	(up-find-remote c: forage-class c: 20)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-opening-mill-resource-zone)
+	(up-get-search-state local-total)
+	(set-goal gl-opening-mill-state OPENING-MILL-CHECK-RESOURCE)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-FIND-RESOURCE)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-class == forage-class)
+	(player-in-game any-ally)
+=>
+	(up-get-object-data object-data-id gl-opening-mill-resource-id)
+	(up-get-object-data object-data-map-zone-id gl-opening-mill-resource-zone)
+	(up-get-point position-object gl-opening-mill-target-x)
+	(up-find-player ally find-ordered gl-opening-mill-ally-player)
+	(up-modify-goal gl-opening-mill-ally-first g:= gl-opening-mill-ally-player)
+	(set-goal gl-opening-mill-state OPENING-MILL-START-ALLY-CHECK)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-START-ALLY-CHECK)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-ally-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-opening-mill-target-x)
+	(up-filter-distance c: -1 c: 18)
+	(up-find-remote c: town-center c: 10)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-opening-mill-state OPENING-MILL-CHECK-ALLY-TC)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-CHECK-ALLY-TC)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-chat-data-to-self "opening Mill rejected allied-base forage: %d" g: gl-opening-mill-resource-id)
+	(up-modify-goal gl-opening-mill-candidate-index c:+ 1)
+	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
+	(set-goal gl-migration-placement-lock NO)
+	(up-set-timer c: t-opening-mill c: 15)
+	(set-goal gl-opening-mill-state OPENING-MILL-IDLE)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-CHECK-ALLY-TC)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-opening-mill-state OPENING-MILL-ADVANCE-ALLY)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-ADVANCE-ALLY)
+=>
+	(up-find-next-player ally find-ordered gl-opening-mill-ally-player)
+	(set-goal gl-opening-mill-state OPENING-MILL-NEXT-ALLY)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-NEXT-ALLY)
+	(up-compare-goal gl-opening-mill-ally-player g:!= gl-opening-mill-ally-first)
+=>
+	;The ally search producer is earlier. Yield with only the next player stored,
+	;then rebuild that player's Town Center list in the next forward sweep.
+	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
+	(set-goal gl-opening-mill-state OPENING-MILL-START-ALLY-CHECK)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-NEXT-ALLY)
+	(up-compare-goal gl-opening-mill-ally-player g:== gl-opening-mill-ally-first)
+=>
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-opening-mill-target-x)
+	(up-filter-distance c: -1 c: 8)
+	(up-find-remote c: forage-class c: 20)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-opening-mill-resource-zone)
+	(up-get-search-state local-total)
+	(set-goal gl-opening-mill-state OPENING-MILL-CHECK-RESOURCE)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-CHECK-RESOURCE)
+	(up-compare-goal remote-total c:>= 3)
+=>
+	(up-modify-goal gl-opening-mill-cluster-count g:= remote-total)
+	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
+	(set-goal gl-opening-mill-placement-attempts 0)
+	(set-goal gl-opening-mill-state OPENING-MILL-PLACE)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-CHECK-RESOURCE)
+	(up-compare-goal remote-total c:< 3)
+=>
+	(up-modify-goal gl-opening-mill-cluster-count g:= remote-total)
+	(up-modify-goal gl-opening-mill-cluster-count c:max 1)
+	;Distance ordering does not guarantee that one spatial cluster is contiguous.
+	;Advance one known candidate at a time; the five-minute fallback bounds retries.
+	(up-modify-goal gl-opening-mill-candidate-index c:+ 1)
+	(up-chat-data-to-self "opening Mill rejected sparse forage: %d" g: remote-total)
+	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
+	(set-goal gl-migration-placement-lock NO)
+	(up-set-timer c: t-opening-mill c: 15)
+	(set-goal gl-opening-mill-state OPENING-MILL-IDLE)
+)
+
+;Home defense, depletion, or an active rush may require farms and production
+;before the unconditional five-minute discovery bound. This emergency fallback
+;is still delayed until three minutes so the normal forage search gets priority.
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-FIND-RESOURCE)
+	(not (up-set-target-object search-remote c: 0))
+	(game-time >= 180)
+	(or
+		(goal gl-home-defense-state YES)
+		(or
+			(goal resources-depleted YES)
+			(not (goal rush-rushing NO))
+		)
+	)
+=>
+	(set-goal gl-opening-mill-state OPENING-MILL-FALLBACK)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-FIND-RESOURCE)
+	(not (up-set-target-object search-remote c: 0))
+	(game-time >= 300)
+=>
+	(set-goal gl-opening-mill-state OPENING-MILL-FALLBACK)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-FIND-RESOURCE)
+	(not (up-set-target-object search-remote c: 0))
+	(game-time < 300)
+=>
+	(up-chat-data-to-self "opening Mill waiting for forage: %d" g: gl-opening-mill-candidate-index)
+	(set-goal gl-opening-mill-candidate-index 0)
+	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
+	(set-goal gl-migration-placement-lock NO)
+	(up-set-timer c: t-opening-mill c: 20)
+	(set-goal gl-opening-mill-state OPENING-MILL-IDLE)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-FALLBACK)
+=>
+	(set-goal gl-opening-mill-candidate-index 0)
+	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
+	(up-full-reset-search)
+	(up-build place-normal 0 c: mill)
+	(set-goal gl-opening-mill-requested YES)
+	(chat-local-to-self "opening Mill fallback placement")
+	(up-set-timer c: t-opening-mill c: 90)
+	(set-goal gl-opening-mill-state OPENING-MILL-FALLBACK-WAIT)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-FALLBACK-WAIT)
+	(or
+		(building-type-count-total mill > 0)
+		(up-pending-objects c: mill > 0)
+	)
+=>
+	(chat-local-to-self "opening Mill fallback accepted")
+	(set-goal gl-migration-placement-lock NO)
+	(set-goal gl-opening-mill-state OPENING-MILL-IDLE)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-FALLBACK-WAIT)
 	(building-type-count-total mill == 0)
 	(up-pending-objects c: mill <= 0)
 	(up-timer-status t-opening-mill == timer-triggered)
 =>
 	(up-reset-placement c: mill)
 	(set-goal gl-opening-mill-requested NO)
+	(set-goal gl-migration-placement-lock NO)
 	(up-set-timer c: t-opening-mill c: 30)
+	(set-goal gl-opening-mill-state OPENING-MILL-IDLE)
+)
+
+;Re-arm the owner if the accepted foundation fails or the completed opening Mill
+;is later destroyed. A live Mill or foundation keeps the one-shot latch closed.
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-IDLE)
+	(goal gl-opening-mill-requested YES)
+	(building-type-count-total mill == 0)
+	(up-pending-objects c: mill <= 0)
+	(not (up-pending-placement c: mill))
+	(up-timer-status t-opening-mill == timer-triggered)
+=>
+	(up-reset-placement c: mill)
+	(set-goal gl-opening-mill-requested NO)
+	(set-goal gl-migration-placement-lock NO)
+	(up-set-timer c: t-opening-mill c: 30)
+)
+
+;Try four bounded diagonals around the exact forage object. A failed cluster
+;advances one candidate at a time so another cluster cannot be skipped merely
+;because home-distance sorting interleaves the two clusters.
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-PLACE)
+	(goal gl-opening-mill-placement-attempts 0)
+	(can-afford-building mill)
+=>
+	(up-copy-point point2-x gl-opening-mill-target-x)
+	(up-modify-goal point2-x c:+ 4)
+	(up-modify-goal point2-y c:+ 4)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+	(up-build place-point 0 c: mill)
+	(set-goal gl-opening-mill-requested YES)
+	(set-goal gl-opening-mill-placement-attempts 1)
+	(up-set-timer c: t-opening-mill c: 30)
+	(set-goal gl-opening-mill-state OPENING-MILL-WAIT)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-PLACE)
+	(goal gl-opening-mill-placement-attempts 1)
+	(can-afford-building mill)
+=>
+	(up-copy-point point2-x gl-opening-mill-target-x)
+	(up-modify-goal point2-x c:- 4)
+	(up-modify-goal point2-y c:+ 4)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+	(up-build place-point 0 c: mill)
+	(set-goal gl-opening-mill-requested YES)
+	(set-goal gl-opening-mill-placement-attempts 2)
+	(up-set-timer c: t-opening-mill c: 30)
+	(set-goal gl-opening-mill-state OPENING-MILL-WAIT)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-PLACE)
+	(goal gl-opening-mill-placement-attempts 2)
+	(can-afford-building mill)
+=>
+	(up-copy-point point2-x gl-opening-mill-target-x)
+	(up-modify-goal point2-x c:+ 4)
+	(up-modify-goal point2-y c:- 4)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+	(up-build place-point 0 c: mill)
+	(set-goal gl-opening-mill-requested YES)
+	(set-goal gl-opening-mill-placement-attempts 3)
+	(up-set-timer c: t-opening-mill c: 30)
+	(set-goal gl-opening-mill-state OPENING-MILL-WAIT)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-PLACE)
+	(goal gl-opening-mill-placement-attempts 3)
+	(can-afford-building mill)
+=>
+	(up-copy-point point2-x gl-opening-mill-target-x)
+	(up-modify-goal point2-x c:- 4)
+	(up-modify-goal point2-y c:- 4)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+	(up-build place-point 0 c: mill)
+	(set-goal gl-opening-mill-requested YES)
+	(set-goal gl-opening-mill-placement-attempts 4)
+	(up-set-timer c: t-opening-mill c: 30)
+	(set-goal gl-opening-mill-state OPENING-MILL-WAIT)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-PLACE)
+	(not (can-afford-building mill))
+=>
+	(set-goal gl-opening-mill-requested NO)
+	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
+	(set-goal gl-migration-placement-lock NO)
+	(up-set-timer c: t-opening-mill c: 30)
+	(set-goal gl-opening-mill-state OPENING-MILL-IDLE)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-WAIT)
+	(up-pending-objects c: mill >= 1)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-opening-mill-target-x)
+	(up-filter-distance c: -1 c: 10)
+	(up-filter-status c: status-pending c: list-active)
+	(up-find-status-local c: mill c: 10)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-opening-mill-resource-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-opening-mill-state OPENING-MILL-CHECK-FOUNDATION)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-CHECK-FOUNDATION)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance <= 10)
+	(up-object-data object-data-map-zone-id g:== gl-opening-mill-resource-zone)
+=>
+	(up-chat-data-to-self "opening Mill forage resource: %d" g: gl-opening-mill-resource-id)
+	(up-chat-data-to-self "opening Mill forage zone: %d" g: gl-opening-mill-resource-zone)
+	(set-goal gl-opening-mill-candidate-index 0)
+	(set-goal gl-opening-mill-placement-attempts 0)
+	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
+	(set-goal gl-migration-placement-lock NO)
+	(up-set-timer c: t-opening-mill c: 90)
+	(set-goal gl-opening-mill-state OPENING-MILL-IDLE)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-CHECK-FOUNDATION)
+	(not (up-set-target-object search-local c: 0))
+	(up-compare-goal gl-opening-mill-placement-attempts c:< 4)
+=>
+	(up-reset-placement c: mill)
+	(set-goal gl-opening-mill-requested NO)
+	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
+	(set-goal gl-opening-mill-state OPENING-MILL-PLACE)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-CHECK-FOUNDATION)
+	(not (up-set-target-object search-local c: 0))
+	(up-compare-goal gl-opening-mill-placement-attempts c:>= 4)
+=>
+	(set-goal gl-opening-mill-state OPENING-MILL-REJECT-CANDIDATE)
+)
+
+;The tiny foundation may complete before a WAIT sweep sees it pending. Resolve
+;and accept a ready same-zone Mill without ever deleting a completed structure.
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-WAIT)
+	(up-timer-status t-opening-mill == timer-triggered)
+	(up-pending-objects c: mill <= 0)
+	(building-type-count-total mill >= 1)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-opening-mill-target-x)
+	(up-filter-distance c: -1 c: 10)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-local c: mill c: 10)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-opening-mill-resource-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-opening-mill-state OPENING-MILL-FIND-COMPLETED)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-FIND-COMPLETED)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-chat-data-to-self "opening Mill completed at forage: %d" g: gl-opening-mill-resource-id)
+	(set-goal gl-opening-mill-candidate-index 0)
+	(set-goal gl-opening-mill-placement-attempts 0)
+	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
+	(set-goal gl-migration-placement-lock NO)
+	(up-set-timer c: t-opening-mill c: 90)
+	(set-goal gl-opening-mill-state OPENING-MILL-IDLE)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-FIND-COMPLETED)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(set-goal gl-opening-mill-state OPENING-MILL-REJECT-CANDIDATE)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-WAIT)
+	(up-timer-status t-opening-mill == timer-triggered)
+	(up-pending-objects c: mill <= 0)
+	(building-type-count-total mill == 0)
+	(up-compare-goal gl-opening-mill-placement-attempts c:< 4)
+=>
+	(up-reset-placement c: mill)
+	(set-goal gl-opening-mill-requested NO)
+	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
+	(set-goal gl-opening-mill-state OPENING-MILL-PLACE)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-WAIT)
+	(up-timer-status t-opening-mill == timer-triggered)
+	(up-pending-objects c: mill <= 0)
+	(building-type-count-total mill == 0)
+	(up-compare-goal gl-opening-mill-placement-attempts c:>= 4)
+=>
+	(set-goal gl-opening-mill-state OPENING-MILL-REJECT-CANDIDATE)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-REJECT-CANDIDATE)
+=>
+	(up-reset-placement c: mill)
+	(up-modify-goal gl-opening-mill-candidate-index c:+ 1)
+	(up-chat-data-to-self "opening Mill rejected blocked forage: %d" g: gl-opening-mill-resource-id)
+	(set-goal gl-opening-mill-requested NO)
+	(set-goal gl-opening-mill-placement-attempts 0)
+	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
+	(set-goal gl-migration-placement-lock NO)
+	(up-set-timer c: t-opening-mill c: 15)
+	(set-goal gl-opening-mill-state OPENING-MILL-IDLE)
 )
 
 ;As with the first Lumber Camp, the first Mining Camp must not require a miner
@@ -2656,6 +3492,37 @@
 =>
 	(up-build place-normal 0 c: barracks))
 
+;A player whose last army and Barracks were destroyed has no responder with
+;which to raise gl-home-defense-state. Rebuild the foundational producer even
+;while age-up escrow is active; this rule is threat-gated and cannot restore the
+;old opening Barracks regression.
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal gl-local-threat-active YES)
+	(building-type-count-total barracks < 1)
+	(up-pending-objects c: barracks <= 0)
+	(not (up-pending-placement c: barracks))
+	(can-afford-building barracks)
+	(up-can-build 0 c: barracks)
+=>
+	(up-build place-normal 0 c: barracks)
+	(chat-local-to-self "Emergency Barracks requested after local attack")
+)
+
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(goal gl-local-threat-active YES)
+	(building-type-count-total barracks < 1)
+	(up-pending-objects c: barracks <= 0)
+	(not (up-pending-placement c: barracks))
+	(can-afford-building barracks)
+	(not (up-can-build 0 c: barracks))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
 (defrule
 	(current-age >= early-antiquity-age)
 	(goal wait-techup-requirements NO)
@@ -2867,18 +3734,20 @@
 (defrule
 	(current-age >= middle-antiquity-age)
 	(building-type-count town-center >= 2)
+	(goal gl-migration-placement-lock NO)
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-castle-request-next)
 	(can-afford-building castle)
 	(building-type-count-total castle g:< desired-number-castles)
+	(up-pending-objects c: castle <= 0)
+	(not (up-pending-placement c: castle))
 	(up-can-build 0 c: castle)
 =>
-;	(up-get-fact building-type-count castle gl-number-castles)	
-;	(up-modify-goal gl-castle-placement c:= 10)
-;	(up-modify-goal gl-castle-placement g:* gl-number-castles)
-;	(up-modify-goal gl-castle-placement c:+ 10)
-;	(up-modify-goal gl-castle-placement s:min sn-maximum-town-size)
-	(up-set-placement-data my-player-number -1 c: 20)	
-;	(up-set-placement-data my-player-number -1 g: gl-castle-placement)
-	(up-build place-control 0 c: castle)
+	;Normal placement may choose another valid point after a crowded location
+	;fails. A dedicated cadence prevents hundreds of identical BUILD requests.
+	(up-build place-normal 0 c: castle)
+	(up-modify-goal gl-castle-request-next g:= gl-game-time)
+	(up-modify-goal gl-castle-request-next c:+ 30)
 )
 
 (defrule
@@ -2915,106 +3784,409 @@
 	(up-build place-control 0 c: watch-tower)
 )
 
-;does not function
-;cause unknown
-
-#load-if-not-defined CHINESE-CIV
-
+;Wall posture starts with the actual exposed flank role. Pocket detection was
+;formerly inverted in rawai-map, which gave this doctrine to the wrong players.
 (defrule
-	(and
-		(current-age >= early-antiquity-age)
-		(goal flank-position 1)
-	)
+	(current-age >= early-antiquity-age)
+	(goal flank-position 1)
+	(goal gl-wall-needed NO)
 =>
-	(enable-wall-placement 2)
-	(set-strategic-number sn-gate-type-for-wall 1)
-	(chat-local-to-self "Enable walls for flank position")
-	(disable-self)
+	(set-goal gl-wall-needed YES)
+	(chat-local-to-self "Wall posture: exposed flank")
 )
 
 (defrule
-	(and
-		(current-age >= early-antiquity-age)
-		(goal flank-position 1)
+	(current-age >= early-antiquity-age)
+	(or
+		(goal gl-home-defense-state YES)
+		(or
+			(enemy-buildings-in-town)
+			(goal taunt-wall YES)
+		)
 	)
+	(goal gl-wall-needed NO)
+=>
+	(set-goal gl-wall-needed YES)
+	(chat-local-to-self "Wall posture: local threat")
+)
+
+;A known enemy economy or military structure in the same active land zone is
+;the engine-visible reachability proxy for a mainland opponent. This avoids
+;walling an isolated island merely because the Real World map is hybrid.
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal gl-wall-scan-state WALL-SCAN-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-wall-scan-next)
+	(goal gl-island-colony-established NO)
+=>
+	(up-modify-goal gl-wall-scan-focus s:= sn-focus-player-number)
+	(up-modify-goal gl-wall-land-zone g:= gl-home-zone)
+	(set-goal gl-hostile-land-route NO)
+	(up-find-player enemy find-ordered gl-wall-scan-player)
+	(up-modify-goal gl-wall-scan-first g:= gl-wall-scan-player)
+	(set-goal gl-wall-scan-state WALL-SCAN-START)
+)
+
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal gl-wall-scan-state WALL-SCAN-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-wall-scan-next)
+	(goal gl-island-colony-established YES)
+=>
+	(up-modify-goal gl-wall-scan-focus s:= sn-focus-player-number)
+	(up-modify-goal gl-wall-land-zone g:= gl-island-colony-zone)
+	(set-goal gl-hostile-land-route NO)
+	(up-find-player enemy find-ordered gl-wall-scan-player)
+	(up-modify-goal gl-wall-scan-first g:= gl-wall-scan-player)
+	(set-goal gl-wall-scan-state WALL-SCAN-START)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-START)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-wall-scan-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-find-remote c: town-center c: 20)
+	(up-find-remote c: barracks c: 20)
+	(up-find-remote c: archery-range c: 20)
+	(up-find-remote c: stable c: 20)
+	(up-find-remote c: castle c: 10)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-wall-land-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-modify-sn sn-focus-player-number g:= gl-wall-scan-focus)
+	(set-goal gl-wall-scan-state WALL-SCAN-CHECK)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-CHECK)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-goal gl-hostile-land-route YES)
+	(set-goal gl-wall-needed YES)
+	(up-modify-goal gl-wall-scan-next g:= gl-game-time)
+	(up-modify-goal gl-wall-scan-next c:+ 90)
+	(up-chat-data-to-self "Wall posture same-zone enemy: %d" g: gl-wall-scan-player)
+	(set-goal gl-wall-scan-state WALL-SCAN-IDLE)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-CHECK)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-wall-scan-state WALL-SCAN-ADVANCE)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-ADVANCE)
+=>
+	(up-find-next-player enemy find-ordered gl-wall-scan-player)
+	(set-goal gl-wall-scan-state WALL-SCAN-NEXT)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-NEXT)
+	(up-compare-goal gl-wall-scan-player g:!= gl-wall-scan-first)
+=>
+	(set-goal gl-wall-scan-state WALL-SCAN-START)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-NEXT)
+	(up-compare-goal gl-wall-scan-player g:== gl-wall-scan-first)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-wall-scan-focus)
+	(up-modify-goal gl-wall-scan-next g:= gl-game-time)
+	(up-modify-goal gl-wall-scan-next c:+ 90)
+	(set-goal gl-wall-scan-state WALL-SCAN-IDLE)
+)
+
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal gl-wall-needed YES)
+	(goal gl-wall-enabled NO)
+=>
+	(enable-wall-placement 2)
+	(set-goal gl-wall-enabled YES)
+	(chat-local-to-self "Wall placement owner enabled")
+)
+
+;Completion quarters act as a progress latch using only classic wall facts.
+;Each new quarter clears the no-progress retry count. Three commands without a
+;new quarter trigger a three-minute backoff, preventing the replayed identical-
+;segment loop from multiplying across every newly eligible AI.
+(defrule
+	(wall-completed-percentage 2 >= 25)
+	(up-compare-goal gl-wall-last-percent c:< 25)
+=>
+	(set-goal gl-wall-last-percent 25)
+	(set-goal gl-wall-retries 0)
+)
+
+(defrule
+	(wall-completed-percentage 2 >= 50)
+	(up-compare-goal gl-wall-last-percent c:< 50)
+=>
+	(set-goal gl-wall-last-percent 50)
+	(set-goal gl-wall-retries 0)
+)
+
+(defrule
+	(wall-completed-percentage 2 >= 75)
+	(up-compare-goal gl-wall-last-percent c:< 75)
+=>
+	(set-goal gl-wall-last-percent 75)
+	(set-goal gl-wall-retries 0)
+)
+
+;Choose one material for perimeter 2 and retain it. Switching the strategic
+;gate type between stone and palisade retries can make build-gate interpret an
+;already-started perimeter with the wrong gate family.
+(defrule
+	(goal gl-wall-needed YES)
+	(goal gl-wall-material WALL-MATERIAL-UNSET)
+	(can-build-wall-with-escrow 2 stone-wall-line)
+=>
+	(set-goal gl-wall-material WALL-MATERIAL-STONE)
+	(set-strategic-number sn-gate-type-for-wall 0)
+	(chat-local-to-self "Wall owner latched stone perimeter")
+)
+
+(defrule
+	(goal gl-wall-needed YES)
+	(goal gl-wall-material WALL-MATERIAL-UNSET)
+	(not (can-build-wall-with-escrow 2 stone-wall-line))
+	(can-build-wall-with-escrow 2 palisade-wall)
+=>
+	(set-goal gl-wall-material WALL-MATERIAL-PALISADE)
+	(set-strategic-number sn-gate-type-for-wall 1)
+	(chat-local-to-self "Wall owner latched palisade perimeter")
+)
+
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal gl-wall-needed YES)
+	(goal gl-wall-material WALL-MATERIAL-STONE)
+	(building-type-count town-center >= 1)
+	(up-object-type-count-total c: villager-class >= 20)
+	(goal gl-home-defense-state NO)
+	(up-compare-goal gl-game-time g:>= gl-wall-next)
+	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
+	(up-compare-goal gl-wall-retries c:< 3)
+	(wall-completed-percentage 2 < 100)
+	(can-build-wall-with-escrow 2 stone-wall-line)
+=>
+	(release-escrow stone)
+	(build-wall 2 stone-wall-line)
+	(up-modify-goal gl-wall-retries c:+ 1)
+	(up-modify-goal gl-wall-next g:= gl-game-time)
+	(up-modify-goal gl-wall-next c:+ 45)
+	(chat-local-to-self "Wall owner issued stone line")
+)
+
+(defrule
+	(current-age >= early-antiquity-age)
+	(goal gl-wall-needed YES)
+	(goal gl-wall-material WALL-MATERIAL-PALISADE)
+	(building-type-count town-center >= 1)
+	(up-object-type-count-total c: villager-class >= 20)
+	(goal gl-home-defense-state NO)
+	(up-compare-goal gl-game-time g:>= gl-wall-next)
+	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
+	(up-compare-goal gl-wall-retries c:< 3)
 	(wall-completed-percentage 2 < 100)
 	(can-build-wall-with-escrow 2 palisade-wall)
 =>
 	(release-escrow wood)
 	(build-wall 2 palisade-wall)
-	(chat-local-to-self "Place walls")
+	(up-modify-goal gl-wall-retries c:+ 1)
+	(up-modify-goal gl-wall-next g:= gl-game-time)
+	(up-modify-goal gl-wall-next c:+ 45)
+	(chat-local-to-self "Wall owner issued palisade line")
 )
 
 (defrule
-	(and
-		(current-age >= early-antiquity-age)
-		(goal flank-position 1)
-	)
-	(building-type-count-total gate < 4)
+	(goal gl-wall-needed YES)
+	(goal gl-wall-material WALL-MATERIAL-UNSET)
+	(up-compare-goal gl-game-time g:>= gl-wall-next)
+	(up-compare-goal gl-wall-retries c:< 3)
+	(wall-completed-percentage 2 < 100)
+	(not (can-build-wall-with-escrow 2 stone-wall-line))
+	(not (can-build-wall-with-escrow 2 palisade-wall))
+=>
+	(up-modify-goal gl-wall-next g:= gl-game-time)
+	(up-modify-goal gl-wall-next c:+ 60)
+)
+
+(defrule
+	(goal gl-wall-needed YES)
+	(goal gl-wall-material WALL-MATERIAL-STONE)
+	(up-compare-goal gl-game-time g:>= gl-wall-next)
+	(up-compare-goal gl-wall-retries c:< 3)
+	(wall-completed-percentage 2 < 100)
+	(not (can-build-wall-with-escrow 2 stone-wall-line))
+=>
+	(up-modify-goal gl-wall-next g:= gl-game-time)
+	(up-modify-goal gl-wall-next c:+ 60)
+)
+
+(defrule
+	(goal gl-wall-needed YES)
+	(goal gl-wall-material WALL-MATERIAL-PALISADE)
+	(up-compare-goal gl-game-time g:>= gl-wall-next)
+	(up-compare-goal gl-wall-retries c:< 3)
+	(wall-completed-percentage 2 < 100)
+	(not (can-build-wall-with-escrow 2 palisade-wall))
+=>
+	(up-modify-goal gl-wall-next g:= gl-game-time)
+	(up-modify-goal gl-wall-next c:+ 60)
+)
+
+(defrule
+	(goal gl-wall-needed YES)
+	(up-compare-goal gl-game-time g:>= gl-wall-next)
+	(up-compare-goal gl-wall-retries c:>= 3)
+	(wall-completed-percentage 2 < 100)
+=>
+	(set-goal gl-wall-retries 0)
+	(up-modify-goal gl-wall-next g:= gl-game-time)
+	(up-modify-goal gl-wall-next c:+ 180)
+	(up-chat-data-to-self "Wall placement no-progress backoff: %d" g: gl-wall-last-percent)
+)
+
+;Insert one usable opening as soon as a quarter of the perimeter exists and a
+;second after three quarters. The owner count is perimeter-specific; a scenario
+;or unrelated gate elsewhere must not suppress these requests. Gate timing is
+;independent of the wall command/backoff deadline.
+(defrule
+	(goal gl-wall-needed YES)
+	(goal gl-wall-enabled YES)
+	(goal gl-wall-material WALL-MATERIAL-STONE)
+	(goal gl-wall-gates-issued 0)
+	(building-type-count town-center >= 1)
+	(up-object-type-count-total c: villager-class >= 20)
+	(goal gl-home-defense-state NO)
+	(wall-completed-percentage 2 >= 25)
+	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
+	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
+	(can-build-gate-with-escrow 2)
+=>
+	(release-escrow stone)
+	(build-gate 2)
+	(set-goal gl-wall-gates-issued 1)
+	(set-goal gl-wall-gate-attempts 0)
+	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
+	(up-modify-goal gl-wall-gate-next c:+ 60)
+	(chat-local-to-self "Wall owner issued stone gate 1")
+)
+
+(defrule
+	(goal gl-wall-needed YES)
+	(goal gl-wall-enabled YES)
+	(goal gl-wall-material WALL-MATERIAL-PALISADE)
+	(goal gl-wall-gates-issued 0)
+	(building-type-count town-center >= 1)
+	(up-object-type-count-total c: villager-class >= 20)
+	(goal gl-home-defense-state NO)
+	(wall-completed-percentage 2 >= 25)
+	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
+	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(can-build-gate-with-escrow 2)
 =>
 	(release-escrow wood)
 	(build-gate 2)
-	(chat-local-to-self "Place gates")
+	(set-goal gl-wall-gates-issued 1)
+	(set-goal gl-wall-gate-attempts 0)
+	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
+	(up-modify-goal gl-wall-gate-next c:+ 60)
+	(chat-local-to-self "Wall owner issued palisade gate 1")
 )
 
 (defrule
-	(goal taunt-wall YES)
-	(current-age >= early-antiquity-age)
-	(wall-completed-percentage 2 < 100)
-	(can-build-wall-with-escrow 2 stone-wall-line)
-=>
-	(release-escrow stone)
-	(build-wall 2 stone-wall-line)
-	(chat-local-to-self "Place walls")
-)
-
-(defrule
-	(goal taunt-wall YES)
-	(current-age >= early-antiquity-age)
-	(building-type-count-total gate < 4)
-	(can-build-gate-with-escrow 2)
-=>
-	(set-strategic-number sn-gate-type-for-wall 0)
-	(release-escrow stone)
-	(build-gate 2)
-	(chat-local-to-self "Place gates")
-)
-
-#end-if
-
-#load-if-defined CHINESE-CIV
-
-(defrule
-	(true)
-=>
-	(enable-wall-placement 2)
-	(set-strategic-number sn-gate-type-for-wall 0)
-	(chat-local-to-self "Enable walls for Chinese")
-	(disable-self)
-)
-
-(defrule
-	(goal age-up-started EARLY-ANTIQUITY)
-	(wall-completed-percentage 2 < 100)
-	(can-build-wall-with-escrow 2 stone-wall-line)
-=>
-	(release-escrow stone)
-	(build-wall 2 stone-wall-line)
-	(chat-local-to-self "Place walls")
-)
-
-(defrule
-	(goal age-up-started EARLY-ANTIQUITY)
-	(building-type-count-total gate < 4)
+	(goal gl-wall-needed YES)
+	(goal gl-wall-enabled YES)
+	(goal gl-wall-material WALL-MATERIAL-STONE)
+	(goal gl-wall-gates-issued 1)
+	(building-type-count town-center >= 1)
+	(up-object-type-count-total c: villager-class >= 20)
+	(goal gl-home-defense-state NO)
+	(wall-completed-percentage 2 >= 75)
+	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
+	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(can-build-gate-with-escrow 2)
 =>
 	(release-escrow stone)
 	(build-gate 2)
-	(chat-local-to-self "Place gates")
+	(set-goal gl-wall-gates-issued 2)
+	(set-goal gl-wall-gate-attempts 0)
+	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
+	(up-modify-goal gl-wall-gate-next c:+ 60)
+	(chat-local-to-self "Wall owner issued stone gate 2")
 )
 
-#end-if
+(defrule
+	(goal gl-wall-needed YES)
+	(goal gl-wall-enabled YES)
+	(goal gl-wall-material WALL-MATERIAL-PALISADE)
+	(goal gl-wall-gates-issued 1)
+	(building-type-count town-center >= 1)
+	(up-object-type-count-total c: villager-class >= 20)
+	(goal gl-home-defense-state NO)
+	(wall-completed-percentage 2 >= 75)
+	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
+	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
+	(can-build-gate-with-escrow 2)
+=>
+	(release-escrow wood)
+	(build-gate 2)
+	(set-goal gl-wall-gates-issued 2)
+	(set-goal gl-wall-gate-attempts 0)
+	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
+	(up-modify-goal gl-wall-gate-next c:+ 60)
+	(chat-local-to-self "Wall owner issued palisade gate 2")
+)
+
+;A partially built line may not yet contain a replaceable gate span. Poll that
+;engine fact on a separate bounded cadence without consuming a gate request.
+(defrule
+	(goal gl-wall-needed YES)
+	(goal gl-wall-enabled YES)
+	(goal gl-wall-gates-issued 0)
+	(wall-completed-percentage 2 >= 25)
+	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
+	(up-compare-goal gl-wall-gate-attempts c:< 3)
+	(not (can-build-gate-with-escrow 2))
+=>
+	(up-modify-goal gl-wall-gate-attempts c:+ 1)
+	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
+	(up-modify-goal gl-wall-gate-next c:+ 60)
+)
+
+(defrule
+	(goal gl-wall-needed YES)
+	(goal gl-wall-enabled YES)
+	(goal gl-wall-gates-issued 1)
+	(wall-completed-percentage 2 >= 75)
+	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
+	(up-compare-goal gl-wall-gate-attempts c:< 3)
+	(not (can-build-gate-with-escrow 2))
+=>
+	(up-modify-goal gl-wall-gate-attempts c:+ 1)
+	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
+	(up-modify-goal gl-wall-gate-next c:+ 60)
+)
+
+(defrule
+	(goal gl-wall-needed YES)
+	(up-compare-goal gl-wall-gates-issued c:< 2)
+	(up-compare-goal gl-wall-gate-attempts c:>= 3)
+	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
+=>
+	(set-goal gl-wall-gate-attempts 0)
+	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
+	(up-modify-goal gl-wall-gate-next c:+ 180)
+	(up-chat-data-to-self "Wall gate availability backoff: %d" g: gl-wall-gates-issued)
+)
 
 ;farm fallback
 
