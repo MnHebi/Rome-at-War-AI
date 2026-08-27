@@ -13,6 +13,11 @@ ROOT = Path(__file__).resolve().parents[1]
 BENCHMARKS = ROOT / "replay-benchmarks.json"
 SHA256 = re.compile(r"^[0-9A-F]{64}$")
 VALID_STATUSES = {"fresh-replay-required", "runtime-confirmed", "superseded"}
+VALID_TEAM_MAPPING_BASES = {
+    "decoded-diplomacy-matrix",
+    "unresolved",
+    "user-verified-match-setup",
+}
 
 
 def require_text_list(entry: dict, key: str, errors: list[str]) -> None:
@@ -71,6 +76,37 @@ def validate() -> list[str]:
             duration = source.get("duration_seconds")
             if not isinstance(duration, int) or duration <= 0:
                 errors.append(f"{benchmark_id}: duration_seconds must be a positive integer")
+
+            players = source.get("players")
+            if isinstance(players, list) and len(players) > 2:
+                basis = source.get("team_mapping_basis")
+                note = source.get("team_mapping_note")
+                if basis not in VALID_TEAM_MAPPING_BASES:
+                    errors.append(
+                        f"{benchmark_id}: multiplayer team_mapping_basis must be one of "
+                        f"{sorted(VALID_TEAM_MAPPING_BASES)}"
+                    )
+                if not isinstance(note, str) or not note.strip():
+                    errors.append(
+                        f"{benchmark_id}: multiplayer team_mapping_note must explain provenance"
+                    )
+
+                team_labels = [
+                    player
+                    for player in players
+                    if isinstance(player, str) and re.search(r"\(team\s+\d+\)$", player)
+                ]
+                if basis == "unresolved" and team_labels:
+                    errors.append(
+                        f"{benchmark_id}: unresolved team mapping must not label player teams"
+                    )
+                if basis in {
+                    "decoded-diplomacy-matrix",
+                    "user-verified-match-setup",
+                } and len(team_labels) != len(players):
+                    errors.append(
+                        f"{benchmark_id}: authoritative team mapping must label every player"
+                    )
 
         for key in (
             "direct_replay_observations",
