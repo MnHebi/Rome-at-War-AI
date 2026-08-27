@@ -12,6 +12,90 @@ from validate_good_units import EXPECTED_CATEGORIES, validate_document, validate
 from validate_strategy_execution import bounded_direct_train_blocks
 from validate_naval_doctrine import matching_rules
 from sync_naval_capabilities import competitive_enemy_ceiling, runtime_score
+from analyze_replay import unavailable_players, validated_players
+
+
+class ReplayMetadataTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.fast = [
+            {
+                "number": 1,
+                "color_id": 0,
+                "team_id": 2,
+                "civilization_id": 23,
+                "ai_name": b"AI RAW",
+            },
+            {
+                "number": 2,
+                "color_id": 7,
+                "team_id": 3,
+                "civilization_id": 21,
+                "ai_name": b"AI RAW",
+            },
+            {"number": -1, "color_id": -1, "team_id": 0, "civilization_id": 0},
+        ]
+        self.full = [
+            {
+                "player_number": 1,
+                "color_id": 0,
+                "selected_color": 1,
+                "selected_team_id": 2,
+                "resolved_team_id": 2,
+                "civ_id": 23,
+                "ai_name": {"value": b"AI RAW"},
+            },
+            {
+                "player_number": 2,
+                "color_id": 7,
+                "selected_color": 7,
+                "selected_team_id": 3,
+                "resolved_team_id": 3,
+                "civ_id": 21,
+                "ai_name": {"value": b"AI RAW"},
+            },
+            {"player_number": -1},
+        ]
+
+    def test_selected_colors_join_by_player_number_not_array_position(self) -> None:
+        players = validated_players(self.fast, list(reversed(self.full)))
+        self.assertEqual([player["number"] for player in players], [1, 2])
+        self.assertEqual([player["color_id"] for player in players], [1, 7])
+        self.assertEqual([player["internal_color_id"] for player in players], [0, 7])
+        self.assertEqual([player["resolved_team_id"] for player in players], [2, 3])
+
+    def test_duplicate_or_missing_active_player_is_rejected(self) -> None:
+        duplicate = [self.full[0], dict(self.full[0])]
+        with self.assertRaisesRegex(ValueError, "duplicate active player"):
+            validated_players(self.fast, duplicate)
+        with self.assertRaisesRegex(ValueError, "active player mismatch"):
+            validated_players(self.fast, self.full[:1])
+
+    def test_fast_and_full_identity_mismatches_are_rejected(self) -> None:
+        for field, value, message in (
+            ("color_id", 4, "internal color mismatch"),
+            ("resolved_team_id", 4, "resolved team mismatch"),
+            ("civ_id", 9, "civilization mismatch"),
+        ):
+            changed = [dict(player) for player in self.full]
+            changed[0][field] = value
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(ValueError, message):
+                    validated_players(self.fast, changed)
+
+    def test_invalid_selected_color_is_never_substituted(self) -> None:
+        changed = [dict(player) for player in self.full]
+        changed[0]["selected_color"] = 255
+        with self.assertRaisesRegex(ValueError, "invalid selected color"):
+            validated_players(self.fast, changed)
+
+    def test_unavailable_metadata_keeps_internal_color_nonvisual(self) -> None:
+        players = unavailable_players(self.fast)
+        self.assertEqual([player["number"] for player in players], [1, 2])
+        self.assertEqual([player["color_id"] for player in players], [None, None])
+        self.assertEqual(
+            [player["internal_color_id"] for player in players], [0, 7]
+        )
+        self.assertNotIn("team_id", players[0])
 
 
 class PerDomainTests(unittest.TestCase):

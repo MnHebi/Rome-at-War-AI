@@ -44,6 +44,9 @@ Bundled AI validation and maintenance tools live in the `tools` directory:
   every rating and unique-unit type to match the JSON knowledge artifact;
 - `validate_replay_benchmarks.py` requires source hashes, separates direct
   observations from inferences, and rejects path-bearing replay metadata; and
+- `analyze_replay.py` decodes command streams and validates visible DE player
+  colors from `selected_color`, retaining the separate internal color field and
+  failing closed when full and fast header identities disagree;
 - `sync_test_ai.py` hash-checks or copies only the top-level `.ai`/`.per`
   runtime payload into an explicit `resources/_common/ai` test-mod directory,
   reports an aggregate payload hash, and reports obsolete runtime files without

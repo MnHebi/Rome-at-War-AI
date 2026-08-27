@@ -777,24 +777,24 @@
         "game_build": "101.103.48987.0",
         "map": "Real World Britain (user-provided 4v4 test context)",
         "players": [
-          "p1 Gray Roman Empire",
-          "p2 Yellow Roman Empire",
-          "p3 Blue Roman Empire",
-          "p4 Green Roman Empire",
-          "p5 Purple Picts",
-          "p6 Red Britons",
-          "p7 Cyan Germani",
-          "p8 Orange Gauls"
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
         ],
-        "team_mapping_basis": "unresolved",
-        "team_mapping_note": "A parser-exported numeric field was previously mislabeled as diplomatic team membership. No authoritative match setup or decoded diplomacy matrix is recorded for this replay, so this benchmark asserts no team mapping.",
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The full DE header's selected_color and resolved_team_id fields were joined to the command-stream player index by validated player_number, internal color, civilization, and resolved team. Raw resolved teams 2 and 3 are logical teams 1 and 2 respectively.",
         "duration_seconds": 3795
       },
       "direct_replay_observations": [
         "The replay parsed without errors and lasted 63:15. No RAWAI-P3B21 marker was decoded, so the exact deployed source is not proven by the recording.",
         "All eight parser player slots requested Trade Carts (unit 128), for 234 requests total: p1 11, p2 30, p3 11, p4 42, p5 34, p6 62, p7 15, and p8 29. No player requested a Trade Cog (unit 17).",
         "Player 7 requested four Dejbjerg Wagon production forms (unit 2513) at approximately 10:05, 11:34, 12:15, and 13:13. MAKE records do not reveal the spawned position or the later DAT-owned transformation into persistent form 1815; the user's observation that the transformed wagons remained at the Town Center is therefore recorded as visual match evidence.",
-        "All 117 decoded WALL commands came from parser player 8, including 112 between approximately 41:49 and 62:35. The user's color account says Gray walled while Blue and Yellow did not; standard color-to-slot assumptions conflict with that account and are not used to overwrite it.",
+        "All 117 decoded WALL commands came from p8 Gray Gauls, including 112 between approximately 41:49 and 62:35, matching the user's visual account that Gray walled while Blue and Yellow did not.",
         "The replay contains 522 empty ERROR action records without a decoded payload or reliable rule attribution. They are not evidence of a particular placement failure or script defect."
       ],
       "implementation_inferences": [
@@ -802,7 +802,7 @@
         "The authoritative DAT makes unit 2513 a short-lived transformation dummy and leaves unit 1815 as the persistent movable multi-resource drop-site. The AI had a production owner but no movement owner, so directly commanding exact form 1815 is the least-assumptive correction; an unpack command is neither required nor justified by the data.",
         "The old generic placement recovery stopped at the configured outer town size and used comparison tokens as strategic-number modification operators. It therefore could not provide a bounded, persistent recovery path for a crowded town, although the replay's payload-free ERROR records cannot identify which structures failed.",
         "The engine-defined UP-POCKET-POSITION branch was inverted, assigning actual pockets the flank flag and actual flanks the pocket flag. This can explain wall posture being attached to the wrong team roles.",
-        "The old wall owner had no no-progress retry budget. The repeated player-8 WALL stream is consistent with an endlessly reissued placement command, but does not establish which visible color or civilization owned parser player 8."
+        "The old wall owner had no no-progress retry budget. The repeated p8 Gray Gauls WALL stream is consistent with an endlessly reissued placement command."
       ],
       "changes_under_test": [
         "Emit RAWAI-P3B23 and initialize separate bounded controllers for placement pressure, teammate trade-route discovery, wall progress and gates, and the Germani Dejbjerg Wagon.",
@@ -821,10 +821,9 @@
         "Once a wall has reached twenty-five percent and can-build-gate-with-escrow becomes true, it receives one gate request without waiting for one-hundred-percent completion; once it has reached seventy-five percent and the predicate becomes true again, it receives at most one additional request. If no replaceable span or matching resource is available, telemetry shows three sixty-second checks followed by an approximately 180-second gate-only backoff. Stone lines release only stone escrow, palisade lines release only wood escrow, gate retries do not move the wall deadline, and no unrelated pre-existing gate suppresses this perimeter's bounded requests."
       ],
       "known_limits": [
-        "The DE header now resolves p1 Gray Roman Empire, p2 Yellow Roman Empire, p3 Blue Roman Empire, p4 Green Roman Empire, p5 Purple Picts, p6 Red Britons, p7 Cyan Germani, and p8 Orange Gauls. It does not expose exact Dejbjerg object positions, transformation completion, transportable building action semantics, successful building placement, gate-slot selection, or trade-path reachability. Every runtime claim in this patch requires a fresh P3B23 match.",
+        "The selected-color-aware DE header resolves the visible player mapping in this entry. It does not expose exact Dejbjerg object positions, transformation completion, transportable building action semantics, successful building placement, gate-slot selection, or trade-path reachability. Every runtime claim in this patch requires a fresh P3B23 match.",
         "Land-zone equality is stronger evidence than map classification but does not prove that terrain within a zone has no impassable obstruction. Water-zone equality similarly does not prove a Trade Cog's full path is safe or unobstructed. Ordinary train cannot bind an object ID, so production conservatively requires all currently ready own producers to share the validated zone and blocks if their live count changes.",
-        "The wall route scan depends on known enemy structures in the active-home land zone. It cannot infer unseen choke points, and completion-percentage quarters prove engine wall progress rather than strategic enclosure quality.",
-        "The DE header identifies parser player 8 as Orange Gauls, while the user visually reported Gray as the walling player. The command stream proves that p8 issued the WALL records but does not prove completed wall ownership; this evidence conflict remains explicit rather than assigning those records to Gray."
+        "The wall route scan depends on known enemy structures in the active-home land zone. It cannot infer unseen choke points, and completion-percentage quarters prove engine wall progress rather than strategic enclosure quality."
       ],
       "validation_status": "fresh-replay-required"
     },
@@ -836,17 +835,17 @@
         "game_build": "101.103.48987.0",
         "map": "Real World Britain (user-provided 4v4 test context)",
         "players": [
-          "p1 Blue Roman Empire",
-          "p2 Yellow Roman Empire",
-          "p3 Gray Roman Empire",
-          "p4 Green Roman Empire",
-          "p5 Red Picts",
-          "p6 Cyan Britons",
-          "p7 Purple Germani",
-          "p8 Orange Gauls"
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
         ],
-        "team_mapping_basis": "unresolved",
-        "team_mapping_note": "A parser-exported numeric field was previously mislabeled as diplomatic team membership. No authoritative match setup or decoded diplomacy matrix is recorded for this replay, so this benchmark asserts no team mapping.",
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The full DE header's selected_color and resolved_team_id fields were joined to the command-stream player index by validated player_number, internal color, civilization, and resolved team. Raw resolved teams 2 and 3 are logical teams 1 and 2 respectively.",
         "duration_seconds": 3247
       },
       "direct_replay_observations": [
@@ -903,28 +902,28 @@
         "game_build": "101.103.48987.0",
         "map": "Real World Britain",
         "players": [
-          "p1 Cyan Roman Empire",
-          "p2 Yellow Roman Empire",
-          "p3 Orange Roman Empire",
-          "p4 Gray Roman Empire",
-          "p5 Purple Picts",
-          "p6 Green Britons",
-          "p7 Blue Germani",
-          "p8 Red Gauls"
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
         ],
-        "team_mapping_basis": "unresolved",
-        "team_mapping_note": "A parser-exported numeric field was previously mislabeled as diplomatic team membership. No authoritative match setup or decoded diplomacy matrix is recorded for this replay, so this benchmark asserts no team mapping.",
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The full DE header's selected_color and resolved_team_id fields were joined to the command-stream player index by validated player_number, internal color, civilization, and resolved team. Raw resolved teams 2 and 3 are logical teams 1 and 2 respectively.",
         "duration_seconds": 3331
       },
       "direct_replay_observations": [
         "The replay parsed 352016 actions and 2865 chat records without command-stream errors and lasted 55:31. The DE header reports Extreme difficulty, 400 population, shared exploration, map ID 50, and the exact player/color/civilization mapping in this entry.",
         "No RAWAI startup marker was decoded. The match began after the P3B24 commit and before the later P3B25 commit, so P3B24 is consistent with the test chronology but not proven by the recording.",
-        "Purple p5 issued Barracks build requests at 09:05, 29:03, 31:07, 31:27, and 31:44. Purple also requested 42 Spearmen, 22 Pikemen, 27 Scouts, six Rams, six Mangonels, two Priests, and seventeen Transport Ships. These are requests rather than proof that a Barracks or army survived the later attacks, but they disprove the literal match-wide claim that Purple never requested a Barracks or military.",
-        "Purple object 31842 received 53246 AI_ORDER stop records from 25:40 through 55:31, with roughly four thousand records per minute during the largest bursts. Later combat orders also included that object. The stream directly proves a persistent object-order loop but does not expose the object's unit type or the engine reason for rejecting movement.",
+        "Orange p5 issued Barracks build requests at 09:05, 29:03, 31:07, 31:27, and 31:44. Orange also requested 42 Spearmen, 22 Pikemen, 27 Scouts, six Rams, six Mangonels, two Priests, and seventeen Transport Ships. These are requests rather than proof that a Barracks or army survived the later attacks, but they disprove the literal match-wide claim that Orange never requested a Barracks or military.",
+        "Orange object 31842 received 53246 AI_ORDER stop records from 25:40 through 55:31, with roughly four thousand records per minute during the largest bursts. Later combat orders also included that object. The stream directly proves a persistent object-order loop but does not expose the object's unit type or the engine reason for rejecting movement.",
         "No player requested a Trade Cart (unit 128) or Trade Cog (unit 17), although all eight players issued Market and Port build requests.",
         "The replay's detailed self-chat belongs to p1. Its transported-scout missions began at 21:03, 23:44, and 26:15; the first reported landing zone 3 at 22:44. The historical selector did not record visited zones or reject allied settlements under shared exploration.",
-        "Player 1 emitted land-dispatch telemetry at 32:21 and 45:56 and an age-up dispatch at 45:46, so this replay does not prove universal timer-level passivity. It does not contain equivalent diagnostic state for Orange, Yellow, or Green.",
-        "Player 1 reported partially loaded Transports for sustained intervals, including one at 39:07 and 39:27 and two from 46:51 through 48:11. Purple issued no decoded WALL action, so the visually observed wall-villager losses are separate evidence and are not attributed to Purple's order loop."
+        "Red p1 emitted land-dispatch telemetry at 32:21 and 45:56 and an age-up dispatch at 45:46, so this replay does not prove universal timer-level passivity. It does not contain equivalent diagnostic state for Orange, Yellow, or Green.",
+        "Red p1 reported partially loaded Transports for sustained intervals, including one at 39:07 and 39:27 and two from 46:51 through 48:11. Orange p5 issued no decoded WALL action, so the visually observed Purple wall-villager losses are separate evidence and are not attributed to Orange's order loop."
       ],
       "implementation_inferences": [
         "The local-response controller latched home defense only when at least one same-zone responder already existed. With zero responders it logged and returned idle, while the ordinary Middle-Antiquity Barracks rule could still require a second Town Center, home defense, or rush state. This circular dependency could prevent recovery after a Barracks and army were destroyed.",
@@ -956,7 +955,7 @@
       ],
       "known_limits": [
         "Only p1's self-chat exposes detailed AI goals. The command stream records other players' actions but not their local response, route, superiority, or attack-owner state, so the reported passivity of Orange, Yellow, and Green cannot yet be assigned to one code gate.",
-        "BUILD and MAKE commands are requests, not completion evidence. Purple's earlier Barracks and unit requests correct the literal observation but do not prove that usable production infrastructure or responders existed during the later sustained attack.",
+        "BUILD and MAKE commands are requests, not completion evidence. Orange's earlier Barracks and unit requests correct the literal observation but do not prove that usable production infrastructure or responders existed during the later sustained attack.",
         "Object 31842's order flood is direct evidence, but the replay does not serialize its unit type, group flags, path result, or nearby gate/transport obstruction. P3B26 narrows likely ownership loops; a fresh replay must identify whether the object and symptoms disappear.",
         "The engine exposes no arbitrary path-safety query and generic train cannot bind a specific Dock. The bounded Trade Cog fallback is capped because structural validation cannot prove which producer receives the order or that the resulting ship finds a profitable ally route.",
         "Structural validation proves state ownership, filters, bounds, and command domains. It does not prove asynchronous garrison completion, wall-site safety, scout pathability, completed construction, actual trading, or battlefield initiative."
@@ -971,26 +970,26 @@
         "game_build": "101.103.48987.0",
         "map": "Real World Britain",
         "players": [
-          "p1 Purple Roman Empire",
-          "p2 Yellow Roman Empire",
-          "p3 Green Roman Empire",
-          "p4 Orange Roman Empire",
-          "p5 Gray Picts",
-          "p6 Red Britons",
-          "p7 Cyan Germani",
-          "p8 Blue Gauls"
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
         ],
-        "team_mapping_basis": "unresolved",
-        "team_mapping_note": "A parser-exported numeric field was previously mislabeled as diplomatic team membership. No authoritative match setup or decoded diplomacy matrix is recorded for this replay, so this benchmark asserts no team mapping.",
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The full DE header's selected_color and resolved_team_id fields were joined to the command-stream player index by validated player_number, internal color, civilization, and resolved team. Raw resolved teams 2 and 3 are logical teams 1 and 2 respectively.",
         "duration_seconds": 4085
       },
       "direct_replay_observations": [
         "The replay parsed 3767 chat records and lasted 68:05. The DE header reports Extreme difficulty, 400 population, shared exploration, map ID 50, and the exact player/color/civilization mapping in this entry. No decoded startup marker proves the precise deployed source revision.",
-        "Players 2 and 3 issued 31 taunt-48 help requests: ten from p2 and twenty-one from p3. Their teammates emitted 93 promises to send spare troops: p1 Purple and p4 each emitted 31, p2 emitted 21, and p3 emitted 10. These records prove requests and acknowledgements, not arrival of assistance.",
-        "Purple p1 emitted thirteen land-dispatch and seventeen naval-opportunity-dispatch messages while repeatedly reporting military-superiority 3 (superior). This disproves timer-level passivity, although an eleven-minute land-dispatch gap occurred from 38:51 to 50:14.",
-        "Purple reported loaded transports 156 times: 144 reports were zero and only twelve were one. It also reported seven available migration-gate transports while the loaded count remained zero, so completed hull capacity did not become an executing military lift.",
-        "Purple issued six `empty transport returned to berth` messages. One of those exact hulls, DUC ID 30541, was later used by the relic ferry and received 77 unload commands from 58:44 through 68:05; during the final forty seconds the repeated order was issued roughly twice per second at the same point.",
-        "At 55:42 Purple emitted a naval-opportunity dispatch and refreshed both attack timers, but emitted no land dispatch for the simultaneously expired land channel."
+        "Green p2 and Yellow p3 issued 31 taunt-48 help requests: ten from Green and twenty-one from Yellow. Their teammates emitted 93 promises to send spare troops: Red p1 and Purple p4 each emitted 31, Green p2 emitted 21, and Yellow p3 emitted 10. These records prove requests and acknowledgements, not arrival of assistance.",
+        "Red p1 emitted thirteen land-dispatch and seventeen naval-opportunity-dispatch messages while repeatedly reporting military-superiority 3 (superior). This disproves timer-level passivity, although an eleven-minute land-dispatch gap occurred from 38:51 to 50:14.",
+        "Red reported loaded transports 156 times: 144 reports were zero and only twelve were one. It also reported seven available migration-gate transports while the loaded count remained zero, so completed hull capacity did not become an executing military lift.",
+        "Red issued six `empty transport returned to berth` messages. One of those exact hulls, DUC ID 30541, was later used by the relic ferry and received 77 unload commands from 58:44 through 68:05; during the final forty seconds the repeated order was issued roughly twice per second at the same point.",
+        "At 55:42 Red emitted a naval-opportunity dispatch and refreshed both attack timers, but emitted no land dispatch for the simultaneously expired land channel."
       ],
       "implementation_inferences": [
         "The taunt-48 handler promised help before selecting troops or a relief destination. It set the target player to minus one, changed only the goal copy of the percentage, and called generic attack-now without retaining the requesting ally, attacked point, land zone, or proof of reachable responders.",
@@ -1012,10 +1011,10 @@
         "Against a disconnected enemy, `attack lift boarding target` is followed by either one full `attack lift ready` and a screened voyage or one bounded abort after approximately thirty seconds. No underfilled lift departs, retasked passengers receive at most one boarding refresh per four seconds, and a successful landing produces an aggressive passenger order plus `attack lift landed` telemetry.",
         "No completed empty hull is ordered onto a Port or Shipyard footprint. `empty transport staged clear` uses a same-water-zone ship position at least twenty-four tiles from the producer, and an idle unreserved Fishing Ship, Trade Cog, warship, Boarding Ship, or Transport near either producer type is moved to a same-basin destination.",
         "The same relic-ferry hull receives no more than one unload command per thirty-second watchdog deadline and exits or aborts after the bounded attempts rather than producing a per-sweep command stream.",
-        "If both attack timers expire together, the naval action is followed by an eligible land retry in roughly twenty seconds rather than a full normal land interval. Purple's cross-water dispatch telemetry is followed by a nonzero loaded-transport report and observable landing or a specific bounded safety rejection."
+        "If both attack timers expire together, the naval action is followed by an eligible land retry in roughly twenty seconds rather than a full normal land interval. Red's cross-water dispatch telemetry is followed by a nonzero loaded-transport report and observable landing or a specific bounded safety rejection."
       ],
       "known_limits": [
-        "Only Purple p1 serialized detailed self-chat. The command stream does not expose the private help, route, or military state of the other seven AIs, so their individual passivity and Port obstruction causes require fresh P3B27 telemetry.",
+        "Only Red p1 serialized detailed self-chat. The command stream does not expose the private help, route, or military state of the other seven AIs, so their individual passivity and Port obstruction causes require fresh P3B27 telemetry.",
         "The parser proves taunts, promises, dispatch messages, and command issuance but not troop arrival, path reachability, garrison completion, production-footprint clearance, or tactical effectiveness. Those remain fresh-match acceptance criteria.",
         "Map-zone equality proves engine connectivity classification, not a safe unobstructed path. The military lift retains the existing route-screen and known-fortification rejection logic; unseen defenses can still invalidate a voyage.",
         "The scripted attack loader deliberately owns one Transport at a time so route screening and retreat remain exact-ID bounded. Fresh tests must determine whether serial full lifts provide enough throughput before safely expanding to coordinated multi-hull ownership.",
@@ -1032,16 +1031,16 @@
         "map": "Real World Britain",
         "players": [
           "p1 Red Roman Empire (team 1)",
-          "p2 Orange Roman Empire (team 2)",
-          "p3 Gray Roman Empire (team 2)",
-          "p4 Yellow Roman Empire (team 1)",
-          "p5 Purple Picts (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
           "p6 Cyan Britons (team 2)",
-          "p7 Green Germani (team 1)",
-          "p8 Blue Gauls (team 2)"
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
         ],
         "team_mapping_basis": "user-verified-match-setup",
-        "team_mapping_note": "User correction on 2026-08-27: team 1 was Red, Yellow, Green, and Purple; team 2 was Blue, Cyan, Orange, and Gray. This supersedes the parser-exported numeric field that had been mislabeled as team membership.",
+        "team_mapping_note": "User correction on 2026-08-27 established the visible setup in this entry. The corrected full-header extraction independently matches it by joining selected_color and resolved_team_id to the command-stream player_number; the former color_id export was an internal nonvisual color field.",
         "duration_seconds": 5173,
         "supporting_files": [
           "Main.txt sha256 95BB771CA6A507DB1A2AFB2874D5A9E4BEC7D3C02E2393A54874F56DE72FC706",
@@ -1050,7 +1049,7 @@
         ]
       },
       "direct_replay_observations": [
-        "The replay parsed 435301 actions and lasted 86:13. The DE header reports Extreme difficulty, 400 population, shared exploration, map ID 50, and the player/color/civilization mapping in this entry. Team membership comes from the user-verified match setup, not the parser-exported numeric field.",
+        "The replay parsed 435301 actions and lasted 86:13. The DE header reports Extreme difficulty, 400 population, shared exploration, map ID 50, and selected_color plus resolved_team_id exactly matching the user-verified player mapping in this entry.",
         "Every player requested exactly three Trade Cogs and zero Trade Carts. Player 1 reported `trade no shared water zone` 76 times, so the three-cog fallback produced ships but no validated trade route.",
         "The final decoded Villager request totals were p1 245, p2 239, p3 271, p4 197, p5 267, p6 31, p7 124, and p8 241. No decoded transition moved a working 400-population economy toward 100 or more trade units.",
         "Player 1 repeatedly reported 39 home-zone mine objects, no global resource depletion, zero idle/fisherman migration bucket, and no home-resource-pressure transition. Its migration owner therefore did not treat low accessible gold as a reason to start a resource lift.",
@@ -1093,7 +1092,7 @@
       ],
       "known_limits": [
         "Only p1 serialized detailed self-chat. Other players' route, migration, help, siege, and naval-owner goals cannot be reconstructed from their command requests, so color-specific visual observations require fresh P3B29 telemetry before assigning a private code gate.",
-        "The replay parser export used during analysis does not provide an authoritative diplomatic-team mapping. Future team claims require a user-verified match setup or a decoded diplomacy matrix; unverified numeric fields must remain unlabeled.",
+        "The corrected extractor exposes selected_team_id and resolved_team_id separately and validates resolved team against the fast header before assigning a visible color. The former fast team_id value was the resolved-team byte and the former color_id was an internal nonvisual field; consumers must not restore those ambiguous labels.",
         "The parser does not expose arbitrary path success, object group identity, producer footprint occupancy, wall-builder replacement decisions, Palintonon packed state over time, resource accessibility, or completed profitable trade. Structural validation cannot substitute for the fresh-match acceptance criteria.",
         "Map-zone equality proves engine connectivity classification, not safe water routing or an unobstructed berth. The staging controller selects a point occupied by a same-zone ship and validates arrival, but cannot ask the engine for a general collision-free path or prove how several hulls separate around that occupied point.",
         "A live `actionid-trade` proves current route use, not gold delivery or long-term profitability. Staged growth and frequent re-proof bound this limitation, while a fresh match must confirm actual gold flow.",
@@ -1114,17 +1113,17 @@
         "game_build": "101.103.48987.0",
         "map": "Britannia",
         "players": [
-          "Red Roman Empire (team 1)",
-          "Green Roman Empire (team 1)",
-          "Yellow Roman Empire (team 1)",
-          "Purple Roman Empire (team 1)",
-          "Orange Picts (team 2)",
-          "Cyan Britons (team 2)",
-          "Blue Germani (team 2)",
-          "Gray Gauls (team 2)"
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
         ],
         "team_mapping_basis": "user-verified-match-setup",
-        "team_mapping_note": "User confirmation on 2026-08-27: the recorded match followed lobby fixture britain-4v4-lobby-20260827-6969d5e2. Romans were Red, Green, Yellow, and Purple. Orange was Picts, Cyan was Britons, Blue was Germani, and Gray was Gauls. The replay decoder's conflicting player-index color/civilization output is retained as unresolved parser output and is not used to relabel the color-visible setup.",
+        "team_mapping_note": "User confirmation on 2026-08-27 established that the match followed lobby fixture britain-4v4-lobby-20260827-6969d5e2. The corrected full-header extraction independently matches the same colors, civilizations, teams, and player indexes through selected_color and resolved_team_id.",
         "duration_seconds": 2438,
         "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
         "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C",
@@ -1149,12 +1148,12 @@
       },
       "direct_replay_observations": [
         "The replay lasted 40:38 and yielded 2617 chat records, 304362 AI_ORDER records, 20 delete actions, 406 payloadless command-stream ERROR records, and no parser exception. No replay-visible RAWAI-P3B29 marker proves the exact deployed revision.",
-        "The user-confirmed color-visible setup is the authority for civilization and team membership. The decoder instead associated player indexes with Red, Blue, Orange, Yellow, Green, Purple, Cyan, and Gray in that order; this conflicting parser output remains recorded but is not treated as a color or team assignment.",
+        "The selected-color-aware header maps p1 through p8 to Red, Green, Yellow, Purple, Orange, Cyan, Blue, and Gray and matches the user-confirmed setup. The old Red, Blue, Orange, Yellow, Green, Purple, Cyan, Gray sequence came from the engine's internal nonvisual color_id field.",
         "The human player flared at about 25:54, 26:45, and 26:53 and sent taunt 69 at about 25:57, 26:08, 26:47, and 26:56. The three allied recipients acknowledged each request with `At once, sire!`, while the user visually observed that Purple did not delete the requested Port.",
-        "One recorded player index deleted unknown object 33901 at about 26:09. The replay export does not expose that object's type or associate the player index reliably with a visible color, so it neither overrides the user's Port observation nor proves taunt-69 success.",
-        "Recorded player index p4 emitted 297109 of all 304362 AI_ORDER records. Object IDs 32020, 32293, and 32345 contributed 293317 records by alternating engine order IDs 705 and 706, `explore` and `stop`, from about 13:11 until the crash at roughly 10700 to 11000 orders per minute. The parser conflict prevents assigning that player index to a visible color.",
-        "Player index p1's transported-scout mission boarded and departed at 15:03, retried alternate landing points, reported `migration scout landed:3` at 17:07, and issued a patrol retry at 17:23. No home-resource-pressure transition, civilian resource migration, or remote drop-off construction was observed.",
-        "Player index p1 requested eleven Trade Cogs between 15:43 and 27:12. `merchant route action verified` intermittently reported three active traders, but mostly reported zero; the short match did not exercise profitable growth toward 100 or the scarce-resource target of 160 traders.",
+        "One recorded player index deleted unknown object 33901 at about 26:09. The replay export does not expose that object's type, so it neither overrides the user's Port observation nor proves taunt-69 success.",
+        "Purple p4 emitted 297109 of all 304362 AI_ORDER records. Object IDs 32020, 32293, and 32345 contributed 293317 records by alternating engine order IDs 705 and 706, `explore` and `stop`, from about 13:11 until the crash at roughly 10700 to 11000 orders per minute.",
+        "Red p1's transported-scout mission boarded and departed at 15:03, retried alternate landing points, reported `migration scout landed:3` at 17:07, and issued a patrol retry at 17:23. No home-resource-pressure transition, civilian resource migration, or remote drop-off construction was observed.",
+        "Red p1 requested eleven Trade Cogs between 15:43 and 27:12. `merchant route action verified` intermittently reported three active traders, but mostly reported zero; the short match did not exercise profitable growth toward 100 or the scarce-resource target of 160 traders.",
         "Port-clearing telemetry repeatedly reported `port hull staged clear` for object 32446 and later 32305, while object 32446 also produced fourteen `empty transport no staging point` records in about seventy seconds. The replay does not prove collision recovery and suggests repeated reacquisition or retry-cadence pressure remains.",
         "Thirty-six `idle Palintonons packed:0` records appeared from 29:54 through 40:31, with no packed-state success. No `naval opportunity target kind` record proved an opportunity engagement. Allied-help telemetry rejected unverifiable or unreachable responses rather than making an unsupported promise.",
         "Both ProcDump files capture PID 5784 at the same exception context and absolute stack, 42.507 seconds apart. Windows Error Reporting and the dumps identify `STATUS_HEAP_CORRUPTION` 0xC0000374 in ntdll.dll; the detected path reaches ucrtbase free from AoE2DE_s.exe while replacing a game-owned array of four-byte entries."
@@ -1182,7 +1181,7 @@
         "Any future crash investigation preserves a first-chance dump or PageHeap/Application Verifier evidence capable of identifying the corrupting allocation or earlier writer; a heap-corruption detection stack alone is not treated as an AI crash cause."
       ],
       "known_limits": [
-        "The user-confirmed visible colors, civilizations, and teams supersede the conflicting parser interpretation for this match. The current replay decoder still cannot reliably map its player indexes to those visible colors, so index-specific command evidence is not silently relabeled by color.",
+        "The selected-color-aware extraction now agrees with the user-confirmed colors, civilizations, and teams and reliably joins command-stream player indexes by player_number. The internal color_id field is retained only as nonvisual validation data.",
         "Only recorded player index p1 serialized detailed self-chat. The private trade, migration, Port, siege, naval, and allied-help state of the other players remains unavailable.",
         "The replay parser does not expose object type for every delete or AI_ORDER, DUC group ownership, arbitrary path success, transport occupancy, producer-footprint collision, resource delivery, or Palintonon packed state. Visual confirmation and a fresh replay remain necessary.",
         "The absence of a replay-visible startup marker prevents this recording from proving the exact installed source revision even though the deployment checker found the P3B29 runtime files synchronized after the match.",
@@ -1199,28 +1198,28 @@
         "game_build": "101.103.48987.0",
         "map": "Britannia",
         "players": [
-          "decoded p1 Roman Empire (color_id 0; visible color unresolved)",
-          "decoded p2 Roman Empire (color_id 7; visible color unresolved)",
-          "decoded p3 Roman Empire (color_id 1; visible color unresolved)",
-          "decoded p4 Roman Empire (color_id 3; visible color unresolved)",
-          "decoded p5 Picts (color_id 4; visible color unresolved)",
-          "decoded p6 Britons (color_id 5; visible color unresolved)",
-          "decoded p7 Germani (color_id 6; visible color unresolved)",
-          "decoded p8 Gauls (color_id 2; visible color unresolved)"
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
         ],
-        "team_mapping_basis": "unresolved",
-        "team_mapping_note": "The user visually identified Red as the migrating Roman. The decoder associates the migration self-chat with p1 and reports p1 color_id 0, which conventionally corresponds to Blue. This exact visual/parser conflict remains unresolved pending confirmation of whether the 14:38 match reused lobby fixture britain-4v4-lobby-20260827-6969d5e2; neither account is silently used to relabel the other.",
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The full DE header's selected_color and resolved_team_id fields were joined to the command-stream player index by validated player_number, internal color, civilization, and resolved team. The resulting setup exactly matches the user's confirmation that this replay preserved the original lobby.",
         "duration_seconds": 5190
       },
       "direct_replay_observations": [
         "The replay parsed cleanly, lasted 86:30, and contained 145036 AI_ORDER, 103069 ORDER, 99124 WORK, 3274 MAKE, 2543 BUILD, 553 payloadless ERROR, 222 DELETE, 60 WALL, 677 GUARD, and three FLARE actions. No replay-visible RAWAI-P3B30 marker proves the exact deployed source revision.",
-        "The user visually observed that Picts and Gauls had economic problems, that Gauls lagged in age, and suspected Pict-team-bonus Cow overproduction. The decoded Gaul player p8 reached the Middle Age at 26:38 and never reached the Imperial Age by 86:30; every other decoded player reached Imperial, with p5 Picts last among them at 40:11.",
-        "The four decoded non-Roman players issued 499 Mill Cow MAKE commands: p5 Picts 72, p6 Britons 186, p7 Germani 210, and p8 Gauls 31. The Germani player trained the most Cows yet was the first member of that decoded side to reach both the Middle and Imperial Ages, so Cow training alone does not explain the Gaul age failure.",
-        "Decoded p1 reported home resource pressure at 63:44, selected a remote stone anchor in zone 7 at 65:55, departed partially loaded at 66:26, recovered from a wrong landing-zone result at 68:06, assigned settlers to mining-camp foundation 57316 at 68:07, and reported the drop site complete at 69:16. The user visually observed Red migrate once but then leave the island gold and stone untouched with idle Villagers.",
+        "The user visually observed that Orange Picts and Gray Gauls had economic problems, that Gray Gauls lagged in age, and suspected Pict-team-bonus Cow overproduction. Gray p8 reached the Middle Age at 26:38 and never reached the Imperial Age by 86:30; every other player reached Imperial, with Orange p5 Picts last among them at 40:11.",
+        "The four non-Roman players issued 499 Mill Cow MAKE commands: Orange p5 Picts 72, Cyan p6 Britons 186, Blue p7 Germani 210, and Gray p8 Gauls 31. Blue Germani trained the most Cows yet was the first member of that side to reach both the Middle and Imperial Ages, so Cow training alone does not explain Gray Gauls' age failure.",
+        "Red p1 reported home resource pressure at 63:44, selected a remote stone anchor in zone 7 at 65:55, departed partially loaded at 66:26, recovered from a wrong landing-zone result at 68:06, assigned settlers to mining-camp foundation 57316 at 68:07, and reported the drop site complete at 69:16. The user visually observed Red migrate once but then leave the island gold and stone untouched with idle Villagers.",
         "Five attack-lift missions reported a boarding target of 20 between 61:12 and 73:51; all five reported `attack lift boarding aborted` roughly twenty-five to thirty seconds later. No `attack lift ready` or `attack lift landed` record appeared. The user visually observed attack Transports loading and later unloading or remaining loaded without moving.",
         "The replay contains flares at about 25:07, 25:18, and 73:49 and taunt 69 at about 25:08, 25:20, 25:23, and 73:50. Only the first command produced allied acknowledgments, and no taunt-69 selector, deleted-structure, or no-flare diagnostic was recorded. The user again observed no deletion at the requested structure.",
-        "No MAKE command for Roman Empire Legionary IDs 866, 868, 1658, or 1661 appears for any of the four decoded Roman players. All four requested Barracks and reached at least the Middle Age, but the replay contains no runtime diagnostic that identifies whether availability, resources, queue state, or the concrete trainability test blocked production.",
-        "During the final 31:30, the replay contains 98530 combined AI_ORDER, ORDER, and BUILD commands. Several objects produced tens of thousands of alternating or repeated explore/stop orders. Separately, decoded p3 issued 897 Castle BUILD commands, 896 of them at the identical point x106 y38 from 70:28 through 86:19."
+        "No MAKE command for Roman Empire Legionary IDs 866, 868, 1658, or 1661 appears for Red, Green, Yellow, or Purple. All four requested Barracks and reached at least the Middle Age, but the replay contains no runtime diagnostic that identifies whether availability, resources, queue state, or the concrete trainability test blocked production.",
+        "During the final 31:30, the replay contains 98530 combined AI_ORDER, ORDER, and BUILD commands. Several objects produced tens of thousands of alternating or repeated explore/stop orders. Separately, Yellow p3 issued 897 Castle BUILD commands, 896 of them at the identical point x106 y38 from 70:28 through 86:19."
       ],
       "implementation_inferences": [
         "The Cow rule maintained a live cap of four but had no lifetime request budget, so every consumed Cow reopened production. At 35 food plus 15 wood per Cow this can divert resources and create hundreds of livestock objects, although the age timings prove that it is not a sufficient explanation for every weak economy.",
@@ -1250,7 +1249,7 @@
         "Each Roman Empire either trains concrete Legionaries or emits an availability-missing or trainability-blocked diagnostic that identifies the next gate to investigate."
       ],
       "known_limits": [
-        "The visible-color account and decoded player-index color field conflict for the migrating Roman. Until the user confirms the lobby setup, this benchmark records decoded players without visible color or team labels and preserves the visual observation separately.",
+        "The corrected selected_color extraction matches the user-confirmed lobby setup. The former conflict came from treating the internal color_id field as visible color; that field is now retained only as nonvisual validation data.",
         "Only decoded p1 serialized detailed self-chat. The private economic, migration, transport, flare, Castle-placement, and Legionary state of other players remains unavailable.",
         "The replay parser does not expose object type for the explorer-order source objects, DUC group membership, arbitrary path success, passenger positions, resource delivery, or placement rejection reason. The identified ownership and fixed-placement explanations remain implementation inferences pending fresh runtime evidence.",
         "Using `any-ally` can select another ally's most recent flare when multiple allies flare close together because the engine does not expose the taunt sender through `up-find-player-flare`. The command remains bounded by the owned-structure radius and deadline.",

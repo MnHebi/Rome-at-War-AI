@@ -14,6 +14,7 @@ BENCHMARKS = ROOT / "replay-benchmarks.json"
 SHA256 = re.compile(r"^[0-9A-F]{64}$")
 VALID_STATUSES = {"fresh-replay-required", "runtime-confirmed", "superseded"}
 VALID_TEAM_MAPPING_BASES = {
+    "decoded-selected-color-and-resolved-team",
     "decoded-diplomacy-matrix",
     "unresolved",
     "user-verified-match-setup",
@@ -175,6 +176,7 @@ def validate() -> list[str]:
                         f"{benchmark_id}: unresolved team mapping must not label player teams"
                     )
                 if basis in {
+                    "decoded-selected-color-and-resolved-team",
                     "decoded-diplomacy-matrix",
                     "user-verified-match-setup",
                 } and len(team_labels) != len(players):
