@@ -19,12 +19,14 @@ and legacy `AGENTS.md` copies now all identify the canonical path above.
 
 At the time this handoff was initialized, the recorded HEAD was synchronized
 with `origin/codex/replay-economy-build-order` and the working tree was clean.
-During this rules-only task, concurrent modifications appeared in
-`rawai-customconstants.per`, `rawai-init-goals.per`, `rawai-military.per`, and
-`rawai-timers.per`; `tools/test_validators.py` was modified later during the
-workspace investigation. They were not created, inspected, staged, or altered
-by this task. Treat the working tree as dirty and establish their owner and
-purpose before beginning unrelated edits.
+The working tree is now dirty with the uncommitted P3B33 military-stance change
+set (see "Important recent changes"): an attack-commitment dwell, a two-unit
+defense-latch trigger, a distinct naval-wake dispatch owner, and a
+transport-recall threshold raised to two, across `rawai-customconstants.per`,
+`rawai-init-goals.per`, `rawai-military.per`, `rawai-timers.per`, and the
+matching `tools/test_validators.py` expectations. This change set is owned by
+the current development task and is validated (110 tests, PER, replay-benchmark
+validators) but not yet committed or installed.
 
 ## Current milestone
 
@@ -55,10 +57,13 @@ source evidence.
   200-resource donor tranches, and identifies the recipient player; actual
   delivery and net tribute remain unverified.
 - Assault Transport missions still show frequent boarding aborts, unloads, or
-  loaded hulls that fail to depart or land.
+  loaded hulls that fail to depart or land. The uncommitted P3B33 change raises
+  the home-recall threshold and dampens the attack/defend flip-flop, but a
+  fresh replay must still confirm boarding, departure, and landing.
 - Red's late army became largely frozen around its Town Center. The latest
   replay contains a sustained order loop toward object 34518 at point 186,182,
-  but the target object type and owning controller remain unresolved.
+  but the target object type and owning controller remain unresolved. P3B33
+  addresses the flip-flop half of this; the order-loop half is still open.
 - Migration has reached a remote island, but passenger retasking and sustained
   resource work after drop-site completion require fresh confirmation.
 - Port collision recovery, Palintonon packed-state recovery, Transport path
@@ -70,6 +75,11 @@ source evidence.
 
 ## Important recent changes
 
+- Uncommitted P3B33 (working tree): a forty-five-second attack-commitment
+  window plus a two-unit defense-latch trigger (five land / four naval severe
+  override) stop the attack/defend flip-flop; the two naval-timer executors use
+  a distinct wake owner so they do not arm the dwell; and the loaded-Transport
+  home-recall threshold is raised from one to two threats.
 - `ef96d9e` (`RAWAI-P3B32`) probes all four concrete Legionary forms for Roman
   Empire and Roman Republic production under one aggregate family bound and a
   shared request deadline.
@@ -121,9 +131,13 @@ source evidence.
 
 1. Before editing, compare the current Git root, branch, HEAD, and working-tree
    state with the canonical workspace recorded above.
-2. Run a fresh match with the installed P3B32 runtime and verify that the replay
-   contains `RAWAI-P3B32` near startup.
-3. Confirm concrete Legionary MAKE commands or capture the new all-four gate
+2. Commit the P3B33 military-stance change set and synchronize the installed
+   test AI, then run a fresh match and verify `RAWAI-P3B33` near startup.
+3. In the fresh replay, confirm the army no longer alternates attack/home-defense
+   on lone raiders, that a real multi-unit raid still latches defense, and that
+   assault Transports board, depart, and land without being recalled by single
+   raiders.
+4. Confirm concrete Legionary MAKE commands or capture the new all-four gate
    diagnostic, and check that no same-sweep production burst occurs.
 4. Drive one player below 100 wood, observe the 600-resource team request, count
    the 200-resource donor responses, verify their named recipient, and measure

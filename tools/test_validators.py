@@ -754,7 +754,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B32", self.init_goals)
+        self.assertIn("RAWAI-P3B33", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -3639,8 +3639,8 @@ class FarmPolicyTests(unittest.TestCase):
             self.military,
             facts=(
                 "(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))",
-                "gl-local-response-threats c:>= 1",
-                "gl-naval-response-threats c:>= 1",
+                "gl-local-response-threats c:>= 2",
+                "gl-naval-response-threats c:>= 2",
                 "gl-local-response-zone g:== gl-home-zone",
                 "gl-naval-response-asset-zone g:== gl-home-zone",
             ),

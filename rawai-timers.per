@@ -62,6 +62,20 @@
 	(goal current-action ACTION-ATTACK)
 	(goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 =>
+	;Commit the just-completed attack for a bounded window so a lone nearby enemy
+	;cannot immediately global-retreat the army back into the defense latch.
+	(up-modify-goal gl-attack-dwell-until g:= gl-game-time)
+	(up-modify-goal gl-attack-dwell-until c:+ 45)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)
+	(set-goal current-action ACTION-WAIT)
+)
+
+;A naval dispatch wakes the opportunistic-vessel controller instead of issuing
+;a global attack-now, so it must not arm the attack-commitment dwell.
+(defrule
+	(goal current-action ACTION-ATTACK)
+	(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NAVAL-WAKE)
+=>
 	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)
 	(set-goal current-action ACTION-WAIT)
 )

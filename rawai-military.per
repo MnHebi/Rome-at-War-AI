@@ -7079,9 +7079,14 @@
 (defrule
 	(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)
 	(up-compare-goal gl-local-response-responders c:> 0)
+	(up-compare-goal gl-local-response-threats c:>= 2)
+	(or
+		(up-compare-goal gl-game-time g:>= gl-attack-dwell-until)
+		(up-compare-goal gl-local-response-threats c:>= 5)
+	)
 =>
-	;Only a real same-zone response suppresses the whole offense.  Empty island
-	;groups used to leave home defense latched while no unit could intervene.
+	;Only a real same-zone response suppresses the whole offense.  A lone raider
+	;or a presence inside the attack-commitment window must not yank the army.
 	(up-reset-attack-now)
 	(up-retreat-now)
 	(set-goal gl-home-defense-state YES)
@@ -7091,6 +7096,24 @@
 	(up-modify-group-flag 1 c: home-defense-response-group)
 	(up-target-objects 1 action-default -1 stance-aggressive)
 	(up-chat-data-to-self "asset defense responders: %d" g: gl-local-response-responders)
+	(up-modify-sn sn-focus-player-number g:= gl-local-response-focus)
+	(set-goal gl-local-response-state LOCAL-RESPONSE-IDLE)
+)
+
+(defrule
+	(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)
+	(up-compare-goal gl-local-response-responders c:> 0)
+	(or
+		(up-compare-goal gl-local-response-threats c:< 2)
+		(and
+			(up-compare-goal gl-game-time g:< gl-attack-dwell-until)
+			(up-compare-goal gl-local-response-threats c:< 5)
+		)
+	)
+=>
+	;Below the global-retreat threshold, or inside the attack-commitment window,
+	;release the candidate response quietly; the next leash scan re-evaluates it.
+	(up-chat-data-to-self "asset defense quiet release: threats %d" g: gl-local-response-threats)
 	(up-modify-sn sn-focus-player-number g:= gl-local-response-focus)
 	(set-goal gl-local-response-state LOCAL-RESPONSE-IDLE)
 )
@@ -7268,6 +7291,11 @@
 	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)
 	(goal gl-naval-response-land-threat NO)
 	(up-compare-goal gl-naval-response-responders c:> 0)
+	(up-compare-goal gl-naval-response-threats c:>= 2)
+	(or
+		(up-compare-goal gl-game-time g:>= gl-attack-dwell-until)
+		(up-compare-goal gl-naval-response-threats c:>= 4)
+	)
 =>
 	(up-reset-attack-now)
 	(up-retreat-now)
@@ -7278,6 +7306,26 @@
 	(up-modify-group-flag 1 c: home-naval-response-group)
 	(up-target-objects 1 action-default -1 stance-aggressive)
 	(up-chat-data-to-self "naval defense responders: %d" g: gl-naval-response-responders)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-response-focus)
+	(up-set-timer c: t-naval-response c: 10)
+	(set-goal gl-naval-response-state NAVAL-RESPONSE-IDLE)
+)
+
+(defrule
+	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)
+	(goal gl-naval-response-land-threat NO)
+	(up-compare-goal gl-naval-response-responders c:> 0)
+	(or
+		(up-compare-goal gl-naval-response-threats c:< 2)
+		(and
+			(up-compare-goal gl-game-time g:< gl-attack-dwell-until)
+			(up-compare-goal gl-naval-response-threats c:< 4)
+		)
+	)
+=>
+	;A lone or in-window naval probe must not recall the whole army; the
+	;responders still guard home water on the next naval scan.
+	(up-chat-data-to-self "naval defense quiet release: threats %d" g: gl-naval-response-threats)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-response-focus)
 	(up-set-timer c: t-naval-response c: 10)
 	(set-goal gl-naval-response-state NAVAL-RESPONSE-IDLE)
@@ -8265,11 +8313,11 @@
 (defrule
 	(or
 		(and
-			(up-compare-goal gl-local-response-threats c:>= 1)
+			(up-compare-goal gl-local-response-threats c:>= 2)
 			(up-compare-goal gl-local-response-zone g:== gl-home-zone)
 		)
 		(and
-			(up-compare-goal gl-naval-response-threats c:>= 1)
+			(up-compare-goal gl-naval-response-threats c:>= 2)
 			(up-compare-goal gl-naval-response-asset-zone g:== gl-home-zone)
 		)
 	)
@@ -8288,11 +8336,11 @@
 (defrule
 	(or
 		(and
-			(up-compare-goal gl-local-response-threats c:>= 1)
+			(up-compare-goal gl-local-response-threats c:>= 2)
 			(up-compare-goal gl-local-response-zone g:== gl-home-zone)
 		)
 		(and
-			(up-compare-goal gl-naval-response-threats c:>= 1)
+			(up-compare-goal gl-naval-response-threats c:>= 2)
 			(up-compare-goal gl-naval-response-asset-zone g:== gl-home-zone)
 		)
 	)
@@ -9929,7 +9977,7 @@
 	;ordinary ships onto Town Centers and towers regardless of local opportunity.
 	(up-modify-goal gl-naval-opportunity-next g:= gl-game-time)
 	(up-chat-data-to-self "naval opportunity wake: %d" g: naval-attack-percentage)
-	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NAVAL-WAKE)
 )
 
 (defrule
@@ -10039,7 +10087,7 @@
 	(chat-local-to-self "naval attack")
 	(up-modify-goal gl-naval-opportunity-next g:= gl-game-time)
 	(up-chat-data-to-self "naval opportunity wake: %d" g: naval-attack-percentage)
-	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NAVAL-WAKE)
 )
 
 ;A timer dispatch that missed a transient force, route, or defense gate retries
