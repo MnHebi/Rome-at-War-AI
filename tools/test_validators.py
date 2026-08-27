@@ -632,7 +632,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B29", self.init_goals)
+        self.assertIn("RAWAI-P3B30", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -1237,7 +1237,7 @@ class FarmPolicyTests(unittest.TestCase):
             self.taunts,
             facts=(
                 "(goal deletion-flare YES)",
-                "(unit-type-count flare > 0)",
+                "(cc-players-unit-type-count any-human-ally flare >= 1)",
             ),
             actions=(
                 "(up-filter-distance c: -1 c: 6)",
@@ -1247,6 +1247,7 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertEqual(len(selector), 1)
         self.assertNotIn("up-jump-rule", selector[0][4])
+        self.assertIn("(set-goal gl-delete-flare-id -1)", trigger[0][4])
         delete = matching_rules(
             self.taunts,
             facts=(
@@ -1277,6 +1278,48 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertEqual(len(vanished), 1)
         self.assertNotIn("all-units-class", self.taunts)
         self.assertIn("taunt 69 no structure candidates: %d", self.taunts)
+        self.assertNotIn("(unit-type-count flare", self.taunts)
+
+        no_flare = matching_rules(
+            self.taunts,
+            facts=(
+                "(goal deletion-flare YES)",
+                "(cc-players-unit-type-count any-human-ally flare <= 0)",
+            ),
+            actions=(
+                "(set-goal deletion-flare NO)",
+                "(set-goal target-action NO)",
+            ),
+        )
+        self.assertEqual(len(no_flare), 1)
+
+    def test_taunt_52_uses_the_human_ally_flare(self) -> None:
+        selector = matching_rules(
+            self.taunts,
+            facts=(
+                "(goal market-flare YES)",
+                "(cc-players-unit-type-count any-human-ally flare >= 1)",
+                "(can-build market)",
+            ),
+            actions=(
+                "(up-find-player-flare any-human-ally gl-flared-market-x)",
+                "(up-build place-point 0 c: market)",
+            ),
+        )
+        self.assertEqual(len(selector), 1)
+
+        no_flare = matching_rules(
+            self.taunts,
+            facts=(
+                "(goal market-flare YES)",
+                "(cc-players-unit-type-count any-human-ally flare <= 0)",
+            ),
+            actions=(
+                "(set-goal market-flare NO)",
+                "(set-goal target-action NO)",
+            ),
+        )
+        self.assertEqual(len(no_flare), 1)
 
     def test_crowded_placement_recovery_is_persistent_and_bounded(self) -> None:
         self.assertIn("c:+ 24", self.homebase)
@@ -3067,6 +3110,71 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(unavailable), 1)
+
+    def test_engine_explorer_numbers_are_edge_triggered(self) -> None:
+        guarded_writes = (
+            (
+                "(up-compare-sn sn-number-explore-groups g:!= desired-military-explorers)",
+                "(up-modify-sn sn-number-explore-groups g:= desired-military-explorers)",
+            ),
+            (
+                "(up-compare-sn sn-cap-civilian-explorers g:!= desired-civilian-explorers)",
+                "(up-modify-sn sn-cap-civilian-explorers g:= desired-civilian-explorers)",
+            ),
+            (
+                "(up-compare-sn sn-minimum-civilian-explorers g:!= desired-civilian-explorers)",
+                "(up-modify-sn sn-minimum-civilian-explorers g:= desired-civilian-explorers)",
+            ),
+            (
+                "(up-compare-sn sn-number-boat-explore-groups c:!= 0)",
+                "(set-strategic-number sn-number-boat-explore-groups 0)",
+            ),
+            (
+                "(up-compare-sn sn-total-number-explorers c:!= 2)",
+                "(set-strategic-number sn-total-number-explorers 2)",
+            ),
+        )
+        for fact, action in guarded_writes:
+            self.assertEqual(
+                len(matching_rules(self.general, facts=(fact,), actions=(action,))),
+                1,
+            )
+
+        unconditional_writers = matching_rules(
+            self.general,
+            facts=("(true)",),
+            actions=("sn-number-explore-groups",),
+        )
+        self.assertEqual(unconditional_writers, [])
+
+    def test_every_phase_budgets_two_total_engine_explorers(self) -> None:
+        expected = {1: (1, 1), 2: (2, 0), 3: (2, 0), 4: (2, 0), 5: (2, 0)}
+        for phase, (military, civilian) in expected.items():
+            rules = matching_rules(
+                self.pop,
+                facts=(f"(goal current-phase {phase})",),
+                actions=(
+                    "desired-military-explorers",
+                    "desired-civilian-explorers",
+                ),
+            )
+            self.assertEqual(len(rules), 1)
+            actions = rules[0][4]
+            military_assignment = re.search(
+                r"\((?:set-goal|up-modify-goal) desired-military-explorers "
+                r"(?:c:= )?(\d+)\)",
+                actions,
+            )
+            civilian_assignment = re.search(
+                r"\((?:set-goal|up-modify-goal) desired-civilian-explorers "
+                r"(?:c:= )?(\d+)\)",
+                actions,
+            )
+            self.assertIsNotNone(military_assignment)
+            self.assertIsNotNone(civilian_assignment)
+            self.assertEqual(int(military_assignment.group(1)), military)
+            self.assertEqual(int(civilian_assignment.group(1)), civilian)
+            self.assertEqual(military + civilian, 2)
 
     def test_migration_rejects_failed_zone_for_a_bounded_window(self) -> None:
         self.assertGreaterEqual(

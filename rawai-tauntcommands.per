@@ -330,7 +330,7 @@
 (defrule
 	(goal market-flare YES)
 	(goal gl-migration-placement-lock NO)
-	(unit-type-count flare > 0)
+	(cc-players-unit-type-count any-human-ally flare >= 1)
 	(can-build market)
 =>
 	(up-find-player-flare any-human-ally gl-flared-market-x)
@@ -344,7 +344,7 @@
 
 (defrule
 	(goal market-flare YES)
-	(unit-type-count flare == 0)
+	(cc-players-unit-type-count any-human-ally flare <= 0)
 =>
 	(set-goal market-flare NO)
 	(set-goal target-action NO)
@@ -480,6 +480,7 @@
 =>
 	(acknowledge-taunt this-any-ally 69)
 	(chat-to-player-using-id every-ally 22153); "39 At once, sire!"
+	(set-goal gl-delete-flare-id -1)
 	(set-goal deletion-flare YES)
 	(set-goal target-action YES)
 )
@@ -489,7 +490,7 @@
 		(goal target-action YES)
 		(goal deletion-flare YES)
 	)
-	(unit-type-count flare > 0)
+	(cc-players-unit-type-count any-human-ally flare >= 1)
 =>
 	(up-find-player-flare any-human-ally gl-flared-delete-x)
 	(up-set-target-point gl-flared-delete-x)
@@ -563,7 +564,7 @@
 		(goal target-action YES)
 		(goal deletion-flare YES)
 	)
-	(unit-type-count flare == 0)
+	(cc-players-unit-type-count any-human-ally flare <= 0)
 =>
 	(set-goal target-action NO)
 	(set-goal deletion-flare NO)
