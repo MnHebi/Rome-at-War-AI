@@ -5,10 +5,11 @@
 - Canonical working directory: `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
 - Git repository root: `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
 - Active branch: `codex/replay-economy-build-order`
-- P3B48 code commit: `7d46090` (`Fix migration ownership and route safety`)
+- P3B49 code commit: `91ea476` (`Instrument military and transport failures`)
 - Pull request: <https://github.com/MnHebi/Rome-at-War-AI/pull/4>
-- Installed runtime marker: `RAWAI-P3B48:48`
-- Installed 68-file runtime SHA-256: `3F09138022FBE36DB3B6A74DCA164CB2B7BF25DC64D6D36C7ED747612E40FCCD`
+- Installed runtime marker: `RAWAI-P3B49:49`
+- Installed 68-file runtime SHA-256: `AA1B1DD5484B39970A959541950D261D07F5FB862932FC4282CA038E3F45BA4A`
+- Expected worktree state after this handoff: clean.
 
 The legacy directory
 `G:\Projects\Codex\Rome at War AI\Rome-at-War-AI-main` is a noncanonical
@@ -19,17 +20,35 @@ replaced in this session.
 
 ## Current milestone
 
-Obtain a fresh P3B48 Britannia 4v4 replay using the preserved original lobby and
-verify that civilian migration no longer floods impossible Town Center deposit
-orders, yields the first ready transport window to a viable military assault,
-and rejects or promptly escapes routes defended by any opponent. Continue
-validating the long-range capital-ship controller, defeated-target expedition
-recycling, serialized Market portfolio, team-elected stalemate Wonder, P3B45
-100/500/1000 need-gated allied-resource request tiers, and the older unresolved
-runtime defects listed below.
+Obtain a fresh P3B49 Britannia 4v4 replay using the preserved original lobby and
+use the public RAW49 telemetry to identify the exact owner of passive armies,
+Town-Center pulls, worker-migration gate failures, and every transport terminal
+failure. Convert that evidence directly into behavioral fixes rather than
+stopping at diagnostics. Continue validating the P3B48 migration ownership and
+route-safety changes, long-range capital-ship controller, serialized Market
+portfolio, team-elected stalemate Wonder, P3B45 allied-resource request tiers,
+and the older unresolved runtime defects listed below.
 
 ## Unresolved defects and runtime validation
 
+- The 17:09 replay again showed worker migration mostly absent, Red and Purple
+  armies passive near their Town Centers, and manually ferried Red troops
+  retreating home near the end. Red's pre-P3B49 chat proves that the early
+  migration gate repeatedly saw zero engine-idle Villagers despite five free
+  Transports and no defense, depletion, or resource-pressure trigger. The
+  replay also contains four distinct late Red DE_RETREAT decisions at 124:14,
+  125:01, 127:45, and 127:57, but P3B48 could not identify their issuing rule.
+- P3B49 now emits a reason and context before every one of the six script-level
+  `up-retreat-now` sources, separately reports the exact home-defense leash
+  count, and publishes the first ordinary military-dispatch and migration
+  blocker once per minute. This is diagnostic instrumentation; the passive-army
+  and worker-migration defects remain unresolved until a fresh replay identifies
+  the cause and the corresponding behavioral fix is implemented.
+- P3B49 publishes Transport escort, worker migration, repair, Port clearing,
+  assault, recovery, relic-ferry, and quarantine state snapshots plus public
+  lifecycle/terminal messages for every AI. Boarding timeouts now report actual
+  and requested cargo, and every route-screen failure has a classified RAW49
+  message. Transport failure remains unresolved pending the fresh replay.
 - Taunt 69 has repeatedly acknowledged the command without visibly deleting the
   intended flared structure. Flare ownership and bounded cleanup were changed in
   P3B30/P3B31, but visible deletion remains unconfirmed and therefore unresolved.
@@ -107,6 +126,11 @@ runtime defects listed below.
 
 ## Important recent changes
 
+- `91ea476` (`RAWAI-P3B49`) makes all six global-retreat sources and the separate
+  Town-Center defense leash replay-visible, periodically reports the first
+  passive-army and migration blocker, publishes all transport-controller state
+  snapshots and lifecycle failures for every AI, records actual boarding cargo,
+  and preserves DE_RETREAT actions in compact replay analysis.
 - `7d46090` (`RAWAI-P3B48`) excludes resource carriers from migration,
   alternates the shared Transport window in favor of a ready military lift,
   scans migration landings and both corridors against all live enemies, aborts
@@ -123,11 +147,11 @@ runtime defects listed below.
   only enemy losses and could misclassify a steadily losing defense as a
   stalemate. The final implementation samples self plus allies as well as every
   enemy and resets on material losses by either team.
-- `replay-benchmarks.json` now contains 22 validated entries, including
-  `britain-4v4-20260828-160237`. It records the exact preserved visible-color
-  setup, the Purple migration/Town-Center command correlation, transport-owner
-  conflict, all-enemy route-safety gap, and the limits of replay inference for
-  visually idle military units.
+- `replay-benchmarks.json` now contains 23 validated entries, including
+  `britain-4v4-20260828-170956`. It records the exact preserved visible-color
+  setup, zero-idle-worker migration gate, failed/partial Red migration and
+  assault lifts, late Red retreat actions, and the limits of pre-P3B49 replay
+  inference for visually passive military units.
 - `81ce73d` (`RAWAI-P3B45`) replaced the test-specific 600-resource request with
   100/500/1000 per-donor tiers backed by cumulative collected-resource banks,
   explicit recipient handlers, donor reserves, and immediate consumption of
@@ -142,9 +166,9 @@ runtime defects listed below.
 ## Generated diagnostic artifacts
 
 - Latest compact replay report:
-  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260828-160237-compact.json`
+  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260828-170956-compact.json`
 - Previous compact replay report:
-  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260828-005137-compact.json`
+  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260828-160237-compact.json`
 - Prior 27 August full and compact reports remain under
   `G:\Projects\Codex\Rome at War AI\.analysis`.
 - Replay benchmark knowledge: `replay-benchmarks.json`
@@ -158,8 +182,8 @@ runtime defects listed below.
 
 ## Tests and replays already performed
 
-- Full P3B48 regression suite: 117 tests passed.
-- Replay-benchmark validator: 22 benchmarks passed.
+- Full P3B49 regression suite: 120 tests passed.
+- Replay-benchmark validator: 23 benchmarks passed.
 - PER structural/operand validation passed.
 - Strategy execution validation passed: 1,156 total matchups, with 1,149
   historical and 1,152 Extreme matchups containing adjustments.
@@ -169,10 +193,18 @@ runtime defects listed below.
   rows.
 - Naval doctrine and generated naval-score synchronization checks passed.
 - `git diff --check` passed; only expected Git CRLF conversion notices appeared.
-- P3B48 adversarial read-only review correlated Purple's two migration manifests
-  with 27 of 29 objects in the Town Center command loop, distinguished that
-  economy flood from the user's military-idleness observation, and confirmed
-  that the migration owner rule preceded assault ownership. It also checked the
+- P3B49 adversarial read-only review enumerated all six repository-wide
+  `up-retreat-now` sources, verified each reason record precedes the command,
+  distinguished the separate direct-move home-defense leash, and added the
+  initially omitted Transport escort owner and land-attack eligibility report.
+  It checked that public transport messages have no matching private remnants,
+  controller snapshots are transition-bounded, blocker reports use thirty- or
+  sixty-second cadence, and telemetry does not change transport ownership or
+  issue military commands. P3B48's prior review correlated Purple's two
+  migration manifests with 27 of 29 objects in the Town Center command loop,
+  distinguished that economy flood from the user's military-idleness
+  observation, and confirmed that the migration owner rule preceded assault
+  ownership. It also checked the
   all-enemy ordered-cycle termination, exact-hull reconstruction after waits,
   bounded route/landing recovery, and preservation of Red's legitimate
   home-defense recall. P3B47's prior review confirmed `rawai-init-goals.per` loads
@@ -182,44 +214,57 @@ runtime defects listed below.
   reconstruction after waits, bounded progress termination, target invalidation,
   Market serialization, and team-wide Wonder progress. The one actionable
   Wonder finding was corrected before the final full suite.
-- Installed P3B48 test runtime matches all 68 repository runtime files at the
+- Installed P3B49 test runtime matches all 68 repository runtime files at the
   SHA-256 recorded above.
 - Latest analyzed replay:
-  `SP Replay v101.103.48987.0 @2026.08.28 160237.aoe2record`, SHA-256
-  `E0AF3F48FB9757D6CF60FBD43B044CD29851839D40B87EC3FB770478019DB3D1`.
-- The replay lasted 72:25 with 779,794 ACTION operations, including 309,234
-  AI_ORDER and 284,101 ORDER operations. Purple issued 81,789 orders to its own
-  Town Center from 50:56 through 72:04; 27 of the 29 objects are exact late
-  migration passengers. The selected visible colors match the preserved lobby:
-  Red/Green/Yellow/Purple Romans against Orange Picts, Cyan Britons, Blue
-  Germani, and Gray Gauls. No crash was reported.
+  `SP Replay v101.103.48987.0 @2026.08.28 170956.aoe2record`, SHA-256
+  `E7023C2BB0C3FF50FFB497F276559A1A7F2661500502BBF2DFD784B617F4BD33`.
+- The replay lasted 128:06 with 624,780 ACTION operations, including 239,484
+  AI_ORDER, 192,723 ORDER, and 88,332 WORK actions. It contains 143 raw
+  DE_RETREAT records; Red's late duplicated records reduce to four distinct
+  decisions during the manual-ferry interval. Red's migration gate repeatedly
+  reported zero engine-idle workers, later landed two settlers, and then failed
+  the remote drop-site zone check. The selected visible colors exactly match the
+  preserved original lobby.
 
 ## Next recommended actions
 
 1. Before editing, compare the Git root, branch, HEAD, and working-tree state
    with the canonical workspace above.
-2. Run the next Britannia 4v4 with the installed `RAWAI-P3B48:48` runtime and
+2. Run the next Britannia 4v4 with the installed `RAWAI-P3B49:49` runtime and
    preserve Standard victory, recorded game, and the original visible-color
    setup unless deliberately testing a variant.
-3. Confirm no migration passenger produces repeated own-Town-Center deposit
+3. When troops remain at or move back toward the Town Center, preserve the
+   nearby `RAW49 MIL retreat reason`, `home defend leash units`, or first-blocker
+   messages. A DE_RETREAT action with no matching script reason is evidence for
+   an engine-origin retreat rather than one of the six known script rules.
+4. Preserve the complete `RAW49 TRN`/`RAW49 FAIL` sequence for every failed
+   transport. It should reveal controller owner, exact state, selected hull,
+   boarding actual/target cargo, route-screen result, progress, and the terminal
+   recall, retry, recovery, quarantine, or loss reason.
+5. For worker migration, correlate `RAW49 MIG` first blockers with the public
+   migration-gate counters. In particular, confirm whether apparently idle
+   workers still produce an engine-idle count below two and whether resource
+   pressure or depletion ever overrides that gate.
+6. Confirm no migration passenger produces repeated own-Town-Center deposit
    orders while garrisoned, and that one ready assault lift claims the shared
    Transport before civilian migration; migration should remain possible during
    the assault route cooldown.
-4. Watch a migration route near defenses belonging to any opponent. It should
+7. Watch a migration route near defenses belonging to any opponent. It should
    reject the landing/corridor before departure or emit `migration route under
    fire` / `migration landing under fire` and turn home on the bounded sample.
-5. Watch for `naval bombardment staging target`, bounded stall/rejection, and
+8. Watch for `naval bombardment staging target`, bounded stall/rejection, and
    actual Juggernaut/Octeres bombardment by distant Roman players.
-6. Confirm an attack lift does not announce boarding until `attack route
+9. Confirm an attack lift does not announce boarding until `attack route
    preflight complete`, then reaches the screened landing or emits one bounded
    waypoint/landing stall and recovery without repeated load/home-unload churn.
-7. If an opponent receives the defeated notice, verify allied survivor units
+10. If an opponent receives the defeated notice, verify allied survivor units
    receive a new hostile objective or become available to transport recovery.
-8. Observe Market purchases by gold-rich players and, if the match remains
+11. Observe Market purchases by gold-rich players and, if the match remains
    materially static beyond 75 minutes, verify only one allied Wonder attempt.
-9. Exercise taunt 69 and the P3B45 100/500/1000 resource-request tiers; visible
+12. Exercise taunt 69 and the P3B45 100/500/1000 resource-request tiers; visible
    behavior remains required and should not be inferred from acknowledgments.
-10. Analyze the replay with `tools/analyze_replay.py` using
+13. Analyze the replay with `tools/analyze_replay.py` using
    `G:\Projects\Codex\Rome at War AI\.analysis\replay_parser_kjir`, update the
    replay benchmark, rerun the full suite, synchronize the installed test AI,
    and update this handoff before ending the session.
