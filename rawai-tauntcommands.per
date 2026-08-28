@@ -153,27 +153,13 @@
 	(up-full-reset-search)
 	(up-set-target-point gl-ally-help-target-x)
 	(up-filter-distance c: -1 c: 255)
-	(up-find-remote c: villager-class c: 240)
+	;object-data-under-attack never triggers for an allied object, so anchor the
+	;relief on the requester's town center and scan a radius around it instead.
 	(up-find-remote c: town-center c: 20)
-	(up-find-remote c: mining-camp c: 20)
-	(up-find-remote c: lumber-camp c: 20)
-	(up-find-remote c: mill c: 20)
-	(up-find-remote c: market c: 10)
-	(up-find-remote c: barracks c: 10)
-	(up-find-remote c: archery-range c: 10)
-	(up-find-remote c: stable c: 10)
-	(up-find-remote c: siege-workshop c: 10)
-	(up-find-remote c: castle c: 10)
-	(up-find-remote c: dock c: 20)
-	(up-find-remote c: port c: 20)
-	(up-find-remote c: shipyard c: 20)
-	;Taunt 48 carries no flare or coordinates. Only a currently attacked allied
-	;asset can safely anchor a reinforcement promise; an arbitrary nearest base
-	;object could miss an outlying raid or misdirect help to an unrelated threat.
-	(up-remove-objects search-remote object-data-under-attack <= 0)
+	(up-find-remote c: villager-class c: 240)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(up-get-search-state local-total)
-	(up-chat-data-to-self "ally help attacked assets: %d" g: remote-total)
+	(up-chat-data-to-self "ally help anchors: %d" g: remote-total)
 	(set-goal gl-ally-help-state ALLY-HELP-FIND-THREAT)
 )
 
@@ -196,7 +182,7 @@
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-enemy-player)
 	(up-full-reset-search)
 	(up-set-target-point gl-ally-help-target-x)
-	(up-filter-distance c: -1 c: 32)
+	(up-filter-distance c: -1 c: 48)
 	(up-find-remote c: scout-cavalry-class c: 40)
 	(up-find-remote c: cavalry-archer-class c: 40)
 	(up-find-remote c: cavalry-class c: 40)

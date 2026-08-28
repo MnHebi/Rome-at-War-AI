@@ -754,7 +754,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B42", self.init_goals)
+        self.assertIn("RAWAI-P3B43", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -4854,7 +4854,8 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertNotIn("up-find-player enemy find-closest", self.taunts)
         self.assertIn("up-find-player enemy find-ordered", self.taunts)
         self.assertIn("up-find-next-player enemy find-ordered", self.taunts)
-        self.assertIn(
+        self.assertIn("up-find-remote c: town-center c: 20", self.taunts)
+        self.assertNotIn(
             "up-remove-objects search-remote object-data-under-attack <= 0",
             self.taunts,
         )
