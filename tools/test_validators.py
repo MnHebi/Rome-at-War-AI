@@ -213,6 +213,31 @@ class PerDomainTests(unittest.TestCase):
             [issue["kind"] for issue in issues],
         )
 
+    def test_player_number_fact_id_cannot_be_used_as_predicate(self) -> None:
+        issues = self.validate_text(
+            """(defrule
+    (player-number != 1)
+=>
+    (chat-local-to-self "invalid")
+)
+"""
+        )
+        self.assertIn(
+            "fact_id_used_as_rule_predicate",
+            [issue["kind"] for issue in issues],
+        )
+        self.assertEqual(
+            [],
+            self.validate_text(
+                """(defrule
+    (up-compare-goal gl-self-player-number c:!= 1)
+=>
+    (chat-local-to-self "valid")
+)
+"""
+            ),
+        )
+
     def test_search_state_requires_four_goal_block_base(self) -> None:
         issues = self.validate_text(
             """(defrule
@@ -754,7 +779,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B46", self.init_goals)
+        self.assertIn("RAWAI-P3B47", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -2220,7 +2245,7 @@ class FarmPolicyTests(unittest.TestCase):
                 for player in range(1, 9):
                     common_facts = (
                         f"(taunt-detected {player} {taunt})",
-                        f"(player-number != {player})",
+                        f"(up-compare-goal gl-self-player-number c:!= {player})",
                         f"(stance-toward {player} ally)",
                     )
                     common_actions = (
@@ -2268,6 +2293,7 @@ class FarmPolicyTests(unittest.TestCase):
                 self.assertNotIn("tribute-to-player", fallbacks[0][3])
 
         self.assertNotIn("team please send 600", self.trade)
+        self.assertNotRegex(self.trade, r"(?m)^\s*\(player-number\s+")
         request_section = self.trade.split(";request resources", 1)[1].split(
             ";send resources", 1
         )[0]

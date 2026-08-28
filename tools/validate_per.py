@@ -362,6 +362,24 @@ def validate_command_domains(lines: list[str]) -> list[dict[str, object]]:
             }
         )
 
+    # player-number is FactId 22 for up-get-fact, not an executable rule
+    # predicate. The game parser reports ERR2011 at this token even when the
+    # surrounding parentheses are balanced. Cache my-player-number in a goal
+    # and compare it through up-compare-goal instead.
+    invalid_player_number_predicate = re.compile(
+        r"\(player-number\s+(?P<operator><=|>=|==|!=|<|>)\s+",
+        re.IGNORECASE,
+    )
+    for match in invalid_player_number_predicate.finditer(code):
+        issues.append(
+            {
+                "kind": "fact_id_used_as_rule_predicate",
+                "identifier": "player-number",
+                "operator": match.group("operator"),
+                "line": code.count("\n", 0, match.start()) + 1,
+            }
+        )
+
     # up-get-search-state writes four consecutive outputs beginning at its
     # operand: local total, local last-added, remote total, remote last-added.
     # The project's audited four-goal block begins at local-total. Passing
