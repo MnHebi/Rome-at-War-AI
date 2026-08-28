@@ -172,6 +172,8 @@
 	;object could miss an outlying raid or misdirect help to an unrelated threat.
 	(up-remove-objects search-remote object-data-under-attack <= 0)
 	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-get-search-state local-total)
+	(up-chat-data-to-self "ally help attacked assets: %d" g: remote-total)
 	(set-goal gl-ally-help-state ALLY-HELP-FIND-THREAT)
 )
 
@@ -204,6 +206,8 @@
 	(up-find-remote c: priest c: 10)
 	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-ally-help-zone)
 	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-get-search-state local-total)
+	(up-chat-data-to-self "ally help threats: %d" g: remote-total)
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
 	(set-goal gl-ally-help-state ALLY-HELP-CHECK-THREAT)
 )
