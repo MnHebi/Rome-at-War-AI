@@ -8198,13 +8198,14 @@
 =>
 	;The scripting API exposes no dependable naval path query. Keep non-sea-
 	;tower fallback targets close to the selected capital ship to reduce the
-	;chance of choosing an unreachable inland structure.
+	;chance of choosing an unreachable inland structure. A Town Center is always
+	;inland, so a capital ship ordered against one lurches inland toward a town
+	;instead of bombarding from water.
 	(up-full-reset-search)
 	(up-set-target-point gl-naval-siege-target-x)
 	(up-filter-distance c: -1 c: 48)
 	(up-find-remote c: tower-class c: 20)
 	(up-find-remote c: castle c: 10)
-	(up-find-remote c: town-center c: 10)
 	(up-find-remote c: wall-class c: 20)
 	(up-find-remote c: gate-class c: 10)
 	(up-clean-search search-remote object-data-distance search-order-asc)
