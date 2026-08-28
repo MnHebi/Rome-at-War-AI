@@ -1093,6 +1093,52 @@
 (defconst gl-request-gold-next 1121)
 (defconst gl-request-stone-next 1122)
 (defconst gl-resource-request-next 1123)
+;Distance-progress ownership for screened military lifts.  One set of values is
+;reinitialized at each scout, loaded-waypoint, and landing leg.
+(defconst gl-transport-route-best-distance 1124)
+(defconst gl-transport-route-stalls 1125)
+(defconst gl-transport-route-progress-deadline 1126)
+(defconst gl-transport-route-last-garrison 1127)
+;Long-range capital-ship staging and bounded target quarantine.
+(defconst gl-naval-siege-waypoint-x 1128)
+(defconst gl-naval-siege-waypoint-y 1129)
+(defconst gl-naval-siege-best-distance 1130)
+(defconst gl-naval-siege-stalls 1131)
+(defconst gl-naval-siege-progress-deadline 1132)
+(defconst gl-naval-siege-rejected-id 1133)
+(defconst gl-naval-siege-rejected-until 1134)
+(defconst gl-naval-siege-first-player 1135)
+;A defeated target must release the engine attack group before survivors can be
+;retasked against the next live enemy or collected by transport recovery.
+(defconst gl-expedition-recycle-state 1136)
+(defconst gl-expedition-recycle-focus 1137)
+(defconst gl-expedition-recycle-target-id 1138)
+(defconst gl-expedition-recycle-target-x 1139)
+(defconst gl-expedition-recycle-target-y 1140)
+(defconst gl-expedition-recycle-target-zone 1141)
+(defconst gl-expedition-recycle-count 1142)
+(defconst gl-expedition-recycle-next 1143)
+;Late-game Market balancing is serialized independently of age-up trading.
+(defconst gl-market-portfolio-next 1144)
+;Team-coordinated stalemate Wonder ownership.  Progress limits are cumulative
+;baselines, so several small gains still reset the no-progress window.
+(defconst gl-wonder-state 1145)
+(defconst gl-wonder-sample-next 1146)
+(defconst gl-wonder-stall-windows 1147)
+(defconst gl-wonder-enemy-buildings 1148)
+(defconst gl-wonder-enemy-civilians 1149)
+(defconst gl-wonder-building-progress-limit 1150)
+(defconst gl-wonder-civilian-progress-limit 1151)
+(defconst gl-wonder-election-time 1152)
+(defconst gl-wonder-build-next 1153)
+(defconst gl-wonder-build-attempts 1154)
+(defconst gl-wonder-cooldown-until 1155)
+(defconst gl-wonder-team-buildings 1156)
+(defconst gl-wonder-team-civilians 1157)
+(defconst gl-wonder-allied-buildings 1158)
+(defconst gl-wonder-allied-civilians 1159)
+(defconst gl-wonder-team-building-progress-limit 1160)
+(defconst gl-wonder-team-civilian-progress-limit 1161)
 
 ; Goal Values
 
@@ -1614,6 +1660,27 @@
 (defconst SIEGE-TARGET-PACK-CHECK 10)
 (defconst SIEGE-TARGET-ADVANCE-PLAYER 11)
 (defconst SIEGE-TARGET-NEXT-PLAYER 12)
+(defconst SIEGE-TARGET-NAVAL-REVALIDATE 13)
+(defconst SIEGE-TARGET-NAVAL-SOURCE 14)
+(defconst SIEGE-TARGET-NAVAL-RANGE 15)
+(defconst SIEGE-TARGET-NAVAL-ADVANCE-WAIT 16)
+(defconst SIEGE-TARGET-NAVAL-ADVANCE-CHECK 17)
+(defconst SIEGE-TARGET-NAVAL-NEXT-PLAYER 18)
+
+;Defeated-target expedition recycling.
+(defconst EXPEDITION-RECYCLE-IDLE 0)
+(defconst EXPEDITION-RECYCLE-FIND-TARGET 1)
+
+;A Wonder is attempted only after three five-minute no-progress samples.  Every
+;ally enters SAVING, but player-number staggering and ally-foundation checks
+;elect at most one affordable builder.
+(defconst WONDER-STATE-MONITOR 0)
+(defconst WONDER-STATE-SAMPLE 1)
+(defconst WONDER-STATE-SAVING 2)
+(defconst WONDER-STATE-BUILDING 3)
+(defconst WONDER-STATE-ACTIVE 4)
+(defconst WONDER-STATE-ALLY-ACTIVE 5)
+(defconst WONDER-STATE-COOLDOWN 6)
 
 ;post-production Transport Ship clearance
 (defconst TRANSPORT-CLEAR-IDLE 0)

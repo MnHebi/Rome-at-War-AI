@@ -1318,6 +1318,67 @@
         "The Shipyard/cliff pathing, Merchant Vessel plateau, attack-transport failures, and Red Town Center order loop remain recorded unresolved work; this batch does not infer fixes without stronger engine-state evidence."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260828-141213",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.28 141213.aoe2record",
+        "sha256": "11EB682BA3C661489EAA12BC99326AFD087465006BB68EDFEB6BE983E2BBE016",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The corrected full-header parser maps the selected visible colors and resolved teams exactly to the preserved original lobby setup confirmed by the user. Internal nonvisual color IDs are not used for player identity.",
+        "duration_seconds": 4774
+      },
+      "direct_replay_observations": [
+        "The replay lasted 79:34, parsed 359005 ACTION operations, contained one Player 1 RESIGN action at the manually ended match, and contains no crash or unexpected termination evidence.",
+        "The user visually observed that Blue could direct Juggernaut attacks while Red and Purple did not autonomously perform the same duty, with success appearing sensitive to distance. Production records show substantial capital-ship availability, so absence of a trainable hull is not a sufficient explanation.",
+        "Red repeatedly reported an attack lift ready and then unloaded it back at home roughly 96 to 115 seconds later at 49:29 to 51:20/51:35, 53:26 to 55:01/55:16, 57:04 to 58:41/58:57, 60:43 to 62:22/62:37, and 74:30 to 76:06/76:21. One longer mission reported ready at 64:49 and landed at 69:27.",
+        "The user observed Red, Yellow, and Green units stop acting in Cyan's town after the remaining objectives there died. Five Red units received their last decoded command at 48:48 and no later order for about 31 minutes; seventeen of eighteen Yellow units commanded there at 51:02 were not ordered again.",
+        "The user saw a defeated notice for Cyan even though some Cyan buildings remained. The command stream contains no explicit Player 6 RESIGN action and Player 6 largely stopped issuing commands around minute 49, so the preserved evidence is an engine defeat transition rather than a quiet-resignation assertion.",
+        "The replay contains 1006 Market SELL actions but only 24 BUY actions. Red, Green, Yellow, Cyan, Blue, and Gray bought nothing, Purple bought once, and Orange bought 23 times, matching the user's observation that most AIs failed to turn large gold reserves into needed operating resources.",
+        "The user manually resigned because the teams were no longer capable of ending the match; no crash occurred."
+      ],
+      "implementation_inferences": [
+        "The capital-ship bombardment controller searched for its source only within 200 tiles of home, Sea Towers only within 120 tiles of that source, and all other fortifications only within 48 tiles. Those eligibility radii explain why nearby Blue objectives could be acquired while distant Red or Purple objectives were never attempted.",
+        "The attack-lift controller loaded passengers before it tested the distant route and allowed only four fixed fifteen-second waits for each scout leg. A long but progressing route could therefore fail after the expensive boarding step, producing the observed load, delay, and home unload cycle.",
+        "The ordinary target selector could move away from an engine-defeated opponent without dissolving the old attack-now expedition. Units whose last local objective disappeared remained attached to completed ownership rather than returning as idle, ungrouped soldiers for the new live target.",
+        "Imperial Market buying required a resource at or below 200 and at least 1000 gold, then bought only one batch under isolated resource rules. It had no transport reserve, sustained operating target, serialized multi-resource portfolio, or Wonder-saving demand, while broad surplus-selling rules remained active.",
+        "A bounded Wonder plan can terminate a Standard-victory stalemate, but it must sample material losses on both teams, elect only one allied builder, preserve a resource reserve, and back off failed placement rather than treating elapsed time alone as proof of stalemate."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B46. Search all live enemies and the full 255-tile known map for eligible Sea Towers and coastal fortifications. Revalidate exact target and capital IDs, stage a distant Juggernaut or Octeres through bounded halfway advances, measure distance progress, and temporarily reject a stalled objective.",
+        "Reserve an empty Transport first, screen the corridor and landing before boarding, capture the scout's reached water point as the route anchor, and monitor both hull distance and passenger count with distance-scaled deadlines and bounded no-progress recalls.",
+        "When the current target leaves the game or no longer has a valid hostile relationship or building objective, reset attack-now, expose ungrouped soldiers, wait for the normal selector to publish a live enemy, retask same-zone idle survivors, and wake transport recovery for stranded zones.",
+        "Serialize Imperial Market purchases to one transaction per fifteen seconds. Prioritize critical deficits, then Wonder reserves, transport wood, and normal wood, food, and stone operating reserves while imposing gold and commodity-price bounds.",
+        "After one hour in Imperial, sample cumulative enemy and allied-team buildings and civilians every five minutes. Three windows without a material loss on either team enter Wonder saving; stagger candidates by player number, cancel on a visible allied Wonder, require protected resource reserves and 60 villagers, retry placement three times, and use a fifteen-minute destruction or placement-failure cooldown."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports an exact P3B46 runtime match and replay chat contains RAWAI-P3B46 near match start.",
+        "A distant eligible Juggernaut or Octeres reports staged distance progress and eventually bombards a revalidated enemy Sea Tower or coastal fortification. An unreachable inland objective produces one bounded stall and temporary rejection without trapping all capital ships in the controller.",
+        "Military passengers do not board until the empty route scout reaches both the chosen corridor and landing. A loaded lift continues while distance or garrison count improves, lands at the screened route anchor, or performs one bounded recovery without repeating the prior ready/home-unload cycle indefinitely.",
+        "After an enemy receives the engine defeated notice, surviving same-zone idle military units receive a new exact hostile objective and stranded-zone survivors become available to transport recovery. No minutes-long orphan group remains at the defeated town.",
+        "An Imperial player with at least 1500 gold and deficient operating resources buys wood, food, or stone on the serialized cadence; a transport shortage raises the wood target, and Wonder saving purchases only within the protected price and gold limits.",
+        "A match with material building or civilian losses on either team resets the stalemate counter. If neither team loses at least three buildings or five civilians across three five-minute windows after 60:00, exactly one eligible ally requests a Wonder foundation and the others cancel when it becomes visible."
+      ],
+      "known_limits": [
+        "Only Red serialized detailed self-chat. The private controller states of Green, Yellow, Purple, and the opposing AIs remain unavailable, so color-level autonomous bombardment must be confirmed visually in a fresh replay.",
+        "The replay parser does not expose arbitrary water-path success, terrain passability, DUC group ownership, transport passenger identity, target destruction ownership, current resource stockpiles, or Wonder victory settings.",
+        "A Scout Ship reaching a water point proves water connectivity and bounded progress, not that an adjacent cliff has a valid disembark tile. The loaded-leg progress monitor remains the runtime proof and must recover rather than loop if the shoreline is unusable.",
+        "Halfway capital-ship staging is geometric because the scripting API exposes no general naval path query. The stall quarantine prevents permanent ownership but can reject a target whose valid route initially moves away from the straight-line waypoint.",
+        "The Wonder mechanism is calibrated for the project's Standard-victory test setup. Structural validation cannot prove foundation visibility to allies, actual construction completion, or victory countdown behavior."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

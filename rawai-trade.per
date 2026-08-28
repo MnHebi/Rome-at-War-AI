@@ -282,38 +282,141 @@
 ;****************************
 ;imperial age
 
+;One market transaction every fifteen seconds prevents several true deficit
+;rules from issuing in one sweep.  Critical shortages come first, followed by
+;Wonder saving, transport capacity, and ordinary late-game operating reserves.
 (defrule
 	(current-age == imperial-age)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
 	(gold-amount >= 1000)
 	(wood-amount <= 200)
+	(commodity-buying-price wood <= 400)
 	(can-buy-commodity wood)
 =>
-	(chat-local-to-self "Wood panic")
 	(buy-commodity wood)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Market portfolio: critical wood")
 )
 
 (defrule
 	(current-age == imperial-age)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
 	(gold-amount >= 1000)
 	(food-amount <= 200)
+	(commodity-buying-price food <= 400)
 	(can-buy-commodity food)
 =>
-	(chat-local-to-self "Food panic")
 	(buy-commodity food)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Market portfolio: critical food")
 )
 
 (defrule
 	(current-age == imperial-age)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
 	(gold-amount >= 1000)
 	(stone-amount <= 200)
+	(commodity-buying-price stone <= 500)
 	(can-buy-commodity stone)
 =>
-	(chat-local-to-self "need stone")
 	(buy-commodity stone)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Market portfolio: critical stone")
 )
 
 (defrule
 	(current-age == imperial-age)
+	(goal gl-wonder-state WONDER-STATE-SAVING)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
+	(gold-amount >= 1600)
+	(wood-amount < 1400)
+	(commodity-buying-price wood <= 250)
+	(can-buy-commodity wood)
+=>
+	(buy-commodity wood)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Wonder portfolio: buy wood")
+)
+
+(defrule
+	(current-age == imperial-age)
+	(goal gl-wonder-state WONDER-STATE-SAVING)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
+	(gold-amount >= 1600)
+	(stone-amount < 1400)
+	(commodity-buying-price stone <= 350)
+	(can-buy-commodity stone)
+=>
+	(buy-commodity stone)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Wonder portfolio: buy stone")
+)
+
+(defrule
+	(current-age == imperial-age)
+	(goal gl-land-target-needs-transport YES)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
+	(gold-amount >= 1300)
+	(wood-amount < 900)
+	(commodity-buying-price wood <= 220)
+	(can-buy-commodity wood)
+=>
+	(buy-commodity wood)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Market portfolio: transport wood")
+)
+
+(defrule
+	(current-age == imperial-age)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
+	(gold-amount >= 1500)
+	(wood-amount < 800)
+	(commodity-buying-price wood <= 200)
+	(can-buy-commodity wood)
+=>
+	(buy-commodity wood)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Market portfolio: operating wood")
+)
+
+(defrule
+	(current-age == imperial-age)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
+	(gold-amount >= 1500)
+	(food-amount < 700)
+	(commodity-buying-price food <= 200)
+	(can-buy-commodity food)
+=>
+	(buy-commodity food)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Market portfolio: operating food")
+)
+
+(defrule
+	(current-age == imperial-age)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
+	(gold-amount >= 1500)
+	(stone-amount < 500)
+	(commodity-buying-price stone <= 300)
+	(can-buy-commodity stone)
+=>
+	(buy-commodity stone)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Market portfolio: operating stone")
+)
+
+(defrule
+	(current-age == imperial-age)
+	(not (goal gl-wonder-state WONDER-STATE-SAVING))
 	(wood-amount >= 1200)
 	(gold-amount < 300)
 	(commodity-selling-price wood >= 30)
@@ -325,6 +428,7 @@
 
 (defrule
 	(current-age == imperial-age)
+	(not (goal gl-wonder-state WONDER-STATE-SAVING))
 	(food-amount >= 1000)
 	(gold-amount < 200)
 	(can-sell-commodity food)

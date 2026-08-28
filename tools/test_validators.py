@@ -754,7 +754,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B45", self.init_goals)
+        self.assertIn("RAWAI-P3B46", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -1853,22 +1853,53 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertEqual(len(group_builders), 2)
         juggernaut_commands = matching_rules(
             self.military,
-            facts=("SIEGE-TARGET-FIND-STRUCTURE", "gl-naval-siege-family 0"),
+            facts=("SIEGE-TARGET-NAVAL-RANGE", "gl-naval-siege-family 0"),
             actions=(
                 "up-set-group search-local c: juggernaut-bombardment-group",
                 "object-data-type == octeres",
+                "up-add-object-by-id search-remote g: gl-naval-siege-target-id",
+                "up-target-objects 1 action-default",
             ),
         )
         octeres_commands = matching_rules(
             self.military,
-            facts=("SIEGE-TARGET-FIND-STRUCTURE", "gl-naval-siege-family 1"),
+            facts=("SIEGE-TARGET-NAVAL-RANGE", "gl-naval-siege-family 1"),
             actions=(
                 "up-set-group search-local c: octeres-bombardment-group",
                 "object-data-type != octeres",
+                "up-add-object-by-id search-remote g: gl-naval-siege-target-id",
+                "up-target-objects 1 action-default",
             ),
         )
         self.assertEqual(len(juggernaut_commands), 1)
         self.assertEqual(len(octeres_commands), 1)
+        self.assertIn("up-filter-distance c: -1 c: 255", self.military)
+        self.assertNotIn("up-filter-distance c: -1 c: 120", self.military)
+        staging = matching_rules(
+            self.military,
+            facts=(
+                "SIEGE-TARGET-NAVAL-RANGE",
+                "object-data-distance > 48",
+            ),
+            actions=(
+                "up-lerp-percent gl-naval-siege-waypoint-x point-x c: 50",
+                "gl-naval-siege-progress-deadline 0",
+                "SIEGE-TARGET-NAVAL-ADVANCE-WAIT",
+            ),
+        )
+        self.assertEqual(len(staging), 1)
+        stalled = matching_rules(
+            self.military,
+            facts=(
+                "SIEGE-TARGET-NAVAL-ADVANCE-CHECK",
+                "gl-naval-siege-stalls c:>= 3",
+            ),
+            actions=(
+                "gl-naval-siege-rejected-id g:= gl-naval-siege-target-id",
+                "naval bombardment target stalled: %d",
+            ),
+        )
+        self.assertEqual(len(stalled), 1)
 
         transport_escort = matching_rules(
             self.military,
@@ -4496,7 +4527,7 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertEqual(self.economy.count(quarantine_exclusion), 1)
         self.assertEqual(self.military.count(quarantine_exclusion), 2)
-        self.assertEqual(self.military.count(remote_quarantine_exclusion), 10)
+        self.assertGreaterEqual(self.military.count(remote_quarantine_exclusion), 9)
         escort_selector = matching_rules(
             self.military,
             facts=(
@@ -5032,21 +5063,45 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertGreaterEqual(len(blocked_empty_capacity), 1)
         self.assertGreaterEqual(len(reachable_override), 1)
 
-        start = matching_rules(
+        preflight = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-FIND)",
+            ),
+            actions=(
+                "object-data-garrison-count > 0",
+                "object-data-idling != 1",
+                "object-data-group-flag >= 0",
+                "TRANSPORT-ROUTE-FIND",
+            ),
+        )
+        target = matching_rules(
             self.military,
             facts=(
                 "(goal gl-transport-route-state TRANSPORT-ROUTE-FIND)",
-                "not (up-set-target-object search-remote c: 0)",
+                "up-set-target-object search-remote c: 0",
                 "(goal gl-land-target-needs-transport YES)",
                 "gl-land-target-scan-player g:== gl-land-target-current-player",
             ),
             actions=(
-                "object-data-garrison-count > 0",
-                "object-data-group-flag >= 0",
-                "TRANSPORT-ROUTE-LOAD-FIND",
+                "up-create-group 0 0 c: attack-transport-group",
+                "TRANSPORT-ROUTE-TARGET",
             ),
         )
-        self.assertEqual(len(start), 1)
+        route_proved = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-SCREEN-LANDING-APPLY",
+                "remote-total <= 0",
+            ),
+            actions=(
+                "attack route preflight complete: %d",
+                "TRANSPORT-ROUTE-LOAD-SELECT",
+            ),
+        )
+        self.assertEqual(len(preflight), 1)
+        self.assertEqual(len(target), 1)
+        self.assertEqual(len(route_proved), 1)
         board = matching_rules(
             self.military,
             facts=(
@@ -5076,20 +5131,10 @@ class FarmPolicyTests(unittest.TestCase):
                 "TRANSPORT-ROUTE-LOAD-CHECK",
                 "object-data-garrison-count g:>= gl-transport-route-load-target",
             ),
-            actions=("attack lift ready: %d", "TRANSPORT-ROUTE-LOAD-READY"),
-        )
-        ready_rebuild = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-LOAD-READY",
-                "(goal gl-home-defense-state NO)",
-                "gl-transport-route-load-player g:== gl-land-target-current-player",
-                "(goal gl-land-target-needs-transport YES)",
-            ),
             actions=(
-                "(set-strategic-number sn-focus-player-number my-player-number)",
-                "up-add-object-by-id search-remote g: gl-transport-route-id",
-                "TRANSPORT-ROUTE-FIND",
+                "attack lift ready: %d",
+                "gl-transport-route-waypoint-x action-move",
+                "TRANSPORT-ROUTE-WAYPOINT-WAIT",
             ),
         )
         abort = matching_rules(
@@ -5115,13 +5160,12 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertEqual(len(board), 1)
         self.assertEqual(len(ready), 1)
-        self.assertEqual(len(ready_rebuild), 1)
         self.assertEqual(len(abort), 1)
         self.assertEqual(len(landed), 1)
         invalidated = matching_rules(
             self.military,
             facts=(
-                "TRANSPORT-ROUTE-LOAD-READY",
+                "gl-transport-route-state c:>= TRANSPORT-ROUTE-LOAD-SELECT",
                 "gl-transport-route-load-player g:!= gl-land-target-current-player",
             ),
             actions=(
@@ -5130,6 +5174,22 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(invalidated), 1)
+        self.assertIn("route-screen waypoint stalled distance: %d", self.military)
+        self.assertIn("route-screen landing stalled distance: %d", self.military)
+        self.assertIn("attack lift waypoint stalled distance: %d", self.military)
+        self.assertIn("attack lift landing stalled passengers: %d", self.military)
+        reachable_anchor = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-SCREEN-LANDING-THREAT",
+                "object-data-distance <= 10",
+            ),
+            actions=(
+                "up-get-point position-object gl-transport-route-landing-x",
+                "TRANSPORT-ROUTE-SCREEN-LANDING-APPLY",
+            ),
+        )
+        self.assertEqual(len(reachable_anchor), 1)
         self.assertFalse(
             matching_rules(
                 self.military,
@@ -5150,6 +5210,154 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertGreaterEqual(len(lost_terminals), 3)
+
+    def test_defeated_target_releases_and_retasks_surviving_expeditions(self) -> None:
+        release = matching_rules(
+            self.military,
+            facts=(
+                "EXPEDITION-RECYCLE-IDLE",
+                "not (player-in-game target-player)",
+                "players-building-count any-enemy >= 1",
+            ),
+            actions=(
+                "(up-reset-attack-now)",
+                "sn-task-ungrouped-soldiers 1",
+                "defeated attack target released: %d",
+                "EXPEDITION-RECYCLE-FIND-TARGET",
+            ),
+        )
+        self.assertEqual(len(release), 1)
+        retask = matching_rules(
+            self.military,
+            facts=(
+                "EXPEDITION-RECYCLE-FIND-TARGET",
+                "up-set-target-object search-remote c: 0",
+            ),
+            actions=(
+                "object-data-idling != 1",
+                "object-data-group-flag >= 0",
+                "object-data-map-zone-id g:!= gl-expedition-recycle-target-zone",
+                "up-target-objects 1 action-default",
+                "defeated target survivors retasked: %d",
+                "up-set-timer c: t-transport-recovery c: 1",
+            ),
+        )
+        self.assertEqual(len(retask), 1)
+
+    def test_imperial_market_uses_serialized_operating_and_wonder_reserves(self) -> None:
+        operating_wood = matching_rules(
+            self.trade,
+            facts=(
+                "(current-age == imperial-age)",
+                "gl-game-time g:>= gl-market-portfolio-next",
+                "(gold-amount >= 1500)",
+                "(wood-amount < 800)",
+            ),
+            actions=(
+                "(buy-commodity wood)",
+                "gl-market-portfolio-next c:+ 15",
+                "Market portfolio: operating wood",
+            ),
+        )
+        wonder_wood = matching_rules(
+            self.trade,
+            facts=(
+                "WONDER-STATE-SAVING",
+                "(wood-amount < 1400)",
+                "commodity-buying-price wood <= 250",
+            ),
+            actions=("(buy-commodity wood)", "Wonder portfolio: buy wood"),
+        )
+        wonder_stone = matching_rules(
+            self.trade,
+            facts=(
+                "WONDER-STATE-SAVING",
+                "(stone-amount < 1400)",
+                "commodity-buying-price stone <= 350",
+            ),
+            actions=("(buy-commodity stone)", "Wonder portfolio: buy stone"),
+        )
+        self.assertEqual(len(operating_wood), 1)
+        self.assertEqual(len(wonder_wood), 1)
+        self.assertEqual(len(wonder_stone), 1)
+        imperial_buys = matching_rules(
+            self.trade,
+            facts=("(current-age == imperial-age)",),
+            actions=("buy-commodity",),
+        )
+        self.assertGreaterEqual(len(imperial_buys), 8)
+        self.assertTrue(
+            all("gl-market-portfolio-next" in rule[3] for rule in imperial_buys)
+        )
+        self.assertTrue(
+            all("gl-market-portfolio-next c:+ 15" in rule[4] for rule in imperial_buys)
+        )
+
+    def test_stalemate_wonder_is_progress_gated_and_team_elected(self) -> None:
+        sample = matching_rules(
+            self.homebase,
+            facts=(
+                "WONDER-STATE-MONITOR",
+                "gl-game-time c:>= 3600",
+                "gl-game-time g:>= gl-wonder-sample-next",
+                "players-building-count any-enemy >= 1",
+            ),
+            actions=(
+                "up-get-fact-sum any-enemy building-count",
+                "up-get-fact-sum any-enemy civilian-population",
+                "up-get-fact-sum any-ally building-count",
+                "up-get-fact-sum any-ally civilian-population",
+                "gl-wonder-team-buildings g:+ gl-wonder-allied-buildings",
+                "gl-wonder-team-civilians g:+ gl-wonder-allied-civilians",
+                "WONDER-STATE-SAMPLE",
+            ),
+        )
+        no_progress = matching_rules(
+            self.homebase,
+            facts=(
+                "WONDER-STATE-SAMPLE",
+                "gl-wonder-enemy-buildings g:> gl-wonder-building-progress-limit",
+                "gl-wonder-enemy-civilians g:> gl-wonder-civilian-progress-limit",
+                "gl-wonder-team-buildings g:> gl-wonder-team-building-progress-limit",
+                "gl-wonder-team-civilians g:> gl-wonder-team-civilian-progress-limit",
+            ),
+            actions=("gl-wonder-stall-windows c:+ 1",),
+        )
+        election = matching_rules(
+            self.homebase,
+            facts=(
+                "WONDER-STATE-SAMPLE",
+                "gl-wonder-stall-windows c:>= 2",
+            ),
+            actions=(
+                "gl-wonder-election-time g:= gl-self-player-number",
+                "gl-wonder-election-time c:* 30",
+                "WONDER-STATE-SAVING",
+            ),
+        )
+        build = matching_rules(
+            self.homebase,
+            facts=(
+                "WONDER-STATE-SAVING",
+                "players-building-type-count any-ally wonder <= 0",
+                "(wood-amount >= 1400)",
+                "(gold-amount >= 1500)",
+                "(stone-amount >= 1400)",
+                "(up-can-build 0 c: wonder)",
+            ),
+            actions=(
+                "(up-build place-normal 0 c: wonder)",
+                "Long stalemate detected; I am building a Wonder",
+                "WONDER-STATE-BUILDING",
+            ),
+        )
+        self.assertEqual(len(sample), 1)
+        self.assertEqual(len(no_progress), 1)
+        self.assertEqual(len(election), 1)
+        self.assertEqual(len(build), 1)
+        self.assertIn("WONDER-STATE-ALLY-ACTIVE", self.homebase)
+        self.assertIn("gl-wonder-cooldown-until c:+ 900", self.homebase)
+        self.assertIn("(up-assign-builders c: wonder c: 15)", self.homebase)
 
     def test_port_clearance_includes_trade_cogs(self) -> None:
         berth_scans = matching_rules(

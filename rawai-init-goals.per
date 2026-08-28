@@ -358,7 +358,7 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B45: %d" c: 45)
+	(up-chat-data-to-self "RAWAI-P3B46: %d" c: 46)
 	(disable-self)
 )
 
@@ -443,6 +443,60 @@
 	(set-goal gl-request-gold-next 0)
 	(set-goal gl-request-stone-next 0)
 	(set-goal gl-resource-request-next 0)
+	(disable-self)
+)
+
+;P3B46 long-route and defeated-target state use a separate startup block to
+;remain below the engine's per-rule element ceiling.
+(defrule
+	(true)
+=>
+	(set-goal gl-transport-route-best-distance 256)
+	(set-goal gl-transport-route-stalls 0)
+	(set-goal gl-transport-route-progress-deadline 0)
+	(set-goal gl-transport-route-last-garrison 0)
+	(set-goal gl-naval-siege-waypoint-x 0)
+	(set-goal gl-naval-siege-waypoint-y 0)
+	(set-goal gl-naval-siege-best-distance 256)
+	(set-goal gl-naval-siege-stalls 0)
+	(set-goal gl-naval-siege-progress-deadline 0)
+	(set-goal gl-naval-siege-rejected-id -1)
+	(set-goal gl-naval-siege-rejected-until 0)
+	(set-goal gl-naval-siege-first-player -1)
+	(set-goal gl-expedition-recycle-state EXPEDITION-RECYCLE-IDLE)
+	(set-goal gl-expedition-recycle-focus 0)
+	(set-goal gl-expedition-recycle-target-id -1)
+	(set-goal gl-expedition-recycle-target-x 0)
+	(set-goal gl-expedition-recycle-target-y 0)
+	(set-goal gl-expedition-recycle-target-zone -1)
+	(set-goal gl-expedition-recycle-count 0)
+	(set-goal gl-expedition-recycle-next 0)
+	(disable-self)
+)
+
+;Late-game Market and stalemate-Wonder ownership are independent of military
+;search state and initialize in their own bounded block.
+(defrule
+	(true)
+=>
+	(set-goal gl-market-portfolio-next 1)
+	(set-goal gl-wonder-state WONDER-STATE-MONITOR)
+	(set-goal gl-wonder-sample-next 3600)
+	(set-goal gl-wonder-stall-windows 0)
+	(set-goal gl-wonder-enemy-buildings -1)
+	(set-goal gl-wonder-enemy-civilians -1)
+	(set-goal gl-wonder-building-progress-limit -1)
+	(set-goal gl-wonder-civilian-progress-limit -1)
+	(set-goal gl-wonder-election-time 0)
+	(set-goal gl-wonder-build-next 0)
+	(set-goal gl-wonder-build-attempts 0)
+	(set-goal gl-wonder-cooldown-until 0)
+	(set-goal gl-wonder-team-buildings -1)
+	(set-goal gl-wonder-team-civilians -1)
+	(set-goal gl-wonder-allied-buildings 0)
+	(set-goal gl-wonder-allied-civilians 0)
+	(set-goal gl-wonder-team-building-progress-limit -1)
+	(set-goal gl-wonder-team-civilian-progress-limit -1)
 	(disable-self)
 )
 
