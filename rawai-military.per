@@ -65,6 +65,12 @@
 	)
 =>
 	(up-modify-goal gl-transport-escort-focus-player s:= sn-focus-player-number)
+	;Release any prior escorts first. Clearing the group flag does not cancel an
+	;existing guard order, so a failed or emptied transport otherwise keeps its
+	;warships stranded beside it.
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-set-group search-local c: transport-escort-group)
+	(up-target-point position-self-x action-stop -1 stance-no-attack)
 	(up-modify-group-flag 0 c: transport-escort-group)
 	(up-reset-group c: transport-escort-group)
 	(up-full-reset-search)
@@ -1077,6 +1083,7 @@
 	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-FINISH)
 =>
 	(up-chat-data-to-self "naval opportunity target kind: %d" g: gl-naval-opportunity-target-kind)
+	(up-chat-data-to-self "naval opportunity target id: %d" g: gl-naval-opportunity-target-id)
 	(up-chat-data-to-self "naval opportunity ships: %d" g: gl-naval-opportunity-ship-count)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-opportunity-focus)
 	(set-goal gl-naval-opportunity-rejected-id -1)
@@ -8110,6 +8117,7 @@
 	(up-set-target-object search-remote c: 0)
 =>
 	(up-get-object-data object-data-type gl-naval-siege-target-type)
+	(up-get-object-data object-data-id gl-naval-siege-target-id)
 	(up-get-point position-object gl-naval-siege-target-x)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-reset-search 1 1 0 0)
@@ -8128,6 +8136,7 @@
 	(up-set-target-object search-remote c: 0)
 =>
 	(up-get-object-data object-data-type gl-naval-siege-target-type)
+	(up-get-object-data object-data-id gl-naval-siege-target-id)
 	(up-get-point position-object gl-naval-siege-target-x)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-reset-search 1 1 0 0)
@@ -8148,6 +8157,7 @@
 	(up-target-objects 1 action-default -1 stance-aggressive)
 	(up-chat-data-to-self "Juggernaut bombardment escorts: %d" g: gl-naval-siege-escort-count)
 	(up-chat-data-to-self "naval bombardment target type: %d" g: gl-naval-siege-target-type)
+	(up-chat-data-to-self "naval bombardment target id: %d" g: gl-naval-siege-target-id)
 	(up-chat-data-to-self "naval bombardment water zone: %d" g: gl-naval-siege-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
 	(set-goal gl-naval-siege-family 1)
@@ -8163,6 +8173,7 @@
 	(up-target-objects 1 action-default -1 stance-aggressive)
 	(up-chat-data-to-self "Octeres bombardment escorts: %d" g: gl-naval-siege-escort-count)
 	(up-chat-data-to-self "naval bombardment target type: %d" g: gl-naval-siege-target-type)
+	(up-chat-data-to-self "naval bombardment target id: %d" g: gl-naval-siege-target-id)
 	(up-chat-data-to-self "naval bombardment water zone: %d" g: gl-naval-siege-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
 	(set-goal gl-naval-siege-family 0)
@@ -8218,6 +8229,7 @@
 	(up-set-target-object search-remote c: 0)
 =>
 	(up-get-object-data object-data-type gl-naval-siege-target-type)
+	(up-get-object-data object-data-id gl-naval-siege-target-id)
 	(up-get-point position-object gl-naval-siege-target-x)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-reset-search 1 1 0 0)
@@ -8236,6 +8248,7 @@
 	(up-set-target-object search-remote c: 0)
 =>
 	(up-get-object-data object-data-type gl-naval-siege-target-type)
+	(up-get-object-data object-data-id gl-naval-siege-target-id)
 	(up-get-point position-object gl-naval-siege-target-x)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-reset-search 1 1 0 0)
