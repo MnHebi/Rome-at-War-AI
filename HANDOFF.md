@@ -5,10 +5,11 @@
 - Canonical working directory: `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
 - Git repository root: `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
 - Active branch: `codex/replay-economy-build-order`
-- P3B49 code commit: `91ea476` (`Instrument military and transport failures`)
+- P3B50 code commit: `558a39e` (`Fix attack escalation and routine defense recalls`)
+- P3B49 instrumentation commit: `91ea476` (`Instrument military and transport failures`)
 - Pull request: <https://github.com/MnHebi/Rome-at-War-AI/pull/4>
-- Installed runtime marker: `RAWAI-P3B49:49`
-- Installed 68-file runtime SHA-256: `AA1B1DD5484B39970A959541950D261D07F5FB862932FC4282CA038E3F45BA4A`
+- Installed runtime marker: `RAWAI-P3B50:50`
+- Installed 68-file runtime SHA-256: `9673193834809E7ED8E8FB355BBA1E2E566D7BCEF0622CF6EB311AD93B4B42C9`
 - Expected worktree state after this handoff: clean.
 
 The legacy directory
@@ -20,35 +21,38 @@ replaced in this session.
 
 ## Current milestone
 
-Obtain a fresh P3B49 Britannia 4v4 replay using the preserved original lobby and
-use the public RAW49 telemetry to identify the exact owner of passive armies,
-Town-Center pulls, worker-migration gate failures, and every transport terminal
-failure. Convert that evidence directly into behavioral fixes rather than
-stopping at diagnostics. Continue validating the P3B48 migration ownership and
-route-safety changes, long-range capital-ship controller, serialized Market
-portfolio, team-elected stalemate Wonder, P3B45 allied-resource request tiers,
-and the older unresolved runtime defects listed below.
+Obtain a fresh P3B50 Britannia 4v4 replay using the preserved original lobby and
+validate the closed attack-escalation invariants: routine land/naval probes use
+only bounded idle response groups, severe threats can still recall globally,
+mixed siege families satisfy the literal two-engine package, and one fortified
+player objective cannot repeatedly retreat on 3/2 scan noise. Then resume the
+explicitly deferred migration, transport, port, relic-ferry, and command-flood
+work using the existing RAW49 telemetry.
 
 ## Unresolved defects and runtime validation
 
-- The 17:09 replay again showed worker migration mostly absent, Red and Purple
-  armies passive near their Town Centers, and manually ferried Red troops
-  retreating home near the end. Red's pre-P3B49 chat proves that the early
-  migration gate repeatedly saw zero engine-idle Villagers despite five free
-  Transports and no defense, depletion, or resource-pressure trigger. The
-  replay also contains four distinct late Red DE_RETREAT decisions at 124:14,
-  125:01, 127:45, and 127:57, but P3B48 could not identify their issuing rule.
-- P3B49 now emits a reason and context before every one of the six script-level
-  `up-retreat-now` sources, separately reports the exact home-defense leash
-  count, and publishes the first ordinary military-dispatch and migration
-  blocker once per minute. This is diagnostic instrumentation; the passive-army
-  and worker-migration defects remain unresolved until a fresh replay identifies
-  the cause and the corresponding behavioral fix is implemented.
+- The 19:06 P3B49 replay accounted for all 45 distinct retreat decisions: 14
+  fortification, 25 land-defense, and 6 naval-defense retreats. No direct
+  Town-Center defense-leash telemetry fired. P3B50 deterministically restores
+  all three land attack-group strategic numbers on every SIEGE/REGROUP exit,
+  latches SIEGE by fortified player, and removes the global reset/retreat from
+  routine defense. A fresh replay still must confirm the engine-visible behavior
+  while severe siege/large-probe recalls remain operational.
+- The same replay confirmed the worker-migration idle gate still repeatedly sees
+  zero engine-idle Villagers despite available villagers and Transports. No
+  worker migration completed; eleven boarding attempts ended with zero cargo,
+  five routes became unreachable, and six returns exhausted unload retries.
+  This task deliberately did not modify migration or transport behavior.
 - P3B49 publishes Transport escort, worker migration, repair, Port clearing,
   assault, recovery, relic-ferry, and quarantine state snapshots plus public
   lifecycle/terminal messages for every AI. Boarding timeouts now report actual
   and requested cargo, and every route-screen failure has a classified RAW49
   message. Transport failure remains unresolved pending the fresh replay.
+- The 19:06 replay contained 491,938 AI_ORDER actions. Green generated 345,645,
+  with four parser-unidentified object IDs accounting for 343,632. Cyan object
+  4560 and Blue object 4561 were also high-volume owners. Object type/controller
+  ownership remains unproven, so P3B50 deliberately makes no command-flood
+  behavioral change.
 - Taunt 69 has repeatedly acknowledged the command without visibly deleting the
   intended flared structure. Flare ownership and bounded cleanup were changed in
   P3B30/P3B31, but visible deletion remains unconfirmed and therefore unresolved.
@@ -126,6 +130,13 @@ and the older unresolved runtime defects listed below.
 
 ## Important recent changes
 
+- `558a39e` (`RAWAI-P3B50`) restores population-derived attack-group sizes on
+  every SIEGE/REGROUP exit; classifies the former `:9968` site as a legitimate
+  defeated-target `up-reset-attack-now` rather than a retreat; counts Rams,
+  Armored Elephants, Mangonels, and Catapults in one literal two-unit package;
+  latches SIEGE by fortified player until objective loss/change or an actual
+  siege-supported launch; and separates routine capped idle responder dispatch
+  from severe global home-defense recall.
 - `91ea476` (`RAWAI-P3B49`) makes all six global-retreat sources and the separate
   Town-Center defense leash replay-visible, periodically reports the first
   passive-army and migration blocker, publishes all transport-controller state
@@ -182,7 +193,7 @@ and the older unresolved runtime defects listed below.
 
 ## Tests and replays already performed
 
-- Full P3B49 regression suite: 120 tests passed.
+- Full P3B50 regression suite: 126 tests passed.
 - Replay-benchmark validator: 23 benchmarks passed.
 - PER structural/operand validation passed.
 - Strategy execution validation passed: 1,156 total matchups, with 1,149
@@ -193,7 +204,15 @@ and the older unresolved runtime defects listed below.
   rows.
 - Naval doctrine and generated naval-score synchronization checks passed.
 - `git diff --check` passed; only expected Git CRLF conversion notices appeared.
-- P3B49 adversarial read-only review enumerated all six repository-wide
+- P3B50 adversarial read-only review checked every attack-group-size write and
+  escalation-state transition, verified all five non-initial NORMAL exits
+  restore the three strategic numbers, proved `gl-one-percent` no longer owns
+  siege readiness, and confirmed 3/2 scan oscillation cannot rearm the same
+  fortified-player latch. It found and corrected a routine-response ownership
+  gap by requiring candidates to be idle, ungrouped, and neither attacking nor
+  retreating before the fixed eight-land/six-naval cap. Severe land siege/five
+  regular and four-ship naval rules retain the only home-defense global recalls.
+- P3B49's prior adversarial review enumerated all six repository-wide
   `up-retreat-now` sources, verified each reason record precedes the command,
   distinguished the separate direct-move home-defense leash, and added the
   initially omitted Transport escort owner and land-attack eligibility report.
@@ -214,30 +233,34 @@ and the older unresolved runtime defects listed below.
   reconstruction after waits, bounded progress termination, target invalidation,
   Market serialization, and team-wide Wonder progress. The one actionable
   Wonder finding was corrected before the final full suite.
-- Installed P3B49 test runtime matches all 68 repository runtime files at the
+- Installed P3B50 test runtime matches all 68 repository runtime files at the
   SHA-256 recorded above.
+- Workspace-root mirrors of `rawai-customconstants.per`, `rawai-init-goals.per`,
+  and `rawai-military.per` were mechanically synchronized from the canonical
+  repository and verified byte-identical by SHA-256. They do not replace the
+  canonical Git workspace.
 - Latest analyzed replay:
-  `SP Replay v101.103.48987.0 @2026.08.28 170956.aoe2record`, SHA-256
-  `E7023C2BB0C3FF50FFB497F276559A1A7F2661500502BBF2DFD784B617F4BD33`.
-- The replay lasted 128:06 with 624,780 ACTION operations, including 239,484
-  AI_ORDER, 192,723 ORDER, and 88,332 WORK actions. It contains 143 raw
-  DE_RETREAT records; Red's late duplicated records reduce to four distinct
-  decisions during the manual-ferry interval. Red's migration gate repeatedly
-  reported zero engine-idle workers, later landed two settlers, and then failed
-  the remote drop-site zone check. The selected visible colors exactly match the
-  preserved original lobby.
+  `SP Replay v101.103.48987.0 @2026.08.28 190624.aoe2record`, SHA-256
+  `3A068DD0D426B7D1A3CFD2A41CCA71FBA8FC4AF20F36F48F7942B22E31980A96`.
+- The replay lasted 63:54. All 45 distinct retreats matched a public P3B49
+  reason; the direct home leash never fired. It also contained 491,938 AI_ORDER,
+  201,285 ORDER, and 132,260 WORK actions. Worker migration did not complete,
+  Blue alone completed two ten-unit assault landings, and repeated unchanged
+  transport/Port failures remained visible. The selected visible colors exactly
+  match the preserved original lobby.
 
 ## Next recommended actions
 
 1. Before editing, compare the Git root, branch, HEAD, and working-tree state
    with the canonical workspace above.
-2. Run the next Britannia 4v4 with the installed `RAWAI-P3B49:49` runtime and
+2. Run the next Britannia 4v4 with the installed `RAWAI-P3B50:50` runtime and
    preserve Standard victory, recorded game, and the original visible-color
    setup unless deliberately testing a variant.
-3. When troops remain at or move back toward the Town Center, preserve the
-   nearby `RAW49 MIL retreat reason`, `home defend leash units`, or first-blocker
-   messages. A DE_RETREAT action with no matching script reason is evidence for
-   an engine-origin retreat rather than one of the six known script rules.
+3. For P3B50 acceptance, preserve routine land/naval defense telemetry and
+   verify no matching DE_RETREAT occurs; provoke or observe a home siege/five-unit
+   land or four-ship naval emergency and verify severe recall still works. Also
+   preserve `siege usable engines`, `siege objective player`, and fortification
+   messages to confirm mixed-family readiness and one entry per objective.
 4. Preserve the complete `RAW49 TRN`/`RAW49 FAIL` sequence for every failed
    transport. It should reveal controller owner, exact state, selected hull,
    boarding actual/target cargo, route-screen result, progress, and the terminal
