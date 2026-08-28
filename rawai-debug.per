@@ -59,6 +59,352 @@
 	(goal rush-rushing ASSURED)
 =>
 	(chat-local-to-self "RUSHING: ASSURED")
-	
+
 	(disable-self)
+)
+
+;P3B49 transport telemetry is public because a recorded game serializes private
+;up-chat-data only for the replay owner.  The replay player field still
+;identifies the emitting AI.  Each controller transition emits once; detailed
+;action and failure messages are emitted by the owning rules in rawai-military.
+(defrule
+	(up-compare-goal gl-transport-escort-state g:!= gl-telemetry-escort-previous)
+=>
+	(up-modify-goal gl-telemetry-escort-previous g:= gl-transport-escort-state)
+	(up-chat-data-to-all "RAW49 TRN escort state: %d" g: gl-transport-escort-state)
+)
+
+(defrule
+	(up-compare-goal gl-island-migration-state g:!= gl-telemetry-migration-previous)
+=>
+	(up-modify-goal gl-telemetry-migration-previous g:= gl-island-migration-state)
+	(up-chat-data-to-all "RAW49 TRN migration state: %d" g: gl-island-migration-state)
+)
+
+(defrule
+	(up-compare-goal gl-transport-repair-state g:!= gl-telemetry-repair-previous)
+=>
+	(up-modify-goal gl-telemetry-repair-previous g:= gl-transport-repair-state)
+	(up-chat-data-to-all "RAW49 TRN repair state: %d" g: gl-transport-repair-state)
+)
+
+(defrule
+	(up-compare-goal gl-transport-clear-state g:!= gl-telemetry-clear-previous)
+=>
+	(up-modify-goal gl-telemetry-clear-previous g:= gl-transport-clear-state)
+	(up-chat-data-to-all "RAW49 TRN port-clear state: %d" g: gl-transport-clear-state)
+)
+
+(defrule
+	(up-compare-goal gl-transport-route-state g:!= gl-telemetry-route-previous)
+=>
+	(up-modify-goal gl-telemetry-route-previous g:= gl-transport-route-state)
+	(up-chat-data-to-all "RAW49 TRN assault state: %d" g: gl-transport-route-state)
+)
+
+(defrule
+	(up-compare-goal gl-transport-recovery-state g:!= gl-telemetry-recovery-previous)
+=>
+	(up-modify-goal gl-telemetry-recovery-previous g:= gl-transport-recovery-state)
+	(up-chat-data-to-all "RAW49 TRN recovery state: %d" g: gl-transport-recovery-state)
+)
+
+(defrule
+	(up-compare-goal gl-relic-ferry-state g:!= gl-telemetry-relic-previous)
+=>
+	(up-modify-goal gl-telemetry-relic-previous g:= gl-relic-ferry-state)
+	(up-chat-data-to-all "RAW49 TRN relic state: %d" g: gl-relic-ferry-state)
+)
+
+(defrule
+	(up-compare-goal gl-quarantine-transport-state g:!= gl-telemetry-quarantine-previous)
+=>
+	(up-modify-goal gl-telemetry-quarantine-previous g:= gl-quarantine-transport-state)
+	(up-chat-data-to-all "RAW49 TRN quarantine state: %d" g: gl-quarantine-transport-state)
+)
+
+;A large army that remains at home gets one prioritized blocker report per
+;minute.  These rules deliberately report the first failed dispatch gate rather
+;than printing a dozen unrelated counters every sample.
+(defrule
+	(up-compare-goal gl-game-time g:>= gl-telemetry-military-next)
+	(goal gl-telemetry-military-state TELEMETRY-IDLE)
+	(soldier-count g:>= gl-ten-percent)
+	(players-building-count any-enemy >= 1)
+=>
+	(up-modify-goal gl-telemetry-military-next g:= gl-game-time)
+	(up-modify-goal gl-telemetry-military-next c:+ 60)
+	(set-goal gl-telemetry-military-state TELEMETRY-EVALUATE)
+)
+
+(defrule
+	(goal gl-telemetry-military-state TELEMETRY-EVALUATE)
+	(goal current-action ACTION-RETREAT)
+=>
+	(up-chat-data-to-all "RAW49 MIL blocked current retreat: %d" g: current-action)
+	(set-goal gl-telemetry-military-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-military-state TELEMETRY-EVALUATE)
+	(goal gl-home-defense-state YES)
+=>
+	(up-chat-data-to-all "RAW49 MIL blocked home land threats: %d" g: gl-local-response-threats)
+	(up-chat-data-to-all "RAW49 MIL blocked home naval threats: %d" g: gl-naval-response-threats)
+	(set-goal gl-telemetry-military-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-military-state TELEMETRY-EVALUATE)
+	(nor
+		(goal gl-island-migration-state MIGRATION-IDLE)
+		(goal gl-island-migration-state MIGRATION-QUARANTINED)
+	)
+=>
+	(up-chat-data-to-all "RAW49 MIL blocked migration owner: %d" g: gl-island-migration-state)
+	(set-goal gl-telemetry-military-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-military-state TELEMETRY-EVALUATE)
+	(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))
+=>
+	(up-chat-data-to-all "RAW49 MIL waiting assault controller: %d" g: gl-transport-route-state)
+	(set-goal gl-telemetry-military-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-military-state TELEMETRY-EVALUATE)
+	(not (goal gl-ally-help-state ALLY-HELP-IDLE))
+=>
+	(up-chat-data-to-all "RAW49 MIL blocked allied relief owner: %d" g: gl-ally-help-state)
+	(set-goal gl-telemetry-military-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-military-state TELEMETRY-EVALUATE)
+	(up-compare-goal gl-land-target-scan-player g:!= gl-land-target-current-player)
+=>
+	(up-chat-data-to-all "RAW49 MIL stale target scan player: %d" g: gl-land-target-scan-player)
+	(up-chat-data-to-all "RAW49 MIL current target player: %d" g: gl-land-target-current-player)
+	(set-goal gl-telemetry-military-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-military-state TELEMETRY-EVALUATE)
+	(up-compare-goal military-superiority c:< TOLERABLE)
+=>
+	(up-chat-data-to-all "RAW49 MIL blocked superiority: %d" g: military-superiority)
+	(set-goal gl-telemetry-military-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-military-state TELEMETRY-EVALUATE)
+	(goal gl-attack-escalation-state ATTACK-ESCALATION-REGROUP)
+	(soldier-count g:< gl-fifteen-percent)
+=>
+	(up-get-fact soldier-count 0 gl-telemetry-transport-value)
+	(up-chat-data-to-all "RAW49 MIL regroup waiting soldiers: %d" g: gl-telemetry-transport-value)
+	(set-goal gl-telemetry-military-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-military-state TELEMETRY-EVALUATE)
+	(goal gl-attack-escalation-state ATTACK-ESCALATION-SIEGE)
+	(or
+		(goal have-siege NO)
+		(soldier-count g:< gl-fifteen-percent)
+	)
+=>
+	(up-chat-data-to-all "RAW49 MIL siege wait fortifications: %d" g: gl-known-fortifications)
+	(up-chat-data-to-all "RAW49 MIL siege wait have-siege: %d" g: have-siege)
+	(set-goal gl-telemetry-military-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-military-state TELEMETRY-EVALUATE)
+	(goal gl-land-target-needs-transport YES)
+	(unit-type-count transport-ship < 1)
+=>
+	(up-chat-data-to-all "RAW49 MIL blocked no Transport Ships: %d" c: 0)
+	(set-goal gl-telemetry-military-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-military-state TELEMETRY-EVALUATE)
+	(goal gl-land-target-needs-transport YES)
+	(up-timer-status t-transport-route == timer-running)
+=>
+	(up-chat-data-to-all "RAW49 MIL assault route cooldown target: %d" g: gl-land-target-current-player)
+	(set-goal gl-telemetry-military-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-military-state TELEMETRY-EVALUATE)
+	(goal gl-land-target-needs-transport YES)
+	(up-timer-status t-transport-route == timer-triggered)
+=>
+	(up-chat-data-to-all "RAW49 MIL assault route eligible target: %d" g: gl-land-target-current-player)
+	(set-goal gl-telemetry-military-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-military-state TELEMETRY-EVALUATE)
+	(goal gl-land-target-needs-transport NO)
+	(up-timer-status t-land-attack == timer-running)
+=>
+	(up-chat-data-to-all "RAW49 MIL land attack timer running target: %d" g: gl-land-target-current-player)
+	(set-goal gl-telemetry-military-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-military-state TELEMETRY-EVALUATE)
+	(goal gl-land-target-needs-transport NO)
+	(up-timer-status t-land-attack == timer-triggered)
+=>
+	(up-chat-data-to-all "RAW49 MIL land attack eligible target: %d" g: gl-land-target-current-player)
+	(set-goal gl-telemetry-military-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-military-state TELEMETRY-EVALUATE)
+=>
+	(up-chat-data-to-all "RAW49 MIL unresolved current action: %d" g: current-action)
+	(up-chat-data-to-all "RAW49 MIL unresolved dispatch owner: %d" g: gl-attack-dispatch-owner)
+	(set-goal gl-telemetry-military-state TELEMETRY-IDLE)
+)
+
+;Migration gets a parallel prioritized snapshot.  This runs while migration is
+;idle, so an active controller is already represented by transition telemetry.
+(defrule
+	(up-compare-goal gl-game-time g:>= gl-telemetry-migration-next)
+	(goal gl-telemetry-migration-state TELEMETRY-IDLE)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(current-age >= middle-antiquity-age)
+=>
+	(up-modify-goal gl-telemetry-migration-next g:= gl-game-time)
+	(up-modify-goal gl-telemetry-migration-next c:+ 60)
+	(set-goal gl-telemetry-migration-state TELEMETRY-EVALUATE)
+)
+
+(defrule
+	(goal gl-telemetry-migration-state TELEMETRY-EVALUATE)
+	(up-timer-status t-island-migration == timer-running)
+=>
+	(up-chat-data-to-all "RAW49 MIG blocked cooldown: %d" g: gl-island-migration-zone)
+	(set-goal gl-telemetry-migration-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-migration-state TELEMETRY-EVALUATE)
+	(goal gl-home-defense-state YES)
+=>
+	(up-chat-data-to-all "RAW49 MIG blocked home defense: %d" g: gl-home-defense-state)
+	(set-goal gl-telemetry-migration-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-migration-state TELEMETRY-EVALUATE)
+	(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))
+=>
+	(up-chat-data-to-all "RAW49 MIG blocked assault owner: %d" g: gl-transport-route-state)
+	(set-goal gl-telemetry-migration-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-migration-state TELEMETRY-EVALUATE)
+	(not (goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE))
+=>
+	(up-chat-data-to-all "RAW49 MIG blocked recovery owner: %d" g: gl-transport-recovery-state)
+	(set-goal gl-telemetry-migration-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-migration-state TELEMETRY-EVALUATE)
+	(not (goal gl-relic-ferry-state RELIC-FERRY-IDLE))
+=>
+	(up-chat-data-to-all "RAW49 MIG blocked relic owner: %d" g: gl-relic-ferry-state)
+	(set-goal gl-telemetry-migration-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-migration-state TELEMETRY-EVALUATE)
+	(not (goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE))
+=>
+	(up-chat-data-to-all "RAW49 MIG blocked repair owner: %d" g: gl-transport-repair-state)
+	(set-goal gl-telemetry-migration-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-migration-state TELEMETRY-EVALUATE)
+	(not (goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE))
+=>
+	(up-chat-data-to-all "RAW49 MIG blocked port-clear owner: %d" g: gl-transport-clear-state)
+	(set-goal gl-telemetry-migration-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-migration-state TELEMETRY-EVALUATE)
+	(not (goal gl-colony-towncenter-state COLONY-TC-IDLE))
+=>
+	(up-chat-data-to-all "RAW49 MIG blocked colony TC owner: %d" g: gl-colony-towncenter-state)
+	(set-goal gl-telemetry-migration-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-migration-state TELEMETRY-EVALUATE)
+	(goal gl-island-colony-threat YES)
+=>
+	(up-chat-data-to-all "RAW49 MIG blocked colony threat zone: %d" g: gl-island-colony-zone)
+	(set-goal gl-telemetry-migration-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-migration-state TELEMETRY-EVALUATE)
+	(unit-type-count transport-ship < 1)
+=>
+	(up-chat-data-to-all "RAW49 MIG blocked no Transport Ships: %d" c: 0)
+	(set-goal gl-telemetry-migration-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-migration-state TELEMETRY-EVALUATE)
+	(up-idle-unit-count idle-type-villager < 2)
+	(goal resources-depleted NO)
+	(goal gl-home-resource-pressure NO)
+=>
+	(up-chat-data-to-all "RAW49 MIG blocked fewer than two idle workers: %d" c: 0)
+	(set-goal gl-telemetry-migration-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-migration-state TELEMETRY-EVALUATE)
+	(up-timer-status t-transport-route == timer-triggered)
+	(goal gl-land-target-needs-transport YES)
+	(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)
+	(up-compare-goal military-superiority c:>= TOLERABLE)
+	(soldier-count g:>= gl-ten-percent)
+=>
+	(up-chat-data-to-all "RAW49 MIG yielded to ready assault: %d" g: gl-land-target-current-player)
+	(set-goal gl-telemetry-migration-state TELEMETRY-IDLE)
+)
+
+(defrule
+	(goal gl-telemetry-migration-state TELEMETRY-EVALUATE)
+=>
+	(up-chat-data-to-all "RAW49 MIG gate otherwise eligible zone: %d" g: gl-home-zone)
+	(set-goal gl-telemetry-migration-state TELEMETRY-IDLE)
+)
+
+;The ordinary home-defense leash is not an engine retreat.  Report its exact
+;selected count separately so a Town Center pull can be distinguished from the
+;six up-retreat-now sources.
+(defrule
+	(up-compare-goal gl-telemetry-home-leash-count c:> 0)
+	(up-compare-goal gl-game-time g:>= gl-telemetry-home-leash-next)
+=>
+	(up-chat-data-to-all "RAW49 MIL home defend leash units: %d" g: gl-telemetry-home-leash-count)
+	(up-modify-goal gl-telemetry-home-leash-next g:= gl-game-time)
+	(up-modify-goal gl-telemetry-home-leash-next c:+ 30)
+	(set-goal gl-telemetry-home-leash-count 0)
 )

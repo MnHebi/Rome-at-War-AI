@@ -358,7 +358,7 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B48: %d" c: 48)
+	(up-chat-data-to-self "RAWAI-P3B49: %d" c: 49)
 	(disable-self)
 )
 
@@ -652,6 +652,29 @@
 	(set-goal gl-available-transport-count 0)
 	(up-set-timer c: t-home-resource-pressure c: 15)
 	(up-set-timer c: t-transport-readiness c: 3)
+	(disable-self)
+)
+
+;Diagnostic state is isolated from controller ownership.  A previous value of
+;-1 guarantees one baseline transition record for every transport controller.
+(defrule
+	(true)
+=>
+	(set-goal gl-telemetry-migration-previous -1)
+	(set-goal gl-telemetry-repair-previous -1)
+	(set-goal gl-telemetry-clear-previous -1)
+	(set-goal gl-telemetry-route-previous -1)
+	(set-goal gl-telemetry-recovery-previous -1)
+	(set-goal gl-telemetry-relic-previous -1)
+	(set-goal gl-telemetry-quarantine-previous -1)
+	(set-goal gl-telemetry-escort-previous -1)
+	(set-goal gl-telemetry-military-next 300)
+	(set-goal gl-telemetry-military-state TELEMETRY-IDLE)
+	(set-goal gl-telemetry-migration-next 300)
+	(set-goal gl-telemetry-migration-state TELEMETRY-IDLE)
+	(set-goal gl-telemetry-home-leash-next 0)
+	(set-goal gl-telemetry-home-leash-count 0)
+	(set-goal gl-telemetry-transport-value 0)
 	(disable-self)
 )
 

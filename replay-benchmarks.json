@@ -1441,6 +1441,64 @@
         "The visual report distinguishes troops from Villagers at the Town Center. The replay proves and fixes the separate migration-passenger command flood and transport-owner starvation; it does not prove that every visually idle military unit had the same direct command source."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260828-170956",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.28 170956.aoe2record",
+        "sha256": "E7023C2BB0C3FF50FFB497F276559A1A7F2661500502BBF2DFD784B617F4BD33",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The selected visible colors, civilizations, and resolved teams exactly match the authoritative original lobby. Internal nonvisual color IDs are not used for player identity.",
+        "duration_seconds": 7686
+      },
+      "direct_replay_observations": [
+        "The replay parsed without reported errors, lasted 128:06, and contained 624780 ACTION operations, including 239484 AI_ORDER, 192723 ORDER, and 88332 WORK actions.",
+        "The user visually observed worker migration failing until Red's workers were moved manually, after which Red autonomously migrated only two workers. Red's replay chat recorded that exact two-settler landing at 115:34.",
+        "From 30:12 through 47:16, Red's migration gate repeatedly reported zero engine-idle villagers, five Transports, no home-defense emergency, no depleted-resource trigger, and no utility owner. The gate therefore remained below its two-idle-worker minimum even though workers could appear inactive to the observer.",
+        "A Red remote-stone mission began boarding toward twenty passengers at 65:50 but aborted empty at 66:21. A later mission departed with nineteen passengers at 70:52 and reported the route unreachable at 71:24. The successful late landing attempted four resource-camp placements and then reported a drop-site zone mismatch at 117:42.",
+        "The user visually observed Red and Purple armies remaining passive around their Town Centers. After the user manually ferried Red's armies to the enemy near the end, the units tried to retreat toward Red's Town Center.",
+        "The replay contains 143 raw DE_RETREAT records. Red has twelve raw records, including doubled records at 124:14, 125:01, 127:45, and 127:57 that identify four distinct late engine-retreat decisions coinciding with the manual-ferry interval. The action payload does not identify the script rule that issued each retreat.",
+        "Red completed one assault-route preflight against Cyan at 60:32, began a ten-passenger boarding attempt at 60:33, and aborted boarding at 60:50. The P3B48 message reported only the target manifest, not the actual loaded cargo."
+      ],
+      "implementation_inferences": [
+        "The worker-migration gate used engine-idle Villager membership, not visible inactivity. With no resource-pressure or depletion override, fewer than two engine-idle workers was sufficient to prevent an otherwise free five-Transport migration window.",
+        "Five military rules and taunt 45 can issue the same global up-retreat-now command, while a separate home-defense leash can move home-zone military units toward the Town Center without emitting DE_RETREAT. Existing P3B48 telemetry cannot distinguish these owners, so selecting one as the late Red cause would be unsupported.",
+        "Transport controllers logged selected checkpoints but not every ownership transition or terminal reason. In particular, assault boarding timeout omitted actual cargo and route-screen failures were partly private free-form messages, preventing reliable cross-player failure classification.",
+        "Duplicate same-player, same-time, same-sequence DE_RETREAT records are preserved as direct parser output but should not be counted as independent script decisions without corroboration."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B49. Publish each global retreat with a numeric reason and contextual counts for asset defense, naval defense, known fortifications, failed attack windows, periodic losses, or taunt-45 ally recall.",
+        "Report the separate home-defense leash with the exact affected-unit count, and evaluate the first blocker holding a substantial passive army every sixty seconds without changing controller behavior.",
+        "Publish state transitions for Transport escort, migration, transport repair, Port clearing, assault lifts, stranded-unit recovery, relic ferries, and quarantine. Convert existing transport lifecycle messages to all-player replay telemetry, add actual-versus-target cargo at boarding timeouts, and classify every route-screen terminal failure.",
+        "Evaluate the first worker-migration blocker every sixty seconds, including cooldown, home defense, controller ownership, colony threat, transport availability, idle-worker/pressure state, or yield to a ready military assault.",
+        "Extend the replay analyzer to retain DE_RETREAT records and transport/RAW49 chat in compact reports."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports exact runtime synchronization and replay chat contains RAWAI-P3B49 near match start.",
+        "Any army pulled toward home emits either a RAW49 global-retreat reason or a RAW49 home-defense-leash count close enough in time to identify the owning path; passive armies publish one stable first blocker rather than remaining unexplained.",
+        "Every selected Transport lifecycle can be followed through owner state, hull selection, route screening, boarding actual/target cargo, progress or damage checks, landing/unloading, and a classified success, retry, recall, quarantine, or abort terminal state.",
+        "A worker-migration refusal identifies the exact first gate. If the gate is fewer than two engine-idle villagers, the report includes the current pressure/depletion context needed to design the behavioral fix.",
+        "Telemetry volume remains bounded by state transitions and the thirty- or sixty-second blocker cadences and does not recreate a per-sweep command flood."
+      ],
+      "known_limits": [
+        "The P3B49 telemetry is not present in this P3B48 replay; it instruments the next match. The current recording can establish the late retreat decisions and migration gates but cannot retrospectively identify their script owners.",
+        "Replay actions do not expose terrain pathability, Transport passenger unit types, arbitrary group ownership, or the exact engine task state of apparently idle units. Controller telemetry narrows the script decision but visual confirmation remains necessary for final behavior.",
+        "Public diagnostic chat lets every AI's controller state enter the recording, but it is temporary observability overhead and does not itself resolve the military or transport defects.",
+        "A transport can still be destroyed between bounded samples, and geometric water-route screening cannot prove a cliff-adjacent landing tile is traversable."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

@@ -273,6 +273,7 @@ def main() -> None:
     flare_actions: list[dict[str, object]] = []
     guard_actions: list[dict[str, object]] = []
     patrol_actions: list[dict[str, object]] = []
+    retreat_actions: list[dict[str, object]] = []
     player_market_counts: dict[int, Counter[str]] = defaultdict(Counter)
     player_build_counts: dict[int, Counter[str]] = defaultdict(Counter)
     player_make_counts: dict[int, Counter[str]] = defaultdict(Counter)
@@ -394,6 +395,9 @@ def main() -> None:
             if action == Action.PATROL:
                 patrol_actions.append(action_record)
 
+            if action == Action.DE_RETREAT:
+                retreat_actions.append(action_record)
+
             if action in {
                 Action.BUILD,
                 Action.BUY,
@@ -413,6 +417,15 @@ def main() -> None:
         "aging",
         "rush",
         "attack",
+        "raw49",
+        "migration",
+        "transport",
+        "lift",
+        "route-screen",
+        "retreat",
+        "blocked",
+        "controller",
+        "home defend leash",
         "dock",
         "shipyard",
         "warboat",
@@ -506,6 +519,7 @@ def main() -> None:
         "flare_actions": flare_actions,
         "guard_actions": guard_actions,
         "patrol_actions": patrol_actions,
+        "retreat_actions": retreat_actions,
         "parse_errors": errors,
     }
     if not args.compact:

@@ -615,6 +615,7 @@ class FarmPolicyTests(unittest.TestCase):
         cls.economy = (root / "rawai-economy.per").read_text(encoding="utf-8-sig")
         cls.diplomacy = (root / "rawai-diplomacy.per").read_text(encoding="utf-8-sig")
         cls.general = (root / "rawai-general.per").read_text(encoding="utf-8-sig")
+        cls.debug = (root / "rawai-debug.per").read_text(encoding="utf-8-sig")
         cls.homebase = (root / "rawai-homebase.per").read_text(encoding="utf-8-sig")
         cls.hunt = (root / "rawai-hunt.per").read_text(encoding="utf-8-sig")
         cls.init_goals = (root / "rawai-init-goals.per").read_text(encoding="utf-8-sig")
@@ -648,6 +649,9 @@ class FarmPolicyTests(unittest.TestCase):
         cls.map = (root / "rawai-map.per").read_text(encoding="utf-8-sig")
         cls.taunts = (root / "rawai-tauntcommands.per").read_text(encoding="utf-8-sig")
         cls.germani = (root / "rawai-civ-germani.per").read_text(
+            encoding="utf-8-sig"
+        )
+        cls.replay_analyzer = (root / "tools" / "analyze_replay.py").read_text(
             encoding="utf-8-sig"
         )
 
@@ -779,7 +783,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B48", self.init_goals)
+        self.assertIn("RAWAI-P3B49", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -3972,6 +3976,88 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertEqual(len(waypoint_abort), 1)
         self.assertEqual(len(landing_abort), 1)
+
+    def test_transport_telemetry_is_public_and_covers_every_controller(self) -> None:
+        for state_goal, label in (
+            ("gl-transport-escort-state", "escort"),
+            ("gl-island-migration-state", "migration"),
+            ("gl-transport-repair-state", "repair"),
+            ("gl-transport-clear-state", "port-clear"),
+            ("gl-transport-route-state", "assault"),
+            ("gl-transport-recovery-state", "recovery"),
+            ("gl-relic-ferry-state", "relic"),
+            ("gl-quarantine-transport-state", "quarantine"),
+        ):
+            with self.subTest(controller=label):
+                self.assertIn(state_goal, self.debug)
+                self.assertIn(f'RAW49 TRN {label} state: %d', self.debug)
+
+        public_transport_events = re.findall(
+            r'\(up-chat-data-to-all "(?:loaded transports|migration|transport|'
+            r'empty transport|stale transport|port hull|attack route|attack lift|'
+            r'route-screen|relic ferry|relic carrier|detached quarantine)',
+            self.military,
+        )
+        self.assertGreaterEqual(len(public_transport_events), 145)
+        self.assertIsNone(
+            re.search(
+                r'\(up-chat-data-to-self "(?:loaded transports|migration|transport|'
+                r'empty transport|stale transport|port hull|attack route|attack lift|'
+                r'route-screen|relic ferry|relic carrier|detached quarantine)',
+                self.military,
+            )
+        )
+        self.assertIn("RAW49 FAIL assault boarding actual cargo", self.military)
+        self.assertIn("RAW49 FAIL migration boarding actual cargo", self.military)
+        self.assertIn("RAW49 FAIL repair no Port or Shipyard", self.military)
+
+    def test_passive_army_telemetry_reports_blockers_and_every_retreat_source(self) -> None:
+        for label in (
+            "RAW49 MIL blocked home land threats",
+            "RAW49 MIL blocked migration owner",
+            "RAW49 MIL waiting assault controller",
+            "RAW49 MIL stale target scan player",
+            "RAW49 MIL blocked superiority",
+            "RAW49 MIL assault route cooldown target",
+            "RAW49 MIL land attack eligible target",
+            "RAW49 MIG blocked fewer than two idle workers",
+            "RAW49 MIG yielded to ready assault",
+            "RAW49 MIL home defend leash units",
+        ):
+            self.assertIn(label, self.debug)
+
+        retreat_rules = matching_rules(
+            self.military,
+            actions=("(up-retreat-now)",),
+        )
+        self.assertEqual(len(retreat_rules), 5)
+        for _, _, _, _, actions in retreat_rules:
+            self.assertIn("RAW49 MIL retreat reason: %d", actions)
+        taunt_retreat = matching_rules(
+            self.taunts,
+            facts=("(taunt-detected any-ally 45)",),
+            actions=(
+                "(up-retreat-now)",
+                "MIL-RETREAT-ALLY-TAUNT",
+            ),
+        )
+        self.assertEqual(len(taunt_retreat), 1)
+
+        home_leash = matching_rules(
+            self.military,
+            facts=("(up-timer-status t-defense-leash == timer-triggered)",),
+            actions=(
+                "gl-telemetry-home-leash-count g:= local-total",
+                "gl-home-anchor-x action-move",
+            ),
+        )
+        self.assertEqual(len(home_leash), 1)
+
+    def test_replay_analyzer_retains_retreats_and_transport_chat(self) -> None:
+        self.assertIn("if action == Action.DE_RETREAT", self.replay_analyzer)
+        self.assertIn('"retreat_actions": retreat_actions', self.replay_analyzer)
+        for term in ('"raw49"', '"migration"', '"transport"', '"retreat"'):
+            self.assertIn(term, self.replay_analyzer)
 
     def test_remote_dropsite_keeps_and_assigns_reserved_settlers(self) -> None:
         gather = matching_rules(
