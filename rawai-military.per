@@ -7085,6 +7085,7 @@
 
 (defrule
 	(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)
+	(goal gl-home-defense-state NO)
 	(up-compare-goal gl-local-response-responders c:> 0)
 	(up-compare-goal gl-local-response-threats c:>= 2)
 	(or
@@ -7111,15 +7112,19 @@
 	(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)
 	(up-compare-goal gl-local-response-responders c:> 0)
 	(or
-		(up-compare-goal gl-local-response-threats c:< 2)
-		(and
-			(up-compare-goal gl-game-time g:< gl-attack-dwell-until)
-			(up-compare-goal gl-local-response-threats c:< 5)
+		(goal gl-home-defense-state YES)
+		(or
+			(up-compare-goal gl-local-response-threats c:< 2)
+			(and
+				(up-compare-goal gl-game-time g:< gl-attack-dwell-until)
+				(up-compare-goal gl-local-response-threats c:< 5)
+			)
 		)
 	)
 =>
-	;Below the global-retreat threshold, or inside the attack-commitment window,
-	;release the candidate response quietly; the next leash scan re-evaluates it.
+	;Below the global-retreat threshold, inside the attack-commitment window, or
+	;already latched, release quietly so the engaged responders are not recalled
+	;to the Town Center on every leash scan.
 	(up-chat-data-to-self "asset defense quiet release: threats %d" g: gl-local-response-threats)
 	(up-modify-sn sn-focus-player-number g:= gl-local-response-focus)
 	(set-goal gl-local-response-state LOCAL-RESPONSE-IDLE)
@@ -7297,6 +7302,7 @@
 (defrule
 	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)
 	(goal gl-naval-response-land-threat NO)
+	(goal gl-home-defense-state NO)
 	(up-compare-goal gl-naval-response-responders c:> 0)
 	(up-compare-goal gl-naval-response-threats c:>= 2)
 	(or
@@ -7323,15 +7329,18 @@
 	(goal gl-naval-response-land-threat NO)
 	(up-compare-goal gl-naval-response-responders c:> 0)
 	(or
-		(up-compare-goal gl-naval-response-threats c:< 2)
-		(and
-			(up-compare-goal gl-game-time g:< gl-attack-dwell-until)
-			(up-compare-goal gl-naval-response-threats c:< 4)
+		(goal gl-home-defense-state YES)
+		(or
+			(up-compare-goal gl-naval-response-threats c:< 2)
+			(and
+				(up-compare-goal gl-game-time g:< gl-attack-dwell-until)
+				(up-compare-goal gl-naval-response-threats c:< 4)
+			)
 		)
 	)
 =>
-	;A lone or in-window naval probe must not recall the whole army; the
-	;responders still guard home water on the next naval scan.
+	;A lone or in-window naval probe must not recall the whole army, and an
+	;already-latched defense must not re-retreat its engaged responders.
 	(up-chat-data-to-self "naval defense quiet release: threats %d" g: gl-naval-response-threats)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-response-focus)
 	(up-set-timer c: t-naval-response c: 10)
@@ -8335,6 +8344,15 @@
 			(up-compare-goal gl-naval-response-asset-zone g:== gl-home-zone)
 		)
 	)
+	;A committed attack keeps loading through a light home probe; only a severe
+	;incursion or an expired commitment window recalls the lift.
+	(or
+		(up-compare-goal gl-game-time g:>= gl-attack-dwell-until)
+		(or
+			(up-compare-goal gl-local-response-threats c:>= 5)
+			(up-compare-goal gl-naval-response-threats c:>= 5)
+		)
+	)
 	(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))
 	(up-compare-goal gl-transport-screen-id c:>= 0)
 =>
@@ -8356,6 +8374,15 @@
 		(and
 			(up-compare-goal gl-naval-response-threats c:>= 2)
 			(up-compare-goal gl-naval-response-asset-zone g:== gl-home-zone)
+		)
+	)
+	;A committed attack keeps loading through a light home probe; only a severe
+	;incursion or an expired commitment window recalls the lift.
+	(or
+		(up-compare-goal gl-game-time g:>= gl-attack-dwell-until)
+		(or
+			(up-compare-goal gl-local-response-threats c:>= 5)
+			(up-compare-goal gl-naval-response-threats c:>= 5)
 		)
 	)
 	(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))
