@@ -7457,17 +7457,11 @@
 	(up-compare-goal gl-local-response-responders c:> 0)
 	(or
 		(up-compare-goal gl-local-response-siege-threats c:>= 1)
-		(or
-			(up-compare-goal gl-local-response-threats c:>= 5)
-			(and
-				(up-compare-goal gl-local-response-threats c:>= 2)
-				(up-compare-goal gl-game-time g:>= gl-attack-dwell-until)
-			)
-		)
+		(up-compare-goal gl-local-response-threats c:>= 5)
 	)
 =>
-	;Only a real same-zone response suppresses the whole offense.  A lone raider
-	;or a presence inside the attack-commitment window must not yank the army.
+	;A siege engine or five-unit incursion is the severe tier. It may recall the
+	;whole offense, while the routine rule below owns all smaller regular probes.
 	(up-chat-data-to-all "RAW49 MIL retreat reason: %d" c: MIL-RETREAT-ASSET-DEFENSE)
 	(up-chat-data-to-all "RAW49 MIL retreat land threats: %d" g: gl-local-response-threats)
 	(up-chat-data-to-all "RAW49 MIL retreat land responders: %d" g: gl-local-response-responders)
@@ -7486,25 +7480,42 @@
 
 (defrule
 	(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)
+	(goal gl-home-defense-state NO)
 	(up-compare-goal gl-local-response-responders c:> 0)
-	(or
-		(goal gl-home-defense-state YES)
-		(and
-			(up-compare-goal gl-local-response-siege-threats c:< 1)
-			(and
-				(up-compare-goal gl-local-response-threats c:< 5)
-				(or
-					(up-compare-goal gl-local-response-threats c:< 2)
-					(up-compare-goal gl-game-time g:< gl-attack-dwell-until)
-				)
-			)
-		)
-	)
+	(up-compare-goal gl-local-response-siege-threats c:< 1)
+	(up-compare-goal gl-local-response-threats c:>= 1)
+	(up-compare-goal gl-local-response-threats c:< 5)
 =>
-	;Below the global-retreat threshold, inside the attack-commitment window, or
-	;already latched, release quietly so the engaged responders are not recalled
-	;to the Town Center on every leash scan.
-	(up-chat-data-to-self "asset defense quiet release: threats %d" g: gl-local-response-threats)
+	;Routine probes get only the eight closest same-zone responders. The command
+	;is retained after releasing the DUC reservation, while attack-now and the
+	;expeditionary army remain untouched.
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-action == actionid-attack)
+	(up-remove-objects search-local object-data-action == actionid-retreat)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 8)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-local-response-responders g:= local-total)
+	(up-create-group 0 0 c: home-defense-response-group)
+	(up-modify-group-flag 1 c: home-defense-response-group)
+	(up-target-objects 1 action-default -1 stance-aggressive)
+	(up-chat-data-to-all "RAW49 MIL routine land defense threats: %d" g: gl-local-response-threats)
+	(up-chat-data-to-all "RAW49 MIL routine land responders: %d" g: gl-local-response-responders)
+	(up-modify-group-flag 0 c: home-defense-response-group)
+	(up-reset-group c: home-defense-response-group)
+	(up-modify-sn sn-focus-player-number g:= gl-local-response-focus)
+	(set-goal gl-local-response-state LOCAL-RESPONSE-IDLE)
+)
+
+(defrule
+	(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)
+	(goal gl-home-defense-state YES)
+	(up-compare-goal gl-local-response-responders c:> 0)
+=>
+	;The severe latch already owns its persistent response group. Do not issue a
+	;second retreat or rebuild that group while the hold timer is active.
+	(up-chat-data-to-self "asset defense already severe: threats %d" g: gl-local-response-threats)
 	(up-modify-sn sn-focus-player-number g:= gl-local-response-focus)
 	(set-goal gl-local-response-state LOCAL-RESPONSE-IDLE)
 )
@@ -7683,11 +7694,7 @@
 	(goal gl-naval-response-land-threat NO)
 	(goal gl-home-defense-state NO)
 	(up-compare-goal gl-naval-response-responders c:> 0)
-	(up-compare-goal gl-naval-response-threats c:>= 2)
-	(or
-		(up-compare-goal gl-game-time g:>= gl-attack-dwell-until)
-		(up-compare-goal gl-naval-response-threats c:>= 4)
-	)
+	(up-compare-goal gl-naval-response-threats c:>= 4)
 =>
 	(up-chat-data-to-all "RAW49 MIL retreat reason: %d" c: MIL-RETREAT-NAVAL-DEFENSE)
 	(up-chat-data-to-all "RAW49 MIL retreat naval threats: %d" g: gl-naval-response-threats)
@@ -7709,21 +7716,40 @@
 (defrule
 	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)
 	(goal gl-naval-response-land-threat NO)
+	(goal gl-home-defense-state NO)
 	(up-compare-goal gl-naval-response-responders c:> 0)
-	(or
-		(goal gl-home-defense-state YES)
-		(or
-			(up-compare-goal gl-naval-response-threats c:< 2)
-			(and
-				(up-compare-goal gl-game-time g:< gl-attack-dwell-until)
-				(up-compare-goal gl-naval-response-threats c:< 4)
-			)
-		)
-	)
+	(up-compare-goal gl-naval-response-threats c:>= 1)
+	(up-compare-goal gl-naval-response-threats c:< 4)
 =>
-	;A lone or in-window naval probe must not recall the whole army, and an
-	;already-latched defense must not re-retreat its engaged responders.
-	(up-chat-data-to-self "naval defense quiet release: threats %d" g: gl-naval-response-threats)
+	;Routine naval probes receive only the six closest same-basin responders.
+	;The existing expedition and global attack state are not reset.
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-action == actionid-attack)
+	(up-remove-objects search-local object-data-action == actionid-retreat)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 6)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-naval-response-responders g:= local-total)
+	(up-create-group 0 0 c: home-naval-response-group)
+	(up-modify-group-flag 1 c: home-naval-response-group)
+	(up-target-objects 1 action-default -1 stance-aggressive)
+	(up-chat-data-to-all "RAW49 MIL routine naval defense threats: %d" g: gl-naval-response-threats)
+	(up-chat-data-to-all "RAW49 MIL routine naval responders: %d" g: gl-naval-response-responders)
+	(up-modify-group-flag 0 c: home-naval-response-group)
+	(up-reset-group c: home-naval-response-group)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-response-focus)
+	(up-set-timer c: t-naval-response c: 10)
+	(set-goal gl-naval-response-state NAVAL-RESPONSE-IDLE)
+)
+
+(defrule
+	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)
+	(goal gl-naval-response-land-threat NO)
+	(goal gl-home-defense-state YES)
+	(up-compare-goal gl-naval-response-responders c:> 0)
+=>
+	(up-chat-data-to-self "naval defense already severe: threats %d" g: gl-naval-response-threats)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-response-focus)
 	(up-set-timer c: t-naval-response c: 10)
 	(set-goal gl-naval-response-state NAVAL-RESPONSE-IDLE)
@@ -9242,38 +9268,95 @@
 	(set-goal gl-known-fortifications 0)
 )
 
-;Any two assault engines are enough to accompany the rebuilt attack.  Armored
-;Elephants fill the Ram role for civilizations that use that replacement line.
+;Any two usable assault engines in aggregate are enough.  Unit lines return
+;zero for unavailable families, so replacement availability remains owned by
+;the civilization data rather than a population-percentage sentinel.
 (defrule
-	(or
-		(unit-type-count-total battering-ram-line g:>= gl-one-percent)
-		(or
-			(unit-type-count-total armored-elephant-line g:>= gl-one-percent)
-			(or
-				(unit-type-count-total mangonel-line g:>= gl-one-percent)
-				(unit-type-count-total catapult g:>= gl-one-percent)
-			)
-		)
-	)
+	(true)
+=>
+	(up-get-fact unit-type-count-total battering-ram-line gl-siege-ready-count)
+	(up-get-fact unit-type-count-total armored-elephant-line temporary-goal)
+	(up-modify-goal gl-siege-ready-count g:+ temporary-goal)
+	(up-get-fact unit-type-count-total mangonel-line temporary-goal)
+	(up-modify-goal gl-siege-ready-count g:+ temporary-goal)
+	(up-get-fact unit-type-count-total catapult temporary-goal)
+	(up-modify-goal gl-siege-ready-count g:+ temporary-goal)
+)
+
+(defrule
+	(up-compare-goal gl-siege-ready-count c:>= 2)
 	(goal have-siege NO)
 =>
 	(set-goal have-siege YES)
 )
 
 (defrule
-	(unit-type-count-total battering-ram-line g:< gl-one-percent)
-	(unit-type-count-total armored-elephant-line g:< gl-one-percent)
-	(unit-type-count-total mangonel-line g:< gl-one-percent)
-	(unit-type-count-total catapult g:< gl-one-percent)
+	(up-compare-goal gl-siege-ready-count c:< 2)
 	(goal have-siege YES)
 =>
 	(set-goal have-siege NO)
 )
 
-;Three known Towers/Castles force a siege buildup immediately.  Otherwise two
-;recent high-loss attack windows force a large combined regrouping attack.
+;After a siege-supported assault has consumed the latch, only loss of the
+;fortified player objective or selection of a different live enemy rearms it.
+;A 3 -> 2 -> 3 remembered-building scan therefore cannot retrigger retreat.
+(defrule
+	(up-compare-goal gl-attack-escalation-state c:!= ATTACK-ESCALATION-SIEGE)
+	(goal gl-siege-escalation-armed NO)
+	(up-compare-goal gl-known-fortifications c:<= 0)
+=>
+	(set-goal gl-siege-objective-player 0)
+	(set-goal gl-siege-escalation-armed YES)
+)
+
+(defrule
+	(up-compare-goal gl-attack-escalation-state c:!= ATTACK-ESCALATION-SIEGE)
+	(goal gl-siege-escalation-armed NO)
+	(up-compare-goal gl-fortification-scan-player c:>= 1)
+	(up-compare-goal gl-fortification-scan-player g:!= gl-siege-objective-player)
+=>
+	(set-goal gl-siege-escalation-armed YES)
+)
+
+;A latched SIEGE exits when its fortified player objective has disappeared.
+(defrule
+	(goal gl-attack-escalation-state ATTACK-ESCALATION-SIEGE)
+	(up-compare-goal gl-known-fortifications c:<= 0)
+=>
+	(set-goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
+	(set-goal gl-siege-objective-player 0)
+	(set-goal gl-siege-escalation-armed YES)
+	(set-goal current-action ACTION-WAIT)
+	(up-modify-sn sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize)
+	(up-modify-sn sn-maximum-attack-group-size g:= gl-pop-atkgrp-maxsize)
+	(up-modify-sn sn-number-attack-groups g:= gl-pop-number-groups)
+	(chat-local-to-self "Fortified objective cleared: resume normal pressure")
+)
+
+;Changing to a different fortified enemy is a semantic objective change, not
+;scan noise. Restore the old state before allowing one fresh entry next sweep.
+(defrule
+	(goal gl-attack-escalation-state ATTACK-ESCALATION-SIEGE)
+	(up-compare-goal gl-known-fortifications c:> 0)
+	(up-compare-goal gl-fortification-scan-player c:>= 1)
+	(up-compare-goal gl-fortification-scan-player g:!= gl-siege-objective-player)
+=>
+	(set-goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
+	(set-goal gl-siege-escalation-armed YES)
+	(set-goal current-action ACTION-WAIT)
+	(up-modify-sn sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize)
+	(up-modify-sn sn-maximum-attack-group-size g:= gl-pop-atkgrp-maxsize)
+	(up-modify-sn sn-number-attack-groups g:= gl-pop-number-groups)
+	(chat-local-to-self "Fortified objective changed: re-evaluate siege")
+)
+
+;Three known Towers/Castles force one siege buildup only when the literal
+;two-engine package is absent. Otherwise two recent high-loss windows force a
+;large combined regrouping attack.
 (defrule
 	(up-compare-goal gl-known-fortifications c:>= 3)
+	(goal have-siege NO)
+	(goal gl-siege-escalation-armed YES)
 	(up-compare-goal gl-attack-escalation-state c:!= ATTACK-ESCALATION-SIEGE)
 =>
 	(up-chat-data-to-all "RAW49 MIL retreat reason: %d" c: MIL-RETREAT-FORTIFICATIONS)
@@ -9282,6 +9365,8 @@
 	(up-retreat-now)
 	(set-goal current-action ACTION-WAIT)
 	(set-goal gl-attack-escalation-state ATTACK-ESCALATION-SIEGE)
+	(up-modify-goal gl-siege-objective-player g:= gl-fortification-scan-player)
+	(set-goal gl-siege-escalation-armed NO)
 	(up-modify-goal land-attack-requirement g:= gl-fifteen-percent)
 	(set-goal train-ram YES)
 	(set-goal train-onager YES)
@@ -9296,6 +9381,7 @@
 	(up-compare-goal gl-known-fortifications c:< 3)
 	(up-compare-goal gl-failed-attack-streak c:>= 2)
 	(up-compare-goal gl-attack-escalation-state c:!= ATTACK-ESCALATION-REGROUP)
+	(up-compare-goal gl-attack-escalation-state c:!= ATTACK-ESCALATION-SIEGE)
 =>
 	(up-chat-data-to-all "RAW49 MIL retreat reason: %d" c: MIL-RETREAT-FAILED-WINDOWS)
 	(up-chat-data-to-all "RAW49 MIL retreat failed windows: %d" g: gl-failed-attack-streak)
@@ -9311,15 +9397,16 @@
 )
 
 (defrule
-	(up-compare-goal gl-known-fortifications c:< 3)
 	(up-compare-goal gl-failed-attack-streak c:< 2)
-	(up-compare-goal gl-attack-escalation-state c:!= ATTACK-ESCALATION-NORMAL)
+	(goal gl-attack-escalation-state ATTACK-ESCALATION-REGROUP)
 =>
 	(set-goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
 	(set-goal current-action ACTION-WAIT)
-	(set-strategic-number sn-minimum-attack-group-size 0)
-	(set-strategic-number sn-maximum-attack-group-size 0)
-	(set-strategic-number sn-number-attack-groups 0)
+	;Escalation owns the suppression above, so its exit owns restoration. Do not
+	;wait for the unrelated periodic-loss retreat or the GROUP-mode scheduler.
+	(up-modify-sn sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize)
+	(up-modify-sn sn-maximum-attack-group-size g:= gl-pop-atkgrp-maxsize)
+	(up-modify-sn sn-number-attack-groups g:= gl-pop-number-groups)
 	(chat-local-to-self "Attack losses stabilized: resume normal pressure")
 )
 
@@ -10739,6 +10826,14 @@
 	(attack-now)
 	(up-chat-data-to-self "land dispatch regroup: %d" c: 80)
 	(set-strategic-number sn-percent-attack-soldiers 0)
+	;The accumulated failure evidence has been consumed by this launch. Future
+	;loss windows may re-enter REGROUP, but this successful dispatch exits it now.
+	(set-goal gl-failed-attack-streak 0)
+	(set-goal gl-attack-recovery-streak 0)
+	(set-goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
+	(up-modify-sn sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize)
+	(up-modify-sn sn-maximum-attack-group-size g:= gl-pop-atkgrp-maxsize)
+	(up-modify-sn sn-number-attack-groups g:= gl-pop-number-groups)
 	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 )
 
@@ -10766,6 +10861,12 @@
 	(attack-now)
 	(up-chat-data-to-self "land dispatch siege: %d" c: 80)
 	(set-strategic-number sn-percent-attack-soldiers 0)
+	;A real siege-capable launch is the successful semantic exit. Keep the
+	;objective latch consumed so unchanged scan noise cannot re-enter SIEGE.
+	(set-goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)
+	(up-modify-sn sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize)
+	(up-modify-sn sn-maximum-attack-group-size g:= gl-pop-atkgrp-maxsize)
+	(up-modify-sn sn-number-attack-groups g:= gl-pop-number-groups)
 	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 )
 

@@ -783,7 +783,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B49", self.init_goals)
+        self.assertIn("RAWAI-P3B50", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -4052,6 +4052,425 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(home_leash), 1)
+
+    def test_attack_escalation_owns_group_size_restoration(self) -> None:
+        suppressed = {
+            "sn-minimum-attack-group-size": 0,
+            "sn-maximum-attack-group-size": 0,
+            "sn-number-attack-groups": 0,
+        }
+        restored = {
+            "sn-minimum-attack-group-size": 4,
+            "sn-maximum-attack-group-size": 10,
+            "sn-number-attack-groups": 3,
+        }
+
+        def apply_group_sizes(actions: str, sizes: dict[str, int]) -> dict[str, int]:
+            result = dict(sizes)
+            goal_values = {
+                "gl-pop-atkgrp-minsize": restored["sn-minimum-attack-group-size"],
+                "gl-pop-atkgrp-maxsize": restored["sn-maximum-attack-group-size"],
+                "gl-pop-number-groups": restored["sn-number-attack-groups"],
+            }
+            for strategic_number in result:
+                if re.search(
+                    rf"\((?:set-strategic-number|up-modify-sn) "
+                    rf"{re.escape(strategic_number)} (?:c:= )?0\)",
+                    actions,
+                ):
+                    result[strategic_number] = 0
+                restore = re.search(
+                    rf"\(up-modify-sn {re.escape(strategic_number)} "
+                    rf"g:= (gl-pop-[a-z0-9-]+)\)",
+                    actions,
+                )
+                if restore:
+                    result[strategic_number] = goal_values[restore.group(1)]
+            return result
+
+        siege_entry = matching_rules(
+            self.military,
+            facts=(
+                "gl-known-fortifications c:>= 3",
+                "gl-attack-escalation-state c:!= ATTACK-ESCALATION-SIEGE",
+            ),
+            actions=(
+                "gl-attack-escalation-state ATTACK-ESCALATION-SIEGE",
+                "sn-minimum-attack-group-size 0",
+                "sn-maximum-attack-group-size 0",
+                "sn-number-attack-groups 0",
+            ),
+        )
+        regroup_entry = matching_rules(
+            self.military,
+            facts=(
+                "gl-failed-attack-streak c:>= 2",
+                "gl-attack-escalation-state c:!= ATTACK-ESCALATION-REGROUP",
+            ),
+            actions=(
+                "gl-attack-escalation-state ATTACK-ESCALATION-REGROUP",
+                "sn-minimum-attack-group-size 0",
+                "sn-maximum-attack-group-size 0",
+                "sn-number-attack-groups 0",
+            ),
+        )
+        regroup_recovery_exit = matching_rules(
+            self.military,
+            facts=(
+                "gl-attack-escalation-state ATTACK-ESCALATION-REGROUP",
+                "gl-failed-attack-streak c:< 2",
+            ),
+            actions=(
+                "gl-attack-escalation-state ATTACK-ESCALATION-NORMAL",
+                "sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize",
+                "sn-maximum-attack-group-size g:= gl-pop-atkgrp-maxsize",
+                "sn-number-attack-groups g:= gl-pop-number-groups",
+            ),
+        )
+        siege_objective_exit = matching_rules(
+            self.military,
+            facts=(
+                "gl-attack-escalation-state ATTACK-ESCALATION-SIEGE",
+                "gl-known-fortifications c:<= 0",
+            ),
+            actions=(
+                "gl-attack-escalation-state ATTACK-ESCALATION-NORMAL",
+                "sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize",
+                "sn-maximum-attack-group-size g:= gl-pop-atkgrp-maxsize",
+                "sn-number-attack-groups g:= gl-pop-number-groups",
+            ),
+        )
+        regroup_launch_exit = matching_rules(
+            self.military,
+            facts=(
+                "gl-attack-escalation-state ATTACK-ESCALATION-REGROUP",
+            ),
+            actions=(
+                "(attack-now)",
+                "gl-attack-escalation-state ATTACK-ESCALATION-NORMAL",
+                "sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize",
+                "sn-maximum-attack-group-size g:= gl-pop-atkgrp-maxsize",
+                "sn-number-attack-groups g:= gl-pop-number-groups",
+            ),
+        )
+        siege_launch_exit = matching_rules(
+            self.military,
+            facts=(
+                "gl-attack-escalation-state ATTACK-ESCALATION-SIEGE",
+                "(goal have-siege YES)",
+            ),
+            actions=(
+                "(attack-now)",
+                "gl-attack-escalation-state ATTACK-ESCALATION-NORMAL",
+                "sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize",
+                "sn-maximum-attack-group-size g:= gl-pop-atkgrp-maxsize",
+                "sn-number-attack-groups g:= gl-pop-number-groups",
+            ),
+        )
+        self.assertEqual(len(siege_entry), 1)
+        self.assertEqual(len(regroup_entry), 1)
+        self.assertEqual(len(regroup_recovery_exit), 1)
+        self.assertEqual(len(siege_objective_exit), 1)
+        self.assertEqual(len(regroup_launch_exit), 1)
+        self.assertEqual(len(siege_launch_exit), 1)
+        _, _, _, _, siege_actions = siege_entry[0]
+        _, _, _, _, regroup_actions = regroup_entry[0]
+        _, _, _, _, regroup_recovery_actions = regroup_recovery_exit[0]
+        _, _, _, _, siege_objective_actions = siege_objective_exit[0]
+        _, _, _, _, regroup_launch_actions = regroup_launch_exit[0]
+        _, _, _, _, siege_launch_actions = siege_launch_exit[0]
+
+        for label, entry_actions, exit_actions in (
+            ("NORMAL -> SIEGE -> NORMAL", siege_actions, siege_objective_actions),
+            (
+                "NORMAL -> REGROUP -> NORMAL",
+                regroup_actions,
+                regroup_recovery_actions,
+            ),
+            ("SIEGE launch exit", siege_actions, siege_launch_actions),
+            ("REGROUP launch exit", regroup_actions, regroup_launch_actions),
+        ):
+            with self.subTest(transition=label):
+                during_escalation = apply_group_sizes(entry_actions, restored)
+                self.assertEqual(during_escalation, suppressed)
+                after_exit = apply_group_sizes(exit_actions, during_escalation)
+                self.assertEqual(after_exit, restored)
+                self.assertNotIn("up-retreat-now", exit_actions)
+
+        all_escalation_exits = [
+            rule
+            for rule in matching_rules(
+                self.military,
+                actions=(
+                    "gl-attack-escalation-state ATTACK-ESCALATION-NORMAL",
+                ),
+            )
+            if "ATTACK-ESCALATION-SIEGE" in rule[3]
+            or "ATTACK-ESCALATION-REGROUP" in rule[3]
+        ]
+        self.assertEqual(len(all_escalation_exits), 5)
+        for _, _, _, _, actions in all_escalation_exits:
+            with self.subTest(exit=actions.splitlines()[0]):
+                self.assertEqual(apply_group_sizes(actions, suppressed), restored)
+                self.assertNotIn("up-retreat-now", actions)
+
+        periodic_loss = matching_rules(
+            self.military,
+            actions=(
+                "MIL-RETREAT-PERIODIC-LOSSES",
+                "(up-retreat-now)",
+                "sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize",
+                "sn-maximum-attack-group-size g:= gl-pop-atkgrp-maxsize",
+                "sn-number-attack-groups g:= gl-pop-number-groups",
+            ),
+        )
+        self.assertEqual(len(periodic_loss), 1)
+        _, _, _, _, periodic_actions = periodic_loss[0]
+        self.assertEqual(apply_group_sizes(periodic_actions, restored), restored)
+        self.assertLess(
+            periodic_actions.index("(up-retreat-now)"),
+            periodic_actions.index(
+                "sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize"
+            ),
+        )
+
+    def test_siege_readiness_is_literal_aggregate_two(self) -> None:
+        aggregator = matching_rules(
+            self.military,
+            facts=("(true)",),
+            actions=(
+                "unit-type-count-total battering-ram-line gl-siege-ready-count",
+                "unit-type-count-total armored-elephant-line temporary-goal",
+                "unit-type-count-total mangonel-line temporary-goal",
+                "unit-type-count-total catapult temporary-goal",
+                "gl-siege-ready-count g:+ temporary-goal",
+            ),
+        )
+        self.assertEqual(len(aggregator), 1)
+        _, _, _, _, actions = aggregator[0]
+        families = re.findall(
+            r"\(up-get-fact unit-type-count-total ([a-z0-9-]+) "
+            r"(?:gl-siege-ready-count|temporary-goal)\)",
+            actions,
+        )
+        self.assertEqual(
+            families,
+            [
+                "battering-ram-line",
+                "armored-elephant-line",
+                "mangonel-line",
+                "catapult",
+            ],
+        )
+
+        def ready(counts: dict[str, int], population: int) -> bool:
+            del population
+            return sum(counts.get(family, 0) for family in families) >= 2
+
+        fixtures = (
+            ({"battering-ram-line": 1}, False),
+            ({"battering-ram-line": 1, "mangonel-line": 1}, True),
+            ({"battering-ram-line": 2}, True),
+            ({"catapult": 1, "armored-elephant-line": 1}, True),
+            ({"mangonel-line": 4}, True),
+            ({"scorpion-line": 8, "infantry-class": 40}, False),
+        )
+        for counts, expected in fixtures:
+            for population in (100, 400):
+                with self.subTest(counts=counts, population=population):
+                    self.assertIs(ready(counts, population), expected)
+
+        readiness_rules = matching_rules(
+            self.military,
+            actions=("(set-goal have-siege",),
+        )
+        self.assertEqual(len(readiness_rules), 2)
+        self.assertTrue(
+            any("gl-siege-ready-count c:>= 2" in facts for *_, facts, _ in readiness_rules)
+        )
+        self.assertTrue(
+            any("gl-siege-ready-count c:< 2" in facts for *_, facts, _ in readiness_rules)
+        )
+        for _, _, _, facts, rule_actions in readiness_rules:
+            self.assertNotIn("gl-one-percent", facts)
+            self.assertNotIn("gl-one-percent", rule_actions)
+
+    def test_siege_escalation_latches_across_fortification_scan_noise(self) -> None:
+        entry = matching_rules(
+            self.military,
+            facts=(
+                "gl-known-fortifications c:>= 3",
+                "(goal have-siege NO)",
+                "(goal gl-siege-escalation-armed YES)",
+            ),
+            actions=(
+                "MIL-RETREAT-FORTIFICATIONS",
+                "(up-retreat-now)",
+                "gl-siege-objective-player g:= gl-fortification-scan-player",
+                "(set-goal gl-siege-escalation-armed NO)",
+                "ATTACK-ESCALATION-SIEGE",
+            ),
+        )
+        self.assertEqual(len(entry), 1)
+        self.assertEqual(entry[0][4].count("(up-retreat-now)"), 1)
+
+        siege_exits = [
+            rule
+            for rule in matching_rules(
+                self.military,
+                facts=("ATTACK-ESCALATION-SIEGE",),
+                actions=("ATTACK-ESCALATION-NORMAL",),
+            )
+        ]
+        self.assertEqual(len(siege_exits), 3)
+        for _, _, _, facts, actions in siege_exits:
+            self.assertNotIn("gl-known-fortifications c:< 3", facts)
+            self.assertNotIn("up-retreat-now", actions)
+        self.assertTrue(
+            any("gl-known-fortifications c:<= 0" in facts for *_, facts, _ in siege_exits)
+        )
+        self.assertTrue(
+            any("gl-fortification-scan-player g:!= gl-siege-objective-player" in facts for *_, facts, _ in siege_exits)
+        )
+        self.assertTrue(any("(attack-now)" in actions for *_, actions in siege_exits))
+
+        state = "NORMAL"
+        armed = True
+        retreats = 0
+        for known_fortifications in (3, 2, 3, 2, 3):
+            if state != "SIEGE" and armed and known_fortifications >= 3:
+                state = "SIEGE"
+                armed = False
+                retreats += 1
+            if state == "SIEGE" and known_fortifications <= 0:
+                state = "NORMAL"
+                armed = True
+        self.assertEqual(state, "SIEGE")
+        self.assertEqual(retreats, 1)
+
+    def test_routine_home_defense_dispatches_only_bounded_groups(self) -> None:
+        routine_land = matching_rules(
+            self.military,
+            facts=(
+                "gl-local-response-state LOCAL-RESPONSE-DISPATCH",
+                "(goal gl-home-defense-state NO)",
+                "gl-local-response-siege-threats c:< 1",
+                "gl-local-response-threats c:>= 1",
+                "gl-local-response-threats c:< 5",
+            ),
+            actions=(
+                "object-data-group-flag >= 0",
+                "object-data-idling != 1",
+                "object-data-action == actionid-attack",
+                "object-data-action == actionid-retreat",
+                "object-data-index >= 8",
+                "(up-create-group 0 0 c: home-defense-response-group)",
+                "(up-target-objects 1 action-default -1 stance-aggressive)",
+                "RAW49 MIL routine land defense threats: %d",
+                "RAW49 MIL routine land responders: %d",
+                "(up-modify-group-flag 0 c: home-defense-response-group)",
+                "(up-reset-group c: home-defense-response-group)",
+            ),
+        )
+        routine_naval = matching_rules(
+            self.military,
+            facts=(
+                "gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH",
+                "(goal gl-naval-response-land-threat NO)",
+                "(goal gl-home-defense-state NO)",
+                "gl-naval-response-threats c:>= 1",
+                "gl-naval-response-threats c:< 4",
+            ),
+            actions=(
+                "object-data-group-flag >= 0",
+                "object-data-idling != 1",
+                "object-data-action == actionid-attack",
+                "object-data-action == actionid-retreat",
+                "object-data-index >= 6",
+                "(up-create-group 0 0 c: home-naval-response-group)",
+                "(up-target-objects 1 action-default -1 stance-aggressive)",
+                "RAW49 MIL routine naval defense threats: %d",
+                "RAW49 MIL routine naval responders: %d",
+                "(up-modify-group-flag 0 c: home-naval-response-group)",
+                "(up-reset-group c: home-naval-response-group)",
+            ),
+        )
+        self.assertEqual(len(routine_land), 1)
+        self.assertEqual(len(routine_naval), 1)
+        for label, rule in (("land", routine_land[0]), ("naval", routine_naval[0])):
+            _, _, _, _, actions = rule
+            with self.subTest(theater=label):
+                self.assertNotIn("up-retreat-now", actions)
+                self.assertNotIn("up-reset-attack-now", actions)
+                self.assertNotIn("ACTION-RETREAT", actions)
+                self.assertNotIn("gl-home-defense-state YES", actions)
+                self.assertLess(
+                    actions.index("(up-target-objects 1 action-default -1 stance-aggressive)"),
+                    actions.index("(up-modify-group-flag 0 c:"),
+                )
+
+    def test_severe_home_defense_preserves_global_recall(self) -> None:
+        severe_land = matching_rules(
+            self.military,
+            facts=(
+                "gl-local-response-state LOCAL-RESPONSE-DISPATCH",
+                "(goal gl-home-defense-state NO)",
+                "gl-local-response-siege-threats c:>= 1",
+                "gl-local-response-threats c:>= 5",
+            ),
+            actions=(
+                "MIL-RETREAT-ASSET-DEFENSE",
+                "(up-reset-attack-now)",
+                "(up-retreat-now)",
+                "(set-goal gl-home-defense-state YES)",
+                "(up-create-group 0 0 c: home-defense-response-group)",
+            ),
+        )
+        severe_naval = matching_rules(
+            self.military,
+            facts=(
+                "gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH",
+                "(goal gl-naval-response-land-threat NO)",
+                "(goal gl-home-defense-state NO)",
+                "gl-naval-response-threats c:>= 4",
+            ),
+            actions=(
+                "MIL-RETREAT-NAVAL-DEFENSE",
+                "(up-reset-attack-now)",
+                "(up-retreat-now)",
+                "(set-goal gl-home-defense-state YES)",
+                "(up-create-group 0 0 c: home-naval-response-group)",
+            ),
+        )
+        self.assertEqual(len(severe_land), 1)
+        self.assertEqual(len(severe_naval), 1)
+        self.assertNotIn("gl-attack-dwell-until", severe_land[0][3])
+        self.assertNotIn("gl-attack-dwell-until", severe_naval[0][3])
+
+        for routine_label in (
+            "RAW49 MIL routine land defense threats: %d",
+            "RAW49 MIL routine naval defense threats: %d",
+        ):
+            routine_rules = matching_rules(self.military, actions=(routine_label,))
+            self.assertEqual(len(routine_rules), 1)
+            self.assertNotIn("MIL-RETREAT-", routine_rules[0][4])
+
+    def test_defeated_target_recycler_resets_only_the_obsolete_expedition(self) -> None:
+        recycler = matching_rules(
+            self.military,
+            facts=(
+                "gl-expedition-recycle-state EXPEDITION-RECYCLE-IDLE",
+                "players-building-count target-player <= 0",
+            ),
+            actions=(
+                "(up-reset-attack-now)",
+                "defeated attack target released: %d",
+                "EXPEDITION-RECYCLE-FIND-TARGET",
+            ),
+        )
+        self.assertEqual(len(recycler), 1)
+        _, _, _, _, actions = recycler[0]
+        self.assertNotIn("up-retreat-now", actions)
 
     def test_replay_analyzer_retains_retreats_and_transport_chat(self) -> None:
         self.assertIn("if action == Action.DE_RETREAT", self.replay_analyzer)
