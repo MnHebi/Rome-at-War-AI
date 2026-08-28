@@ -5,10 +5,10 @@
 - Canonical working directory: `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
 - Git repository root: `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
 - Active branch: `codex/replay-economy-build-order`
-- P3B46 code commit: `0e1169f` (`Fix long-range attacks and stalemate recovery`)
+- P3B47 code commit: `90287ea` (`Fix tribute donor compiler error`)
 - Pull request: <https://github.com/MnHebi/Rome-at-War-AI/pull/4>
-- Installed runtime marker: `RAWAI-P3B46:46`
-- Installed 68-file runtime SHA-256: `4C7A66D71A890A47D9D57EA5900597BC20C716BB06912D3EB81F435951F65E6C`
+- Installed runtime marker: `RAWAI-P3B47:47`
+- Installed 68-file runtime SHA-256: `FD61DF40B9434412DD6C3305179653EC46E25230077F972F7DF547CF6D49D066`
 
 The legacy directory
 `G:\Projects\Codex\Rome at War AI\Rome-at-War-AI-main` is a noncanonical
@@ -19,7 +19,7 @@ replaced in this session.
 
 ## Current milestone
 
-Obtain a fresh P3B46 Britannia 4v4 replay using the preserved original lobby and
+Obtain a fresh P3B47 Britannia 4v4 replay using the preserved original lobby and
 validate the long-range capital-ship controller, empty-route-first assault
 transport lifecycle, defeated-target expedition recycling, serialized Market
 portfolio, and team-elected stalemate Wonder. Continue validating the P3B45
@@ -58,8 +58,12 @@ runtime defects listed below.
 - Red previously produced only two Merchant Vessels despite a verified trade
   route. Profitable growth toward 100, or 160 under sustained scarcity, remains
   unverified.
-- P3B45 resource aid needs fresh confirmation: stock taunts 3..6 request 100;
-  project taunts 241..244 request 500 and 245..248 request 1000 only after the
+- P3B47 corrects the P3B45 tribute donor compile blocker: FactId
+  `player-number` was incorrectly used as a rule predicate in all 120 explicit
+  donor handlers, producing `rawai-trade.per` ERR2011 at the first occurrence.
+  Every handler now compares the initialized `gl-self-player-number` goal.
+  Resource aid still needs fresh runtime confirmation: stock taunts 3..6
+  request 100; project taunts 241..244 request 500 and 245..248 request 1000 only after the
   matching cumulative collected-resource bank reaches 500 or 1000. Donor
   reserve enforcement, exact recipient messages, and no stale delayed tribute
   remain runtime checks.
@@ -83,6 +87,9 @@ runtime defects listed below.
 
 ## Important recent changes
 
+- `90287ea` (`RAWAI-P3B47`) replaces all 120 invalid direct `player-number`
+  predicates with `up-compare-goal gl-self-player-number`, adds a validator for
+  this compiler-error class, and updates the tiered-aid regression expectations.
 - `0e1169f` (`RAWAI-P3B46`) implements the five fixes authorized from the 14:12
   replay: long-range naval-siege staging, empty-route-first assault transports,
   defeated-target survivor recycling, a serialized Imperial Market portfolio,
@@ -125,7 +132,7 @@ runtime defects listed below.
 
 ## Tests and replays already performed
 
-- Full P3B46 regression suite: 114 tests passed.
+- Full P3B47 regression suite: 115 tests passed.
 - Replay-benchmark validator: 21 benchmarks passed.
 - PER structural/operand validation passed.
 - Strategy execution validation passed: 1,156 total matchups, with 1,149
@@ -136,7 +143,10 @@ runtime defects listed below.
   rows.
 - Naval doctrine and generated naval-score synchronization checks passed.
 - `git diff --check` passed; only expected Git CRLF conversion notices appeared.
-- P3B46 adversarial read-only review checked controller ownership, exact object
+- P3B47 adversarial read-only review confirmed `rawai-init-goals.per` loads
+  before `rawai-trade.per`, the cached self-player goal is initialized once,
+  all 120 donor guards use the valid comparison form, and no stock DE AI script
+  uses `player-number` as a direct predicate. The wider P3B46 review checked controller ownership, exact object
   reconstruction after waits, bounded progress termination, target invalidation,
   Market serialization, and team-wide Wonder progress. The one actionable
   Wonder finding was corrected before the final full suite.
@@ -154,7 +164,7 @@ runtime defects listed below.
 
 1. Before editing, compare the Git root, branch, HEAD, and working-tree state
    with the canonical workspace above.
-2. Run the next Britannia 4v4 with the installed `RAWAI-P3B46:46` runtime and
+2. Run the next Britannia 4v4 with the installed `RAWAI-P3B47:47` runtime and
    preserve Standard victory, recorded game, and the original visible-color
    setup unless deliberately testing a variant.
 3. Watch for `naval bombardment staging target`, bounded stall/rejection, and
