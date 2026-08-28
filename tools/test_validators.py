@@ -779,7 +779,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B47", self.init_goals)
+        self.assertIn("RAWAI-P3B48", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -3877,6 +3877,102 @@ class FarmPolicyTests(unittest.TestCase):
             self.military,
         )
 
+    def test_migration_excludes_carried_resources_and_yields_to_ready_assault(self) -> None:
+        passenger_selectors = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-BOARDING)",
+                "(goal gl-island-migration-mission MIGRATION-MISSION-MINING)",
+            ),
+            actions=(
+                "object-data-carry > 0",
+                "(up-create-group 0 0 c: migration-boarding-group)",
+                "MIGRATION-ISSUE-BOARD",
+            ),
+        )
+        self.assertEqual(len(passenger_selectors), 3)
+
+        owner = matching_rules(
+            self.military,
+            facts=(
+                "(up-timer-status t-island-migration == timer-triggered)",
+                "(goal gl-island-migration-state MIGRATION-IDLE)",
+                "(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)",
+                "(up-timer-status t-transport-route == timer-running)",
+                "(goal gl-land-target-needs-transport NO)",
+                "gl-land-target-scan-player g:!= gl-land-target-current-player",
+                "military-superiority c:< TOLERABLE",
+                "soldier-count g:< gl-ten-percent",
+            ),
+            actions=("MIGRATION-GATE-OWNER",),
+        )
+        self.assertEqual(len(owner), 1)
+
+    def test_migration_route_scans_every_enemy_and_aborts_under_fire(self) -> None:
+        landing_start = matching_rules(
+            self.military,
+            facts=("MIGRATION-ROUTE-LANDING-START",),
+            actions=(
+                "sn-focus-player-number g:= gl-island-migration-route-player",
+                "gl-island-migration-target-x",
+                "up-filter-distance c: -1 c: 24",
+                "up-find-remote c: tower-class",
+                "up-find-remote c: sea-tower",
+                "up-find-remote c: castle",
+                "up-find-remote c: town-center",
+                "MIGRATION-ROUTE-LANDING-CHECK",
+            ),
+        )
+        landing_cycle = matching_rules(
+            self.military,
+            facts=("MIGRATION-ROUTE-LANDING-CHECK",),
+            actions=(
+                "gl-island-migration-landing-threats g:+ remote-total",
+                "up-find-next-player enemy find-ordered gl-island-migration-route-player",
+                "MIGRATION-ROUTE-LANDING-NEXT",
+            ),
+        )
+        corridor_cycles = matching_rules(
+            self.military,
+            facts=("MIGRATION-ROUTE-", "-CHECK"),
+            actions=(
+                "g:+ remote-total",
+                "up-find-next-player enemy find-ordered gl-island-migration-route-player",
+            ),
+        )
+        self.assertEqual(len(landing_start), 1)
+        self.assertEqual(len(landing_cycle), 1)
+        self.assertGreaterEqual(len(corridor_cycles), 3)
+        self.assertIn("up-filter-distance c: -1 c: 32", self.military)
+
+        waypoint_abort = matching_rules(
+            self.military,
+            facts=(
+                "MIGRATION-ROUTE-WAYPOINT-CHECK",
+                "object-data-under-attack > 0",
+            ),
+            actions=(
+                "migration route under fire: %d",
+                "gl-home-anchor-x action-unload",
+                "MIGRATION-RETURNING",
+            ),
+        )
+        landing_abort = matching_rules(
+            self.military,
+            facts=(
+                "MIGRATION-CHECK-LANDING",
+                "object-data-garrison-count > 0",
+                "object-data-under-attack > 0",
+            ),
+            actions=(
+                "migration landing under fire: %d",
+                "gl-home-anchor-x action-unload",
+                "MIGRATION-RETURNING",
+            ),
+        )
+        self.assertEqual(len(waypoint_abort), 1)
+        self.assertEqual(len(landing_abort), 1)
+
     def test_remote_dropsite_keeps_and_assigns_reserved_settlers(self) -> None:
         gather = matching_rules(
             self.military,
@@ -5253,6 +5349,12 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(release), 1)
+        self.assertIn(
+            "(strategic-number sn-target-player-number >= 1)", release[0][3]
+        )
+        self.assertIn(
+            "(strategic-number sn-target-player-number <= 8)", release[0][3]
+        )
         retask = matching_rules(
             self.military,
             facts=(

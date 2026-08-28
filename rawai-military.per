@@ -1378,6 +1378,22 @@
 	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
 	(up-pending-objects c: town-center <= 0)
 	(not (up-pending-placement c: town-center))
+	;When the assault timer is ready, a viable cross-water army receives the
+	;shared transport window first. During the route cooldown migration may use
+	;the same hulls, so neither controller can permanently starve the other.
+	(or
+		(up-timer-status t-transport-route == timer-running)
+		(or
+			(goal gl-land-target-needs-transport NO)
+			(or
+				(up-compare-goal gl-land-target-scan-player g:!= gl-land-target-current-player)
+				(or
+					(up-compare-goal military-superiority c:< TOLERABLE)
+					(soldier-count g:< gl-ten-percent)
+				)
+			)
+		)
+	)
 
 =>
 	(set-goal gl-island-migration-state MIGRATION-GATE-OWNER)
@@ -1890,6 +1906,10 @@
 	(up-find-local c: villager-class c: 40)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-idling != 1)
+	;The ordinary economy manager continuously orders carried resources back to
+	;a drop site, even while the worker is garrisoned. Never board a carrier: the
+	;observed result was tens of thousands of impossible Town Center commands.
+	(up-remove-objects search-local object-data-carry > 0)
 	(up-remove-objects search-local object-data-language-id == lid-villager-farmer)
 	(up-remove-objects search-local object-data-language-id == lid-villager-fisherman)
 	(up-remove-objects search-local object-data-language-id == lid-villager-shepherd)
@@ -1926,6 +1946,7 @@
 	(up-set-target-point point-x)
 	(up-find-local c: villager-class c: 40)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-carry > 0)
 	(up-remove-objects search-local object-data-action == actionid-build)
 	(up-remove-objects search-local object-data-action == actionid-repair)
 	(up-remove-objects search-local object-data-action == actionid-hunt)
@@ -1962,9 +1983,9 @@
 	(up-set-target-point point-x)
 	(up-find-local c: villager-class c: 40)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-carry > 0)
 	(up-remove-objects search-local object-data-action == actionid-build)
 	(up-remove-objects search-local object-data-action == actionid-repair)
-	(up-remove-objects search-local object-data-target == prey-animal-class)
 	(up-remove-objects search-local object-data-target == livestock-class)
 	(up-remove-objects search-local object-data-language-id == lid-villager-farmer)
 	(up-remove-objects search-local object-data-language-id == lid-villager-fisherman)
@@ -2200,49 +2221,151 @@
 )
 
 ;Migration uses a water-valid point captured from the reserved hull and a
-;bounded lateral midpoint.  This cannot prove a fogged route safe, but it no
-;longer sends a loaded civilian/scout hull directly through every known tower
-;between the home shore and an inland natural-resource coordinate.
+;bounded lateral midpoint. Remote searches are focus-player scoped: scan every
+;live enemy at the landing and both corridor choices before exposing civilians.
 (defrule
 	(goal gl-island-migration-state MIGRATION-ROUTE-PREPARE)
 =>
-	(up-modify-sn sn-focus-player-number s:= sn-target-player-number)
-	(up-bound-point gl-island-migration-route-left-x gl-island-migration-target-x)
-	(up-lerp-percent gl-island-migration-route-left-x gl-island-migration-origin-x c: 50)
-	(up-cross-tiles gl-island-migration-route-left-x gl-island-migration-origin-x c: 30)
+	(set-goal gl-island-migration-landing-threats 0)
+	(set-goal gl-island-migration-route-left-threats 0)
+	(set-goal gl-island-migration-route-right-threats 0)
+	(up-find-player enemy find-ordered gl-island-migration-route-player)
+	(up-modify-goal gl-island-migration-route-first-player g:= gl-island-migration-route-player)
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-LANDING-START)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-LANDING-START)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-route-player)
 	(up-full-reset-search)
-	(up-set-target-point gl-island-migration-route-left-x)
-	(up-filter-distance c: -1 c: 20)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-filter-distance c: -1 c: 24)
 	(up-find-remote c: tower-class c: 40)
 	(up-find-remote c: sea-tower c: 10)
 	(up-find-remote c: castle c: 10)
 	(up-find-remote c: town-center c: 10)
 	(up-get-search-state local-total)
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-LANDING-CHECK)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-LANDING-CHECK)
+=>
+	(up-modify-goal gl-island-migration-landing-threats g:+ remote-total)
+	(up-find-next-player enemy find-ordered gl-island-migration-route-player)
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-LANDING-NEXT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-LANDING-NEXT)
+	(up-compare-goal gl-island-migration-route-player g:!= gl-island-migration-route-first-player)
+=>
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-LANDING-START)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-LANDING-NEXT)
+	(up-compare-goal gl-island-migration-route-player g:== gl-island-migration-route-first-player)
+	(up-compare-goal gl-island-migration-landing-threats c:> 0)
+=>
+	;Reuse the ordinary unsafe-route terminal so the loaded hull returns home and
+	;the defended resource zone enters the bounded rejection ring.
+	(set-goal gl-island-migration-route-left-threats 1)
+	(set-goal gl-island-migration-route-right-threats 1)
+	(up-chat-data-to-self "migration landing threats: %d" g: gl-island-migration-landing-threats)
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-APPLY)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-LANDING-NEXT)
+	(up-compare-goal gl-island-migration-route-player g:== gl-island-migration-route-first-player)
+	(up-compare-goal gl-island-migration-landing-threats c:<= 0)
+=>
+	(up-bound-point gl-island-migration-route-left-x gl-island-migration-target-x)
+	(up-lerp-percent gl-island-migration-route-left-x gl-island-migration-origin-x c: 50)
+	(up-cross-tiles gl-island-migration-route-left-x gl-island-migration-origin-x c: 30)
+	(up-find-player enemy find-ordered gl-island-migration-route-player)
+	(up-modify-goal gl-island-migration-route-first-player g:= gl-island-migration-route-player)
 	(set-goal gl-island-migration-state MIGRATION-ROUTE-LEFT)
 )
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-ROUTE-LEFT)
 =>
-	(up-modify-goal gl-island-migration-route-left-threats g:= remote-total)
-	(up-bound-point gl-island-migration-route-right-x gl-island-migration-target-x)
-	(up-lerp-percent gl-island-migration-route-right-x gl-island-migration-origin-x c: 50)
-	(up-cross-tiles gl-island-migration-route-right-x gl-island-migration-origin-x c: -30)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-route-player)
 	(up-full-reset-search)
-	(up-set-target-point gl-island-migration-route-right-x)
-	(up-filter-distance c: -1 c: 20)
+	(up-set-target-point gl-island-migration-route-left-x)
+	(up-filter-distance c: -1 c: 32)
 	(up-find-remote c: tower-class c: 40)
 	(up-find-remote c: sea-tower c: 10)
 	(up-find-remote c: castle c: 10)
 	(up-find-remote c: town-center c: 10)
 	(up-get-search-state local-total)
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-LEFT-CHECK)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-LEFT-CHECK)
+=>
+	(up-modify-goal gl-island-migration-route-left-threats g:+ remote-total)
+	(up-find-next-player enemy find-ordered gl-island-migration-route-player)
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-LEFT-NEXT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-LEFT-NEXT)
+	(up-compare-goal gl-island-migration-route-player g:!= gl-island-migration-route-first-player)
+=>
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-LEFT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-LEFT-NEXT)
+	(up-compare-goal gl-island-migration-route-player g:== gl-island-migration-route-first-player)
+=>
+	(up-bound-point gl-island-migration-route-right-x gl-island-migration-target-x)
+	(up-lerp-percent gl-island-migration-route-right-x gl-island-migration-origin-x c: 50)
+	(up-cross-tiles gl-island-migration-route-right-x gl-island-migration-origin-x c: -30)
+	(up-find-player enemy find-ordered gl-island-migration-route-player)
+	(up-modify-goal gl-island-migration-route-first-player g:= gl-island-migration-route-player)
 	(set-goal gl-island-migration-state MIGRATION-ROUTE-RIGHT)
 )
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-ROUTE-RIGHT)
 =>
-	(up-modify-goal gl-island-migration-route-right-threats g:= remote-total)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-route-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-route-right-x)
+	(up-filter-distance c: -1 c: 32)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 10)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: town-center c: 10)
+	(up-get-search-state local-total)
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-RIGHT-CHECK)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-RIGHT-CHECK)
+=>
+	(up-modify-goal gl-island-migration-route-right-threats g:+ remote-total)
+	(up-find-next-player enemy find-ordered gl-island-migration-route-player)
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-RIGHT-NEXT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-RIGHT-NEXT)
+	(up-compare-goal gl-island-migration-route-player g:!= gl-island-migration-route-first-player)
+=>
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-RIGHT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-RIGHT-NEXT)
+	(up-compare-goal gl-island-migration-route-player g:== gl-island-migration-route-first-player)
+=>
 	;The engine range is inclusive. A maximum of two yielded an uncovered value
 	;2 while the tie branches handled only 0 and 1, deadlocking ROUTE-APPLY.
 	(generate-random-number 1)
@@ -2291,7 +2414,7 @@
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-chat-data-to-self "migration route side: %d" c: 0)
 	(set-goal gl-island-migration-route-distance 255)
-	(up-set-timer c: t-island-migration c: 15)
+	(up-set-timer c: t-island-migration c: 5)
 	(set-goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-WAIT)
 )
 
@@ -2313,7 +2436,7 @@
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-chat-data-to-self "migration route side: %d" c: 1)
 	(set-goal gl-island-migration-route-distance 255)
-	(up-set-timer c: t-island-migration c: 15)
+	(up-set-timer c: t-island-migration c: 5)
 	(set-goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-WAIT)
 )
 
@@ -2326,6 +2449,26 @@
 	(up-set-target-point gl-island-migration-route-waypoint-x)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
 	(set-goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-CHECK)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-under-attack > 0)
+=>
+	;A fortification outside the sampled disks may still cover the engine's
+	;chosen water path. Turn around on the first damage sample instead of waiting
+	;through four progress retries with civilians aboard.
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(up-chat-data-to-self "migration route under fire: %d" g: gl-island-migration-transport-id)
+	(up-modify-goal gl-island-migration-rejected-zone3 g:= gl-island-migration-rejected-zone2)
+	(up-modify-goal gl-island-migration-rejected-zone2 g:= gl-island-migration-rejected-zone)
+	(up-modify-goal gl-island-migration-rejected-zone g:= gl-island-migration-zone)
+	(set-goal gl-island-migration-rejection-armed NO)
+	(set-goal gl-island-migration-route-waits 0)
+	(up-set-timer c: t-island-migration c: 5)
+	(set-goal gl-island-migration-state MIGRATION-RETURNING)
 )
 
 (defrule
@@ -2353,7 +2496,7 @@
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-route-waits 0)
 	(up-chat-data-to-self "migration route progress: %d" g: gl-island-migration-route-distance)
-	(up-set-timer c: t-island-migration c: 15)
+	(up-set-timer c: t-island-migration c: 5)
 	(set-goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-WAIT)
 )
 
@@ -2368,7 +2511,7 @@
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-modify-goal gl-island-migration-route-waits c:+ 1)
 	(up-chat-data-to-self "migration route retry: %d" g: gl-island-migration-route-waits)
-	(up-set-timer c: t-island-migration c: 15)
+	(up-set-timer c: t-island-migration c: 5)
 	(set-goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-WAIT)
 )
 
@@ -2727,6 +2870,26 @@
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
 	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+	(up-object-data object-data-under-attack > 0)
+=>
+	;The final engine path can deviate from the sampled lateral corridor. Abort as
+	;soon as the live hull takes fire and reject this destination for the cooldown.
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
+	(up-modify-goal gl-island-migration-rejected-zone3 g:= gl-island-migration-rejected-zone2)
+	(up-modify-goal gl-island-migration-rejected-zone2 g:= gl-island-migration-rejected-zone)
+	(up-modify-goal gl-island-migration-rejected-zone g:= gl-island-migration-zone)
+	(set-goal gl-island-migration-rejection-armed NO)
+	(set-goal gl-island-migration-route-waits 0)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(up-chat-data-to-self "migration landing under fire: %d" g: gl-island-migration-transport-id)
+	(up-set-timer c: t-island-migration c: 5)
+	(set-goal gl-island-migration-state MIGRATION-RETURNING)
 )
 
 (defrule
@@ -9757,6 +9920,10 @@
 ;attached to its completed objective unless explicitly dissolved first.
 (defrule
 	(goal gl-expedition-recycle-state EXPEDITION-RECYCLE-IDLE)
+	;Zero is the engine's transient no-target sentinel, not a defeated opponent.
+	;Recycling it resets a valid pending attack before the selector publishes.
+	(strategic-number sn-target-player-number >= 1)
+	(strategic-number sn-target-player-number <= 8)
 	(players-building-count any-enemy >= 1)
 	(or
 		(not (player-in-game target-player))

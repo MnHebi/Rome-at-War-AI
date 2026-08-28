@@ -1379,6 +1379,68 @@
         "The Wonder mechanism is calibrated for the project's Standard-victory test setup. Structural validation cannot prove foundation visibility to allies, actual construction completion, or victory countdown behavior."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260828-160237",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.28 160237.aoe2record",
+        "sha256": "E0AF3F48FB9757D6CF60FBD43B044CD29851839D40B87EC3FB770478019DB3D1",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The selected visible colors, civilizations, and resolved teams exactly match the authoritative original lobby. Internal nonvisual color IDs are not used for player identity.",
+        "duration_seconds": 4345
+      },
+      "direct_replay_observations": [
+        "The replay parsed without reported errors, lasted 72:25, and contained 779794 ACTION operations, including 309234 AI_ORDER, 284101 ORDER, 113577 WORK, 4353 MAKE, 2828 BUILD, 1895 UNGARRISON, and 1833 SPECIAL actions.",
+        "The user visually observed Red and Purple accumulating troops at their Town Centers or otherwise leaving them idle, and observed one Purple Transport sail straight into enemy towers and die.",
+        "Purple issued 81789 decoded orders to its own Town Center, object 4548 at point 31,136, from 50:56 through 72:04. The loop affected 29 object IDs and peaked at 30810 commands in minute 71.",
+        "Twenty-seven of the 29 Purple Town Center-loop objects are exact passengers in the two late migration manifests. The first manifest began boarding Transport 31172 at 60:32; the second began boarding Transport 31294 at 70:07. Town Center orders began within about three seconds as individual passengers disappeared from the still-ashore boarding retry list.",
+        "Purple Transport 31294 was ordered toward point 56,103 from 70:35 through 71:21 and then received unload commands at 103,127 and 111,135. Its last decoded command was at 71:56, twenty-nine seconds before the recording ended; the command stream does not encode its destruction, so the user's visual tower-loss observation remains the authoritative death evidence.",
+        "Red completed one empty assault-route preflight against player 5 at 59:53 and issued a ten-passenger boarding order at 59:54. It began repeated home unload commands at 60:07 and never reported lift-ready or landed telemetry; Red later reported that it could not spare troops while its own town was under attack.",
+        "At 06:50 Red emitted `defeated attack target released: 0` while live enemies remained. Player zero is the engine no-target sentinel, so the recycler demonstrably reset attack ownership without a defeated opponent.",
+        "The Market remained sell-heavy at 988 SELL actions versus 20 BUY actions. No crash or dump was reported for this match."
+      ],
+      "implementation_inferences": [
+        "The near-perfect passenger overlap and immediate timing identify the Town Center flood as an ownership conflict: the economy manager kept ordering resource-carrying Villagers to deposit while the migration controller held them inside a Transport. Passengers without carried resources did not join the same flood.",
+        "Civilian migration and scripted assault both required the other transport owner to be idle, but migration's gate rule occurred earlier in the file. Whenever both timers were ready, migration claimed the shared hull first and could repeatedly postpone the cross-water military route while an army accumulated at home.",
+        "Migration safety searched remote defenses only for `sn-target-player-number` and sampled lateral midpoint disks without an all-enemy landing scan. In a 4v4 it could therefore approve a route clear of one opponent's structures while another opponent's tower covered the landing or corridor.",
+        "Red's one recorded lift was recalled during a reported home-threat interval, so this replay does not justify weakening the home-defense abort. Earlier assault ownership and bounded retries are the supported correction for the broader idle-army symptom.",
+        "The defeated-target recycler must require a concrete player number from 1 through 8 before interpreting player-in-game, stance, or building-count failures as defeat."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B48. Remove every Villager with carried resources from all three mining-migration passenger selectors before group reservation or boarding.",
+        "When a cross-water target scan is current, military strength is tolerable, the army meets the attack threshold, and the assault timer is ready, leave migration idle so the later attack-route owner claims that transport window. Permit migration during the assault route's cooldown so the owners alternate rather than permanently starving one another.",
+        "Cycle every live enemy for a 24-tile destination-defense scan and both 32-tile lateral-corridor scans before departure. Reject a destination if the landing is defended, and return the exact loaded hull while adding the zone to the bounded rejection ring if it comes under fire at the waypoint or landing.",
+        "Sample outbound waypoint progress every five seconds instead of fifteen so an unsampled hostile path triggers the under-fire recovery before four long retries elapse.",
+        "Require `sn-target-player-number` to be between 1 and 8 before the defeated-target expedition recycler can reset attack-now."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports exact runtime synchronization and replay chat contains RAWAI-P3B48 near match start.",
+        "No migration passenger produces a consecutive-tick Town Center deposit loop while garrisoned. Aggregate Purple ORDER volume remains bounded rather than exceeding eighty thousand commands from fewer than thirty passengers.",
+        "When a cross-water army and civilian migration are both ready, one screened military lift receives the first window and civilian migration remains able to use the following route cooldown. Red or Purple troops do not accumulate indefinitely solely because migration repeatedly wins the shared owner.",
+        "A migration destination or corridor covered by any opponent's known Tower, Sea Tower, Fort/castle, or Town Center is rejected before departure. If an unseen defense attacks the loaded hull, it turns home on the bounded five-second progress sample instead of continuing through the defensive line.",
+        "No replay emits `defeated attack target released: 0`; a real engine-defeated player from 1 through 8 still releases and retasks surviving expeditions.",
+        "Taunt 69, long-range capital bombardment, profitable trade growth, Market purchasing, Wonder election, Port collision recovery, and sustained remote-resource work remain independently observable acceptance items."
+      ],
+      "known_limits": [
+        "Only Red serialized detailed private self-chat. Purple's migration states are reconstructed from exact passenger, Transport, movement, and unload commands rather than private telemetry.",
+        "The replay parser does not expose each object's unit type directly. Passenger identity is established by matching decoded SPECIAL object IDs to later commands; resource carriage is inferred from the economy manager's deposit behavior and the fact that only a subset of reserved passengers entered the loop.",
+        "Static DUC scans cover known defenses, not fogged structures or the engine's exact water path. The live under-attack abort is therefore still required, and fresh visual confirmation must establish whether five-second sampling lets the loaded hull escape in time.",
+        "A transport can be lost between progress samples. The scripting API exposes no general safe naval path query, so all-enemy screening and prompt damage recovery reduce risk but cannot prove an invulnerable route.",
+        "The visual report distinguishes troops from Villagers at the Town Center. The replay proves and fixes the separate migration-passenger command flood and transport-owner starvation; it does not prove that every visually idle military unit had the same direct command source."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }
