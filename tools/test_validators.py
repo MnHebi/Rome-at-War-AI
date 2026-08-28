@@ -754,7 +754,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(not", rules[0][3])
 
     def test_farm_state_is_replay_observable(self) -> None:
-        self.assertIn("RAWAI-P3B44", self.init_goals)
+        self.assertIn("RAWAI-P3B45", self.init_goals)
         telemetry = matching_rules(
             self.homebase,
             facts=("(timer-triggered t-farm-report)",),
@@ -2070,81 +2070,191 @@ class FarmPolicyTests(unittest.TestCase):
             for unit in legionaries:
                 self.assertIn(f"(unit-available {unit})", blocked[0][3])
 
-    def test_allied_resource_aid_is_scaled_identified_and_reserve_safe(self) -> None:
-        for taunt, resource in ((3, "food"), (4, "wood"), (5, "gold"), (6, "stone")):
-            requests = matching_rules(
-                self.trade,
-                facts=(f"({resource}-amount < 100)",),
-                actions=(f"team please send 600 {resource}",),
+    def test_resource_request_banks_use_engine_lifetime_totals(self) -> None:
+        banks = {
+            "food": "gl-request-food-bank",
+            "wood": "gl-request-wood-bank",
+            "gold": "gl-request-gold-bank",
+            "stone": "gl-request-stone-bank",
+        }
+        updates = tuple(
+            f"(up-get-fact resource-amount amount-{resource}-total {goal})"
+            for resource, goal in banks.items()
+        )
+        bank_rules = matching_rules(self.customconstants, actions=updates)
+        self.assertEqual(len(bank_rules), 2)
+        self.assertTrue(any("(true)" in rule[3] for rule in bank_rules))
+        self.assertTrue(
+            any(
+                "(up-timer-status t-update-facts == timer-triggered)" in rule[3]
+                for rule in bank_rules
             )
-            self.assertEqual(len(requests), 1)
+        )
 
-            for player in range(1, 9):
-                replies = matching_rules(
+        custom_taunts = {
+            "TAUNT-REQUEST-FOOD-500": 241,
+            "TAUNT-REQUEST-WOOD-500": 242,
+            "TAUNT-REQUEST-GOLD-500": 243,
+            "TAUNT-REQUEST-STONE-500": 244,
+            "TAUNT-REQUEST-FOOD-1000": 245,
+            "TAUNT-REQUEST-WOOD-1000": 246,
+            "TAUNT-REQUEST-GOLD-1000": 247,
+            "TAUNT-REQUEST-STONE-1000": 248,
+        }
+        self.assertEqual(len(set(custom_taunts.values())), len(custom_taunts))
+        for name, taunt_id in custom_taunts.items():
+            self.assertGreaterEqual(taunt_id, 1)
+            self.assertLessEqual(taunt_id, 255)
+            self.assertIn(f"(defconst {name} {taunt_id})", self.customconstants)
+
+        for goal in (
+            "gl-request-food-next",
+            "gl-request-wood-next",
+            "gl-request-gold-next",
+            "gl-request-stone-next",
+            "gl-resource-request-next",
+        ):
+            self.assertIn(f"(set-goal {goal} 0)", self.init_goals)
+
+    def test_allied_resource_aid_is_tiered_identified_and_reserve_safe(self) -> None:
+        protocol = {
+            "food": {
+                100: ("3", 3, 1100),
+                500: ("TAUNT-REQUEST-FOOD-500", 241, 1500),
+                1000: ("TAUNT-REQUEST-FOOD-1000", 245, 2000),
+            },
+            "wood": {
+                100: ("4", 4, 700),
+                500: ("TAUNT-REQUEST-WOOD-500", 242, 1100),
+                1000: ("TAUNT-REQUEST-WOOD-1000", 246, 1600),
+            },
+            "gold": {
+                100: ("5", 5, (900, 600)),
+                500: ("TAUNT-REQUEST-GOLD-500", 243, (1300, 1000)),
+                1000: ("TAUNT-REQUEST-GOLD-1000", 247, (1800, 1500)),
+            },
+            "stone": {
+                100: ("6", 6, 700),
+                500: ("TAUNT-REQUEST-STONE-500", 244, 1100),
+                1000: ("TAUNT-REQUEST-STONE-1000", 248, 1600),
+            },
+        }
+        banks = {
+            resource: f"gl-request-{resource}-bank" for resource in protocol
+        }
+        deadlines = {
+            resource: f"gl-request-{resource}-next" for resource in protocol
+        }
+
+        for resource, tiers in protocol.items():
+            for amount, (taunt, chat_id, threshold) in tiers.items():
+                requests = matching_rules(
                     self.trade,
                     facts=(
-                        f"(taunt-detected {player} {taunt})",
-                        f"(stance-toward {player} ally)",
+                        f"({resource}-amount < 100)",
+                        f"gl-game-time g:>= {deadlines[resource]}",
+                        "gl-game-time g:>= gl-resource-request-next",
                     ),
                     actions=(
-                        f"(acknowledge-taunt {player} {taunt})",
-                        f"(tribute-to-player {player} {resource} 200)",
-                        f'Sending 200 {resource} to player {player}',
+                        f'{chat_id} Critically low on {resource}; please send {amount} {resource}',
+                        f"Requesting {amount} {resource}; lifetime bank: %d",
+                        f"{deadlines[resource]} g:= gl-game-time",
+                        f"{deadlines[resource]} c:+ 120",
+                        "gl-resource-request-next g:= gl-game-time",
+                        "gl-resource-request-next c:+ 10",
                     ),
                 )
-                self.assertEqual(len(replies), 2 if resource == "gold" else 1)
+                self.assertEqual(len(requests), 1)
+                normalized = re.sub(r"\s+", " ", requests[0][3])
+                if amount == 100:
+                    self.assertIn(
+                        f"(up-compare-goal {banks[resource]} c:< RESOURCE-AID-BANK-500)",
+                        normalized,
+                    )
+                elif amount == 500:
+                    self.assertIn(
+                        f"(up-compare-goal {banks[resource]} c:>= RESOURCE-AID-BANK-500)",
+                        normalized,
+                    )
+                    self.assertIn(
+                        f"(up-compare-goal {banks[resource]} c:< RESOURCE-AID-BANK-1000)",
+                        normalized,
+                    )
+                else:
+                    self.assertIn(
+                        f"(up-compare-goal {banks[resource]} c:>= RESOURCE-AID-BANK-1000)",
+                        normalized,
+                    )
 
-        self.assertNotIn("send me 100", self.trade)
-        self.assertNotIn("this-any-ally", self.trade)
-        self.assertNotRegex(self.trade, r"\bplayer[1-8]\b")
+                for player in range(1, 9):
+                    common_facts = (
+                        f"(taunt-detected {player} {taunt})",
+                        f"(player-number != {player})",
+                        f"(stance-toward {player} ally)",
+                    )
+                    common_actions = (
+                        f"(acknowledge-taunt {player} {taunt})",
+                        f"(tribute-to-player {player} {resource} {amount})",
+                        f"Sending {amount} {resource} to player {player}",
+                    )
+                    if resource == "gold":
+                        pre_threshold, imperial_threshold = threshold
+                        pre = matching_rules(
+                            self.trade,
+                            facts=common_facts
+                            + (
+                                "(current-age < imperial-age)",
+                                f"(gold-amount >= {pre_threshold})",
+                            ),
+                            actions=common_actions,
+                        )
+                        imperial = matching_rules(
+                            self.trade,
+                            facts=common_facts
+                            + (
+                                "(current-age == imperial-age)",
+                                f"(gold-amount >= {imperial_threshold})",
+                            ),
+                            actions=common_actions,
+                        )
+                        self.assertEqual(len(pre), 1)
+                        self.assertEqual(len(imperial), 1)
+                    else:
+                        replies = matching_rules(
+                            self.trade,
+                            facts=common_facts
+                            + (f"({resource}-amount >= {threshold})",),
+                            actions=common_actions,
+                        )
+                        self.assertEqual(len(replies), 1)
+
+                fallbacks = matching_rules(
+                    self.trade,
+                    facts=(f"(taunt-detected any-ally {taunt})",),
+                    actions=(f"(acknowledge-taunt this-any-ally {taunt})",),
+                )
+                self.assertEqual(len(fallbacks), 1)
+                self.assertNotIn("tribute-to-player", fallbacks[0][3])
+
+        self.assertNotIn("team please send 600", self.trade)
+        request_section = self.trade.split(";request resources", 1)[1].split(
+            ";send resources", 1
+        )[0]
+        self.assertNotRegex(
+            request_section,
+            r"\((?:food|wood|gold|stone)-amount\s*<\s*(?:500|1000)\)",
+        )
         self.assertNotRegex(
             self.trade,
-            r"\(tribute-to-player\s+[1-8]\s+(?:food|wood|gold|stone)\s+100\)",
+            r"\(tribute-to-player\s+[1-8]\s+(?:food|wood|gold|stone)\s+(?:200|600)\)",
         )
-        self.assertEqual(
-            len(
-                matching_rules(
-                    self.trade,
-                    facts=("(food-amount >= 1200)",),
-                    actions=(" food 200)",),
-                )
-            ),
-            8,
+        self.assertEqual(self.trade.count("(acknowledge-taunt this-any-ally "), 12)
+        self.assertGreater(
+            self.trade.index(";A taunt stays detected until it is acknowledged."),
+            self.trade.rfind("(tribute-to-player "),
         )
-        for resource in ("wood", "stone"):
-            self.assertEqual(
-                len(
-                    matching_rules(
-                        self.trade,
-                        facts=(f"({resource}-amount >= 800)",),
-                        actions=(f" {resource} 200)",),
-                    )
-                ),
-                8,
-            )
-        self.assertEqual(
-            len(
-                matching_rules(
-                    self.trade,
-                    facts=("(current-age < imperial-age)", "(gold-amount >= 1000)"),
-                    actions=(" gold 200)",),
-                )
-            ),
-            8,
-        )
-        self.assertEqual(
-            len(
-                matching_rules(
-                    self.trade,
-                    facts=(
-                        "(current-age == imperial-age)",
-                        "(gold-amount >= 700)",
-                    ),
-                    actions=(" gold 200)",),
-                )
-            ),
-            8,
-        )
+        self.assertNotIn("dont-spam-requests", self.trade)
+        self.assertNotIn("t-request-spam", self.trade)
 
     def test_pict_team_cows_have_a_persistent_request_budget(self) -> None:
         cow = matching_rules(

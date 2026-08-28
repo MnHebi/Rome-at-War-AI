@@ -190,7 +190,6 @@
 =>
 	(set-goal town-size-attack NO)
 	(set-goal dont-spam-taunts NO)
-	(set-goal dont-spam-requests NO)
 	(set-goal pop-limits-set NO)
 	(set-goal resign-state NO)
 	(set-goal extreme-cheats NO)
@@ -359,7 +358,7 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B44: %d" c: 44)
+	(up-chat-data-to-self "RAWAI-P3B45: %d" c: 45)
 	(disable-self)
 )
 
@@ -430,6 +429,20 @@
 	(set-goal gl-pict-cow-requests 0)
 	(set-goal gl-flare-command-deadline 0)
 	(set-goal gl-castle-request-next 0)
+	(disable-self)
+)
+
+;Resource-aid cadence is per resource, with a short shared message gap. This
+;prevents persistent food scarcity from starving later wood, gold, or stone
+;requests while avoiding four taunts in one script pass.
+(defrule
+	(true)
+=>
+	(set-goal gl-request-food-next 0)
+	(set-goal gl-request-wood-next 0)
+	(set-goal gl-request-gold-next 0)
+	(set-goal gl-request-stone-next 0)
+	(set-goal gl-resource-request-next 0)
 	(disable-self)
 )
 

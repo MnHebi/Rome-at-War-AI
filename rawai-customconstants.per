@@ -76,8 +76,6 @@
 (defconst land-attack-percentage 57)
 
 (defconst pop-limits-set 58)
-(defconst dont-spam-requests 59)
-
 (defconst naval-attack-delay 60)
 (defconst naval-attack-interval 61)
 (defconst naval-attack-requirement 62)
@@ -1086,8 +1084,30 @@
 (defconst gl-self-player-number 1112)
 (defconst gl-naval-siege-target-id 1113)
 (defconst gl-local-response-siege-threats 1114)
+(defconst gl-request-food-bank 1115)
+(defconst gl-request-wood-bank 1116)
+(defconst gl-request-gold-bank 1117)
+(defconst gl-request-stone-bank 1118)
+(defconst gl-request-food-next 1119)
+(defconst gl-request-wood-next 1120)
+(defconst gl-request-gold-next 1121)
+(defconst gl-request-stone-next 1122)
+(defconst gl-resource-request-next 1123)
 
 ; Goal Values
+
+;Raw AI's project-owned resource-aid taunts. Standard taunts 3..6 request 100.
+;The custom range is deliberately above the stock command set (1..105).
+(defconst TAUNT-REQUEST-FOOD-500 241)
+(defconst TAUNT-REQUEST-WOOD-500 242)
+(defconst TAUNT-REQUEST-GOLD-500 243)
+(defconst TAUNT-REQUEST-STONE-500 244)
+(defconst TAUNT-REQUEST-FOOD-1000 245)
+(defconst TAUNT-REQUEST-WOOD-1000 246)
+(defconst TAUNT-REQUEST-GOLD-1000 247)
+(defconst TAUNT-REQUEST-STONE-1000 248)
+(defconst RESOURCE-AID-BANK-500 500)
+(defconst RESOURCE-AID-BANK-1000 1000)
 
 ;Generic
 (defconst NO 0)
@@ -1797,7 +1817,6 @@
 (defconst t-mil-pop-check 6)
 (defconst t-resource-check 7)
 (defconst t-taunt-spam 8)
-(defconst t-request-spam 9)
 (defconst t-cheats 10)
 (defconst t-strategicnumber 11)
 (defconst t-attack-type 12)
@@ -1910,7 +1929,14 @@
 =>
 	(up-get-fact unit-type-count villager villager-count)
 	(up-get-fact game-time 0 gl-game-time)
-	
+	;The engine's cumulative collected-resource counters provide the request banks.
+	;They keep large requests behind demonstrated economic development rather than
+	;letting an opening stockpile shortage select a 500- or 1000-resource tier.
+	(up-get-fact resource-amount amount-food-total gl-request-food-bank)
+	(up-get-fact resource-amount amount-wood-total gl-request-wood-bank)
+	(up-get-fact resource-amount amount-gold-total gl-request-gold-bank)
+	(up-get-fact resource-amount amount-stone-total gl-request-stone-bank)
+
 	(disable-self)
 )
 
@@ -1919,4 +1945,8 @@
 =>
 	(up-get-fact unit-type-count villager villager-count)
 	(up-get-fact game-time 0 gl-game-time)
+	(up-get-fact resource-amount amount-food-total gl-request-food-bank)
+	(up-get-fact resource-amount amount-wood-total gl-request-wood-bank)
+	(up-get-fact resource-amount amount-gold-total gl-request-gold-bank)
+	(up-get-fact resource-amount amount-stone-total gl-request-stone-bank)
 )
