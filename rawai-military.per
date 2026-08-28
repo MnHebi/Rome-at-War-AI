@@ -6868,6 +6868,15 @@
 	(up-full-reset-search)
 	(up-set-target-point gl-local-response-target-x)
 	(up-filter-distance c: -1 c: 32)
+	;A lone ram or catapult is a real threat where two scouts are not. Count the
+	;siege weapons separately before rebuilding the full threat list.
+	(up-find-remote c: siege-weapon-class c: 40)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-local-response-zone)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-local-response-siege-threats g:= remote-total)
+	(up-full-reset-search)
+	(up-set-target-point gl-local-response-target-x)
+	(up-filter-distance c: -1 c: 32)
 	(up-find-remote c: scout-cavalry-class c: 40)
 	(up-find-remote c: cavalry-archer-class c: 40)
 	(up-find-remote c: cavalry-class c: 40)
@@ -6909,6 +6918,14 @@
 =>
 	(up-find-player enemy find-closest gl-local-response-player)
 	(up-modify-sn sn-focus-player-number g:= gl-local-response-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-filter-distance c: -1 c: 48)
+	;A lone ram or catapult is a real threat where two scouts are not.
+	(up-find-remote c: siege-weapon-class c: 40)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-home-zone)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-local-response-siege-threats g:= remote-total)
 	(up-full-reset-search)
 	(up-set-target-point gl-home-anchor-x)
 	(up-filter-distance c: -1 c: 48)
@@ -7087,10 +7104,15 @@
 	(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)
 	(goal gl-home-defense-state NO)
 	(up-compare-goal gl-local-response-responders c:> 0)
-	(up-compare-goal gl-local-response-threats c:>= 2)
 	(or
-		(up-compare-goal gl-game-time g:>= gl-attack-dwell-until)
-		(up-compare-goal gl-local-response-threats c:>= 5)
+		(up-compare-goal gl-local-response-siege-threats c:>= 1)
+		(or
+			(up-compare-goal gl-local-response-threats c:>= 5)
+			(and
+				(up-compare-goal gl-local-response-threats c:>= 2)
+				(up-compare-goal gl-game-time g:>= gl-attack-dwell-until)
+			)
+		)
 	)
 =>
 	;Only a real same-zone response suppresses the whole offense.  A lone raider
@@ -7113,11 +7135,14 @@
 	(up-compare-goal gl-local-response-responders c:> 0)
 	(or
 		(goal gl-home-defense-state YES)
-		(or
-			(up-compare-goal gl-local-response-threats c:< 2)
+		(and
+			(up-compare-goal gl-local-response-siege-threats c:< 1)
 			(and
-				(up-compare-goal gl-game-time g:< gl-attack-dwell-until)
 				(up-compare-goal gl-local-response-threats c:< 5)
+				(or
+					(up-compare-goal gl-local-response-threats c:< 2)
+					(up-compare-goal gl-game-time g:< gl-attack-dwell-until)
+				)
 			)
 		)
 	)
