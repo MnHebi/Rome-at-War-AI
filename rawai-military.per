@@ -5742,6 +5742,9 @@
 	(set-goal gl-transport-departure-clear-attempts 0)
 	(set-goal gl-transport-departure-blockers 0)
 	(set-goal gl-transport-departure-congested NO)
+	(set-goal gl-transport-departure-blocker-id -1)
+	(set-goal gl-transport-departure-blocker-retries 0)
+	(set-goal gl-transport-departure-failed-blocker-id -1)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-RETRY)
 )
 
@@ -5807,6 +5810,9 @@
 	(set-goal gl-transport-departure-stalls 0)
 	(set-goal gl-transport-departure-clear-attempts 0)
 	(set-goal gl-transport-departure-congested NO)
+	(set-goal gl-transport-departure-blocker-id -1)
+	(set-goal gl-transport-departure-blocker-retries 0)
+	(set-goal gl-transport-departure-failed-blocker-id -1)
 	;The escort has protected the loaded hull through the screened corridor. Move
 	;that exact owned group eighteen tiles to the opposite side of the landing
 	;before unloading, and retain its group flag so unrelated naval owners cannot
@@ -5850,6 +5856,9 @@
 	(set-goal gl-transport-departure-stalls 0)
 	(set-goal gl-transport-departure-clear-attempts 0)
 	(set-goal gl-transport-departure-congested NO)
+	(set-goal gl-transport-departure-blocker-id -1)
+	(set-goal gl-transport-departure-blocker-retries 0)
+	(set-goal gl-transport-departure-failed-blocker-id -1)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
 	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
@@ -5907,7 +5916,7 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-distance <= 20)
 	(up-object-data object-data-garrison-count > 0)
-	(up-compare-goal gl-transport-departure-clear-attempts c:< 2)
+	(up-compare-goal gl-transport-departure-clear-attempts c:< 3)
 =>
 	(up-get-point position-object gl-transport-departure-hull-x)
 	(up-get-object-data object-data-map-zone-id gl-transport-departure-water-zone)
@@ -5925,30 +5934,34 @@
 	(up-find-local c: transport-ship c: 20)
 	(up-remove-objects search-local object-data-id g:== gl-transport-route-id)
 	(up-remove-objects search-local object-data-id g:== gl-quarantine-transport-id)
+	(up-remove-objects search-local object-data-id g:== gl-transport-departure-failed-blocker-id)
 	(up-remove-objects search-local object-data-garrison-count > 0)
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-remove-objects search-local object-data-idling != 1)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-transport-departure-water-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
-	(up-remove-objects search-local object-data-index >= 3)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-transport-departure-blockers g:= local-total)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-BLOCKERS)
 )
 
-;After two bounded clearance attempts, use the established attack-lift recovery
-;owner and emit exactly one terminal reason instead of reissuing forever.
+;After three bounded exact-blocker selections, use the established attack-lift
+;recovery owner and emit exactly one terminal reason instead of reissuing
+;forever.
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-ORIGIN)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-distance <= 20)
 	(up-object-data object-data-garrison-count > 0)
-	(up-compare-goal gl-transport-departure-clear-attempts c:>= 2)
+	(up-compare-goal gl-transport-departure-clear-attempts c:>= 3)
 =>
 	(up-chat-data-to-all "RAW44T transport departure congestion unresolved: %d" g: gl-transport-route-id)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(set-goal gl-transport-departure-congested NO)
+	(set-goal gl-transport-departure-blocker-id -1)
+	(set-goal gl-transport-departure-blocker-retries 0)
+	(set-goal gl-transport-departure-failed-blocker-id -1)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 15)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
@@ -5998,7 +6011,7 @@
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 )
 
-;A destination is another known ship position 28-80 tiles away in the exact
+;A destination is another known ship position 28-200 tiles away in the exact
 ;same water zone.  Reading that position does not steal or retask that ship.
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-BLOCKERS)
@@ -6040,6 +6053,7 @@
 	(up-find-local c: transport-ship c: 20)
 	(up-remove-objects search-local object-data-id g:== gl-transport-route-id)
 	(up-remove-objects search-local object-data-id g:== gl-quarantine-transport-id)
+	(up-remove-objects search-local object-data-id g:== gl-transport-departure-failed-blocker-id)
 	(up-remove-objects search-local object-data-garrison-count > 0)
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-remove-objects search-local object-data-idling != 1)
@@ -6059,17 +6073,22 @@
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-RETRY)
 )
 
-;Only the at-most-three empty, idle, ungrouped, unattacked same-zone Transports
-;surviving the second eligibility reconstruction receive the clearance order.
+;Move only the nearest eligible blocker. P3B44T2 moved as many as three hulls
+;as one group to one occupied ship position; the T2 replay showed the same
+;three hulls still beside a later mission. One exact ID can be verified against
+;the saved mission-hull point before another blocker is touched.
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR)
 	(up-set-target-object search-local c: 0)
 =>
 	(up-get-search-state local-total)
 	(up-modify-goal gl-transport-departure-blockers g:= local-total)
+	(up-get-object-data object-data-id gl-transport-departure-blocker-id)
+	(up-remove-objects search-local object-data-index >= 1)
 	(up-target-point gl-transport-departure-target-x action-move -1 stance-no-attack)
 	(up-modify-goal gl-transport-departure-clear-attempts c:+ 1)
-	(up-chat-data-to-all "RAW44T transport blocker clearance ordered: %d" g: gl-transport-departure-blockers)
+	(set-goal gl-transport-departure-blocker-retries 0)
+	(up-chat-data-to-all "RAW44T transport blocker clearance ordered: %d" g: gl-transport-departure-blocker-id)
 	(up-set-timer c: t-transport-route c: 8)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR-WAIT)
 )
@@ -6087,6 +6106,112 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR-WAIT)
 	(up-timer-status t-transport-route == timer-triggered)
 =>
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-departure-hull-x)
+	(up-add-object-by-id search-local g: gl-transport-departure-blocker-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK)
+)
+
+;A clearance command is not evidence of clearance. The exact blocker must move
+;outside the twelve-tile berth radius before the mission hull is retried.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance > 12)
+=>
+	(up-chat-data-to-all "RAW44T transport blocker cleared: %d" g: gl-transport-departure-blocker-id)
+	(set-goal gl-transport-departure-failed-blocker-id -1)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-RETRY)
+)
+
+;One bounded reissue covers a temporary collision. It does not consume another
+;blocker-selection cycle and cannot become an unbounded movement loop.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance <= 12)
+	(up-compare-goal gl-transport-departure-blocker-retries c:< 1)
+	(up-object-data object-data-garrison-count <= 0)
+	(up-object-data object-data-under-attack <= 0)
+	(up-object-data object-data-group-flag < 0)
+	(up-compare-goal gl-transport-departure-blocker-id g:!= gl-quarantine-transport-id)
+=>
+	(up-target-point gl-transport-departure-target-x action-move -1 stance-no-attack)
+	(up-modify-goal gl-transport-departure-blocker-retries c:+ 1)
+	(up-chat-data-to-all "RAW44T transport blocker clearance retry: %d" g: gl-transport-departure-blocker-id)
+	(up-set-timer c: t-transport-route c: 8)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR-WAIT)
+)
+
+;A ship can be claimed, loaded, attacked, or quarantined during the verification
+;wait. Never reissue clearance onto a hull whose safety status has changed.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance <= 12)
+	(up-compare-goal gl-transport-departure-blocker-retries c:< 1)
+	(up-object-data object-data-garrison-count > 0)
+=>
+	(up-chat-data-to-all "RAW44T transport blocker became unsafe: %d" g: gl-transport-departure-blocker-id)
+	(up-modify-goal gl-transport-departure-failed-blocker-id g:= gl-transport-departure-blocker-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-RETRY)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance <= 12)
+	(up-compare-goal gl-transport-departure-blocker-retries c:< 1)
+	(up-object-data object-data-under-attack > 0)
+=>
+	(up-chat-data-to-all "RAW44T transport blocker became unsafe: %d" g: gl-transport-departure-blocker-id)
+	(up-modify-goal gl-transport-departure-failed-blocker-id g:= gl-transport-departure-blocker-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-RETRY)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance <= 12)
+	(up-compare-goal gl-transport-departure-blocker-retries c:< 1)
+	(up-object-data object-data-group-flag >= 0)
+=>
+	(up-chat-data-to-all "RAW44T transport blocker became unsafe: %d" g: gl-transport-departure-blocker-id)
+	(up-modify-goal gl-transport-departure-failed-blocker-id g:= gl-transport-departure-blocker-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-RETRY)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance <= 12)
+	(up-compare-goal gl-transport-departure-blocker-retries c:< 1)
+	(up-compare-goal gl-transport-departure-blocker-id g:== gl-quarantine-transport-id)
+=>
+	(up-chat-data-to-all "RAW44T transport blocker became unsafe: %d" g: gl-transport-departure-blocker-id)
+	(up-modify-goal gl-transport-departure-failed-blocker-id g:= gl-transport-departure-blocker-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-RETRY)
+)
+
+;If the nearest blocker cannot leave, exclude it from the next bounded scan so
+;another adjacent hull can move first and release the local collision chain.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance <= 12)
+	(up-compare-goal gl-transport-departure-blocker-retries c:>= 1)
+=>
+	(up-chat-data-to-all "RAW44T transport blocker clearance failed: %d" g: gl-transport-departure-blocker-id)
+	(up-modify-goal gl-transport-departure-failed-blocker-id g:= gl-transport-departure-blocker-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-RETRY)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-chat-data-to-all "RAW44T transport blocker absent: %d" g: gl-transport-departure-blocker-id)
+	(set-goal gl-transport-departure-failed-blocker-id -1)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-RETRY)
 )
 

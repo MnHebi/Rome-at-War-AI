@@ -1428,6 +1428,68 @@
         "P3B44T1's original departure-congestion acceptance was not exercised by this event because Transport 32174 made normal waypoint progress. That earlier runtime criterion remains pending."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260829-131027-p3b44t2-all-transport",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.29 131027.aoe2record",
+        "sha256": "932E900C02D50DD01B0FC24FF3B113F562BACE88F102B180C7316550B1412F88",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The selected visible colors and resolved teams match the preserved authoritative lobby. Color is not inferred from lobby row or internal color_id.",
+        "duration_seconds": 6199,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The replay parsed with zero errors, lasted 1:43:19, and startup chat contains RAWAI-P3B44T2: 443 from players 2 through 8. Selected-color metadata independently resolves the preserved Red/Green/Yellow/Purple Roman team and Orange Picts/Cyan Britons/Blue Germani/Gray Gauls team.",
+        "A systematic all-player union found 28 active transport hulls, 393 load commands, 284 unload commands, 108 alternating load-to-unload phases, 10 load-only phases, and 4 unload-only phases. These low-level phases are evidence inputs rather than an assertion that each phase is a separate mission.",
+        "Eighteen public landing-screen events collapse to seventeen semantic assault missions. Fifteen reached an unload window: six completed and nine timed out. Two Green missions failed at departure congestion before an unload window. Completed missions were Purple 2, Orange 3, and Cyan 1; timed-out missions were Orange 6 and Cyan 3.",
+        "Every landing-screen event has an exact same-timestamp Scout Ship move action. None of the fifteen unload windows contains a guard action targeting its active hull. Both Purple unload windows completed, at 62:59 and 88:41, establishing that the P3B44T2 landing-screen/escort spacing fix worked in this replay.",
+        "Green's two failed assault missions used hulls 58807 and 30210. Each reported three blockers and then issued one group move containing the same exact ships 30476, 53715, and 57617. The loaded hull made no progress and each mission ended in departure-congestion-unresolved recovery.",
+        "Purple's user-observed odd actions around 14 and 24 minutes were hull 30184's scout-migration landing recovery. It tried the selected landing and four fixed eight-tile diagonal offsets, then returned home after all five unload positions failed.",
+        "Yellow hull 30277 landed villagers at 27:13/27:34. Passenger 29895 issued a Mining Camp build at 28:38 within two tiles of the landing, corroborating the user's successful-migration observation.",
+        "Purple hull 30184 landed twenty builder-capable passengers at 82:57/83:17. Passenger 30667 issued a Mining Camp build at 83:36, but one second later nineteen passengers were ordered to reboard and the hull began home unloads, so no drop-off became established.",
+        "Orange hull 34221 landed twenty builder-capable passengers at 83:36-84:16. No landed passenger issued a Mill, Lumber Camp, or Mining Camp build within twenty-four tiles during the remaining replay; fifteen passengers were told to reboard at 86:02 and never received a later unload before the replay ended.",
+        "Orange's first public assault-screen event occurred at 42:26 and its first completed assault landing at 53:41. The replay has no serialized defeat/resignation notice for Blue or Gray, so the user's observation that Orange waited until those allies were effectively defeated is preserved without claiming an exact controller gate."
+      ],
+      "implementation_inferences": [
+        "P3B44T2's exact Scout displacement and unload-window guard suppression are runtime-validated by direct command correlation across every reconstructable assault mission; the previously observed friendly-Scout landing obstruction is closed.",
+        "P3B44T1 moved all selected departure blockers as one group and assumed success after a fixed wait. The identical three ships being selected in Green's later mission proves that the command did not clear them, while the controller had no post-move blocker-distance verification. That is the first causal divergence for the remaining departure-congestion defect.",
+        "Purple's immediate recall after a Mining Camp build command follows the migration path in which a global pending-object count advances to drop-site assignment but no concrete nearby same-zone foundation is searchable. The no-target assignment branch immediately marks the drop site failed and bypasses the intended timed placement retries.",
+        "Orange's migration has no public per-controller self telemetry establishing whether anchor discovery, placement ownership, affordability, or a watchdog blocked its drop site. That exact cause remains investigating rather than inferred.",
+        "The nine assault unload timeouts repeatedly reuse low/inaccessible candidates, including Orange near 182,119 and Cyan near 116,1, with no unload-window guard interference. Failed-landing coordinate memory is a separate defect and is not part of the departure-clearance patch."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B44T3. Preserve P3B44T2 landing-screen and escort spacing unchanged.",
+        "Move only one exact eligible empty departure blocker per selection. Save its object ID, rebuild that exact object after eight seconds, and verify that it is now more than twelve tiles from the loaded mission hull.",
+        "If the exact blocker remains nearby and is still empty, unattacked, ungrouped, and unquarantined, reissue its move once. If it remains or becomes unsafe, record its ID as failed, exclude it from the next scan, and try a different eligible blocker. Bound the mission at three blocker selections before the existing terminal recovery path.",
+        "Emit bounded ordered, retry, cleared, failed, unsafe, and absent events carrying the exact blocker ID so a fresh replay proves actual movement rather than command issuance."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports all runtime files byte-identical to this branch and replay startup chat contains RAWAI-P3B44T3: 444.",
+        "A departure-congested mission identifies an exact blocker, issues its move, and subsequently emits blocker-cleared only after that exact object's distance from the mission hull exceeds twelve tiles.",
+        "After one or more verified blocker clearances, the loaded hull emits departure-resumed, leaves the embarkation area, and continues the unchanged waypoint and landing sequence.",
+        "A blocker that ignores both exact move orders is tagged failed and excluded while a different blocker is considered. No mission performs more than three selections, and an unresolvable case emits one congestion-unresolved terminal before recovery.",
+        "Landing-screen Scouts still move away at screen completion, no guard command targets a hull during its unload window, and previously successful Purple-style assault landings remain successful."
+      ],
+      "known_limits": [
+        "Replay commands do not encode ship collision polygons. Fresh runtime evidence must demonstrate that verified individual clearance lets the loaded hull depart; structural checks cannot close that criterion.",
+        "This patch does not change migration landing selection, migration drop-site establishment, attack landing selection/memory, assault activation timing, hostile route safety, or passenger policy. Those separately evidenced defects remain in the handoff ledger.",
+        "Orange's private controller gates are not serialized into the public replay stream, so its delayed first assault and drop-site failure require targeted public telemetry before a causal fix."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

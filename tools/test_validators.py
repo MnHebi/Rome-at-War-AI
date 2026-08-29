@@ -5056,7 +5056,7 @@ class FarmPolicyTests(unittest.TestCase):
 
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         self.assertIn(
-            '(up-chat-data-to-all "RAWAI-P3B44T2: %d" c: 443)',
+            '(up-chat-data-to-all "RAWAI-P3B44T3: %d" c: 444)',
             self.init_goals,
         )
         initial = matching_rules(
@@ -5120,7 +5120,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "TRANSPORT-ROUTE-DEPARTURE-ORIGIN",
                 "object-data-distance <= 20",
                 "object-data-garrison-count > 0",
-                "gl-transport-departure-clear-attempts c:< 2",
+                "gl-transport-departure-clear-attempts c:< 3",
             ),
             actions=(
                 "(set-goal gl-transport-departure-congested YES)",
@@ -5141,13 +5141,13 @@ class FarmPolicyTests(unittest.TestCase):
                 "up-set-target-point gl-transport-departure-hull-x",
                 "(up-filter-distance c: -1 c: 12)",
                 "(up-find-local c: transport-ship c: 20)",
-                "object-data-index >= 3",
             ),
         )
         self.assertEqual(len(blocker_scans), 2)
         required_exclusions = (
             "object-data-id g:== gl-transport-route-id",
             "object-data-id g:== gl-quarantine-transport-id",
+            "object-data-id g:== gl-transport-departure-failed-blocker-id",
             "object-data-garrison-count > 0",
             "object-data-under-attack > 0",
             "object-data-idling != 1",
@@ -5191,10 +5191,24 @@ class FarmPolicyTests(unittest.TestCase):
                 "(up-set-target-object search-local c: 0)",
             ),
             actions=(
+                "object-data-id gl-transport-departure-blocker-id",
+                "object-data-index >= 1",
                 "gl-transport-departure-target-x action-move",
                 "gl-transport-departure-clear-attempts c:+ 1",
                 "RAW44T transport blocker clearance ordered: %d",
                 "TRANSPORT-ROUTE-DEPARTURE-CLEAR-WAIT",
+            ),
+        )
+        verified = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK",
+                "object-data-distance > 12",
+            ),
+            actions=(
+                "RAW44T transport blocker cleared: %d",
+                "gl-transport-departure-failed-blocker-id -1",
+                "TRANSPORT-ROUTE-DEPARTURE-RETRY",
             ),
         )
         retry = matching_rules(
@@ -5222,9 +5236,95 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(clearance), 1)
+        self.assertEqual(len(verified), 1)
         self.assertEqual(len(retry), 1)
         self.assertEqual(len(resumed), 1)
         self.assertNotIn("TRANSPORT-ROUTE-RECOVERY-WAIT", resumed[0][4])
+
+    def test_transport_departure_clearance_verifies_one_exact_blocker(self) -> None:
+        rebuild = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-WAIT",
+                "t-transport-route == timer-triggered",
+            ),
+            actions=(
+                "up-set-target-point gl-transport-departure-hull-x",
+                "up-add-object-by-id search-local g: gl-transport-departure-blocker-id",
+                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK",
+            ),
+        )
+        retry = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK",
+                "object-data-distance <= 12",
+                "gl-transport-departure-blocker-retries c:< 1",
+                "object-data-garrison-count <= 0",
+                "object-data-under-attack <= 0",
+                "object-data-group-flag < 0",
+                "gl-transport-departure-blocker-id g:!= gl-quarantine-transport-id",
+            ),
+            actions=(
+                "gl-transport-departure-target-x action-move",
+                "gl-transport-departure-blocker-retries c:+ 1",
+                "RAW44T transport blocker clearance retry: %d",
+                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-WAIT",
+            ),
+        )
+        failed = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK",
+                "object-data-distance <= 12",
+                "gl-transport-departure-blocker-retries c:>= 1",
+            ),
+            actions=(
+                "RAW44T transport blocker clearance failed: %d",
+                "gl-transport-departure-failed-blocker-id g:= gl-transport-departure-blocker-id",
+                "TRANSPORT-ROUTE-DEPARTURE-RETRY",
+            ),
+        )
+        absent = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK",
+                "(not (up-set-target-object search-local c: 0))",
+            ),
+            actions=(
+                "RAW44T transport blocker absent: %d",
+                "gl-transport-departure-failed-blocker-id -1",
+                "TRANSPORT-ROUTE-DEPARTURE-RETRY",
+            ),
+        )
+        self.assertEqual(len(rebuild), 1)
+        self.assertEqual(len(retry), 1)
+        self.assertEqual(len(failed), 1)
+        self.assertEqual(len(absent), 1)
+
+        became_unsafe = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK",
+                "object-data-distance <= 12",
+                "gl-transport-departure-blocker-retries c:< 1",
+            ),
+            actions=(
+                "RAW44T transport blocker became unsafe: %d",
+                "gl-transport-departure-failed-blocker-id g:= gl-transport-departure-blocker-id",
+                "TRANSPORT-ROUTE-DEPARTURE-RETRY",
+            ),
+        )
+        self.assertEqual(len(became_unsafe), 4)
+        self.assertTrue(any("object-data-garrison-count > 0" in rule[3] for rule in became_unsafe))
+        self.assertTrue(any("object-data-under-attack > 0" in rule[3] for rule in became_unsafe))
+        self.assertTrue(any("object-data-group-flag >= 0" in rule[3] for rule in became_unsafe))
+        self.assertTrue(
+            any(
+                "gl-transport-departure-blocker-id g:== gl-quarantine-transport-id" in rule[3]
+                for rule in became_unsafe
+            )
+        )
 
     def test_transport_departure_clearance_failure_is_terminal_and_bounded(self) -> None:
         terminal = matching_rules(
@@ -5233,7 +5333,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "TRANSPORT-ROUTE-DEPARTURE-ORIGIN",
                 "object-data-distance <= 20",
                 "object-data-garrison-count > 0",
-                "gl-transport-departure-clear-attempts c:>= 2",
+                "gl-transport-departure-clear-attempts c:>= 3",
             ),
             actions=(
                 "RAW44T transport departure congestion unresolved: %d",
