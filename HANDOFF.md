@@ -1,177 +1,203 @@
 # Rome at War AI handoff
 
-## Canonical workspace and Git state
+## Workspace and Git identity
 
-- Canonical working directory: `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
-- Git repository root: `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
-- Active branch: `codex/replay-economy-build-order`
-- Recorded HEAD: `f8a83aeb9950cd3f25e77168b3607a023ebe6112`
-- Pull request: <https://github.com/MnHebi/Rome-at-War-AI/pull/4>
-- Installed runtime marker: `RAWAI-P3B35:35`
-- Installed 68-file runtime SHA-256: `2A951401E947422EBB0D53020AA6FD4B51CFA3C3D3BFDCA50EBDAAFB9B8FFBD6`
+The single canonical development workspace remains:
 
-The legacy directory
-`G:\Projects\Codex\Rome at War AI\Rome-at-War-AI-main` is a noncanonical
-extracted source snapshot and has no `.git` metadata. A full Git clone was
-created at the canonical path on 2026-08-23 16:27:54 +03:00. The move to that
-clone was not reported to the user at the time. The workspace-root, canonical,
-and legacy `AGENTS.md` copies now all identify the canonical path above.
+`G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
 
-At the time this handoff was initialized, the recorded HEAD was synchronized
-with `origin/codex/replay-economy-build-order` and the working tree was clean.
-Commit `93f78b5` (`RAWAI-P3B33`) then landed the military-stance change set
-described below and is pushed to the PR branch; the installed test AI is
-re-synchronized to the same runtime SHA-256.
+- Git root: same path.
+- Branch: `codex/replay-economy-build-order`.
+- Recorded HEAD: `fbaaae134fb74e46ff0872d4747a3654c7b64d1c`.
+- Pull request: <https://github.com/MnHebi/Rome-at-War-AI/pull/4>.
+- Working-tree exception on 2026-08-29: `AGENTS.md` is the user's modified
+  replacement project-rules file and matches the workspace-root copy. Preserve
+  it; do not discard or silently normalize it.
 
-## Current milestone
+This handoff belongs to the dedicated transport-development worktree:
 
-Obtain a fresh P3B32 Britannia 4v4 replay and complete runtime validation of
-the four-form Roman Legionary producers and scaled, identified allied resource
-aid. Continue resolving the established pathing, transport, trade-growth,
-taunt-command, tactical-idleness, and command-flood defects using replay and
-source evidence.
+`G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`
 
-## Unresolved defects
+- Git root: same transport path.
+- Branch: `recovery/p3b44-transport-only`.
+- Starting/base commit: exact P3B44
+  `8ec870075d08fcac98bad55b4ff045bf7abbc42e`.
+- Causal implementation commit: `94fceb4` (`Clear friendly transport departure
+  congestion`).
+- Project-rules synchronization commit: `bcd484f` (`Adopt evidence-first
+  project rules`).
+- Purpose: one transport-only patch for a loaded assault Transport obstructed
+  at departure by friendly idle Transports.
+- Status: experimental P3B44-derived development worktree. It does not replace
+  the canonical workspace.
+- Future ordinary development must use the canonical workspace. Continue this
+  exact runtime experiment only in this transport worktree.
 
-- DeepSeek edited the noncanonical `Rome-at-War-AI-main` snapshot before the
-  canonical-workspace discrepancy was discovered. Do not infer that those
-  edits belong in the Git repository; audit and reconcile them deliberately if
-  the user requests recovery of any of that work.
-- Taunt 69 has repeatedly acknowledged the command without visibly deleting
-  the intended flared structure. P3B31 changed flare ownership and command-state
-  cleanup, but successful visible deletion still needs fresh confirmation.
-- Green repeatedly attempted to place a Shipyard on an unreachable beach behind
-  cliffs and attempted Transport loading across cliffs.
-- Red produced only two Merchant Vessels despite a verified trade route; the
-  intended 100/160-unit profitable trade growth remains unverified.
-- No Roman Empire player trained a Legionary in the P3B31 replays. P3B32 now
-  probes all ranged/melee and base/elite forms, but runtime success remains
-  unverified.
-- Purple repeatedly requested and bought wood yet remained without it for long
-  periods. P3B32 scales team requests to 600 nominal, sends reserve-safe
-  200-resource donor tranches, and identifies the recipient player; actual
-  delivery and net tribute remain unverified.
-- Assault Transport missions still show frequent boarding aborts, unloads, or
-  loaded hulls that fail to depart or land. P3B33 raised the home-recall
-  threshold and dampened the flip-flop; P3B34 fixed the relief chatter. The
-  28/8 replay still shows one loaded lift repeatedly loading/unloading (possible
-  trading-vessel pathing obstruction) and a migration that unloaded settlers but
-  produced no resource drop site.
-- Red's late army became largely frozen around its Town Center; P3B33 addresses
-  the flip-flop half, but the late order loop toward object 34518 remains
-  unresolved.
-- Taunt chatter is fixed for the help path (42 to 39, two-unit threshold,
-  self-response), but a random per-AI response delay is still wanted so three
-  allies do not answer the same taunt in the same instant.
-- Idle empty Transports still stage at their Port when no other same-basin ship
-  is at least 24 tiles away ("port hull staging failed" / "empty transport no
-  staging point"), blocking fishing/merchant dropoffs; a safe offset-from-port
-  fallback staging point is still needed.
-- Wall planning does not reject a route that enters an enemy town perimeter,
-  risking the wall-building villagers.
-- Priests attached to attack groups stand idle instead of healing or converting.
-- Units attack enemy Town Centers without a sufficient force, instead of
-  raiding less-defended outlying resources.
-- Migration has reached a remote island, but passenger retasking and sustained
-  resource work after drop-site completion require fresh confirmation.
-- Command flood (28/8 replay, 410,021 ACTION ops / 61 min): the largest source
-  (165,882 villager WORK retasks) is fixed in P3B35. Two sources remain: a
-  single DUC-owned ship ordered ~22,000 times over 33:20-45:28 (likely a
-  naval controller re-ordering to a fixed point each pass), and ~37,000 attack
-  orders by player 6 against one object (engine TSA re-targeting). Both need a
-  fresh P3B35 replay to identify the exact owner.
-- Port collision recovery, Palintonon packed-state recovery, Transport path
-  safety, and naval opportunity engagement remain unverified in a fresh match.
-- Cross-water allied relief is not implemented, and some tactically idle ships
-  may remain owned by another controller.
-- The game crash has no proven AI root cause. Existing dumps identify heap
-  corruption detection without the earlier corrupting writer.
+Other controls:
 
-## Important recent changes
+- `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-attack-baseline`,
+  branch `recovery/p3b44-attack-baseline`, exact commit `8ec8700`: immutable
+  attack-capable control. Never edit, regenerate, or relabel it.
+- `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-friendly-fire-defense`,
+  branch `recovery/p3b44-friendly-fire-defense`, HEAD `92b3cf9`: isolated
+  P3B44D1 allied-friendly-fire diagnostic. It is preserved but is no longer the
+  installed test runtime.
+- `G:\Projects\Codex\Rome at War AI\Rome-at-War-AI-main` is an obsolete
+  noncanonical extracted snapshot and must not be used.
 
-- `f8a83ae` (`RAWAI-P3B35`): the four post-depletion gatherer-allocation rules
-  are now one-shot, stopping the per-sweep rewrite of the gatherer percentages
-  that drove the 165,882 WORK (villager retask) actions in the 28/8 replay; each
-  allocation logs a replay-visible reason.
-- `2674e7a` (`RAWAI-P3B34`): help-decline replies use taunt 39 instead of the
-  unrelated 42, a relief request needs two same-zone threats, and an AI ignores
-  its own taunt 48 instead of answering its own call for help.
-- `93f78b5` (`RAWAI-P3B33`): a forty-five-second attack-commitment window plus
-  a two-unit defense-latch trigger (five land / four naval severe override) stop
-  the attack/defend flip-flop; the two naval-timer executors use a distinct
-  wake owner so they do not arm the dwell; and the loaded-Transport home-recall
-  threshold is raised from one to two threats.
-- `ef96d9e` (`RAWAI-P3B32`) probes all four concrete Legionary forms for Roman
-  Empire and Roman Republic production under one aggregate family bound and a
-  shared request deadline.
-- P3B32 replaces fixed 100-resource allied aid with a 600-resource team request,
-  one 200-resource tranche per eligible donor, protected reserves, and replies
-  naming the exact recipient player number.
-- Roman diagnostics now distinguish all-four engine availability results from
-  all-four concrete trainability blockage for both Roman civilizations.
-- `5649977` preserves opaque binary replay-action payloads in analyzer JSON.
-- Replay metadata now joins command players through validated player numbers
-  and uses the DE header's selected visible colors.
-- P3B31 bounded Pict-team Cow requests, retasked migration settlers after a
-  completed drop site, reduced attack-lift manifests, revised taunt flare
-  ownership and cleanup, released late engine explorer budgets, and bounded
-  Castle placement retries.
+## Installed runtime identity
 
-## Generated diagnostic artifacts
+- Marker: `RAWAI-P3B44T1:442`.
+- Runtime files: 68.
+- Source and installed target SHA-256:
+  `9C5860AA19D40627A0FF170570484BFEA9C889B92D5E8554797273AC395DE97A`.
+- Deployment check: no missing, different, or unexpected runtime files.
+- Only `rawai-customconstants.per`, `rawai-init-goals.per`, and
+  `rawai-military.per` differed from the previously installed P3B44D1
+  diagnostic, and exactly those three files were replaced.
 
-- Latest compact replay report (28/8 crash test):
-  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260828-005137-compact.json`
-- Prior full replay report:
-  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260827-164510-full.json`
-- Prior compact replay report:
-  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260827-164510-compact.json`
-- Replay benchmark knowledge: `replay-benchmarks.json`
-- Unique production audit: `unique-unit-production.json`
-- Generated unit evaluation: `good-unit-evaluations.json`
-- Generated naval scores: `naval-capability-scores.json`
-- Generated naval doctrine: `rawai-naval-doctrine.per`
-- External crash dumps:
-  `C:\AoE2CrashDumps\AoE2DE_s.exe_260827_131920.dmp` and
-  `C:\AoE2CrashDumps\AoE2DE_s.exe_260827_132003.dmp`
+## Current objective and preserved behavior
 
-## Tests and replays already performed
+Run a fresh preserved-lobby replay that places several empty friendly
+Transports around a loaded assault Transport and proves that the mission hull
+detects non-progress, orders eligible blockers away, makes measured progress,
+leaves the embarkation area, and continues its original route.
 
-- Full P3B32 regression suite: 110 tests passed.
-- Replay-benchmark validator: 20 benchmarks passed.
-- PER, strategy execution, civilization strategy synchronization, good-unit
-  JSON, ODS workbook, naval doctrine, and generated naval-score checks passed.
-- Installed test runtime matched all 68 repository runtime files at the SHA-256
-  recorded above.
-- Latest analyzed replay:
-  `SP Replay v101.103.48987.0 @2026.08.28 005137.aoe2record`
-- Latest replay duration: 3672 seconds (61:12); the game crashed before a normal
-  end, so no postgame record was decoded. Observations: taunt-42 help replies,
-  an AI answering its own help call, simultaneous ally replies, false help
-  calls, Transports staging at Ports, an attack lift repeatedly loading and
-  unloading, a migration unload with no drop site, idle priests, under-strength
-  Town Center attacks, plus confirmed Legionary production, Battering Ram
-  coordination, and much-improved Transport usage.
+P3B44 Gray/Blue combined attacks are the known-good behavior at regression
+risk. This patch must preserve ordinary land attack dispatch, superiority,
+timing, target selection, home defense, escalation, and every non-transport
+attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
 
-## Next recommended actions
+## Defect ledger
 
-1. Before editing, compare the current Git root, branch, HEAD, and working-tree
-   state with the canonical workspace recorded above.
-2. In the next fresh match, verify `RAWAI-P3B35` and that the per-minute WORK
-   retask count drops sharply once resources deplete (the P3B35 fix), then
-   confirm the remaining DUC-loop and attack-retarget flood owners from the
-   AI_ORDER/ORDER stream.
-3. Confirm the P3B33 stance behavior: the army no longer alternates
-   attack/home-defense on lone raiders, a real multi-unit raid still latches
-   defense, and assault Transports board, depart, and land without being
-   recalled by single raiders.
-4. Implement a random per-AI taunt-response delay so allies stop answering the
-   same taunt in the same instant.
-5. Add a safe offset-from-Port fallback staging point so idle Transports no
-   longer block fishing/merchant dropoffs when no other ship is 24-plus tiles
-   away.
-6. Continue taunt-69 visible deletion, behind-cliff Shipyard placement,
-   attack-lift load/unload churn, migration drop-site work, idle priests,
-   under-strength Town Center attacks, and the late Town Center order loop.
-7. Analyze the next replay with `tools/analyze_replay.py`, update
-   `replay-benchmarks.json`, rerun the complete validation set, synchronize the
-   installed test AI, and update this handoff before ending the session.
+### Friendly Transport departure congestion
+
+- **Status:** FIXED-PENDING-RUNTIME.
+- **User-visible symptom:** Purple had a loaded mission Transport that could not
+  get underway because Purple's own idle Transports physically blocked it. The
+  loaded hull remained stuck.
+- **Direct evidence:** user visual observation in
+  `SP Replay v101.103.48987.0 @2026.08.29 110101.aoe2record`.
+- **Proven failure mechanism:** P3B44's
+  `TRANSPORT-ROUTE-WAYPOINT-WAIT/CHECK` treated `distance > 8` as sufficient to
+  reissue the identical waypoint every eight seconds. It had no previous/best
+  distance, progress threshold, stall count, clearance attempts, or terminal
+  bound. Both independent transport-clear entry rules require
+  `TRANSPORT-ROUTE-IDLE`; they cannot run during an active route and are
+  designed for stale partial loads or empty idle Port/Shipyard obstruction.
+- **Contradictory/unknown evidence:** replay data does not expose hull collision
+  geometry or arbitrary per-hull path progress. Runtime escape remains to be
+  demonstrated visually and through the public telemetry.
+- **Implementation:** P3B44T1 initializes best/current waypoint distance from
+  the exact reserved hull, requires two tiles of improvement, resets the stall
+  count on progress, and checks the saved embarkation point after three
+  non-progress samples. Only a loaded hull still within twenty tiles of origin
+  can enter congestion handling.
+- **Blocker safety:** the active route can select at most three nearby own
+  Transport Ships. It excludes the exact mission ID, quarantined ID, every
+  loaded, attacked, non-idle, grouped, or different-water-zone hull. It does
+  not start the independent transport-clear controller.
+- **Movement proof:** blockers move to the exact position of another known own
+  ship 28-200 tiles away in the same water zone. No arbitrary geometric water
+  coordinate is invented. Issuance is logged as `blocker clearance ordered`;
+  only measured mission-hull progress can log `departure resumed`.
+- **Retry/failure:** after an eight-second clearance wait, a producer and its
+  immediately following consumer reconstruct the exact mission hull in one
+  rule sweep and reissue the unchanged waypoint. Two failed clearance attempts
+  emit exactly one `departure congestion unresolved` reason and enter the
+  existing loaded-lift recovery owner.
+- **Acceptance criterion:** a loaded hull obstructed by friendly idle
+  Transports logs the bounded stall and blocker count, one or more eligible
+  blockers receive the clearance order, the exact hull's waypoint distance
+  then decreases, it leaves origin, and the existing landing mission continues.
+  No unsafe hull is displaced and P3B44 ordinary attacks remain effective.
+- **Latest result:** all deterministic/static criteria PASS. Fresh runtime
+  acceptance is still required, so the defect is not CLOSED.
+- **Next action:** run the P3B44T1 congestion replay and attach it for analysis.
+
+### Deliberately unchanged defects
+
+This one-cause patch does not change or claim to fix:
+
+- cliff-bound landing points or remote unloading failures;
+- route-scouting, route-threat scanning, landing selection, or naval pathfinding;
+- passenger policy, partial-assault departure, migration, or relic ferries;
+- hostile-fire survival, enemy landing memory, Port placement, or transport
+  production quantity;
+- the separate allied-friendly-fire defense trigger;
+- taunt 69 deletion, behind-cliff Shipyard construction, command flooding,
+  Merchant Vessel growth, allied resource aid, Palintonon recovery, Market
+  buying, Wonder construction, or cross-water allied relief;
+- the unexplained heap-corruption crash, whose existing dumps show detection
+  rather than the earlier corrupting writer.
+
+## Replay evidence and artifacts
+
+- Replay basename:
+  `SP Replay v101.103.48987.0 @2026.08.29 110101.aoe2record`.
+- SHA-256:
+  `C1F85E836D59CBC2D77643D2608930DC3D7940C3ECFDC6081F0C08BBF833917F`.
+- Duration: 58:51; the user manually resigned. This replay did not crash.
+- Preserved lobby mapping: Red/Green/Yellow/Purple Roman Empire versus Orange
+  Picts, Cyan Britons, Blue Germani, and Gray Gauls.
+- External compact analysis:
+  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260829-110101-p3b44-compact.json`.
+- Repository evidence entry:
+  `britain-4v4-20260829-110101-p3b44-transport-congestion` in
+  `replay-benchmarks.json`.
+- The prior immutable P3B44 deployment had 68 files and SHA-256
+  `EE04DE7BFA1448E90D54E8AC592D0EEECF4E9DAD93100272D2941F0209B75846`.
+
+Replay/savegame files, compact parser output, crash dumps, and Rome at War data
+mod files remain external and must never be committed to the AI repository.
+
+## Validation performed
+
+- Moving normally: PASS.
+- Stalled near origin: PASS.
+- Ownership safety: PASS.
+- Clearance success: PASS.
+- Clearance failure: PASS.
+- Focused suite: PASS (5 tests).
+- Full P3B44-derived regression suite: PASS (115 tests).
+- PER structural/operand validation: PASS.
+- Naval-doctrine validation: PASS.
+- Strategy execution: PASS (1,156 total matchups; 1,149 historical and 1,152
+  Extreme matchups with adjustments).
+- ODS workbook round trip: PASS (34 civilizations, 680 unit-evidence rows, 340
+  naval-class rows).
+- Replay benchmarks: PASS (21 entries).
+- `git diff --check`: PASS; only expected CRLF notices.
+- Adversarial baseline comparison: PASS. The only four original military rules
+  changed are the transport-route screen-departure rule and three
+  waypoint-check branches. All are scoped by `gl-transport-route-state`.
+  `up-target-objects`, `up-retreat-now`, `up-reset-attack-now`, `attack-now`,
+  and `up-find-player` counts are identical to immutable P3B44. The additional
+  `up-target-point` and search resets belong only to the congestion state
+  machine.
+- Every new departure state has a producer and consumer. The terminal reason and
+  blocker-clearance order each occur once in source, and all retry paths are
+  bounded by two clearance attempts.
+- `validate_good_units.py` has a pre-existing P3B44 provenance-hash failure;
+  frozen unit-strategy material is outside this transport patch.
+- Installed runtime byte verification: PASS.
+- Fresh engine/replay acceptance: REQUIRED.
+
+## Exact next actions
+
+1. Verify this worktree's branch, HEAD, and clean state against this document.
+2. Start the preserved Britannia 4v4 lobby and confirm public marker
+   `RAWAI-P3B44T1` appears near startup.
+3. Cluster several empty idle friendly Transports around an embarkation area and
+   allow one assault Transport to load behind or among them.
+4. Preserve the sequence `transport departure stalled`, `transport blockers
+   found`, `transport blocker clearance ordered`, and `transport departure
+   resumed` or the single bounded unresolved terminal.
+5. Visually confirm that selected blockers are empty/idle, the loaded hull
+   actually leaves, and its original assault continues. Confirm Gray/Blue
+   ordinary combined attacks remain comparable to P3B44.
+6. Attach the replay. Analyze exact IDs, distances, counts, order cadence, and
+   final mission outcome. Mark the defect CLOSED only after runtime PASS.
+7. Do not continue into another transport defect in this branch after this
+   congestion result; port only the proven causal fix as a separate canonical
+   change when appropriate.
