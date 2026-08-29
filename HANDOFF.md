@@ -13,7 +13,7 @@ The single canonical development workspace remains:
 - Working-tree exception on 2026-08-29: `AGENTS.md` is the user's modified
   replacement project-rules file and matches the workspace-root copy. Preserve
   it; do not discard or silently normalize it.
-- Current canonical status observed after the P3B44T3 transport session:
+- Current canonical status observed before the P3B44T4 transport session:
   `AGENTS.md` and `HANDOFF.md` are modified and
   `tools/clean_smx_magenta.py` / `tools/test_smx_magenta.py` are untracked.
   Those are concurrent DeepSeek/user changes; do not alter or absorb them from
@@ -32,15 +32,19 @@ This handoff belongs to the dedicated transport-development worktree:
 - Landing-clearance implementation commit: `f6ac4fb` (`Clear friendly Scouts
   from transport landings`).
 - Verified exact-blocker implementation commit: `3ee2002` (`Verify transport
-  blockers before departure retry`). This is the current runtime code HEAD
-  before this handoff documentation commit.
+  blockers before departure retry`). This is the runtime-validated P3B44T3
+  implementation.
+- Exact-passenger implementation commit: `19c0beb` (`Verify relic ferry
+  passenger before departure`). This is the current P3B44T4 behavior HEAD
+  before this handoff documentation-only successor.
 - Project-rules synchronization commit: `bcd484f` (`Adopt evidence-first
   project rules`).
 - Purpose: P3B44-derived transport-only development. P3B44T1 introduced loaded
   departure congestion handling; P3B44T2 fixed final-landing obstruction by
-  route-screen and escort Scouts; P3B44T3 corrects T1's replay-proven
+  route-screen and escort Scouts; P3B44T3 corrected T1's replay-proven
   group-and-assume blocker clearance by moving and verifying one exact safe
-  blocker at a time.
+  blocker at a time; P3B44T4 directly verifies the reserved relic-ferry
+  passenger after P3B44T3 proved two load-recognition failures.
 - Status: experimental P3B44-derived development worktree. It does not replace
   the canonical workspace.
 - Future ordinary development must use the canonical workspace. Continue this
@@ -60,21 +64,23 @@ Other controls:
 
 ## Installed runtime identity
 
-- Marker: `RAWAI-P3B44T3:444`.
+- Marker: `RAWAI-P3B44T4:445`.
 - Runtime files: 68.
 - Source and installed target SHA-256:
-  `314AAD946AC09B3807AFEADD859C70CFBA7F685DDA5695E6C985BBD1763180EE`.
-- Deployment check: no missing, different, or unexpected runtime files.
-- Relative to installed P3B44T2, exactly `rawai-customconstants.per`,
-  `rawai-init-goals.per`, and `rawai-military.per` differed and were replaced.
+  `2814EE423EDB01965FE491FA896CA678E71C0ADE94C54E621826506C157DE8EC`.
+- Deployment check: all 68 runtime files are byte-identical, with no missing,
+  different, or unexpected runtime files. Relative to P3B44T3, exactly
+  `rawai-customconstants.per`, `rawai-init-goals.per`, and
+  `rawai-military.per` were copied.
 
 ## Current objective and preserved behavior
 
-Run a fresh preserved-lobby P3B44T3 replay that exercises friendly Transport
-departure congestion. Prove that one exact safe blocker moves beyond the
-twelve-tile berth radius before the routine reports it cleared, then prove the
-loaded mission hull resumes the unchanged route. Reconfirm the already
-runtime-validated P3B44T2 screen/escort landing behavior as a non-regression.
+Deploy P3B44T4 and run a fresh preserved-lobby replay that exercises a relic
+ferry. Prove that the exact reserved Priest/Brahmin becomes garrisoned, causes
+the reserved hull's outbound unload command before the hard watchdog, visits
+the intended off-home relic, reboards the same hull, and returns to a home
+Monastery. Reconfirm the now runtime-closed P3B44T3 departure clearance and
+P3B44T2 landing screen/escort behavior as non-regressions.
 
 P3B44 Gray/Blue combined attacks are the known-good behavior at regression
 risk. This patch must preserve ordinary land attack dispatch, superiority,
@@ -85,7 +91,7 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
 
 ### Friendly Transport departure congestion
 
-- **Status:** FIXED-PENDING-RUNTIME.
+- **Status:** CLOSED.
 - **User-visible symptom:** Purple had a loaded mission Transport that could not
   get underway because Purple's own idle Transports physically blocked it. The
   loaded hull remained stuck.
@@ -127,11 +133,63 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
   after measured separation; the loaded hull then logs `departure resumed`,
   leaves origin, and continues the existing mission. Unsafe hulls are skipped,
   failures remain bounded, and ordinary P3B44 attacks remain effective.
-- **Latest result:** causal replay evidence, implementation, focused tests,
-  full static/regression validation, deployment, and byte verification PASS.
-  Fresh P3B44T3 engine/replay acceptance remains required; not CLOSED.
-- **Next action:** attach a P3B44T3 replay containing departure telemetry and
-  inspect every transport lifecycle across all players.
+- **Latest runtime result:** in the 15:12 P3B44T3 replay, Blue loaded hull
+  31205 reported departure congestion at 44:26. Exact blocker 37204 received
+  one move and one bounded retry, then emitted `blocker cleared` at 44:42; the
+  source can emit that event only after the exact blocker exceeds twelve tiles
+  from the mission hull. Hull 31205 resumed at 44:51, issued its remote unload
+  at 45:08, completed the landing at 45:47, and withdrew home. This directly
+  satisfies the scoped runtime criterion.
+- **Non-regression result:** the same mission's route-screen Scout moved aside,
+  no guard targeted the hull during its 45:08-45:47 unload window, and the
+  landing completed. P3B44T2 remained intact.
+- **Closure basis:** exact runtime blocker separation, loaded-hull resumption,
+  and completed landing are all replay-visible. P3B44T4 does not alter any T3
+  departure rule.
+
+### Relic-ferry passenger load recognition
+
+- **Status:** FIXED-PENDING-RUNTIME.
+- **User-visible symptom:** Red loaded a Priest into a Transport, the hull did
+  nothing, the controller later unloaded the Priest at home, and the Priest
+  retrieved a relic from Red's own island instead of completing the intended
+  ferry mission.
+- **Direct evidence:** exact Priest 31572 was ordered aboard hull 31206 at
+  19:23 in the P3B44T3 replay. No outbound hull order followed; exactly 180
+  seconds later the relic watchdog issued a home unload at 22:23. After another
+  home unload at 24:25, the same Priest received an ordinary order to own-island
+  relic 31456 at 25:11. The defect repeated with hull 33537: boarding at 31:11,
+  no outbound order, and exact watchdog home unload at 34:11.
+- **Root cause boundary:** the earliest repeated divergence is the load check,
+  before sailing, pathing, landing, or relic tasking. P3B44T3 checked readiness
+  indirectly through the reserved hull's `object-data-garrison-count` and had
+  no CHECK-LOAD branch when the exact hull search target was absent. The replay
+  proves that this recognition path failed twice; it cannot distinguish an
+  absent hull result from an unobserved/stale count.
+- **Engine constraint:** DE direct-unit searches exclude garrisoned units by
+  default. P3B44T4 uses `fe-filter-garrisoned c: 1` before rebuilding the exact
+  stored passenger ID so the lookup remains valid across boarding. Provenance:
+  official AoE II DE Update 111772 scripting notes,
+  <https://www.ageofempires.com/news/age-of-empires-ii-definitive-edition-update-111772/>.
+- **Implementation:** commit `19c0beb` changes only the relic-ferry LOADING and
+  CHECK-LOAD transition. It verifies the exact reserved Priest/Brahmin's
+  `object-data-garrisoned == 1`, then rebuilds the unchanged reserved hull and
+  issues the existing target/home unload. The existing 180-second watchdog and
+  hull group reservation remain. One pending-or-missing event per boarding
+  attempt and exact outbound/return unit/hull records provide bounded evidence.
+- **Regression risk:** T3 attack-Transport departure and T2 landing-screen /
+  escort behavior. No corresponding rules were changed; the existing focused
+  tests remain and must be reconfirmed in the fresh replay.
+- **Acceptance criterion:** exact boarding is followed by `RAW44R relic ferry
+  outbound unit/hull/target` and the same hull's remote unload before the
+  180-second watchdog. The carrier acquires the off-home relic, emits exact
+  return unit/hull records, unloads at home, and receives the unchanged home
+  Monastery task. Pending/missing logging remains one-shot.
+- **Latest result:** focused tests, all 118 regression tests, PER validation,
+  24 replay benchmarks, and adversarial source review PASS. Runtime behavior is
+  not yet proven; do not close until a fresh P3B44T4 replay passes.
+- **Next action:** deploy P3B44T4, verify runtime bytes/marker, then inspect
+  every transport lifecycle and the complete relic-ferry round trip.
 
 ### Friendly Scout obstruction at attack-Transport landing
 
@@ -196,8 +254,8 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
 - **Instrumentation/tests:** existing public screen, landing-staged, completed,
   and timed-out events reconstruct mission lifecycles but do not publish the
   selected/rejected coordinates or exact remaining garrison at terminal.
-- **Implementation:** none in P3B44T3; deliberately excluded from the departure
-  patch.
+- **Implementation:** none in P3B44T3 or P3B44T4; deliberately excluded from
+  both narrow causal patches.
 - **Acceptance criterion:** after a terminal unload failure, the exact failed
   landing and local offsets are rejected for a bounded period; a later mission
   selects a distinct viable candidate and passengers disembark.
@@ -221,12 +279,12 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
   collision or the precise rejection reason for each coordinate.
 - **Instrumentation/tests:** exact hull, landing, retry, and home-return actions
   reconstruct both terminal episodes. No code change yet.
-- **Implementation:** none in P3B44T3.
+- **Implementation:** none in P3B44T3 or P3B44T4.
 - **Acceptance criterion:** migration scout recovery chooses a screened,
   reachable alternative rather than four blind diagonals, or emits a bounded
   exact terminal reason without repeating the same unusable family.
 - **Latest result / next action:** causal state path proven; implement only on a
-  separate migration patch after P3B44T3 departure runtime validation.
+  separate migration patch after P3B44T4 relic-ferry runtime validation.
 
 ### Migration drop-off establishment and premature recall
 
@@ -255,7 +313,7 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
   placed foundation or engine rejection reason.
 - **Instrumentation/tests:** action cadence plus source-state comparison proves
   Purple's transition; Orange needs public first-blocker/terminal telemetry.
-- **Implementation:** none in P3B44T3.
+- **Implementation:** none in P3B44T3 or P3B44T4.
 - **Acceptance criterion:** a landed migration waits for and assigns a concrete
   same-zone drop-site foundation, completes it, and uses it before passengers
   can be recalled; unavailable placement reaches bounded retries and a precise
@@ -284,6 +342,24 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
 - **Latest result / next action:** add public transition-only telemetry for the
   first blocked assault-activation gate; do not guess a gate from timing alone.
 
+### P3B44T3 crash and command-volume anomaly
+
+- **Status:** DEFERRED by the user until transport defects are handled.
+- **User-visible symptom:** the 15:12 P3B44T3 match crashed before its natural
+  end. The user believes this is the already known crash class.
+- **Direct evidence:** the decoded replay ends at 59:33 without a resignation
+  action and has zero parser errors. Cyan serialized about 586,260 AI_ORDER
+  records; Green, Yellow, and Blue also produced unusually high WORK volumes.
+- **Unknown evidence:** the replay does not contain an exception code, faulting
+  module, corrupting writer, stack, or linked dump. High command volume and the
+  crash coexist but causality is not established.
+- **Implementation:** none. Do not mix crash or command-spam changes into the
+  transport-only P3B44T4 patch.
+- **Acceptance criterion / next action:** after the user resumes crash work,
+  correlate an exact ProcDump/Windows exception with this runtime and identify
+  the first command-volume producer or corrupting writer before proposing a
+  fix.
+
 ### Deliberately unchanged defects
 
 This one-cause patch does not change or claim to fix:
@@ -291,7 +367,8 @@ This one-cause patch does not change or claim to fix:
 - cliff-bound or otherwise unreachable landing points unrelated to friendly
   Scout obstruction;
 - route-scouting, route-threat scanning, landing selection, or naval pathfinding;
-- passenger policy, partial-assault departure, migration, or relic ferries;
+- passenger policy, partial-assault departure, or migration outside the exact
+  relic-ferry load-recognition transition;
 - hostile-fire survival, enemy landing memory, Port placement, or transport
   production quantity;
 - the separate allied-friendly-fire defense trigger;
@@ -356,6 +433,32 @@ P3B44T2 all-player transport replay:
   `britain-4v4-20260829-131027-p3b44t2-all-transport` in
   `replay-benchmarks.json`.
 
+P3B44T3 all-player transport replay:
+
+- Basename:
+  `SP Replay v101.103.48987.0 @2026.08.29 151250.aoe2record`.
+- SHA-256:
+  `0C1C909D4BB36D3680FEDDACB7E2E74647665CA67B00F1C0F0406D093F2D95DD`.
+- Duration: 59:33; parser errors: zero; no decoded resignation action; marker
+  `RAWAI-P3B44T3:444` serialized from players 2 through 8.
+- Selected-color metadata independently validates the preserved lobby mapping;
+  no team/color was inferred from row or slot.
+- External analyses:
+  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260829-151250-p3b44t3-compact.json`
+  and
+  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260829-151250-p3b44t3-full.json`.
+- External semantic audit helper:
+  `G:\Projects\Codex\Rome at War AI\.analysis\audit_transport_20260829_151250.py`.
+- Systematic union: 16 explicit Transport hulls, 157 load commands, 129
+  point-coordinate sea unload commands, 45 alternating load-to-unload phases,
+  and 4 terminal load-only phases. Generic building/siege ungarrison records
+  were excluded. Per-player hull/load/unload totals: Red 4/29/23, Green
+  2/18/22, Yellow 1/5/13, Purple 2/27/18, Orange 2/23/13, Cyan 1/24/2, Blue
+  2/16/24, Gray 2/15/14.
+- Repository evidence entry:
+  `britain-4v4-20260829-151250-p3b44t3-all-transport` in
+  `replay-benchmarks.json`.
+
 Replay/savegame files, compact parser output, crash dumps, and Rome at War data
 mod files remain external and must never be committed to the AI repository.
 
@@ -367,16 +470,19 @@ mod files remain external and must never be committed to the AI repository.
 - Clearance success: PASS.
 - Clearance failure: PASS.
 - Landing screen/escort clearance and refresh gate: PASS.
-- Full P3B44-derived regression suite: PASS (117 tests).
+- Relic-ferry exact-passenger load recognition: PASS (focused deterministic
+  test, including the required DE garrison-inclusive filter and removal of the
+  indirect hull-count CHECK-LOAD condition).
+- Full P3B44-derived regression suite: PASS (118 tests).
 - PER structural/operand validation: PASS.
 - Naval-doctrine validation: PASS.
 - Strategy execution: PASS (1,156 total matchups; 1,149 historical and 1,152
   Extreme matchups with adjustments).
 - ODS workbook round trip: PASS (34 civilizations, 680 unit-evidence rows, 340
   naval-class rows).
-- Replay benchmarks: PASS (23 entries).
+- Replay benchmarks: PASS (24 entries).
 - `git diff --check`: PASS; only expected CRLF notices.
-- Adversarial P3B44T2 comparison: PASS. P3B44T3 changes only the active
+- Adversarial P3B44T2 comparison: PASS. P3B44T3 changed only the active
   transport departure state, goals/constants, marker, bounded telemetry,
   deterministic tests, and replay evidence. It does not alter the T2
   screen/escort landing rules or any ordinary attack owner.
@@ -387,28 +493,41 @@ mod files remain external and must never be committed to the AI repository.
   are hard bounds. The adversarial review found and fixed delayed-retry
   ownership safety: loaded, attacked, grouped, or quarantined blockers are
   skipped rather than retasked.
+- P3B44T3 runtime/replay acceptance: PASS. Exact blocker 37204 cleared the
+  twelve-tile radius; loaded hull 31205 resumed, landed, and preserved the T2
+  screen/escort behavior. Friendly departure congestion is CLOSED.
+- Adversarial P3B44T4 review: PASS. The patch touches only the relic-ferry
+  boarding-readiness transition, marker, one isolated goal, tests, changelog,
+  and replay evidence. DE's documented default excludes garrisoned DUC search
+  results, so `fe-filter-garrisoned c: 1` is set after each full search reset.
+  The exact passenger controls readiness; the exact reserved hull still owns
+  the unchanged unload action. Pending/missing telemetry is one-shot per
+  attempt and the prior watchdog remains the hard terminal bound.
 - `validate_good_units.py` has a pre-existing P3B44 provenance-hash failure;
   frozen unit-strategy material is outside this transport patch.
-- Installed runtime byte verification: PASS.
-- Fresh engine/replay acceptance: REQUIRED.
+- Installed P3B44T4 runtime byte verification: PASS (68 files; aggregate
+  source/target SHA-256
+  `2814EE423EDB01965FE491FA896CA678E71C0ADE94C54E621826506C157DE8EC`).
+- Fresh P3B44T4 engine/replay acceptance: REQUIRED.
 
 ## Exact next actions
 
-1. Verify this worktree's branch, HEAD, and only expected user-owned
-   `AGENTS.md` dirt against this document.
-2. Start the preserved Britannia 4v4 lobby and confirm public marker
-   `RAWAI-P3B44T3: 444` appears near startup.
-3. Exercise an attack lift obstructed near departure by empty friendly
-   Transports. Preserve exact `blocker clearance ordered`, `retry`, `cleared`,
-   `failed`/`unsafe`, `departure resumed`, or terminal telemetry.
+1. Verify this worktree's branch, behavior HEAD `19c0beb`, and only expected
+   user-owned `AGENTS.md` dirt plus any HANDOFF-only successor against this
+   document.
+2. Start the preserved Britannia 4v4 lobby using the already byte-verified
+   68-file runtime and confirm public marker `RAWAI-P3B44T4: 445` near replay
+   startup.
+3. Exercise an off-home relic ferry. Preserve exact `RAW44R` pending/missing,
+   outbound unit/hull/target, and return unit/hull telemetry plus the hull's
+   load/unload orders and the carrier's relic/Monastery tasks.
 4. Inspect every reconstructable transport lifecycle across all players, not
-   only the visually reported event. Require measured blocker separation and
-   mission-hull route progress before accepting the T3 fix.
-5. Reconfirm T2 as a non-regression: screen Scouts move away, no guard action
-   targets the active hull during the unload window, and passengers land or
-   receive a distinct terminal reason.
-6. After T3 runtime acceptance, address migration/drop-site and repeated
+   only the visually reported relic event. Require the complete intended relic
+   round trip before closing P3B44T4.
+5. Reconfirm T3/T2 as non-regressions: exact departure blockers are verified
+   clear, loaded mission hulls resume, screen Scouts move away, and no guard
+   targets the active hull during its unload window.
+6. After P3B44T4 runtime acceptance, address migration/drop-site and repeated
    landing-selection defects as separate causal patches using the ledger above.
-7. Confirm Gray/Blue ordinary combined attacks remain comparable to immutable
-   P3B44. Keep P3B44D1 friendly-fire and non-transport defects out of this
-   causal patch/worktree.
+7. Keep the deferred crash/command-volume anomaly, P3B44D1 friendly-fire, and
+   non-transport defects out of this causal patch/worktree.
