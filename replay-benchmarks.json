@@ -1490,6 +1490,67 @@
         "Orange's private controller gates are not serialized into the public replay stream, so its delayed first assault and drop-site failure require targeted public telemetry before a causal fix."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260829-151250-p3b44t3-all-transport",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.29 151250.aoe2record",
+        "sha256": "0C1C909D4BB36D3680FEDDACB7E2E74647665CA67B00F1C0F0406D093F2D95DD",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The selected visible colors and resolved teams match the preserved authoritative lobby. Color is not inferred from lobby row or internal color_id.",
+        "duration_seconds": 3573,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The replay parsed with zero errors, lasted 59:33, and stopped during the reported game crash without any decoded resignation action. Startup chat contains RAWAI-P3B44T3: 444 from players 2 through 8, matching the separately byte-verified installed runtime.",
+        "A systematic all-player union reconstructed 16 explicit Transport hulls, 157 load commands, 129 point-coordinate sea unload commands, 45 alternating load-to-unload phases, and 4 terminal load-only phases. These low-level phases are lifecycle evidence rather than an assertion that each phase is a separate mission; generic building and siege ungarrison records were excluded.",
+        "Per-player explicit transport activity was Red 4 hulls/29 loads/23 unloads, Green 2/18/22, Yellow 1/5/13, Purple 2/27/18, Orange 2/23/13, Cyan 1/24/2, Blue 2/16/24, and Gray 2/15/14. The audit therefore covers both teams and every player rather than only the user's visible Red event.",
+        "The only public P3B44T3 congestion-controlled assault mission used Blue hull 31205. Route-screen Scout 37755 moved from the landing to 53,57 at 44:00. At 44:26 the loaded hull reported garrison 10, current distance 53, best distance 54, two stalls, and one blocker.",
+        "Exact blocker 37204 received a clearance order at 44:26 and one bounded retry at 44:34. The controller emitted blocker-cleared at 44:42, which its source can emit only after the exact blocker is more than twelve tiles from the mission hull. Hull 31205 resumed departure at 44:51, staged its escort and issued remote unload at 45:08, completed the landing at 45:47, and then moved home.",
+        "No guard action targeted hull 31205 during its 45:08-45:47 unload window. This preserves the independently runtime-validated P3B44T2 screen/escort fix while exercising P3B44T3 departure clearance.",
+        "Red ordered exact Priest 31572 to garrison Transport 31206 at 19:23. No outbound unload or movement order followed. Exactly 180 seconds later, at 22:23, the relic watchdog issued a home unload at 204,16; after another home unload at 24:25, the same Priest received an ordinary relic order to Red's own-island relic 31456 at 25:11.",
+        "The defect repeated independently: Red ordered the same Priest 31572 aboard Transport 33537 at 31:11, no outbound unload or movement followed, and exactly 180 seconds later at 34:11 the watchdog again issued a home unload at 204,16. This corroborates the user's visual observation and rules out a one-off path or landing failure.",
+        "A separate command-volume anomaly remains visible: Cyan serialized about 586,260 AI_ORDER records, while Green, Yellow, and Blue produced unusually high WORK volumes. The user explicitly deferred the known crash investigation until transport defects are handled, so this replay records but does not attribute or change that anomaly."
+      ],
+      "implementation_inferences": [
+        "P3B44T3's exact one-at-a-time blocker verification is runtime-validated: exact blocker 37204 was ordered, retried once, proved clear by the controller's distance gate, and the previously stalled loaded hull then resumed and completed its landing. The departure-congestion defect is closed by this runtime evidence.",
+        "P3B44T2's landing-screen displacement and unload-window guard suppression remain runtime-valid in the same mission. No attack, target-selection, or non-transport behavior changed in P3B44T3.",
+        "For both Priest episodes, the earliest causal divergence is load confirmation: the relic-ferry issued its exact boarding command but never transitioned to its outbound unload/sailing command before the exact 180-second watchdog. The later own-island relic order is downstream recovery behavior, not the original mission target.",
+        "The P3B44T3 source verifies boarding indirectly through the reserved hull's garrison count and contains no CHECK-LOAD branch when that exact hull lookup is absent. The replay proves that this recognition path failed twice but cannot distinguish an absent hull search target from an unobserved/stale hull count; P3B44T4 bypasses both internal cases by querying the exact reserved passenger.",
+        "Definitive Edition direct-unit searches exclude garrisoned units by default. P3B44T4 explicitly enables both garrisoned and ungarrisoned search results before adding the exact Priest ID, then checks object-data-garrisoned. This is required for the passenger lookup to remain visible across the boarding transition."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B44T4. Preserve all P3B44T3 departure-clearance and P3B44T2 landing-screen/escort behavior unchanged.",
+        "During relic-ferry LOADING, reset the shared search, explicitly include both garrisoned and ungarrisoned units, and rebuild the exact reserved Priest/Brahmin by stored object ID. Transition to the unchanged outbound or home unload only when that exact passenger reports object-data-garrisoned equal to one.",
+        "Remove the indirect hull-garrison-count readiness condition. Retain the existing reserved hull ownership and 180-second hard watchdog for a genuinely missing, dead, or never-boarded passenger.",
+        "Emit one bounded pending-or-missing passenger record per boarding attempt and exact unit/hull/direction records when the departure command is issued, allowing a fresh replay to distinguish passenger lookup from sailing/path failures without per-sweep spam."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports all runtime files byte-identical to this branch and replay startup chat contains RAWAI-P3B44T4: 445.",
+        "For a relic-ferry mission, one exact Priest/Brahmin boarding command is followed by RAW44R outbound unit, hull, and target records, then by the same hull's remote unload command before the 180-second watchdog. The passenger is not unloaded at home before visiting the intended off-home relic island.",
+        "After the carrier acquires the relic, RAW44R return unit and hull records precede the reserved hull's home unload; the carrier then receives the unchanged home Monastery task.",
+        "Pending or missing telemetry is emitted at most once per boarding attempt. A genuinely blocked or lost passenger remains bounded by the existing watchdog rather than causing command spam.",
+        "A loaded assault Transport still clears an exact departure blocker and resumes, route-screen and escort ships remain outside the unload window, and no guard action targets the assault hull while it is unloading."
+      ],
+      "known_limits": [
+        "P3B44T4 directly repairs and instruments relic-ferry load recognition only. It does not change assault passenger policy, migration drop-site establishment, landing-coordinate memory, hostile route safety, naval pathfinding, or transport production.",
+        "Static checks can prove the exact-passenger condition and bounded branches exist, but only a fresh game can prove the DE runtime returns the expected garrisoned state and that the intended off-home relic round trip completes.",
+        "The crash and extreme command-volume anomaly are explicitly deferred and remain separate unresolved work. This replay contains no exception code, module, or dump linkage and does not authorize a crash fix."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

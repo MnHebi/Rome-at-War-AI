@@ -1905,6 +1905,95 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertEqual(len(reboard), 1)
 
+    def test_relic_ferry_verifies_exact_passenger_before_departure(self) -> None:
+        loading = matching_rules(
+            self.military,
+            facts=("(goal gl-relic-ferry-state RELIC-FERRY-LOADING)",),
+            actions=(
+                "(fe-filter-garrisoned c: 1)",
+                "(up-add-object-by-id search-local g: gl-relic-ferry-unit-id)",
+                "(set-goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)",
+            ),
+        )
+        self.assertEqual(len(loading), 1)
+        self.assertFalse(
+            matching_rules(
+                self.military,
+                facts=(
+                    "(goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)",
+                    "object-data-garrison-count",
+                ),
+            )
+        )
+
+        outbound = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)",
+                "(goal gl-relic-ferry-direction RELIC-FERRY-OUTBOUND)",
+                "object-data-garrisoned == 1",
+            ),
+            actions=(
+                "(up-add-object-by-id search-local g: gl-relic-ferry-transport-id)",
+                "gl-relic-ferry-target-x action-unload",
+                "RAW44R relic ferry outbound unit",
+                "RAW44R relic ferry outbound hull",
+                "RAW44R relic ferry target",
+                "(set-goal gl-relic-ferry-state RELIC-FERRY-SAILING)",
+            ),
+        )
+        self.assertEqual(len(outbound), 1)
+
+        returning = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)",
+                "(goal gl-relic-ferry-direction RELIC-FERRY-RETURN)",
+                "object-data-garrisoned == 1",
+            ),
+            actions=(
+                "(up-add-object-by-id search-local g: gl-relic-ferry-transport-id)",
+                "gl-home-anchor-x action-unload",
+                "RAW44R relic ferry return unit",
+                "RAW44R relic ferry return hull",
+                "(set-goal gl-relic-ferry-state RELIC-FERRY-SAILING)",
+            ),
+        )
+        self.assertEqual(len(returning), 1)
+
+        pending = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)",
+                "object-data-garrisoned != 1",
+                "(goal gl-relic-ferry-load-wait-reported NO)",
+            ),
+            actions=(
+                "RAW44R relic ferry passenger pending",
+                "(set-goal gl-relic-ferry-load-wait-reported YES)",
+                "(set-goal gl-relic-ferry-state RELIC-FERRY-LOADING)",
+            ),
+        )
+        missing = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)",
+                "(not (up-set-target-object search-local c: 0))",
+                "(goal gl-relic-ferry-load-wait-reported NO)",
+            ),
+            actions=(
+                "RAW44R relic ferry passenger missing",
+                "(set-goal gl-relic-ferry-load-wait-reported YES)",
+                "(set-goal gl-relic-ferry-state RELIC-FERRY-LOADING)",
+            ),
+        )
+        self.assertEqual(len(pending), 1)
+        self.assertEqual(len(missing), 1)
+        self.assertIn(
+            "(set-goal gl-relic-ferry-load-wait-reported NO)",
+            self.init_goals,
+        )
+
     def test_roman_legionary_and_scorpion_producers_use_concrete_units(self) -> None:
         legionaries = (
             "elite-legionary",
@@ -5056,7 +5145,7 @@ class FarmPolicyTests(unittest.TestCase):
 
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         self.assertIn(
-            '(up-chat-data-to-all "RAWAI-P3B44T3: %d" c: 444)',
+            '(up-chat-data-to-all "RAWAI-P3B44T4: %d" c: 445)',
             self.init_goals,
         )
         initial = matching_rules(

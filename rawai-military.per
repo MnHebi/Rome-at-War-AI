@@ -6975,6 +6975,7 @@
 	(up-add-object-by-id search-local g: gl-relic-ferry-unit-id)
 	(up-add-object-by-id search-remote g: gl-relic-ferry-transport-id)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(set-goal gl-relic-ferry-load-wait-reported NO)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-LOADING)
 )
 
@@ -6993,7 +6994,13 @@
 	(goal gl-relic-ferry-state RELIC-FERRY-LOADING)
 =>
 	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-relic-ferry-transport-id)
+	;Verify the exact reserved passenger, not an indirect hull count. P3B44T3
+	;showed the Priest visibly aboard while this state remained stuck until the
+	;180-second watchdog in two separate missions.
+	;DE direct-unit searches exclude garrisoned units by default. Include both
+	;states so this exact-ID lookup survives the boarding transition.
+	(fe-filter-garrisoned c: 1)
+	(up-add-object-by-id search-local g: gl-relic-ferry-unit-id)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)
 )
 
@@ -7001,11 +7008,15 @@
 	(goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)
 	(goal gl-relic-ferry-direction RELIC-FERRY-OUTBOUND)
 	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count >= 1)
+	(up-object-data object-data-garrisoned == 1)
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-relic-ferry-transport-id)
 	(up-target-point gl-relic-ferry-target-x action-unload -1 stance-no-attack)
+	(up-chat-data-to-all "RAW44R relic ferry outbound unit: %d" g: gl-relic-ferry-unit-id)
+	(up-chat-data-to-all "RAW44R relic ferry outbound hull: %d" g: gl-relic-ferry-transport-id)
+	(up-chat-data-to-all "RAW44R relic ferry target: %d" g: gl-relic-ferry-target-id)
+	(set-goal gl-relic-ferry-load-wait-reported NO)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-SAILING)
 )
 
@@ -7013,18 +7024,51 @@
 	(goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)
 	(goal gl-relic-ferry-direction RELIC-FERRY-RETURN)
 	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count >= 1)
+	(up-object-data object-data-garrisoned == 1)
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-relic-ferry-transport-id)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
+	(up-chat-data-to-all "RAW44R relic ferry return unit: %d" g: gl-relic-ferry-unit-id)
+	(up-chat-data-to-all "RAW44R relic ferry return hull: %d" g: gl-relic-ferry-transport-id)
+	(set-goal gl-relic-ferry-load-wait-reported NO)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-SAILING)
 )
 
 (defrule
 	(goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)
 	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count < 1)
+	(up-object-data object-data-garrisoned != 1)
+	(goal gl-relic-ferry-load-wait-reported NO)
+=>
+	(up-chat-data-to-all "RAW44R relic ferry passenger pending: %d" g: gl-relic-ferry-unit-id)
+	(set-goal gl-relic-ferry-load-wait-reported YES)
+	(set-goal gl-relic-ferry-state RELIC-FERRY-LOADING)
+)
+
+(defrule
+	(goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrisoned != 1)
+	(goal gl-relic-ferry-load-wait-reported YES)
+=>
+	(set-goal gl-relic-ferry-state RELIC-FERRY-LOADING)
+)
+
+(defrule
+	(goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)
+	(not (up-set-target-object search-local c: 0))
+	(goal gl-relic-ferry-load-wait-reported NO)
+=>
+	(up-chat-data-to-all "RAW44R relic ferry passenger missing: %d" g: gl-relic-ferry-unit-id)
+	(set-goal gl-relic-ferry-load-wait-reported YES)
+	(set-goal gl-relic-ferry-state RELIC-FERRY-LOADING)
+)
+
+(defrule
+	(goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)
+	(not (up-set-target-object search-local c: 0))
+	(goal gl-relic-ferry-load-wait-reported YES)
 =>
 	(set-goal gl-relic-ferry-state RELIC-FERRY-LOADING)
 )
@@ -7099,6 +7143,7 @@
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-chat-data-to-self "relic carrier return boarding: %d" g: gl-relic-ferry-unit-id)
 	(up-set-timer c: t-relic-ferry c: 90)
+	(set-goal gl-relic-ferry-load-wait-reported NO)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-LOADING)
 )
 
