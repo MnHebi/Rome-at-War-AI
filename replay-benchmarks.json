@@ -1318,6 +1318,59 @@
         "The Shipyard/cliff pathing, Merchant Vessel plateau, attack-transport failures, and Red Town Center order loop remain recorded unresolved work; this batch does not infer fixes without stronger engine-state evidence."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260829-110101-p3b44-transport-congestion",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.29 110101.aoe2record",
+        "sha256": "C1F85E836D59CBC2D77643D2608930DC3D7940C3ECFDC6081F0C08BBF833917F",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The selected visible colors and resolved teams match the preserved authoritative lobby. Color is not inferred from lobby row or internal color_id.",
+        "duration_seconds": 3531,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The replay lasted 58:51 and ended when the user manually resigned because the match was not advancing. The separately verified pre-match deployment was the immutable 68-file P3B44 payload with SHA-256 EE04DE7BFA1448E90D54E8AC592D0EEECF4E9DAD93100272D2941F0209B75846.",
+        "The user visually observed a loaded Purple mission Transport unable to depart because Purple's own idle Transports physically blocked its path. The loaded hull remained stuck rather than clearing the obstruction or reaching the selected route.",
+        "The user visually observed Gray and Blue performing proper combined attacks. That P3B44 attack behavior is the non-regression control for this transport-only patch."
+      ],
+      "implementation_inferences": [
+        "P3B44's active attack-lift waypoint check treats distance greater than eight as a reason to reissue the identical move every eight seconds. It records no previous or best distance, so it cannot distinguish continued movement from a stationary hull.",
+        "Both independent transport-clear entry rules require TRANSPORT-ROUTE-IDLE. They cannot grant right-of-way while the active loaded route owns the hull, and their selectors are designed for stale partial loads or empty idle berth obstruction.",
+        "The established causal gap is therefore missing forward-progress and near-origin congestion handling in the active mission controller. The replay does not prove a separate landing, threat-screen, or route-selection defect in this event."
+      ],
+      "changes_under_test": [
+        "Use the dedicated recovery/p3b44-transport-only branch derived from exact P3B44. Keep recovery/p3b44-attack-baseline immutable and do not backport P3B46-P3B50 attack changes.",
+        "Emit RAWAI-P3B44T1 and track the exact mission hull's best/current waypoint distance. Require at least two tiles of improvement to reset the stall count and classify congestion only after three non-progress checks while the loaded hull remains within twenty tiles of its saved embarkation point.",
+        "Let the active route move at most three nearby empty, idle, unattacked, ungrouped, same-zone Transport Ships to another known ship position 28-200 tiles away in the same water zone. Exclude the mission hull, loaded hulls, quarantined hulls, and grouped mission-owned hulls.",
+        "Retry the unchanged waypoint after an eight-second clearance wait. After two unsuccessful clearance attempts, emit one terminal congestion reason and enter the existing loaded-lift recovery path."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports all 68 P3B44T1 runtime files byte-identical to the transport branch and replay chat contains RAWAI-P3B44T1 near startup.",
+        "With empty friendly Transports clustered around a loaded mission hull, the route emits a bounded departure-stalled record, identifies eligible blockers, orders one or more blockers to the proved same-water position, and then emits departure-resumed after the exact loaded hull's waypoint distance decreases.",
+        "The loaded hull leaves the embarkation area and continues the original selected waypoint and landing. No loaded, attacked, grouped, quarantined, or mission hull is displaced as a blocker.",
+        "If clearance cannot restore progress after two attempts, exactly one congestion-unresolved record precedes the existing recovery path; the route does not continue identical waypoint orders indefinitely.",
+        "Gray and Blue retain coordinated ordinary attacks comparable to the immutable P3B44 control, and no non-transport attack, target, defense, escalation, or ownership behavior changes."
+      ],
+      "known_limits": [
+        "The user's visual observation establishes the friendly-ship departure blockage. The compact replay does not expose arbitrary hull type, garrison, collision geometry, or path progress, so runtime escape still requires a fresh visual and replay test.",
+        "The patch deliberately does not change landing selection, cliff reachability, route scouting, passenger policy, migration, relic ferries, hostile-fire survival, naval pathfinding, or transport production.",
+        "Mid-route stalls are not classified as friendly departure congestion and do not authorize moving nearby ships."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

@@ -359,7 +359,29 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B44: %d" c: 44)
+	(up-chat-data-to-all "RAWAI-P3B44T1: %d" c: 442)
+	(disable-self)
+)
+
+;P3B44T1 keeps active-route departure progress and congestion ownership out of
+;the ordinary berth-clear controller.  The route owns these goals only while
+;the exact loaded military hull is trying to leave its embarkation area.
+(defrule
+	(true)
+=>
+	(set-goal gl-transport-departure-best-distance 0)
+	(set-goal gl-transport-departure-current-distance 0)
+	(set-goal gl-transport-departure-progress-limit 0)
+	(set-goal gl-transport-departure-stalls 0)
+	(set-goal gl-transport-departure-clear-attempts 0)
+	(set-goal gl-transport-departure-blockers 0)
+	(set-goal gl-transport-departure-garrison 0)
+	(set-goal gl-transport-departure-water-zone -1)
+	(set-goal gl-transport-departure-hull-x 0)
+	(set-goal gl-transport-departure-hull-y 0)
+	(set-goal gl-transport-departure-target-x 0)
+	(set-goal gl-transport-departure-target-y 0)
+	(set-goal gl-transport-departure-congested NO)
 	(disable-self)
 )
 

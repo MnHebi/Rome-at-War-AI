@@ -5682,16 +5682,11 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-LANDING-APPLY)
 	(up-compare-goal remote-total <= 0)
 =>
-	(set-strategic-number sn-focus-player-number my-player-number)
-	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-transport-route-id)
-	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-modify-group-flag 0 c: transport-screen-group)
 	(up-reset-group c: transport-screen-group)
 	(set-goal gl-transport-screen-id -1)
-	(up-set-timer c: t-transport-route c: 8)
-	(set-goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-START)
 )
 
 (defrule
@@ -5721,6 +5716,64 @@
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 )
 
+;Initialize progress from the exact reserved hull immediately before the first
+;departure order.  Distance-to-waypoint alone is not movement: later checks
+;must improve by at least two tiles or accumulate a bounded stall.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-START)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(set-goal gl-transport-departure-stalls 0)
+	(set-goal gl-transport-departure-clear-attempts 0)
+	(set-goal gl-transport-departure-blockers 0)
+	(set-goal gl-transport-departure-congested NO)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-RETRY)
+)
+
+;Rebuild the exact hull in the same sweep as the ISSUE consumer.  Later retry
+;states can be entered below this producer without relying on a shared search
+;list to survive the intervening rule-sweep boundary.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-RETRY)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-x)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-ISSUE)
+)
+
+;This exact-hull consumer is shared by initial departure and bounded retries
+;after clearance.  It preserves the original waypoint and landing selection.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-ISSUE)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-distance gl-transport-departure-current-distance)
+	(up-get-object-data object-data-garrison-count gl-transport-departure-garrison)
+	(up-modify-goal gl-transport-departure-best-distance g:= gl-transport-departure-current-distance)
+	(up-modify-goal gl-transport-departure-progress-limit g:= gl-transport-departure-current-distance)
+	(up-modify-goal gl-transport-departure-progress-limit c:- 2)
+	(set-goal gl-transport-departure-stalls 0)
+	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-set-timer c: t-transport-route c: 8)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-ISSUE)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
+	(up-modify-group-flag 0 c: attack-transport-group)
+	(up-reset-group c: attack-transport-group)
+	(set-goal gl-transport-route-script-load NO)
+	(set-goal gl-transport-departure-congested NO)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
 	(up-timer-status t-transport-route == timer-triggered)
@@ -5736,6 +5789,9 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-distance <= 8)
 =>
+	(set-goal gl-transport-departure-stalls 0)
+	(set-goal gl-transport-departure-clear-attempts 0)
+	(set-goal gl-transport-departure-congested NO)
 	(up-target-point gl-transport-route-landing-x action-unload -1 stance-no-attack)
 	(up-set-timer c: t-transport-route c: 45)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-WAIT)
@@ -5746,9 +5802,263 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-distance > 8)
 =>
+	(up-get-object-data object-data-distance gl-transport-departure-current-distance)
+	(up-get-object-data object-data-garrison-count gl-transport-departure-garrison)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-EVALUATE)
+)
+
+;Normal forward progress resets the stall detector and continues the unchanged
+;waypoint leg.  Only a prior congestion transition emits the resumed record.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-EVALUATE)
+	(up-compare-goal gl-transport-departure-current-distance g:<= gl-transport-departure-progress-limit)
+	(goal gl-transport-departure-congested YES)
+=>
+	(up-chat-data-to-all "RAW44T transport departure resumed: %d" g: gl-transport-route-id)
+	(up-modify-goal gl-transport-departure-best-distance g:= gl-transport-departure-current-distance)
+	(up-modify-goal gl-transport-departure-progress-limit g:= gl-transport-departure-current-distance)
+	(up-modify-goal gl-transport-departure-progress-limit c:- 2)
+	(set-goal gl-transport-departure-stalls 0)
+	(set-goal gl-transport-departure-clear-attempts 0)
+	(set-goal gl-transport-departure-congested NO)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
 	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
 	(up-set-timer c: t-transport-route c: 8)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-EVALUATE)
+	(up-compare-goal gl-transport-departure-current-distance g:<= gl-transport-departure-progress-limit)
+	(goal gl-transport-departure-congested NO)
+=>
+	(up-modify-goal gl-transport-departure-best-distance g:= gl-transport-departure-current-distance)
+	(up-modify-goal gl-transport-departure-progress-limit g:= gl-transport-departure-current-distance)
+	(up-modify-goal gl-transport-departure-progress-limit c:- 2)
+	(set-goal gl-transport-departure-stalls 0)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
+	(up-set-timer c: t-transport-route c: 8)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
+)
+
+;Two non-progress samples are tolerated.  The third reconstructs the exact hull
+;against its saved embarkation point before friendly congestion is considered.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-EVALUATE)
+	(up-compare-goal gl-transport-departure-current-distance g:> gl-transport-departure-progress-limit)
+	(up-compare-goal gl-transport-departure-stalls c:< 2)
+=>
+	(up-modify-goal gl-transport-departure-stalls c:+ 1)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
+	(up-set-timer c: t-transport-route c: 8)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-EVALUATE)
+	(up-compare-goal gl-transport-departure-current-distance g:> gl-transport-departure-progress-limit)
+	(up-compare-goal gl-transport-departure-stalls c:>= 2)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-origin-x)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-ORIGIN)
+)
+
+;A stalled loaded hull is a departure-congestion candidate only while it remains
+;within twenty tiles of the exact saved embarkation point.  The active route,
+;not the independent berth-clear controller, searches for right-of-way blockers.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-ORIGIN)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance <= 20)
+	(up-object-data object-data-garrison-count > 0)
+	(up-compare-goal gl-transport-departure-clear-attempts c:< 2)
+=>
+	(up-get-point position-object gl-transport-departure-hull-x)
+	(up-get-object-data object-data-map-zone-id gl-transport-departure-water-zone)
+	(up-get-object-data object-data-garrison-count gl-transport-departure-garrison)
+	(set-goal gl-transport-departure-congested YES)
+	(up-chat-data-to-all "RAW44T transport departure stalled: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44T transport garrison: %d" g: gl-transport-departure-garrison)
+	(up-chat-data-to-all "RAW44T transport current distance: %d" g: gl-transport-departure-current-distance)
+	(up-chat-data-to-all "RAW44T transport best distance: %d" g: gl-transport-departure-best-distance)
+	(up-chat-data-to-all "RAW44T transport stall count: %d" g: gl-transport-departure-stalls)
+	(up-chat-data-to-all "RAW44T transport clearance attempt: %d" g: gl-transport-departure-clear-attempts)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-departure-hull-x)
+	(up-filter-distance c: -1 c: 12)
+	(up-find-local c: transport-ship c: 20)
+	(up-remove-objects search-local object-data-id g:== gl-transport-route-id)
+	(up-remove-objects search-local object-data-id g:== gl-quarantine-transport-id)
+	(up-remove-objects search-local object-data-garrison-count > 0)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-transport-departure-water-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 3)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-transport-departure-blockers g:= local-total)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-BLOCKERS)
+)
+
+;After two bounded clearance attempts, use the established attack-lift recovery
+;owner and emit exactly one terminal reason instead of reissuing forever.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-ORIGIN)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance <= 20)
+	(up-object-data object-data-garrison-count > 0)
+	(up-compare-goal gl-transport-departure-clear-attempts c:>= 2)
+=>
+	(up-chat-data-to-all "RAW44T transport departure congestion unresolved: %d" g: gl-transport-route-id)
+	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
+	(set-goal gl-transport-departure-congested NO)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
+)
+
+;A mid-route stall is not classified as friendly departure congestion. Preserve
+;the original waypoint and continue without moving nearby ships.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-ORIGIN)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance > 20)
+=>
+	(up-modify-goal gl-transport-departure-best-distance g:= gl-transport-departure-current-distance)
+	(up-modify-goal gl-transport-departure-progress-limit g:= gl-transport-departure-current-distance)
+	(up-modify-goal gl-transport-departure-progress-limit c:- 2)
+	(set-goal gl-transport-departure-stalls 0)
+	(set-goal gl-transport-departure-congested NO)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
+	(up-set-timer c: t-transport-route c: 8)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-ORIGIN)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance <= 20)
+	(up-object-data object-data-garrison-count <= 0)
+=>
+	(set-goal gl-transport-departure-congested NO)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-ORIGIN)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
+	(up-modify-group-flag 0 c: attack-transport-group)
+	(up-reset-group c: attack-transport-group)
+	(set-goal gl-transport-route-script-load NO)
+	(set-goal gl-transport-departure-congested NO)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+;A destination is another known ship position 28-80 tiles away in the exact
+;same water zone.  Reading that position does not steal or retask that ship.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-BLOCKERS)
+	(up-compare-goal gl-transport-departure-blockers c:> 0)
+=>
+	(up-chat-data-to-all "RAW44T transport blockers found: %d" g: gl-transport-departure-blockers)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-departure-hull-x)
+	(up-filter-distance c: 28 c: 200)
+	(up-find-local c: fishing-ship-class c: 20)
+	(up-find-local c: trade-cog-class c: 10)
+	(up-find-local c: warship-class c: 40)
+	(up-find-local c: boarding-ship c: 10)
+	(up-find-local c: transport-ship c: 20)
+	(up-remove-objects search-local object-data-id g:== gl-transport-route-id)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-transport-departure-water-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-DESTINATION)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-BLOCKERS)
+	(up-compare-goal gl-transport-departure-blockers c:<= 0)
+=>
+	(up-chat-data-to-all "RAW44T transport blockers found: %d" c: 0)
+	(up-modify-goal gl-transport-departure-clear-attempts c:+ 1)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-RETRY)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-DESTINATION)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-point position-object gl-transport-departure-target-x)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-departure-hull-x)
+	(up-filter-distance c: -1 c: 12)
+	(up-find-local c: transport-ship c: 20)
+	(up-remove-objects search-local object-data-id g:== gl-transport-route-id)
+	(up-remove-objects search-local object-data-id g:== gl-quarantine-transport-id)
+	(up-remove-objects search-local object-data-garrison-count > 0)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-transport-departure-water-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 3)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-DESTINATION)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-chat-data-to-all "RAW44T transport blocker staging unavailable: %d" g: gl-transport-route-id)
+	(up-modify-goal gl-transport-departure-clear-attempts c:+ 1)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-RETRY)
+)
+
+;Only the at-most-three empty, idle, ungrouped, unattacked same-zone Transports
+;surviving the second eligibility reconstruction receive the clearance order.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-search-state local-total)
+	(up-modify-goal gl-transport-departure-blockers g:= local-total)
+	(up-target-point gl-transport-departure-target-x action-move -1 stance-no-attack)
+	(up-modify-goal gl-transport-departure-clear-attempts c:+ 1)
+	(up-chat-data-to-all "RAW44T transport blocker clearance ordered: %d" g: gl-transport-departure-blockers)
+	(up-set-timer c: t-transport-route c: 8)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-chat-data-to-all "RAW44T transport blockers found: %d" c: 0)
+	(up-modify-goal gl-transport-departure-clear-attempts c:+ 1)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-RETRY)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-CLEAR-WAIT)
+	(up-timer-status t-transport-route == timer-triggered)
+=>
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-RETRY)
 )
 
 (defrule
@@ -5762,6 +6072,7 @@
 	(up-modify-group-flag 0 c: attack-transport-group)
 	(up-reset-group c: attack-transport-group)
 	(set-goal gl-transport-route-script-load NO)
+	(set-goal gl-transport-departure-congested NO)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 )
 

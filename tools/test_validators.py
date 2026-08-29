@@ -4385,7 +4385,20 @@ class FarmPolicyTests(unittest.TestCase):
             "g:== gl-quarantine-transport-id)"
         )
         self.assertEqual(self.economy.count(quarantine_exclusion), 1)
-        self.assertEqual(self.military.count(quarantine_exclusion), 2)
+        local_quarantine_owners = matching_rules(
+            self.military,
+            actions=(quarantine_exclusion,),
+        )
+        repair_exclusions = [
+            rule for rule in local_quarantine_owners
+            if "t-transport-repair == timer-triggered" in rule[3]
+        ]
+        berth_exclusions = [
+            rule for rule in local_quarantine_owners
+            if "TRANSPORT-CLEAR-ANCHOR" in rule[3]
+        ]
+        self.assertEqual(len(repair_exclusions), 1)
+        self.assertEqual(len(berth_exclusions), 1)
         self.assertEqual(self.military.count(remote_quarantine_exclusion), 10)
         escort_selector = matching_rules(
             self.military,
@@ -5040,6 +5053,205 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertGreaterEqual(len(lost_terminals), 3)
+
+    def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
+        self.assertIn(
+            '(up-chat-data-to-all "RAWAI-P3B44T1: %d" c: 442)',
+            self.init_goals,
+        )
+        initial = matching_rules(
+            self.military,
+            facts=("TRANSPORT-ROUTE-DEPARTURE-ISSUE",),
+            actions=(
+                "object-data-distance gl-transport-departure-current-distance",
+                "gl-transport-departure-best-distance g:= gl-transport-departure-current-distance",
+                "gl-transport-departure-progress-limit c:- 2",
+                "(set-goal gl-transport-departure-stalls 0)",
+                "gl-transport-route-waypoint-x action-move",
+                "TRANSPORT-ROUTE-WAYPOINT-WAIT",
+            ),
+        )
+        progress = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-DEPARTURE-EVALUATE",
+                "gl-transport-departure-current-distance g:<= gl-transport-departure-progress-limit",
+            ),
+            actions=(
+                "(set-goal gl-transport-departure-stalls 0)",
+                "gl-transport-route-waypoint-x action-move",
+                "TRANSPORT-ROUTE-WAYPOINT-WAIT",
+            ),
+        )
+        self.assertEqual(len(initial), 1)
+        self.assertEqual(len(progress), 2)
+        normal = [rule for rule in progress if "gl-transport-departure-congested NO" in rule[3]]
+        self.assertEqual(len(normal), 1)
+        self.assertNotIn("transport blockers", normal[0][4])
+
+    def test_transport_departure_stalled_near_origin_activates_clearance(self) -> None:
+        accumulating = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-DEPARTURE-EVALUATE",
+                "gl-transport-departure-current-distance g:> gl-transport-departure-progress-limit",
+                "gl-transport-departure-stalls c:< 2",
+            ),
+            actions=(
+                "gl-transport-departure-stalls c:+ 1",
+                "TRANSPORT-ROUTE-WAYPOINT-WAIT",
+            ),
+        )
+        origin_probe = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-DEPARTURE-EVALUATE",
+                "gl-transport-departure-stalls c:>= 2",
+            ),
+            actions=(
+                "up-set-target-point gl-transport-route-origin-x",
+                "up-add-object-by-id search-local g: gl-transport-route-id",
+                "TRANSPORT-ROUTE-DEPARTURE-ORIGIN",
+            ),
+        )
+        congestion = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-DEPARTURE-ORIGIN",
+                "object-data-distance <= 20",
+                "object-data-garrison-count > 0",
+                "gl-transport-departure-clear-attempts c:< 2",
+            ),
+            actions=(
+                "(set-goal gl-transport-departure-congested YES)",
+                "RAW44T transport departure stalled: %d",
+                "(up-find-local c: transport-ship c: 20)",
+                "gl-transport-departure-blockers g:= local-total",
+                "TRANSPORT-ROUTE-DEPARTURE-BLOCKERS",
+            ),
+        )
+        self.assertEqual(len(accumulating), 1)
+        self.assertEqual(len(origin_probe), 1)
+        self.assertEqual(len(congestion), 1)
+
+    def test_transport_departure_blocker_selection_preserves_owned_or_unsafe_hulls(self) -> None:
+        blocker_scans = matching_rules(
+            self.military,
+            actions=(
+                "up-set-target-point gl-transport-departure-hull-x",
+                "(up-filter-distance c: -1 c: 12)",
+                "(up-find-local c: transport-ship c: 20)",
+                "object-data-index >= 3",
+            ),
+        )
+        self.assertEqual(len(blocker_scans), 2)
+        required_exclusions = (
+            "object-data-id g:== gl-transport-route-id",
+            "object-data-id g:== gl-quarantine-transport-id",
+            "object-data-garrison-count > 0",
+            "object-data-under-attack > 0",
+            "object-data-idling != 1",
+            "object-data-group-flag >= 0",
+            "object-data-map-zone-id g:!= gl-transport-departure-water-zone",
+        )
+        for rule in blocker_scans:
+            for exclusion in required_exclusions:
+                self.assertIn(exclusion, rule[4])
+
+        destination = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-DEPARTURE-BLOCKERS",
+                "gl-transport-departure-blockers c:> 0",
+            ),
+            actions=(
+                "(up-filter-distance c: 28 c: 200)",
+                "(up-find-local c: transport-ship c: 20)",
+                "object-data-map-zone-id g:!= gl-transport-departure-water-zone",
+                "TRANSPORT-ROUTE-DEPARTURE-DESTINATION",
+            ),
+        )
+        self.assertEqual(len(destination), 1)
+
+        independent_clear = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-CLEAR-IDLE",
+                "TRANSPORT-ROUTE-IDLE",
+            ),
+            actions=("TRANSPORT-CLEAR-STALE-FIND",),
+        )
+        self.assertEqual(len(independent_clear), 1)
+
+    def test_transport_departure_clearance_success_resumes_original_waypoint(self) -> None:
+        clearance = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-DEPARTURE-CLEAR",
+                "(up-set-target-object search-local c: 0)",
+            ),
+            actions=(
+                "gl-transport-departure-target-x action-move",
+                "gl-transport-departure-clear-attempts c:+ 1",
+                "RAW44T transport blocker clearance ordered: %d",
+                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-WAIT",
+            ),
+        )
+        retry = matching_rules(
+            self.military,
+            facts=("TRANSPORT-ROUTE-DEPARTURE-RETRY",),
+            actions=(
+                "up-set-target-point gl-transport-route-waypoint-x",
+                "up-add-object-by-id search-local g: gl-transport-route-id",
+                "TRANSPORT-ROUTE-DEPARTURE-ISSUE",
+            ),
+        )
+        resumed = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-DEPARTURE-EVALUATE",
+                "gl-transport-departure-current-distance g:<= gl-transport-departure-progress-limit",
+                "(goal gl-transport-departure-congested YES)",
+            ),
+            actions=(
+                "RAW44T transport departure resumed: %d",
+                "(set-goal gl-transport-departure-clear-attempts 0)",
+                "(set-goal gl-transport-departure-congested NO)",
+                "gl-transport-route-waypoint-x action-move",
+                "TRANSPORT-ROUTE-WAYPOINT-WAIT",
+            ),
+        )
+        self.assertEqual(len(clearance), 1)
+        self.assertEqual(len(retry), 1)
+        self.assertEqual(len(resumed), 1)
+        self.assertNotIn("TRANSPORT-ROUTE-RECOVERY-WAIT", resumed[0][4])
+
+    def test_transport_departure_clearance_failure_is_terminal_and_bounded(self) -> None:
+        terminal = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-DEPARTURE-ORIGIN",
+                "object-data-distance <= 20",
+                "object-data-garrison-count > 0",
+                "gl-transport-departure-clear-attempts c:>= 2",
+            ),
+            actions=(
+                "RAW44T transport departure congestion unresolved: %d",
+                "gl-home-anchor-x action-unload",
+                "TRANSPORT-ROUTE-RECOVERY-WAIT",
+            ),
+        )
+        self.assertEqual(len(terminal), 1)
+        self.assertEqual(
+            self.military.count("RAW44T transport departure congestion unresolved: %d"),
+            1,
+        )
+        self.assertNotIn("gl-transport-route-waypoint-x action-move", terminal[0][4])
+        attempt_increments = matching_rules(
+            self.military,
+            actions=("gl-transport-departure-clear-attempts c:+ 1",),
+        )
+        self.assertEqual(len(attempt_increments), 4)
 
     def test_port_clearance_includes_trade_cogs(self) -> None:
         berth_scans = matching_rules(
