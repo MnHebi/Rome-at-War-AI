@@ -1615,6 +1615,68 @@
         "P3B44T5 does not change migration drop-site establishment, repeated garrisoned-passenger orders, attack landing memory, Orange's delayed assault activation, or the deferred crash investigation."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260829-232526-p3b44t5-all-transport",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.29 232526.aoe2record",
+        "sha256": "B12989601E59BDE4D4BE3ACA4D6C9B0F2F322E31FA7D9E97198AA3CDE61924CE",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The selected visible colors and resolved teams match the preserved authoritative lobby. Color is not inferred from lobby row or internal color_id.",
+        "duration_seconds": 18664,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The replay parsed with zero action-stream errors, lasted 5:11:04, and contains no decoded resignation action. Startup chat contains RAWAI-P3B44T5: 446 from players 2 through 8, matching the separately byte-verified installed runtime.",
+        "Selected-color header metadata independently resolves Red/Green/Yellow/Purple as Roman Empire team 1 and Orange Picts/Cyan Britons/Blue Germani/Gray Gauls as team 2. No color or team is inferred from lobby row or player-slot order.",
+        "The systematic all-player low-level union reconstructed 42 explicit or likely Transport hull IDs, 1,678 load records, 2,054 point unloads, 352 alternating load-to-unload phases, 5 terminal load-only phases, 5 initial unload-only phases, and 11,437 raw transport actions. Generic building and siege ungarrisons were filtered; these phases are evidence inputs rather than one claimed mission per phase.",
+        "Per-player hull/load/unload/alternating-phase totals were Red 8/189/328/93, Green 3/167/459/40, Yellow 3/81/837/24, Purple 1/484/64/64, Orange 9/238/92/36, Cyan 9/210/173/51, Blue 6/84/78/39, and Gray 3/225/23/5. Both teams and every player are included.",
+        "Forty-eight public migration landing-candidate missions occurred across seven players: Orange 23, Red 5, Yellow 3, Green 1, Blue 4, Cyan 11, Gray 1, and Purple 0. Purple nevertheless had low-level Transport activity, so zero public migration-candidate missions is not treated as zero transport use.",
+        "All 95 RAW44M landing-path-clear events had an exact same-second point unload by the reported hull. Four wrong-zone and 36 path-rejected or unreachable events had zero same-second unloads. Four all-invalid missions skipped all five candidates and reached bounded home recall without issuing an invalid unload.",
+        "Red completed four visible same-zone migration landings. The 52:33-54:28 mission landed ten settlers, issued a Mining Camp attempt at a live resource anchor, assigned exact builders, completed the Mining Camp, and retasked the settlers. Three later zone-14 missions landed 2, 6, and 11 settlers but each emitted an explicit Mining Camp resource-wait terminal after 60 seconds and recalled home.",
+        "Thirty of the 48 public migration candidate windows contained guard commands targeting the exact hull, totaling 62 guard events. Several successful or partial Red landings also had guards, so ownership overlap persists but this replay does not prove a guard physically caused a particular landing failure.",
+        "Twelve assault landing windows were staged: six completed, five timed out, and one Cyan window had no public terminal marker. None of the eleven staged-to-terminal windows contained a guard action on its active hull. The Cyan hull did unload and its player later began another route screen; source inspection identifies a quiet built-in-load completion path, so the nonterminal window is unclassified rather than a proven state loss.",
+        "Relic telemetry contained 19 pending, 11 outbound-unit/hull/target triplets, and 7 return-unit/hull pairs. Red and Cyan each repeated outbound/return cycles, preserving the P3B44T4 exact-passenger behavior.",
+        "The replay contains 3,260,167 ACTION operations, 1,830,452 AI_ORDER actions, 916,162 ORDER actions, and 235,131 WORK actions. The largest repeated ORDER stream was Yellow object 52175 to target 57803 at 139,121: 49,780 orders from 180:10 through 311:03; replay build evidence identifies a Yellow Town Center at that coordinate, but the generating rule is not proven.",
+        "Two bounded-looking controller states produced unbounded repeated home unloads: Yellow hull 32151 issued 792 unloads from 108:53 through 311:02 and Green hull 59397 issued 412 unloads from 199:41 through 307:47. Source inspection shows TRANSPORT-ROUTE-RECOVERY-CHECK can reissue home unload every 15 seconds while garrison count remains positive. These 1,204 unloads do not explain the replay's millions of other commands and are recorded separately from the P3B44T5 landing fix."
+      ],
+      "implementation_inferences": [
+        "P3B44T5's migration landing-candidate defect is runtime-closed. Every exact-hull path-clear event issued its unload, no wrong-zone or path-rejected candidate did, all-invalid sequences terminated without invalid unloads, and an actual same-zone crossing completed its drop-off and settler retasking.",
+        "Previously working transport behavior remains present where directly exercised: P3B44T2 assault unload windows remain free of guard refreshes and P3B44T4 exact relic passengers continued outbound and return lifecycles. No public exact-blocker congestion episode independently re-exercised P3B44T3, whose earlier runtime acceptance therefore remains the control evidence.",
+        "Migration escort ownership overlap remains investigating. Guard orders coexist with both successful and incomplete landings, while replay commands do not encode ship collision geometry; removing voyage protection would therefore be a guessed behavioral fix.",
+        "The three late Red drop-site failures are explicit resource-wait terminals and are distinct from the earlier replay-proven Purple immediate global-pending race. This replay does not disprove or close that Purple defect.",
+        "The repeated 15-second recovery unloads have a source-level loop condition, but they are only a small, proven subset of the broader command-volume anomaly. The dominant Town Center target stream and global lag/crash cause remain unresolved."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B44T5 and preserve the runtime-closed P3B44T4 relic lookup, P3B44T3 departure clearance, and P3B44T2 assault landing-screen behavior.",
+        "Use close cardinal migration landing candidates, require the selected resource-anchor zone, and require an exact-hull reachable path before issuing an unload.",
+        "Skip wrong-zone and unreachable candidates with bounded public terminal reasons, retaining the five-attempt and home-recall bounds."
+      ],
+      "fresh_replay_acceptance": [
+        "PASS: the byte-verified runtime marker is present and selected-color metadata matches the preserved lobby.",
+        "PASS: 95 of 95 path-clear events issued same-second exact-hull unloads; 0 of 4 wrong-zone and 0 of 36 path-rejected events issued same-second unloads.",
+        "PASS: all-invalid candidate sequences remained bounded, and a Red same-zone migration landed ten settlers, completed a Mining Camp, and retasked the landed settlers.",
+        "PASS: assault unload windows remained free of guard refreshes and relic passengers continued exact outbound/return lifecycles. P3B44T3 exact-blocker clearance was not independently re-exercised in this replay."
+      ],
+      "known_limits": [
+        "This runtime acceptance closes only blind migration landing-candidate selection. It does not close migration drop-site establishment, escort ownership overlap, partial landing/passenger policy, attack landing memory, hostile route safety, or transport production.",
+        "The replay proves some late Red drop-site failures were resource waits, but it does not prove why the AI lacked or failed to obtain the required resource, nor does it resolve the earlier Purple global-pending race.",
+        "The replay records severe command volume and one small source-proven recovery-unload loop. It does not establish that command volume caused any prior crash or identify the dominant command producer."
+      ],
+      "validation_status": "runtime-confirmed"
     }
   ]
 }

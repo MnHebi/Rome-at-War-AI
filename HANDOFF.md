@@ -48,7 +48,8 @@ This handoff belongs to the dedicated transport-development worktree:
   blocker at a time; P3B44T4 directly verifies the reserved relic-ferry
   passenger after P3B44T3 proved two load-recognition failures; P3B44T5
   replaces migration's replay-proven water/wrong-island diagonal candidates
-  with close, same-zone, exact-hull-path-screened candidates.
+  with close, same-zone, exact-hull-path-screened candidates. The 23:25
+  P3B44T5 replay runtime-closed that exact landing-candidate defect.
 - Status: experimental P3B44-derived development worktree. It does not replace
   the canonical workspace.
 - Future ordinary development must use the canonical workspace. Continue this
@@ -79,13 +80,13 @@ Other controls:
 
 ## Current objective and preserved behavior
 
-Run a fresh preserved-lobby P3B44T5 replay that exercises civilian
-or scout migration to a small resource island. Prove that every issued unload
-candidate belongs to the selected resource zone and is path-approachable by
-the exact reserved hull; wrong-zone and unreachable candidates must be skipped
-without an unload. Require at least one completed same-zone landing. Reconfirm
-the runtime-closed P3B44T4 relic ferry, P3B44T3 departure clearance, and
-P3B44T2 landing screen/escort behavior as non-regressions.
+P3B44T5 migration landing-candidate screening is runtime-accepted and CLOSED.
+The 23:25 replay proved all 95 path-clear candidates issued an unload, none of
+the 4 wrong-zone or 36 path-rejected candidates did, bounded all-invalid
+sequences recalled home, and Red completed a same-zone landing, Mining Camp,
+and settler retask. The next transport patch must address one separately proven
+defect at a time, beginning with Purple's premature global-pending drop-site
+transition unless newer discriminating evidence changes priority.
 
 P3B44 Gray/Blue combined attacks are the known-good behavior at regression
 risk. This patch must preserve ordinary land attack dispatch, superiority,
@@ -278,7 +279,7 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
 
 ### Migration blind landing offsets
 
-- **Status:** FIXED-PENDING-RUNTIME.
+- **Status:** CLOSED.
 - **User-visible symptom:** Purple performed odd scout-Transport actions around
   14 and 24 minutes in P3B44T2. Green later performed the same conspicuous
   twenty-passenger migration around 1:22 in P3B44T4 and returned home without
@@ -312,12 +313,16 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
   candidate; a small-island mission either lands in its selected resource zone
   or terminates with bounded explicit reasons without targeting water/another
   island. At least one previously successful migration remains successful.
-- **Latest result / next action:** focused test, all 118 regressions, PER,
-  naval-doctrine, strategy, workbook, and 25-replay validation pass. The
-  68-file runtime is byte-identical at marker P3B44T5:446. Run a fresh
-  all-player transport replay; this remains FIXED-PENDING-RUNTIME until it
-  demonstrates a completed same-zone landing without water/wrong-island
-  unloads.
+- **Latest runtime result:** P3B44T5 supplied 48 public migration candidate
+  missions across seven players. All 95 `landing path clear` events had an
+  exact same-second unload by the reported hull; all 4 wrong-zone and 36
+  path-rejected events had no same-second unload. Four all-invalid missions
+  skipped all five invalid candidates and recalled home. Red independently
+  landed ten settlers in zone 3, completed a Mining Camp, and retasked them.
+  Previously working assault and relic transport behavior remained present.
+- **Closure basis:** every behavioral acceptance criterion was demonstrated by
+  the byte-identified runtime replay. No further landing-candidate patch is
+  authorized without new contrary runtime evidence.
 
 ### Migration escort ownership overlap
 
@@ -340,9 +345,11 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
   a specific guard/ship position to a stalled migration approach; the eventual
   patch stages owned escorts clear only for the proven window and preserves
   voyage protection.
-- **Latest result / next action:** inspect P3B44T5 guard actions against every
-  migration hull and correlate any path-clear-but-unload-failed candidate with
-  the user's visible obstruction before changing escort ownership.
+- **Latest result / next action:** 30 of 48 P3B44T5 public migration candidate
+  windows contained guard commands on the exact hull, totaling 62 guard
+  events. Guards also overlapped successful or partial Red landings, so they
+  are not universally fatal. Preserve INVESTIGATING status until position or
+  targeted clearance evidence ties a specific guard to a specific stall.
 
 ### Migration drop-off establishment and premature recall
 
@@ -365,6 +372,13 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
   83:36-84:16. No passenger issued a Mill/Lumber/Mining Camp build within
   twenty-four tiles during the rest of the replay. Fifteen were told to
   reboard at 86:02 and never unloaded again before the replay ended.
+- **P3B44T5 evidence:** Red completed one full landing/drop-off lifecycle at
+  52:33-54:28: ten settlers landed, exact builders were assigned, the Mining
+  Camp completed, and the settlers were retasked. Three later Red zone-14
+  landings delivered 2, 6, and 11 settlers but each then emitted an explicit
+  `migration mining camp resource wait:14` for 60 seconds before drop-site
+  failure and home recall. Those are resource-starvation terminals, not the
+  earlier Purple one-second global-pending race.
 - **Contradictory/unknown evidence:** only each local AI's self chat is private;
   Orange's exact anchor, affordability, placement-owner, and watchdog state is
   not serialized. Purple has a build command but the replay does not prove a
@@ -377,8 +391,10 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
   can be recalled; unavailable placement reaches bounded retries and a precise
   terminal reason.
 - **Latest result / next action:** fix Purple's premature global-pending
-  transition as a separate causal patch; add public blocker telemetry before
-  changing Orange's pre-drop-site path.
+  transition as a separate causal patch. Preserve the successful Red lifecycle
+  as the non-regression control. Add or retain bounded public affordability and
+  first-blocker evidence for Orange and the late Red resource-wait cases before
+  changing their distinct pre-drop-site paths.
 
 ### Orange delayed assault activation
 
@@ -413,6 +429,16 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
   garrisoned Green migration passengers each received roughly 5,400-10,100
   repeated ORDERs toward object 4561 at the exact home point; large repeated
   streams also occur for other players and objects.
+- **P3B44T5 evidence:** the 5:11:04 replay contains 3,260,167 ACTION
+  operations: 1,830,452 AI_ORDER, 916,162 ORDER, and 235,131 WORK. The largest
+  repeated ORDER stream is Yellow object 52175 to target 57803 at 139,121:
+  49,780 orders from 180:10 through 311:03. Replay BUILD evidence identifies a
+  Yellow Town Center at that coordinate, but the producing rule remains
+  unproven. Separately, Yellow hull 32151 produced 792 and Green hull 59397
+  produced 412 repeated home unloads. Source inspection proves
+  `TRANSPORT-ROUTE-RECOVERY-CHECK` can reissue a home unload every 15 seconds
+  indefinitely while garrison count remains positive; these 1,204 unloads are
+  a proven sub-loop, not an explanation for the millions of other commands.
 - **Current causal boundary:** the Green streams begin as individual passengers
   disappear from the three-second unboarded retry list and stop around their
   home unload, strongly correlating this instance with garrisoning. Other
@@ -555,6 +581,35 @@ P3B44T4 all-player transport replay:
   `britain-4v4-20260829-214328-p3b44t4-all-transport` in
   `replay-benchmarks.json`.
 
+P3B44T5 all-player transport replay:
+
+- Basename:
+  `SP Replay v101.103.48987.0 @2026.08.29 232526.aoe2record`.
+- SHA-256:
+  `B12989601E59BDE4D4BE3ACA4D6C9B0F2F322E31FA7D9E97198AA3CDE61924CE`.
+- Duration: 5:11:04; action-stream parser errors: zero; no decoded
+  resignation action; marker `RAWAI-P3B44T5:446` serialized from players 2
+  through 8.
+- Selected-color metadata independently validates the preserved lobby mapping;
+  no team/color was inferred from row or slot.
+- External full analysis:
+  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260829-232526-p3b44t5-full.json`.
+- External semantic helper:
+  `G:\Projects\Codex\Rome at War AI\.analysis\summarize_p3b44t5.py`.
+- Systematic union: 42 explicit/likely Transport hull IDs, 1,678 loads, 2,054
+  point unloads, 352 alternating phases, 5 terminal load-only phases, 5
+  initial unload-only phases, and 11,437 raw transport actions. Per-player
+  hull/load/unload/phase totals: Red 8/189/328/93, Green 3/167/459/40, Yellow
+  3/81/837/24, Purple 1/484/64/64, Orange 9/238/92/36, Cyan 9/210/173/51,
+  Blue 6/84/78/39, and Gray 3/225/23/5.
+- Forty-eight public migration candidate missions yielded 95 path-clear, 4
+  wrong-zone, and 36 path-rejected events. All 95 clear events had an exact
+  same-second hull unload; no invalid event did. Red completed one full
+  landing/drop-off/retask lifecycle and three later resource-wait landings.
+- Repository evidence entry:
+  `britain-4v4-20260829-232526-p3b44t5-all-transport` in
+  `replay-benchmarks.json`.
+
 Replay/savegame files, compact parser output, crash dumps, and Rome at War data
 mod files remain external and must never be committed to the AI repository.
 
@@ -579,7 +634,7 @@ mod files remain external and must never be committed to the AI repository.
   Extreme matchups with adjustments).
 - ODS workbook round trip: PASS (34 civilizations, 680 unit-evidence rows, 340
   naval-class rows).
-- Replay benchmarks: PASS (25 entries).
+- Replay benchmarks: PASS (26 entries).
 - `git diff --check`: PASS; only expected CRLF notices.
 - Adversarial P3B44T2 comparison: PASS. P3B44T3 changed only the active
   transport departure state, goals/constants, marker, bounded telemetry,
@@ -618,26 +673,33 @@ mod files remain external and must never be committed to the AI repository.
 - Installed P3B44T5 runtime byte verification: PASS (68 files; aggregate
   source/target SHA-256
   `0BAF0BB48120E787FE6639A00C99A6A9D6D24F74D07E55791D2C055968AAA5F8`).
-- Fresh P3B44T5 engine/replay acceptance: REQUIRED.
+- Fresh P3B44T5 engine/replay acceptance: PASS. All 95 path-clear candidates
+  issued an unload, all 40 wrong-zone/path-rejected candidates issued none,
+  all-invalid missions remained bounded, and Red completed a same-zone landing,
+  Mining Camp, and settler retask. Migration blind landing offsets are CLOSED.
+- P3B44T2/T4 runtime non-regression in P3B44T5: PASS. Eleven resolved assault
+  landing windows had zero active-hull guard commands, and exact relic
+  passengers continued outbound/return lifecycles. No public exact-blocker
+  congestion episode independently re-exercised P3B44T3; its earlier runtime
+  acceptance remains the control evidence.
 
 ## Exact next actions
 
-1. Verify this worktree's branch, behavior commit `2a08a2b`, and only expected
-   user-owned `AGENTS.md` dirt plus this HANDOFF-only successor against this
-   document.
-2. Start the preserved Britannia 4v4 lobby using the byte-verified 68-file
-   runtime and confirm public marker `RAWAI-P3B44T5: 446` near replay startup.
-3. Inspect every reconstructable transport lifecycle across all players. For
-   each migration episode, correlate `RAW44M` candidate outcome with unload,
-   passenger landing, destination zone, recall, and terminal result.
-4. Require no unload after a wrong-zone/path-rejected candidate and at least one
-   completed same-zone small-island landing before closing P3B44T5. Preserve at
-   least one formerly successful migration as the non-regression control.
-5. Reconfirm T4/T3/T2: exact relic passengers still depart, exact blockers are
-   verified clear, screen Scouts move away, and no guard targets an assault hull
-   during its staged unload window.
-6. Record migration-hull GUARD overlap, drop-site establishment, and command
-   volume as separate episodes. Do not mix them into the landing-candidate fix
-   without evidence proving the dependency.
-7. Keep the deferred crash/command-volume anomaly, P3B44D1 friendly-fire, and
-   non-transport defects out of this causal patch/worktree.
+1. Verify this worktree's branch, behavior commit `2a08a2b`, evidence successor,
+   and only expected user-owned `AGENTS.md` dirt against this document. Do not
+   redeploy: the accepted runtime remains marker `RAWAI-P3B44T5:446`.
+2. Treat migration blind landing offsets as CLOSED. Do not alter that behavior
+   without new contrary runtime evidence; preserve the Red completed lifecycle
+   as its non-regression control.
+3. Implement Purple's ROOT-CAUSE-PROVEN premature global-pending drop-site
+   transition as the next isolated transport patch. Require a concrete
+   same-zone foundation before advancing and retain bounded placement retries.
+4. Keep Orange and the late Red resource-wait failures distinct. Use bounded
+   public affordability/first-blocker evidence before changing those paths.
+5. Keep migration escort ownership INVESTIGATING: 62 guard events overlapped
+   30/48 windows, including successful landings, and do not prove collision.
+6. Record and eventually isolate the 15-second recovery-unload sub-loop from
+   the much broader command-volume anomaly; do not claim it explains the
+   dominant Town Center stream or any crash.
+7. Keep P3B44D1 friendly-fire and non-transport defects out of this causal
+   transport worktree unless the user explicitly redirects the experiment.
