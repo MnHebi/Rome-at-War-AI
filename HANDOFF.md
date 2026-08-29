@@ -35,8 +35,11 @@ This handoff belongs to the dedicated transport-development worktree:
   blockers before departure retry`). This is the runtime-validated P3B44T3
   implementation.
 - Exact-passenger implementation commit: `19c0beb` (`Verify relic ferry
-  passenger before departure`). This is the current P3B44T4 behavior HEAD
-  before this handoff documentation-only successor.
+  passenger before departure`). P3B44T4 runtime-closed that defect in the
+  21:43 replay.
+- Same-zone migration landing implementation: pending commit in this session.
+  It is the P3B44T5 behavior change and must be filled with the exact SHA after
+  commit.
 - Project-rules synchronization commit: `bcd484f` (`Adopt evidence-first
   project rules`).
 - Purpose: P3B44-derived transport-only development. P3B44T1 introduced loaded
@@ -44,7 +47,9 @@ This handoff belongs to the dedicated transport-development worktree:
   route-screen and escort Scouts; P3B44T3 corrected T1's replay-proven
   group-and-assume blocker clearance by moving and verifying one exact safe
   blocker at a time; P3B44T4 directly verifies the reserved relic-ferry
-  passenger after P3B44T3 proved two load-recognition failures.
+  passenger after P3B44T3 proved two load-recognition failures; P3B44T5
+  replaces migration's replay-proven water/wrong-island diagonal candidates
+  with close, same-zone, exact-hull-path-screened candidates.
 - Status: experimental P3B44-derived development worktree. It does not replace
   the canonical workspace.
 - Future ordinary development must use the canonical workspace. Continue this
@@ -75,11 +80,12 @@ Other controls:
 
 ## Current objective and preserved behavior
 
-Deploy P3B44T4 and run a fresh preserved-lobby replay that exercises a relic
-ferry. Prove that the exact reserved Priest/Brahmin becomes garrisoned, causes
-the reserved hull's outbound unload command before the hard watchdog, visits
-the intended off-home relic, reboards the same hull, and returns to a home
-Monastery. Reconfirm the now runtime-closed P3B44T3 departure clearance and
+Deploy P3B44T5 and run a fresh preserved-lobby replay that exercises civilian
+or scout migration to a small resource island. Prove that every issued unload
+candidate belongs to the selected resource zone and is path-approachable by
+the exact reserved hull; wrong-zone and unreachable candidates must be skipped
+without an unload. Require at least one completed same-zone landing. Reconfirm
+the runtime-closed P3B44T4 relic ferry, P3B44T3 departure clearance, and
 P3B44T2 landing screen/escort behavior as non-regressions.
 
 P3B44 Gray/Blue combined attacks are the known-good behavior at regression
@@ -149,7 +155,7 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
 
 ### Relic-ferry passenger load recognition
 
-- **Status:** FIXED-PENDING-RUNTIME.
+- **Status:** CLOSED.
 - **User-visible symptom:** Red loaded a Priest into a Transport, the hull did
   nothing, the controller later unloaded the Priest at home, and the Priest
   retrieved a relic from Red's own island instead of completing the intended
@@ -185,11 +191,19 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
   180-second watchdog. The carrier acquires the off-home relic, emits exact
   return unit/hull records, unloads at home, and receives the unchanged home
   Monastery task. Pending/missing logging remains one-shot.
-- **Latest result:** focused tests, all 118 regression tests, PER validation,
-  24 replay benchmarks, and adversarial source review PASS. Runtime behavior is
-  not yet proven; do not close until a fresh P3B44T4 replay passes.
-- **Next action:** deploy P3B44T4, verify runtime bytes/marker, then inspect
-  every transport lifecycle and the complete relic-ferry round trip.
+- **Latest runtime result:** the 21:43 P3B44T4 replay contains two independent
+  complete round trips. Orange carrier 33139 used exact hull 31942 to visit
+  relic 4656 and returned to Monastery 33023; Cyan carrier 34011 used exact
+  hull 33693 to visit relic 4662 and returned to Monastery 33653. Red carrier
+  33314 and Green carrier 33487 independently advanced from boarding to exact
+  outbound hull/target commands before the watchdog, although neither return
+  completed before later mission outcomes.
+- **Non-regression result:** five assault unload windows in the same replay had
+  zero GUARD commands on the active landing hull. Two completed and three reached
+  the unchanged bounded timeout.
+- **Closure basis:** exact garrison recognition, outbound identity, remote
+  unload, relic acquisition, same-hull return, home unload, and exact Monastery
+  task are replay-visible for two independent players.
 
 ### Friendly Scout obstruction at attack-Transport landing
 
@@ -263,28 +277,70 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
   remaining-garrison, and rejection telemetry before selecting a behavioral
   fix.
 
-### Scout-migration blind landing offsets
+### Migration blind landing offsets
 
-- **Status:** ROOT-CAUSE-PROVEN.
-- **User-visible symptom:** Purple performed odd Transport actions around 14
-  and 24 minutes and returned without establishing the scout migration.
-- **Direct evidence:** hull 30184 tried 111,70 plus four fixed eight-tile
-  diagonals in the first episode and 101,68 plus the same four-offset pattern
-  in the second, then repeatedly unloaded at home after every remote attempt.
-- **Root cause:** the migration scout recovery state machine blindly rotates
-  fixed `+/-8` offsets around the failed point. It does not prove land
-  passability/adjacency before unload; exhausting all four offsets enters the
-  existing home-return failure.
-- **Contradictory/unknown evidence:** replay actions do not expose terrain
-  collision or the precise rejection reason for each coordinate.
-- **Instrumentation/tests:** exact hull, landing, retry, and home-return actions
-  reconstruct both terminal episodes. No code change yet.
-- **Implementation:** none in P3B44T3 or P3B44T4.
-- **Acceptance criterion:** migration scout recovery chooses a screened,
-  reachable alternative rather than four blind diagonals, or emits a bounded
-  exact terminal reason without repeating the same unusable family.
-- **Latest result / next action:** causal state path proven; implement only on a
-  separate migration patch after P3B44T4 relic-ferry runtime validation.
+- **Status:** FIXED-PENDING-RUNTIME.
+- **User-visible symptom:** Purple performed odd scout-Transport actions around
+  14 and 24 minutes in P3B44T2. Green later performed the same conspicuous
+  twenty-passenger migration around 1:22 in P3B44T4 and returned home without
+  landing anyone.
+- **Direct replay evidence:** Green hull 32009 tried resource anchor 134,196 at
+  80:42, followed by the exact source-generated eight-tile diagonals 142,204,
+  126,204, 142,188, and 126,188 at twenty-second intervals. No passenger
+  landed; five home unloads followed from 82:23 through 83:24. Purple T2 had
+  already reproduced the same five-point sequence twice.
+- **Authoritative terrain evidence:** the P3B44T4 replay header identifies
+  134,196 as terrain 0, the first two diagonals as terrain 1, and the southern
+  diagonals as terrain 0 on landmasses separated from the target island by
+  continuous water. The Rome at War DAT names terrain 0 `Grass` and terrain 1
+  `Water, Shallow`. Thus two retries were water and two were different islands.
+- **Root cause:** `up-bound-point` only shifts coordinates into map bounds. The
+  migration state treated that as sufficient validation, issued unloads to
+  four fixed eight-tile diagonals without reading their zone or testing the
+  exact hull's path, and exhausted the sequence into home recall.
+- **Implementation:** P3B44T5 replaces the diagonals with four close two-tile
+  cardinal candidates around the exact resource anchor. Before the initial or
+  any alternate unload, it reads the candidate point zone, requires equality
+  with the stored resource-anchor zone, rebuilds the exact reserved hull, and
+  requires `up-path-distance ... 0 != 65535`. Wrong-zone and unreachable
+  candidates emit bounded public reason/identity telemetry and advance after
+  one second without an unload command.
+- **Non-regression risk:** previously successful migration landings, the
+  P3B44T4 relic ferry, T3 departure clearance, and T2 assault landing screen.
+  The patch changes only the shared migration landing-candidate transition.
+- **Acceptance criterion:** each migration unload is preceded by a same-zone
+  exact-hull path-clear event; no unload follows a wrong-zone or path-rejected
+  candidate; a small-island mission either lands in its selected resource zone
+  or terminates with bounded explicit reasons without targeting water/another
+  island. At least one previously successful migration remains successful.
+- **Latest result / next action:** focused deterministic test and PER
+  validation pass. Complete the full suite, deploy marker P3B44T5:446, verify
+  installed bytes, and run a fresh all-player transport replay.
+
+### Migration escort ownership overlap
+
+- **Status:** INVESTIGATING.
+- **User-visible symptom:** a loaded migration hull can have friendly warships
+  crowding it during approach, landing retries, or recall.
+- **Direct evidence:** Green warships repeatedly received GUARD orders on exact
+  migration hull 32009 throughout both 77:58-83:24 and 84:40-88:00 episodes,
+  including every refresh across the first remote unload/retry window.
+- **Current causal boundary:** the generic escort selector excludes only the
+  assault controller's `TRANSPORT-ROUTE-RETURN-WAIT`; it does not exclude a
+  Transport reserved by `migration-transport-group` or any migration landing
+  state. This proves overlapping ownership policy. Replay commands do not
+  serialize collision polygons, so they do not prove which unload physically
+  failed because of an escort.
+- **Implementation:** none in P3B44T5. Removing protection for the whole
+  civilian voyage would risk a transport-survival regression without proving
+  the necessary clearance window.
+- **Acceptance criterion:** targeted telemetry or direct visual evidence ties
+  a specific guard/ship position to a stalled migration approach; the eventual
+  patch stages owned escorts clear only for the proven window and preserves
+  voyage protection.
+- **Latest result / next action:** inspect P3B44T5 guard actions against every
+  migration hull and correlate any path-clear-but-unload-failed candidate with
+  the user's visible obstruction before changing escort ownership.
 
 ### Migration drop-off establishment and premature recall
 
@@ -342,7 +398,7 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
 - **Latest result / next action:** add public transition-only telemetry for the
   first blocked assault-activation gate; do not guess a gate from timing alone.
 
-### P3B44T3 crash and command-volume anomaly
+### Command-volume anomaly and deferred crash
 
 - **Status:** DEFERRED by the user until transport defects are handled.
 - **User-visible symptom:** the 15:12 P3B44T3 match crashed before its natural
@@ -350,11 +406,22 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
 - **Direct evidence:** the decoded replay ends at 59:33 without a resignation
   action and has zero parser errors. Cyan serialized about 586,260 AI_ORDER
   records; Green, Yellow, and Blue also produced unusually high WORK volumes.
+  The non-crash 21:43 P3B44T4 replay independently contains 1,256,052 ACTION
+  operations: 580,574 ORDER, 372,491 AI_ORDER, and 194,037 WORK. Several
+  garrisoned Green migration passengers each received roughly 5,400-10,100
+  repeated ORDERs toward object 4561 at the exact home point; large repeated
+  streams also occur for other players and objects.
+- **Current causal boundary:** the Green streams begin as individual passengers
+  disappear from the three-second unboarded retry list and stop around their
+  home unload, strongly correlating this instance with garrisoning. Other
+  repeated streams prove the subsystem is broader than migration or relic
+  ferry. The replay does not identify which script/built-in owner generated
+  every engine ORDER or prove that command volume caused the earlier crash.
 - **Unknown evidence:** the replay does not contain an exception code, faulting
   module, corrupting writer, stack, or linked dump. High command volume and the
   crash coexist but causality is not established.
-- **Implementation:** none. Do not mix crash or command-spam changes into the
-  transport-only P3B44T4 patch.
+- **Implementation:** none. Do not mix an unproven command-spam change into the
+  same-zone migration P3B44T5 patch.
 - **Acceptance criterion / next action:** after the user resumes crash work,
   correlate an exact ProcDump/Windows exception with this runtime and identify
   the first command-volume producer or corrupting writer before proposing a
@@ -367,8 +434,8 @@ This one-cause patch does not change or claim to fix:
 - cliff-bound or otherwise unreachable landing points unrelated to friendly
   Scout obstruction;
 - route-scouting, route-threat scanning, landing selection, or naval pathfinding;
-- passenger policy, partial-assault departure, or migration outside the exact
-  relic-ferry load-recognition transition;
+- passenger policy, partial-assault departure, migration escort ownership, or
+  migration drop-site establishment outside exact landing-candidate screening;
 - hostile-fire survival, enemy landing memory, Port placement, or transport
   production quantity;
 - the separate allied-friendly-fire defense trigger;
@@ -457,6 +524,33 @@ P3B44T3 all-player transport replay:
   2/16/24, Gray 2/15/14.
 - Repository evidence entry:
   `britain-4v4-20260829-151250-p3b44t3-all-transport` in
+  `replay-benchmarks.json`.
+
+P3B44T4 all-player transport replay:
+
+- Basename:
+  `SP Replay v101.103.48987.0 @2026.08.29 214328.aoe2record`.
+- SHA-256:
+  `36561ABA8EDCDA3B5623E491ED0222B2852C1435B4F461C713059261CF58B41B`.
+- Duration: 1:49:40; parser errors: zero; no decoded resignation action;
+  marker `RAWAI-P3B44T4:445` serialized from players 2 through 8.
+- Selected-color metadata independently validates the preserved lobby mapping;
+  no team/color was inferred from row or slot.
+- External analyses:
+  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260829-214328-p3b44t4-compact.json`
+  and
+  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260829-214328-p3b44t4-full.json`.
+- External semantic helpers and terrain diagnostic:
+  `G:\Projects\Codex\Rome at War AI\.analysis\summarize_p3b44t4.py`,
+  `G:\Projects\Codex\Rome at War AI\.analysis\render_p3b44t4_map.py`, and
+  `G:\Projects\Codex\Rome at War AI\.analysis\p3b44t4-green-migration-terrain.png`.
+- Systematic union: 35 explicit/likely Transport hull IDs, 509 loads, 249
+  point unloads, 120 alternating phases, 7 terminal load-only phases, and 2
+  unload-only phases. Per-player hull/load/unload/phase totals: Red 10/67/70/26,
+  Green 2/58/26/7, Yellow 4/61/27/20, Purple 5/47/6/4, Orange 2/50/45/21,
+  Cyan 5/99/56/31, Blue 5/109/15/8, and Gray 2/18/4/3.
+- Repository evidence entry:
+  `britain-4v4-20260829-214328-p3b44t4-all-transport` in
   `replay-benchmarks.json`.
 
 Replay/savegame files, compact parser output, crash dumps, and Rome at War data

@@ -4547,19 +4547,20 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertNotIn("gl-island-migration-route-waits 0", watchdog[0][4])
 
     def test_migration_uses_bounded_destination_landings_and_scout_release(self) -> None:
-        first_unload = matching_rules(
+        first_candidate = matching_rules(
             self.military,
             facts=(
                 "(goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-CHECK)",
                 "object-data-distance <= 8",
             ),
             actions=(
-                "gl-island-migration-target-x action-unload",
+                "gl-island-migration-route-waypoint-x gl-island-migration-target-x",
                 "(set-goal gl-island-migration-landing-attempts 0)",
-                "(up-set-timer c: t-island-migration c: 20)",
+                "MIGRATION-CHECK-LANDING-PATH",
             ),
         )
-        self.assertEqual(len(first_unload), 1)
+        self.assertEqual(len(first_candidate), 1)
+        self.assertNotIn("action-unload", first_candidate[0][4])
         alternates = matching_rules(
             self.military,
             facts=(
@@ -4570,11 +4571,76 @@ class FarmPolicyTests(unittest.TestCase):
             ),
             actions=(
                 "migration alternate landing: %d",
-                "action-unload",
-                "MIGRATION-SAILING",
+                "gl-island-migration-route-waypoint-x",
+                "MIGRATION-CHECK-LANDING-PATH",
             ),
         )
         self.assertEqual(len(alternates), 4)
+        for alternate in alternates:
+            self.assertNotIn("action-unload", alternate[4])
+            self.assertNotIn("c:+ 8", alternate[4])
+            self.assertNotIn("c:- 8", alternate[4])
+        path_setup = matching_rules(
+            self.military,
+            facts=("(goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)",),
+            actions=(
+                "(up-set-target-point gl-island-migration-route-waypoint-x)",
+                "gl-island-migration-route-waypoint-x gl-island-migration-landing-zone",
+                "(up-add-object-by-id search-local g: gl-island-migration-transport-id)",
+            ),
+        )
+        self.assertEqual(len(path_setup), 1)
+        reachable = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)",
+                "gl-island-migration-landing-zone g:== gl-island-migration-zone",
+                "(up-set-target-object search-local c: 0)",
+                "(up-path-distance gl-island-migration-route-waypoint-x 0 != 65535)",
+            ),
+            actions=(
+                "gl-island-migration-route-waypoint-x action-unload",
+                "RAW44M landing path clear hull: %d",
+                "(up-set-timer c: t-island-migration c: 20)",
+                "MIGRATION-SAILING",
+            ),
+        )
+        rejected = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)",
+                "gl-island-migration-landing-zone g:== gl-island-migration-zone",
+                "(up-set-target-object search-local c: 0)",
+                "(up-path-distance gl-island-migration-route-waypoint-x 0 == 65535)",
+            ),
+            actions=(
+                "RAW44M landing path rejected hull: %d",
+                "RAW44M rejected x: %d",
+                "RAW44M rejected y: %d",
+                "(up-set-timer c: t-island-migration c: 1)",
+                "MIGRATION-SAILING",
+            ),
+        )
+        wrong_zone = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)",
+                "gl-island-migration-landing-zone g:!= gl-island-migration-zone",
+                "(up-set-target-object search-local c: 0)",
+            ),
+            actions=(
+                "RAW44M landing wrong zone hull: %d",
+                "RAW44M wrong-zone actual: %d",
+                "RAW44M wrong-zone expected: %d",
+                "(up-set-timer c: t-island-migration c: 1)",
+                "MIGRATION-SAILING",
+            ),
+        )
+        self.assertEqual(len(reachable), 1)
+        self.assertEqual(len(rejected), 1)
+        self.assertEqual(len(wrong_zone), 1)
+        self.assertNotIn("action-unload", rejected[0][4])
+        self.assertNotIn("action-unload", wrong_zone[0][4])
         self.assertIn("migration landing rejected zone: %d", self.military)
         scout_release = matching_rules(
             self.military,
@@ -5145,7 +5211,7 @@ class FarmPolicyTests(unittest.TestCase):
 
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         self.assertIn(
-            '(up-chat-data-to-all "RAWAI-P3B44T4: %d" c: 445)',
+            '(up-chat-data-to-all "RAWAI-P3B44T5: %d" c: 446)',
             self.init_goals,
         )
         initial = matching_rules(

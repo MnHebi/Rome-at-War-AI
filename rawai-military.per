@@ -2337,12 +2337,13 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-distance <= 8)
 =>
-	(up-target-point gl-island-migration-target-x action-unload -1 stance-no-attack)
-	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	;The resource anchor can be inland or behind cliffs. Preserve it as the first
+	;candidate, then ask the exact reserved hull whether it has a water path close
+	;enough for an unload before issuing any landing order.
+	(up-copy-point gl-island-migration-route-waypoint-x gl-island-migration-target-x)
 	(up-chat-data-to-self "migration route waypoint reached: %d" g: gl-island-migration-route-waits)
 	(set-goal gl-island-migration-landing-attempts 0)
-	(up-set-timer c: t-island-migration c: 20)
-	(set-goal gl-island-migration-state MIGRATION-SAILING)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
 )
 
 (defrule
@@ -4064,9 +4065,9 @@
 	(set-goal gl-island-migration-state MIGRATION-SAILING)
 )
 
-;A resource anchor can be inland from the first viable beach. Try four bounded
-;shoreline approaches before rejecting the destination; do not wait three
-;minutes on one impossible unload point.
+;A resource anchor can be occupied or inland from the first viable beach.
+;Prepare four close alternatives around that same anchor: the former eight-tile
+;diagonals could land in water or on an entirely different island.
 (defrule
 	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
 	(up-set-target-object search-local c: 0)
@@ -4075,14 +4076,11 @@
 	(goal gl-island-migration-landing-attempts 0)
 =>
 	(up-copy-point point3-x gl-island-migration-target-x)
-	(up-modify-goal point3-x c:+ 8)
-	(up-modify-goal point3-y c:+ 8)
-	(up-bound-point point4-x point3-x)
-	(up-target-point point4-x action-unload -1 stance-no-attack)
+	(up-modify-goal point3-x c:+ 2)
+	(up-bound-point gl-island-migration-route-waypoint-x point3-x)
 	(set-goal gl-island-migration-landing-attempts 1)
 	(up-chat-data-to-self "migration alternate landing: %d" c: 1)
-	(up-set-timer c: t-island-migration c: 20)
-	(set-goal gl-island-migration-state MIGRATION-SAILING)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
 )
 
 (defrule
@@ -4093,14 +4091,11 @@
 	(goal gl-island-migration-landing-attempts 1)
 =>
 	(up-copy-point point3-x gl-island-migration-target-x)
-	(up-modify-goal point3-x c:- 8)
-	(up-modify-goal point3-y c:+ 8)
-	(up-bound-point point4-x point3-x)
-	(up-target-point point4-x action-unload -1 stance-no-attack)
+	(up-modify-goal point3-x c:- 2)
+	(up-bound-point gl-island-migration-route-waypoint-x point3-x)
 	(set-goal gl-island-migration-landing-attempts 2)
 	(up-chat-data-to-self "migration alternate landing: %d" c: 2)
-	(up-set-timer c: t-island-migration c: 20)
-	(set-goal gl-island-migration-state MIGRATION-SAILING)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
 )
 
 (defrule
@@ -4111,14 +4106,11 @@
 	(goal gl-island-migration-landing-attempts 2)
 =>
 	(up-copy-point point3-x gl-island-migration-target-x)
-	(up-modify-goal point3-x c:+ 8)
-	(up-modify-goal point3-y c:- 8)
-	(up-bound-point point4-x point3-x)
-	(up-target-point point4-x action-unload -1 stance-no-attack)
+	(up-modify-goal point3-y c:+ 2)
+	(up-bound-point gl-island-migration-route-waypoint-x point3-x)
 	(set-goal gl-island-migration-landing-attempts 3)
 	(up-chat-data-to-self "migration alternate landing: %d" c: 3)
-	(up-set-timer c: t-island-migration c: 20)
-	(set-goal gl-island-migration-state MIGRATION-SAILING)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
 )
 
 (defrule
@@ -4129,14 +4121,78 @@
 	(goal gl-island-migration-landing-attempts 3)
 =>
 	(up-copy-point point3-x gl-island-migration-target-x)
-	(up-modify-goal point3-x c:- 8)
-	(up-modify-goal point3-y c:- 8)
-	(up-bound-point point4-x point3-x)
-	(up-target-point point4-x action-unload -1 stance-no-attack)
+	(up-modify-goal point3-y c:- 2)
+	(up-bound-point gl-island-migration-route-waypoint-x point3-x)
 	(set-goal gl-island-migration-landing-attempts 4)
 	(up-chat-data-to-self "migration alternate landing: %d" c: 4)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
+)
+
+;Rebuild the exact mission hull and candidate in the same state sequence. The
+;path query uses option 0 intentionally: unload targets can be on land, so the
+;water unit must be able to reach an open tile within the engine's allowed
+;separation rather than occupy the destination tile itself.
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-route-waypoint-x)
+	(up-get-point-zone gl-island-migration-route-waypoint-x gl-island-migration-landing-zone)
+	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
+	(up-compare-goal gl-island-migration-landing-zone g:== gl-island-migration-zone)
+	(up-set-target-object search-local c: 0)
+	(up-path-distance gl-island-migration-route-waypoint-x 0 != 65535)
+=>
+	(up-target-point gl-island-migration-route-waypoint-x action-unload -1 stance-no-attack)
+	(up-chat-data-to-all "RAW44M landing path clear hull: %d" g: gl-island-migration-transport-id)
+	(up-chat-data-to-all "RAW44M landing candidate: %d" g: gl-island-migration-landing-attempts)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 20)
 	(set-goal gl-island-migration-state MIGRATION-SAILING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
+	(up-compare-goal gl-island-migration-landing-zone g:!= gl-island-migration-zone)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-chat-data-to-all "RAW44M landing wrong zone hull: %d" g: gl-island-migration-transport-id)
+	(up-chat-data-to-all "RAW44M wrong-zone candidate: %d" g: gl-island-migration-landing-attempts)
+	(up-chat-data-to-all "RAW44M wrong-zone actual: %d" g: gl-island-migration-landing-zone)
+	(up-chat-data-to-all "RAW44M wrong-zone expected: %d" g: gl-island-migration-zone)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(up-set-timer c: t-island-migration c: 1)
+	(set-goal gl-island-migration-state MIGRATION-SAILING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
+	(up-compare-goal gl-island-migration-landing-zone g:== gl-island-migration-zone)
+	(up-set-target-object search-local c: 0)
+	(up-path-distance gl-island-migration-route-waypoint-x 0 == 65535)
+=>
+	(up-chat-data-to-all "RAW44M landing path rejected hull: %d" g: gl-island-migration-transport-id)
+	(up-chat-data-to-all "RAW44M rejected candidate: %d" g: gl-island-migration-landing-attempts)
+	(up-chat-data-to-all "RAW44M rejected x: %d" g: gl-island-migration-route-waypoint-x)
+	(up-chat-data-to-all "RAW44M rejected y: %d" g: gl-island-migration-route-waypoint-y)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	;Yield through SAILING with a fresh timer so the generic watchdog cannot
+	;consume the mission before CHECK-LANDING prepares the next candidate.
+	(up-set-timer c: t-island-migration c: 1)
+	(set-goal gl-island-migration-state MIGRATION-SAILING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-chat-data-to-all "RAW44M landing path hull missing: %d" g: gl-island-migration-transport-id)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING)
 )
 
 (defrule
