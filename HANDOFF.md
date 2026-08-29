@@ -13,6 +13,11 @@ The single canonical development workspace remains:
 - Working-tree exception on 2026-08-29: `AGENTS.md` is the user's modified
   replacement project-rules file and matches the workspace-root copy. Preserve
   it; do not discard or silently normalize it.
+- Current canonical status observed after the P3B44T3 transport session:
+  `AGENTS.md` and `HANDOFF.md` are modified and
+  `tools/clean_smx_magenta.py` / `tools/test_smx_magenta.py` are untracked.
+  Those are concurrent DeepSeek/user changes; do not alter or absorb them from
+  this experimental worktree.
 
 This handoff belongs to the dedicated transport-development worktree:
 
@@ -22,17 +27,20 @@ This handoff belongs to the dedicated transport-development worktree:
 - Branch: `recovery/p3b44-transport-only`.
 - Starting/base commit: exact P3B44
   `8ec870075d08fcac98bad55b4ff045bf7abbc42e`.
-- Causal implementation commit: `94fceb4` (`Clear friendly transport departure
-  congestion`).
+- Initial departure implementation commit: `94fceb4` (`Clear friendly
+  transport departure congestion`).
 - Landing-clearance implementation commit: `f6ac4fb` (`Clear friendly Scouts
-  from transport landings`). This is the current code HEAD before this handoff
-  documentation commit.
+  from transport landings`).
+- Verified exact-blocker implementation commit: `3ee2002` (`Verify transport
+  blockers before departure retry`). This is the current runtime code HEAD
+  before this handoff documentation commit.
 - Project-rules synchronization commit: `bcd484f` (`Adopt evidence-first
   project rules`).
-- Purpose: P3B44-derived transport-only development. P3B44T1 addresses loaded
-  departure obstruction by friendly idle Transports; P3B44T2 addresses the
-  separately proven final-landing obstruction by route-screen and escort
-  Scouts discovered in the T1 runtime replay.
+- Purpose: P3B44-derived transport-only development. P3B44T1 introduced loaded
+  departure congestion handling; P3B44T2 fixed final-landing obstruction by
+  route-screen and escort Scouts; P3B44T3 corrects T1's replay-proven
+  group-and-assume blocker clearance by moving and verifying one exact safe
+  blocker at a time.
 - Status: experimental P3B44-derived development worktree. It does not replace
   the canonical workspace.
 - Future ordinary development must use the canonical workspace. Continue this
@@ -52,21 +60,21 @@ Other controls:
 
 ## Installed runtime identity
 
-- Marker: `RAWAI-P3B44T2:443`.
+- Marker: `RAWAI-P3B44T3:444`.
 - Runtime files: 68.
 - Source and installed target SHA-256:
-  `748790B54F55893D7150B7272B67F6323AEB507EA92BEE16AFA28A560171B133`.
+  `314AAD946AC09B3807AFEADD859C70CFBA7F685DDA5695E6C985BBD1763180EE`.
 - Deployment check: no missing, different, or unexpected runtime files.
-- Relative to installed P3B44T1, only `rawai-init-goals.per` and
-  `rawai-military.per` differed, and exactly those two files were replaced.
+- Relative to installed P3B44T2, exactly `rawai-customconstants.per`,
+  `rawai-init-goals.per`, and `rawai-military.per` differed and were replaced.
 
 ## Current objective and preserved behavior
 
-Run a fresh preserved-lobby P3B44T2 replay that proves the exact route-screen
-Scout leaves the selected landing, the active escort stays clear during the
-unload window, passengers land before timeout, and the assault continues. If
-possible, also exercise P3B44T1's still-pending departure-congestion case by
-placing empty friendly Transports around a loaded mission hull.
+Run a fresh preserved-lobby P3B44T3 replay that exercises friendly Transport
+departure congestion. Prove that one exact safe blocker moves beyond the
+twelve-tile berth radius before the routine reports it cleared, then prove the
+loaded mission hull resumes the unchanged route. Reconfirm the already
+runtime-validated P3B44T2 screen/escort landing behavior as a non-regression.
 
 P3B44 Gray/Blue combined attacks are the known-good behavior at regression
 risk. This patch must preserve ordinary land attack dispatch, superiority,
@@ -81,52 +89,53 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
 - **User-visible symptom:** Purple had a loaded mission Transport that could not
   get underway because Purple's own idle Transports physically blocked it. The
   loaded hull remained stuck.
-- **Direct evidence:** user visual observation in
-  `SP Replay v101.103.48987.0 @2026.08.29 110101.aoe2record`.
-- **Proven failure mechanism:** P3B44's
+- **Direct evidence:** user visual observation in the 11:01 P3B44 replay, plus
+  two systematic Green failures in the 13:10 P3B44T2 replay.
+- **Initial proven failure mechanism:** P3B44's
   `TRANSPORT-ROUTE-WAYPOINT-WAIT/CHECK` treated `distance > 8` as sufficient to
   reissue the identical waypoint every eight seconds. It had no previous/best
   distance, progress threshold, stall count, clearance attempts, or terminal
   bound. Both independent transport-clear entry rules require
   `TRANSPORT-ROUTE-IDLE`; they cannot run during an active route and are
   designed for stale partial loads or empty idle Port/Shipyard obstruction.
-- **Contradictory/unknown evidence:** replay data does not expose hull collision
-  geometry or arbitrary per-hull path progress. Runtime escape remains to be
-  demonstrated visually and through the public telemetry.
-- **Implementation:** P3B44T1 initializes best/current waypoint distance from
+- **P3B44T2 runtime result:** Green hulls 58807 and 30210 each stalled 49/52
+  tiles from their waypoint with garrisoned passengers and three blockers. At
+  94:39, 100:14, and 100:49 the runtime selected the same blocker IDs 30476,
+  53715, and 57617 and moved all three as one group to one staging point. Both
+  loaded hulls made no progress and emitted `departure congestion unresolved`.
+  The identical blocker set surviving into the later mission proves command
+  issuance was incorrectly treated as clearance.
+- **P3B44T1 implementation:** initializes best/current waypoint distance from
   the exact reserved hull, requires two tiles of improvement, resets the stall
   count on progress, and checks the saved embarkation point after three
   non-progress samples. Only a loaded hull still within twenty tiles of origin
   can enter congestion handling.
-- **Blocker safety:** the active route can select at most three nearby own
-  Transport Ships. It excludes the exact mission ID, quarantined ID, every
-  loaded, attacked, non-idle, grouped, or different-water-zone hull. It does
-  not start the independent transport-clear controller.
-- **Movement proof:** blockers move to the exact position of another known own
-  ship 28-200 tiles away in the same water zone. No arbitrary geometric water
-  coordinate is invented. Issuance is logged as `blocker clearance ordered`;
-  only measured mission-hull progress can log `departure resumed`.
-- **Retry/failure:** after an eight-second clearance wait, a producer and its
-  immediately following consumer reconstruct the exact mission hull in one
-  rule sweep and reissue the unchanged waypoint. Two failed clearance attempts
-  emit exactly one `departure congestion unresolved` reason and enter the
-  existing loaded-lift recovery owner.
+- **P3B44T3 implementation:** select only the nearest exact eligible blocker,
+  save its object ID, move it, reconstruct that same ID after eight seconds,
+  and require its distance from the saved mission-hull point to exceed twelve
+  tiles before logging `blocker cleared`. One retry is allowed only while the
+  hull remains empty, unattacked, ungrouped, and unquarantined. A hull that
+  remains blocked or becomes unsafe is excluded while another exact blocker is
+  tried. Three selections are the hard bound before the existing terminal
+  recovery path.
+- **Safety:** initial scans continue to exclude the mission hull, quarantine,
+  loaded, attacked, non-idle, grouped, and different-water-zone ships. The
+  adversarial review added the same mutable safety protection to the delayed
+  exact-ID retry so a newly claimed hull cannot be retasked.
 - **Acceptance criterion:** a loaded hull obstructed by friendly idle
-  Transports logs the bounded stall and blocker count, one or more eligible
-  blockers receive the clearance order, the exact hull's waypoint distance
-  then decreases, it leaves origin, and the existing landing mission continues.
-  No unsafe hull is displaced and P3B44 ordinary attacks remain effective.
-- **Latest result:** all deterministic/static criteria PASS. Fresh runtime
-  acceptance is still required, so the defect is not CLOSED.
-- **Latest runtime result:** the 12:27 P3B44T1 replay did not exercise this
-  departure-stall case. Transport 32174 made normal waypoint progress, so no
-  `RAW44T` departure event fired. The original acceptance remains pending.
-- **Next action:** retain the P3B44T1 congestion acceptance in the P3B44T2 test
-  when a suitable departure obstruction occurs.
+  Transports logs an exact blocker order followed by `blocker cleared` only
+  after measured separation; the loaded hull then logs `departure resumed`,
+  leaves origin, and continues the existing mission. Unsafe hulls are skipped,
+  failures remain bounded, and ordinary P3B44 attacks remain effective.
+- **Latest result:** causal replay evidence, implementation, focused tests,
+  full static/regression validation, deployment, and byte verification PASS.
+  Fresh P3B44T3 engine/replay acceptance remains required; not CLOSED.
+- **Next action:** attach a P3B44T3 replay containing departure telemetry and
+  inspect every transport lifecycle across all players.
 
 ### Friendly Scout obstruction at attack-Transport landing
 
-- **Status:** FIXED-PENDING-RUNTIME.
+- **Status:** CLOSED.
 - **User-visible symptom:** near the end of the P3B44T1 replay, Purple's loaded
   Transport aborted instead of having a friendly Scout Ship move out of the
   way.
@@ -157,10 +166,123 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
   window; passengers disembark; `RAW44T2 transport landing completed` occurs
   before forty-five seconds; and no timeout occurs for that mission. Ordinary
   P3B44 attack behavior remains unchanged.
-- **Latest result:** replay causality, focused deterministic validation, full
-  regression validation, deployment, and byte verification PASS. Fresh engine
-  acceptance is required, so this defect is not CLOSED.
-- **Next action:** run the preserved lobby with P3B44T2 and attach the replay.
+- **Latest runtime result:** the systematic P3B44T2 audit found eighteen
+  landing-screen events across all players and an exact same-timestamp Scout
+  move for every event. Fifteen missions reached unload windows and none had a
+  guard action targeting the active hull during that window. Both Purple
+  missions completed at 62:59 and 88:41. This directly satisfies the scoped
+  screen/escort acceptance criterion.
+- **Closure basis:** runtime replay evidence demonstrates exact screen-Scout
+  clearance, guard suppression, and completed landings. The nine other
+  timeouts are a distinct repeated-landing-selection defect with zero
+  unload-window guard actions.
+
+### Repeated attack-Transport landing timeouts
+
+- **Status:** INVESTIGATING.
+- **User-visible symptom:** assault Transports often load, fail to land, and
+  later unload at home or remain loaded.
+- **Direct evidence:** of seventeen P3B44T2 semantic assault missions, fifteen
+  reached unload windows; six completed and nine timed out. Orange timed out
+  six and Cyan three. Orange repeatedly reused candidates near 182,119 and Cyan
+  near 116,1. No window contained a guard action targeting its hull.
+- **Current hypothesis:** failed or inaccessible candidate coordinates are not
+  remembered/rejected, allowing later missions to repeat the same terminal
+  landing choice.
+- **Contradictory/unknown evidence:** command records prove unload issuance and
+  terminal outcome but not terrain collision, passability, hostile obstruction,
+  or actual passenger state. A coordinate timeout is not by itself proof that
+  the tile is permanently invalid.
+- **Instrumentation/tests:** existing public screen, landing-staged, completed,
+  and timed-out events reconstruct mission lifecycles but do not publish the
+  selected/rejected coordinates or exact remaining garrison at terminal.
+- **Implementation:** none in P3B44T3; deliberately excluded from the departure
+  patch.
+- **Acceptance criterion:** after a terminal unload failure, the exact failed
+  landing and local offsets are rejected for a bounded period; a later mission
+  selects a distinct viable candidate and passengers disembark.
+- **Latest result / next action:** add bounded public landing-coordinate,
+  remaining-garrison, and rejection telemetry before selecting a behavioral
+  fix.
+
+### Scout-migration blind landing offsets
+
+- **Status:** ROOT-CAUSE-PROVEN.
+- **User-visible symptom:** Purple performed odd Transport actions around 14
+  and 24 minutes and returned without establishing the scout migration.
+- **Direct evidence:** hull 30184 tried 111,70 plus four fixed eight-tile
+  diagonals in the first episode and 101,68 plus the same four-offset pattern
+  in the second, then repeatedly unloaded at home after every remote attempt.
+- **Root cause:** the migration scout recovery state machine blindly rotates
+  fixed `+/-8` offsets around the failed point. It does not prove land
+  passability/adjacency before unload; exhausting all four offsets enters the
+  existing home-return failure.
+- **Contradictory/unknown evidence:** replay actions do not expose terrain
+  collision or the precise rejection reason for each coordinate.
+- **Instrumentation/tests:** exact hull, landing, retry, and home-return actions
+  reconstruct both terminal episodes. No code change yet.
+- **Implementation:** none in P3B44T3.
+- **Acceptance criterion:** migration scout recovery chooses a screened,
+  reachable alternative rather than four blind diagonals, or emits a bounded
+  exact terminal reason without repeating the same unusable family.
+- **Latest result / next action:** causal state path proven; implement only on a
+  separate migration patch after P3B44T3 departure runtime validation.
+
+### Migration drop-off establishment and premature recall
+
+- **Status:** ROOT-CAUSE-PROVEN for Purple; INVESTIGATING for Orange.
+- **User-visible symptom:** Purple and Orange delivered villagers to an island
+  but established no resource drop-off.
+- **Purple direct evidence:** hull 30184 landed twenty builder-capable
+  passengers at 82:57/83:17. Passenger 30667 issued Mining Camp build 584 at
+  94,161 at 83:36. At 83:37 nineteen passengers were ordered to reboard and at
+  83:39 the hull began home unloads.
+- **Purple root cause:** `MIGRATION-WAIT-DROPSITE` advances on the global
+  `up-pending-objects mining-camp >= 1` condition. Assignment then searches for
+  a concrete pending foundation within eight tiles and the target zone. A
+  queued build command can satisfy the global count before such a foundation
+  is searchable; the no-target assignment branch immediately sets
+  `MIGRATION-DROPSITE-FAILED`, bypassing the intended twenty-second/four-offset
+  placement retries. The one-second build-to-reboard cadence follows only that
+  source path.
+- **Orange direct evidence:** hull 34221 landed twenty builders at
+  83:36-84:16. No passenger issued a Mill/Lumber/Mining Camp build within
+  twenty-four tiles during the rest of the replay. Fifteen were told to
+  reboard at 86:02 and never unloaded again before the replay ended.
+- **Contradictory/unknown evidence:** only each local AI's self chat is private;
+  Orange's exact anchor, affordability, placement-owner, and watchdog state is
+  not serialized. Purple has a build command but the replay does not prove a
+  placed foundation or engine rejection reason.
+- **Instrumentation/tests:** action cadence plus source-state comparison proves
+  Purple's transition; Orange needs public first-blocker/terminal telemetry.
+- **Implementation:** none in P3B44T3.
+- **Acceptance criterion:** a landed migration waits for and assigns a concrete
+  same-zone drop-site foundation, completes it, and uses it before passengers
+  can be recalled; unavailable placement reaches bounded retries and a precise
+  terminal reason.
+- **Latest result / next action:** fix Purple's premature global-pending
+  transition as a separate causal patch; add public blocker telemetry before
+  changing Orange's pre-drop-site path.
+
+### Orange delayed assault activation
+
+- **Status:** INVESTIGATING.
+- **User-visible symptom:** Orange performed no observed assault transportation
+  until Blue and Gray were effectively defeated.
+- **Direct evidence:** Orange's first public assault-screen event was at 42:26
+  and first completed assault landing at 53:41. The user's visual timing is
+  preserved as authoritative observation.
+- **Contradictory/unknown evidence:** the replay contains no serialized
+  defeat/resignation notice for Blue or Gray and does not publish Orange's
+  private attack-ready, army ownership, passenger, or target gate before 42:26.
+- **Instrumentation/tests:** current public telemetry begins only after a route
+  screen exists, too late to identify the first blocked activation condition.
+- **Implementation:** none.
+- **Acceptance criterion:** Orange activates an eligible cross-water assault
+  based on its own readiness/target state rather than allied collapse, or
+  bounded telemetry proves which legitimate prerequisite is absent.
+- **Latest result / next action:** add public transition-only telemetry for the
+  first blocked assault-activation gate; do not guess a gate from timing alone.
 
 ### Deliberately unchanged defects
 
@@ -212,6 +334,28 @@ P3B44T1 final-landing replay:
   `britain-4v4-20260829-122745-p3b44t1-landing-escort` in
   `replay-benchmarks.json`.
 
+P3B44T2 all-player transport replay:
+
+- Basename:
+  `SP Replay v101.103.48987.0 @2026.08.29 131027.aoe2record`.
+- SHA-256:
+  `932E900C02D50DD01B0FC24FF3B113F562BACE88F102B180C7316550B1412F88`.
+- Duration: 1:43:19; parse errors: zero; marker `RAWAI-P3B44T2:443`
+  serialized from players 2 through 8.
+- Selected-color metadata independently validates the preserved lobby mapping;
+  no team/color was inferred from row or slot.
+- External analyses:
+  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260829-131027-p3b44t2-compact.json`
+  and
+  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260829-131027-p3b44t2-full.json`.
+- Systematic union: 28 active hulls, 393 load commands, 284 unload commands,
+  108 load-to-unload phases, 10 load-only phases, and 4 unload-only phases.
+  Per-player load/unload-phase counts were Red 54/17, Green 48/9, Yellow
+  63/9, Purple 71/24, Orange 61/21, Cyan 65/25, Blue 13/2, Gray 18/1.
+- Repository evidence entry:
+  `britain-4v4-20260829-131027-p3b44t2-all-transport` in
+  `replay-benchmarks.json`.
+
 Replay/savegame files, compact parser output, crash dumps, and Rome at War data
 mod files remain external and must never be committed to the AI repository.
 
@@ -223,25 +367,26 @@ mod files remain external and must never be committed to the AI repository.
 - Clearance success: PASS.
 - Clearance failure: PASS.
 - Landing screen/escort clearance and refresh gate: PASS.
-- Full P3B44-derived regression suite: PASS (116 tests).
+- Full P3B44-derived regression suite: PASS (117 tests).
 - PER structural/operand validation: PASS.
 - Naval-doctrine validation: PASS.
 - Strategy execution: PASS (1,156 total matchups; 1,149 historical and 1,152
   Extreme matchups with adjustments).
 - ODS workbook round trip: PASS (34 civilizations, 680 unit-evidence rows, 340
   naval-class rows).
-- Replay benchmarks: PASS (22 entries).
+- Replay benchmarks: PASS (23 entries).
 - `git diff --check`: PASS; only expected CRLF notices.
-- Adversarial P3B44T1 comparison: PASS. P3B44T2 changes only the transport
-  escort selector, safe route-screen landing-success rule, and successful
-  waypoint-to-unload rule, plus bounded terminal telemetry. All behavior is
-  scoped to transport escort or `gl-transport-route-state`.
+- Adversarial P3B44T2 comparison: PASS. P3B44T3 changes only the active
+  transport departure state, goals/constants, marker, bounded telemetry,
+  deterministic tests, and replay evidence. It does not alter the T2
+  screen/escort landing rules or any ordinary attack owner.
   `up-target-objects`, `up-retreat-now`, `up-reset-attack-now`, `attack-now`,
-  and `up-find-player` counts are identical to P3B44T1. The added move orders
-  target only the exact screen group and the already-owned escort group.
-- Every new departure state has a producer and consumer. The terminal reason and
-  blocker-clearance order each occur once in source, and all retry paths are
-  bounded by two clearance attempts.
+  and `up-find-player` counts are identical to P3B44T2.
+- Every new departure state has a producer and consumer. Exact blocker movement
+  is verified after eight seconds; one safe retry and three blocker selections
+  are hard bounds. The adversarial review found and fixed delayed-retry
+  ownership safety: loaded, attacked, grouped, or quarantined blockers are
+  skipped rather than retasked.
 - `validate_good_units.py` has a pre-existing P3B44 provenance-hash failure;
   frozen unit-strategy material is outside this transport patch.
 - Installed runtime byte verification: PASS.
@@ -249,21 +394,21 @@ mod files remain external and must never be committed to the AI repository.
 
 ## Exact next actions
 
-1. Verify this worktree's branch, HEAD, and clean state against this document.
+1. Verify this worktree's branch, HEAD, and only expected user-owned
+   `AGENTS.md` dirt against this document.
 2. Start the preserved Britannia 4v4 lobby and confirm public marker
-   `RAWAI-P3B44T2: 443` appears near startup.
-3. Observe an attack lift through its route screen and landing. Preserve the
-   `route-screen landing cleared`, `transport landing escort staged`, and
-   `transport landing completed` or `transport landing timed out` records.
-4. Visually confirm that the screen Scout leaves the landing before the loaded
-   hull arrives, the active escort stays to the other side instead of guarding
-   onto the hull, passengers actually disembark, and landed troops continue
-   their attack.
-5. If empty friendly Transports obstruct departure, also preserve the P3B44T1
-   `departure stalled` -> blocker count -> clearance ordered -> `departure
-   resumed` sequence or the single bounded unresolved terminal.
-6. Confirm Gray/Blue ordinary combined attacks remain comparable to immutable
-   P3B44, attach the replay, and analyze exact IDs, orders, event cadence, and
-   mission outcome. Close only the runtime criteria that actually PASS.
-7. Keep the separate P3B44D1 friendly-fire failure and all non-transport
-   defects out of this causal patch/worktree.
+   `RAWAI-P3B44T3: 444` appears near startup.
+3. Exercise an attack lift obstructed near departure by empty friendly
+   Transports. Preserve exact `blocker clearance ordered`, `retry`, `cleared`,
+   `failed`/`unsafe`, `departure resumed`, or terminal telemetry.
+4. Inspect every reconstructable transport lifecycle across all players, not
+   only the visually reported event. Require measured blocker separation and
+   mission-hull route progress before accepting the T3 fix.
+5. Reconfirm T2 as a non-regression: screen Scouts move away, no guard action
+   targets the active hull during the unload window, and passengers land or
+   receive a distinct terminal reason.
+6. After T3 runtime acceptance, address migration/drop-site and repeated
+   landing-selection defects as separate causal patches using the ledger above.
+7. Confirm Gray/Blue ordinary combined attacks remain comparable to immutable
+   P3B44. Keep P3B44D1 friendly-fire and non-transport defects out of this
+   causal patch/worktree.
