@@ -23,6 +23,9 @@ This document is in a separate diagnostic worktree created on 2026-08-29:
 - Base: exact P3B44 commit `8ec870075d08fcac98bad55b4ff045bf7abbc42e`.
 - Rules commit: `1a0b642` (`Adopt evidence-first project rules`).
 - Diagnostic implementation commit: `59a8b96963fabdeaa0d65a29c4d01c4c2dd8f8c2`.
+- Installed diagnostic marker: `RAWAI-P3B44D1:441`.
+- Installed 68-file runtime SHA-256:
+  `E418812BBEACCB7E1345344C8E9D550BEE304903FA0A30DABA0D5391496F7DC5`.
 - Purpose: telemetry-only investigation of the allied-friendly-fire defense
   response observed in the 2026-08-29 11:01 replay.
 - Status: experimental diagnostic; it does not replace the canonical workspace.
@@ -89,9 +92,9 @@ coordinated attacks in the fresh match.
   attacks must remain comparable to P3B44.
 - **Latest result:** deterministic/static validation PASS. Runtime attribution
   is not yet available, so the defect is not fixed or closed.
-- **Next action:** deploy P3B44D1, verify its marker and complete payload hash,
-  run the preserved lobby, reproduce the condition early, and analyze the
-  public `RAW44D DEF L/N` sequence.
+- **Next action:** run the preserved lobby with the verified P3B44D1 deployment,
+  reproduce the condition early, and analyze the public `RAW44D DEF L/N`
+  sequence.
 
 ### Other unresolved canonical defects
 
@@ -159,6 +162,11 @@ mod files remain external and must never be committed to the AI repository.
   `up-target-objects`, `up-retreat-now`, `up-reset-attack-now`,
   `up-target-point`, `attack-now`, `up-find-player`, and
   `up-full-reset-search` are identical.
+- Deployment verification: PASS. All 68 installed runtime files are
+  byte-identical to the diagnostic source at SHA-256
+  `E418812BBEACCB7E1345344C8E9D550BEE304903FA0A30DABA0D5391496F7DC5`;
+  there are no missing, different, or unexpected runtime files, and the public
+  P3B44D1 marker plus all five command-code records are present in the target.
 - `validate_good_units.py`: pre-existing FAIL on both immutable P3B44 and this
   diagnostic branch because the recorded `unique-unit-production.json` hash is
   stale. This diagnostic patch does not mutate frozen strategy provenance.
@@ -167,16 +175,14 @@ mod files remain external and must never be committed to the AI repository.
 ## Exact next actions
 
 1. Verify this worktree's branch, HEAD, and clean state against this document.
-2. Deploy all 68 runtime files from this diagnostic worktree only. Record the
-   installed marker and aggregate source/target hash here.
-3. Use the preserved Britannia 4v4 lobby and confirm `RAWAI-P3B44D1` appears.
-4. Reproduce the allied Mangonel/naval friendly-fire condition early enough to
+2. Use the preserved Britannia 4v4 lobby and confirm `RAWAI-P3B44D1` appears.
+3. Reproduce the allied Mangonel/naval friendly-fire condition early enough to
    stay below the 16-event report caps.
-5. Preserve the complete Green `RAW44D DEF L/N` record and confirm Gray/Blue
+4. Preserve the complete Green `RAW44D DEF L/N` record and confirm Gray/Blue
    combined attacks still work.
-6. Analyze the replay. Implement one causal hostility/ownership fix only after
+5. Analyze the replay. Implement one causal hostility/ownership fix only after
    the telemetry establishes the earliest divergence. Keep this defect
    INVESTIGATING until then.
-7. Do not merge diagnostic telemetry into the canonical P3B50 line merely
+6. Do not merge diagnostic telemetry into the canonical P3B50 line merely
    because it compiles; first use it to establish causality and then port only
    the supported fix with a non-regression test.
