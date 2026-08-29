@@ -58,6 +58,10 @@
 (defrule
 	(up-timer-status t-transport-escort == timer-triggered)
 	(goal gl-transport-escort-state ESCORT-IDLE)
+	;The active route owns final-approach spacing. Reattaching a guard during the
+	;landing window can pin the loaded hull against its own escort until the
+	;fixed landing timer recalls it.
+	(not (goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-WAIT))
 	(unit-type-count transport-ship >= 1)
 	(or
 		(warboat-count >= 1)
@@ -5682,10 +5686,21 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-LANDING-APPLY)
 	(up-compare-goal remote-total <= 0)
 =>
-	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	;The route-screen Scout has finished its job at the exact landing and must not
+	;remain parked on the unload point. Stage it to one side of the screened
+	;approach before releasing its ownership; the loaded hull is still at home,
+	;so the Scout has the entire departure leg to clear eighteen tiles.
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-bound-point point-x gl-transport-route-landing-x)
+	(up-cross-tiles point-x gl-transport-route-waypoint-x c: 18)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-screen-id)
+	(up-target-point point-x action-move -1 stance-aggressive)
+	(up-chat-data-to-all "RAW44T2 route-screen landing cleared: %d" g: gl-transport-screen-id)
 	(up-modify-group-flag 0 c: transport-screen-group)
 	(up-reset-group c: transport-screen-group)
 	(set-goal gl-transport-screen-id -1)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-START)
 )
 
@@ -5792,7 +5807,21 @@
 	(set-goal gl-transport-departure-stalls 0)
 	(set-goal gl-transport-departure-clear-attempts 0)
 	(set-goal gl-transport-departure-congested NO)
+	;The escort has protected the loaded hull through the screened corridor. Move
+	;that exact owned group eighteen tiles to the opposite side of the landing
+	;before unloading, and retain its group flag so unrelated naval owners cannot
+	;steal it. The periodic selector is gated during RETURN-WAIT, preventing a new
+	;guard order from crowding the same landing again.
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-bound-point point-x gl-transport-route-landing-x)
+	(up-cross-tiles point-x gl-transport-route-waypoint-x c: -18)
+	(up-set-group search-local c: transport-escort-group)
+	(up-target-point point-x action-move -1 stance-aggressive)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
 	(up-target-point gl-transport-route-landing-x action-unload -1 stance-no-attack)
+	(up-chat-data-to-all "RAW44T2 transport landing escort staged: %d" g: gl-transport-route-id)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 45)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-WAIT)
 )
@@ -6090,6 +6119,7 @@
 	(set-goal gl-transport-screen-id -1)
 	(up-set-timer c: t-transport-route c: 15)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
+	(up-chat-data-to-all "RAW44T2 transport landing timed out: %d" g: gl-transport-route-id)
 	(chat-local-to-self "Transport landing timed out; returning home")
 )
 
@@ -6121,6 +6151,7 @@
 	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
 	(set-goal gl-transport-route-script-load NO)
 	(up-chat-data-to-self "attack lift landed: %d" g: gl-transport-route-load-target)
+	(up-chat-data-to-all "RAW44T2 transport landing completed: %d" g: gl-transport-route-id)
 	(set-goal gl-transport-screen-id -1)
 	(up-set-timer c: t-transport-route c: 45)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)

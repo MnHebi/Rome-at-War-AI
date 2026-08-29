@@ -1371,6 +1371,63 @@
         "Mid-route stalls are not classified as friendly departure congestion and do not authorize moving nearby ships."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260829-122745-p3b44t1-landing-escort",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.29 122745.aoe2record",
+        "sha256": "D891771AA04A4EA626A42B9F5353C495314E033FC00D312DECDB413C397B82D2",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The selected visible colors and resolved teams match the preserved authoritative lobby. Color is not inferred from lobby row or internal color_id.",
+        "duration_seconds": 3243,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The replay parsed cleanly, lasted 54:03, and ended when Red manually resigned. Startup chat contains RAWAI-P3B44T1: 442 from players 2 through 8, matching the separately verified P3B44T1 runtime payload.",
+        "The user visually observed Purple's loaded Transport abort near the end instead of having a friendly Scout Ship move out of its way.",
+        "Purple Transport 32174 received six move orders to route waypoint 28,182 from 50:40 through 51:21, then issued an unload at remote landing 72,185 at 51:29. This proves the hull passed the P3B44T1 departure-progress state and reached the selected route waypoint.",
+        "Purple Scout Ship 32389 guarded Transport 32174 at 47:05, was then selected as the route screen, received waypoint orders to 28,182 at 49:24 and 49:54, and received the landing order to 72,185 at 50:10. It received no later order, exactly matching the route-screen branch that released the Scout while leaving it parked at the landing.",
+        "A second Purple Scout Ship, 32970, received guard orders targeting Transport 32174 at 50:49, 51:10, 51:30, and 51:51 during the landing approach/window, matching the transport-escort controller's twenty-second refresh cadence.",
+        "The Transport remained loaded for the complete forty-five-second landing window. At 52:15 it began repeated unload attempts at home point 31,136, exactly matching the route controller's unconditional landing-timeout recall. No RAW44T departure-stall, blocker-scan, clearance, resumed, or unresolved event was serialized."
+      ],
+      "implementation_inferences": [
+        "This event is not the P3B44T1 departure-congestion case. The exact action sequence proves that the loaded hull reached its waypoint and entered TRANSPORT-ROUTE-RETURN-WAIT before failing to unload.",
+        "The first causal divergence is the route-screen success branch clearing gl-transport-screen-id and releasing transport-screen-group without moving exact Scout 32389 off the landing it had just exposed. The later unload therefore targeted a point occupied by the AI's own stationary screen ship.",
+        "The transport-escort controller independently rebuilds its group every twenty seconds and guards any loaded moving Transport. During the final unload window the hull remains loaded and non-idle, so the selector also repeatedly reattached Scout 32970 to the same hull.",
+        "The landing owner had no final-approach spacing action for either friendly-Scout owner and no gate preventing guard refresh. The fixed forty-five-second terminal then recalled the still-loaded hull without trying to clear either Scout."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B44T2. After the exact route-screen Scout verifies a safe landing, move it eighteen tiles to one side of the screened approach before clearing its ID and group ownership.",
+        "Immediately before the remote unload, move the already-owned transport escort group eighteen tiles to the opposite side of the landing while retaining its group ownership.",
+        "Suppress the periodic escort selector only while the active attack lift is in TRANSPORT-ROUTE-RETURN-WAIT, preventing a new guard command from putting the escort back against the unloading hull.",
+        "Publish one bounded route-ID event when landing staging/unload is issued and one terminal completed or timed-out event. Preserve the P3B44 attack baseline and P3B44T1 departure-congestion behavior unchanged."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports all runtime files byte-identical to the transport branch and replay startup chat contains RAWAI-P3B44T2: 443.",
+        "For a loaded attack Transport, RAW44T2 route-screen landing cleared identifies the exact screen Scout and that ship visibly leaves the landing before the hull arrives.",
+        "RAW44T2 landing escort staged appears once, the active escort moves to the opposite side of the landing, and no guard order is reissued to that hull while passengers remain in the landing window.",
+        "The passengers disembark and RAW44T2 transport landing completed appears before the forty-five-second deadline. RAW44T2 transport landing timed out does not appear for that mission, and the hull subsequently withdraws normally.",
+        "Escort protection persists through the screened route, P3B44T1 departure-congestion telemetry and clearance remain available, and Gray/Blue ordinary attacks remain comparable to the immutable P3B44 control."
+      ],
+      "known_limits": [
+        "Replay actions establish the route state transition, exact recurring guard source, and exact timeout branch. They do not encode collision polygons; the user's direct visual observation supplies the physical Scout-blocking fact.",
+        "The fix changes only attack-lift escort spacing during final unload. It does not change landing selection, hostile path safety, migration, relic ferries, passenger policy, or independent Port/Shipyard clearance.",
+        "P3B44T1's original departure-congestion acceptance was not exercised by this event because Transport 32174 made normal waypoint progress. That earlier runtime criterion remains pending."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

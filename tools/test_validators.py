@@ -5056,7 +5056,7 @@ class FarmPolicyTests(unittest.TestCase):
 
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         self.assertIn(
-            '(up-chat-data-to-all "RAWAI-P3B44T1: %d" c: 442)',
+            '(up-chat-data-to-all "RAWAI-P3B44T2: %d" c: 443)',
             self.init_goals,
         )
         initial = matching_rules(
@@ -5252,6 +5252,91 @@ class FarmPolicyTests(unittest.TestCase):
             actions=("gl-transport-departure-clear-attempts c:+ 1",),
         )
         self.assertEqual(len(attempt_increments), 4)
+
+    def test_transport_landing_stages_screen_and_escort_and_blocks_guard_refresh(self) -> None:
+        escort_selector = matching_rules(
+            self.military,
+            facts=(
+                "t-transport-escort == timer-triggered",
+                "ESCORT-IDLE",
+                "(not (goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-WAIT))",
+            ),
+            actions=("(up-find-remote c: transport-ship c: 40)",),
+        )
+        screen_clear = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-SCREEN-LANDING-APPLY",
+                "remote-total <= 0",
+            ),
+            actions=(
+                "up-bound-point point-x gl-transport-route-landing-x",
+                "up-cross-tiles point-x gl-transport-route-waypoint-x c: 18",
+                "up-add-object-by-id search-local g: gl-transport-screen-id",
+                "up-target-point point-x action-move",
+                "RAW44T2 route-screen landing cleared: %d",
+                "up-modify-group-flag 0 c: transport-screen-group",
+                "(set-goal gl-transport-screen-id -1)",
+                "TRANSPORT-ROUTE-DEPARTURE-START",
+            ),
+        )
+        landing = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-WAYPOINT-CHECK",
+                "object-data-distance <= 8",
+            ),
+            actions=(
+                "up-bound-point point-x gl-transport-route-landing-x",
+                "up-cross-tiles point-x gl-transport-route-waypoint-x c: -18",
+                "up-set-group search-local c: transport-escort-group",
+                "up-target-point point-x action-move",
+                "up-add-object-by-id search-local g: gl-transport-route-id",
+                "gl-transport-route-landing-x action-unload",
+                "RAW44T2 transport landing escort staged: %d",
+                "TRANSPORT-ROUTE-RETURN-WAIT",
+            ),
+        )
+        self.assertEqual(len(escort_selector), 1)
+        self.assertEqual(len(screen_clear), 1)
+        self.assertEqual(len(landing), 1)
+        screen_actions = screen_clear[0][4]
+        self.assertLess(
+            screen_actions.index("up-target-point point-x action-move"),
+            screen_actions.index("(set-goal gl-transport-screen-id -1)"),
+        )
+        actions = landing[0][4]
+        self.assertLess(
+            actions.index("up-target-point point-x action-move"),
+            actions.index("gl-transport-route-landing-x action-unload"),
+        )
+        self.assertNotIn("action-guard", actions)
+
+        timeout = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-RETURN-WAIT",
+                "t-transport-route == timer-triggered",
+            ),
+            actions=(
+                "RAW44T2 transport landing timed out: %d",
+                "TRANSPORT-ROUTE-RECOVERY-WAIT",
+            ),
+        )
+        completed = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-RETURN-CHECK",
+                "object-data-garrison-count <= 0",
+                "gl-transport-route-script-load YES",
+            ),
+            actions=(
+                "RAW44T2 transport landing completed: %d",
+                "TRANSPORT-ROUTE-IDLE",
+            ),
+        )
+        self.assertEqual(len(timeout), 1)
+        self.assertEqual(len(completed), 1)
 
     def test_port_clearance_includes_trade_cogs(self) -> None:
         berth_scans = matching_rules(
