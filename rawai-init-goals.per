@@ -359,7 +359,30 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B44: %d" c: 44)
+	(up-chat-data-to-all "RAWAI-P3B44D1: %d" c: 441)
+	(disable-self)
+)
+
+;P3B44D1 is a telemetry-only control derived from immutable P3B44.  Keep the
+;defense identity fields separate from controller state so observing a target
+;does not change selection, ownership, or issued orders.
+(defrule
+	(true)
+=>
+	(set-goal gl-defense-local-asset-id -1)
+	(set-goal gl-defense-local-asset-type -1)
+	(set-goal gl-defense-local-attacker-id -1)
+	(set-goal gl-defense-local-target-id -1)
+	(set-goal gl-defense-local-target-type -1)
+	(set-goal gl-defense-local-target-player -1)
+	(set-goal gl-defense-local-telemetry-reports 0)
+	(set-goal gl-defense-naval-asset-id -1)
+	(set-goal gl-defense-naval-asset-type -1)
+	(set-goal gl-defense-naval-attacker-id -1)
+	(set-goal gl-defense-naval-target-id -1)
+	(set-goal gl-defense-naval-target-type -1)
+	(set-goal gl-defense-naval-target-player -1)
+	(set-goal gl-defense-naval-telemetry-reports 0)
 	(disable-self)
 )
 

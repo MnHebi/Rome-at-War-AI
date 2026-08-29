@@ -1318,6 +1318,70 @@
         "The Shipyard/cliff pathing, Merchant Vessel plateau, attack-transport failures, and Red Town Center order loop remain recorded unresolved work; this batch does not infer fixes without stronger engine-state evidence."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260829-110101-p3b44-control",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.29 110101.aoe2record",
+        "sha256": "C1F85E836D59CBC2D77643D2608930DC3D7940C3ECFDC6081F0C08BBF833917F",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The selected visible colors and resolved teams match the preserved authoritative lobby. Color is never inferred from lobby row or internal color_id.",
+        "duration_seconds": 3531,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C",
+        "settings": {
+          "map_size": "Huge (240)",
+          "difficulty": "Extreme",
+          "resources": "Standard",
+          "population": 400,
+          "game_speed": "Normal",
+          "lock_teams": true,
+          "team_together": true,
+          "shared_exploration": true,
+          "record_game": true
+        }
+      },
+      "direct_replay_observations": [
+        "The replay parsed without errors, lasted 58:51, and ended with the user's manual resignation because the match was not advancing. The separately verified pre-match deployment was the immutable 68-file P3B44 payload with aggregate SHA-256 EE04DE7BFA1448E90D54E8AC592D0EEECF4E9DAD93100272D2941F0209B75846; no startup marker serialized in replay chat.",
+        "The user visually observed Gray and Blue carrying out proper combined attacks. This is the current strongest runtime evidence for the P3B44 attack behavior that subsequent diagnostic and transport-only branches must preserve.",
+        "The user visually observed an allied Mangonel firing on allied AI naval vessels after a useless pond Shipyard was deleted, followed by nearby Green military converging on that allied Mangonel despite locked teams.",
+        "Green p2 issued DELETE actions for objects 39457 at 48:53 and 40783 at 49:04. At 49:10, four Green objects 37824, 38330, 39144, and 35181 received one ORDER targeting object 38529 at 126.79,108.48 in the same sequence as a Green DE_RETREAT. This timing corroborates an abrupt Green defense/retreat response but does not identify object 38529 as the observed Mangonel.",
+        "The replay contains 64 decoded DE_RETREAT actions, including duplicates at identical sequence numbers, plus 44560 AI_ORDER and 129076 ORDER actions. The compact parser does not expose the runtime type or owner of arbitrary target object 38529."
+      ],
+      "implementation_inferences": [
+        "P3B44 land and naval defense first select an owned object whose object-data-under-attack value is positive, then call up-find-player enemy find-attacker and search that player's nearby military. Source inspection does not establish whether find-attacker honors the enemy selector after allied splash damage or which target survived the later search rebuild.",
+        "The 49:10 Green DE_RETREAT and target-bearing order have the shape of a defense response, but multiple P3B44 controllers can issue retreat/default orders. Without target owner/type or controller identity, attributing that command to the allied Mangonel would be a guess.",
+        "The smallest discriminating experiment is public transition-bounded telemetry that records the attacked asset, raw object-data-attacker-id, find-attacker player, exact final target ID/type/owner, and the existing land/naval command path without changing any selection criterion or order."
+      ],
+      "changes_under_test": [
+        "Use the separate recovery/p3b44-friendly-fire-defense branch derived from exact P3B44. Keep recovery/p3b44-attack-baseline immutable and keep recovery/p3b44-transport-only free of defense work.",
+        "Emit RAWAI-P3B44D1 and publish RAW44D DEF L/N identity records only when an existing defense command is about to run. Cap land and naval reports independently at sixteen events per AI.",
+        "Map command code 1 to severe land reset/retreat/default, 2 to global naval reset/retreat/default, 3 to coastal support default, 4 to fallback water-target default, and 5 to fallback land-target default. Preserve every original P3B44 command rule unchanged."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports all 68 P3B44D1 runtime files byte-identical to the diagnostic source and the replay records RAWAI-P3B44D1 near startup.",
+        "Reproduce the pond Shipyard deletion and allied Mangonel friendly-fire condition early enough to remain within the sixteen-event caps. The RAW44D sequence must identify the attacked asset ID/type, raw attacker ID, find-attacker player, final target ID/type/owner, and command code for Green.",
+        "If the final target owner is allied or find-attacker selects an allied player, treat that exact identity transition as root-cause evidence and add a hostility gate before any order. If both remain hostile, use the exact command code and target identity to investigate the alternate controller rather than changing defense behavior speculatively.",
+        "Gray and Blue retain coordinated multi-player attacks comparable to the P3B44 control; the diagnostic build introduces no attack-selection, dispatch, retreat, transport, or defense-command change."
+      ],
+      "known_limits": [
+        "The user's visual observation establishes the friendly-fire response symptom. The replay command stream does not expose dynamic target object type/owner or DUC controller ownership, so it cannot by itself establish the final target/order attribution.",
+        "The P3B44D1 branch is diagnostic only. It does not prevent allied damage, reject an allied attacker, or change the engine's built-in reaction behavior; the defect remains INVESTIGATING until the targeted telemetry resolves the causal branch.",
+        "Only public RAW44D telemetry can expose every AI's controller state in a future replay. Ordinary private up-chat-data-to-self records are not available for Green from this replay perspective."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

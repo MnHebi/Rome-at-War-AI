@@ -6857,6 +6857,21 @@
 	(set-goal gl-local-response-state LOCAL-RESPONSE-ASSET-FIND)
 )
 
+;Observe the exact attacked asset before the unmodified P3B44 producer changes
+;focus and rebuilds search-remote.  Keeping this in a separate rule also keeps
+;the controller producer under the engine's 32-element expression limit.
+(defrule
+	(goal gl-local-response-state LOCAL-RESPONSE-ASSET-FIND)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-defense-local-asset-id)
+	(up-get-object-data object-data-type gl-defense-local-asset-type)
+	(up-get-object-data object-data-attacker-id gl-defense-local-attacker-id)
+	(set-goal gl-defense-local-target-id -1)
+	(set-goal gl-defense-local-target-type -1)
+	(set-goal gl-defense-local-target-player -1)
+)
+
 (defrule
 	(goal gl-local-response-state LOCAL-RESPONSE-ASSET-FIND)
 	(up-set-target-object search-local c: 0)
@@ -7100,6 +7115,49 @@
 	(set-goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)
 )
 
+;Capture the first exact target from the final rebuilt hostile list.  This rule
+;does not mutate either search list or controller state, so the following P3B44
+;dispatch rules issue precisely the same retreat/default orders as the control.
+(defrule
+	(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-defense-local-target-id)
+	(up-get-object-data object-data-type gl-defense-local-target-type)
+	(up-get-object-data object-data-player gl-defense-local-target-player)
+)
+
+;Command code 1 is the P3B44 severe land-defense sequence:
+;up-reset-attack-now, up-retreat-now, then action-default/stance-aggressive to
+;the exact search-remote target logged below.  Bound public reports per AI so a
+;long match cannot turn the discriminator into per-sweep chat spam.
+(defrule
+	(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)
+	(goal gl-home-defense-state NO)
+	(up-compare-goal gl-local-response-responders c:> 0)
+	(up-compare-goal gl-defense-local-telemetry-reports c:< 16)
+	(or
+		(up-compare-goal gl-local-response-siege-threats c:>= 1)
+		(or
+			(up-compare-goal gl-local-response-threats c:>= 5)
+			(and
+				(up-compare-goal gl-local-response-threats c:>= 2)
+				(up-compare-goal gl-game-time g:>= gl-attack-dwell-until)
+			)
+		)
+	)
+=>
+	(up-chat-data-to-all "RAW44D DEF L command: %d" c: 1)
+	(up-chat-data-to-all "RAW44D DEF L asset id: %d" g: gl-defense-local-asset-id)
+	(up-chat-data-to-all "RAW44D DEF L asset type: %d" g: gl-defense-local-asset-type)
+	(up-chat-data-to-all "RAW44D DEF L attacker id: %d" g: gl-defense-local-attacker-id)
+	(up-chat-data-to-all "RAW44D DEF L focus player: %d" g: gl-local-response-player)
+	(up-chat-data-to-all "RAW44D DEF L target id: %d" g: gl-defense-local-target-id)
+	(up-chat-data-to-all "RAW44D DEF L target type: %d" g: gl-defense-local-target-type)
+	(up-chat-data-to-all "RAW44D DEF L target player: %d" g: gl-defense-local-target-player)
+	(up-modify-goal gl-defense-local-telemetry-reports c:+ 1)
+)
+
 (defrule
 	(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)
 	(goal gl-home-defense-state NO)
@@ -7199,6 +7257,18 @@
 	(up-remove-objects search-local object-data-under-attack <= 0)
 	(up-clean-search search-local object-data-distance search-order-desc)
 	(set-goal gl-naval-response-state NAVAL-RESPONSE-HOME-FIND)
+)
+
+(defrule
+	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-FIND)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-defense-naval-asset-id)
+	(up-get-object-data object-data-type gl-defense-naval-asset-type)
+	(up-get-object-data object-data-attacker-id gl-defense-naval-attacker-id)
+	(set-goal gl-defense-naval-target-id -1)
+	(set-goal gl-defense-naval-target-type -1)
+	(set-goal gl-defense-naval-target-player -1)
 )
 
 (defrule
@@ -7324,6 +7394,42 @@
 	(set-goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)
 )
 
+;The home-response target survives the local responder rebuild in
+;search-remote.  Record its exact identity without changing the list or state.
+(defrule
+	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-defense-naval-target-id)
+	(up-get-object-data object-data-type gl-defense-naval-target-type)
+	(up-get-object-data object-data-player gl-defense-naval-target-player)
+)
+
+;Command code 2 is global naval defense: reset/retreat followed by
+;action-default/stance-aggressive.  The original command rule remains below.
+(defrule
+	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)
+	(goal gl-naval-response-land-threat NO)
+	(goal gl-home-defense-state NO)
+	(up-compare-goal gl-naval-response-responders c:> 0)
+	(up-compare-goal gl-naval-response-threats c:>= 2)
+	(up-compare-goal gl-defense-naval-telemetry-reports c:< 16)
+	(or
+		(up-compare-goal gl-game-time g:>= gl-attack-dwell-until)
+		(up-compare-goal gl-naval-response-threats c:>= 4)
+	)
+=>
+	(up-chat-data-to-all "RAW44D DEF N command: %d" c: 2)
+	(up-chat-data-to-all "RAW44D DEF N asset id: %d" g: gl-defense-naval-asset-id)
+	(up-chat-data-to-all "RAW44D DEF N asset type: %d" g: gl-defense-naval-asset-type)
+	(up-chat-data-to-all "RAW44D DEF N attacker id: %d" g: gl-defense-naval-attacker-id)
+	(up-chat-data-to-all "RAW44D DEF N focus player: %d" g: gl-naval-response-player)
+	(up-chat-data-to-all "RAW44D DEF N target id: %d" g: gl-defense-naval-target-id)
+	(up-chat-data-to-all "RAW44D DEF N target type: %d" g: gl-defense-naval-target-type)
+	(up-chat-data-to-all "RAW44D DEF N target player: %d" g: gl-defense-naval-target-player)
+	(up-modify-goal gl-defense-naval-telemetry-reports c:+ 1)
+)
+
 (defrule
 	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)
 	(goal gl-naval-response-land-threat NO)
@@ -7376,6 +7482,24 @@
 ;that a responding ship shares the same navigable basin.  Still issue coastal
 ;support, but do not globally retreat the army or latch home defense on that
 ;unverified naval path.
+;Command code 3 is this bounded coastal action-default/stance-aggressive path.
+(defrule
+	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)
+	(goal gl-naval-response-land-threat YES)
+	(up-compare-goal gl-naval-response-responders c:> 0)
+	(up-compare-goal gl-defense-naval-telemetry-reports c:< 16)
+=>
+	(up-chat-data-to-all "RAW44D DEF N command: %d" c: 3)
+	(up-chat-data-to-all "RAW44D DEF N asset id: %d" g: gl-defense-naval-asset-id)
+	(up-chat-data-to-all "RAW44D DEF N asset type: %d" g: gl-defense-naval-asset-type)
+	(up-chat-data-to-all "RAW44D DEF N attacker id: %d" g: gl-defense-naval-attacker-id)
+	(up-chat-data-to-all "RAW44D DEF N focus player: %d" g: gl-naval-response-player)
+	(up-chat-data-to-all "RAW44D DEF N target id: %d" g: gl-defense-naval-target-id)
+	(up-chat-data-to-all "RAW44D DEF N target type: %d" g: gl-defense-naval-target-type)
+	(up-chat-data-to-all "RAW44D DEF N target player: %d" g: gl-defense-naval-target-player)
+	(up-modify-goal gl-defense-naval-telemetry-reports c:+ 1)
+)
+
 (defrule
 	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)
 	(goal gl-naval-response-land-threat YES)
@@ -7416,6 +7540,18 @@
 	(goal gl-naval-response-state NAVAL-RESPONSE-FIND-SHIP)
 	(up-set-target-object search-local c: 0)
 =>
+	(up-get-object-data object-data-id gl-defense-naval-asset-id)
+	(up-get-object-data object-data-type gl-defense-naval-asset-type)
+	(up-get-object-data object-data-attacker-id gl-defense-naval-attacker-id)
+	(set-goal gl-defense-naval-target-id -1)
+	(set-goal gl-defense-naval-target-type -1)
+	(set-goal gl-defense-naval-target-player -1)
+)
+
+(defrule
+	(goal gl-naval-response-state NAVAL-RESPONSE-FIND-SHIP)
+	(up-set-target-object search-local c: 0)
+=>
 	(up-get-point position-object gl-naval-response-target-x)
 	(up-find-player enemy find-attacker gl-naval-response-player)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-response-player)
@@ -7442,6 +7578,55 @@
 	(up-modify-sn sn-focus-player-number g:= gl-naval-response-focus)
 	(up-set-timer c: t-naval-response c: 15)
 	(set-goal gl-naval-response-state NAVAL-RESPONSE-IDLE)
+)
+
+;Command codes 4 and 5 identify the fallback water-target and land-target
+;action-default paths respectively.  These observer rules leave the target and
+;controller state unchanged so the original consumers immediately follow.
+(defrule
+	(goal gl-naval-response-state NAVAL-RESPONSE-FIND-THREAT)
+	(up-set-target-object search-remote c: 0)
+	(or
+		(up-object-data object-data-class == warship-class)
+		(up-object-data object-data-type == boarding-ship)
+	)
+	(up-compare-goal gl-defense-naval-telemetry-reports c:< 16)
+=>
+	(up-get-object-data object-data-id gl-defense-naval-target-id)
+	(up-get-object-data object-data-type gl-defense-naval-target-type)
+	(up-get-object-data object-data-player gl-defense-naval-target-player)
+	(up-chat-data-to-all "RAW44D DEF N command: %d" c: 4)
+	(up-chat-data-to-all "RAW44D DEF N asset id: %d" g: gl-defense-naval-asset-id)
+	(up-chat-data-to-all "RAW44D DEF N asset type: %d" g: gl-defense-naval-asset-type)
+	(up-chat-data-to-all "RAW44D DEF N attacker id: %d" g: gl-defense-naval-attacker-id)
+	(up-chat-data-to-all "RAW44D DEF N focus player: %d" g: gl-naval-response-player)
+	(up-chat-data-to-all "RAW44D DEF N target id: %d" g: gl-defense-naval-target-id)
+	(up-chat-data-to-all "RAW44D DEF N target type: %d" g: gl-defense-naval-target-type)
+	(up-chat-data-to-all "RAW44D DEF N target player: %d" g: gl-defense-naval-target-player)
+	(up-modify-goal gl-defense-naval-telemetry-reports c:+ 1)
+)
+
+(defrule
+	(goal gl-naval-response-state NAVAL-RESPONSE-FIND-THREAT)
+	(up-set-target-object search-remote c: 0)
+	(and
+		(up-object-data object-data-class != warship-class)
+		(up-object-data object-data-type != boarding-ship)
+	)
+	(up-compare-goal gl-defense-naval-telemetry-reports c:< 16)
+=>
+	(up-get-object-data object-data-id gl-defense-naval-target-id)
+	(up-get-object-data object-data-type gl-defense-naval-target-type)
+	(up-get-object-data object-data-player gl-defense-naval-target-player)
+	(up-chat-data-to-all "RAW44D DEF N command: %d" c: 5)
+	(up-chat-data-to-all "RAW44D DEF N asset id: %d" g: gl-defense-naval-asset-id)
+	(up-chat-data-to-all "RAW44D DEF N asset type: %d" g: gl-defense-naval-asset-type)
+	(up-chat-data-to-all "RAW44D DEF N attacker id: %d" g: gl-defense-naval-attacker-id)
+	(up-chat-data-to-all "RAW44D DEF N focus player: %d" g: gl-naval-response-player)
+	(up-chat-data-to-all "RAW44D DEF N target id: %d" g: gl-defense-naval-target-id)
+	(up-chat-data-to-all "RAW44D DEF N target type: %d" g: gl-defense-naval-target-type)
+	(up-chat-data-to-all "RAW44D DEF N target player: %d" g: gl-defense-naval-target-player)
+	(up-modify-goal gl-defense-naval-telemetry-reports c:+ 1)
 )
 
 (defrule

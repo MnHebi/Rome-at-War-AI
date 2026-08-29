@@ -143,9 +143,19 @@ def main() -> None:
         )
     if "(unit-type-count boarding-ship >= 1)" not in military:
         issues.append("Boarding-only fleets cannot activate transport escort ownership")
-    if military.count("(up-object-data object-data-type == boarding-ship)") != 2:
+    water_response_rules = matching_rules(
+        military,
+        facts=("(up-object-data object-data-type == boarding-ship)",),
+        actions=("(set-goal gl-naval-response-land-threat NO)",),
+    )
+    land_response_rules = matching_rules(
+        military,
+        facts=("(up-object-data object-data-type != boarding-ship)",),
+        actions=("(set-goal gl-naval-response-land-threat YES)",),
+    )
+    if len(water_response_rules) != 2:
         issues.append("enemy Boarding Ships are not classified as water threats in both response paths")
-    if military.count("(up-object-data object-data-type != boarding-ship)") != 2:
+    if len(land_response_rules) != 2:
         issues.append("enemy Boarding Ships can still fall through into a coastal land-threat path")
 
     constants = (ROOT / "rawai-customconstants.per").read_text(encoding="utf-8-sig")

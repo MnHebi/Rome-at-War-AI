@@ -3035,6 +3035,140 @@ class FarmPolicyTests(unittest.TestCase):
                 rule[4].find("object-data-under-attack <= 0"),
             )
 
+    def test_friendly_fire_defense_telemetry_is_bounded_and_observational(self) -> None:
+        self.assertIn("RAWAI-P3B44D1", self.init_goals)
+        self.assertIn(
+            '(up-chat-data-to-all "RAWAI-P3B44D1: %d" c: 441)',
+            self.init_goals,
+        )
+
+        local_asset = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-local-response-state LOCAL-RESPONSE-ASSET-FIND)",
+                "(up-set-target-object search-local c: 0)",
+            ),
+            actions=(
+                "object-data-id gl-defense-local-asset-id",
+                "object-data-type gl-defense-local-asset-type",
+                "object-data-attacker-id gl-defense-local-attacker-id",
+            ),
+        )
+        naval_assets = matching_rules(
+            self.military,
+            facts=("(up-set-target-object search-local c: 0)",),
+            actions=(
+                "object-data-id gl-defense-naval-asset-id",
+                "object-data-type gl-defense-naval-asset-type",
+                "object-data-attacker-id gl-defense-naval-attacker-id",
+            ),
+        )
+        self.assertEqual(len(local_asset), 1)
+        self.assertEqual(len(naval_assets), 2)
+        self.assertNotIn("up-find-player", local_asset[0][4])
+        self.assertTrue(all("up-find-player" not in rule[4] for rule in naval_assets))
+
+        final_local_target = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)",
+                "(up-set-target-object search-remote c: 0)",
+            ),
+            actions=(
+                "object-data-id gl-defense-local-target-id",
+                "object-data-type gl-defense-local-target-type",
+                "object-data-player gl-defense-local-target-player",
+            ),
+        )
+        final_naval_target = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)",
+                "(up-set-target-object search-remote c: 0)",
+            ),
+            actions=(
+                "object-data-id gl-defense-naval-target-id",
+                "object-data-type gl-defense-naval-target-type",
+                "object-data-player gl-defense-naval-target-player",
+            ),
+        )
+        self.assertEqual(len(final_local_target), 1)
+        self.assertEqual(len(final_naval_target), 1)
+
+        local_reports = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)",
+                "gl-defense-local-telemetry-reports c:< 16",
+            ),
+            actions=(
+                "RAW44D DEF L command: %d",
+                "RAW44D DEF L attacker id: %d",
+                "RAW44D DEF L target player: %d",
+                "gl-defense-local-telemetry-reports c:+ 1",
+            ),
+        )
+        naval_reports = matching_rules(
+            self.military,
+            facts=("gl-defense-naval-telemetry-reports c:< 16",),
+            actions=(
+                "RAW44D DEF N command: %d",
+                "RAW44D DEF N attacker id: %d",
+                "RAW44D DEF N target player: %d",
+                "gl-defense-naval-telemetry-reports c:+ 1",
+            ),
+        )
+        self.assertEqual(len(local_reports), 1)
+        self.assertEqual(len(naval_reports), 4)
+        for rule in local_reports + naval_reports:
+            self.assertNotIn("up-retreat-now", rule[4])
+            self.assertNotIn("up-reset-attack-now", rule[4])
+            self.assertNotIn("up-target-objects", rule[4])
+        naval_report_actions = "\n".join(rule[4] for rule in naval_reports)
+        for command_code in range(2, 6):
+            self.assertIn(f"c: {command_code}", naval_report_actions)
+
+        water_behavior = matching_rules(
+            self.military,
+            facts=("(up-object-data object-data-type == boarding-ship)",),
+            actions=("(set-goal gl-naval-response-land-threat NO)",),
+        )
+        land_behavior = matching_rules(
+            self.military,
+            facts=("(up-object-data object-data-type != boarding-ship)",),
+            actions=("(set-goal gl-naval-response-land-threat YES)",),
+        )
+        self.assertEqual(len(water_behavior), 2)
+        self.assertEqual(len(land_behavior), 2)
+        self.assertTrue(all("RAW44D" not in rule[4] for rule in water_behavior))
+        self.assertTrue(all("RAW44D" not in rule[4] for rule in land_behavior))
+
+        original_land_command = matching_rules(
+            self.military,
+            facts=("(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)",),
+            actions=(
+                "(up-reset-attack-now)",
+                "(up-retreat-now)",
+                "(up-target-objects 1 action-default -1 stance-aggressive)",
+            ),
+        )
+        original_naval_command = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)",
+                "(goal gl-naval-response-land-threat NO)",
+            ),
+            actions=(
+                "(up-reset-attack-now)",
+                "(up-retreat-now)",
+                "(up-target-objects 1 action-default -1 stance-aggressive)",
+            ),
+        )
+        self.assertEqual(len(original_land_command), 1)
+        self.assertEqual(len(original_naval_command), 1)
+        self.assertNotIn("RAW44D", original_land_command[0][4])
+        self.assertNotIn("RAW44D", original_naval_command[0][4])
+
     def test_relic_watchdog_keeps_hull_until_empty_at_home(self) -> None:
         stranded = matching_rules(
             self.military,
