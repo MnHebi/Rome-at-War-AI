@@ -1,177 +1,182 @@
 # Rome at War AI handoff
 
-## Canonical workspace and Git state
+## Workspace and Git identity
 
-- Canonical working directory: `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
-- Git repository root: `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
-- Active branch: `codex/replay-economy-build-order`
-- Recorded HEAD: `f8a83aeb9950cd3f25e77168b3607a023ebe6112`
-- Pull request: <https://github.com/MnHebi/Rome-at-War-AI/pull/4>
-- Installed runtime marker: `RAWAI-P3B35:35`
-- Installed 68-file runtime SHA-256: `2A951401E947422EBB0D53020AA6FD4B51CFA3C3D3BFDCA50EBDAAFB9B8FFBD6`
+The single canonical development workspace remains:
 
-The legacy directory
-`G:\Projects\Codex\Rome at War AI\Rome-at-War-AI-main` is a noncanonical
-extracted source snapshot and has no `.git` metadata. A full Git clone was
-created at the canonical path on 2026-08-23 16:27:54 +03:00. The move to that
-clone was not reported to the user at the time. The workspace-root, canonical,
-and legacy `AGENTS.md` copies now all identify the canonical path above.
+`G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
 
-At the time this handoff was initialized, the recorded HEAD was synchronized
-with `origin/codex/replay-economy-build-order` and the working tree was clean.
-Commit `93f78b5` (`RAWAI-P3B33`) then landed the military-stance change set
-described below and is pushed to the PR branch; the installed test AI is
-re-synchronized to the same runtime SHA-256.
+- Git root: same path.
+- Active branch: `codex/replay-economy-build-order`.
+- Recorded HEAD: `fbaaae134fb74e46ff0872d4747a3654c7b64d1c`.
+- Pull request: <https://github.com/MnHebi/Rome-at-War-AI/pull/4>.
+- Working-tree exception on 2026-08-29: `AGENTS.md` is modified because it is
+  the user's replacement project-rules file. Its content matches the workspace
+  root copy. Preserve it; do not discard or silently normalize it.
 
-## Current milestone
+This document is in a separate diagnostic worktree created on 2026-08-29:
 
-Obtain a fresh P3B32 Britannia 4v4 replay and complete runtime validation of
-the four-form Roman Legionary producers and scaled, identified allied resource
-aid. Continue resolving the established pathing, transport, trade-growth,
-taunt-command, tactical-idleness, and command-flood defects using replay and
-source evidence.
+`G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-friendly-fire-defense`
 
-## Unresolved defects
+- Git root: same diagnostic path.
+- Branch: `recovery/p3b44-friendly-fire-defense`.
+- Base: exact P3B44 commit `8ec870075d08fcac98bad55b4ff045bf7abbc42e`.
+- Rules commit: `1a0b642` (`Adopt evidence-first project rules`).
+- Diagnostic implementation commit: `59a8b96963fabdeaa0d65a29c4d01c4c2dd8f8c2`.
+- Purpose: telemetry-only investigation of the allied-friendly-fire defense
+  response observed in the 2026-08-29 11:01 replay.
+- Status: experimental diagnostic; it does not replace the canonical workspace.
+- Future agents must edit the canonical workspace for ordinary development and
+  use this worktree only to continue this isolated P3B44 experiment.
 
-- DeepSeek edited the noncanonical `Rome-at-War-AI-main` snapshot before the
-  canonical-workspace discrepancy was discovered. Do not infer that those
-  edits belong in the Git repository; audit and reconcile them deliberately if
-  the user requests recovery of any of that work.
-- Taunt 69 has repeatedly acknowledged the command without visibly deleting
-  the intended flared structure. P3B31 changed flare ownership and command-state
-  cleanup, but successful visible deletion still needs fresh confirmation.
-- Green repeatedly attempted to place a Shipyard on an unreachable beach behind
-  cliffs and attempted Transport loading across cliffs.
-- Red produced only two Merchant Vessels despite a verified trade route; the
-  intended 100/160-unit profitable trade growth remains unverified.
-- No Roman Empire player trained a Legionary in the P3B31 replays. P3B32 now
-  probes all ranged/melee and base/elite forms, but runtime success remains
-  unverified.
-- Purple repeatedly requested and bought wood yet remained without it for long
-  periods. P3B32 scales team requests to 600 nominal, sends reserve-safe
-  200-resource donor tranches, and identifies the recipient player; actual
-  delivery and net tribute remain unverified.
-- Assault Transport missions still show frequent boarding aborts, unloads, or
-  loaded hulls that fail to depart or land. P3B33 raised the home-recall
-  threshold and dampened the flip-flop; P3B34 fixed the relief chatter. The
-  28/8 replay still shows one loaded lift repeatedly loading/unloading (possible
-  trading-vessel pathing obstruction) and a migration that unloaded settlers but
-  produced no resource drop site.
-- Red's late army became largely frozen around its Town Center; P3B33 addresses
-  the flip-flop half, but the late order loop toward object 34518 remains
-  unresolved.
-- Taunt chatter is fixed for the help path (42 to 39, two-unit threshold,
-  self-response), but a random per-AI response delay is still wanted so three
-  allies do not answer the same taunt in the same instant.
-- Idle empty Transports still stage at their Port when no other same-basin ship
-  is at least 24 tiles away ("port hull staging failed" / "empty transport no
-  staging point"), blocking fishing/merchant dropoffs; a safe offset-from-port
-  fallback staging point is still needed.
-- Wall planning does not reject a route that enters an enemy town perimeter,
-  risking the wall-building villagers.
-- Priests attached to attack groups stand idle instead of healing or converting.
-- Units attack enemy Town Centers without a sufficient force, instead of
-  raiding less-defended outlying resources.
-- Migration has reached a remote island, but passenger retasking and sustained
-  resource work after drop-site completion require fresh confirmation.
-- Command flood (28/8 replay, 410,021 ACTION ops / 61 min): the largest source
-  (165,882 villager WORK retasks) is fixed in P3B35. Two sources remain: a
-  single DUC-owned ship ordered ~22,000 times over 33:20-45:28 (likely a
-  naval controller re-ordering to a fixed point each pass), and ~37,000 attack
-  orders by player 6 against one object (engine TSA re-targeting). Both need a
-  fresh P3B35 replay to identify the exact owner.
-- Port collision recovery, Palintonon packed-state recovery, Transport path
-  safety, and naval opportunity engagement remain unverified in a fresh match.
-- Cross-water allied relief is not implemented, and some tactically idle ships
-  may remain owned by another controller.
-- The game crash has no proven AI root cause. Existing dumps identify heap
-  corruption detection without the earlier corrupting writer.
+Other recovery controls:
 
-## Important recent changes
+- `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-attack-baseline`,
+  branch `recovery/p3b44-attack-baseline`, exact commit `8ec8700`: immutable
+  attack-behavior control. Never edit or relabel its runtime marker.
+- `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`,
+  branch `recovery/p3b44-transport-only`, exact commit `8ec8700`: transport-only
+  experiment. Do not mix defense work into it.
 
-- `f8a83ae` (`RAWAI-P3B35`): the four post-depletion gatherer-allocation rules
-  are now one-shot, stopping the per-sweep rewrite of the gatherer percentages
-  that drove the 165,882 WORK (villager retask) actions in the 28/8 replay; each
-  allocation logs a replay-visible reason.
-- `2674e7a` (`RAWAI-P3B34`): help-decline replies use taunt 39 instead of the
-  unrelated 42, a relief request needs two same-zone threats, and an AI ignores
-  its own taunt 48 instead of answering its own call for help.
-- `93f78b5` (`RAWAI-P3B33`): a forty-five-second attack-commitment window plus
-  a two-unit defense-latch trigger (five land / four naval severe override) stop
-  the attack/defend flip-flop; the two naval-timer executors use a distinct
-  wake owner so they do not arm the dwell; and the loaded-Transport home-recall
-  threshold is raised from one to two threats.
-- `ef96d9e` (`RAWAI-P3B32`) probes all four concrete Legionary forms for Roman
-  Empire and Roman Republic production under one aggregate family bound and a
-  shared request deadline.
-- P3B32 replaces fixed 100-resource allied aid with a 600-resource team request,
-  one 200-resource tranche per eligible donor, protected reserves, and replies
-  naming the exact recipient player number.
-- Roman diagnostics now distinguish all-four engine availability results from
-  all-four concrete trainability blockage for both Roman civilizations.
-- `5649977` preserves opaque binary replay-action payloads in analyzer JSON.
-- Replay metadata now joins command players through validated player numbers
-  and uses the DE header's selected visible colors.
-- P3B31 bounded Pict-team Cow requests, retasked migration settlers after a
-  completed drop site, reduced attack-lift manifests, revised taunt flare
-  ownership and cleanup, released late engine explorer budgets, and bounded
-  Castle placement retries.
+The obsolete extracted snapshot
+`G:\Projects\Codex\Rome at War AI\Rome-at-War-AI-main` is noncanonical and
+must not be treated as current source.
 
-## Generated diagnostic artifacts
+## Current objective and preserved behavior
 
-- Latest compact replay report (28/8 crash test):
-  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260828-005137-compact.json`
-- Prior full replay report:
-  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260827-164510-full.json`
-- Prior compact replay report:
-  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260827-164510-compact.json`
-- Replay benchmark knowledge: `replay-benchmarks.json`
-- Unique production audit: `unique-unit-production.json`
-- Generated unit evaluation: `good-unit-evaluations.json`
-- Generated naval scores: `naval-capability-scores.json`
-- Generated naval doctrine: `rawai-naval-doctrine.per`
-- External crash dumps:
-  `C:\AoE2CrashDumps\AoE2DE_s.exe_260827_131920.dmp` and
-  `C:\AoE2CrashDumps\AoE2DE_s.exe_260827_132003.dmp`
+Establish the exact controller, attacker identity, selected player, final target
+owner/type, and order path that caused Green military to converge after an
+allied Mangonel fired on allied naval vessels. Do not implement a hostility fix
+until a targeted P3B44D1 replay identifies the first causal divergence.
 
-## Tests and replays already performed
+P3B44 Gray/Blue combined attacks are the known-good behavior at regression
+risk. The diagnostic acceptance criterion is that all original P3B44 military
+rules and command counts remain unchanged and that Gray/Blue still conduct
+coordinated attacks in the fresh match.
 
-- Full P3B32 regression suite: 110 tests passed.
-- Replay-benchmark validator: 20 benchmarks passed.
-- PER, strategy execution, civilization strategy synchronization, good-unit
-  JSON, ODS workbook, naval doctrine, and generated naval-score checks passed.
-- Installed test runtime matched all 68 repository runtime files at the SHA-256
-  recorded above.
-- Latest analyzed replay:
-  `SP Replay v101.103.48987.0 @2026.08.28 005137.aoe2record`
-- Latest replay duration: 3672 seconds (61:12); the game crashed before a normal
-  end, so no postgame record was decoded. Observations: taunt-42 help replies,
-  an AI answering its own help call, simultaneous ally replies, false help
-  calls, Transports staging at Ports, an attack lift repeatedly loading and
-  unloading, a migration unload with no drop site, idle priests, under-strength
-  Town Center attacks, plus confirmed Legionary production, Battering Ram
-  coordination, and much-improved Transport usage.
+## Defect ledger
 
-## Next recommended actions
+### Friendly-fire defense trigger
 
-1. Before editing, compare the current Git root, branch, HEAD, and working-tree
-   state with the canonical workspace recorded above.
-2. In the next fresh match, verify `RAWAI-P3B35` and that the per-minute WORK
-   retask count drops sharply once resources deplete (the P3B35 fix), then
-   confirm the remaining DUC-loop and attack-retarget flood owners from the
-   AI_ORDER/ORDER stream.
-3. Confirm the P3B33 stance behavior: the army no longer alternates
-   attack/home-defense on lone raiders, a real multi-unit raid still latches
-   defense, and assault Transports board, depart, and land without being
-   recalled by single raiders.
-4. Implement a random per-AI taunt-response delay so allies stop answering the
-   same taunt in the same instant.
-5. Add a safe offset-from-Port fallback staging point so idle Transports no
-   longer block fishing/merchant dropoffs when no other ship is 24-plus tiles
-   away.
-6. Continue taunt-69 visible deletion, behind-cliff Shipyard placement,
-   attack-lift load/unload churn, migration drop-site work, idle priests,
-   under-strength Town Center attacks, and the late Town Center order loop.
-7. Analyze the next replay with `tools/analyze_replay.py`, update
-   `replay-benchmarks.json`, rerun the complete validation set, synchronize the
-   installed test AI, and update this handoff before ending the session.
+- **Status:** INVESTIGATING.
+- **User-visible symptom:** after a useless pond Shipyard was deleted, an allied
+  Mangonel fired on allied AI naval vessels; nearby Green military then
+  converged on that allied Mangonel despite locked teams.
+- **Direct evidence:** user visual observation in
+  `SP Replay v101.103.48987.0 @2026.08.29 110101.aoe2record`.
+  The replay shows Green deleting objects 39457 at 48:53 and 40783 at 49:04.
+  At 49:10 four Green objects received an ORDER targeting object 38529 in the
+  same sequence as a Green DE_RETREAT.
+- **Current causal hypothesis:** P3B44 selects an owned object with
+  `object-data-under-attack`, then calls `up-find-player enemy find-attacker`.
+  Allied splash may leave an allied attacker/player or target in that path, or
+  a different controller may own the observed order.
+- **Contradictory/unknown evidence:** the compact replay cannot identify dynamic
+  object 38529's type or owner and therefore cannot prove it was the Mangonel.
+  Source inspection does not prove how the engine applies the `enemy` selector
+  to `find-attacker` after allied damage.
+- **Instrumentation:** P3B44D1 publishes the attacked asset ID/type, raw
+  attacker ID, selected focus player, final target ID/type/player, and command
+  code. Reports are capped independently at 16 land and 16 naval command events
+  per AI. Command codes: 1 severe land; 2 global naval; 3 coastal naval; 4
+  fallback water target; 5 fallback land target.
+- **Implementation:** diagnostic only. No selection, retreat, attack, transport,
+  or defense command was changed.
+- **Acceptance criterion:** reproduce the event while the report cap remains;
+  identify the exact first allied identity transition and command path. If all
+  recorded identities remain hostile, investigate the identified alternate
+  controller instead of adding a speculative hostility gate. Gray/Blue combined
+  attacks must remain comparable to P3B44.
+- **Latest result:** deterministic/static validation PASS. Runtime attribution
+  is not yet available, so the defect is not fixed or closed.
+- **Next action:** deploy P3B44D1, verify its marker and complete payload hash,
+  run the preserved lobby, reproduce the condition early, and analyze the
+  public `RAW44D DEF L/N` sequence.
+
+### Other unresolved canonical defects
+
+These remain owned by the canonical P3B50 line and are not changed here:
+
+- Worker migration frequently reports zero engine-idle Villagers; boarding,
+  route reachability, return/unload, and remote drop-site work remain unresolved.
+- Assault Transport departure/landing, cliff-safe landings, hostile-corridor
+  safety, and controller alternation remain pending runtime validation.
+- Taunt 69 still acknowledges without visibly deleting the flared structure.
+- Behind-cliff Shipyard placement remains unresolved.
+- Command flooding remains unresolved: the prior P3B49 replay contained
+  491,938 AI_ORDER actions, dominated by parser-unidentified Green objects.
+- Profitable Merchant Vessel growth to 100/160 remains unverified.
+- Tiered 100/500/1000 resource requests and donor fulfillment remain pending
+  runtime confirmation.
+- Port collision recovery, Palintonon recovery, naval opportunity engagement,
+  Market buying, stalemate Wonder construction, and sustained Legionary
+  composition still need runtime evidence.
+- Cross-water allied relief is not implemented.
+- The crash has no proven AI root cause. Existing ProcDump files establish heap
+  corruption detection only, not the earlier corrupting writer.
+
+## Replay evidence and diagnostic artifacts
+
+- Replay basename:
+  `SP Replay v101.103.48987.0 @2026.08.29 110101.aoe2record`.
+- Replay SHA-256:
+  `C1F85E836D59CBC2D77643D2608930DC3D7940C3ECFDC6081F0C08BBF833917F`.
+- Duration: 58:51; the user manually resigned because the match was not
+  advancing. This was not a crash.
+- Visible-color/team mapping matches the authoritative preserved lobby:
+  Red/Green/Yellow/Purple Roman Empire versus Orange Picts, Cyan Britons, Blue
+  Germani, and Gray Gauls.
+- External compact analysis:
+  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260829-110101-p3b44-compact.json`.
+- Repository evidence entry:
+  `britain-4v4-20260829-110101-p3b44-control` in
+  `replay-benchmarks.json`.
+- The replay did not serialize P3B44's private startup marker. The pre-match
+  deployment was independently verified as the exact immutable 68-file P3B44
+  payload with SHA-256
+  `EE04DE7BFA1448E90D54E8AC592D0EEECF4E9DAD93100272D2941F0209B75846`.
+- P3B44D1 changes the marker to public `RAWAI-P3B44D1:441` so the next replay
+  can establish runtime identity.
+
+Replay/savegame files, crash dumps, compact parser output, and Rome at War data
+mod files remain external and must never be committed to the AI repository.
+
+## Validation performed
+
+- Focused friendly-fire telemetry test: PASS (1 test).
+- Full P3B44-derived regression suite: PASS (111 tests).
+- PER structural/operand validator: PASS.
+- Naval doctrine validator: PASS.
+- Strategy execution validator: PASS (1,156 total matchups; 1,149 historical
+  and 1,152 Extreme matchups with adjustments).
+- ODS workbook round trip: PASS (34 civilizations, 680 unit-evidence rows, 340
+  naval-class rows).
+- Replay benchmark validator: PASS (21 entries).
+- `git diff --check`: PASS; only expected CRLF conversion notices.
+- Adversarial rule comparison against immutable P3B44: PASS. All 763 baseline
+  military rules remain present after normalized-whitespace comparison, zero
+  are missing, and the diagnostic adds ten observer/report rules. Counts of
+  `up-target-objects`, `up-retreat-now`, `up-reset-attack-now`,
+  `up-target-point`, `attack-now`, `up-find-player`, and
+  `up-full-reset-search` are identical.
+- `validate_good_units.py`: pre-existing FAIL on both immutable P3B44 and this
+  diagnostic branch because the recorded `unique-unit-production.json` hash is
+  stale. This diagnostic patch does not mutate frozen strategy provenance.
+- Fresh engine/replay validation: REQUIRED.
+
+## Exact next actions
+
+1. Verify this worktree's branch, HEAD, and clean state against this document.
+2. Deploy all 68 runtime files from this diagnostic worktree only. Record the
+   installed marker and aggregate source/target hash here.
+3. Use the preserved Britannia 4v4 lobby and confirm `RAWAI-P3B44D1` appears.
+4. Reproduce the allied Mangonel/naval friendly-fire condition early enough to
+   stay below the 16-event report caps.
+5. Preserve the complete Green `RAW44D DEF L/N` record and confirm Gray/Blue
+   combined attacks still work.
+6. Analyze the replay. Implement one causal hostility/ownership fix only after
+   the telemetry establishes the earliest divergence. Keep this defect
+   INVESTIGATING until then.
+7. Do not merge diagnostic telemetry into the canonical P3B50 line merely
+   because it compiles; first use it to establish causality and then port only
+   the supported fix with a non-regression test.
