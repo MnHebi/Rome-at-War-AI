@@ -21,6 +21,24 @@ source evidence does not disprove the observed own-TC/passenger behavior.
 R1-R3 intentional telemetry/evidence is checkpointed separately BEFORE causal
 patches, not silently included in either restoration commit. No new T9 work.
 
+### Recovery A — FIXED-PENDING-RUNTIME
+
+- Historical source: `56959e6c45fd688710abc3f167aade7262dd4d2f`.
+- Preserved pre-task checkpoint: `ea8a382cb2919bed9b02fdc263f7cd3687afb886`.
+- Symptom/cause: historical shoreline-fish/farm command contention from an
+  uncapped food distance. Contradictory current evidence: food already had 12;
+  only the later hunt-28 deviation needed restoration to the requested 16.
+- Implementation: exactly two numeric operands in `rawai-economy.per`,
+  hunt 28 -> 16; existing food 12 retained. No other runtime source changes.
+- Tests: four source-executed/mutation tests in `tools/test_release_regressions.py`.
+  FAIL on pre-patch hunt 28; PASS after restoration. Both caps precede native
+  SN publication, preserve within-limit values and mutate only their own goal.
+  Protected diff preserves farm staffing, gather percentages, transport,
+  migration, passengers, attack/defense and ownership.
+- Acceptance/next action: full release validation/deployment after B's guard
+  tests; then all-player fresh-runtime checks for historical food/hunt command
+  floods. This source change does not establish that R2 contains that cause.
+
 Authority: user attachment
 `C:\Users\LostSoul\.codex\attachments\ce70220e-7f9c-4f58-a936-c6dde9510419\pasted-text.txt`,
 SHA-256 `81BBF627F3AC41D9A3BD831A28EB2D537754D38EB248911E65E5736FBE0CD1EE`.
