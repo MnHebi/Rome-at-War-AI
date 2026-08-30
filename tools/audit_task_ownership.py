@@ -207,7 +207,8 @@ def analyze(events: list[dict], hulls: set[tuple[int, int]], colors: dict[int, s
                 kind = "migration"
             if kind:
                 starts[player].append((event, kind))
-            if re.match(r"RAW44B (attack load (partial|abort)|migration (full|partial|abort loaded|abort empty)) hull:", message):
+            if (re.match(r"RAW44B (attack load (partial|abort)|migration (full|partial|abort loaded|abort empty)) hull:", message)
+                    or message.startswith("RAW44C assault ready hull:")):
                 hull = int(message.rsplit(":", 1)[1])
                 terminals[player, hull].append(event)
             elif message.startswith("attack lift ready:"):
@@ -255,6 +256,8 @@ def analyze(events: list[dict], hulls: set[tuple[int, int]], colors: dict[int, s
                                     and s["milliseconds"] <= min(end["milliseconds"] + 1500,
                                                                   load["milliseconds"] + 35000)), None)
                     proven_kind = terminal_kind[1] if terminal_kind else (witness["kind"] if witness else None)
+                    if end.get("message", "").startswith("RAW44C assault ready hull:"):
+                        proven_kind = "attack"
                     if proven_kind:
                         kind = "assault" if proven_kind == "attack" else "migration"
                 current = dict(player=player, color=colors[player], hull=hull,
@@ -274,6 +277,7 @@ def analyze(events: list[dict], hulls: set[tuple[int, int]], colors: dict[int, s
         manifests = sorted({u for load in window["loads"] for u in load["object_ids"] if u != hull})
         passengers = []
         full = (end.get("message", "").startswith("attack lift ready:")
+                or end.get("message", "").startswith("RAW44C assault ready hull:")
                 or end.get("message", "").startswith("RAW44B migration full hull:"))
         landed = set()
         for evidence in landing_evidence:
@@ -359,6 +363,8 @@ def analyze(events: list[dict], hulls: set[tuple[int, int]], colors: dict[int, s
                   "Orders do not acknowledge execution. Full-load corroboration is not an exact boarding timestamp.",
                   "First conflicting packets are confirmed pre-boarding only with a later ashore retry/sample.",
                   "Unobserved release/cargo/manual intervention prevents universal task/caller attribution.",
+                  "Command-linked hull coverage is not a census of idle/empty ships or physical obstructions.",
+                  "Missing congestion logs do not establish movement or clearance; inspect unresolved phase/position evidence.",
                   "Missing explicit terminals remain open to a later unload/new start or replay end; no arbitrary time cap."])
 
 
@@ -369,12 +375,18 @@ def main() -> None:
     parser.add_argument("--transport-audit", type=Path, required=True)
     parser.add_argument("--repository", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument('--writer-manifest', type=Path,
+                        help='Exact T10 writer-trace-sites.json supplied with the deployed runtime')
     args = parser.parse_args()
     prior = json.loads(args.transport_audit.read_text(encoding="utf-8"))
     hulls = {(row["player"], row["hull"]) for row in prior["hull_phases"]}
     colors = {row["player"]: row["color"] for row in prior["hull_phases"]}
     events, counts, failures = read_stream(args.replay, args.parser_root)
     report = analyze(events, hulls, colors, tuple(prior.get("attack_terminals", [])))
+    if args.writer_manifest:
+        from audit_writer_trace import analyze_writer_trace
+        manifest = json.loads(args.writer_manifest.read_text(encoding='utf-8'))
+        report['writer_trace'] = analyze_writer_trace(events, manifest, report['boarding_windows'])
     with args.replay.open("rb") as source:
         digest = hashlib.file_digest(source, "sha256").hexdigest()
     with args.transport_audit.open("rb") as source:

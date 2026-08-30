@@ -7,7 +7,34 @@ the earlier narrow restriction against changing ownership/recall in this
 experimental worktree. It does not authorize navigation, landing-coordinate,
 route-scoring, recovery-unload, Mining Camp resource-wait, escort-geometry,
 unrelated command-flood, salvage, or Port-placement changes in the same patch.
-No runtime behavior was changed in this investigation.
+No runtime behavior was changed in this investigation. T8 now identifies the
+recorded global-recall callers, including a proven siege-escalation overwrite
+of Red's boarding orders; worker/native attribution and the shared protection
+mechanism remain unresolved. See the T8 update below, not the older T7 limits,
+for current caller evidence.
+T10:451 passenger-writer telemetry FAILED engine compilation (ERR6003 at
+rawai-init-goals.per:362). T10R1:452 reused 12 string constants and produced
+visible RAW44W output in the user's running match, but misclassified generic
+villager cleanup as a reservation change and logged it while no mission existed.
+T10R3:454 is now installed: retains R2's actual-mutation classification and
+adds delayed, staggered, bounded identity announcements after R1's startup
+marker/map loss was established. All 351 source sites are retained;
+R3 engine/replay acceptance remains pending. The R1 replay map is preserved at
+`G:\Projects\Codex\Rome at War AI\.analysis\p3b44t10r1-writer-trace-sites.json`.
+The user explicitly restored this as the priority over congestion investigation.
+
+R1 18:10 replay now establishes SCOUT-ferry interference (not worker migration):
+source-1 land-defense recall interrupts Green twice and Orange twice; Purple
+and Orange receive exploration order 705 during boarding while group flag 4
+remains visible. R1's writer quota is exhausted for all players at 05:40-05:41,
+before first boarding at 10:05. No startup map/marker survives, so zero players
+pass fingerprint validation. Missing trace data cannot identify other writers.
+All 15 scout episodes across eight players are recorded in HANDOFF.md and the
+new R1 benchmark: five full-load confirmations, ten empty aborts (five with
+recorded preemption, five still approaching at timeout), no assault episodes.
+Root-cause evidence is sufficient to name the scout preemptors; the controlled
+native exploration release/protection mechanism and wider worker ownership
+remain unresolved. Do not substitute another congestion investigation for them.
 
 ## Required invariant
 
@@ -42,7 +69,8 @@ group flag is not a verified lock on native economy/attack/exploration tasking.
 Source: T7 `SP Replay v101.103.48987.0 @2026.08.30 131412.aoe2record`, SHA-256
 `04AB5E6664F9DBE0284E320A99AB16070DBC00DE67FE876AC8C5512176E7DDB5`.
 The prior verified T7 runtime identity and original selected colors/teams are
-retained in HANDOFF.md and its benchmark. T8 has not been supplied as a replay.
+retained in HANDOFF.md and its benchmark. The following table is historical T7
+evidence; T8 was subsequently supplied and audited below.
 
 `tools/audit_task_ownership.py` reparses the raw stream. It checks exact packet
 lengths for Transport lists, all retreat members, multi-unit AI_ORDER and WORK.
@@ -95,6 +123,62 @@ Worker WORK overwrites occur across Red, Green, Purple, Orange, Blue and Gray;
 Cyan also has a resource-target ORDER. The issue is therefore not limited to
 military retreat, but native versus script-triggered worker attribution is open.
 
+## T8 caller attribution and late Red obstruction
+
+T8 `20260830-154021`, SHA-256
+`C7BDFAF53DE72F03012C5AD88F4B930E9B7670A07CDC96490489F7428F2CE29F`,
+matches marker `RAWAI-P3B44T8:449` and the recorded 68-file deployment hash.
+All-player totals: 190 loading commands, 58 boarding windows, 354 passenger-
+window instances. There are 28 full-load-corroborated successes without an
+observed conflict, 34 conflicts with later ashore/owner evidence, and 292
+unresolved instances (108 include a conflict with uncertain pre-boarding
+timing/ownership). These remain evidence categories, not failed-mission counts.
+
+Every one of the 100 DE_RETREAT packets maps to one of 56 tagged invocations:
+land defense 28 invocations/47 packets, naval defense 16/32, siege escalation
+11/19, loss regroup 1/2. Sources 5 and 6 do not occur. A single invocation can
+emit adjacent land and naval packets at the same clock. A one-label-per-packet
+join incorrectly leaves 44 packets unattributed; those are not evidence of
+native recall. The corrected external join retains both packets and exact
+source-label sequence. All labels have matching packets.
+
+At **54:03.506**, Red's source **3 (siege escalation)** emits a 62-member land
+recall toward TC 4434 `(31,136)` and a 13-member naval recall toward Port 30910
+`(20.5,122.5)`. Assault state is 33, hull 31341. Passengers 40149, 43815 and
+47309 received boarding at 53:56.856, then this recall, and appear in the
+54:10 boarding retry. Later samples of 47309 and 40149 retain flag 4. This
+establishes that the scripted fortification-escalation recall can overwrite
+boarding without releasing the reservation. Its trigger is three known
+fortifications, not a verified severe home emergency. Sparse flags do not
+prove continuous ownership at every instant; later partial loading does not
+mean this recall permanently prevented the voyage. Red's 55:04.182 source-2
+recall occurs during route screening, not the earlier boarding window.
+
+Separately, the user confirms that Red's late physical blockers were other
+Transports manually moved away. Playback at 66:24 shows the migration hull
+with four villagers and two adjacent empty Transports. The command stream
+records moves of 48064/31880 at 66:30-32; migration hull 31691 receives its first
+departure at 66:31.236 after the 30-second partial-load deadline and reports
+route distances 52/30/15/0 through 67:32. T3 clearance belongs to the assault
+departure state machine, not migration boarding/departure. This is a coverage
+gap, but intervention overlaps the normal loading deadline: do not claim the
+replay proves a failed post-departure stall detector, or that every preceding
+second of waiting was caused by collision. Retain the physical symptom and
+the precise timing limit together. Do not mix a congestion micro-fix into the
+shared ownership patch.
+
+The raw reports, per-player table, preserved successes, and next diagnostics
+are recorded in HANDOFF.md's T8 section. This audit changes no runtime behavior;
+neither physical congestion nor the broader ownership defect is resolved.
+
+The subsequent user screenshots also establish missed Blue obstructions at
+49:11 and 66:50. Correlated commands show a no-departure assault wait followed
+by home unload (35026), and later exhausted migration route/return attempts
+(36912). A command-linked hull census is not a census of physical blockages;
+absence of a congestion tag is not success. HANDOFF.md records the screenshots,
+exact windows and prepared T9 terminal diagnostics. Those diagnostics add no
+ownership/navigation behavior and do not establish safe blocker eligibility.
+
 ## Script command boundaries
 
 The audit report also inventories 247 command/build-delegation rules and 248
@@ -136,14 +220,24 @@ ordinary automatic preemption while still canceling old owners cleanly.
 
 T8 already labels the six recall sources with assault/migration states/hulls.
 Use it for exact recall attribution, but do not pretend those six tags cover
-every worker writer or native engine task. Full ownership tracing also needs
-owner acquisition/release/preemption reasons and exact commanded members at
-ordinary command boundaries. Any quota/sampling exhaustion must be explicit:
-an untagged packet is not native-cause proof if trace coverage was incomplete.
-Do not introduce a search-reset observer that corrupts shared DUC searches.
+every worker writer or native engine task. T10 now brackets 351 command,
+reservation/group and native-policy/delegation sites with source-map-verified
+IDs and pre/post assault/migration state/hulls plus selected-object identity/flag.
+The map retains exact actions, including acquisition/release intent; replay
+packets supply commanded members. No new ownership permission lock is implied.
+The compiler adds no search/filter resets or gameplay commands, and relocates
+existing jumps to the same original targets (including the guarded farm jump).
+
+T8 directly demonstrates that command packets may arrive AFTER after-command
+chat. The new analyzer preserves compatible deferred issuers, not just packets
+inside brackets, and refuses to choose among multiple candidates by proximity.
+Both explicit quota gaps and absent map fingerprints block unsupported caller
+inference. An untagged WORK packet remains unresolved, not automatically native.
+See HANDOFF.md's T10 section for bounds, hashes, source-map generation and the
+`--writer-manifest writer-trace-sites.json` all-player audit invocation.
 
 The required gameplay/deterministic contract tests are **not implemented or
-passed** in this audit-only revision: assault reservation versus ordinary
+passed** in this diagnostic revision: assault reservation versus ordinary
 military controllers; migration reservation versus economy controllers;
 complete/abort release; bounded routine defense; verified severe preemption;
 friendly-fire rejection; allied help with live TC, destroyed TC and no hostile.
@@ -151,9 +245,21 @@ All-player runtime acceptance must additionally preserve ordinary P3B44 attacks,
 successful T1-T5 missions, safe partial lifts and economic settlement progress.
 Packet/lifecycle-tool tests are separate and cannot substitute for these tests.
 
-No selector/global-retreat/anchor patch, navigation change, new runtime marker,
-or deployment was made here. The installed runtime remains T8:449. The work is
-open; this document and the audit are intermediate evidence, not resolution.
+No selector/global-retreat/anchor patch or navigation change was made here.
+Installed runtime is T10R3:454, generated in memory from this same checkout by
+`tools/sync_test_ai.py --writer-trace`; T9 was never a separate installed test.
+T10:451 was rejected by the engine's string table. T10R1 reduces payload literal
+occurrences from 5,665 to 1,465 and adds an occurrence-based build budget plus
+a regression fixture reproducing the rejected expansion. R2 corrects the idle
+trace exemption for site 41 and preserves real acquisition/release sites.
+R3 sends marker/map identity three times after startup, with players staggered
+and 30-second intervals independent of invocation quota. 155 regression tests
+and all 68 deployment hashes pass; fresh engine/replay acceptance is pending.
+First check R3 identity delivery and off-mission trace suppression. R1's replay
+is audited and its exhaustion confirmed; preserve R1/R2 maps for old recordings.
+Unchanged fields do not imply no competing command.
+The work is open; this document, the audit
+and the diagnostic additions are intermediate evidence, not resolution.
 
 ## Reproduction and audit validation
 

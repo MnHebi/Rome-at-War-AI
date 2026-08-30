@@ -2500,6 +2500,36 @@
 	(set-goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-WAIT)
 )
 
+; P3B44T9 OBSERVER BEGIN
+;Observe the exact object already selected by this owner. No new search,
+;timer, command, filter, or controller mutation. The identical terminal below
+;runs in this sweep and leaves the state, bounding this to one failed leg.
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance > 8)
+	(up-object-data object-data-distance g:>= gl-island-migration-route-distance)
+	(up-compare-goal gl-island-migration-route-waits c:>= 4)
+=>
+	(up-chat-data-to-all "RAW44C migration terminal hull: %d" g: gl-island-migration-transport-id)
+	(up-chat-data-to-all "RAW44C migration terminal phase: %d" c: 1)
+	(up-get-point position-object gl-transport-observed-x)
+	(up-chat-data-to-all "RAW44C migration hull x: %d" g: gl-transport-observed-x)
+	(up-chat-data-to-all "RAW44C migration hull y: %d" g: gl-transport-observed-y)
+	(up-chat-data-to-all "RAW44C migration origin x: %d" g: gl-island-migration-origin-x)
+	(up-chat-data-to-all "RAW44C migration origin y: %d" g: gl-island-migration-origin-y)
+	(up-chat-data-to-all "RAW44C migration best distance: %d" g: gl-island-migration-route-distance)
+	(up-get-object-data object-data-distance gl-transport-observed-value)
+	(up-chat-data-to-all "RAW44C migration current distance: %d" g: gl-transport-observed-value)
+	(up-get-object-data object-data-garrison-count gl-transport-observed-value)
+	(up-chat-data-to-all "RAW44C migration cargo: %d" g: gl-transport-observed-value)
+	(up-get-object-data object-data-idling gl-transport-observed-value)
+	(up-chat-data-to-all "RAW44C migration idling: %d" g: gl-transport-observed-value)
+	(up-get-object-data object-data-group-flag gl-transport-observed-value)
+	(up-chat-data-to-all "RAW44C migration group: %d" g: gl-transport-observed-value)
+)
+; P3B44T9 OBSERVER END
+
 (defrule
 	(goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-CHECK)
 	(up-set-target-object search-local c: 0)
@@ -2608,6 +2638,31 @@
 	(up-set-timer c: t-island-migration c: 15)
 	(set-goal gl-island-migration-state MIGRATION-RETURNING)
 )
+
+; P3B44T9 OBSERVER BEGIN
+;The return producer does not establish a distance reference: record actual
+;position/cargo, not a misleading distance inherited from another controller.
+(defrule
+	(goal gl-island-migration-state MIGRATION-RETURN-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+	(up-compare-goal gl-island-migration-route-waits c:>= 4)
+=>
+	(up-chat-data-to-all "RAW44C migration terminal hull: %d" g: gl-island-migration-transport-id)
+	(up-chat-data-to-all "RAW44C migration terminal phase: %d" c: 2)
+	(up-get-point position-object gl-transport-observed-x)
+	(up-chat-data-to-all "RAW44C migration hull x: %d" g: gl-transport-observed-x)
+	(up-chat-data-to-all "RAW44C migration hull y: %d" g: gl-transport-observed-y)
+	(up-chat-data-to-all "RAW44C migration origin x: %d" g: gl-island-migration-origin-x)
+	(up-chat-data-to-all "RAW44C migration origin y: %d" g: gl-island-migration-origin-y)
+	(up-get-object-data object-data-garrison-count gl-transport-observed-value)
+	(up-chat-data-to-all "RAW44C migration cargo: %d" g: gl-transport-observed-value)
+	(up-get-object-data object-data-idling gl-transport-observed-value)
+	(up-chat-data-to-all "RAW44C migration idling: %d" g: gl-transport-observed-value)
+	(up-get-object-data object-data-group-flag gl-transport-observed-value)
+	(up-chat-data-to-all "RAW44C migration group: %d" g: gl-transport-observed-value)
+)
+; P3B44T9 OBSERVER END
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-RETURN-CHECK)
@@ -5232,6 +5287,8 @@
 	(up-object-data object-data-garrison-count g:>= gl-transport-route-load-target)
 =>
 	(up-chat-data-to-self "attack lift ready: %d" g: gl-transport-route-load-target)
+	(up-chat-data-to-all "RAW44C assault ready hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44C assault ready target: %d" g: gl-transport-route-load-target)
 	(up-modify-group-flag 0 c: attack-transport-group)
 	(up-reset-group c: attack-transport-group)
 	(up-full-reset-search)
@@ -5592,6 +5649,8 @@
 	(up-set-timer c: t-transport-route c: 15)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 	(chat-local-to-self "Transport held: no safe landing approach")
+	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44C assault hold reason: %d" c: 1)
 )
 
 (defrule
@@ -5752,6 +5811,8 @@
 	(up-set-timer c: t-transport-route c: 15)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 	(chat-local-to-self "Transport held: all known corridors are defended")
+	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44C assault hold reason: %d" c: 2)
 )
 
 (defrule
@@ -5862,6 +5923,8 @@
 	(up-set-timer c: t-transport-route c: 15)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 	(chat-local-to-self "Transport recalled: no route-screen ship available")
+	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44C assault hold reason: %d" c: 3)
 )
 
 (defrule
@@ -5893,6 +5956,8 @@
 	(up-set-timer c: t-transport-route c: 15)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 	(chat-local-to-self "Transport held: route-screen ship drew defensive fire")
+	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44C assault hold reason: %d" c: 4)
 )
 
 (defrule
@@ -5916,6 +5981,8 @@
 =>
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-RECALL)
 	(chat-local-to-self "Transport recalled: route-screen waypoint unreachable")
+	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44C assault hold reason: %d" c: 5)
 )
 
 (defrule
@@ -5950,6 +6017,8 @@
 	(up-set-timer c: t-transport-route c: 15)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 	(chat-local-to-self "Transport held: route-screen ship was lost")
+	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44C assault hold reason: %d" c: 6)
 )
 
 (defrule
@@ -5981,6 +6050,8 @@
 	(up-set-timer c: t-transport-route c: 15)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 	(chat-local-to-self "Transport held: scout revealed a defended corridor")
+	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44C assault hold reason: %d" c: 7)
 )
 
 ;After the midpoint is safe, the same reserved scout exposes the landing beach
@@ -6004,6 +6075,8 @@
 =>
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-RECALL)
 	(chat-local-to-self "Transport recalled: landing scout drew defensive fire")
+	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44C assault hold reason: %d" c: 8)
 )
 
 (defrule
@@ -6027,6 +6100,8 @@
 =>
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-RECALL)
 	(chat-local-to-self "Transport recalled: landing beach unreachable")
+	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44C assault hold reason: %d" c: 9)
 )
 
 (defrule
@@ -6052,6 +6127,8 @@
 =>
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-RECALL)
 	(chat-local-to-self "Transport recalled: landing scout was lost")
+	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44C assault hold reason: %d" c: 10)
 )
 
 (defrule
@@ -6082,6 +6159,8 @@
 =>
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-RECALL)
 	(chat-local-to-self "Transport recalled: scout revealed a defended landing")
+	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44C assault hold reason: %d" c: 11)
 )
 
 (defrule
@@ -6618,6 +6697,8 @@
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 	(up-chat-data-to-all "RAW44T2 transport landing timed out: %d" g: gl-transport-route-id)
 	(chat-local-to-self "Transport landing timed out; returning home")
+	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44C assault hold reason: %d" c: 12)
 )
 
 (defrule

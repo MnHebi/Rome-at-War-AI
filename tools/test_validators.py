@@ -5505,21 +5505,86 @@ class FarmPolicyTests(unittest.TestCase):
 
     def test_recall_diagnostic_preserves_every_t7_executable_rule(self) -> None:
         # T7 e17a4ed fingerprints, excluding comments and string contents.
-        # Removing only the additive event logs must reproduce the entire
-        # military/taunt program, including its conditions and action order.
+        # T9 adds terminal-only observers, separately checked below to forbid
+        # searches, commands, or controller writes. Strip those and additive
+        # logs only: the complete original program must still match T7.
         for source, expected in (
             (self.military, "5983e05d67f97430a5b567ad37b2c498b5091eaa638e79492bf78897de000546"),
             (self.taunts, "8f3b3e3e92a87b94a706c4d380d8056b4f8f0d0bd868811e821d5d8f1d45c447"),
         ):
+            source = re.sub(r'; P3B44T9 OBSERVER BEGIN.*?; P3B44T9 OBSERVER END',
+                            '', source, flags=re.S)
             retained = [line for line in source.splitlines() if not re.match(
-                r'\s*\(up-chat-data-to-all "RAW44O recall ', line)]
+                r'\s*\(up-chat-data-to-all "(?:RAW44O recall |RAW44C )', line)]
             normalized = " ".join(" ".join(code_without_comments_or_strings(line)
                                           for line in retained).split())
             self.assertEqual(hashlib.sha256(normalized.encode()).hexdigest(), expected)
 
+    def test_congestion_observers_are_terminal_only_and_do_not_mutate_search(self) -> None:
+        blocks = re.findall(r'; P3B44T9 OBSERVER BEGIN(.*?); P3B44T9 OBSERVER END',
+                            self.military, flags=re.S)
+        self.assertEqual(len(blocks), 2)
+        for phase, block in enumerate(blocks, 1):
+            rules = matching_rules(block)
+            self.assertEqual(len(rules), 1)
+            facts, actions = rules[0][3:5]
+            self.assertIn('(up-set-target-object search-local c: 0)', facts)
+            self.assertIn('gl-island-migration-route-waits c:>= 4', facts)
+            terminal = matching_rules(self.military, facts=(facts.strip(),),
+                                     actions=('(set-goal gl-island-migration-state ',))
+            self.assertEqual(len(terminal), 1)
+            # This diagnostic leaves the identical terminal enabled, so there
+            # is one sample per failed leg, not a new sweep/timer loop.
+            for command, operands in re.findall(r'\(([\w-]+) ([^()]*)\)', actions):
+                if command == 'up-chat-data-to-all':
+                    self.assertTrue(operands.startswith('"RAW44C '))
+                elif command == 'up-get-point':
+                    self.assertEqual(operands, 'position-object gl-transport-observed-x')
+                elif command == 'up-get-object-data':
+                    field, destination = operands.split()
+                    self.assertIn(field, {'object-data-distance', 'object-data-garrison-count',
+                                          'object-data-idling', 'object-data-group-flag'})
+                    self.assertEqual(destination, 'gl-transport-observed-value')
+                else:
+                    self.fail(f'Non-observational command: {command} {operands}')
+            self.assertIn(f'"RAW44C migration terminal phase: %d" c: {phase}', actions)
+            if phase == 1:
+                self.assertIn('object-data-distance g:>= gl-island-migration-route-distance', facts)
+                self.assertIn('RAW44C migration current distance:', actions)
+            else:
+                self.assertNotIn('object-data-distance', block)
+                self.assertNotIn('RAW44C migration best distance:', actions)
+
+    def test_assault_hold_reasons_and_ready_identity_are_public_and_bounded(self) -> None:
+        reasons = matching_rules(self.military, actions=('"RAW44C assault hold reason:',))
+        self.assertEqual(len(reasons), 12)
+        self.assertEqual({int(re.search(r'hold reason: %d" c: (\d+)', r[4])[1])
+                          for r in reasons}, set(range(1, 13)))
+        for rule in reasons:
+            self.assertIn('"RAW44C assault hold hull: %d" g: gl-transport-route-id', rule[4])
+            self.assertIn('(set-goal gl-transport-route-state ', rule[4])
+        ready = matching_rules(self.military, actions=('"RAW44C assault ready hull:',))
+        self.assertEqual(len(ready), 1)
+        self.assertIn('object-data-garrison-count g:>= gl-transport-route-load-target', ready[0][3])
+        self.assertIn('TRANSPORT-ROUTE-LOAD-READY', ready[0][4])
+
+    def test_congestion_scratch_has_private_consecutive_point_goals(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        constants = (root / 'rawai-customconstants.per').read_text(encoding='utf-8-sig')
+        for name, number in (('x', 1163), ('y', 1164), ('value', 1165)):
+            self.assertIn(f'(defconst gl-transport-observed-{name} {number})', constants)
+            self.assertIn(f'(set-goal gl-transport-observed-{name} 0)', self.init_goals)
+        # Scratch may be written only by the observational primitives above;
+        # it must not become a mission condition or command destination.
+        for rule in matching_rules(self.military):
+            self.assertNotIn('gl-transport-observed-', rule[3])
+            for line in rule[4].splitlines():
+                if 'gl-transport-observed-' in line:
+                    self.assertRegex(line, r'^\s*\(up-(chat-data-to-all|get-point|get-object-data) ')
+
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         self.assertIn(
-            '(up-chat-data-to-all "RAWAI-P3B44T8: %d" c: 449)',
+            '(up-chat-data-to-all "RAWAI-P3B44T9: %d" c: 450)',
             self.init_goals,
         )
         initial = matching_rules(
