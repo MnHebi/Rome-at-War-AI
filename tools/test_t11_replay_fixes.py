@@ -43,5 +43,19 @@ class BoardingClockTests(unittest.TestCase):
         self.assertIn('(up-remove-objects search-local object-data-group-flag != attack-boarding-group)', text)
 
 
+class FlareDeletionTests(unittest.TestCase):
+    def test_small_radius_nearest_one_and_no_candidate_fallback(self):
+        text = source('rawai-tauntcommands.per')
+        row = next(r for r in rule_blocks(text) if 'up-find-player-flare any-ally gl-flared-delete-x' in r[4])
+        limit = int(re.search(r'\(up-filter-distance c: -1 c: (\d+)\)', row[4])[1])
+        self.assertEqual(limit, 2)
+        self.assertIn('(up-clean-search search-local object-data-distance search-order-asc)', row[4])
+        self.assertIn('(up-remove-objects search-local object-data-index >= 1)', row[4])
+        for distances, expected in (([1, 3, 5], [1]), ([3, 4, 6], []), ([2, 2], [2])):
+            self.assertEqual(sorted(d for d in distances if d <= limit)[:1], expected)
+        failure = next(r for r in rule_blocks(text) if 'taunt 69 no structure candidates:' in r[4])
+        self.assertNotIn('action-delete', failure[4])
+
+
 if __name__ == '__main__':
     unittest.main()

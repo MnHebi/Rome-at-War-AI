@@ -727,9 +727,10 @@
 	(up-find-player-flare any-ally gl-flared-delete-x)
 	(up-set-target-point gl-flared-delete-x)
 	(up-full-reset-search)
-	;A flare can land beside the center point of a large coastal footprint. Six
-	;tiles remains bounded but is tolerant of Ports, Shipyards, and Forts.
-	(up-filter-distance c: -1 c: 6)
+	;Deletion is an exact user command, not an area-clear request. Require the
+	;flare within two tiles of the intended center; otherwise delete nothing.
+	;The old six-tile search caught neighboring structures in T11.
+	(up-filter-distance c: -1 c: 2)
 	(up-find-local c: building-class c: 8)
 	(up-find-local c: tower-class c: 4)
 	(up-find-local c: wall-class c: 4)
