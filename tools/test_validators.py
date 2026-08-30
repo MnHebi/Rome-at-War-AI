@@ -3621,6 +3621,49 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertEqual(len(civilian_gate), 2)
 
+    def test_generic_villager_cleanup_preserves_transport_reservation(self) -> None:
+        cleanup = matching_rules(
+            self.general,
+            actions=(
+                "(up-find-local c: villager-class g: villager-count)",
+                "(up-create-group 0 0 c: 0)",
+                "(up-modify-group-flag 1 c: 0)",
+            ),
+        )
+        self.assertEqual(len(cleanup), 1)
+        actions = cleanup[0][4]
+        reservation_filter = (
+            "(up-remove-objects search-local object-data-group-flag "
+            "== migration-boarding-group)"
+        )
+        self.assertIn(reservation_filter, actions)
+        self.assertLess(actions.index(reservation_filter), actions.index("(up-create-group"))
+        self.assertLess(actions.index(reservation_filter), actions.index("(up-modify-group-flag"))
+
+        # Model this exact selector's flag mutations: before the fix the
+        # reserved Purple candidate is selected, assigned 0, then cleared -2.
+        # Ordinary unreserved villagers must still receive the old cleanup.
+        reservation = int(re.search(
+            r"\(defconst migration-boarding-group (\d+)\)", self.customconstants
+        ).group(1))
+        roster = {31871: reservation, 60000: -2}
+        def after_cleanup(source_actions: str) -> dict[int, int]:
+            selected = list(roster)
+            if reservation_filter in source_actions:
+                selected = [unit for unit in selected if roster[unit] != reservation]
+            result = dict(roster)
+            for unit in selected:
+                result[unit] = 0
+            for unit in selected:
+                result[unit] = -2
+            return result
+
+        self.assertEqual(after_cleanup(actions), {31871: reservation, 60000: -2})
+        self.assertEqual(after_cleanup(actions.replace(reservation_filter, ""))[31871], -2)
+        self.assertIn("(up-modify-group-flag 0 c: 0)", self.general)
+        self.assertIn("(up-reset-group c: 0)", self.general)
+        self.assertIn("(up-object-data object-data-order == orderid-enter)", self.general)
+
     def test_naval_exploration_is_scout_ship_only(self) -> None:
         self.assertIn(
             "(set-strategic-number sn-number-boat-explore-groups 0)",
@@ -5433,7 +5476,7 @@ class FarmPolicyTests(unittest.TestCase):
 
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         self.assertIn(
-            '(up-chat-data-to-all "RAWAI-P3B44T6: %d" c: 447)',
+            '(up-chat-data-to-all "RAWAI-P3B44T7: %d" c: 448)',
             self.init_goals,
         )
         initial = matching_rules(

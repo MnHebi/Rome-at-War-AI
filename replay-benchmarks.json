@@ -1728,7 +1728,65 @@
       "known_limits": [
         "P3B44T5 proves the exact-full route gate but does not identify why every individual passenger failed to board. The bounded P3B44T6 candidate snapshots are discriminating instrumentation; this upstream defect is not closed until a fresh replay establishes the first command/state divergence and supports a causal fix.",
         "P3B44T6 changes only assault underfill behavior. Migration boarding thresholds and route behavior are instrumented but otherwise unchanged.",
+        "The 20260830-114855 P3B44T6 replay runtime-confirms safe partial assault: six Orange terminals retained 9,8,8,8,8,6 soldiers; five completed remote landings with only boarded soldiers receiving landing orders. The sixth entered the existing later home-return path. Four below-five terminals retained abort behavior. This closes the exact-full abort defect, not the separate upstream nonboarding causes.",
         "This patch does not change landing-coordinate memory, migration drop-site establishment, escort ownership overlap, Orange activation, recovery-unload repetition, dominant command volume, or crash behavior."
+      ],
+      "validation_status": "runtime-confirmed"
+    },
+    {
+      "id": "britain-4v4-20260830-114855-p3b44t6-all-transport",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.30 114855.aoe2record",
+        "sha256": "A26B08497C5168F942A6CA67903FAC61AD32CD2C8BFF2D07BDA69B2DE9512CE8",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Red Roman Empire (team 1)",
+          "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)",
+          "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)",
+          "Cyan Britons (team 2)",
+          "Blue Germani (team 2)",
+          "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Validated DE selected-color fields, joined by player number, match the preserved authoritative lobby. Internal colors and lobby row order were not used as visible colors.",
+        "duration_seconds": 4525,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The replay ends at 75:25 with zero action-stream parser errors and no decoded resignation. Its ending cause is unconfirmed. Players 2-8 serialize RAWAI-P3B44T6:447. The installed 68-file runtime matches source hash D5A2314E461603F68D5327E71BD7FB3737F0518C8969F2D5A4C45809B11598EB before changes.",
+        "All-player transport reconstruction identifies 22 explicit/likely hulls, 183 loading records, 142 point unloads, 55 alternating load/unload phases and seven terminal load-only phases. These are command phases, not a claim that every unload succeeded. Yellow's exact hull is included from public telemetry despite having no movement or unload record. All 4176 raw SPECIAL/UNGARRISON records were screened; Town Center and other non-transport garrisons are not counted as ship missions.",
+        "Per-player hull/load/unload/phase totals are Red 1/4/4/4, Green 1/8/0/0, Yellow 1/8/0/0, Purple 2/25/28/7, Orange 4/29/30/16, Cyan 4/27/23/7, Blue 3/31/15/6, and Gray 6/51/42/15.",
+        "Orange publishes six safe partial assault departures: 43:11 with 9, 51:37 with 8, 56:44 with 8, 59:48 with 8, 63:22 with 8, and 67:12 with 6. The first five complete landings at 46:40,54:15,58:42,61:41,65:26. The last returns home at 68:50; public telemetry does not expose the exact later route rejection. Shore stragglers receive STOP and are excluded from the completed remote landing orders. Four other assault terminals abort at 0,4,0,0 passengers.",
+        "Fifty-six candidate snapshots span all seven non-owner AIs. All twelve mining-migration snapshots, across Purple, Cyan, and Gray, show object-data-group-flag -2 despite construction of reservation group 4. All 27 attack snapshots and 17 scout-migration snapshots retain group 4.",
+        "Three scout-migration samples show action/order 605/705 (exploration) and target -1 rather than the reserved hull. Most other samples retain enter action/order 617/717 and the correct hull. Orange candidate 40673 at 51:22 and 51:37 is idle with no action or target at recorded-origin distance 1. Neither universal command theft nor universal path failure explains every case.",
+        "Nine migration boarding terminals are full, six partial, and seven empty aborts. Ten public migration landing-candidate missions produce 21 clear events with matching same-second unloads, one wrong-zone rejection and 26 path rejections with no corresponding unload. Six assault landing windows complete, including Purple's full lift, with zero active-hull guard commands. Seven exact relic outbound and three return readiness events occur.",
+        "The user identifies Yellow's abandoned boar gathering at approximately 22-24 minutes after an enemy-triggered Town Center garrison. Yellow's private hunt-state chat is absent, and the current WORK decoder lacks worker/target fields, so the proposed lurer-target retry cause is not established. Initial-object metadata separately identifies repeated target 4475 as Yellow's Town Center, not a boar. Red's own private logs show three same-second active-to-released hunt transitions; these are a separate observed state issue.",
+        "Gray's 19-settler load lands and reboards at 57:16 and repeats at 71:29; the drop-site/recall problem remains distinct. The replay contains 727415 ACTION records, including 355625 ORDER and 135582 AI_ORDER records. High repeated Town Center order volumes remain, but do not establish a crash cause."
+      ],
+      "implementation_inferences": [
+        "P3B44T6 runtime-closes the downstream exact-full assault abort: useful partial hulls now complete remote landings without carrying shore stragglers into their later orders. It does not close every boarding or route failure.",
+        "rawai-general.per selects all non-exploring, non-tree-targeting villagers into temporary group 0, sets their group flag to 0, then clears it. It does not exclude the transport owner's reserved villagers. During boarding their target is the hull, so this selector replaces and clears group 4. The source transformation explains the consistent -2 mining-passenger snapshots, contrasting with military and Scout passengers outside the villager selector. The smallest supported change is to exclude migration-boarding-group before group creation, not to redesign all controllers.",
+        "AIRef's up-modify-group-flag documentation states that it changes each object's flag and unassigned objects report -2. Existing T6 candidate telemetry can verify the repaired reservation on the next replay. Preserving that flag alone is not proof of boarding or eventual economic work.",
+        "Other demonstrated issues remain separate: scouts resume exploration, distant passengers approach throughout their loading window, some close soldiers remain entering or idle, and the fifteen-second cached gl-game-time coarsens the nominal four-second assault retry/deadline checks. Do not fold speculative repairs for these into the reservation fix."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B44T7:448. In generic villager cleanup only, remove objects whose flag equals migration-boarding-group before creating/flagging temporary group 0. This preserves the transport owner's reservation and keeps those passengers out of unrelated generic STOP handling.",
+        "Keep rawai-military.per byte-identical to P3B44T6: no changes to assault dispatch, partial thresholds, target checks, scout exploration, migration selection, landing screening, departure clearance, drop-site handling or recovery. Retain existing bounded RAW44B passenger snapshots as the runtime discriminator."
+      ],
+      "fresh_replay_acceptance": [
+        "Replay marker RAWAI-P3B44T7:448 and a byte-identical source/installed runtime identify the next test.",
+        "Mining passengers retain group flag 4 in early and terminal RAW44B snapshots while the migration owner holds them; generic cleanup neither changes that flag nor stops them. Record every contrary example across every player.",
+        "Ordinary unreserved villagers still receive existing invalid-target cleanup; migrated workers return to ordinary economy only after their transport controller releases them. Demonstrate actual boarding and a landing/drop-site/work lifecycle rather than closing the broad defect from a flag alone.",
+        "Previously successful partial and full assaults, exact relic departures, migration landing screening and P3B44 land attacks remain intact. Preserve all unrelated unresolved cases explicitly."
+      ],
+      "known_limits": [
+        "The primary replay_parser directory fails this DE header; replay_parser_kjir supplies validated selected-color metadata. WORK target fields and some AI_ORDER coordinates are incomplete/unreliable; absence of a decoded overwrite is not evidence that none occurred.",
+        "Distances in RAW44B snapshots are relative to the stored boarding origin, not a fresh position of a moving hull. No universal path or object-specific loading cause is asserted.",
+        "The generic cleanup ownership fix is FIXED-PENDING-RUNTIME, not CLOSED. Yellow hunting, Port-placement work deferred to the next development cycle, drop-site recall, escort overlap, command flooding and crash attribution are outside this patch."
       ],
       "validation_status": "fresh-replay-required"
     }
