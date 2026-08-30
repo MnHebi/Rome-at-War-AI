@@ -1,6 +1,117 @@
 # Rome at War AI handoff
 
-## CURRENT — T11 source-first ownership implementation, 2026-08-30
+## CURRENT — T11 all-player audit; T12:457 installed, 2026-08-30
+
+This section supersedes prior current-state sections, not their unresolved backlog.
+Full evidence, defect dispositions, diagnostic field map, review and acceptance:
+[T11-REPLAY-REVIEW.md](T11-REPLAY-REVIEW.md).
+The corresponding metadata is the first entry in replay-benchmarks.json.
+
+### Workspace and source identity
+
+- Canonical ordinary repository remains
+  `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`.
+- Continue this authorized experimental transport/ownership recovery objective in
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`.
+  This does not replace the canonical repository. No directory or branch switch.
+- Branch: `recovery/p3b44-transport-only`. Started clean at
+  `6350c8416c43e397b3058b88cf2d9cacb879fd56`.
+- Final runtime/code HEAD:
+  `47cf53f1d43c31ea20501aa6bd11a9ea27323d26`.
+  A subsequent evidence/handoff-only commit records this section; use
+  `git rev-parse HEAD` for the current documentation HEAD.
+- Immutable P3B44 attack control remains
+  `8ec870075d08fcac98bad55b4ff045bf7abbc42e` in the existing attack-baseline
+  worktree. It was not edited, regenerated or deployed.
+- Existing PR #6: https://github.com/MnHebi/Rome-at-War-AI/pull/6.
+  This session's commits are **local, not pushed**. No GitHub/PR mutation.
+
+### Deployment / validation
+
+- Installed **RAWAI-P3B44T12:457**, 78 plain-source runtime files, SHA-256
+  `A1757B8E758A077BE0F96C18292AF124AD1747EF1F6DBB6D04E8F730B283A345`.
+- Destination:
+  `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`.
+  Independent read-only check: all 78 match; no missing/different/unexpected files.
+  No historical writer-trace compilation or lifetime quota.
+- An intermediate same-marker deployment briefly used minute navy snapshots
+  (EE2DC7D5E1D026E4E7FE3A19BE843AA77A188DD163DE096ED58272F51D922A02).
+  It was replaced before session handoff by the final five-minute interval.
+  Do not attribute any replay solely by marker if it was started mid-session;
+  the final full hash above is authoritative.
+- **PASS:** final 204 regression tests, including 14 focused T11 tests; PER
+  structure/operands; 1,156 strategy matchups; naval doctrine; workbook round-trip;
+  33 replay benchmarks; 666-site ownership inventory with zero direct permission
+  failures; diff whitespace check. Temporary-file tests required an escalated
+  rerun; the final complete suite passed.
+- **PASS:** read-only adversarial review dispositions in T11-REPLAY-REVIEW.md.
+  Corrected adjacent-goal overwrite risk, stale threat diagnostic relabeling,
+  converted progress target and cross-sweep command target validation.
+- String budget: 1,431 literals, eight-player projection 11,448; within the
+  project's conservative budget, **not measured engine string capacity**.
+- **PENDING:** fresh T12 engine load and all-player gameplay/replay acceptance.
+  No runtime gameplay defect is CLOSED by the tests or diagnostics.
+
+### Current defect ledger
+
+| Defect | Status | Evidence / implementation | Acceptance / next action |
+|---|---|---|---|
+| Red stone settlers without drop-site | INVESTIGATING | 18 landed 55:17; camp attempts 57:25/57:49, no foundation BUILD; failure 58:09; user supplied camp | Read T12 queue/placement/worker snapshots, prove cause, fix and demonstrate completed camp + resource drop-off |
+| Idle/distance-limited Juggernaut targeting | FIXED-PENDING-RUNTIME | One-enemy 48-tile scan and cross-sweep fallback; T12 grows 48/96/192/255 after 120s without sampled progress, all enemies, exact revalidation | Distant autonomous bombardment with close attacks/escorts preserved; no unsafe-path claim |
+| Assault boarding allowance shortened | FIXED-PENDING-RUNTIME | 60:00 request -> 60:19 empty abort; deadline used 15s cached clock | T12 live clock gives full 30s, preserve minimum-five/full/partial contracts |
+| Other passengers not boarding / native task interference | INVESTIGATING | Some keep correct enter + reservation; others idle/no target; Red 63:29 sample work 609/709 while flag 11 retained | Correlate exact packets, candidate snapshots and bounded native-writer counters; no blanket theft or path diagnosis |
+| Red loaded return around 66m | INVESTIGATING | Hull 37810 stalled at 12 tiles through four retries; 66:14 no-progress return with cargo 19 | Establish waypoint/collision cause; retain mixed-cargo observation without invented manifest classes |
+| Missing Roman Quinqueremes/Octeres | INVESTIGATING | DAT availability confirmed, no Roman heavy MAKE; rejection gate unknown | Read phase/role/rotation/caps, line vs concrete train mask, tech/resources/queue evidence; then causal fix and bounded production proof |
+| Taunt 69 selects unintended structure | FIXED-PENDING-RUNTIME | Search radius six tiles reduced to two; nearest one self-owned, no-candidate no-op preserved | Flare at intended center; only intended structure deleted, nearby outside-radius targets survive |
+| Late repeated STOP/worker orders and lag | INVESTIGATING | 152771 STOP 706 records; identical Red settler STOP 7561; R2 already had 55148 | Nonzero minute counts of every explicit STOP/reset writer + native exclusions; identify producer and reduce repeated ineffective commands without disabling useful work |
+| Help calls too close together | FIXED-PENDING-RUNTIME | Green 20:01/20:03; timer not rearmed on request | Both request paths now rearm120s; verify actual spacing |
+| False/missed allied attack location | INVESTIGATING | Green false-warning observation, 253 cannot-verify replies; proximity fallback vs original-TC relief anchors | Match request kind/asset/hostile/anchor/freshness to responder anchor; no speculative radius widening |
+| Cross-water allied relief | OPEN | Still unimplemented | Separate scoped design/fix after proven current blockers |
+| Earlier friendly-fire, crash, boar recovery, dock placement/salvage backlog | OPEN / prior statuses retained below | This replay did not resolve or cancel earlier work | Preserve earlier evidence and recovery scope; do not mark complete due to prompt changes |
+
+Each significant defect's direct evidence, hypothesis, contrary evidence,
+instrumentation, implementation, latest result and exact acceptance are detailed
+in the linked report. Failed camp, command spam, heavy production and allied
+detection are **not** considered resolved by adding diagnostics.
+
+### Recent causal commits
+
+- 5c3a7ff: fresh clock for full assault boarding window.
+- e2c43b3: two-tile taunt 69 deletion radius.
+- d7400bb: expanding all-enemy capital-ship search, command-time identity rebuild.
+- 8820cb0: rearm allied-help request cooldown at emission.
+- 12189f6: bounded explicit STOP/scout-reset/native-exclusion invocation counters.
+- 18648ce: drop-site, heavy production and allied request/response snapshots;
+  T12:457 marker and converted-target progress guard.
+- 47cf53f: five-minute steady production samples and current-marker test.
+
+### Evidence / next session
+
+External raw evidence under `G:\Projects\Codex\Rome at War AI\.analysis`:
+replay-20260830-211106-t11-full.json; p3b44t11-command-stream.json;
+p3b44t11-exact.json; p3b44t11-transport-audit.json/.txt;
+p3b44t11-task-ownership.json; p3b44t11-summary.json. The bounded
+inspect_t11.py helper queries chats/windows/unit commands/terminal events.
+audit_writer_replay.py ran with --plain-runtime; obsolete writer-site IDs were
+not applied to T11 source. The replay and data-mod payload are not in Git.
+
+1. Receive a **fresh** T12:457 replay and verify its deployment identity. Keep the
+   same authoritative color/team mapping; observed recorded speed in T11 is 2.0.
+2. Repeat the all-player subsystem sweep; separate successful boarding/landings,
+   bounded failures, unresolved lifecycles and command spam. Never reduce scope
+   to the user's visible examples.
+3. Decode the bounded writer and diagnostic maps in T11-REPLAY-REVIEW.md.
+   Nonzero source invocation is not packet attribution; empty selections count.
+   Navy masks are five-minute samples, not every attempted queue.
+4. As soon as evidence identifies a cause, implement the smallest supported fix,
+   run focused/full checks as appropriate, and require runtime acceptance.
+5. Preserve normal combined attacks, partial/full lifts, exact ownership,
+   same-water escorts and tight flare deletion. No speculative multi-controller
+   redesign.
+6. Push these local commits/update PR #6 only when requested.
+
+
+## PREVIOUS — T11 source-first ownership implementation, 2026-08-30
 
 This section supersedes the diagnostic-stage priorities below. User directive:
 `18529df3-3d8e-4635-84a9-871e505b439d/pasted-text.txt` (source-first ownership).

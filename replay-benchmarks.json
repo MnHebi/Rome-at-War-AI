@@ -3,6 +3,63 @@
   "pending_match_setups": [],
   "benchmarks": [
     {
+      "id": "britain-4v4-20260830-211106-p3b44t11-all-player",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.30 211106.aoe2record",
+        "sha256": "088EC5FBFCCB6DDABEAC85BB7181B38B883F05DFDCB1A06FC0EAD46ECD0B904F",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia (preserved user setup)",
+        "duration_seconds": 4959,
+        "players": [
+          "Red Roman Empire (team 1)",
+          "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)",
+          "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)",
+          "Cyan Britons (team 2)",
+          "Blue Germani (team 2)",
+          "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Selected colors joined by player number agree with authoritative teams; no slot/color inference. Recorded resolved teams 2/3, Extreme, 400 population, Fast 2.0 and shared exploration."
+      },
+      "direct_replay_observations": [
+        "T11:456 is serialized by players 2-8; the 73-file installed runtime matched SHA-256 2CA656510A99D71A9C5A2CB5014FC3138904D120E806269127DEB5FF5824DABF before edits. The owner player does not serialize its self marker. Basic and exact command decoding report zero errors.",
+        "All-player audit covers 26 hulls, 245 loads, 292 point unloads, 72 alternating load/unload phases and eight terminal load-only phases. The separate ownership audit reconstructs 83 boarding windows. These are commands/lifecycles, not 72 successful voyages.",
+        "Red landed 18 settlers at 55:17 in zone 14. Resource anchor 739 was reacquired; mining-camp requests were reported at 57:25 and 57:49, with rejected intermediate offsets. No mining-camp BUILD was recorded for those attempts; drop-site failure at 58:09. The user eventually supplied the camp.",
+        "Red hull 37810 stalled 12 tiles from its route waypoint through four retries and returned at 66:14 with reported cargo 19. Return failure at 67:31 still reported two aboard; it was later detached/quarantined. Exact mixed passenger classes and the physical cause of the stall remain unresolved.",
+        "Red empty assault abort at 60:19 followed a 60:00 load request. Scout 4599 still had the correct hull target, enter action/order 617/717 and reservation 4 at the early and terminal samples. The 62:22 abort instead sampled idle candidate 35153 without an action/target. One universal command-theft explanation does not fit both.",
+        "T11 contains 152771 AI_ORDER STOP 706 records. Red's same 17-settler-group STOP repeats 7561 times from 55:17 to 59:19. R2 already contained 55148 STOP records; neither all spam nor its native/scripted producer can be attributed to the T11 patch from counts alone.",
+        "No Roman MAKE record for Quadrireme 1870, Quinquereme 1750 or Octeres 1884. The authoritative DAT lists them as available; exact runtime rejection gates are not exposed.",
+        "Green made 26 public local-help calls, including 20:01 and 20:03. Across players there were 253 cannot-verify-reachable-attack replies. User reports false local warnings and missed genuine attacks; current packets do not identify the exact request anchor/hostile for each report."
+      ],
+      "implementation_inferences": [
+        "Assault loading used gl-game-time, refreshed only every 15 seconds, to start its 30-second deadline. A fresh clock restores the full intended boarding allowance without changing minimum cargo or route distance limits.",
+        "Juggernaut targeting searched fortifications only within 48 tiles and selected one enemy. Its fallback also crossed a shared-search sweep boundary. Expanded bounded discovery and exact command-time source/target reconstruction address these source faults, not every naval path failure.",
+        "The 66:14 return is explicitly the no-progress watchdog, not a maximum trip-length rule. Which physical obstruction or waypoint geometry prevented the final 12 tiles remains unproved.",
+        "The help cooldown previously expired relative to timer initialization, not the last request. Re-arming it on each request fixes the source-proven short gap. Proximity fallback and persistent original-TC relief anchors remain competing explanations for incorrect location reports."
+      ],
+      "changes_under_test": [
+        "T12:457 uses a live assault-boarding clock; taunt 69 selects the nearest one owned structure within two tiles instead of six.",
+        "Capital discovery grows 48 to 96 to 192 to 255 tiles after each 120 seconds without sampled attack/target-HP progress; sea-tower discovery retains its initial 120 tiles. Search iterates all enemies and command-time identities are rebuilt.",
+        "Both public local-help request paths restart a full 120-second cooldown.",
+        "Nonzero minute counters cover every explicit STOP/reset-scouts writer and native attack-exclusion mutations. Five-minute navy gate masks, drop-site request/timeout worker probes, and request/response identity snapshots distinguish remaining causes; they are not behavioral resolutions."
+      ],
+      "fresh_replay_acceptance": [
+        "Confirm T12:457 and complete deployed hash. Check full and partial assault lifts across all players, intended 30-second boarding allowance, retained ownership, and preserved ordinary combined attacks.",
+        "Demonstrate autonomous distant Juggernaut attacks after radius expansion; useful ongoing bombardment and light-hull escort ownership must survive.",
+        "Taunt 69 deletes exactly the intended owned structure near the flare center; adjacent structures outside two tiles survive and no candidate produces no deletion.",
+        "Attribute STOP frequency by player/minute against exact source counters; zero invokes can exclude a writer, but positive counters (possibly empty selections) alone are not packet attribution.",
+        "Use drop-site and navy gate diagnostics to establish the first blocking condition and continue directly to a supported fix. Match every allied request to its scan kind/hostile/anchor/freshness and response anchor before changing detection/relief policy."
+      ],
+      "known_limits": [
+        "Detailed self-chat is asymmetric: Red has substantially more private controller telemetry than the other players. Lack of another player's private messages is not inactivity.",
+        "Command-only lifecycle summaries cannot prove all unloads succeeded, all conflicts occurred before boarding, or every ship's physical obstruction. User symptoms are retained separately from parser-derived causes.",
+        "No fresh engine compilation or T12 replay validates these changes yet. Drop-site failure, missing heavy production, native-boundary spam, route geometry/congestion and false/missed allied attacks remain INVESTIGATING. Existing crash/salvage/dock backlog is not canceled."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
       "id": "britain-4v4-20260830-182330-p3b44t10r2-ownership",
       "source": {
         "file_basename": "SP Replay v101.103.48987.0 @2026.08.30 182330.aoe2record",
