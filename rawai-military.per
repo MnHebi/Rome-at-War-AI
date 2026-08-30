@@ -5535,6 +5535,15 @@
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)
 )
 
+;The economy clock updates only every fifteen seconds. Boarding needs a live
+;clock: T11's 60:00 request otherwise expired at 60:19 instead of after 30s.
+;Keep this clock local to the load contract; do not retime other controllers.
+(defrule
+	(true)
+=>
+	(up-get-fact game-time 0 gl-transport-load-clock)
+)
+
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)
 	(up-compare-goal gl-transport-route-load-target c:>= 5)
@@ -5548,9 +5557,9 @@
 	(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
 	(set-goal gl-transport-route-load-reported NO)
 	(set-goal gl-transport-route-load-candidate-id -1)
-	(up-modify-goal gl-transport-route-load-deadline g:= gl-game-time)
+	(up-modify-goal gl-transport-route-load-deadline g:= gl-transport-load-clock)
 	(up-modify-goal gl-transport-route-load-deadline c:+ 30)
-	(up-modify-goal gl-transport-route-load-next g:= gl-game-time)
+	(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)
 	(up-modify-goal gl-transport-route-load-next c:+ 4)
 	(up-chat-data-to-self "attack lift boarding target: %d" g: gl-transport-route-load-target)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)
@@ -5599,8 +5608,8 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-CHECK)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count g:< gl-transport-route-load-target)
-	(up-compare-goal gl-game-time g:< gl-transport-route-load-deadline)
-	(up-compare-goal gl-game-time g:>= gl-transport-route-load-next)
+	(up-compare-goal gl-transport-load-clock g:< gl-transport-route-load-deadline)
+	(up-compare-goal gl-transport-load-clock g:>= gl-transport-route-load-next)
 	(goal gl-transport-route-load-reported NO)
 =>
 	;Capture the first passenger that remains ashore before renewing the command.
@@ -5615,8 +5624,8 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-CHECK)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count g:< gl-transport-route-load-target)
-	(up-compare-goal gl-game-time g:< gl-transport-route-load-deadline)
-	(up-compare-goal gl-game-time g:>= gl-transport-route-load-next)
+	(up-compare-goal gl-transport-load-clock g:< gl-transport-route-load-deadline)
+	(up-compare-goal gl-transport-load-clock g:>= gl-transport-route-load-next)
 	(goal gl-transport-route-load-reported YES)
 =>
 	;A unit can lose its boarding order while walking. Reissue only on the bounded
@@ -5631,7 +5640,7 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
-	(up-modify-goal gl-transport-route-load-next g:= gl-game-time)
+	(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)
 	(up-modify-goal gl-transport-route-load-next c:+ 4)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)
 )
@@ -5640,7 +5649,7 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-CHECK)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count g:< gl-transport-route-load-target)
-	(up-compare-goal gl-game-time g:< gl-transport-route-load-next)
+	(up-compare-goal gl-transport-load-clock g:< gl-transport-route-load-next)
 =>
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)
 )
@@ -5650,7 +5659,7 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count >= 5)
 	(up-object-data object-data-garrison-count g:< gl-transport-route-load-target)
-	(up-compare-goal gl-game-time g:>= gl-transport-route-load-deadline)
+	(up-compare-goal gl-transport-load-clock g:>= gl-transport-route-load-deadline)
 =>
 	;The replay proves that one unboarded tenth passenger repeatedly discarded
 	;nine boarded soldiers. Preserve useful strength without leaking home
@@ -5670,7 +5679,7 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count < 5)
 	(up-object-data object-data-garrison-count g:< gl-transport-route-load-target)
-	(up-compare-goal gl-game-time g:>= gl-transport-route-load-deadline)
+	(up-compare-goal gl-transport-load-clock g:>= gl-transport-route-load-deadline)
 =>
 	;Fewer than five soldiers is not a useful assault. Retain the existing abort,
 	;but publish the same exact terminal evidence before recovery.
@@ -5758,7 +5767,7 @@
 	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(set-goal gl-transport-route-load-reported YES)
-	(up-modify-goal gl-transport-route-load-next g:= gl-game-time)
+	(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)
 	(up-modify-goal gl-transport-route-load-next c:+ 4)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)
 )
