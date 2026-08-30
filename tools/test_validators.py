@@ -17,6 +17,15 @@ from analyze_replay import json_default, unavailable_players, validated_players
 
 
 class ReplayMetadataTests(unittest.TestCase):
+    def test_replay_analyzer_retains_retreats_without_runtime_marker_dependency(self) -> None:
+        source = (Path(__file__).parent / "analyze_replay.py").read_text(encoding="utf-8-sig")
+        self.assertIn("if action == Action.DE_RETREAT:", source)
+        self.assertIn("retreat_actions.append(action_record)", source)
+        self.assertIn('"retreat_actions": retreat_actions', source)
+        for term in ("migration", "transport", "retreat", "route-screen"):
+            self.assertIn(f'"{term}"', source)
+        self.assertNotIn('"raw49"', source)
+
     def setUp(self) -> None:
         self.fast = [
             {
