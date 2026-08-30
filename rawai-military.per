@@ -8348,106 +8348,38 @@
 )
 #end-if
 
-;An attacked owned economic anchor has priority over the original-town scan.
-;This keeps colonies actionable without confusing an unreachable enemy on an
-;adjacent island for a home incursion.
+;Verified attacks use the actual victim-owned point, including a relocated colony.
+;The shared verifier already tested exact hostile action/target/victim ownership.
 (defrule
 	(goal gl-home-defense-state NO)
 	(up-timer-status t-defense-leash == timer-triggered)
 	(goal gl-local-response-state LOCAL-RESPONSE-IDLE)
+	(goal gl-self-attack-verified YES)
 =>
 	(up-modify-goal gl-local-response-focus s:= sn-focus-player-number)
-	(set-strategic-number sn-focus-player-number my-player-number)
-	(up-full-reset-search)
-	(up-set-target-point gl-home-anchor-x)
-	(up-filter-distance c: -1 c: 160)
-	(up-find-local c: villager-class c: 240)
-	(up-find-local c: town-center c: 20)
-	(up-find-local c: mining-camp c: 20)
-	(up-find-local c: lumber-camp c: 20)
-	(up-find-local c: mill c: 20)
-	(up-find-local c: market c: 10)
-	(up-find-local c: dock c: 20)
-	(up-find-local c: port c: 20)
-	(up-find-local c: shipyard c: 20)
-	(up-remove-objects search-local object-data-under-attack <= 0)
-	(up-clean-search search-local object-data-distance search-order-desc)
-	(set-goal gl-local-response-state LOCAL-RESPONSE-ASSET-FIND)
-)
-
-;Capture evidence without adding searches to the threat producer/consumer.
-(defrule
-	(goal gl-local-response-state LOCAL-RESPONSE-ASSET-FIND)
-	(up-set-target-object search-local c: 0)
-=>
-	(up-get-object-data object-data-id gl-t12-help-pending-asset)
-	(up-get-point position-object gl-t12-help-pending-x)
-)
-
-(defrule
-	(goal gl-local-response-state LOCAL-RESPONSE-ASSET-FIND)
-	(up-set-target-object search-local c: 0)
-=>
-	(up-get-point position-object gl-local-response-target-x)
-	(up-get-object-data object-data-map-zone-id gl-local-response-zone)
-	(up-find-player enemy find-attacker gl-local-response-player)
-	(up-modify-sn sn-focus-player-number g:= gl-local-response-player)
-	(up-full-reset-search)
-	(up-set-target-point gl-local-response-target-x)
-	(up-filter-distance c: -1 c: 32)
-	;A lone ram or catapult is a real threat where two scouts are not. Count the
-	;siege weapons separately before rebuilding the full threat list.
-	(up-find-remote c: siege-weapon-class c: 40)
-	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-local-response-zone)
-	(up-get-search-state local-total)
-	(up-modify-goal gl-local-response-siege-threats g:= remote-total)
-	(up-full-reset-search)
-	(up-set-target-point gl-local-response-target-x)
-	(up-filter-distance c: -1 c: 32)
-	(up-find-remote c: scout-cavalry-class c: 40)
-	(up-find-remote c: cavalry-archer-class c: 40)
-	(up-find-remote c: cavalry-class c: 40)
-	(up-find-remote c: infantry-class c: 40)
-	(up-find-remote c: archery-class c: 40)
-	(up-find-remote c: siege-weapon-class c: 40)
-	(up-find-remote c: priest c: 10)
-	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-local-response-zone)
-	(up-clean-search search-remote object-data-distance search-order-asc)
-	(up-get-search-state local-total)
-	(up-modify-goal gl-local-response-threats g:= remote-total)
-	(set-goal gl-local-response-state LOCAL-RESPONSE-ASSET-THREAT)
-)
-
-(defrule
-	(goal gl-local-response-state LOCAL-RESPONSE-ASSET-THREAT)
-	(up-set-target-object search-remote c: 0)
-=>
-	(set-goal gl-t12-help-kind 2)
-	(up-modify-goal gl-t12-help-asset g:= gl-t12-help-pending-asset)
-	(up-copy-point gl-t12-help-anchor-x gl-t12-help-pending-x)
-	(up-get-object-data object-data-id gl-t12-help-hostile)
-	(up-get-fact game-time 0 gl-t12-help-time)
-	(up-get-point position-object gl-local-response-target-x)
-	(up-get-object-data object-data-map-zone-id gl-local-response-zone)
-	(up-chat-data-to-self "asset defense response zone: %d" g: gl-local-response-zone)
+	(up-modify-goal gl-local-response-player g:= gl-verify-enemy)
+	(up-copy-point gl-local-response-target-x gl-verify-asset-x)
+	(up-modify-goal gl-local-response-zone g:= gl-verify-zone)
+	(set-goal gl-local-response-threats 1)
+	(set-goal gl-local-response-siege-threats 0)
 	(set-goal gl-local-response-state LOCAL-RESPONSE-COMMAND)
 )
-
 (defrule
-	(goal gl-local-response-state LOCAL-RESPONSE-ASSET-THREAT)
-	(not (up-set-target-object search-remote c: 0))
+	(goal gl-local-response-state LOCAL-RESPONSE-COMMAND)
+	(goal gl-self-attack-verified YES)
+	(goal gl-verify-hostile-class siege-weapon-class)
 =>
-	(set-goal gl-local-response-threats 0)
-	(up-modify-sn sn-focus-player-number g:= gl-local-response-focus)
-	(set-goal gl-local-response-state LOCAL-RESPONSE-IDLE)
+	(set-goal gl-local-response-siege-threats 1)
 )
 
-;If no owned anchor is currently under attack, retain the original home-radius
-;scan to catch an incursion just outside the formal town boundary.
+;Unverified proximity remains an incursion response, never an attack claim.
 (defrule
-	(goal gl-local-response-state LOCAL-RESPONSE-ASSET-FIND)
-	(not (up-set-target-object search-local c: 0))
+	(goal gl-home-defense-state NO)
+	(up-timer-status t-defense-leash == timer-triggered)
+	(goal gl-local-response-state LOCAL-RESPONSE-IDLE)
+	(goal gl-self-attack-verified NO)
 =>
+	(up-modify-goal gl-local-response-focus s:= sn-focus-player-number)
 	(up-find-player enemy find-closest gl-local-response-player)
 	(up-modify-sn sn-focus-player-number g:= gl-local-response-player)
 	(up-full-reset-search)

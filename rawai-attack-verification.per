@@ -1,0 +1,204 @@
+;One shared bounded verifier for self warnings and requested allied relief.
+;Enemy-first discovery verifies the actual victim, including outlying assets.
+;An under-attack flag or nearby enemy alone never establishes attacker identity.
+;No task/ownership orders. Search results are consumed only within this module.
+(defrule
+	(true)
+=>
+	(set-goal gl-verify-state VERIFY-IDLE)
+	(set-goal gl-verify-next 0)
+	(disable-self)
+)
+(defrule
+	(true)
+=>
+	(up-get-fact game-time 0 gl-verify-clock)
+	;A self result is a same-pass pulse, never a stale attack latch.
+	(set-goal gl-self-attack-verified NO)
+)
+
+;An accepted ally request has priority over the next periodic self scan.
+(defrule
+	(goal gl-verify-state VERIFY-IDLE)
+	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+	(up-compare-goal gl-ally-help-player g:!= gl-self-player-number)
+	(goal gl-home-defense-state NO)
+=>
+	(set-goal gl-verify-caller 2)
+	(up-modify-goal gl-verify-victim g:= gl-ally-help-player)
+	(set-goal gl-ally-help-target-x -1)
+	(set-goal gl-ally-help-target-y -1)
+	(set-goal gl-ally-help-zone -1)
+	(set-goal gl-verify-state VERIFY-BEGIN)
+)
+(defrule
+	(goal gl-verify-state VERIFY-IDLE)
+	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	(up-compare-goal gl-verify-clock g:>= gl-verify-next)
+=>
+	(set-goal gl-verify-caller 1)
+	(up-modify-goal gl-verify-victim g:= gl-self-player-number)
+	(up-modify-goal gl-verify-next g:= gl-verify-clock)
+	(up-modify-goal gl-verify-next c:+ 8)
+	(set-goal gl-verify-state VERIFY-BEGIN)
+)
+(defrule
+	(goal gl-verify-state VERIFY-BEGIN)
+=>
+	(up-find-player enemy find-ordered gl-verify-enemy)
+	(up-modify-goal gl-verify-first-enemy g:= gl-verify-enemy)
+	(set-goal gl-verify-players-seen 0)
+	(set-goal gl-verify-index 0)
+	(set-goal gl-verify-state VERIFY-SCAN)
+)
+(defrule
+	(goal gl-verify-state VERIFY-SCAN)
+	(up-compare-goal gl-verify-enemy c:< 1)
+=>
+	(set-goal gl-verify-state VERIFY-DONE)
+)
+(defrule
+	(goal gl-verify-state VERIFY-SCAN)
+=>
+	(up-modify-goal gl-verify-focus s:= sn-focus-player-number)
+	(up-modify-sn sn-focus-player-number g:= gl-verify-enemy)
+	(up-full-reset-search)
+	;Filter during discovery: idle units cannot fill the bounded attack list.
+	(up-filter-include -1 actionid-attack -1 -1)
+	(up-find-remote c: all-units-class c: 240)
+	(up-remove-objects search-remote object-data-player g:!= gl-verify-enemy)
+	(up-remove-objects search-remote object-data-class == villager-class)
+	(up-modify-sn sn-focus-player-number g:= gl-verify-focus)
+	(set-goal gl-verify-state VERIFY-CANDIDATE)
+)
+
+;A failed first unit/asset does not suppress later candidates. The index loop
+;consumes at most the 240 discovered objects and never issues a command.
+(defrule
+	(goal gl-verify-state VERIFY-CANDIDATE)
+	(up-set-target-object search-remote g: gl-verify-index)
+	(up-object-data object-data-player g:== gl-verify-enemy)
+	(up-object-data object-data-action == actionid-attack)
+	(up-object-data object-data-target-id >= 0)
+	(up-object-target-data object-data-player g:== gl-verify-victim)
+=>
+	(up-get-object-data object-data-id gl-verify-hostile)
+	(up-get-object-data object-data-target-id gl-verify-asset)
+	(up-get-point position-object gl-verify-hostile-x)
+	(up-get-object-data object-data-class gl-verify-hostile-class)
+	(set-goal gl-verify-state VERIFY-ASSET)
+)
+(defrule
+	(goal gl-verify-state VERIFY-CANDIDATE)
+	(up-set-target-object search-remote g: gl-verify-index)
+=>
+	(up-modify-goal gl-verify-index c:+ 1)
+	(up-jump-rule -2)
+)
+(defrule
+	(goal gl-verify-state VERIFY-CANDIDATE)
+	(not (up-set-target-object search-remote g: gl-verify-index))
+=>
+	(set-goal gl-verify-state VERIFY-NEXT)
+)
+(defrule
+	(goal gl-verify-state VERIFY-ASSET)
+=>
+	(up-modify-goal gl-verify-focus s:= sn-focus-player-number)
+	(up-modify-sn sn-focus-player-number g:= gl-verify-victim)
+	(up-full-reset-search)
+	(up-set-target-point gl-verify-hostile-x)
+	(up-add-object-by-id search-remote g: gl-verify-asset)
+	(up-modify-sn sn-focus-player-number g:= gl-verify-focus)
+	(set-goal gl-verify-state VERIFY-ASSET-CHECK)
+)
+(defrule
+	(goal gl-verify-state VERIFY-ASSET-CHECK)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-id g:== gl-verify-asset)
+	(up-object-data object-data-player g:== gl-verify-victim)
+	(up-object-data object-data-hitpoints > 0)
+	(up-object-data object-data-distance <= 48)
+=>
+	(up-get-point position-object gl-verify-asset-x)
+	(up-get-object-data object-data-map-zone-id gl-verify-zone)
+	(set-goal gl-verify-state VERIFY-FOUND)
+)
+(defrule
+	(goal gl-verify-state VERIFY-ASSET-CHECK)
+=>
+	;Re-resolve the enemy list next pass; never reuse this victim search as it.
+	(up-modify-goal gl-verify-index c:+ 1)
+	(set-goal gl-verify-state VERIFY-SCAN)
+)
+
+(defrule
+	(goal gl-verify-state VERIFY-FOUND)
+	(goal gl-verify-caller 1)
+=>
+	(set-goal gl-self-attack-verified YES)
+	(set-goal gl-t12-help-kind 2)
+	(up-modify-goal gl-t12-help-asset g:= gl-verify-asset)
+	(up-modify-goal gl-t12-help-hostile g:= gl-verify-hostile)
+	(up-copy-point gl-t12-help-anchor-x gl-verify-asset-x)
+	(up-modify-goal gl-t12-help-time g:= gl-verify-clock)
+	(set-goal gl-verify-state VERIFY-IDLE)
+)
+(defrule
+	(goal gl-verify-state VERIFY-FOUND)
+	(goal gl-verify-caller 2)
+	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+	(up-compare-goal gl-verify-victim g:== gl-ally-help-player)
+	(goal gl-home-defense-state NO)
+=>
+	(up-modify-goal gl-ally-help-focus s:= sn-focus-player-number)
+	(up-modify-goal gl-ally-help-asset g:= gl-verify-asset)
+	(up-copy-point gl-ally-help-target-x gl-verify-asset-x)
+	(up-modify-goal gl-ally-help-zone g:= gl-verify-zone)
+	(up-modify-goal gl-owner-relief-target g:= gl-verify-hostile)
+	(up-modify-goal gl-owner-relief-player g:= gl-verify-enemy)
+	(set-goal gl-ally-help-state ALLY-HELP-FIND-RESPONDERS)
+	(set-goal gl-verify-state VERIFY-IDLE)
+)
+(defrule
+	(goal gl-verify-state VERIFY-FOUND)
+=>
+	;Request canceled/preempted while scanning: no late promise or dispatch.
+	(set-goal gl-verify-state VERIFY-IDLE)
+)
+(defrule
+	(goal gl-verify-state VERIFY-NEXT)
+=>
+	(up-find-next-player enemy find-ordered gl-verify-enemy)
+	(up-modify-goal gl-verify-players-seen c:+ 1)
+	(set-goal gl-verify-index 0)
+	(set-goal gl-verify-state VERIFY-NEXT-CHECK)
+)
+(defrule
+	(goal gl-verify-state VERIFY-NEXT-CHECK)
+	(up-compare-goal gl-verify-enemy c:>= 1)
+	(up-compare-goal gl-verify-enemy g:!= gl-verify-first-enemy)
+	(up-compare-goal gl-verify-players-seen c:< 8)
+=>
+	(set-goal gl-verify-state VERIFY-SCAN)
+)
+(defrule
+	(goal gl-verify-state VERIFY-NEXT-CHECK)
+=>
+	(set-goal gl-verify-state VERIFY-DONE)
+)
+(defrule
+	(goal gl-verify-state VERIFY-DONE)
+	(goal gl-verify-caller 2)
+	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+	(up-compare-goal gl-verify-victim g:== gl-ally-help-player)
+=>
+	;Reuse the existing bounded failure report; no new tracing protocol.
+	(up-modify-goal gl-ally-help-focus s:= sn-focus-player-number)
+	(set-goal gl-ally-help-state ALLY-HELP-NEXT-THREAT)
+)
+(defrule
+	(goal gl-verify-state VERIFY-DONE)
+=>
+	(set-goal gl-verify-state VERIFY-IDLE)
+)

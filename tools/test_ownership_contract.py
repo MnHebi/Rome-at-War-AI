@@ -191,11 +191,10 @@ class OwnershipContractTests(unittest.TestCase):
     def test_destroyed_tc_does_not_prevent_relief(self):
         rows = [r for r in rule_blocks(source('rawai-tauntcommands.per'))
                 if '(up-copy-point gl-ally-help-target-x gl-ally-home-' in r[4]]
-        self.assertEqual(len(rows), 8)
-        for row in rows:
-            self.assertNotIn('building-type-count', row[3])
-            self.assertNotIn('up-set-target-object', row[3])
-        self.assertNotIn('up-find-remote c: villager-class', source('rawai-tauntcommands.per')[:source('rawai-tauntcommands.per').index(';52')])
+        self.assertEqual(len(rows), 0)
+        verified = source('rawai-attack-verification.per')
+        self.assertIn('(up-copy-point gl-ally-help-target-x gl-verify-asset-x)', verified)
+        self.assertNotIn('town-center', verified)
 
     def test_relief_requires_a_live_hostile_and_nonempty_owned_responders(self):
         row = select('rawai-tauntcommands.per', '(goal gl-ally-help-state ALLY-HELP-OWNERSHIP-COMMAND)', 'up-target-objects')
@@ -268,7 +267,8 @@ class OwnershipContractTests(unittest.TestCase):
     def test_relief_refuses_zero_actual_responders_before_promise(self):
         rows = [r for r in rule_blocks(source('rawai-tauntcommands.per'))
                 if '(goal gl-ally-help-state ALLY-HELP-OWNERSHIP-COMMAND)' in r[3]]
-        preparation, command = rows[:2]
+        preparation = next(r for r in rows if 'gl-ally-help-responders g:= local-total' in r[4])
+        command = next(r for r in rows if 'up-target-objects' in r[4])
         m = FilterMachine([unit(1, 4), unit(2, 17, player=2)], groups={17: [1, 2]})
         m.run(preparation[4])
         self.assertEqual(m.local, [])

@@ -122,16 +122,18 @@ class FailurePointDiagnosticsTests(unittest.TestCase):
 
     def test_help_reports_preserve_kind_identity_and_scan_freshness(self):
         text = source('rawai-military.per')
-        self.assertIn('(set-goal gl-t12-help-kind 2)', text)
+        verified = source('rawai-attack-verification.per')
+        self.assertIn('(set-goal gl-t12-help-kind 2)', verified)
         self.assertIn('(set-goal gl-t12-help-kind 3)', text)
-        self.assertEqual(text.count('(up-get-fact game-time 0 gl-t12-help-time)'), 2)
+        self.assertEqual(text.count('(up-get-fact game-time 0 gl-t12-help-time)'), 1)
+        self.assertIn('(up-modify-goal gl-t12-help-time g:= gl-verify-clock)', verified)
         # A failed later scan must not relabel an older latched threat.
         for row in rule_blocks(text):
             if '(set-goal gl-t12-help-kind ' in row[4]:
                 self.assertIn('(up-set-target-object search-remote c: 0)', row[3])
         calls = source('rawai-diplomacy.per')
         for goal in ['gl-t12-help-kind', 'gl-t12-help-asset', 'gl-t12-help-hostile',
-                     'gl-t12-help-time', 'gl-local-response-zone']:
+                     'gl-t12-help-time', 'gl-verify-zone']:
             self.assertIn('str-t12-diag-value g: ' + goal, calls)
         reports = [r for r in rule_blocks(source('rawai-tauntcommands.per'))
                    if 'str-t12-diag-id c: 320' in r[4]]
@@ -177,7 +179,7 @@ class HelpCooldownTests(unittest.TestCase):
     def test_each_help_request_starts_a_full_cooldown(self):
         requests = [r for r in rule_blocks(source('rawai-diplomacy.per'))
                     if '(chat-to-allies "48 ' in r[4]]
-        self.assertEqual(len(requests), 2)
+        self.assertEqual(len(requests), 1)
         for row in requests:
             self.assertIn('(goal dont-spam-taunts NO)', row[3])
             self.assertIn('(set-goal dont-spam-taunts YES)', row[4])

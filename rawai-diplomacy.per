@@ -7,36 +7,15 @@
 	(chat-local-to-self "start taunt spam timer")
 )
 
+;Only a freshly verified victim/hostile event can produce an attack claim.
+;Ordinary incursion defense remains independent of this request policy.
 (defrule
 	(goal dont-spam-taunts NO)
-	(up-compare-goal military-superiority c:<= 1)
-	(and
-		(up-enemy-units-in-town c:>= 5)
-		(goal town-size-attack NO)
-	)
+	(goal gl-self-attack-verified YES)
+	(or (up-compare-goal military-superiority c:<= 1)
+	    (up-compare-goal gl-local-response-responders c:<= 0))
 =>
-	(chat-to-allies "48 I'm under attack, I need immediate reinforcements!")
-	(up-chat-data-to-all str-t12-diag-id c: 300)
-	(up-chat-data-to-all str-t12-diag-value c: 1)
-	(up-chat-data-to-all str-t12-diag-id c: 303)
-	(up-chat-data-to-all str-t12-diag-value g: gl-home-anchor-x)
-	(up-chat-data-to-all str-t12-diag-id c: 304)
-	(up-chat-data-to-all str-t12-diag-value g: gl-home-anchor-y)
-	(set-goal dont-spam-taunts YES)
-	(enable-timer t-taunt-spam 120)
-)
-
-;The formal town fact misses attacked colonies, wall sites, and small raiding
-;parties. A sustained multi-unit local threat with no same-zone responder is the
-;stronger reason to ask teammates for relief, independent of the global team
-;ratio. A lone scout must not trigger a team-wide call for help.
-(defrule
-	(goal dont-spam-taunts NO)
-	(goal gl-local-threat-active YES)
-	(up-compare-goal gl-local-response-threats c:>= 2)
-	(up-compare-goal gl-local-response-responders c:<= 0)
-=>
-	(chat-to-allies "48 I'm under attack and have no local defenders!")
+	(chat-to-allies "48 My settlement is under attack; I need reinforcements!")
 	(up-chat-data-to-all str-t12-diag-id c: 300)
 	(up-chat-data-to-all str-t12-diag-value g: gl-t12-help-kind)
 	(up-chat-data-to-all str-t12-diag-id c: 301)
@@ -48,13 +27,13 @@
 	(up-chat-data-to-all str-t12-diag-id c: 304)
 	(up-chat-data-to-all str-t12-diag-value g: gl-t12-help-anchor-y)
 	(up-chat-data-to-all str-t12-diag-id c: 305)
-	(up-chat-data-to-all str-t12-diag-value g: gl-local-response-target-x)
+	(up-chat-data-to-all str-t12-diag-value g: gl-verify-asset-x)
 	(up-chat-data-to-all str-t12-diag-id c: 306)
-	(up-chat-data-to-all str-t12-diag-value g: gl-local-response-target-y)
+	(up-chat-data-to-all str-t12-diag-value g: gl-verify-asset-y)
 	(up-chat-data-to-all str-t12-diag-id c: 307)
-	(up-chat-data-to-all str-t12-diag-value g: gl-local-response-player)
+	(up-chat-data-to-all str-t12-diag-value g: gl-verify-enemy)
 	(up-chat-data-to-all str-t12-diag-id c: 308)
-	(up-chat-data-to-all str-t12-diag-value g: gl-local-response-zone)
+	(up-chat-data-to-all str-t12-diag-value g: gl-verify-zone)
 	(up-chat-data-to-all str-t12-diag-id c: 309)
 	(up-chat-data-to-all str-t12-diag-value g: gl-t12-help-time)
 	(up-chat-data-to-all str-t12-diag-id c: 310)

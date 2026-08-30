@@ -150,202 +150,16 @@
 ;player never dispatches its own relief flow in answer to its own request.
 (defrule
 	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
-	(up-compare-goal gl-ally-help-player c:== gl-self-player-number)
+	(up-compare-goal gl-ally-help-player g:== gl-self-player-number)
 =>
 	(set-goal gl-ally-help-player -1)
 	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
 )
 
-;Resolve the requester's attacked asset and the exact hostile beside it.  The
-;old handler erased the enemy target and announced help before it had selected
-;either a destination or a single responder.
-(defrule
-	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
-	(goal gl-ally-help-player 1)
-	(up-compare-goal gl-ally-home-1-x c:>= 0)
-	(stance-toward 1 ally)
-	(goal gl-home-defense-state NO)
-=>
-	(up-modify-goal gl-ally-help-focus s:= sn-focus-player-number)
-	(up-copy-point gl-ally-help-target-x gl-ally-home-1-x)
-	(up-modify-goal gl-ally-help-zone g:= gl-ally-home-1-zone)
-	(up-find-player enemy find-ordered gl-ally-help-enemy-player)
-	(up-modify-goal gl-ally-help-first-enemy g:= gl-ally-help-enemy-player)
-	(set-goal gl-ally-help-state ALLY-HELP-SCAN-THREAT)
-)
-
-(defrule
-	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
-	(goal gl-ally-help-player 2)
-	(up-compare-goal gl-ally-home-2-x c:>= 0)
-	(stance-toward 2 ally)
-	(goal gl-home-defense-state NO)
-=>
-	(up-modify-goal gl-ally-help-focus s:= sn-focus-player-number)
-	(up-copy-point gl-ally-help-target-x gl-ally-home-2-x)
-	(up-modify-goal gl-ally-help-zone g:= gl-ally-home-2-zone)
-	(up-find-player enemy find-ordered gl-ally-help-enemy-player)
-	(up-modify-goal gl-ally-help-first-enemy g:= gl-ally-help-enemy-player)
-	(set-goal gl-ally-help-state ALLY-HELP-SCAN-THREAT)
-)
-
-(defrule
-	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
-	(goal gl-ally-help-player 3)
-	(up-compare-goal gl-ally-home-3-x c:>= 0)
-	(stance-toward 3 ally)
-	(goal gl-home-defense-state NO)
-=>
-	(up-modify-goal gl-ally-help-focus s:= sn-focus-player-number)
-	(up-copy-point gl-ally-help-target-x gl-ally-home-3-x)
-	(up-modify-goal gl-ally-help-zone g:= gl-ally-home-3-zone)
-	(up-find-player enemy find-ordered gl-ally-help-enemy-player)
-	(up-modify-goal gl-ally-help-first-enemy g:= gl-ally-help-enemy-player)
-	(set-goal gl-ally-help-state ALLY-HELP-SCAN-THREAT)
-)
-
-(defrule
-	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
-	(goal gl-ally-help-player 4)
-	(up-compare-goal gl-ally-home-4-x c:>= 0)
-	(stance-toward 4 ally)
-	(goal gl-home-defense-state NO)
-=>
-	(up-modify-goal gl-ally-help-focus s:= sn-focus-player-number)
-	(up-copy-point gl-ally-help-target-x gl-ally-home-4-x)
-	(up-modify-goal gl-ally-help-zone g:= gl-ally-home-4-zone)
-	(up-find-player enemy find-ordered gl-ally-help-enemy-player)
-	(up-modify-goal gl-ally-help-first-enemy g:= gl-ally-help-enemy-player)
-	(set-goal gl-ally-help-state ALLY-HELP-SCAN-THREAT)
-)
-
-(defrule
-	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
-	(goal gl-ally-help-player 5)
-	(up-compare-goal gl-ally-home-5-x c:>= 0)
-	(stance-toward 5 ally)
-	(goal gl-home-defense-state NO)
-=>
-	(up-modify-goal gl-ally-help-focus s:= sn-focus-player-number)
-	(up-copy-point gl-ally-help-target-x gl-ally-home-5-x)
-	(up-modify-goal gl-ally-help-zone g:= gl-ally-home-5-zone)
-	(up-find-player enemy find-ordered gl-ally-help-enemy-player)
-	(up-modify-goal gl-ally-help-first-enemy g:= gl-ally-help-enemy-player)
-	(set-goal gl-ally-help-state ALLY-HELP-SCAN-THREAT)
-)
-
-(defrule
-	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
-	(goal gl-ally-help-player 6)
-	(up-compare-goal gl-ally-home-6-x c:>= 0)
-	(stance-toward 6 ally)
-	(goal gl-home-defense-state NO)
-=>
-	(up-modify-goal gl-ally-help-focus s:= sn-focus-player-number)
-	(up-copy-point gl-ally-help-target-x gl-ally-home-6-x)
-	(up-modify-goal gl-ally-help-zone g:= gl-ally-home-6-zone)
-	(up-find-player enemy find-ordered gl-ally-help-enemy-player)
-	(up-modify-goal gl-ally-help-first-enemy g:= gl-ally-help-enemy-player)
-	(set-goal gl-ally-help-state ALLY-HELP-SCAN-THREAT)
-)
-
-(defrule
-	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
-	(goal gl-ally-help-player 7)
-	(up-compare-goal gl-ally-home-7-x c:>= 0)
-	(stance-toward 7 ally)
-	(goal gl-home-defense-state NO)
-=>
-	(up-modify-goal gl-ally-help-focus s:= sn-focus-player-number)
-	(up-copy-point gl-ally-help-target-x gl-ally-home-7-x)
-	(up-modify-goal gl-ally-help-zone g:= gl-ally-home-7-zone)
-	(up-find-player enemy find-ordered gl-ally-help-enemy-player)
-	(up-modify-goal gl-ally-help-first-enemy g:= gl-ally-help-enemy-player)
-	(set-goal gl-ally-help-state ALLY-HELP-SCAN-THREAT)
-)
-
-(defrule
-	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
-	(goal gl-ally-help-player 8)
-	(up-compare-goal gl-ally-home-8-x c:>= 0)
-	(stance-toward 8 ally)
-	(goal gl-home-defense-state NO)
-=>
-	(up-modify-goal gl-ally-help-focus s:= sn-focus-player-number)
-	(up-copy-point gl-ally-help-target-x gl-ally-home-8-x)
-	(up-modify-goal gl-ally-help-zone g:= gl-ally-home-8-zone)
-	(up-find-player enemy find-ordered gl-ally-help-enemy-player)
-	(up-modify-goal gl-ally-help-first-enemy g:= gl-ally-help-enemy-player)
-	(set-goal gl-ally-help-state ALLY-HELP-SCAN-THREAT)
-)
-
-(defrule
-	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
-=>
-	(chat-to-allies "39 I have no verified original Town Center anchor for that ally yet.")
-	(set-goal gl-ally-help-player -1)
-	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
-)
-
-;The persistent original TC anchor replaces arbitrary live-unit anchoring.
-
-(defrule
-	(goal gl-ally-help-state ALLY-HELP-SCAN-THREAT)
-=>
-	(up-modify-sn sn-focus-player-number g:= gl-ally-help-enemy-player)
-	(up-full-reset-search)
-	(up-filter-status c: status-ready c: list-active)
-	(up-set-target-point gl-ally-help-target-x)
-	(up-filter-distance c: -1 c: 48)
-	(up-find-remote c: scout-cavalry-class c: 40)
-	(up-find-remote c: cavalry-archer-class c: 40)
-	(up-find-remote c: cavalry-class c: 40)
-	(up-find-remote c: infantry-class c: 40)
-	(up-find-remote c: archery-class c: 40)
-	(up-find-remote c: siege-weapon-class c: 40)
-	(up-find-remote c: priest c: 10)
-	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-ally-help-zone)
-	(up-remove-objects search-remote object-data-player g:!= gl-ally-help-enemy-player)
-	(up-clean-search search-remote object-data-distance search-order-asc)
-	(up-get-search-state local-total)
-	(up-chat-data-to-self "ally help threats: %d" g: remote-total)
-	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
-	(set-goal gl-ally-help-state ALLY-HELP-CHECK-THREAT)
-)
-
-(defrule
-	(goal gl-ally-help-state ALLY-HELP-CHECK-THREAT)
-	(up-set-target-object search-remote c: 0)
-=>
-	(up-get-object-data object-data-id gl-owner-relief-target)
-	(up-modify-goal gl-owner-relief-player g:= gl-ally-help-enemy-player)
-	(set-goal gl-ally-help-state ALLY-HELP-FIND-RESPONDERS)
-)
-
-(defrule
-	(goal gl-ally-help-state ALLY-HELP-CHECK-THREAT)
-	(not (up-set-target-object search-remote c: 0))
-=>
-	(set-goal gl-ally-help-state ALLY-HELP-ADVANCE-THREAT)
-)
-
-(defrule
-	(goal gl-ally-help-state ALLY-HELP-ADVANCE-THREAT)
-=>
-	(up-find-next-player enemy find-ordered gl-ally-help-enemy-player)
-	(set-goal gl-ally-help-state ALLY-HELP-NEXT-THREAT)
-)
-
+;rawai-attack-verification resolves actual threatened assets; original TC memory
+;is not a relief destination substitute. Failure reports remain bounded.
 (defrule
 	(goal gl-ally-help-state ALLY-HELP-NEXT-THREAT)
-	(up-compare-goal gl-ally-help-enemy-player g:!= gl-ally-help-first-enemy)
-=>
-	(set-goal gl-ally-help-state ALLY-HELP-SCAN-THREAT)
-)
-
-(defrule
-	(goal gl-ally-help-state ALLY-HELP-NEXT-THREAT)
-	(up-compare-goal gl-ally-help-enemy-player g:== gl-ally-help-first-enemy)
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
 	(chat-to-allies "39 I cannot verify a reachable attack on that ally.")
@@ -363,11 +177,27 @@
 	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
 )
 
-;The persistent original TC anchor replaces arbitrary live-unit anchoring.
+;Rebuild after the shared verifier/military pass, before touching responder lists.
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-FIND-RESPONDERS)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-owner-relief-player)
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-owner-relief-target)
+	(up-remove-objects search-remote object-data-player g:!= gl-owner-relief-player)
+	(up-remove-objects search-remote object-data-action != actionid-attack)
+	(up-remove-objects search-remote object-data-target-id g:!= gl-ally-help-asset)
+	(up-set-target-point gl-ally-help-target-x)
+	(up-remove-objects search-remote object-data-distance > 48)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-ally-help-zone)
+	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
+)
+
 
 (defrule
 	(goal gl-ally-help-state ALLY-HELP-FIND-RESPONDERS)
 	(up-set-target-object search-remote c: 0)
+	(up-object-target-data object-data-player g:== gl-ally-help-player)
 =>
 	(set-strategic-number sn-focus-player-number my-player-number)
 	;Preserve the verified hostile as search-remote while rebuilding own sources.
@@ -396,7 +226,6 @@
 
 (defrule
 	(goal gl-ally-help-state ALLY-HELP-FIND-RESPONDERS)
-	(not (up-set-target-object search-remote c: 0))
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
 	(chat-to-allies "39 The attacker is no longer at the reported position.")
@@ -456,11 +285,22 @@
 (defrule
 	(goal gl-ally-help-state ALLY-HELP-OWNERSHIP-COMMAND)
 =>
+	(up-remove-objects search-remote object-data-action != actionid-attack)
+	(up-remove-objects search-remote object-data-target-id g:!= gl-ally-help-asset)
 	(up-set-group search-local c: allied-relief-group)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != allied-relief-group)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-ally-help-responders g:= local-total)
+)
+
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-OWNERSHIP-COMMAND)
+	(up-set-target-object search-remote c: 0)
+	(not (up-object-target-data object-data-player g:== gl-ally-help-player))
+=>
+	;Conversion/target change invalidates the claim before the promise/order.
+	(up-reset-search 0 0 1 1)
 )
 
 (defrule
