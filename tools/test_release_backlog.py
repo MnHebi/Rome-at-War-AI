@@ -29,6 +29,16 @@ class Policy(Verifier):
 
 
 class AidTests(unittest.TestCase):
+    def test_current_runtime_string_budget_and_shared_recipient_labels(self):
+        from writer_trace import string_budget
+        from sync_test_ai import runtime_files
+        budget = string_budget({p.name: p.read_bytes() for p in runtime_files()})
+        self.assertLessEqual(budget['payload_literals'], 1500)
+        for amount in (100, 500, 1000):
+            for resource in ('food', 'wood', 'gold', 'stone'):
+                self.assertIn(f'(defconst str-aid-{resource}-{amount} "Sending {amount} {resource} to player %d")',
+                              source('rawai-customconstants.per'))
+
     def test_actual_request_tiers_need_stock_shortage_and_both_deadlines(self):
         rows = [r for r in rule_blocks(source('rawai-trade.per')) if 'please send' in r[4]]
         self.assertEqual(len(rows), 12)

@@ -1644,12 +1644,16 @@ class FarmPolicyTests(unittest.TestCase):
                 "object-data-action == actionid-follow",
                 "object-data-map-zone-id g:== gl-naval-opportunity-rejected-zone",
                 "object-data-map-zone-id g:== gl-naval-opportunity-rejected-zone2",
-                "object-data-map-zone-id g:== gl-naval-opportunity-rejected-zone3",
                 "NAVAL-OPPORTUNITY-FIND-SOURCE",
             ),
         )
         self.assertEqual(len(trigger), 1)
         self.assertIn("object-data-group-flag >= 0", trigger[0][4])
+        continuation = matching_rules(self.military,
+            facts=("NAVAL-OPPORTUNITY-FIND-SOURCE",),
+            actions=("object-data-map-zone-id g:== gl-naval-opportunity-rejected-zone3",))
+        self.assertEqual(len(continuation), 1)
+        self.assertGreater(continuation[0][0], trigger[0][0])
         source = matching_rules(
             self.military,
             facts=(
@@ -2187,7 +2191,7 @@ class FarmPolicyTests(unittest.TestCase):
                                f'(up-compare-goal gl-self-player-number c:!= {player})',
                                f'(stance-toward {player} ally)'),
                         actions=(f'(tribute-to-player {player} {resource} {amount})',
-                                 f'Sending {amount} {resource} to player %d'))
+                                 f'(up-chat-data-to-all str-aid-{resource}-{amount} c: {player})'))
                     self.assertEqual(len(replies), 2 if resource == 'gold' else 1)
         self.assertNotIn('(player-number !=', self.trade)
         self.assertNotIn('please send 600', self.trade)
@@ -3055,15 +3059,10 @@ class FarmPolicyTests(unittest.TestCase):
         )
 
     def test_remote_asset_defense_does_not_truncate_villagers_before_filter(self) -> None:
-        local = matching_rules(
-            self.military,
-            facts=("(goal gl-local-response-state LOCAL-RESPONSE-IDLE)",),
-            actions=(
-                "(up-find-local c: villager-class c: 240)",
-                "(up-remove-objects search-local object-data-under-attack <= 0)",
-                "LOCAL-RESPONSE-ASSET-FIND",
-            ),
-        )
+        verification = (Path(__file__).resolve().parents[1] / 'rawai-attack-verification.per').read_text()
+        self.assertIn('(up-find-remote c: all-units-class c: 240)', verification)
+        self.assertIn('(up-object-target-data object-data-player g:== gl-verify-victim)', verification)
+        self.assertIn('(up-add-object-by-id search-remote g: gl-verify-asset)', verification)
         naval = matching_rules(
             self.military,
             facts=("(goal gl-naval-response-state NAVAL-RESPONSE-IDLE)",),
@@ -3073,9 +3072,8 @@ class FarmPolicyTests(unittest.TestCase):
                 "NAVAL-RESPONSE-HOME-FIND",
             ),
         )
-        self.assertEqual(len(local), 1)
         self.assertEqual(len(naval), 1)
-        for rule in local + naval:
+        for rule in naval:
             self.assertLess(
                 rule[4].find("villager-class c: 240"),
                 rule[4].find("object-data-under-attack <= 0"),
@@ -3269,7 +3267,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "up-set-target-object search-local c: 0",
             ),
             actions=(
-                "up-target-objects 1 action-pack",
+                "up-target-point position-self-x action-pack",
                 "idle Palintonons packed: %d",
                 "SIEGE-TARGET-IDLE",
             ),
@@ -3921,16 +3919,18 @@ class FarmPolicyTests(unittest.TestCase):
             self.military,
             facts=(
                 "(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)",
-                "(up-pending-objects",
             ),
             actions=(
                 "(up-filter-status c: status-pending c: list-active)",
                 "c: 8",
                 "object-data-map-zone-id g:!= gl-island-migration-zone",
-                "(set-goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)",
+                "(set-goal gl-island-migration-state MIGRATION-FIND-DROPSITE)",
             ),
         )
         self.assertEqual(len(pending_searches), 3)
+        for row in pending_searches:
+            self.assertNotIn('up-pending-objects', row[3])
+            self.assertIn('gl-migration-build-x', row[4])
         publish = matching_rules(
             self.military,
             facts=(
@@ -4873,10 +4873,10 @@ class FarmPolicyTests(unittest.TestCase):
         help_request = matching_rules(
             self.diplomacy,
             facts=(
-                "(goal gl-local-threat-active YES)",
+                "(goal gl-self-attack-verified YES)",
                 "gl-local-response-responders c:<= 0",
             ),
-            actions=("no local defenders!",),
+            actions=("My settlement is under attack",),
         )
         self.assertEqual(len(help_request), 1)
 
@@ -5104,8 +5104,9 @@ class FarmPolicyTests(unittest.TestCase):
     def test_ally_help_announces_only_after_reachable_dispatch(self) -> None:
         self.assertNotIn("I will send whatever troops I can spare", self.taunts)
         self.assertNotIn("up-find-player enemy find-closest", self.taunts)
-        self.assertIn("up-find-player enemy find-ordered", self.taunts)
-        self.assertIn("up-find-next-player enemy find-ordered", self.taunts)
+        verification = (Path(__file__).resolve().parents[1] / "rawai-attack-verification.per").read_text()
+        self.assertIn("up-find-player enemy find-ordered", verification)
+        self.assertIn("up-find-next-player enemy find-ordered", verification)
         self.assertIn("up-find-remote c: town-center c: 20", (Path(__file__).resolve().parents[1] / "rawai-home-anchors.per").read_text())
         self.assertNotIn(
             "up-remove-objects search-remote object-data-under-attack <= 0",
@@ -5515,7 +5516,7 @@ class FarmPolicyTests(unittest.TestCase):
 
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         self.assertIn(
-            '(up-chat-data-to-all "RAWAI-P3B44T12: %d" c: 457)',
+            '(up-chat-data-to-all "RAWAI-P3B44T13: %d" c: 458)',
             self.init_goals,
         )
         initial = matching_rules(
