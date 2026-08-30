@@ -103,6 +103,19 @@ class BuilderOwnershipTests(unittest.TestCase):
         self.assertNotIn('g:= gl-owner-native-builder-assist', source('rawai-ownership.per'))
 
 
+class PackingTests(unittest.TestCase):
+    def test_packing_uses_supported_point_action_and_retains_wait(self):
+        rows = [r for r in rule_blocks(source('rawai-military.per')) if 'action-pack' in r[4]]
+        self.assertEqual(len(rows), 2)
+        for row in rows:
+            self.assertIn('(up-target-point position-self-x action-pack -1 stance-no-attack)', row[4])
+            self.assertIn('object-data-group-flag >= 0', row[4])
+            self.assertNotIn('action-move', row[4])
+        self.assertTrue(any('SIEGE-TARGET-PACK-WAIT' in r[4] for r in rows))
+        for path in ROOT.glob('*.per'):
+            self.assertFalse(re.search(r'\(up-target-objects [^\n]*action-pack', source(path.name)), path.name)
+
+
 class ConcreteHeavyRemeTests(unittest.TestCase):
     def test_no_runtime_use_of_turtle_alias(self):
         for path in ROOT.glob('*.per'):

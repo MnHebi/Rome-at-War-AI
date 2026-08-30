@@ -9248,7 +9248,8 @@
 	;OWNERSHIP command: FREE.
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
-	(up-target-objects 1 action-pack -1 stance-no-attack)
+	;action-pack is a point action; target-objects treats it as action-none.
+	(up-target-point position-self-x action-pack -1 stance-no-attack)
 	(up-chat-data-to-self "idle Palintonons packed: %d" g: gl-siege-source-count)
 	(up-set-timer c: t-siege-target c: 12)
 	(set-goal gl-siege-target-state SIEGE-TARGET-IDLE)
@@ -9344,7 +9345,8 @@
 	;OWNERSHIP command: FREE.
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
-	(up-target-objects 1 action-pack -1 stance-no-attack)
+	;action-pack is a point action; target-objects treats it as action-none.
+	(up-target-point position-self-x action-pack -1 stance-no-attack)
 	;Pack is asynchronous. Do not immediately replace it with group/default.
 	;Rebuild both exact-ID target and engine list after a bounded conversion wait.
 	(up-modify-sn sn-focus-player-number g:= gl-siege-target-focus)
