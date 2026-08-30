@@ -14,6 +14,7 @@ class Policy(Verifier):
         super().__init__([])
         self.stock = dict(food=0, wood=0, gold=0, stone=0)
         self.age, self.taunts, self.market = self.val('imperial-age'), set(), True
+        self.prices = dict(wood=100, food=100, stone=100)
 
     def fact(self, e):
         op, *a = e
@@ -22,6 +23,8 @@ class Policy(Verifier):
         if op in ('players-building-type-count', 'building-type-count'): return self.market
         if op == 'taunt-detected': return (self.val(a[0]), self.val(a[1])) in self.taunts
         if op == 'stance-toward': return True
+        if op == 'commodity-buying-price': return self.compare(self.prices[a[0]], a[1], a[2])
+        if op == 'can-buy-commodity': return self.market and self.stock['gold'] >= self.prices[a[0]]
         return super().fact(e)
 
 
@@ -79,6 +82,34 @@ class AidTests(unittest.TestCase):
             self.assertIn('resource-amount amount-'+resource+'-total gl-request-'+resource+'-bank', text)
             self.assertIn('gl-request-'+resource+'-next c:+ 120', text)
         self.assertIn('gl-resource-request-next c:+ 10', text)
+
+
+class MarketTests(unittest.TestCase):
+    def test_six_independent_rules_share_one_transaction_deadline(self):
+        rows = [r for r in rule_blocks(source('rawai-trade.per')) if 'Market portfolio:' in r[4]]
+        self.assertEqual(len(rows), 6)
+        p = Policy()
+        p.stock['gold'] = 5000
+        buys = []
+        for row in rows:
+            self.assertNotIn('gl-land-target-needs-transport', row[3])
+            self.assertNotIn('gl-wonder-state', row[3])
+            if all(p.fact(e) for e in expressions(row[3])):
+                buys.append(re.search(r'buy-commodity (\w+)', row[4])[1])
+                for e in expressions(row[4]):
+                    if e[0] in ('up-modify-goal', 'set-goal'): p.action(e, 0)
+        self.assertEqual(buys, ['wood'])
+        self.assertEqual(p.g['gl-market-portfolio-next'], 15)
+
+    def test_operating_reserves_and_price_guards(self):
+        rows = [r for r in rule_blocks(source('rawai-trade.per')) if 'Market portfolio: operating' in r[4]]
+        for row in rows:
+            resource = re.search(r'buy-commodity (\w+)', row[4])[1]
+            p = Policy()
+            p.stock.update(gold=1500, wood=799, food=699, stone=499)
+            self.assertTrue(all(p.fact(e) for e in expressions(row[3])))
+            p.prices[resource] = 1000
+            self.assertFalse(all(p.fact(e) for e in expressions(row[3])))
 
 
 if __name__ == '__main__': unittest.main()

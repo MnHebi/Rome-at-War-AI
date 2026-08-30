@@ -7,6 +7,7 @@
 	(set-goal gl-request-gold-next 0)
 	(set-goal gl-request-stone-next 0)
 	(set-goal gl-resource-request-next 0)
+	(set-goal gl-market-portfolio-next 0)
 	(disable-self)
 )
 
@@ -302,36 +303,96 @@
 
 ;****************************
 ;imperial age
-
+;Independent critical/operating backport from 0e1169f; no transport/Wonder dependency.
 (defrule
 	(current-age == imperial-age)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
 	(gold-amount >= 1000)
 	(wood-amount <= 200)
+	(commodity-buying-price wood <= 400)
 	(can-buy-commodity wood)
 =>
-	(chat-local-to-self "Wood panic")
 	(buy-commodity wood)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Market portfolio: critical wood")
 )
+
 
 (defrule
 	(current-age == imperial-age)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
 	(gold-amount >= 1000)
 	(food-amount <= 200)
+	(commodity-buying-price food <= 400)
 	(can-buy-commodity food)
 =>
-	(chat-local-to-self "Food panic")
 	(buy-commodity food)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Market portfolio: critical food")
 )
+
 
 (defrule
 	(current-age == imperial-age)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
 	(gold-amount >= 1000)
 	(stone-amount <= 200)
+	(commodity-buying-price stone <= 500)
 	(can-buy-commodity stone)
 =>
-	(chat-local-to-self "need stone")
 	(buy-commodity stone)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Market portfolio: critical stone")
 )
+
+
+(defrule
+	(current-age == imperial-age)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
+	(gold-amount >= 1500)
+	(wood-amount < 800)
+	(commodity-buying-price wood <= 200)
+	(can-buy-commodity wood)
+=>
+	(buy-commodity wood)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Market portfolio: operating wood")
+)
+
+
+(defrule
+	(current-age == imperial-age)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
+	(gold-amount >= 1500)
+	(food-amount < 700)
+	(commodity-buying-price food <= 200)
+	(can-buy-commodity food)
+=>
+	(buy-commodity food)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Market portfolio: operating food")
+)
+
+
+(defrule
+	(current-age == imperial-age)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
+	(gold-amount >= 1500)
+	(stone-amount < 500)
+	(commodity-buying-price stone <= 300)
+	(can-buy-commodity stone)
+=>
+	(buy-commodity stone)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Market portfolio: operating stone")
+)
+
 
 (defrule
 	(current-age == imperial-age)
