@@ -39,6 +39,10 @@ This handoff belongs to the dedicated transport-development worktree:
   21:43 replay.
 - Same-zone migration landing implementation: `2a08a2b` (`Screen migration
   landing candidates by zone`). This is the deployed P3B44T5 behavior commit.
+- Safe partial assault / passenger diagnostics implementation: `14fd09c`
+  (`Depart with safe partial attack lifts`). This is the deployed P3B44T6
+  behavior commit and the recorded experimental HEAD before this handoff-only
+  documentation successor.
 - Project-rules synchronization commit: `bcd484f` (`Adopt evidence-first
   project rules`).
 - Purpose: P3B44-derived transport-only development. P3B44T1 introduced loaded
@@ -50,6 +54,11 @@ This handoff belongs to the dedicated transport-development worktree:
   replaces migration's replay-proven water/wrong-island diagonal candidates
   with close, same-zone, exact-hull-path-screened candidates. The 23:25
   P3B44T5 replay runtime-closed that exact landing-candidate defect.
+  P3B44T6 addresses the separately proven exact-full assault abort while
+  preserving the unknown upstream passenger failure for discriminating
+  telemetry: useful five-to-nine-soldier hulls depart through the unchanged
+  screened route, and assault/migration boarding publish bounded exact
+  candidate command state before the first retry and at a terminal.
 - Status: experimental P3B44-derived development worktree. It does not replace
   the canonical workspace.
 - Future ordinary development must use the canonical workspace. Continue this
@@ -69,24 +78,27 @@ Other controls:
 
 ## Installed runtime identity
 
-- Marker: `RAWAI-P3B44T5:446`.
+- Marker: `RAWAI-P3B44T6:447`.
 - Runtime files: 68.
 - Source and installed target SHA-256:
-  `0BAF0BB48120E787FE6639A00C99A6A9D6D24F74D07E55791D2C055968AAA5F8`.
+  `D5A2314E461603F68D5327E71BD7FB3737F0518C8969F2D5A4C45809B11598EB`.
 - Deployment check: all 68 runtime files are byte-identical, with no missing,
-  different, or unexpected runtime files. Relative to P3B44T4, exactly
+  different, or unexpected runtime files. Relative to P3B44T5, exactly
   `rawai-customconstants.per`, `rawai-init-goals.per`, and
   `rawai-military.per` were copied.
 
 ## Current objective and preserved behavior
 
-P3B44T5 migration landing-candidate screening is runtime-accepted and CLOSED.
-The 23:25 replay proved all 95 path-clear candidates issued an unload, none of
-the 4 wrong-zone or 36 path-rejected candidates did, bounded all-invalid
-sequences recalled home, and Red completed a same-zone landing, Mining Camp,
-and settler retask. The next transport patch must address one separately proven
-defect at a time, beginning with Purple's premature global-pending drop-site
-transition unless newer discriminating evidence changes priority.
+P3B44T5 migration landing-candidate screening remains runtime-accepted and
+CLOSED. The current objective is the newer queued-passenger defect. P3B44T5
+proves that a selected passenger can remain outside a Transport while repeated
+garrison commands continue, and the user directly observed that manually
+loading such passengers caused routes to start. P3B44T6 fixes the proven
+downstream exact-full assault abort and instruments the still-unknown upstream
+nonboarding cause. Status is FIXED-PENDING-RUNTIME for safe partial assault
+departure and INVESTIGATING for why an individual queued passenger does not
+board. Purple's proven drop-site race remains the next separate transport
+patch after this runtime experiment.
 
 P3B44 Gray/Blue combined attacks are the known-good behavior at regression
 risk. This patch must preserve ordinary land attack dispatch, superiority,
@@ -248,6 +260,70 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
   clearance, guard suppression, and completed landings. The nine other
   timeouts are a distinct repeated-landing-selection defect with zero
   unload-window guard actions.
+
+### Queued passenger blocks Transport route start
+
+- **Status:** FIXED-PENDING-RUNTIME for the exact-full assault route gate;
+  INVESTIGATING for the upstream reason an individual queued passenger does
+  not board.
+- **User-visible symptom:** several queued units remained outside their
+  Transport. Manually loading the assumed passengers caused the hull to enter
+  its route.
+- **Direct replay evidence:** the systematic P3B44T5 boarding audit found 48
+  detailed Red scripted episodes: 31 full/ready, 13 aborts, 3 partial, and 1
+  unresolved. At 51:14, 55:04, 57:38, and 59:46 ten-passenger assault
+  manifests shrank to a one-passenger retry list and still reached the
+  exact-full abort. Passenger 39672 was the sole serialized retry candidate in
+  the latter three episodes. At 281:51, a separate migration load record
+  uniquely included exact hull 31558 in its selected objects, identifying a
+  human load action; `migration depart full: 11` followed at 282:05 and the
+  hull immediately received route movement. This independently corroborates
+  the user's direct observation.
+- **Proven downstream root cause:** the assault loader required the exact
+  selected count at the thirty-second terminal. Any one nonboarding passenger
+  therefore discarded the useful loaded remainder. Simply lowering the count
+  was unsafe because the original `attack-boarding-group` still contained
+  shore stragglers that would later receive the remote landing order.
+- **Unknown upstream cause:** passenger 39672 has repeated replay-visible
+  SPECIAL garrison commands to hull 31558 and no serialized ORDER, AI_ORDER,
+  WORK, GUARD, or PATROL command that visibly transferred it to another owner
+  in the bounded 55-to-60-minute audit. The replay does not expose whether
+  shoreline geometry, internal/unserialized command replacement, object state,
+  or an engine loading failure stopped it. Preserve this uncertainty.
+- **Instrumentation:** P3B44T6 publishes one bounded candidate before the first
+  assault or migration retry and another at a partial/abort terminal. Each
+  sample includes exact object ID, action, target ID, order, command ID,
+  distance from the embarkation hull point, land zone, controller group flag,
+  move coordinates, and idling state. A land-to-water path query was
+  deliberately rejected because it cannot distinguish shoreline boarding
+  reachability.
+- **Implementation:** commit `14fd09c` retains the ten-passenger maximum and
+  thirty-second assault window. With five through nine exact garrisoned
+  soldiers, it stops every shore straggler, reconstructs
+  `attack-boarding-group` from garrisoned members only, updates the target to
+  actual occupancy, and continues through unchanged target revalidation,
+  route screening, and landing. Fewer than five retains the existing bounded
+  unload/recovery abort. Migration receives diagnostics only; its full,
+  partial, and abort thresholds are unchanged.
+- **Regression risk / control:** full assault lifts, low-strength abort,
+  home-defense interrupt, target invalidation, P3B44T2 final-landing Scout
+  clearance, P3B44T3 exact departure-blocker verification, P3B44T4 relic
+  ferries, P3B44T5 same-zone migration landings, and Gray/Blue ordinary attack
+  behavior.
+- **Acceptance criterion:** the fresh replay contains marker
+  `RAWAI-P3B44T6:447` and exact installed hash. Every still-underfilled first
+  retry emits a candidate snapshot. A hull with five through nine actual
+  garrisoned soldiers emits `RAW44B attack partial departure`, enters the
+  existing screened route, and gives the remote order only to passengers that
+  were aboard; a hull below five retains bounded recovery. Candidate action
+  and target evidence establishes the first upstream divergence before any
+  further passenger-behavior fix.
+- **Latest result / next action:** deterministic and structural validation is
+  PASS and the byte-verified P3B44T6 runtime is installed. Runtime behavior is
+  not yet demonstrated. Obtain one fresh preserved-lobby replay, audit every
+  reconstructable assault and migration boarding lifecycle across all players,
+  and keep the upstream passenger defect open until that evidence supports a
+  causal fix.
 
 ### Repeated attack-Transport landing timeouts
 
@@ -462,8 +538,9 @@ This one-cause patch does not change or claim to fix:
 - cliff-bound or otherwise unreachable landing points unrelated to friendly
   Scout obstruction;
 - route-scouting, route-threat scanning, landing selection, or naval pathfinding;
-- passenger policy, partial-assault departure, migration escort ownership, or
-  migration drop-site establishment outside exact landing-candidate screening;
+- the still-unproven upstream cause of individual passenger nonboarding,
+  migration passenger thresholds, migration escort ownership, or migration
+  drop-site establishment outside exact landing-candidate screening;
 - hostile-fire survival, enemy landing memory, Port placement, or transport
   production quantity;
 - the separate allied-friendly-fire defense trigger;
@@ -609,6 +686,13 @@ P3B44T5 all-player transport replay:
 - Repository evidence entry:
   `britain-4v4-20260829-232526-p3b44t5-all-transport` in
   `replay-benchmarks.json`.
+- External cross-replay boarding audit helper:
+  `G:\Projects\Codex\Rome at War AI\.analysis\audit_boarding_departure_20260829.py`.
+  It is diagnostic material outside the repository and must not be committed.
+- P3B44T6 boarding evidence entry:
+  `britain-4v4-20260829-232526-p3b44t6-boarding-evidence` in
+  `replay-benchmarks.json`. It reuses the same source replay for the distinct
+  boarding-lifecycle acceptance target and is `fresh-replay-required`.
 
 Replay/savegame files, compact parser output, crash dumps, and Rome at War data
 mod files remain external and must never be committed to the AI repository.
@@ -627,6 +711,13 @@ mod files remain external and must never be committed to the AI repository.
 - Migration landing candidate screening: PASS (focused deterministic test;
   the initial and all four alternate candidates pass through exact-hull zone
   and path screening, while wrong-zone/path-rejected branches issue no unload).
+- P3B44T6 boarding diagnostics: PASS (one bounded pre-retry sample and one
+  terminal sample where applicable for both assault and migration; command,
+  target, movement, zone, idling, and group fields are all required).
+- P3B44T6 safe partial assault: PASS (five-to-nine versus below-five terminal
+  split, shore-straggler stop, garrison-inclusive exact manifest rebuild,
+  actual-count update, home-defense interrupt, target revalidation, and prior
+  abort recovery are covered).
 - Full P3B44-derived regression suite: PASS (118 tests).
 - PER structural/operand validation: PASS.
 - Naval-doctrine validation: PASS.
@@ -634,7 +725,7 @@ mod files remain external and must never be committed to the AI repository.
   Extreme matchups with adjustments).
 - ODS workbook round trip: PASS (34 civilizations, 680 unit-evidence rows, 340
   naval-class rows).
-- Replay benchmarks: PASS (26 entries).
+- Replay benchmarks: PASS (27 entries).
 - `git diff --check`: PASS; only expected CRLF notices.
 - Adversarial P3B44T2 comparison: PASS. P3B44T3 changed only the active
   transport departure state, goals/constants, marker, bounded telemetry,
@@ -668,11 +759,22 @@ mod files remain external and must never be committed to the AI repository.
   one-second timer and retain the existing five-attempt/home-return terminal.
   The patch does not change relic-ferry, departure-clearance, assault landing,
   escort ownership, drop-site construction, or ordinary attack rules.
+- Adversarial P3B44T6 review: PASS. The replay-visible manual load is preserved
+  as corroboration rather than misclassified as an AI group. Early and terminal
+  candidate samples are transition-bounded, so they cannot create a per-sweep
+  telemetry loop. The initially proposed passenger-to-hull `up-path-distance`
+  diagnostic was removed before deployment because a land unit cannot path to
+  a Transport's water tile; actual action, target, command, move, distance,
+  zone, group, and idling fields are recorded instead. Partial departure stops
+  ashore members and rebuilds the direct-control group from garrisoned members
+  before entering the unchanged target and route checks. Home defense can
+  interrupt every new diagnostic/manifest state.
 - `validate_good_units.py` has a pre-existing P3B44 provenance-hash failure;
   frozen unit-strategy material is outside this transport patch.
-- Installed P3B44T5 runtime byte verification: PASS (68 files; aggregate
+- Installed P3B44T6 runtime byte verification: PASS (68 files; aggregate
   source/target SHA-256
-  `0BAF0BB48120E787FE6639A00C99A6A9D6D24F74D07E55791D2C055968AAA5F8`).
+  `D5A2314E461603F68D5327E71BD7FB3737F0518C8969F2D5A4C45809B11598EB`; no
+  missing, different, or unexpected runtime files).
 - Fresh P3B44T5 engine/replay acceptance: PASS. All 95 path-clear candidates
   issued an unload, all 40 wrong-zone/path-rejected candidates issued none,
   all-invalid missions remained bounded, and Red completed a same-zone landing,
@@ -682,24 +784,31 @@ mod files remain external and must never be committed to the AI repository.
   passengers continued outbound/return lifecycles. No public exact-blocker
   congestion episode independently re-exercised P3B44T3; its earlier runtime
   acceptance remains the control evidence.
+- Fresh P3B44T6 engine/replay acceptance: PENDING. Do not close safe partial
+  departure or assert the upstream nonboarding cause from structural tests.
 
 ## Exact next actions
 
-1. Verify this worktree's branch, behavior commit `2a08a2b`, evidence successor,
-   and only expected user-owned `AGENTS.md` dirt against this document. Do not
-   redeploy: the accepted runtime remains marker `RAWAI-P3B44T5:446`.
-2. Treat migration blind landing offsets as CLOSED. Do not alter that behavior
-   without new contrary runtime evidence; preserve the Red completed lifecycle
-   as its non-regression control.
-3. Implement Purple's ROOT-CAUSE-PROVEN premature global-pending drop-site
-   transition as the next isolated transport patch. Require a concrete
-   same-zone foundation before advancing and retain bounded placement retries.
-4. Keep Orange and the late Red resource-wait failures distinct. Use bounded
-   public affordability/first-blocker evidence before changing those paths.
-5. Keep migration escort ownership INVESTIGATING: 62 guard events overlapped
-   30/48 windows, including successful landings, and do not prove collision.
-6. Record and eventually isolate the 15-second recovery-unload sub-loop from
-   the much broader command-volume anomaly; do not claim it explains the
-   dominant Town Center stream or any crash.
-7. Keep P3B44D1 friendly-fire and non-transport defects out of this causal
-   transport worktree unless the user explicitly redirects the experiment.
+1. Verify this worktree's branch, P3B44T6 behavior commit `14fd09c`, installed
+   marker/hash, handoff successor, and only expected user-owned `AGENTS.md`
+   dirt against this document. Do not deploy from the canonical or obsolete
+   snapshot; P3B44T6 is already installed from this exact transport worktree.
+2. Run one fresh match with the preserved lobby. Audit every reconstructable
+   assault and migration boarding lifecycle across all players, not only the
+   user's visible event. Correlate candidate action/target/command/move fields,
+   exact hull terminal occupancy, partial departure, route start, landing, and
+   passenger membership.
+3. Mark safe partial assault CLOSED only if a five-to-nine exact load begins the
+   screened route and remote orders exclude shore stragglers while below-five
+   loads retain bounded recovery. Keep the upstream passenger cause
+   INVESTIGATING until the new candidate evidence proves the first divergence.
+4. Preserve P3B44T5 migration landing screening as CLOSED. P3B44T6 adds
+   diagnostics but intentionally does not change migration thresholds or route
+   behavior.
+5. After the P3B44T6 runtime result, implement Purple's ROOT-CAUSE-PROVEN
+   premature global-pending drop-site transition as the next isolated
+   transport patch. Keep Orange and the late Red resource-wait failures
+   distinct pending their own first-blocker evidence.
+6. Keep migration escort overlap, recovery-unload repetition, dominant command
+   volume, crash work, P3B44D1 friendly fire, and all non-transport defects out
+   of this causal patch unless the user explicitly redirects the experiment.
