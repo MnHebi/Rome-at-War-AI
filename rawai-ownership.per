@@ -64,14 +64,14 @@
 )
 
 ;Native builder assistance and automatic repair have no object-ID predicate.
-;Suspend those admissions during boarding, then restore the exact prior policy.
+;Suspend those admissions during boarding. Builder policy on release must be
+;recomputed from current animal-food work, not a stale saved boolean.
 ;Existing builders/gatherers keep their work. Native idle gathering is the
 ;remaining boundary requiring the controlled acceptance test in TASK-OWNERSHIP.
 (defrule
 	(goal gl-owner-worker-hold YES)
 	(goal gl-owner-native-hold-applied NO)
 =>
-	(up-modify-goal gl-owner-native-builder-assist s:= sn-disable-builder-assistance)
 	(up-modify-goal gl-owner-native-repair s:= sn-object-repair-level)
 	(set-strategic-number sn-disable-builder-assistance 1)
 	(set-strategic-number sn-object-repair-level 0)
@@ -81,8 +81,29 @@
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-owner-native-hold-applied YES)
+	(or (unit-type-count villager-shepherd > 0)
+	    (unit-type-count villager-hunter > 0))
 =>
-	(up-modify-sn sn-disable-builder-assistance g:= gl-owner-native-builder-assist)
+	(set-strategic-number sn-disable-builder-assistance 1)
 	(up-modify-sn sn-object-repair-level g:= gl-owner-native-repair)
 	(set-goal gl-owner-native-hold-applied NO)
+)
+
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-owner-native-hold-applied YES)
+	(unit-type-count villager-shepherd <= 0)
+	(unit-type-count villager-hunter <= 0)
+=>
+	(set-strategic-number sn-disable-builder-assistance 0)
+	(up-modify-sn sn-object-repair-level g:= gl-owner-native-repair)
+	(set-goal gl-owner-native-hold-applied NO)
+)
+
+;Reassert the native admission invariant even if another engine policy drifted.
+(defrule
+	(goal gl-owner-worker-hold YES)
+	(strategic-number sn-disable-builder-assistance != 1)
+=>
+	(set-strategic-number sn-disable-builder-assistance 1)
 )

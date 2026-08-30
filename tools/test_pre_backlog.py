@@ -15,6 +15,94 @@ def source(name):
     return (ROOT / name).read_text(encoding='utf-8-sig')
 
 
+def expressions(text):
+    """Parse the small selected PER rule subset; never pretend this is the engine."""
+    text = re.sub(r'^\s*\(defrule\s*', '', text)
+    tokens = re.findall(r'\(|\)|[^\s()]+', '\n'.join(x.split(';')[0] for x in text.splitlines()))
+    stack, result = [], []
+    for token in tokens:
+        if token == '(':
+            stack.append([])
+        elif token == ')':
+            if not stack:  # rule_blocks actions include the defrule's closing paren
+                continue
+            item = stack.pop()
+            (stack[-1] if stack else result).append(item)
+        else:
+            stack[-1].append(token)
+    return result
+
+
+class BuilderOwnershipTests(unittest.TestCase):
+    def execute(self, name, goals, sn, counts):
+        def value(x):
+            return {'YES': 1, 'NO': 0}.get(x, int(x) if re.fullmatch(r'-?\d+', x) else x)
+
+        def fact(e):
+            op, *a = e
+            if op == 'true':
+                return True
+            if op in ('or', 'and'):
+                return (any if op == 'or' else all)(fact(x) for x in a)
+            if op == 'goal':
+                return goals.get(a[0], 0) == value(a[1])
+            if op in ('strategic-number', 'unit-type-count'):
+                lhs = (sn if op == 'strategic-number' else counts).get(a[0], 0)
+                rhs = value(a[2])
+                return {'!=': lhs != rhs, '>': lhs > rhs, '>=': lhs >= rhs,
+                        '<=': lhs <= rhs, '==': lhs == rhs}[a[1]]
+            raise AssertionError('unsupported test fact: ' + repr(e))
+
+        for row in rule_blocks(source(name)):
+            if 'sn-disable-builder-assistance' not in row[4]:
+                continue
+            if not all(fact(e) for e in expressions(row[3])):
+                continue
+            for op, *a in expressions(row[4]):
+                if op == 'set-goal':
+                    goals[a[0]] = value(a[1])
+                elif op == 'set-strategic-number':
+                    sn[a[0]] = value(a[1])
+                elif op == 'up-modify-goal' and a[1] == 's:=':
+                    goals[a[0]] = sn.get(a[2], 0)
+                elif op == 'up-modify-sn' and a[1] == 'g:=':
+                    sn[a[0]] = goals[a[2]]
+                else:
+                    raise AssertionError('unsupported test action: ' + repr([op, *a]))
+
+    def test_hold_survives_later_writers_and_release_uses_current_animals(self):
+        main = source('AI RAW.per')
+        self.assertLess(main.index('(load "rawai-ownership")'), main.index('(load "rawai-homebase")'))
+        for initial, current in ((0, 1), (1, 0), (0, 0), (1, 1)):
+            goals = {'gl-owner-worker-hold': 1, 'gl-owner-native-hold-applied': 0}
+            sn = {'sn-disable-builder-assistance': initial, 'sn-object-repair-level': 3}
+            counts = {'villager-hunter': initial, 'villager-shepherd': 0}
+            self.execute('rawai-ownership.per', goals, sn, counts)
+            self.execute('rawai-homebase.per', goals, sn, counts)
+            self.assertEqual(sn['sn-disable-builder-assistance'], 1)
+            counts['villager-hunter'] = current
+            self.execute('rawai-homebase.per', goals, sn, counts)
+            self.assertEqual(sn['sn-disable-builder-assistance'], 1)
+            goals['gl-owner-worker-hold'] = 0
+            self.execute('rawai-ownership.per', goals, sn, counts)
+            self.assertEqual(sn['sn-disable-builder-assistance'], current)
+            self.execute('rawai-homebase.per', goals, sn, counts)
+            self.assertEqual(sn['sn-disable-builder-assistance'], current)
+            self.assertEqual(sn['sn-object-repair-level'], 3)
+
+    def test_every_reenable_requires_no_hold(self):
+        for path in ROOT.glob('*.per'):
+            for row in rule_blocks(source(path.name)):
+                if '(set-strategic-number sn-disable-builder-assistance 0)' in row[4]:
+                    if path.name == 'rawai-sn-defines.per':
+                        self.assertIn('(disable-self)', row[4])
+                        main = source('AI RAW.per')
+                        self.assertLess(main.index('(load "rawai-sn-defines")'), main.index('(load "rawai-ownership")'))
+                        continue
+                    self.assertIn('(goal gl-owner-worker-hold NO)', row[3], path.name)
+        self.assertNotIn('g:= gl-owner-native-builder-assist', source('rawai-ownership.per'))
+
+
 class ConcreteHeavyRemeTests(unittest.TestCase):
     def test_no_runtime_use_of_turtle_alias(self):
         for path in ROOT.glob('*.per'):
