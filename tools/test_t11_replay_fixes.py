@@ -92,6 +92,17 @@ class NavalSearchTests(unittest.TestCase):
                 self.assertIn('object-data-id g:== gl-naval-siege-target-id', r[3])
 
 
+class HelpCooldownTests(unittest.TestCase):
+    def test_each_help_request_starts_a_full_cooldown(self):
+        requests = [r for r in rule_blocks(source('rawai-diplomacy.per'))
+                    if '(chat-to-allies "48 ' in r[4]]
+        self.assertEqual(len(requests), 2)
+        for row in requests:
+            self.assertIn('(goal dont-spam-taunts NO)', row[3])
+            self.assertIn('(set-goal dont-spam-taunts YES)', row[4])
+            self.assertIn('(enable-timer t-taunt-spam 120)', row[4])
+
+
 class FlareDeletionTests(unittest.TestCase):
     def test_small_radius_nearest_one_and_no_candidate_fallback(self):
         text = source('rawai-tauntcommands.per')
