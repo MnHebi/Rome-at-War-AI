@@ -3641,6 +3641,7 @@
 	(not (up-pending-placement c: mining-camp))
 	(up-can-build 0 c: mining-camp)
 =>
+	(up-get-point position-target gl-migration-build-x)
 	(up-get-point position-target gl-t12-drop-x)
 	(up-build place-point 0 c: mining-camp)
 	(set-goal gl-t12-drop-stage 1)
@@ -3744,6 +3745,7 @@
 	(not (up-pending-placement c: lumber-camp))
 	(up-can-build 0 c: lumber-camp)
 =>
+	(up-get-point position-target gl-migration-build-x)
 	(up-get-point position-target gl-t12-drop-x)
 	(up-build place-point 0 c: lumber-camp)
 	(set-goal gl-t12-drop-stage 1)
@@ -3764,6 +3766,7 @@
 	(not (up-pending-placement c: mill))
 	(up-can-build 0 c: mill)
 =>
+	(up-get-point position-target gl-migration-build-x)
 	(up-get-point position-target gl-t12-drop-x)
 	(up-build place-point 0 c: mill)
 	(set-goal gl-t12-drop-stage 1)
@@ -3852,7 +3855,8 @@
 )
 
 ;A global pending count is not proof that the remote request succeeded. Find
-;the matching pending foundation and reject it unless it is in the landing zone.
+;a concrete matching foundation near the issued point AND resource anchor.
+;An asynchronous/global pending indication must not trigger an immediate recall.
 (load "rawai-dropsite-diag")
 
 (defrule
@@ -3861,33 +3865,37 @@
 		(goal gl-island-migration-anchor-class gold-mine-class)
 		(goal gl-island-migration-anchor-class stone-mine-class)
 	)
-	(up-pending-objects c: mining-camp >= 1)
 =>
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
-	(up-set-target-point gl-island-migration-target-x)
+	(up-set-target-point gl-migration-build-x)
 	(up-filter-distance c: -1 c: 8)
 	(up-filter-status c: status-pending c: list-active)
 	(up-find-status-local c: mining-camp c: 8)
+	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-remove-objects search-local object-data-distance > 8)
 	(up-clean-search search-local object-data-distance search-order-asc)
-	(set-goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)
+	(set-goal gl-island-migration-state MIGRATION-FIND-DROPSITE)
 )
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
 	(goal gl-island-migration-anchor-class tree-class)
-	(up-pending-objects c: lumber-camp >= 1)
 =>
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
-	(up-set-target-point gl-island-migration-target-x)
+	(up-set-target-point gl-migration-build-x)
 	(up-filter-distance c: -1 c: 8)
 	(up-filter-status c: status-pending c: list-active)
 	(up-find-status-local c: lumber-camp c: 8)
+	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-remove-objects search-local object-data-distance > 8)
 	(up-clean-search search-local object-data-distance search-order-asc)
-	(set-goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)
+	(set-goal gl-island-migration-state MIGRATION-FIND-DROPSITE)
 )
 
 (defrule
@@ -3896,17 +3904,34 @@
 		(goal gl-island-migration-anchor-class forage-class)
 		(goal gl-island-migration-anchor-class prey-animal-class)
 	)
-	(up-pending-objects c: mill >= 1)
 =>
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
-	(up-set-target-point gl-island-migration-target-x)
+	(up-set-target-point gl-migration-build-x)
 	(up-filter-distance c: -1 c: 8)
 	(up-filter-status c: status-pending c: list-active)
 	(up-find-status-local c: mill c: 8)
+	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-remove-objects search-local object-data-distance > 8)
 	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-island-migration-state MIGRATION-FIND-DROPSITE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-FIND-DROPSITE)
+	(up-set-target-object search-local c: 0)
+=>
 	(set-goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-FIND-DROPSITE)
+	(not (up-set-target-object search-local c: 0))
+=>
+	;Keep the original 20-second deadline; four offsets remain the hard bound.
+	(set-goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
 )
 
 (defrule
@@ -3934,8 +3959,7 @@
 	(goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)
 	(not (up-set-target-object search-local c: 0))
 =>
-	(up-chat-data-to-self "migration dropsite zone mismatch: %d" g: gl-island-migration-zone)
-	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
+	(set-goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
 )
 
 (defrule
