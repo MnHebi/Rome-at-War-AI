@@ -36,6 +36,94 @@ Starting branch `recovery/p3b44-transport-only`, HEAD
 - Next: analyze supplied R2 (`20260830-182330`) with its archived R2 map, then
   continue TASK-OWNERSHIP.md. No new congestion/salvage/Port micro-fix first.
 
+### R2 evidence audit after release — latest session
+
+Runtime release HEAD: `4bff811431ac12de63fa1fdf7c90eccf4dcb383e` (R4:455).
+This following evidence-only update does not change that runtime. Resolve
+current documentation HEAD with `git rev-parse HEAD`. No push/PR update.
+
+- Replay `SP Replay v101.103.48987.0 @2026.08.30 182330.aoe2record`,
+  25,570,711 bytes, SHA-256
+  `06C62FDBD658D27DDDE682FB49A8F9A90F112E7CC0D7FDD33411A935762E904E`.
+  Duration 62:04. No parsed resignation; do not infer crash/end cause.
+  Selected-color metadata validates the preserved Roman Red/Green/Yellow/
+  Purple team versus Orange Picts/Cyan Britons/Blue Germani/Gray Gauls.
+  Extreme, population 400, Fast 2.0, shared exploration; RMS id 50.
+- All-player command sweep: 282,006 retained exact events, no decoder failures.
+  Hull census was expanded beyond old load/unload phases using direct hull
+  telemetry and passenger samples, retaining load-only failures too.
+
+| Color | Identified hulls | Load packets | Raw loading windows |
+|---|---:|---:|---:|
+| Red | 4 | 24 | 7 |
+| Green | 2 | 19 | 4 |
+| Yellow | 2 | 16 | 2 |
+| Purple | 2 | 17 | 11 |
+| Orange | 1 | 14 | 7 |
+| Cyan | 1 | 5 | 2 |
+| Blue | 4 | 36 | 9 |
+| Gray | 4 | 29 | 16 |
+| Total | 20 | 160 | 58 |
+
+- These are raw reconstructed windows, NOT 58 fully identified missions:
+  19 assault-ready, 7 migration-full, 3 assault-partial, 1 migration-partial,
+  3 assault-abort, 4 migration-empty-abort, 17 unload-bounded and 4 lacking a
+  recorded terminal. Some missing boundary messages merge missions. Purple's
+  additional partial-departure count 9 at 48:02.832 belongs inside an
+  unload-bounded window because its normal hull-specific terminal is missing.
+  Full/ready does not prove exact selected membership or productive landing.
+- **Direct recall evidence:** all 76 retreat packets match existing RAW44O
+  labels: source 1 land-defense 56, source 2 regroup 6, source 3 siege escalation
+  12, source 4 unstick 2. Orange priest 33235 starts boarding at 27:26.906 and
+  is recalled at 27:37; priest 34388 starts at 37:08.684 and is recalled at
+  37:18. Both attempts end in roughly three-minute recovery unloads, without
+  outbound relic announcements. Routine recall must respect relic/recovery
+  ownership as well as the assault/migration controller goals.
+- **Corrected interpretation:** Purple at 48:32.856 is SCREEN-FIND (19),
+  after reported nine-passenger partial departure at 48:02.832. Recall includes
+  the original ten-unit loading roster but does NOT prove boarding interruption
+  or units disembarking. Green at 55:24 includes passenger 41942 during
+  WAYPOINT-WAIT (29), also route-stage evidence. The earlier user-facing
+  wording calling Purple's units queued was explicitly corrected.
+- **STOP stream:** Blue scout 4608 receives 283 AI_ORDER 706 packets between
+  55:03.414 loading and the 55:12.050 idle-ashore sample; 276 between 57:16.740
+  and 57:30.078. Both samples retain group flag 4 and distance 1 to hull 40501.
+  This establishes repeated STOP plus failure of that passenger to board at
+  the sample, not the exact script/native/delegated producer. Hull-ready
+  messages coexist with this missing originally selected passenger. Blue's
+  59:52 twenty-unit migration has STOP packets for 16 selected members and
+  a partial terminal at 60:21.982 with 3 remaining; occupancy is unavailable
+  for each stopped member, so normal post-garrison cleanup remains a possible
+  explanation for some of those packets. Do not blanket-label them preemption.
+- **Coverage:** before 09:00 each player has only one invocation each of
+  setup sites 10/11/12; R1's early recurring cleanup spam is absent. Gray
+  exhausts the total quota at 37:00.648, Blue at 48:29.402, Purple at 56:06.164;
+  temporary rate gaps also occur. No RAWAI marker or RAW44W map survives.
+  Zero players pass fingerprint verification; the new exact writer-source
+  attribution remains withheld. Preserve user-reported R2 + archived map/
+  deployment evidence, but do not bypass the analyzer's identity requirement.
+- **Other outcomes retained:** 7 scout-candidate missions reject all five
+  paths; a Green candidate mission records 3 clear points with unload commands.
+  One public assault landing-completed window is present. Six relic outbound
+  and four return announcements remain positive evidence. They do not close
+  every landing/drop-site/route defect, and do not authorize a navigation fix
+  in the ownership release.
+- **Artifacts outside repository:** `.analysis\replay-20260830-182330-t10r2-full.json`
+  and `.analysis\p3b44t10r2-{command-stream,exact,transport-audit,task-ownership,summary}.json`,
+  plus `p3b44t10r2-transport-audit.txt`; matching archived
+  `p3b44t10r2-writer-trace-sites.json`. Existing `audit_writer_replay.py` now
+  includes sample/public hulls and no longer writes hard-coded R1 conclusions.
+  Its raw automated classifications must be read with the boundary limitations
+  above: a missing terminal does not imply ownership until match end, and a
+  later sample from a different hull is not proof about an earlier mission.
+- **Status/next:** ownership remains OPEN; actual recall conflicts are already
+  established, harmful STOP producer/protection semantics remain unresolved.
+  R4 has the delayed identity delivery introduced in R3 but not exercised by
+  R2. Verify fresh R4 identity and recovered invariants, then use occupancy-
+  aware evidence for the common ownership/preemption implementation. Do not
+  re-open historical fallback absence as an explanation: all 8 guards were
+  present. New benchmark is evidence-only; 32 benchmark validations PASS.
+
 **Latest user instruction, 2026-08-30:** "Once you receive the R2 replay,
 this directive takes all precedence before analyzing the R2 replay data."
 R2 (`20260830-182330`) supplied the trigger. Recovery above is complete; the
@@ -322,13 +410,13 @@ staggers and bounds identity announcements. R3 runtime acceptance is PENDING.
 Preserved R1 map for the user's running match/replay:
 `G:\Projects\Codex\Rome at War AI\.analysis\p3b44t10r1-writer-trace-sites.json`.
 R2 map is likewise preserved as `.analysis\p3b44t10r2-writer-trace-sites.json`.
-Use the matching historical map, NOT the current R3 map, for prior recordings.
+Use the matching historical map, NOT the current R4 map, for prior recordings.
 
 This is an **in-memory diagnostic compilation of the documented checkout**,
 not another editable workspace. Edit the existing PER sources and
 `tools/writer_trace.py` here, never the generated installed copy. The checkout's
-plain PER input remains the T9 diagnostic source described below. Reproduce the
-deployment with `--writer-trace`; omitting it compares/deploys plain T9 instead.
+plain PER input retains the T9 marker but now includes the restored hunt cap.
+Reproduce deployment with `--writer-trace`; omitting it removes writer telemetry.
 Regenerate `writer-trace-sites.json` after any runtime-source change; deployment
 rejects a stale map. T9 was never installed as a separate test.
 
@@ -348,7 +436,8 @@ rejects a stale map. T9 was never installed as a separate test.
   `69C30C50661D3E1E8A1F8DC081C63E80D0C899D8E695B16D3E02F95B910B7738`.
   T8 is diagnostic only; it has no fresh-match behavioral acceptance yet.
 
-Plain compiler input, **not separately deployed or committed**: `RAWAI-P3B44T9:450`, 68 files,
+Historical T9 plain input, **not separately deployed**, now preserved in the
+R3 checkpoint `ea8a382`: `RAWAI-P3B44T9:450`, 68 files,
 SHA-256 `3BB032283550D1C549431E8F3921BCCEA685747F84C8CEF9FB67D678BE4AABE1`.
 The T9 preparation check identified three differences from the then-installed
 T8: `rawai-customconstants.per`, `rawai-init-goals.per`, `rawai-military.per`;
@@ -1968,14 +2057,15 @@ not the current installed identity.
    installed marker/hash, and current working-tree status. The intentional
    `AGENTS.md` amendment is now committed, not expected working-tree residue.
    T8 was installed from this exact experimental worktree, not the canonical
-   or obsolete checkout. CURRENT installation is generated T10R3:454; use
+   or obsolete checkout. CURRENT installation is generated T10R4:455; use
    `--writer-trace` to check it against the source/map. Plain sources remain
-   T9 input and must not be silently deployed over T10R3. No commit, push or PR
-   update was made in this session. No new development directory exists.
-2. Verify R3 delayed identity and idle trace suppression first. R1's 18:10
-   replay was audited: quotas expire before boarding; startup identity absent.
-   Preserve both external R1/R2 maps for existing recordings. Use R3 on the next
-   match, not as evidence of fixes in an older replay.
+   T9-marked input plus hunt 16, not a separately deployable equivalent of R4.
+   Recovery commits and release are recorded at the top; no push or PR update.
+   No new development directory exists.
+2. R2 is now audited across all players (latest section above). Verify R4's
+   delayed identity and recovered caps in the next test. R2 proves early idle
+   spam is absent but has missing identity and late quota exhaustion.
+   Preserve both external R1/R2 maps. Do not use R2 as validation of R4.
    Follow the shared architectural directive in `TASK-OWNERSHIP.md`, not the
    obsolete restriction to one recall micro-fix. Analyze T10's command/group/
    native-policy trace before assigning WORK packets to a native mechanism.

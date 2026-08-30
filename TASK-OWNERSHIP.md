@@ -48,6 +48,34 @@ remain unresolved. Do not substitute another congestion investigation for them.
 
 ## Required invariant
 
+### R2 all-player evidence update
+
+After the release-blocking recovery was deployed, R2 was audited: 282,006 exact
+events, 20 identified hulls, 160 load packets and 58 raw loading windows.
+Missing boundaries mean those windows are not 58 fully proven lifecycles.
+All 76 retreat packets have existing source labels. Orange's priests 33235
+and 34388 receive land-defense recall during relic boarding at 27:37 and
+37:18. Their assault/migration goals are both idle: those goals alone cannot
+represent every passenger owner. Preserve this as a common-contract requirement.
+
+Purple's 48:32 siege recall is route-stage SCREEN-FIND, after partial departure;
+Green's 55:24 recall is WAYPOINT-WAIT. They include prior passenger rosters but
+are not proof of boarding interruption or forced disembarkation. Blue scout
+4608 has repeated STOP 706 (283 and 276 packets in two short boarding intervals),
+with later idle/ashore/distance-1/group-4 samples. Producer remains unresolved:
+Blue's trace budget was already exhausted. STOP for an already-garrisoned unit
+must not be confused with harmful ashore cancellation. The late 20-unit worker
+load has insufficient occupancy evidence to label every STOP a lost passenger.
+
+R2 contains no complete marker/map identity; new writer-site attribution remains
+withheld. R4 preserves R3's delayed identity fix, which this earlier replay
+cannot validate. Keep the known recall cause distinct from the unidentified
+STOP/native boundary. Full evidence, limits, positive outcomes and exact
+artifacts are in HANDOFF.md and the R2 benchmark. No further runtime change was
+made during this audit; common ownership implementation remains pending.
+
+### Contract
+
 A deliberately reserved unit remains owned by its task until that owner
 completes, aborts, loses the unit, explicitly releases it, or accepts a verified
 higher-priority emergency. Issuing a newer command is not an ownership transfer.
@@ -263,7 +291,7 @@ occurrences from 5,665 to 1,465 and adds an occurrence-based build budget plus
 a regression fixture reproducing the rejected expansion. R2 corrects the idle
 trace exemption for site 41 and preserves real acquisition/release sites.
 R3 sends marker/map identity three times after startup, with players staggered
-and 30-second intervals independent of invocation quota. 155 regression tests
+and 30-second intervals independent of invocation quota. 163 regression tests
 and all 68 deployment hashes pass; fresh engine/replay acceptance is pending.
 First check R3 identity delivery and off-mission trace suppression. R1's replay
 is audited and its exhaustion confirmed; preserve R1/R2 maps for old recordings.

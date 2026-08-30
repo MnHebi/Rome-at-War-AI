@@ -3,6 +3,52 @@
   "pending_match_setups": [],
   "benchmarks": [
     {
+      "id": "britain-4v4-20260830-182330-p3b44t10r2-ownership",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.30 182330.aoe2record",
+        "sha256": "06C62FDBD658D27DDDE682FB49A8F9A90F112E7CC0D7FDD33411A935762E904E",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia (preserved user setup; RMS id 50)",
+        "duration_seconds": 3724,
+        "players": [
+          "Red Roman Empire (team 1)", "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)", "Cyan Britons (team 2)",
+          "Blue Germani (team 2)", "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Selected colors, not internal colors or slot order, agree with preserved teams. Replay resolved teams 2/3, Extreme, population 400, Fast 2.0, shared exploration."
+      },
+      "direct_replay_observations": [
+        "All-player sweep: 282006 retained exact command/chat events, zero decoder failures; 20 telemetry/sample-identified hulls, 160 loading commands and 58 raw boarding windows. The earlier load/unload-only census omitted load-only hulls; sample/public-hull evidence was added before conclusions.",
+        "Raw window bounds: 19 assault-ready records, 7 migration-full, 3 assault-partial, 1 migration-partial, 3 assault-abort, 4 migration-empty-abort, 17 unload bounds and 4 unresolved replay-end bounds. These are not counts of productive landings; missing terminal messages can merge missions. Purple also reports a nine-passenger partial departure at 48:02.832 without the usual hull-specific partial header.",
+        "All 76 DE_RETREAT packets have matching RAW44O source labels: 56 land-defense, 6 regroup, 12 siege escalation, 2 unstick. Orange priest 33235, loading from 27:26.906, is recalled to target 4542 at 27:37; priest 34388, loading from 37:08.684, is recalled at 37:18. Both attempts reach their roughly three-minute recovery unload without an outbound relic announcement.",
+        "Purple recall at 48:32.856 includes the original ten-unit loading roster, but the owner is already SCREEN-FIND (19), following nine-passenger partial departure at 48:02.832. It is route-stage recall exposure, NOT proof of boarding interruption or disembarkation. Green recall at 55:24 includes passenger 41942 while migration is WAYPOINT-WAIT (29), also not a boarding-phase proof.",
+        "Blue scout 4608 receives 283 AI_ORDER 706 STOP packets between load at 55:03.414 and sample at 55:12.050; 276 during the second 57:16.740-57:30.078 interval. Samples show it idle ashore, distance 1 and group flag 4. Hull 40501 subsequently reports ready; a ready hull does not prove every originally selected passenger boarded.",
+        "Blue's 20-unit migration load at 59:52 also overlaps STOP packets for 16 selected members, with a partial terminal at 60:21.982. Without per-member post-command occupancy, these packets alone do not establish which prevented boarding versus normal cleanup after garrisoning.",
+        "Before 09:00 each player emits only the three single-use writer sites 10, 11 and 12, rather than R1's recurring idle cleanup flood. Total writer budget exhausts later: Gray 37:00.648, Blue 48:29.402, Purple 56:06.164. There are also temporary per-minute gaps.",
+        "No build marker or map fingerprint survives. Zero players pass exact writer-map identity verification, so the analyzer withholds new source-site attribution. The user identifies R2; the archived R2 map and deployment identity remain separate evidence. There are no parsed resign actions; end cause is not inferred."
+      ],
+      "implementation_inferences": [
+        "Routine global recall reaches relic-ferry passengers while assault/migration state may be zero, showing why a common task contract must cover relic/recovery ownership too. Existing R1/T8 recall evidence remains applicable; do not misclassify R2 route-stage recalls as boarding events.",
+        "The repeated Blue STOP stream is real, but its producer is not identified: the relevant late intervals follow Blue's trace quota exhaustion and there is no replay map fingerprint. Do not label all unbracketed packets native, or assume STOP for an already-garrisoned passenger is harmful.",
+        "Source/history audit before R2 analysis found food 12 and all eight self-target exclusions already present in R3. They were not lost on rollback. Only hunt 28 differed from the requested historical 16; R4 restores that cap and adds eight guard tests. These source facts do not explain away the user-observed own-TC behavior."
+      ],
+      "changes_under_test": [
+        "User-reported R2:453; archived payload 8A6CD4BCFF8770ECB4E3D106D0ED719478C90779CFA3489A9FF4227FC2F39F9D and map B29E7B34A3EDEF681B31CD3740CE36930C2C0D4903CA01558103ECA5E9EDA5E9. No in-replay full fingerprint confirmation.",
+        "R4:455 was implemented, separately committed, fully validated and deployed BEFORE R2 analysis per user directive. It preserves all telemetry/transport/ownership behavior; this older replay does not validate hunt 16 or delayed R3/R4 identity delivery."
+      ],
+      "fresh_replay_acceptance": [
+        "Verify all-player R4 marker/map delivery and the historical gather/self-target invariants; distinguish legitimate TC garrison/deposit/defense/production commands from a self-target military flood.",
+        "Demonstrate task reservation against routine recall, exploration and harmful STOP writers, including relic ferry and recovery tasks. Require actual command membership and occupancy-aware terminal proof while preserving successful full/partial lifts and ordinary attacks."
+      ],
+      "known_limits": [
+        "Unresolved replay-end windows do not prove continuous reservation to match end; later commands/samples from another mission must not be treated as proof of an earlier overwrite. Raw automated classifications are investigation leads, not final causal conclusions.",
+        "Ready/full/partial and unload commands are not equivalent to productive landing. Writer coverage is missing both fingerprint confirmation and some invocation records, with rate/total quota gaps explicitly retained. No new gameplay ownership fix is claimed."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
       "id": "britain-4v4-20260830-181054-p3b44t10r1-writer-coverage",
       "source": {
         "file_basename": "SP Replay v101.103.48987.0 @2026.08.30 181054.aoe2record",
