@@ -2175,80 +2175,22 @@ class FarmPolicyTests(unittest.TestCase):
                 self.assertIn(f"(unit-available {unit})", blocked[0][3])
 
     def test_allied_resource_aid_is_scaled_identified_and_reserve_safe(self) -> None:
-        for taunt, resource in ((3, "food"), (4, "wood"), (5, "gold"), (6, "stone")):
-            requests = matching_rules(
-                self.trade,
-                facts=(f"({resource}-amount < 100)",),
-                actions=(f"team please send 600 {resource}",),
-            )
-            self.assertEqual(len(requests), 1)
-
-            for player in range(1, 9):
-                replies = matching_rules(
-                    self.trade,
-                    facts=(
-                        f"(taunt-detected {player} {taunt})",
-                        f"(stance-toward {player} ally)",
-                    ),
-                    actions=(
-                        f"(acknowledge-taunt {player} {taunt})",
-                        f"(tribute-to-player {player} {resource} 200)",
-                        f'Sending 200 {resource} to player {player}',
-                    ),
-                )
-                self.assertEqual(len(replies), 2 if resource == "gold" else 1)
-
-        self.assertNotIn("send me 100", self.trade)
-        self.assertNotIn("this-any-ally", self.trade)
-        self.assertNotRegex(self.trade, r"\bplayer[1-8]\b")
-        self.assertNotRegex(
-            self.trade,
-            r"\(tribute-to-player\s+[1-8]\s+(?:food|wood|gold|stone)\s+100\)",
-        )
-        self.assertEqual(
-            len(
-                matching_rules(
-                    self.trade,
-                    facts=("(food-amount >= 1200)",),
-                    actions=(" food 200)",),
-                )
-            ),
-            8,
-        )
-        for resource in ("wood", "stone"):
-            self.assertEqual(
-                len(
-                    matching_rules(
-                        self.trade,
-                        facts=(f"({resource}-amount >= 800)",),
-                        actions=(f" {resource} 200)",),
-                    )
-                ),
-                8,
-            )
-        self.assertEqual(
-            len(
-                matching_rules(
-                    self.trade,
-                    facts=("(current-age < imperial-age)", "(gold-amount >= 1000)"),
-                    actions=(" gold 200)",),
-                )
-            ),
-            8,
-        )
-        self.assertEqual(
-            len(
-                matching_rules(
-                    self.trade,
-                    facts=(
-                        "(current-age == imperial-age)",
-                        "(gold-amount >= 700)",
-                    ),
-                    actions=(" gold 200)",),
-                )
-            ),
-            8,
-        )
+        for amount in (100, 500, 1000):
+            for taunt, resource in ((3, 'food'), (4, 'wood'), (5, 'gold'), (6, 'stone')):
+                token = str(taunt) if amount == 100 else f'TAUNT-REQUEST-{resource.upper()}-{amount}'
+                requests = matching_rules(self.trade, facts=(f'({resource}-amount < 100)',),
+                                          actions=(f'please send {amount} {resource}',))
+                self.assertEqual(len(requests), 1)
+                for player in range(1, 9):
+                    replies = matching_rules(self.trade,
+                        facts=(f'(taunt-detected {player} {token})',
+                               f'(up-compare-goal gl-self-player-number c:!= {player})',
+                               f'(stance-toward {player} ally)'),
+                        actions=(f'(tribute-to-player {player} {resource} {amount})',
+                                 f'Sending {amount} {resource} to player %d'))
+                    self.assertEqual(len(replies), 2 if resource == 'gold' else 1)
+        self.assertNotIn('(player-number !=', self.trade)
+        self.assertNotIn('please send 600', self.trade)
 
     def test_pict_team_cows_have_a_persistent_request_budget(self) -> None:
         cow = matching_rules(

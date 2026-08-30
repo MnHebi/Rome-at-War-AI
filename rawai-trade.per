@@ -1,17 +1,22 @@
-
+;Manual aid-policy backport: 81ce73d plus 90287ea operand correction.
 (defrule
-	(up-timer-status t-request-spam == timer-disabled)
+	(true)
 =>
-	(enable-timer t-request-spam 120)
-	(chat-local-to-self "start request spam timer")
+	(set-goal gl-request-food-next 0)
+	(set-goal gl-request-wood-next 0)
+	(set-goal gl-request-gold-next 0)
+	(set-goal gl-request-stone-next 0)
+	(set-goal gl-resource-request-next 0)
+	(disable-self)
 )
 
 (defrule
-	(up-timer-status t-request-spam == timer-triggered)
+	(true)
 =>
-	(disable-timer t-request-spam)
-	(set-goal dont-spam-requests NO)
-	(chat-local-to-self "reset dont-spam-requests")
+	(up-get-fact resource-amount amount-food-total gl-request-food-bank)
+	(up-get-fact resource-amount amount-wood-total gl-request-wood-bank)
+	(up-get-fact resource-amount amount-gold-total gl-request-gold-bank)
+	(up-get-fact resource-amount amount-stone-total gl-request-stone-bank)
 )
 
 ; ///////////////////////// FEUDAL
@@ -350,504 +355,2048 @@
 )
 
 ;request resources
-;The request names a team-wide target. In a 4v4, each of the other three allies
-;may independently answer with a 200-resource tranche, so the nominal response
-;is bounded at 600 rather than multiplying a 600-resource tribute three times.
+;Every tier requires a live stockpile below 100. The engine-maintained cumulative
+;collected-resource bank chooses the amount: below 500 requests 100, 500..999
+;requests 500, and 1000+ requests 1000.
+;Per-resource deadlines prevent one persistent shortage from starving the other
+;resource requests; the shared ten-second deadline prevents a simultaneous burst.
+;food request tiers
 (defrule
-	(goal dont-spam-requests NO)
 	(players-building-type-count any-ally market >= 1)
 	(food-amount < 100)
+	(up-compare-goal gl-request-food-bank c:>= RESOURCE-AID-BANK-1000)
+	(up-compare-goal gl-game-time g:>= gl-request-food-next)
+	(up-compare-goal gl-game-time g:>= gl-resource-request-next)
 =>
-	(chat-to-allies "3 Critically low on food; team please send 600 food")
-	(set-goal dont-spam-requests YES)
+	(chat-to-allies "245 Critically low on food; please send 1000 food")
+	(up-chat-data-to-self "Requesting 1000 food; lifetime bank: %d" g: gl-request-food-bank)
+	(up-modify-goal gl-request-food-next g:= gl-game-time)
+	(up-modify-goal gl-request-food-next c:+ 120)
+	(up-modify-goal gl-resource-request-next g:= gl-game-time)
+	(up-modify-goal gl-resource-request-next c:+ 10)
 )
-
 (defrule
-	(goal dont-spam-requests NO)
+	(players-building-type-count any-ally market >= 1)
+	(food-amount < 100)
+	(up-compare-goal gl-request-food-bank c:>= RESOURCE-AID-BANK-500)
+	(up-compare-goal gl-request-food-bank c:< RESOURCE-AID-BANK-1000)
+	(up-compare-goal gl-game-time g:>= gl-request-food-next)
+	(up-compare-goal gl-game-time g:>= gl-resource-request-next)
+=>
+	(chat-to-allies "241 Critically low on food; please send 500 food")
+	(up-chat-data-to-self "Requesting 500 food; lifetime bank: %d" g: gl-request-food-bank)
+	(up-modify-goal gl-request-food-next g:= gl-game-time)
+	(up-modify-goal gl-request-food-next c:+ 120)
+	(up-modify-goal gl-resource-request-next g:= gl-game-time)
+	(up-modify-goal gl-resource-request-next c:+ 10)
+)
+(defrule
+	(players-building-type-count any-ally market >= 1)
+	(food-amount < 100)
+	(up-compare-goal gl-request-food-bank c:< RESOURCE-AID-BANK-500)
+	(up-compare-goal gl-game-time g:>= gl-request-food-next)
+	(up-compare-goal gl-game-time g:>= gl-resource-request-next)
+=>
+	(chat-to-allies "3 Critically low on food; please send 100 food")
+	(up-chat-data-to-self "Requesting 100 food; lifetime bank: %d" g: gl-request-food-bank)
+	(up-modify-goal gl-request-food-next g:= gl-game-time)
+	(up-modify-goal gl-request-food-next c:+ 120)
+	(up-modify-goal gl-resource-request-next g:= gl-game-time)
+	(up-modify-goal gl-resource-request-next c:+ 10)
+)
+;wood request tiers
+(defrule
 	(players-building-type-count any-ally market >= 1)
 	(wood-amount < 100)
+	(up-compare-goal gl-request-wood-bank c:>= RESOURCE-AID-BANK-1000)
+	(up-compare-goal gl-game-time g:>= gl-request-wood-next)
+	(up-compare-goal gl-game-time g:>= gl-resource-request-next)
 =>
-	(chat-to-allies "4 Critically low on wood; team please send 600 wood")
-	(set-goal dont-spam-requests YES)
+	(chat-to-allies "246 Critically low on wood; please send 1000 wood")
+	(up-chat-data-to-self "Requesting 1000 wood; lifetime bank: %d" g: gl-request-wood-bank)
+	(up-modify-goal gl-request-wood-next g:= gl-game-time)
+	(up-modify-goal gl-request-wood-next c:+ 120)
+	(up-modify-goal gl-resource-request-next g:= gl-game-time)
+	(up-modify-goal gl-resource-request-next c:+ 10)
 )
-
 (defrule
-	(goal dont-spam-requests NO)
+	(players-building-type-count any-ally market >= 1)
+	(wood-amount < 100)
+	(up-compare-goal gl-request-wood-bank c:>= RESOURCE-AID-BANK-500)
+	(up-compare-goal gl-request-wood-bank c:< RESOURCE-AID-BANK-1000)
+	(up-compare-goal gl-game-time g:>= gl-request-wood-next)
+	(up-compare-goal gl-game-time g:>= gl-resource-request-next)
+=>
+	(chat-to-allies "242 Critically low on wood; please send 500 wood")
+	(up-chat-data-to-self "Requesting 500 wood; lifetime bank: %d" g: gl-request-wood-bank)
+	(up-modify-goal gl-request-wood-next g:= gl-game-time)
+	(up-modify-goal gl-request-wood-next c:+ 120)
+	(up-modify-goal gl-resource-request-next g:= gl-game-time)
+	(up-modify-goal gl-resource-request-next c:+ 10)
+)
+(defrule
+	(players-building-type-count any-ally market >= 1)
+	(wood-amount < 100)
+	(up-compare-goal gl-request-wood-bank c:< RESOURCE-AID-BANK-500)
+	(up-compare-goal gl-game-time g:>= gl-request-wood-next)
+	(up-compare-goal gl-game-time g:>= gl-resource-request-next)
+=>
+	(chat-to-allies "4 Critically low on wood; please send 100 wood")
+	(up-chat-data-to-self "Requesting 100 wood; lifetime bank: %d" g: gl-request-wood-bank)
+	(up-modify-goal gl-request-wood-next g:= gl-game-time)
+	(up-modify-goal gl-request-wood-next c:+ 120)
+	(up-modify-goal gl-resource-request-next g:= gl-game-time)
+	(up-modify-goal gl-resource-request-next c:+ 10)
+)
+;gold request tiers
+(defrule
 	(players-building-type-count any-ally market >= 1)
 	(gold-amount < 100)
+	(up-compare-goal gl-request-gold-bank c:>= RESOURCE-AID-BANK-1000)
+	(up-compare-goal gl-game-time g:>= gl-request-gold-next)
+	(up-compare-goal gl-game-time g:>= gl-resource-request-next)
 =>
-	(chat-to-allies "5 Critically low on gold; team please send 600 gold")
-	(set-goal dont-spam-requests YES)
+	(chat-to-allies "247 Critically low on gold; please send 1000 gold")
+	(up-chat-data-to-self "Requesting 1000 gold; lifetime bank: %d" g: gl-request-gold-bank)
+	(up-modify-goal gl-request-gold-next g:= gl-game-time)
+	(up-modify-goal gl-request-gold-next c:+ 120)
+	(up-modify-goal gl-resource-request-next g:= gl-game-time)
+	(up-modify-goal gl-resource-request-next c:+ 10)
 )
-
 (defrule
-	(goal dont-spam-requests NO)
+	(players-building-type-count any-ally market >= 1)
+	(gold-amount < 100)
+	(up-compare-goal gl-request-gold-bank c:>= RESOURCE-AID-BANK-500)
+	(up-compare-goal gl-request-gold-bank c:< RESOURCE-AID-BANK-1000)
+	(up-compare-goal gl-game-time g:>= gl-request-gold-next)
+	(up-compare-goal gl-game-time g:>= gl-resource-request-next)
+=>
+	(chat-to-allies "243 Critically low on gold; please send 500 gold")
+	(up-chat-data-to-self "Requesting 500 gold; lifetime bank: %d" g: gl-request-gold-bank)
+	(up-modify-goal gl-request-gold-next g:= gl-game-time)
+	(up-modify-goal gl-request-gold-next c:+ 120)
+	(up-modify-goal gl-resource-request-next g:= gl-game-time)
+	(up-modify-goal gl-resource-request-next c:+ 10)
+)
+(defrule
+	(players-building-type-count any-ally market >= 1)
+	(gold-amount < 100)
+	(up-compare-goal gl-request-gold-bank c:< RESOURCE-AID-BANK-500)
+	(up-compare-goal gl-game-time g:>= gl-request-gold-next)
+	(up-compare-goal gl-game-time g:>= gl-resource-request-next)
+=>
+	(chat-to-allies "5 Critically low on gold; please send 100 gold")
+	(up-chat-data-to-self "Requesting 100 gold; lifetime bank: %d" g: gl-request-gold-bank)
+	(up-modify-goal gl-request-gold-next g:= gl-game-time)
+	(up-modify-goal gl-request-gold-next c:+ 120)
+	(up-modify-goal gl-resource-request-next g:= gl-game-time)
+	(up-modify-goal gl-resource-request-next c:+ 10)
+)
+;stone request tiers
+(defrule
 	(players-building-type-count any-ally market >= 1)
 	(stone-amount < 100)
+	(up-compare-goal gl-request-stone-bank c:>= RESOURCE-AID-BANK-1000)
+	(up-compare-goal gl-game-time g:>= gl-request-stone-next)
+	(up-compare-goal gl-game-time g:>= gl-resource-request-next)
 =>
-	(chat-to-allies "6 Critically low on stone; team please send 600 stone")
-	(set-goal dont-spam-requests YES)
+	(chat-to-allies "248 Critically low on stone; please send 1000 stone")
+	(up-chat-data-to-self "Requesting 1000 stone; lifetime bank: %d" g: gl-request-stone-bank)
+	(up-modify-goal gl-request-stone-next g:= gl-game-time)
+	(up-modify-goal gl-request-stone-next c:+ 120)
+	(up-modify-goal gl-resource-request-next g:= gl-game-time)
+	(up-modify-goal gl-resource-request-next c:+ 10)
 )
-
+(defrule
+	(players-building-type-count any-ally market >= 1)
+	(stone-amount < 100)
+	(up-compare-goal gl-request-stone-bank c:>= RESOURCE-AID-BANK-500)
+	(up-compare-goal gl-request-stone-bank c:< RESOURCE-AID-BANK-1000)
+	(up-compare-goal gl-game-time g:>= gl-request-stone-next)
+	(up-compare-goal gl-game-time g:>= gl-resource-request-next)
+=>
+	(chat-to-allies "244 Critically low on stone; please send 500 stone")
+	(up-chat-data-to-self "Requesting 500 stone; lifetime bank: %d" g: gl-request-stone-bank)
+	(up-modify-goal gl-request-stone-next g:= gl-game-time)
+	(up-modify-goal gl-request-stone-next c:+ 120)
+	(up-modify-goal gl-resource-request-next g:= gl-game-time)
+	(up-modify-goal gl-resource-request-next c:+ 10)
+)
+(defrule
+	(players-building-type-count any-ally market >= 1)
+	(stone-amount < 100)
+	(up-compare-goal gl-request-stone-bank c:< RESOURCE-AID-BANK-500)
+	(up-compare-goal gl-game-time g:>= gl-request-stone-next)
+	(up-compare-goal gl-game-time g:>= gl-resource-request-next)
+=>
+	(chat-to-allies "6 Critically low on stone; please send 100 stone")
+	(up-chat-data-to-self "Requesting 100 stone; lifetime bank: %d" g: gl-request-stone-bank)
+	(up-modify-goal gl-request-stone-next g:= gl-game-time)
+	(up-modify-goal gl-request-stone-next c:+ 120)
+	(up-modify-goal gl-resource-request-next g:= gl-game-time)
+	(up-modify-goal gl-resource-request-next c:+ 10)
+)
 ;send resources
-;Explicit player rules keep the acknowledgment, tribute target, and visible
-;recipient label identical. Player numbers are stable engine IDs; colors remain
-;independent lobby choices and are resolved only by replay metadata.
-;Food donors retain at least the audited 1000-food Imperial reserve. Wood and
-;stone donors retain 600, while gold donors retain the audited 800-gold reserve
-;until Imperial Age and a 500-gold operating reserve afterward.
+;Explicit numeric player rules keep the acknowledgment, tribute target, and
+;visible recipient label identical. The player-number guard prevents an AI from
+;answering its own alliance chat. Each eligible ally answers independently; these
+;amounts are per donor, not a bounded team total.
+;Donors retain 1000 food, 600 wood/stone, 800 pre-Imperial gold, or 500
+;Imperial gold after the nominal tribute.
+;100-resource donor handlers
 (defrule
 	(taunt-detected 1 3)
+	(up-compare-goal gl-self-player-number c:!= 1)
 	(stance-toward 1 ally)
 	(building-type-count market > 0)
-	(food-amount >= 1200)
+	(food-amount >= 1100)
 =>
 	(acknowledge-taunt 1 3)
-	(tribute-to-player 1 food 200)
-	(chat-to-allies "Sending 200 food to player 1")
+	(tribute-to-player 1 food 100)
+	(up-chat-data-to-all "Sending 100 food to player %d" c: 1)
 )
-
 (defrule
 	(taunt-detected 2 3)
+	(up-compare-goal gl-self-player-number c:!= 2)
 	(stance-toward 2 ally)
 	(building-type-count market > 0)
-	(food-amount >= 1200)
+	(food-amount >= 1100)
 =>
 	(acknowledge-taunt 2 3)
-	(tribute-to-player 2 food 200)
-	(chat-to-allies "Sending 200 food to player 2")
+	(tribute-to-player 2 food 100)
+	(up-chat-data-to-all "Sending 100 food to player %d" c: 2)
 )
-
 (defrule
 	(taunt-detected 3 3)
+	(up-compare-goal gl-self-player-number c:!= 3)
 	(stance-toward 3 ally)
 	(building-type-count market > 0)
-	(food-amount >= 1200)
+	(food-amount >= 1100)
 =>
 	(acknowledge-taunt 3 3)
-	(tribute-to-player 3 food 200)
-	(chat-to-allies "Sending 200 food to player 3")
+	(tribute-to-player 3 food 100)
+	(up-chat-data-to-all "Sending 100 food to player %d" c: 3)
 )
-
 (defrule
 	(taunt-detected 4 3)
+	(up-compare-goal gl-self-player-number c:!= 4)
 	(stance-toward 4 ally)
 	(building-type-count market > 0)
-	(food-amount >= 1200)
+	(food-amount >= 1100)
 =>
 	(acknowledge-taunt 4 3)
-	(tribute-to-player 4 food 200)
-	(chat-to-allies "Sending 200 food to player 4")
+	(tribute-to-player 4 food 100)
+	(up-chat-data-to-all "Sending 100 food to player %d" c: 4)
 )
-
 (defrule
 	(taunt-detected 5 3)
+	(up-compare-goal gl-self-player-number c:!= 5)
 	(stance-toward 5 ally)
 	(building-type-count market > 0)
-	(food-amount >= 1200)
+	(food-amount >= 1100)
 =>
 	(acknowledge-taunt 5 3)
-	(tribute-to-player 5 food 200)
-	(chat-to-allies "Sending 200 food to player 5")
+	(tribute-to-player 5 food 100)
+	(up-chat-data-to-all "Sending 100 food to player %d" c: 5)
 )
-
 (defrule
 	(taunt-detected 6 3)
+	(up-compare-goal gl-self-player-number c:!= 6)
 	(stance-toward 6 ally)
 	(building-type-count market > 0)
-	(food-amount >= 1200)
+	(food-amount >= 1100)
 =>
 	(acknowledge-taunt 6 3)
-	(tribute-to-player 6 food 200)
-	(chat-to-allies "Sending 200 food to player 6")
+	(tribute-to-player 6 food 100)
+	(up-chat-data-to-all "Sending 100 food to player %d" c: 6)
 )
-
 (defrule
 	(taunt-detected 7 3)
+	(up-compare-goal gl-self-player-number c:!= 7)
 	(stance-toward 7 ally)
 	(building-type-count market > 0)
-	(food-amount >= 1200)
+	(food-amount >= 1100)
 =>
 	(acknowledge-taunt 7 3)
-	(tribute-to-player 7 food 200)
-	(chat-to-allies "Sending 200 food to player 7")
+	(tribute-to-player 7 food 100)
+	(up-chat-data-to-all "Sending 100 food to player %d" c: 7)
 )
-
 (defrule
 	(taunt-detected 8 3)
+	(up-compare-goal gl-self-player-number c:!= 8)
 	(stance-toward 8 ally)
 	(building-type-count market > 0)
-	(food-amount >= 1200)
+	(food-amount >= 1100)
 =>
 	(acknowledge-taunt 8 3)
-	(tribute-to-player 8 food 200)
-	(chat-to-allies "Sending 200 food to player 8")
+	(tribute-to-player 8 food 100)
+	(up-chat-data-to-all "Sending 100 food to player %d" c: 8)
 )
-
 (defrule
 	(taunt-detected 1 4)
+	(up-compare-goal gl-self-player-number c:!= 1)
 	(stance-toward 1 ally)
 	(building-type-count market > 0)
-	(wood-amount >= 800)
+	(wood-amount >= 700)
 =>
 	(acknowledge-taunt 1 4)
-	(tribute-to-player 1 wood 200)
-	(chat-to-allies "Sending 200 wood to player 1")
+	(tribute-to-player 1 wood 100)
+	(up-chat-data-to-all "Sending 100 wood to player %d" c: 1)
 )
-
 (defrule
 	(taunt-detected 2 4)
+	(up-compare-goal gl-self-player-number c:!= 2)
 	(stance-toward 2 ally)
 	(building-type-count market > 0)
-	(wood-amount >= 800)
+	(wood-amount >= 700)
 =>
 	(acknowledge-taunt 2 4)
-	(tribute-to-player 2 wood 200)
-	(chat-to-allies "Sending 200 wood to player 2")
+	(tribute-to-player 2 wood 100)
+	(up-chat-data-to-all "Sending 100 wood to player %d" c: 2)
 )
-
 (defrule
 	(taunt-detected 3 4)
+	(up-compare-goal gl-self-player-number c:!= 3)
 	(stance-toward 3 ally)
 	(building-type-count market > 0)
-	(wood-amount >= 800)
+	(wood-amount >= 700)
 =>
 	(acknowledge-taunt 3 4)
-	(tribute-to-player 3 wood 200)
-	(chat-to-allies "Sending 200 wood to player 3")
+	(tribute-to-player 3 wood 100)
+	(up-chat-data-to-all "Sending 100 wood to player %d" c: 3)
 )
-
 (defrule
 	(taunt-detected 4 4)
+	(up-compare-goal gl-self-player-number c:!= 4)
 	(stance-toward 4 ally)
 	(building-type-count market > 0)
-	(wood-amount >= 800)
+	(wood-amount >= 700)
 =>
 	(acknowledge-taunt 4 4)
-	(tribute-to-player 4 wood 200)
-	(chat-to-allies "Sending 200 wood to player 4")
+	(tribute-to-player 4 wood 100)
+	(up-chat-data-to-all "Sending 100 wood to player %d" c: 4)
 )
-
 (defrule
 	(taunt-detected 5 4)
+	(up-compare-goal gl-self-player-number c:!= 5)
 	(stance-toward 5 ally)
 	(building-type-count market > 0)
-	(wood-amount >= 800)
+	(wood-amount >= 700)
 =>
 	(acknowledge-taunt 5 4)
-	(tribute-to-player 5 wood 200)
-	(chat-to-allies "Sending 200 wood to player 5")
+	(tribute-to-player 5 wood 100)
+	(up-chat-data-to-all "Sending 100 wood to player %d" c: 5)
 )
-
 (defrule
 	(taunt-detected 6 4)
+	(up-compare-goal gl-self-player-number c:!= 6)
 	(stance-toward 6 ally)
 	(building-type-count market > 0)
-	(wood-amount >= 800)
+	(wood-amount >= 700)
 =>
 	(acknowledge-taunt 6 4)
-	(tribute-to-player 6 wood 200)
-	(chat-to-allies "Sending 200 wood to player 6")
+	(tribute-to-player 6 wood 100)
+	(up-chat-data-to-all "Sending 100 wood to player %d" c: 6)
 )
-
 (defrule
 	(taunt-detected 7 4)
+	(up-compare-goal gl-self-player-number c:!= 7)
 	(stance-toward 7 ally)
 	(building-type-count market > 0)
-	(wood-amount >= 800)
+	(wood-amount >= 700)
 =>
 	(acknowledge-taunt 7 4)
-	(tribute-to-player 7 wood 200)
-	(chat-to-allies "Sending 200 wood to player 7")
+	(tribute-to-player 7 wood 100)
+	(up-chat-data-to-all "Sending 100 wood to player %d" c: 7)
 )
-
 (defrule
 	(taunt-detected 8 4)
+	(up-compare-goal gl-self-player-number c:!= 8)
 	(stance-toward 8 ally)
 	(building-type-count market > 0)
-	(wood-amount >= 800)
+	(wood-amount >= 700)
 =>
 	(acknowledge-taunt 8 4)
-	(tribute-to-player 8 wood 200)
-	(chat-to-allies "Sending 200 wood to player 8")
+	(tribute-to-player 8 wood 100)
+	(up-chat-data-to-all "Sending 100 wood to player %d" c: 8)
 )
-
 (defrule
 	(current-age < imperial-age)
 	(taunt-detected 1 5)
+	(up-compare-goal gl-self-player-number c:!= 1)
 	(stance-toward 1 ally)
 	(building-type-count market > 0)
-	(gold-amount >= 1000)
+	(gold-amount >= 900)
 =>
 	(acknowledge-taunt 1 5)
-	(tribute-to-player 1 gold 200)
-	(chat-to-allies "Sending 200 gold to player 1")
+	(tribute-to-player 1 gold 100)
+	(up-chat-data-to-all "Sending 100 gold to player %d" c: 1)
 )
-
-(defrule
-	(current-age < imperial-age)
-	(taunt-detected 2 5)
-	(stance-toward 2 ally)
-	(building-type-count market > 0)
-	(gold-amount >= 1000)
-=>
-	(acknowledge-taunt 2 5)
-	(tribute-to-player 2 gold 200)
-	(chat-to-allies "Sending 200 gold to player 2")
-)
-
-(defrule
-	(current-age < imperial-age)
-	(taunt-detected 3 5)
-	(stance-toward 3 ally)
-	(building-type-count market > 0)
-	(gold-amount >= 1000)
-=>
-	(acknowledge-taunt 3 5)
-	(tribute-to-player 3 gold 200)
-	(chat-to-allies "Sending 200 gold to player 3")
-)
-
-(defrule
-	(current-age < imperial-age)
-	(taunt-detected 4 5)
-	(stance-toward 4 ally)
-	(building-type-count market > 0)
-	(gold-amount >= 1000)
-=>
-	(acknowledge-taunt 4 5)
-	(tribute-to-player 4 gold 200)
-	(chat-to-allies "Sending 200 gold to player 4")
-)
-
-(defrule
-	(current-age < imperial-age)
-	(taunt-detected 5 5)
-	(stance-toward 5 ally)
-	(building-type-count market > 0)
-	(gold-amount >= 1000)
-=>
-	(acknowledge-taunt 5 5)
-	(tribute-to-player 5 gold 200)
-	(chat-to-allies "Sending 200 gold to player 5")
-)
-
-(defrule
-	(current-age < imperial-age)
-	(taunt-detected 6 5)
-	(stance-toward 6 ally)
-	(building-type-count market > 0)
-	(gold-amount >= 1000)
-=>
-	(acknowledge-taunt 6 5)
-	(tribute-to-player 6 gold 200)
-	(chat-to-allies "Sending 200 gold to player 6")
-)
-
-(defrule
-	(current-age < imperial-age)
-	(taunt-detected 7 5)
-	(stance-toward 7 ally)
-	(building-type-count market > 0)
-	(gold-amount >= 1000)
-=>
-	(acknowledge-taunt 7 5)
-	(tribute-to-player 7 gold 200)
-	(chat-to-allies "Sending 200 gold to player 7")
-)
-
-(defrule
-	(current-age < imperial-age)
-	(taunt-detected 8 5)
-	(stance-toward 8 ally)
-	(building-type-count market > 0)
-	(gold-amount >= 1000)
-=>
-	(acknowledge-taunt 8 5)
-	(tribute-to-player 8 gold 200)
-	(chat-to-allies "Sending 200 gold to player 8")
-)
-
 (defrule
 	(current-age == imperial-age)
 	(taunt-detected 1 5)
+	(up-compare-goal gl-self-player-number c:!= 1)
 	(stance-toward 1 ally)
 	(building-type-count market > 0)
-	(gold-amount >= 700)
+	(gold-amount >= 600)
 =>
 	(acknowledge-taunt 1 5)
-	(tribute-to-player 1 gold 200)
-	(chat-to-allies "Sending 200 gold to player 1")
+	(tribute-to-player 1 gold 100)
+	(up-chat-data-to-all "Sending 100 gold to player %d" c: 1)
 )
-
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 2 5)
+	(up-compare-goal gl-self-player-number c:!= 2)
+	(stance-toward 2 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 900)
+=>
+	(acknowledge-taunt 2 5)
+	(tribute-to-player 2 gold 100)
+	(up-chat-data-to-all "Sending 100 gold to player %d" c: 2)
+)
 (defrule
 	(current-age == imperial-age)
 	(taunt-detected 2 5)
+	(up-compare-goal gl-self-player-number c:!= 2)
 	(stance-toward 2 ally)
 	(building-type-count market > 0)
-	(gold-amount >= 700)
+	(gold-amount >= 600)
 =>
 	(acknowledge-taunt 2 5)
-	(tribute-to-player 2 gold 200)
-	(chat-to-allies "Sending 200 gold to player 2")
+	(tribute-to-player 2 gold 100)
+	(up-chat-data-to-all "Sending 100 gold to player %d" c: 2)
 )
-
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 3 5)
+	(up-compare-goal gl-self-player-number c:!= 3)
+	(stance-toward 3 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 900)
+=>
+	(acknowledge-taunt 3 5)
+	(tribute-to-player 3 gold 100)
+	(up-chat-data-to-all "Sending 100 gold to player %d" c: 3)
+)
 (defrule
 	(current-age == imperial-age)
 	(taunt-detected 3 5)
+	(up-compare-goal gl-self-player-number c:!= 3)
 	(stance-toward 3 ally)
 	(building-type-count market > 0)
-	(gold-amount >= 700)
+	(gold-amount >= 600)
 =>
 	(acknowledge-taunt 3 5)
-	(tribute-to-player 3 gold 200)
-	(chat-to-allies "Sending 200 gold to player 3")
+	(tribute-to-player 3 gold 100)
+	(up-chat-data-to-all "Sending 100 gold to player %d" c: 3)
 )
-
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 4 5)
+	(up-compare-goal gl-self-player-number c:!= 4)
+	(stance-toward 4 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 900)
+=>
+	(acknowledge-taunt 4 5)
+	(tribute-to-player 4 gold 100)
+	(up-chat-data-to-all "Sending 100 gold to player %d" c: 4)
+)
 (defrule
 	(current-age == imperial-age)
 	(taunt-detected 4 5)
+	(up-compare-goal gl-self-player-number c:!= 4)
 	(stance-toward 4 ally)
 	(building-type-count market > 0)
-	(gold-amount >= 700)
+	(gold-amount >= 600)
 =>
 	(acknowledge-taunt 4 5)
-	(tribute-to-player 4 gold 200)
-	(chat-to-allies "Sending 200 gold to player 4")
+	(tribute-to-player 4 gold 100)
+	(up-chat-data-to-all "Sending 100 gold to player %d" c: 4)
 )
-
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 5 5)
+	(up-compare-goal gl-self-player-number c:!= 5)
+	(stance-toward 5 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 900)
+=>
+	(acknowledge-taunt 5 5)
+	(tribute-to-player 5 gold 100)
+	(up-chat-data-to-all "Sending 100 gold to player %d" c: 5)
+)
 (defrule
 	(current-age == imperial-age)
 	(taunt-detected 5 5)
+	(up-compare-goal gl-self-player-number c:!= 5)
 	(stance-toward 5 ally)
 	(building-type-count market > 0)
-	(gold-amount >= 700)
+	(gold-amount >= 600)
 =>
 	(acknowledge-taunt 5 5)
-	(tribute-to-player 5 gold 200)
-	(chat-to-allies "Sending 200 gold to player 5")
+	(tribute-to-player 5 gold 100)
+	(up-chat-data-to-all "Sending 100 gold to player %d" c: 5)
 )
-
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 6 5)
+	(up-compare-goal gl-self-player-number c:!= 6)
+	(stance-toward 6 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 900)
+=>
+	(acknowledge-taunt 6 5)
+	(tribute-to-player 6 gold 100)
+	(up-chat-data-to-all "Sending 100 gold to player %d" c: 6)
+)
 (defrule
 	(current-age == imperial-age)
 	(taunt-detected 6 5)
+	(up-compare-goal gl-self-player-number c:!= 6)
 	(stance-toward 6 ally)
 	(building-type-count market > 0)
-	(gold-amount >= 700)
+	(gold-amount >= 600)
 =>
 	(acknowledge-taunt 6 5)
-	(tribute-to-player 6 gold 200)
-	(chat-to-allies "Sending 200 gold to player 6")
+	(tribute-to-player 6 gold 100)
+	(up-chat-data-to-all "Sending 100 gold to player %d" c: 6)
 )
-
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 7 5)
+	(up-compare-goal gl-self-player-number c:!= 7)
+	(stance-toward 7 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 900)
+=>
+	(acknowledge-taunt 7 5)
+	(tribute-to-player 7 gold 100)
+	(up-chat-data-to-all "Sending 100 gold to player %d" c: 7)
+)
 (defrule
 	(current-age == imperial-age)
 	(taunt-detected 7 5)
+	(up-compare-goal gl-self-player-number c:!= 7)
 	(stance-toward 7 ally)
 	(building-type-count market > 0)
-	(gold-amount >= 700)
+	(gold-amount >= 600)
 =>
 	(acknowledge-taunt 7 5)
-	(tribute-to-player 7 gold 200)
-	(chat-to-allies "Sending 200 gold to player 7")
+	(tribute-to-player 7 gold 100)
+	(up-chat-data-to-all "Sending 100 gold to player %d" c: 7)
 )
-
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 8 5)
+	(up-compare-goal gl-self-player-number c:!= 8)
+	(stance-toward 8 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 900)
+=>
+	(acknowledge-taunt 8 5)
+	(tribute-to-player 8 gold 100)
+	(up-chat-data-to-all "Sending 100 gold to player %d" c: 8)
+)
 (defrule
 	(current-age == imperial-age)
 	(taunt-detected 8 5)
+	(up-compare-goal gl-self-player-number c:!= 8)
 	(stance-toward 8 ally)
 	(building-type-count market > 0)
-	(gold-amount >= 700)
+	(gold-amount >= 600)
 =>
 	(acknowledge-taunt 8 5)
-	(tribute-to-player 8 gold 200)
-	(chat-to-allies "Sending 200 gold to player 8")
+	(tribute-to-player 8 gold 100)
+	(up-chat-data-to-all "Sending 100 gold to player %d" c: 8)
 )
-
 (defrule
 	(taunt-detected 1 6)
+	(up-compare-goal gl-self-player-number c:!= 1)
 	(stance-toward 1 ally)
 	(building-type-count market > 0)
-	(stone-amount >= 800)
+	(stone-amount >= 700)
 =>
 	(acknowledge-taunt 1 6)
-	(tribute-to-player 1 stone 200)
-	(chat-to-allies "Sending 200 stone to player 1")
+	(tribute-to-player 1 stone 100)
+	(up-chat-data-to-all "Sending 100 stone to player %d" c: 1)
 )
-
 (defrule
 	(taunt-detected 2 6)
+	(up-compare-goal gl-self-player-number c:!= 2)
 	(stance-toward 2 ally)
 	(building-type-count market > 0)
-	(stone-amount >= 800)
+	(stone-amount >= 700)
 =>
 	(acknowledge-taunt 2 6)
-	(tribute-to-player 2 stone 200)
-	(chat-to-allies "Sending 200 stone to player 2")
+	(tribute-to-player 2 stone 100)
+	(up-chat-data-to-all "Sending 100 stone to player %d" c: 2)
 )
-
 (defrule
 	(taunt-detected 3 6)
+	(up-compare-goal gl-self-player-number c:!= 3)
 	(stance-toward 3 ally)
 	(building-type-count market > 0)
-	(stone-amount >= 800)
+	(stone-amount >= 700)
 =>
 	(acknowledge-taunt 3 6)
-	(tribute-to-player 3 stone 200)
-	(chat-to-allies "Sending 200 stone to player 3")
+	(tribute-to-player 3 stone 100)
+	(up-chat-data-to-all "Sending 100 stone to player %d" c: 3)
 )
-
 (defrule
 	(taunt-detected 4 6)
+	(up-compare-goal gl-self-player-number c:!= 4)
 	(stance-toward 4 ally)
 	(building-type-count market > 0)
-	(stone-amount >= 800)
+	(stone-amount >= 700)
 =>
 	(acknowledge-taunt 4 6)
-	(tribute-to-player 4 stone 200)
-	(chat-to-allies "Sending 200 stone to player 4")
+	(tribute-to-player 4 stone 100)
+	(up-chat-data-to-all "Sending 100 stone to player %d" c: 4)
 )
-
 (defrule
 	(taunt-detected 5 6)
+	(up-compare-goal gl-self-player-number c:!= 5)
 	(stance-toward 5 ally)
 	(building-type-count market > 0)
-	(stone-amount >= 800)
+	(stone-amount >= 700)
 =>
 	(acknowledge-taunt 5 6)
-	(tribute-to-player 5 stone 200)
-	(chat-to-allies "Sending 200 stone to player 5")
+	(tribute-to-player 5 stone 100)
+	(up-chat-data-to-all "Sending 100 stone to player %d" c: 5)
 )
-
 (defrule
 	(taunt-detected 6 6)
+	(up-compare-goal gl-self-player-number c:!= 6)
 	(stance-toward 6 ally)
 	(building-type-count market > 0)
-	(stone-amount >= 800)
+	(stone-amount >= 700)
 =>
 	(acknowledge-taunt 6 6)
-	(tribute-to-player 6 stone 200)
-	(chat-to-allies "Sending 200 stone to player 6")
+	(tribute-to-player 6 stone 100)
+	(up-chat-data-to-all "Sending 100 stone to player %d" c: 6)
 )
-
 (defrule
 	(taunt-detected 7 6)
+	(up-compare-goal gl-self-player-number c:!= 7)
 	(stance-toward 7 ally)
 	(building-type-count market > 0)
-	(stone-amount >= 800)
+	(stone-amount >= 700)
 =>
 	(acknowledge-taunt 7 6)
-	(tribute-to-player 7 stone 200)
-	(chat-to-allies "Sending 200 stone to player 7")
+	(tribute-to-player 7 stone 100)
+	(up-chat-data-to-all "Sending 100 stone to player %d" c: 7)
 )
-
 (defrule
 	(taunt-detected 8 6)
+	(up-compare-goal gl-self-player-number c:!= 8)
 	(stance-toward 8 ally)
 	(building-type-count market > 0)
-	(stone-amount >= 800)
+	(stone-amount >= 700)
 =>
 	(acknowledge-taunt 8 6)
-	(tribute-to-player 8 stone 200)
-	(chat-to-allies "Sending 200 stone to player 8")
+	(tribute-to-player 8 stone 100)
+	(up-chat-data-to-all "Sending 100 stone to player %d" c: 8)
+)
+;500-resource donor handlers
+(defrule
+	(taunt-detected 1 TAUNT-REQUEST-FOOD-500)
+	(up-compare-goal gl-self-player-number c:!= 1)
+	(stance-toward 1 ally)
+	(building-type-count market > 0)
+	(food-amount >= 1500)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-FOOD-500)
+	(tribute-to-player 1 food 500)
+	(up-chat-data-to-all "Sending 500 food to player %d" c: 1)
+)
+(defrule
+	(taunt-detected 2 TAUNT-REQUEST-FOOD-500)
+	(up-compare-goal gl-self-player-number c:!= 2)
+	(stance-toward 2 ally)
+	(building-type-count market > 0)
+	(food-amount >= 1500)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-FOOD-500)
+	(tribute-to-player 2 food 500)
+	(up-chat-data-to-all "Sending 500 food to player %d" c: 2)
+)
+(defrule
+	(taunt-detected 3 TAUNT-REQUEST-FOOD-500)
+	(up-compare-goal gl-self-player-number c:!= 3)
+	(stance-toward 3 ally)
+	(building-type-count market > 0)
+	(food-amount >= 1500)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-FOOD-500)
+	(tribute-to-player 3 food 500)
+	(up-chat-data-to-all "Sending 500 food to player %d" c: 3)
+)
+(defrule
+	(taunt-detected 4 TAUNT-REQUEST-FOOD-500)
+	(up-compare-goal gl-self-player-number c:!= 4)
+	(stance-toward 4 ally)
+	(building-type-count market > 0)
+	(food-amount >= 1500)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-FOOD-500)
+	(tribute-to-player 4 food 500)
+	(up-chat-data-to-all "Sending 500 food to player %d" c: 4)
+)
+(defrule
+	(taunt-detected 5 TAUNT-REQUEST-FOOD-500)
+	(up-compare-goal gl-self-player-number c:!= 5)
+	(stance-toward 5 ally)
+	(building-type-count market > 0)
+	(food-amount >= 1500)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-FOOD-500)
+	(tribute-to-player 5 food 500)
+	(up-chat-data-to-all "Sending 500 food to player %d" c: 5)
+)
+(defrule
+	(taunt-detected 6 TAUNT-REQUEST-FOOD-500)
+	(up-compare-goal gl-self-player-number c:!= 6)
+	(stance-toward 6 ally)
+	(building-type-count market > 0)
+	(food-amount >= 1500)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-FOOD-500)
+	(tribute-to-player 6 food 500)
+	(up-chat-data-to-all "Sending 500 food to player %d" c: 6)
+)
+(defrule
+	(taunt-detected 7 TAUNT-REQUEST-FOOD-500)
+	(up-compare-goal gl-self-player-number c:!= 7)
+	(stance-toward 7 ally)
+	(building-type-count market > 0)
+	(food-amount >= 1500)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-FOOD-500)
+	(tribute-to-player 7 food 500)
+	(up-chat-data-to-all "Sending 500 food to player %d" c: 7)
+)
+(defrule
+	(taunt-detected 8 TAUNT-REQUEST-FOOD-500)
+	(up-compare-goal gl-self-player-number c:!= 8)
+	(stance-toward 8 ally)
+	(building-type-count market > 0)
+	(food-amount >= 1500)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-FOOD-500)
+	(tribute-to-player 8 food 500)
+	(up-chat-data-to-all "Sending 500 food to player %d" c: 8)
+)
+(defrule
+	(taunt-detected 1 TAUNT-REQUEST-WOOD-500)
+	(up-compare-goal gl-self-player-number c:!= 1)
+	(stance-toward 1 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 1100)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-WOOD-500)
+	(tribute-to-player 1 wood 500)
+	(up-chat-data-to-all "Sending 500 wood to player %d" c: 1)
+)
+(defrule
+	(taunt-detected 2 TAUNT-REQUEST-WOOD-500)
+	(up-compare-goal gl-self-player-number c:!= 2)
+	(stance-toward 2 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 1100)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-WOOD-500)
+	(tribute-to-player 2 wood 500)
+	(up-chat-data-to-all "Sending 500 wood to player %d" c: 2)
+)
+(defrule
+	(taunt-detected 3 TAUNT-REQUEST-WOOD-500)
+	(up-compare-goal gl-self-player-number c:!= 3)
+	(stance-toward 3 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 1100)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-WOOD-500)
+	(tribute-to-player 3 wood 500)
+	(up-chat-data-to-all "Sending 500 wood to player %d" c: 3)
+)
+(defrule
+	(taunt-detected 4 TAUNT-REQUEST-WOOD-500)
+	(up-compare-goal gl-self-player-number c:!= 4)
+	(stance-toward 4 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 1100)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-WOOD-500)
+	(tribute-to-player 4 wood 500)
+	(up-chat-data-to-all "Sending 500 wood to player %d" c: 4)
+)
+(defrule
+	(taunt-detected 5 TAUNT-REQUEST-WOOD-500)
+	(up-compare-goal gl-self-player-number c:!= 5)
+	(stance-toward 5 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 1100)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-WOOD-500)
+	(tribute-to-player 5 wood 500)
+	(up-chat-data-to-all "Sending 500 wood to player %d" c: 5)
+)
+(defrule
+	(taunt-detected 6 TAUNT-REQUEST-WOOD-500)
+	(up-compare-goal gl-self-player-number c:!= 6)
+	(stance-toward 6 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 1100)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-WOOD-500)
+	(tribute-to-player 6 wood 500)
+	(up-chat-data-to-all "Sending 500 wood to player %d" c: 6)
+)
+(defrule
+	(taunt-detected 7 TAUNT-REQUEST-WOOD-500)
+	(up-compare-goal gl-self-player-number c:!= 7)
+	(stance-toward 7 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 1100)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-WOOD-500)
+	(tribute-to-player 7 wood 500)
+	(up-chat-data-to-all "Sending 500 wood to player %d" c: 7)
+)
+(defrule
+	(taunt-detected 8 TAUNT-REQUEST-WOOD-500)
+	(up-compare-goal gl-self-player-number c:!= 8)
+	(stance-toward 8 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 1100)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-WOOD-500)
+	(tribute-to-player 8 wood 500)
+	(up-chat-data-to-all "Sending 500 wood to player %d" c: 8)
+)
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 1 TAUNT-REQUEST-GOLD-500)
+	(up-compare-goal gl-self-player-number c:!= 1)
+	(stance-toward 1 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1300)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-GOLD-500)
+	(tribute-to-player 1 gold 500)
+	(up-chat-data-to-all "Sending 500 gold to player %d" c: 1)
+)
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 1 TAUNT-REQUEST-GOLD-500)
+	(up-compare-goal gl-self-player-number c:!= 1)
+	(stance-toward 1 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1000)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-GOLD-500)
+	(tribute-to-player 1 gold 500)
+	(up-chat-data-to-all "Sending 500 gold to player %d" c: 1)
+)
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 2 TAUNT-REQUEST-GOLD-500)
+	(up-compare-goal gl-self-player-number c:!= 2)
+	(stance-toward 2 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1300)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-GOLD-500)
+	(tribute-to-player 2 gold 500)
+	(up-chat-data-to-all "Sending 500 gold to player %d" c: 2)
+)
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 2 TAUNT-REQUEST-GOLD-500)
+	(up-compare-goal gl-self-player-number c:!= 2)
+	(stance-toward 2 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1000)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-GOLD-500)
+	(tribute-to-player 2 gold 500)
+	(up-chat-data-to-all "Sending 500 gold to player %d" c: 2)
+)
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 3 TAUNT-REQUEST-GOLD-500)
+	(up-compare-goal gl-self-player-number c:!= 3)
+	(stance-toward 3 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1300)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-GOLD-500)
+	(tribute-to-player 3 gold 500)
+	(up-chat-data-to-all "Sending 500 gold to player %d" c: 3)
+)
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 3 TAUNT-REQUEST-GOLD-500)
+	(up-compare-goal gl-self-player-number c:!= 3)
+	(stance-toward 3 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1000)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-GOLD-500)
+	(tribute-to-player 3 gold 500)
+	(up-chat-data-to-all "Sending 500 gold to player %d" c: 3)
+)
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 4 TAUNT-REQUEST-GOLD-500)
+	(up-compare-goal gl-self-player-number c:!= 4)
+	(stance-toward 4 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1300)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-GOLD-500)
+	(tribute-to-player 4 gold 500)
+	(up-chat-data-to-all "Sending 500 gold to player %d" c: 4)
+)
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 4 TAUNT-REQUEST-GOLD-500)
+	(up-compare-goal gl-self-player-number c:!= 4)
+	(stance-toward 4 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1000)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-GOLD-500)
+	(tribute-to-player 4 gold 500)
+	(up-chat-data-to-all "Sending 500 gold to player %d" c: 4)
+)
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 5 TAUNT-REQUEST-GOLD-500)
+	(up-compare-goal gl-self-player-number c:!= 5)
+	(stance-toward 5 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1300)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-GOLD-500)
+	(tribute-to-player 5 gold 500)
+	(up-chat-data-to-all "Sending 500 gold to player %d" c: 5)
+)
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 5 TAUNT-REQUEST-GOLD-500)
+	(up-compare-goal gl-self-player-number c:!= 5)
+	(stance-toward 5 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1000)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-GOLD-500)
+	(tribute-to-player 5 gold 500)
+	(up-chat-data-to-all "Sending 500 gold to player %d" c: 5)
+)
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 6 TAUNT-REQUEST-GOLD-500)
+	(up-compare-goal gl-self-player-number c:!= 6)
+	(stance-toward 6 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1300)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-GOLD-500)
+	(tribute-to-player 6 gold 500)
+	(up-chat-data-to-all "Sending 500 gold to player %d" c: 6)
+)
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 6 TAUNT-REQUEST-GOLD-500)
+	(up-compare-goal gl-self-player-number c:!= 6)
+	(stance-toward 6 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1000)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-GOLD-500)
+	(tribute-to-player 6 gold 500)
+	(up-chat-data-to-all "Sending 500 gold to player %d" c: 6)
+)
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 7 TAUNT-REQUEST-GOLD-500)
+	(up-compare-goal gl-self-player-number c:!= 7)
+	(stance-toward 7 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1300)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-GOLD-500)
+	(tribute-to-player 7 gold 500)
+	(up-chat-data-to-all "Sending 500 gold to player %d" c: 7)
+)
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 7 TAUNT-REQUEST-GOLD-500)
+	(up-compare-goal gl-self-player-number c:!= 7)
+	(stance-toward 7 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1000)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-GOLD-500)
+	(tribute-to-player 7 gold 500)
+	(up-chat-data-to-all "Sending 500 gold to player %d" c: 7)
+)
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 8 TAUNT-REQUEST-GOLD-500)
+	(up-compare-goal gl-self-player-number c:!= 8)
+	(stance-toward 8 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1300)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-GOLD-500)
+	(tribute-to-player 8 gold 500)
+	(up-chat-data-to-all "Sending 500 gold to player %d" c: 8)
+)
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 8 TAUNT-REQUEST-GOLD-500)
+	(up-compare-goal gl-self-player-number c:!= 8)
+	(stance-toward 8 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1000)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-GOLD-500)
+	(tribute-to-player 8 gold 500)
+	(up-chat-data-to-all "Sending 500 gold to player %d" c: 8)
+)
+(defrule
+	(taunt-detected 1 TAUNT-REQUEST-STONE-500)
+	(up-compare-goal gl-self-player-number c:!= 1)
+	(stance-toward 1 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 1100)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-STONE-500)
+	(tribute-to-player 1 stone 500)
+	(up-chat-data-to-all "Sending 500 stone to player %d" c: 1)
+)
+(defrule
+	(taunt-detected 2 TAUNT-REQUEST-STONE-500)
+	(up-compare-goal gl-self-player-number c:!= 2)
+	(stance-toward 2 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 1100)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-STONE-500)
+	(tribute-to-player 2 stone 500)
+	(up-chat-data-to-all "Sending 500 stone to player %d" c: 2)
+)
+(defrule
+	(taunt-detected 3 TAUNT-REQUEST-STONE-500)
+	(up-compare-goal gl-self-player-number c:!= 3)
+	(stance-toward 3 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 1100)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-STONE-500)
+	(tribute-to-player 3 stone 500)
+	(up-chat-data-to-all "Sending 500 stone to player %d" c: 3)
+)
+(defrule
+	(taunt-detected 4 TAUNT-REQUEST-STONE-500)
+	(up-compare-goal gl-self-player-number c:!= 4)
+	(stance-toward 4 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 1100)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-STONE-500)
+	(tribute-to-player 4 stone 500)
+	(up-chat-data-to-all "Sending 500 stone to player %d" c: 4)
+)
+(defrule
+	(taunt-detected 5 TAUNT-REQUEST-STONE-500)
+	(up-compare-goal gl-self-player-number c:!= 5)
+	(stance-toward 5 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 1100)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-STONE-500)
+	(tribute-to-player 5 stone 500)
+	(up-chat-data-to-all "Sending 500 stone to player %d" c: 5)
+)
+(defrule
+	(taunt-detected 6 TAUNT-REQUEST-STONE-500)
+	(up-compare-goal gl-self-player-number c:!= 6)
+	(stance-toward 6 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 1100)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-STONE-500)
+	(tribute-to-player 6 stone 500)
+	(up-chat-data-to-all "Sending 500 stone to player %d" c: 6)
+)
+(defrule
+	(taunt-detected 7 TAUNT-REQUEST-STONE-500)
+	(up-compare-goal gl-self-player-number c:!= 7)
+	(stance-toward 7 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 1100)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-STONE-500)
+	(tribute-to-player 7 stone 500)
+	(up-chat-data-to-all "Sending 500 stone to player %d" c: 7)
+)
+(defrule
+	(taunt-detected 8 TAUNT-REQUEST-STONE-500)
+	(up-compare-goal gl-self-player-number c:!= 8)
+	(stance-toward 8 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 1100)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-STONE-500)
+	(tribute-to-player 8 stone 500)
+	(up-chat-data-to-all "Sending 500 stone to player %d" c: 8)
+)
+;1000-resource donor handlers
+(defrule
+	(taunt-detected 1 TAUNT-REQUEST-FOOD-1000)
+	(up-compare-goal gl-self-player-number c:!= 1)
+	(stance-toward 1 ally)
+	(building-type-count market > 0)
+	(food-amount >= 2000)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-FOOD-1000)
+	(tribute-to-player 1 food 1000)
+	(up-chat-data-to-all "Sending 1000 food to player %d" c: 1)
+)
+(defrule
+	(taunt-detected 2 TAUNT-REQUEST-FOOD-1000)
+	(up-compare-goal gl-self-player-number c:!= 2)
+	(stance-toward 2 ally)
+	(building-type-count market > 0)
+	(food-amount >= 2000)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-FOOD-1000)
+	(tribute-to-player 2 food 1000)
+	(up-chat-data-to-all "Sending 1000 food to player %d" c: 2)
+)
+(defrule
+	(taunt-detected 3 TAUNT-REQUEST-FOOD-1000)
+	(up-compare-goal gl-self-player-number c:!= 3)
+	(stance-toward 3 ally)
+	(building-type-count market > 0)
+	(food-amount >= 2000)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-FOOD-1000)
+	(tribute-to-player 3 food 1000)
+	(up-chat-data-to-all "Sending 1000 food to player %d" c: 3)
+)
+(defrule
+	(taunt-detected 4 TAUNT-REQUEST-FOOD-1000)
+	(up-compare-goal gl-self-player-number c:!= 4)
+	(stance-toward 4 ally)
+	(building-type-count market > 0)
+	(food-amount >= 2000)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-FOOD-1000)
+	(tribute-to-player 4 food 1000)
+	(up-chat-data-to-all "Sending 1000 food to player %d" c: 4)
+)
+(defrule
+	(taunt-detected 5 TAUNT-REQUEST-FOOD-1000)
+	(up-compare-goal gl-self-player-number c:!= 5)
+	(stance-toward 5 ally)
+	(building-type-count market > 0)
+	(food-amount >= 2000)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-FOOD-1000)
+	(tribute-to-player 5 food 1000)
+	(up-chat-data-to-all "Sending 1000 food to player %d" c: 5)
+)
+(defrule
+	(taunt-detected 6 TAUNT-REQUEST-FOOD-1000)
+	(up-compare-goal gl-self-player-number c:!= 6)
+	(stance-toward 6 ally)
+	(building-type-count market > 0)
+	(food-amount >= 2000)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-FOOD-1000)
+	(tribute-to-player 6 food 1000)
+	(up-chat-data-to-all "Sending 1000 food to player %d" c: 6)
+)
+(defrule
+	(taunt-detected 7 TAUNT-REQUEST-FOOD-1000)
+	(up-compare-goal gl-self-player-number c:!= 7)
+	(stance-toward 7 ally)
+	(building-type-count market > 0)
+	(food-amount >= 2000)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-FOOD-1000)
+	(tribute-to-player 7 food 1000)
+	(up-chat-data-to-all "Sending 1000 food to player %d" c: 7)
+)
+(defrule
+	(taunt-detected 8 TAUNT-REQUEST-FOOD-1000)
+	(up-compare-goal gl-self-player-number c:!= 8)
+	(stance-toward 8 ally)
+	(building-type-count market > 0)
+	(food-amount >= 2000)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-FOOD-1000)
+	(tribute-to-player 8 food 1000)
+	(up-chat-data-to-all "Sending 1000 food to player %d" c: 8)
+)
+(defrule
+	(taunt-detected 1 TAUNT-REQUEST-WOOD-1000)
+	(up-compare-goal gl-self-player-number c:!= 1)
+	(stance-toward 1 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 1600)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-WOOD-1000)
+	(tribute-to-player 1 wood 1000)
+	(up-chat-data-to-all "Sending 1000 wood to player %d" c: 1)
+)
+(defrule
+	(taunt-detected 2 TAUNT-REQUEST-WOOD-1000)
+	(up-compare-goal gl-self-player-number c:!= 2)
+	(stance-toward 2 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 1600)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-WOOD-1000)
+	(tribute-to-player 2 wood 1000)
+	(up-chat-data-to-all "Sending 1000 wood to player %d" c: 2)
+)
+(defrule
+	(taunt-detected 3 TAUNT-REQUEST-WOOD-1000)
+	(up-compare-goal gl-self-player-number c:!= 3)
+	(stance-toward 3 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 1600)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-WOOD-1000)
+	(tribute-to-player 3 wood 1000)
+	(up-chat-data-to-all "Sending 1000 wood to player %d" c: 3)
+)
+(defrule
+	(taunt-detected 4 TAUNT-REQUEST-WOOD-1000)
+	(up-compare-goal gl-self-player-number c:!= 4)
+	(stance-toward 4 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 1600)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-WOOD-1000)
+	(tribute-to-player 4 wood 1000)
+	(up-chat-data-to-all "Sending 1000 wood to player %d" c: 4)
+)
+(defrule
+	(taunt-detected 5 TAUNT-REQUEST-WOOD-1000)
+	(up-compare-goal gl-self-player-number c:!= 5)
+	(stance-toward 5 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 1600)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-WOOD-1000)
+	(tribute-to-player 5 wood 1000)
+	(up-chat-data-to-all "Sending 1000 wood to player %d" c: 5)
+)
+(defrule
+	(taunt-detected 6 TAUNT-REQUEST-WOOD-1000)
+	(up-compare-goal gl-self-player-number c:!= 6)
+	(stance-toward 6 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 1600)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-WOOD-1000)
+	(tribute-to-player 6 wood 1000)
+	(up-chat-data-to-all "Sending 1000 wood to player %d" c: 6)
+)
+(defrule
+	(taunt-detected 7 TAUNT-REQUEST-WOOD-1000)
+	(up-compare-goal gl-self-player-number c:!= 7)
+	(stance-toward 7 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 1600)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-WOOD-1000)
+	(tribute-to-player 7 wood 1000)
+	(up-chat-data-to-all "Sending 1000 wood to player %d" c: 7)
+)
+(defrule
+	(taunt-detected 8 TAUNT-REQUEST-WOOD-1000)
+	(up-compare-goal gl-self-player-number c:!= 8)
+	(stance-toward 8 ally)
+	(building-type-count market > 0)
+	(wood-amount >= 1600)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-WOOD-1000)
+	(tribute-to-player 8 wood 1000)
+	(up-chat-data-to-all "Sending 1000 wood to player %d" c: 8)
+)
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 1 TAUNT-REQUEST-GOLD-1000)
+	(up-compare-goal gl-self-player-number c:!= 1)
+	(stance-toward 1 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1800)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-GOLD-1000)
+	(tribute-to-player 1 gold 1000)
+	(up-chat-data-to-all "Sending 1000 gold to player %d" c: 1)
+)
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 1 TAUNT-REQUEST-GOLD-1000)
+	(up-compare-goal gl-self-player-number c:!= 1)
+	(stance-toward 1 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1500)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-GOLD-1000)
+	(tribute-to-player 1 gold 1000)
+	(up-chat-data-to-all "Sending 1000 gold to player %d" c: 1)
+)
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 2 TAUNT-REQUEST-GOLD-1000)
+	(up-compare-goal gl-self-player-number c:!= 2)
+	(stance-toward 2 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1800)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-GOLD-1000)
+	(tribute-to-player 2 gold 1000)
+	(up-chat-data-to-all "Sending 1000 gold to player %d" c: 2)
+)
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 2 TAUNT-REQUEST-GOLD-1000)
+	(up-compare-goal gl-self-player-number c:!= 2)
+	(stance-toward 2 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1500)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-GOLD-1000)
+	(tribute-to-player 2 gold 1000)
+	(up-chat-data-to-all "Sending 1000 gold to player %d" c: 2)
+)
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 3 TAUNT-REQUEST-GOLD-1000)
+	(up-compare-goal gl-self-player-number c:!= 3)
+	(stance-toward 3 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1800)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-GOLD-1000)
+	(tribute-to-player 3 gold 1000)
+	(up-chat-data-to-all "Sending 1000 gold to player %d" c: 3)
+)
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 3 TAUNT-REQUEST-GOLD-1000)
+	(up-compare-goal gl-self-player-number c:!= 3)
+	(stance-toward 3 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1500)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-GOLD-1000)
+	(tribute-to-player 3 gold 1000)
+	(up-chat-data-to-all "Sending 1000 gold to player %d" c: 3)
+)
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 4 TAUNT-REQUEST-GOLD-1000)
+	(up-compare-goal gl-self-player-number c:!= 4)
+	(stance-toward 4 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1800)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-GOLD-1000)
+	(tribute-to-player 4 gold 1000)
+	(up-chat-data-to-all "Sending 1000 gold to player %d" c: 4)
+)
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 4 TAUNT-REQUEST-GOLD-1000)
+	(up-compare-goal gl-self-player-number c:!= 4)
+	(stance-toward 4 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1500)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-GOLD-1000)
+	(tribute-to-player 4 gold 1000)
+	(up-chat-data-to-all "Sending 1000 gold to player %d" c: 4)
+)
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 5 TAUNT-REQUEST-GOLD-1000)
+	(up-compare-goal gl-self-player-number c:!= 5)
+	(stance-toward 5 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1800)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-GOLD-1000)
+	(tribute-to-player 5 gold 1000)
+	(up-chat-data-to-all "Sending 1000 gold to player %d" c: 5)
+)
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 5 TAUNT-REQUEST-GOLD-1000)
+	(up-compare-goal gl-self-player-number c:!= 5)
+	(stance-toward 5 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1500)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-GOLD-1000)
+	(tribute-to-player 5 gold 1000)
+	(up-chat-data-to-all "Sending 1000 gold to player %d" c: 5)
+)
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 6 TAUNT-REQUEST-GOLD-1000)
+	(up-compare-goal gl-self-player-number c:!= 6)
+	(stance-toward 6 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1800)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-GOLD-1000)
+	(tribute-to-player 6 gold 1000)
+	(up-chat-data-to-all "Sending 1000 gold to player %d" c: 6)
+)
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 6 TAUNT-REQUEST-GOLD-1000)
+	(up-compare-goal gl-self-player-number c:!= 6)
+	(stance-toward 6 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1500)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-GOLD-1000)
+	(tribute-to-player 6 gold 1000)
+	(up-chat-data-to-all "Sending 1000 gold to player %d" c: 6)
+)
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 7 TAUNT-REQUEST-GOLD-1000)
+	(up-compare-goal gl-self-player-number c:!= 7)
+	(stance-toward 7 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1800)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-GOLD-1000)
+	(tribute-to-player 7 gold 1000)
+	(up-chat-data-to-all "Sending 1000 gold to player %d" c: 7)
+)
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 7 TAUNT-REQUEST-GOLD-1000)
+	(up-compare-goal gl-self-player-number c:!= 7)
+	(stance-toward 7 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1500)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-GOLD-1000)
+	(tribute-to-player 7 gold 1000)
+	(up-chat-data-to-all "Sending 1000 gold to player %d" c: 7)
+)
+(defrule
+	(current-age < imperial-age)
+	(taunt-detected 8 TAUNT-REQUEST-GOLD-1000)
+	(up-compare-goal gl-self-player-number c:!= 8)
+	(stance-toward 8 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1800)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-GOLD-1000)
+	(tribute-to-player 8 gold 1000)
+	(up-chat-data-to-all "Sending 1000 gold to player %d" c: 8)
+)
+(defrule
+	(current-age == imperial-age)
+	(taunt-detected 8 TAUNT-REQUEST-GOLD-1000)
+	(up-compare-goal gl-self-player-number c:!= 8)
+	(stance-toward 8 ally)
+	(building-type-count market > 0)
+	(gold-amount >= 1500)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-GOLD-1000)
+	(tribute-to-player 8 gold 1000)
+	(up-chat-data-to-all "Sending 1000 gold to player %d" c: 8)
+)
+(defrule
+	(taunt-detected 1 TAUNT-REQUEST-STONE-1000)
+	(up-compare-goal gl-self-player-number c:!= 1)
+	(stance-toward 1 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 1600)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-STONE-1000)
+	(tribute-to-player 1 stone 1000)
+	(up-chat-data-to-all "Sending 1000 stone to player %d" c: 1)
+)
+(defrule
+	(taunt-detected 2 TAUNT-REQUEST-STONE-1000)
+	(up-compare-goal gl-self-player-number c:!= 2)
+	(stance-toward 2 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 1600)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-STONE-1000)
+	(tribute-to-player 2 stone 1000)
+	(up-chat-data-to-all "Sending 1000 stone to player %d" c: 2)
+)
+(defrule
+	(taunt-detected 3 TAUNT-REQUEST-STONE-1000)
+	(up-compare-goal gl-self-player-number c:!= 3)
+	(stance-toward 3 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 1600)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-STONE-1000)
+	(tribute-to-player 3 stone 1000)
+	(up-chat-data-to-all "Sending 1000 stone to player %d" c: 3)
+)
+(defrule
+	(taunt-detected 4 TAUNT-REQUEST-STONE-1000)
+	(up-compare-goal gl-self-player-number c:!= 4)
+	(stance-toward 4 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 1600)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-STONE-1000)
+	(tribute-to-player 4 stone 1000)
+	(up-chat-data-to-all "Sending 1000 stone to player %d" c: 4)
+)
+(defrule
+	(taunt-detected 5 TAUNT-REQUEST-STONE-1000)
+	(up-compare-goal gl-self-player-number c:!= 5)
+	(stance-toward 5 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 1600)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-STONE-1000)
+	(tribute-to-player 5 stone 1000)
+	(up-chat-data-to-all "Sending 1000 stone to player %d" c: 5)
+)
+(defrule
+	(taunt-detected 6 TAUNT-REQUEST-STONE-1000)
+	(up-compare-goal gl-self-player-number c:!= 6)
+	(stance-toward 6 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 1600)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-STONE-1000)
+	(tribute-to-player 6 stone 1000)
+	(up-chat-data-to-all "Sending 1000 stone to player %d" c: 6)
+)
+(defrule
+	(taunt-detected 7 TAUNT-REQUEST-STONE-1000)
+	(up-compare-goal gl-self-player-number c:!= 7)
+	(stance-toward 7 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 1600)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-STONE-1000)
+	(tribute-to-player 7 stone 1000)
+	(up-chat-data-to-all "Sending 1000 stone to player %d" c: 7)
+)
+(defrule
+	(taunt-detected 8 TAUNT-REQUEST-STONE-1000)
+	(up-compare-goal gl-self-player-number c:!= 8)
+	(stance-toward 8 ally)
+	(building-type-count market > 0)
+	(stone-amount >= 1600)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-STONE-1000)
+	(tribute-to-player 8 stone 1000)
+	(up-chat-data-to-all "Sending 1000 stone to player %d" c: 8)
+)
+
+;A taunt stays detected until it is acknowledged. These fallbacks deliberately
+;follow every affordable response: when no earlier rule could send aid, consume
+;the request now so it cannot trigger a stale donation after the donor recovers.
+
+;Consume every unfulfilled request this pass; never turn stale taunts into delayed gifts.
+(defrule
+	(taunt-detected 1 3)
+=>
+	(acknowledge-taunt 1 3)
+)
+(defrule
+	(taunt-detected 2 3)
+=>
+	(acknowledge-taunt 2 3)
+)
+(defrule
+	(taunt-detected 3 3)
+=>
+	(acknowledge-taunt 3 3)
+)
+(defrule
+	(taunt-detected 4 3)
+=>
+	(acknowledge-taunt 4 3)
+)
+(defrule
+	(taunt-detected 5 3)
+=>
+	(acknowledge-taunt 5 3)
+)
+(defrule
+	(taunt-detected 6 3)
+=>
+	(acknowledge-taunt 6 3)
+)
+(defrule
+	(taunt-detected 7 3)
+=>
+	(acknowledge-taunt 7 3)
+)
+(defrule
+	(taunt-detected 8 3)
+=>
+	(acknowledge-taunt 8 3)
+)
+(defrule
+	(taunt-detected 1 4)
+=>
+	(acknowledge-taunt 1 4)
+)
+(defrule
+	(taunt-detected 2 4)
+=>
+	(acknowledge-taunt 2 4)
+)
+(defrule
+	(taunt-detected 3 4)
+=>
+	(acknowledge-taunt 3 4)
+)
+(defrule
+	(taunt-detected 4 4)
+=>
+	(acknowledge-taunt 4 4)
+)
+(defrule
+	(taunt-detected 5 4)
+=>
+	(acknowledge-taunt 5 4)
+)
+(defrule
+	(taunt-detected 6 4)
+=>
+	(acknowledge-taunt 6 4)
+)
+(defrule
+	(taunt-detected 7 4)
+=>
+	(acknowledge-taunt 7 4)
+)
+(defrule
+	(taunt-detected 8 4)
+=>
+	(acknowledge-taunt 8 4)
+)
+(defrule
+	(taunt-detected 1 5)
+=>
+	(acknowledge-taunt 1 5)
+)
+(defrule
+	(taunt-detected 2 5)
+=>
+	(acknowledge-taunt 2 5)
+)
+(defrule
+	(taunt-detected 3 5)
+=>
+	(acknowledge-taunt 3 5)
+)
+(defrule
+	(taunt-detected 4 5)
+=>
+	(acknowledge-taunt 4 5)
+)
+(defrule
+	(taunt-detected 5 5)
+=>
+	(acknowledge-taunt 5 5)
+)
+(defrule
+	(taunt-detected 6 5)
+=>
+	(acknowledge-taunt 6 5)
+)
+(defrule
+	(taunt-detected 7 5)
+=>
+	(acknowledge-taunt 7 5)
+)
+(defrule
+	(taunt-detected 8 5)
+=>
+	(acknowledge-taunt 8 5)
+)
+(defrule
+	(taunt-detected 1 6)
+=>
+	(acknowledge-taunt 1 6)
+)
+(defrule
+	(taunt-detected 2 6)
+=>
+	(acknowledge-taunt 2 6)
+)
+(defrule
+	(taunt-detected 3 6)
+=>
+	(acknowledge-taunt 3 6)
+)
+(defrule
+	(taunt-detected 4 6)
+=>
+	(acknowledge-taunt 4 6)
+)
+(defrule
+	(taunt-detected 5 6)
+=>
+	(acknowledge-taunt 5 6)
+)
+(defrule
+	(taunt-detected 6 6)
+=>
+	(acknowledge-taunt 6 6)
+)
+(defrule
+	(taunt-detected 7 6)
+=>
+	(acknowledge-taunt 7 6)
+)
+(defrule
+	(taunt-detected 8 6)
+=>
+	(acknowledge-taunt 8 6)
+)
+(defrule
+	(taunt-detected 1 TAUNT-REQUEST-FOOD-500)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-FOOD-500)
+)
+(defrule
+	(taunt-detected 2 TAUNT-REQUEST-FOOD-500)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-FOOD-500)
+)
+(defrule
+	(taunt-detected 3 TAUNT-REQUEST-FOOD-500)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-FOOD-500)
+)
+(defrule
+	(taunt-detected 4 TAUNT-REQUEST-FOOD-500)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-FOOD-500)
+)
+(defrule
+	(taunt-detected 5 TAUNT-REQUEST-FOOD-500)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-FOOD-500)
+)
+(defrule
+	(taunt-detected 6 TAUNT-REQUEST-FOOD-500)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-FOOD-500)
+)
+(defrule
+	(taunt-detected 7 TAUNT-REQUEST-FOOD-500)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-FOOD-500)
+)
+(defrule
+	(taunt-detected 8 TAUNT-REQUEST-FOOD-500)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-FOOD-500)
+)
+(defrule
+	(taunt-detected 1 TAUNT-REQUEST-WOOD-500)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-WOOD-500)
+)
+(defrule
+	(taunt-detected 2 TAUNT-REQUEST-WOOD-500)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-WOOD-500)
+)
+(defrule
+	(taunt-detected 3 TAUNT-REQUEST-WOOD-500)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-WOOD-500)
+)
+(defrule
+	(taunt-detected 4 TAUNT-REQUEST-WOOD-500)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-WOOD-500)
+)
+(defrule
+	(taunt-detected 5 TAUNT-REQUEST-WOOD-500)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-WOOD-500)
+)
+(defrule
+	(taunt-detected 6 TAUNT-REQUEST-WOOD-500)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-WOOD-500)
+)
+(defrule
+	(taunt-detected 7 TAUNT-REQUEST-WOOD-500)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-WOOD-500)
+)
+(defrule
+	(taunt-detected 8 TAUNT-REQUEST-WOOD-500)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-WOOD-500)
+)
+(defrule
+	(taunt-detected 1 TAUNT-REQUEST-GOLD-500)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-GOLD-500)
+)
+(defrule
+	(taunt-detected 2 TAUNT-REQUEST-GOLD-500)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-GOLD-500)
+)
+(defrule
+	(taunt-detected 3 TAUNT-REQUEST-GOLD-500)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-GOLD-500)
+)
+(defrule
+	(taunt-detected 4 TAUNT-REQUEST-GOLD-500)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-GOLD-500)
+)
+(defrule
+	(taunt-detected 5 TAUNT-REQUEST-GOLD-500)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-GOLD-500)
+)
+(defrule
+	(taunt-detected 6 TAUNT-REQUEST-GOLD-500)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-GOLD-500)
+)
+(defrule
+	(taunt-detected 7 TAUNT-REQUEST-GOLD-500)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-GOLD-500)
+)
+(defrule
+	(taunt-detected 8 TAUNT-REQUEST-GOLD-500)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-GOLD-500)
+)
+(defrule
+	(taunt-detected 1 TAUNT-REQUEST-STONE-500)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-STONE-500)
+)
+(defrule
+	(taunt-detected 2 TAUNT-REQUEST-STONE-500)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-STONE-500)
+)
+(defrule
+	(taunt-detected 3 TAUNT-REQUEST-STONE-500)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-STONE-500)
+)
+(defrule
+	(taunt-detected 4 TAUNT-REQUEST-STONE-500)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-STONE-500)
+)
+(defrule
+	(taunt-detected 5 TAUNT-REQUEST-STONE-500)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-STONE-500)
+)
+(defrule
+	(taunt-detected 6 TAUNT-REQUEST-STONE-500)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-STONE-500)
+)
+(defrule
+	(taunt-detected 7 TAUNT-REQUEST-STONE-500)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-STONE-500)
+)
+(defrule
+	(taunt-detected 8 TAUNT-REQUEST-STONE-500)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-STONE-500)
+)
+(defrule
+	(taunt-detected 1 TAUNT-REQUEST-FOOD-1000)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-FOOD-1000)
+)
+(defrule
+	(taunt-detected 2 TAUNT-REQUEST-FOOD-1000)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-FOOD-1000)
+)
+(defrule
+	(taunt-detected 3 TAUNT-REQUEST-FOOD-1000)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-FOOD-1000)
+)
+(defrule
+	(taunt-detected 4 TAUNT-REQUEST-FOOD-1000)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-FOOD-1000)
+)
+(defrule
+	(taunt-detected 5 TAUNT-REQUEST-FOOD-1000)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-FOOD-1000)
+)
+(defrule
+	(taunt-detected 6 TAUNT-REQUEST-FOOD-1000)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-FOOD-1000)
+)
+(defrule
+	(taunt-detected 7 TAUNT-REQUEST-FOOD-1000)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-FOOD-1000)
+)
+(defrule
+	(taunt-detected 8 TAUNT-REQUEST-FOOD-1000)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-FOOD-1000)
+)
+(defrule
+	(taunt-detected 1 TAUNT-REQUEST-WOOD-1000)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-WOOD-1000)
+)
+(defrule
+	(taunt-detected 2 TAUNT-REQUEST-WOOD-1000)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-WOOD-1000)
+)
+(defrule
+	(taunt-detected 3 TAUNT-REQUEST-WOOD-1000)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-WOOD-1000)
+)
+(defrule
+	(taunt-detected 4 TAUNT-REQUEST-WOOD-1000)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-WOOD-1000)
+)
+(defrule
+	(taunt-detected 5 TAUNT-REQUEST-WOOD-1000)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-WOOD-1000)
+)
+(defrule
+	(taunt-detected 6 TAUNT-REQUEST-WOOD-1000)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-WOOD-1000)
+)
+(defrule
+	(taunt-detected 7 TAUNT-REQUEST-WOOD-1000)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-WOOD-1000)
+)
+(defrule
+	(taunt-detected 8 TAUNT-REQUEST-WOOD-1000)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-WOOD-1000)
+)
+(defrule
+	(taunt-detected 1 TAUNT-REQUEST-GOLD-1000)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-GOLD-1000)
+)
+(defrule
+	(taunt-detected 2 TAUNT-REQUEST-GOLD-1000)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-GOLD-1000)
+)
+(defrule
+	(taunt-detected 3 TAUNT-REQUEST-GOLD-1000)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-GOLD-1000)
+)
+(defrule
+	(taunt-detected 4 TAUNT-REQUEST-GOLD-1000)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-GOLD-1000)
+)
+(defrule
+	(taunt-detected 5 TAUNT-REQUEST-GOLD-1000)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-GOLD-1000)
+)
+(defrule
+	(taunt-detected 6 TAUNT-REQUEST-GOLD-1000)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-GOLD-1000)
+)
+(defrule
+	(taunt-detected 7 TAUNT-REQUEST-GOLD-1000)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-GOLD-1000)
+)
+(defrule
+	(taunt-detected 8 TAUNT-REQUEST-GOLD-1000)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-GOLD-1000)
+)
+(defrule
+	(taunt-detected 1 TAUNT-REQUEST-STONE-1000)
+=>
+	(acknowledge-taunt 1 TAUNT-REQUEST-STONE-1000)
+)
+(defrule
+	(taunt-detected 2 TAUNT-REQUEST-STONE-1000)
+=>
+	(acknowledge-taunt 2 TAUNT-REQUEST-STONE-1000)
+)
+(defrule
+	(taunt-detected 3 TAUNT-REQUEST-STONE-1000)
+=>
+	(acknowledge-taunt 3 TAUNT-REQUEST-STONE-1000)
+)
+(defrule
+	(taunt-detected 4 TAUNT-REQUEST-STONE-1000)
+=>
+	(acknowledge-taunt 4 TAUNT-REQUEST-STONE-1000)
+)
+(defrule
+	(taunt-detected 5 TAUNT-REQUEST-STONE-1000)
+=>
+	(acknowledge-taunt 5 TAUNT-REQUEST-STONE-1000)
+)
+(defrule
+	(taunt-detected 6 TAUNT-REQUEST-STONE-1000)
+=>
+	(acknowledge-taunt 6 TAUNT-REQUEST-STONE-1000)
+)
+(defrule
+	(taunt-detected 7 TAUNT-REQUEST-STONE-1000)
+=>
+	(acknowledge-taunt 7 TAUNT-REQUEST-STONE-1000)
+)
+(defrule
+	(taunt-detected 8 TAUNT-REQUEST-STONE-1000)
+=>
+	(acknowledge-taunt 8 TAUNT-REQUEST-STONE-1000)
 )
