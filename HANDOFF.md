@@ -57,7 +57,11 @@ This handoff belongs to the dedicated transport-development worktree:
   (`Audit task ownership across all T7 players`). Audit tooling, tests and
   evidence only; no runtime changes. Its documentation-only successor records
   this handoff. Resolve exact checkout HEAD with `git rev-parse HEAD`.
-- The user's modified `AGENTS.md` remains unstaged and must be preserved.
+- The user explicitly authorized committing the intentional investigation-
+  breadth amendment in `AGENTS.md` on 2026-08-30. It is included in this branch
+  and PR #5; do not continue treating it as an expected uncommitted exception.
+  Its content matches the workspace-root rules. The canonical checkout is
+  unchanged by this rules-only publication.
 - Project-rules synchronization commit: `bcd484f` (`Adopt evidence-first
   project rules`).
 - Purpose: P3B44-derived transport-only development. P3B44T1 introduced loaded
@@ -1285,7 +1289,8 @@ mod files remain external and must never be committed to the AI repository.
 ## Exact next actions
 
 1. Verify this worktree, branch, T8 diagnostic commit `d10f33e`, audit successor,
-   installed marker/hash, and only expected user-owned `AGENTS.md` dirt.
+   installed marker/hash, and current working-tree status. The intentional
+   `AGENTS.md` amendment is now committed, not expected working-tree residue.
    T8 was installed from this exact experimental worktree, not the canonical
    or obsolete checkout. No GitHub push/PR update was made in this session.
 2. Follow the shared architectural directive in `TASK-OWNERSHIP.md`, not the

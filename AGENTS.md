@@ -108,6 +108,29 @@ mutation logs, terminal events, counters, and sampled blocker reports. If a
 logging configuration could produce huge output, bound it before asking for a
 long replay.
 
+## Investigation breadth versus implementation scope
+
+- Keep implementation changes narrowly scoped, but investigate the available
+  evidence broadly.
+- A user-reported observation establishes priority and a concrete reproduction
+  lead. It does NOT define the boundary of the investigation.
+- When a replay, log, trace, or benchmark is available for a subsystem under
+  investigation, inspect every reasonably reconstructable relevant event across
+  all players/controllers before concluding that the reported event explains the
+  subsystem's behavior.
+- For replay-driven work, convert raw actions into semantic episodes or
+  lifecycles where practical. Account for successes, bounded failures,
+  unresolved cases, and distinct failure classes.
+- Do not assume the user watched or noticed every relevant runtime event. The
+  agent owns systematic evidence collection; the user is not the telemetry
+  system.
+- User observations remain authoritative evidence of what was visibly seen, but
+  the agent must independently search the replay for corroborating,
+  contradictory, repeated, and additional instances.
+- Broad investigation does not authorize broad fixes. After the evidence sweep,
+  implement only the specifically proven defect currently in scope. Record
+  additional defects separately.
+
 ---
 
 ## 3. Regression control
