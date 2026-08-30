@@ -84,6 +84,20 @@ class AidTests(unittest.TestCase):
         self.assertIn('gl-resource-request-next c:+ 10', text)
 
 
+class PortPolicyTests(unittest.TestCase):
+    def test_supported_sn_policy_and_transition_only_writers(self):
+        text = source('rawai-sn-defines.per')
+        self.assertIn('(set-strategic-number sn-dock-proximity-factor 10000)', text)
+        self.assertIn('(set-strategic-number sn-minimum-water-body-size-for-dock 600)', text)
+        self.assertIn('(set-strategic-number sn-dock-placement-mode -1)', text)
+        rows = [r for r in rule_blocks(source('rawai-homebase.per')) if 'sn-dock-placement-mode' in r[4]]
+        self.assertEqual(len(rows), 2)
+        for row, count, mode in zip(rows, ('== 1', '>= 2'), (1, 0)):
+            self.assertIn('(building-type-count dock '+count+')', row[3])
+            self.assertIn('(strategic-number sn-dock-placement-mode != '+str(mode)+')', row[3])
+            self.assertIn('(set-strategic-number sn-dock-placement-mode '+str(mode)+')', row[4])
+
+
 class MarketTests(unittest.TestCase):
     def test_six_independent_rules_share_one_transaction_deadline(self):
         rows = [r for r in rule_blocks(source('rawai-trade.per')) if 'Market portfolio:' in r[4]]

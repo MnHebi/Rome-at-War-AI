@@ -1,6 +1,27 @@
 
 ; Straight from AiBuilder files. Now extensively modified.
 
+;Spread the first two Ports on water-map openings: rear first, front second,
+;then standard placement. Front/back is relative to the map center, NOT a proof
+;of opposite island shores. Proximity and minimum body area are set at startup.
+(defrule
+	(or (goal map-type ISLANDS)
+	    (or (goal map-type TEAM-ISLANDS) (goal map-type RIVERS)))
+	(building-type-count dock == 1)
+	(strategic-number sn-dock-placement-mode != 1)
+=>
+	(set-strategic-number sn-dock-placement-mode 1)
+)
+
+(defrule
+	(or (goal map-type ISLANDS)
+	    (or (goal map-type TEAM-ISLANDS) (goal map-type RIVERS)))
+	(building-type-count dock >= 2)
+	(strategic-number sn-dock-placement-mode != 0)
+=>
+	(set-strategic-number sn-dock-placement-mode 0)
+)
+
 ;Builder targets are persistent foundation assignments. They speed large
 ;buildings without globally converting most gatherers -- including animal-food
 ;workers -- into builders every time a foundation appears.
