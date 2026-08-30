@@ -50,9 +50,13 @@ This handoff belongs to the dedicated transport-development worktree:
 - Salvage D/offline analyzer: `9b3dded` (`Backport replay retreat analysis
   tooling`). No runtime changes or marker-specific analyzer dependency.
 - Current runtime/diagnostic commit: `d10f33e` (`Trace competing recall callers
-  during transport boarding`), P3B44T8. The documentation-only successor to
-  this commit records the current handoff. Resolve exact checkout HEAD with
-  `git rev-parse HEAD`; no behavioral changes belong in that successor.
+  during transport boarding`), P3B44T8. Its evidence/handoff successor is
+  `16213f8b06da9d791fca527ec18d6fb6b7fcac86`, the starting HEAD for the
+  architectural ownership investigation.
+- Architectural audit commit: `e86ab8035a9abacb2ff7b632bebf2afe6802db4e`
+  (`Audit task ownership across all T7 players`). Audit tooling, tests and
+  evidence only; no runtime changes. Its documentation-only successor records
+  this handoff. Resolve exact checkout HEAD with `git rev-parse HEAD`.
 - The user's modified `AGENTS.md` remains unstaged and must be preserved.
 - Project-rules synchronization commit: `bcd484f` (`Adopt evidence-first
   project rules`).
@@ -82,6 +86,13 @@ This handoff belongs to the dedicated transport-development worktree:
   recall callers only. It does not change their conditions, commands, action
   ordering, searches or ownership. No new worktree was created or canonical
   directory switched in this session.
+- Architectural scope exception, 2026-08-30: the user's TASK OWNERSHIP /
+  PREEMPTION directive supersedes the earlier prohibition on ownership/recall
+  changes in this worktree. It authorizes a shared task contract, explicit
+  emergency transfer, bounded routine defense and persistent original-TC
+  allied-help anchors, while forbidding concurrent transport micro-fixes.
+  See `TASK-OWNERSHIP.md` for the complete requirements and evidence state.
+  No runtime changes were made under this new directive yet.
 
 Other controls:
 
@@ -125,23 +136,35 @@ clearing it. All twelve T6 mining-passenger snapshots showed unassigned flag
 -2; all 39 identified T7 mining snapshots retain flag 4. This closes only the
 specific flag mutation, not exclusive command ownership or successful migration.
 
-The immediate objective is now to identify the exact writers of the replay-
-confirmed competing passenger commands. T7 includes reserved passengers in
-global recalls before unload, and separately records an Orange STOP loop with
-no overlapping retreat. T8 labels all six existing scripted global recall
-callers and their assault/migration states and hulls. The producing caller(s)
-remain unresolved; no ownership/retreat behavioral fix is claimed. Do not infer
-that every stall or all Town Center passivity has the same cause.
+The immediate objective is now the user's architectural task ownership /
+threat-preemption recovery directive, recorded repository-locally in
+`TASK-OWNERSHIP.md`. Completion state is **ROOT CAUSE NOT FULLY PROVEN —
+OWNERSHIP TELEMETRY REQUIRED**. The audit covers all 378 recorded loads and
+202 retreats, with 132 boarding windows and exact command-stream ordering.
+It identifies 83 pre-boarding conflicts with task-owner evidence, including
+67 WORK packets, but does not establish every producing script/native writer,
+continuous ownership at the instant of overwrite, or a verified per-unit
+native economy lock. See the report for successes and unresolved outcomes;
+83 is not a count of failed missions.
+
+T8 labels the six existing global-recall callers. It does not trace all worker
+writers, acquire/release/preemption boundaries, or native task delegation.
+No shared selection contract, emergency-transfer patch, routine-recall
+replacement or persistent allied-home anchor has been implemented. The
+section-H gameplay contract tests and fresh architectural runtime acceptance
+are also pending. Do not mistake the new audit-tool tests for those tests.
 
 Purple's proven drop-site race remains open for its own patch. Salvage A-C and
 Port placement remain authorized but are held outside this diagnostic runtime
 to avoid mixing changes into caller attribution. They are not canceled or
 user-deferred. Salvage D was useful to the audit and is already implemented.
 
-P3B44 Gray/Blue combined attacks are the known-good behavior at regression
-risk. This patch must preserve ordinary land attack dispatch, superiority,
-timing, target selection, home defense, escalation, and every non-transport
-attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
+P3B44 Gray/Blue combined attacks and the successful T1-T5 transport outcomes
+are the known-good behavior at regression risk. Preserve ordinary attack
+dispatch and effective genuine defense while replacing only ownership-
+violating acquisition/preemption. The new directive explicitly allows changing
+routine global recalls; preserving those exact calls is not an acceptance
+requirement. Do not backport P3B46-P3B50 attack redesigns into this branch.
 
 ## Authorized post-T7 work (2026-08-30)
 
@@ -483,7 +506,10 @@ closure. Do not import historical markers or later handoffs wholesale.
 ### Reserved passengers receive competing recall, STOP and work orders
 
 - **Status:** INVESTIGATING. Interference is directly demonstrated; exact
-  producing callers and the smallest safe ownership correction are unresolved.
+  producing callers and the complete safe ownership mechanism are unresolved.
+  Directive completion state: ROOT CAUSE NOT FULLY PROVEN — OWNERSHIP
+  TELEMETRY REQUIRED. The shared architectural requirement is in
+  `TASK-OWNERSHIP.md`; this is not a collection of isolated micro-fix tickets.
 - **User-visible symptom:** queued soldiers are pulled away from Transports;
   armies accumulate at Town Centers. Manual loading can release pending routes.
 - **Direct evidence:** T7 all-player audit, 103 boarding snapshots and 202 raw
@@ -500,6 +526,15 @@ closure. Do not import historical markers or later handoffs wholesale.
   DE_RETREAT is 67:46.218, so this is not an overlapping recorded retreat.
   Cyan scout 4639 receives explore order 705 between boarding retries, and
   Green worker 47605 receives repeated TC-target orders starting at 83:01.
+- **Architectural replay-wide evidence:** 132 windows / 1,053 passenger-window
+  instances: 65 corroborated successful without observed conflict (56 full,
+  nine exact partial landing), 83 pre-boarding conflicts with owner evidence,
+  905 unresolved. Per-color conflict counts: Red 9, Green 9, Yellow 0,
+  Purple 4, Orange 3, Cyan 2, Blue 12, Gray 44. Among the 83 first conflicts,
+  67 are WORK; therefore recall-only changes cannot cover the demonstrated
+  failure surface. Continuous ownership and exact native/script attribution
+  remain open rather than inferred from sparse flags. All 202 retreats retain
+  exact members, previous commands and applicable boarding-window links.
 - **Current causal hypotheses:** scripted global recall/all-unit reset,
   native attack/scout ownership, or another local command writer can overwrite
   boarding without changing the reservation flag. Five military rules and
@@ -510,7 +545,8 @@ closure. Do not import historical markers or later handoffs wholesale.
   snapshots, so flag loss is not the general cause. Some stalled units retain
   correct enter orders. Red eventually boards despite the two recalls. Orange
   has a separate STOP mechanism. Snapshot timing can miss between-retry orders;
-  aggregate second-resolution/packed-ID heuristics limit some correlations.
+  the new full-stream audit corrects packed-ID/second-resolution limitations,
+  but cannot supply missing simulation acknowledgments or owner-change logs.
 - **Instrumentation/tests:** T8 `RAW44O` logs immediately before each scripted
   global recall: source, assault state/hull, migration state/hull. Sources:
   1 land defense; 2 naval defense; 3 siege escalation; 4 loss regroup;
@@ -520,21 +556,26 @@ closure. Do not import historical markers or later handoffs wholesale.
   program back to T7 after removing only the added logs.
 - **Implementation:** diagnostic commit `d10f33e`, deployed T8. No behavioral
   ownership fix implemented. Salvage D retains offline retreat events and
-  generic compact chat categories; targeted raw packet evidence remains external.
-- **Acceptance criterion:** identify the first command writer canceling a
-  reserved passenger order, including failed attempts lacking a completed
-  sample; implement its bounded correction; show actual boarding progress
-  without competing commands while preserving ordinary P3B44 attacks, needed
-  home defense, safe partial/full lifts, relics and screened landings. Separate
-  the STOP loop and other failures unless evidence establishes a shared cause.
+  generic compact chat categories. New `tools/audit_task_ownership.py` and its
+  packet/lifecycle tests retain replay-wide command evidence; raw artifacts
+  remain external. No new runtime marker or deployment in this session.
+- **Acceptance criterion:** shared ownership lasts until explicit complete,
+  abort, loss, release or verified emergency preemption; ordinary military and
+  economic selectors respect it; routine defense acquires bounded free units;
+  severe hostile defense cancels old owners cleanly; allied relief uses live
+  hostile presence near persistent first-TC coordinates, even after TC loss.
+  Pass the nine section-H contracts plus all-player fresh runtime validation,
+  preserving ordinary attacks, partial/full lifts, relics and screened landings.
 - **Latest result:** T7 interference PASS as evidence; exact caller attribution
   unresolved. T8 deterministic/structural checks and deployment identity PASS;
   fresh T8 runtime PENDING. Telemetry is not defect resolution.
-- **Next action:** analyze a fresh T8 replay across every reconstructable
-  transport episode, matching source labels with raw retreat member arrays,
-  STOP packets and boarding/unload boundaries. Untagged packets are not proof
-  of a particular native mechanism. Continue to implementation when the writer
-  is established; keep the original user-visible defect open until validated.
+- **Next action:** instrument the missing ownership/worker command boundaries
+  with bounded, explicit coverage and acquire/release reasons, then distinguish
+  script-selected, script-delegated and autonomous native orders in a controlled
+  engine test. Use T8 for the six recall writers but do not claim it alone can
+  settle worker attribution. Establish the minimum protection mechanism, then
+  implement the shared contract, threat preemption and allied-anchor requirements.
+  Do not reapply the closed generic flag fix or guess that flags lock native work.
 
 ### Repeated attack-Transport landing timeouts
 
@@ -1067,6 +1108,41 @@ P3B44T7 all-player transport replay (2026-08-30 audit):
   floating-point x field. Packed-ID heuristics and coarse episode windows
   require care; a post-unload order is not automatically boarding interference.
 
+### Architectural ownership audit of the same T7 replay
+
+- Requirement/aggregate record: `TASK-OWNERSHIP.md`. This preserves the new
+  user directive without requiring access to the conversation or attachment.
+- New external artifact:
+  `G:\Projects\Codex\Rome at War AI\.analysis\p3b44t7-task-ownership.json`.
+  Generated by repository-local `tools/audit_task_ownership.py`; its complete
+  reproduction command is in `TASK-OWNERSHIP.md`. Use the same Python 3 and
+  `replay_parser_kjir` paths recorded above.
+- Prior hull/color/partial-landing evidence input:
+  `p3b44t7-transport-audit.json`, SHA-256
+  `C0D7CD60350628E7AEDEBA16D5304E74C4D97C45EC84AB9C3085813F216DEB08`.
+  This older artifact has no embedded replay hash; its T7 association is
+  recorded here, not automatically proven by the new tool. The new report
+  fingerprints both inputs and explicitly records the dependency.
+- Full-stream decoding uses exact packet lengths for SPECIAL/UNGARRISON,
+  WORK, AI_ORDER and every DE_RETREAT. It retains raw bytes, file offset,
+  millisecond time, stream sequence, all selected IDs and actual target/order.
+  No object-ID magnitude shifts or arbitrary task timeout. Zero decoding
+  failures for this replay; no claim of universal version compatibility.
+- All 378 load commands are represented in 132 evidence-delimited windows
+  (33 assault, 41 migration, 58 unresolved/recovery/relic), alongside all 202
+  retreats. The 1,053 passenger-window instances split 65 corroborated
+  successful without observed conflict / 83 pre-boarding conflicts with owner
+  evidence / 905 unresolved. The unresolved group includes 323 conflicts with
+  uncertain timing or ownership. No individual deaths or unavailability are
+  proven, not a claim that none occurred.
+- Source inventory retains 247 command/build-delegation rules and 248 selection
+  rules with facts/actions/line numbers. It is not a complete certification of
+  native strategic-number behavior or all permission/release paths. Source
+  gaps and every global-recall source are classified in `TASK-OWNERSHIP.md`.
+- T8 remains installed unchanged. No shared ownership, threat-preemption or
+  allied-anchor implementation is present. Required section-H gameplay tests
+  and architecture runtime acceptance remain pending.
+
 Replay/savegame files, compact parser output, crash dumps, and Rome at War data
 mod files remain external and must never be committed to the AI repository.
 
@@ -1091,7 +1167,8 @@ mod files remain external and must never be committed to the AI repository.
   split, shore-straggler stop, garrison-inclusive exact manifest rebuild,
   actual-count update, home-defense interrupt, target revalidation, and prior
   abort recovery are covered).
-- Full P3B44-derived regression suite: PASS (122 tests, including T8).
+- Full P3B44-derived regression suite: PASS (134 tests, including T8 and the
+  twelve new ownership-audit packet/lifecycle tests).
 - PER structural/operand validation: PASS.
 - Naval-doctrine validation: PASS.
 - Strategy execution: PASS (1,156 total matchups; 1,149 historical and 1,152
@@ -1192,26 +1269,47 @@ mod files remain external and must never be committed to the AI repository.
 - T8 deployment PASS: all 68 files match the installed identity above. Runtime
   caller attribution and gameplay fix acceptance remain PENDING/INVESTIGATING.
   No GitHub push or PR update was made in this session; only local commits.
+- Architectural audit validation: PASS, 134 unit tests / 29 replay benchmarks /
+  PER structure and operand domains / `git diff --check`. The T7 audit rerun
+  covers every known load and retreat with zero decoder failures. Read-only
+  adversarial findings are triaged in `TASK-OWNERSHIP.md`; accepted fixes were
+  made to the audit, not the runtime. Strategy/workbook validators were not
+  rerun for this audit-only change; their prior results and provenance failure
+  above remain historical, not new session claims.
+- Architectural gameplay acceptance: NOT RUN / NOT IMPLEMENTED. The twelve
+  audit tests do not exercise the engine or implement section-H contracts.
+  Installed T8 identity rechecked PASS: all 68 runtime files byte-identical,
+  no files copied and no marker changes. The canonical checkout and immutable
+  attack baseline were not edited; user-owned `AGENTS.md` remains untouched.
 
 ## Exact next actions
 
-1. Verify this worktree, branch, T8 diagnostic commit `d10f33e`, handoff successor,
+1. Verify this worktree, branch, T8 diagnostic commit `d10f33e`, audit successor,
    installed marker/hash, and only expected user-owned `AGENTS.md` dirt.
    T8 was installed from this exact experimental worktree, not the canonical
    or obsolete checkout. No GitHub push/PR update was made in this session.
-2. Obtain a fresh preserved-lobby T8 replay. Audit every reconstructable
-   transport lifecycle across all players. Match RAW44O sources/states/hulls
-   to exact DE_RETREAT members, AI_ORDER STOP/explore events and boarding/unload
-   boundaries. Prioritize the first order overwrite, not only terminal flags.
-   If untagged packets leave two plausible writers, discriminate them rather
-   than assume a native cause. Once attribution is sufficient, implement the
-   smallest ownership correction and validate actual boarding/attack behavior.
+2. Follow the shared architectural directive in `TASK-OWNERSHIP.md`, not the
+   obsolete restriction to one recall micro-fix. Add missing owner acquire /
+   release / explicit preemption and worker command-boundary telemetry before
+   assigning WORK packets to a native mechanism. Distinguish direct script
+   selection, persistent native builder/economy delegation and autonomous
+   native tasking with a controlled engine comparison. Preserve search state;
+   record exact commanded members where available and expose any trace quota
+   exhaustion. Untagged packets without complete coverage prove no caller.
+   T8 can identify its six recall sources in a supplied replay, but cannot by
+   itself settle every worker/native boundary. Do not request a long T8 run
+   while implying that it contains the missing coverage.
+   Once the mechanism is established, implement the common selection/command
+   permission contract, explicit emergency ownership transfer, bounded routine
+   defense and persistent first-TC allied-help anchors. Add all nine section-H
+   contracts and validate every player's preemption/boarding events in a fresh
+   preserved-lobby replay. Keep ownership INVESTIGATING until then.
 3. Preserve T6 safe partial assault as CLOSED and T5 candidate screening as
    CLOSED; preserve T7's specific cleanup exclusion as runtime-validated.
    Reject any regression to ordinary P3B44 attacks or successful full/partial/
    relic lift behavior. Broader boarding/STOP/passivity causes stay INVESTIGATING.
-4. Resume the authorized selective salvage A-C above after the isolated caller
-   experiment, preserving recovery attack/transport behavior and stopping
+4. Resume the authorized selective salvage A-C above after ownership recovery,
+   preserving recovery attack/transport behavior and stopping
    conflicting items. D is already committed as `9b3dded`; do not backport it
    twice. T8 allocated no new goals; recheck 1163 onward for A-C. This runtime
    work is pending, not canceled or explicitly deferred by the user.
@@ -1223,7 +1321,11 @@ mod files remain external and must never be committed to the AI repository.
    transition for its own later patch, outside salvage and Port tuning. Keep
    resource-wait, stale-time boarding, exploration overrides, military stalls,
    escort overlap and recovery-unload repetition distinct.
-7. Yellow's 22-24-minute interrupted hunt still needs reliable WORK decoding
-   or bounded public hunt-state evidence. No guessed hunting fix is included.
-8. Keep broader command-volume/crash work, P3B44D1 friendly fire, and other
-   changes outside the explicitly authorized post-T7 work.
+7. Yellow's T6 22-24-minute interrupted hunt still needs a causal audit. The
+   new WORK decoder may now assist, but was verified on T7 packets; confirm T6
+   layout and associate hunt targets/state before using it as hunt evidence.
+   No guessed hunting fix is included.
+8. Keep broader command-volume/crash and transport micro-fixes outside the
+   current directive. Friendly-fire rejection is in scope specifically for
+   verified-threat preemption; preserve the separate P3B44D1 evidence/control
+   without folding in unrelated targeting or navigation changes.
