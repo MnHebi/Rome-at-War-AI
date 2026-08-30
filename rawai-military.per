@@ -9654,16 +9654,9 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-guard -1 stance-aggressive)
-	(up-find-player enemy find-ordered gl-naval-siege-player)
-	(up-modify-goal gl-naval-search-first-player g:= gl-naval-siege-player)
-	(set-goal gl-naval-siege-state SIEGE-TARGET-SEARCH)
-)
-
-;Rebuild in the same sweep as the consumers. An enemy-advance state can span
-;a pass, but the shared remote search results must never survive that boundary.
-(defrule
-	(goal gl-naval-siege-state SIEGE-TARGET-SEARCH)
-=>
+	;Retain T11's nearest-enemy policy. Range growth and command-time identity
+	;reconstruction are independent of the reverted T12 enemy-priority change.
+	(up-find-player enemy find-closest gl-naval-siege-player)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-player)
 	(up-full-reset-search)
 	(up-set-target-point gl-naval-siege-target-x)
@@ -9939,7 +9932,10 @@
 	(goal gl-naval-siege-family 0)
 	(not (up-set-target-object search-remote c: 0))
 =>
-	(set-goal gl-naval-siege-state SIEGE-TARGET-ADVANCE-PLAYER)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
+	(set-goal gl-naval-siege-family 1)
+	(up-set-timer c: t-naval-siege c: 12)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
 )
 
 (defrule
@@ -9947,33 +9943,8 @@
 	(goal gl-naval-siege-family 1)
 	(not (up-set-target-object search-remote c: 0))
 =>
-	(set-goal gl-naval-siege-state SIEGE-TARGET-ADVANCE-PLAYER)
-)
-
-(defrule
-	(goal gl-naval-siege-state SIEGE-TARGET-ADVANCE-PLAYER)
-=>
-	(up-find-next-player enemy find-ordered gl-naval-siege-player)
-	(set-goal gl-naval-siege-state SIEGE-TARGET-NEXT-PLAYER)
-)
-
-(defrule
-	(goal gl-naval-siege-state SIEGE-TARGET-NEXT-PLAYER)
-	(up-compare-goal gl-naval-siege-player g:!= gl-naval-search-first-player)
-	(up-compare-goal gl-naval-siege-player c:>= 1)
-=>
-	(set-goal gl-naval-siege-state SIEGE-TARGET-SEARCH)
-)
-
-(defrule
-	(goal gl-naval-siege-state SIEGE-TARGET-NEXT-PLAYER)
-	(or (up-compare-goal gl-naval-siege-player g:== gl-naval-search-first-player)
-	    (up-compare-goal gl-naval-siege-player c:< 1))
-=>
 	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
-	;Only finish after every live enemy has been considered once.
-	(up-modify-goal gl-naval-siege-family c:* -1)
-	(up-modify-goal gl-naval-siege-family c:+ 1)
+	(set-goal gl-naval-siege-family 0)
 	(up-set-timer c: t-naval-siege c: 12)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
 )

@@ -69,16 +69,17 @@ class NavalSearchTests(unittest.TestCase):
         self.assertEqual(len(commands), 2)
         self.assertTrue(all('gl-naval-search-progress' not in r[4] for r in commands))
 
-    def test_enemy_iteration_rebuilds_before_consuming_search(self):
+    def test_prior_enemy_policy_preserves_range_and_same_pass_search(self):
         text = source('rawai-military.per')
         rows = list(rule_blocks(text))
-        scan = next(r for r in rows if '(goal gl-naval-siege-state SIEGE-TARGET-SEARCH)' in r[3])
+        scan = next(r for r in rows if 'up-find-player enemy find-closest gl-naval-siege-player' in r[4])
         self.assertIn('gl-naval-search-sea-radius', scan[4])
         self.assertIn('up-full-reset-search', scan[4])
         consumers = [r for r in rows if '(goal gl-naval-siege-state SIEGE-TARGET-FIND-STRUCTURE)' in r[3]]
         self.assertTrue(all(scan[0] < r[0] for r in consumers))
-        self.assertIn('up-find-next-player enemy find-ordered gl-naval-siege-player', text)
-        self.assertIn('gl-naval-siege-player g:== gl-naval-search-first-player', text)
+        self.assertNotIn('up-find-next-player enemy find-ordered gl-naval-siege-player', text)
+        self.assertNotIn('gl-naval-search-first-player', text)
+        self.assertNotIn('SIEGE-TARGET-SEARCH', text)
 
     def test_cross_sweep_command_revalidates_target_and_owned_family(self):
         text = source('rawai-military.per')
