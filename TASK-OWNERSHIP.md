@@ -1,6 +1,203 @@
 # Task ownership / threat preemption recovery
 
-Status: **ROOT CAUSE NOT FULLY PROVEN — OWNERSHIP TELEMETRY REQUIRED**.
+## T11 source-first implementation — current status
+
+**OWNERSHIP IMPLEMENTED FOR SOURCE-PROVEN PATHS — NATIVE BOUNDARY REQUIRES ONE DISCRIMINATING TEST.**
+
+Worktree: `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`,
+branch `recovery/p3b44-transport-only`, implementation parent `a5de7d85`.
+Plain runtime **RAWAI-P3B44T11:456**; deployment identity and final validation
+are in HANDOFF.md. This is a behavioral patch, not another writer-trace build.
+No new attribution is claimed for Blue Scout 4608's historical STOP packets.
+The immutable P3B44 attack control is untouched.
+
+### Evidence and earliest causal faults
+
+- **B:** routine land/naval defense and strategic convenience callers invoked
+  global reset/retreat with no task compatibility check. R1/R2 ferry/Relic
+  passengers and T8 Red's boarding soldiers were included in these orders.
+  Ownership flags could remain set while the command changed.
+- **B:** native exploration remained admitted while reserved Scouts boarded;
+  R1 records exploration order 705 replacing their boarding orders.
+- **A:** migration, assault, stranded recovery, relic ferry and naval scouting
+  reused live group slots; several exact-object/delayed writers only checked
+  eligibility in an earlier selector. Distinct groups plus command-time
+  self/owner checks repair these source faults, not merely the old flag-4 case.
+- **A/B:** direct worker cleanup/staffing/repair/build-support/retirement paths
+  did not share a complete ownership exclusion. T7 establishes WORK conflicts,
+  but does not identify every native versus direct writer. The direct unsafe
+  paths are repaired without pretending all WORK packets have one cause.
+- **A:** routine land dispatch could use `up-target-objects 1` without selecting
+  the current hostile first; the selected-object pointer could still name a
+  local asset. Dispatch now explicitly selects/revalidates the live enemy.
+
+### Shared contract and compatibility
+
+FREE is a self-owned object with negative group flag, plus the caller's role,
+zone, activity and exact-ID exclusions. A negative flag alone does not prove
+that a native task has ended. Ordinary military acquisitions also require
+idleness where they might otherwise seize an active native attack. Civilians
+do not share the engine's reliable military-idling predicate.
+
+| Owner / group | Ordinary economy | Exploration | Routine defense | Severe home defense | Release |
+|---|---|---|---|---|---|
+| Temporary worker cleanup / 0 | Same-pass only | No competing explicit claim | No | Not preempted | End of same-pass loop |
+| Siege objective / 1 | N/A | No | No | Kept protected | Objective refresh/terminal |
+| Juggernaut + Octeres / 2 | N/A | No | No | Kept protected | Shared capital-siege controller; intentional alias |
+| Assault hull / 3; passengers / 4 | No | No | No | Cancel passenger owner only if **every surviving member** is ashore in home zone within 24; then release and acquire bounded responders | Abort/loss/landing; full/partial departure retains hull |
+| Naval response / 5 | N/A | No | Its own refresh only | No land preemption | Response refresh/terminal |
+| Land response / 6 | N/A | No | Its own owner | Explicit replacement by severe response | Quiet release; no move-home order |
+| Route screen / 7 | N/A | No | No | Protected | Route terminal/screen refresh |
+| Raid / 8 | N/A | No | No | Cancel only a wholly local, ashore group | Existing raid terminal/explicit severe cancel |
+| Transport escort / 9 | N/A | No | No | Protected | Hull/escort refresh; own-owner STOP only |
+| Migration hull / 10; passengers / 11 | No while boarding; native colony work deliberately resumes after departure | No | No | Protected in this policy | Abort/loss/mission terminal; partial departure releases non-cargo |
+| Recovery hull / 12; passengers / 13 | No | No | No | Protected | Existing bounded landing/abort/quarantine |
+| Relic hull / 14; Priest/Brahmin / 15 | No | No | No | Protected | Whole relic round trip/abort/loss |
+| Naval Scout / 16 | N/A | Its own naval DUC controller only | No | Protected; same-owner danger evasion allowed | Scout refresh/terminal |
+| Allied relief / 17 | N/A | No | No | Cancel only a wholly local ashore group | Verified target gone/converted, 90-second release, or severe cancel |
+| Active native attack (no DUC flag) | N/A | Mature-game native exploration off | Moving/fighting units excluded by idle selection | Bounded nearby compatible responders; native queued-order boundary remains below | Native completion; no global reset |
+| FREE compatible unit | Yes by role | Early exploration only when no conflicting land mission | At most 8 nearby idle responders | At most 16 nearby same-zone responders | Explicit task claim |
+
+Groups are cooperative metadata, **not engine locks**. At pass start, group
+references are rebuilt from self-owned members still carrying that owner's
+flag, without changing foreign/other-owner flags. This makes subsequent
+legacy clear/reset operations act on current members, including after conversion.
+Claims recheck FREE; commands recheck self and expected owner, including
+evasion's captured owner. Exact hull targets are checked on boarding retries.
+Terminal releases issue no movement/STOP. Failed ashore migrants are released
+on partial departure while actual cargo keeps group 11.
+
+### Controller fault matrix
+
+This is the owner-level causal matrix. The accompanying
+[complete rule-site inventory](OWNERSHIP-SOURCE-INVENTORY.md) lists every
+relevant source rule, file/line, actual selector/unit type, command/delegation,
+reservation mutation and concrete permission checks. Its D classification is
+limited to cooperative ownership, not path safety or engine behavior.
+
+| File / family / states | Acquisition and affected units | Fault classification before patch | Correction / command-time check | Release / preemption |
+|---|---|---|---|---|
+| military: ordinary age/periodic/percentage/town-size attack | Native soldier/boat selection | C | Type exclusions published after DUC claims and before native dispatch; no global pause of ordinary attacks | Native lifecycle; residual queued-order test |
+| military: attack preparation / LOAD-SELECT | Near-home land army, excluding Palintonons | A | Self, FREE, idle, nongarrisoned, home zone; native exploration disbanded before claim | Group 4 contract |
+| military: LOAD-ISSUE / retries / diagnostics | Stored passenger group + exact hull | A/B | Distinct hull 3/passengers 4; recheck self and owner at every command | Partial/full keep 3; abort releases 4 |
+| military: migration mining BOARDING | Eligible idle/depleted noncritical workers | A/B | Exclude all reservations and active boar-lurer ID before cap; staged claim 11; native worker admission hold | Partial cargo-only reservation; terminal releases 10/11 |
+| military: migration Scout BOARDING | One same-zone Scout | B | Zero native explorer budgets **and reset existing explorers before claim**, hold while reserved | Group 11 terminal, then early exploration may resume |
+| military: migration route/landing/recall | Exact hull / reserved passengers | A | Separate 10/11 and command-time permission; geometry unchanged | Existing bounded mission terminals |
+| military: migration colony work / deposit | Mission passengers and supported native construction | A/C | Direct commands retain owner; colony work explicitly releases native admission hold | Productive work/native handoff; engine worker boundary below |
+| military: stranded recovery FIND / LOADING / landing | Idle same-zone stranded soldiers + exact hull | A | Separate 12/13; staged claim; expected-owner guard on all commands | Existing full/partial/wrong-zone bounded terminals |
+| military: relic outbound / return / WAIT-CARRIER | Exact Priest/Brahmin, then relic carrier | A/B | Separate 14/15; passenger now explicitly reserved for round trip; no unrelated recalls | Mission terminal releases both |
+| military: local asset detection / COMMAND | Owned attacked assets, then enemy military | B | Damage only starts a search; live hostile selected explicitly; no global retreat | Routine state machine |
+| military: LOCAL-RESPONSE-REBUILD / DISPATCH | FREE idle nearby military | B | At most 8, same zone, no protected tasks; command reselects verified hostile | Quiet release, no army recall |
+| military: perimeter builder evacuation | Nearby active wall/gate builders | A | Self/FREE; excludes active boar lurer; stop own work, same-zone safe TC garrison | One-shot safety intervention, no passenger preemption |
+| military: naval HOME response | FREE idle ships near attacked coast | A/B | At most 8; keep all other naval owners; no global land recall or severe latch | Group 5 refresh |
+| military: naval FIND-SHIP / FIND-THREAT | FREE idle same-water/coastal responders | A | Bound to 8; live exact enemy-player filter; ownership guard at command | Direct response, not whole navy |
+| military: siege escalation (old recall source 3) | Global army formerly recalled for fortifications | B | Removed reset/retreat; retain force/siege composition and dispatch requirements | Ordinary attacks continue |
+| military: loss regroup (old source 4) | Global army formerly recalled for losses | A/B | Removed reset/retreat; retain larger-force planning | No task cancellation for convenience |
+| military: periodic loss recovery (old source 5) | ALL units formerly reset/stopped | A | Removed all-unit reset and global retreat; retain loss accounting | No task ownership mutation |
+| military: defense leash / home interruption | Native defenders, loaded hull, raid/screen | A | Removed broad move-home and low-threshold mission cancellation | Central severe policy only |
+| severe-defense: per-player scan / acquire | Live enemy military within home 24, same zone, >=8 for one enemy | New explicit preemption | Enemy stance + ready military + zone + severity; capture exact enemy; cancel old owner -> release -> cap-16 acquire -> command | 45-second severe latch; loaded/split/remote missions protected |
+| taunts: 45 retreat | Self FREE military in home zone | A | Bounded explicit selection instead of global reset/retreat | Active reservations retained |
+| taunts: 31 / 61–68 attack | Native attack manager | A/C | Uses current native type exclusion list; refresh after newly acquired relief | Same native boundary as ordinary attack |
+| taunts: 48 help / SCAN-THREAT | Actual enemies around retained original ally TC | A | No allied under-attack check or arbitrary villager; live exact enemy within 48, same zone | Persistent anchor retained after TC death |
+| taunts: 48 DISPATCH / OWNERSHIP-COMMAND | Up to 12 FREE idle same-zone responders within 96 | A | Claim 17, revalidate target/player/status/zone, actual responder count before promise | Target loss/90 seconds/explicit severe cancel |
+| home-anchors: players 1–8 | First reliably observed ready TC | New required information model | Record coordinate/zone once; never overwrite or clear on destruction | Permanent match knowledge |
+| military: land raid | FREE idle native-compatible land soldiers | A | Command-time self/owner; no naval-scout slot collision | Group 8 contract |
+| military: Palintonon/ram objective | Available siege family | A | Group 1, FREE admission, delayed command permission | Objective refresh; existing pack API defect separately deferred |
+| military: capital siege | Juggernaut/Octeres shared controller | D/A | Intentional shared slot 2 retained; command-time self/owner reinforced | Shared family lifecycle, not competing owners |
+| military: native sea exploration | Unrestricted engine boat selection | D | Already suppressed; remains zero | No native boat owner |
+| military: naval Scout | Allowed Scout Ship types | A | Dedicated slot 16 rather than raid 8; command-time owner | Scout refresh; same-owner evasion |
+| military: transport screen | Screening ship + reserved hull | A | Slot 7 no longer shared with relic ferry; owner checks | Route terminal; no convenience recall |
+| military: transport escort | FREE compatible warships | D/A | Slot 9 retained; protect explorers/screens/response and recheck at each paired guard | Escort-only refresh release |
+| military: capital escort / naval opportunity | FREE compatible ships, activity exclusions | D/A | Preserve working opportunity selector; reinforce command-time permission | Direct task; routine defense excludes moving/fighting units |
+| military: ship evasion | Own naval Scout or FREE vulnerable ship | A | Capture expected flag; refuse command after another owner acquires it | Same-owner safety move, not ownership theft |
+| military: Port clearance / quarantine / repair | Exact hull or eligible empty FREE hull; nearby repair workers | A | Permission checks including exact-ID quarantine exclusion; workers exclude reservations/lurer | Existing bounded routine; no congestion/geometry redesign |
+| general: temporary worker cleanup | Eligible villagers, temporary group 0 | B | Exclude **all** owned groups and active lurer; recheck self/group 0 before STOP | Same-pass temporary release |
+| homebase: farm staffing / fisherman / fallback | Same-zone eligible villagers | A/B | Selector + command-time reservation exclusion, lurer exclusion | Direct one-shot assignment; native gathering remains C |
+| homebase: drop-site/TC/build assignments | Native builders, foundations; colony supporters | A/C | Native build admission gated during boarding; direct commands check self/owner | Existing construction lifecycle; no drop-site-race redesign |
+| economy: retirement / trade transition | Population-blocked eligible idle workers | A | Direct deletion rechecks self/FREE/lurer | One-shot deletion; current retirement limits retained |
+| hunt: lure/rescue/support | Exact lurer + eligible supporting villagers | A/C | Common reservation checks; other direct systems exclude lurer ID; clear stale ID when hunt ends | Existing hunt states; boar-after-garrison behavior deferred |
+| economy/init/civ/homebase: gatherer percentages | Native economy assignment | C | Freeze new percentage/build/hunter admissions during migration boarding, restore saved assistance/repair policy | Does not claim a native per-object lock |
+| civ Germani: Dejbjerg Wagon | Exact mobile-building ID | A | Recheck self/FREE before delayed movement | Existing bounded arrival/abort |
+| civ Han/Kushans/Mauryans; rush; special placement | Native builders/hunters and direct workers | A/C | Same boarding admission gate; common direct permission filters | Existing construction/production lifecycle |
+| taunts: 69 deletion | Explicitly flared owned structure | D/A | Bounded structure selection plus command-time self ownership | No transport/controller redesign |
+| training/research/resource sensing | Production/census, not task assignment | D | No deliberate active-unit reassignment; unchanged unless actual build admission | N/A |
+
+### Native API boundary — one controlled acceptance test
+
+API source inspected: the project's saved AIRef snapshot
+`.analysis/airef-reference-20260830.js`, including `up-modify-group-flag`,
+`up-reset-scouts`, `fe-exclude-from-attack-group`, `up-target-objects`,
+`sn-disable-defend-groups`, builder assistance/repair and civilian caps.
+The current DE group domain is **0..19**, not UserPatch's 0..9.
+
+- Native exploration: zero budgets alone do not release an existing explorer.
+  Both zeroing and `up-reset-scouts` now precede explicit Scout-capable claims;
+  positive budget writers stay gated while ownership is active.
+- Native TSA defense and ungrouped-soldier scattering have no compatible
+  passenger predicate, so they are disabled. Scripted bounded/severe defense
+  replaces their unscoped admission. This must still preserve working attacks.
+- Native attacks: `fe-exclude-from-attack-group` is documented to exclude
+  **unit types** from attack-now and automatic attack groups. The exclusion list
+  is rebuilt from all 17 active owner slots before dispatch, including taunts.
+  A free unit of the same type waits too; this is explicit collateral admission
+  suppression, not a per-object lock. No global reset cancels current attacks.
+  Already queued native orders and native membership while idle remain an
+  engine boundary, not statically closed.
+- Native workers: direct selectors and new build/hunter/percentage admissions
+  are protected. During boarding, builder assistance is disabled and ordinary
+  automatic repair is suppressed, then exact prior settings are restored.
+  Existing native gather/build assignments may still retask a reserved worker.
+  The API does not provide a documented per-villager lock; builder caps do not
+  eliminate the minimum builder, civilian percentage caps do not implement a
+  lock, and repair level zero has a Wonder exception. We do **not** freeze the
+  entire economy or claim these settings prove complete native protection.
+
+Run one fresh preserved-lobby T11 match. Check all players, not only an observed
+failure. For every reconstructable lift correlate claim/manifest, first boarding,
+early ashore sample, full/partial/abort terminal and later landing. Existing
+RAW44B samples include object ID, action/order/target/group and are rearmed per
+mission; no lifetime RAW44W quota is deployed. Verify: no exploration/native
+WORK/STOP interruption of still-ashore reserved passengers; distinguish STOP
+after garrison from a harmful cancellation. If only native reassignment remains,
+use that same controlled setup to discriminate existing native assignment from
+new admission. Do not reopen source-safe writers merely because an old packet's
+exact writer is unknown.
+
+Acceptance additionally requires ordinary P3B44 combined attacks, T1–T7 full
+and partial lifts, bounded routine defense, a verified severe response, allied
+help at living/destroyed original TC anchors, and no own-TC or shoreline-fishing
+flood. Static/fixture PASS is **not** runtime closure. Fresh engine acceptance
+remains required; status is not CLOSED.
+
+### Adversarial review disposition
+
+- ACCEPTED: alias collisions, unscoped recalls, missing command-time guards,
+  exploration reset/admission ordering, permanent TC anchors, actual responder
+  count before a promise, selected-target pointer, converted group references,
+  and partial-migration ashore reservation leaks. Implemented and tested.
+- ACCEPTED: a first draft's severe transfer could release a split/loaded group.
+  Now every surviving member must satisfy the local ashore eligibility before
+  that owner can be cancelled.
+- ACCEPTED: a first draft's native-exclusion jump `-1` repeated the jump itself.
+  Corrected to `-2`; a source-executed program-counter fixture now covers the
+  exact RuleDelta semantics with 40 distinct types and a finite-step bound.
+- REJECTED: use group flag as engine lock, zero all native gathering, or hold
+  ordinary attacks until every unrelated mission ends. None is a supported
+  minimum fix; documented type exclusion and bounded admission are used instead.
+- DEFERRED / one runtime boundary: native queued orders and worker reassignment
+  as described above. Source fixes are implemented now, not contingent on
+  identifying every historical STOP packet.
+- KNOWN ISSUE — POST-RELEASE: congestion, landing geometry, unload spam,
+  Port placement, boar resumption, drop-site race, salvage/Market/Wonder, crash,
+  assault landing memory. Source inspection also found the existing Palintonon
+  `action-pack` used through `up-target-objects`, which the reference does not
+  support; no unrelated siege-pack behavioral patch is included here.
+
+## Historical diagnostic-stage record (superseded by T11 above)
+
+The following sections retain the evidence and limitations from before the
+source-first implementation; statements saying ownership is not implemented
+describe that historical checkpoint, not the current branch.
 
 R2-arrival release priority completed first: R4:455 is installed and all 68
 files verified. Only hunt distance changed 28 -> 16; food 12 and all eight

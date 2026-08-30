@@ -74,6 +74,9 @@
 	;warships stranded beside it.
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-set-group search-local c: transport-escort-group)
+	;OWNERSHIP command: transport-escort-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
 	(up-modify-group-flag 0 c: transport-escort-group)
 	(up-reset-group c: transport-escort-group)
@@ -163,6 +166,8 @@
 	(up-find-local c: warship-class c: 40)
 	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-action == actionid-explore)
 	;Capital escorts are ungrouped but reserved by their follow/guard action.
 	(up-remove-objects search-local object-data-action == actionid-follow)
@@ -177,6 +182,9 @@
 	(up-compare-goal local-total c:> 0)
 =>
 	(up-modify-goal gl-transport-escort-count g:= local-total)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-create-group 0 0 c: transport-escort-group)
 	(up-modify-group-flag 1 c: transport-escort-group)
 	(set-goal gl-transport-escort-state ESCORT-GUARD-0)
@@ -202,6 +210,9 @@
 	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-clean-search search-local object-data-id search-order-asc)
 	(up-remove-objects search-local object-data-index != 0)
+	;OWNERSHIP command: transport-escort-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-target-objects 0 action-guard -1 stance-aggressive)
 	(set-goal gl-transport-escort-state ESCORT-GUARD-1)
 )
@@ -223,6 +234,9 @@
 	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-clean-search search-local object-data-id search-order-asc)
 	(up-remove-objects search-local object-data-index != 1)
+	;OWNERSHIP command: transport-escort-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-target-objects 0 action-guard -1 stance-aggressive)
 	(set-goal gl-transport-escort-state ESCORT-GUARD-2)
 )
@@ -244,6 +258,9 @@
 	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-clean-search search-local object-data-id search-order-asc)
 	(up-remove-objects search-local object-data-index != 2)
+	;OWNERSHIP command: transport-escort-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-target-objects 0 action-guard -1 stance-aggressive)
 	(set-goal gl-transport-escort-state ESCORT-GUARD-3)
 )
@@ -265,6 +282,9 @@
 	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-clean-search search-local object-data-id search-order-asc)
 	(up-remove-objects search-local object-data-index != 3)
+	;OWNERSHIP command: transport-escort-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-target-objects 0 action-guard -1 stance-aggressive)
 	(set-goal gl-transport-escort-state ESCORT-GUARD-4)
 )
@@ -286,6 +306,9 @@
 	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-clean-search search-local object-data-id search-order-asc)
 	(up-remove-objects search-local object-data-index != 4)
+	;OWNERSHIP command: transport-escort-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-target-objects 0 action-guard -1 stance-aggressive)
 	(set-goal gl-transport-escort-state ESCORT-GUARD-5)
 )
@@ -307,6 +330,9 @@
 	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-clean-search search-local object-data-id search-order-asc)
 	(up-remove-objects search-local object-data-index != 5)
+	;OWNERSHIP command: transport-escort-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-target-objects 0 action-guard -1 stance-aggressive)
 	(set-goal gl-transport-escort-state ESCORT-FINISH)
 )
@@ -389,6 +415,9 @@
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-clean-search search-local object-data-id search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= desired-naval-explorers)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-create-group 0 0 c: naval-scout-group)
 	(up-modify-group-flag 1 c: naval-scout-group)
 	(set-goal gl-naval-scout-state NAVAL-SCOUT-TARGET)
@@ -409,6 +438,9 @@
 	(up-bound-point point4-x gl-naval-scout-target-x)
 	(up-full-reset-search)
 	(up-set-group search-local c: naval-scout-group)
+	;OWNERSHIP command: naval-scout-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != naval-scout-group)
 	(up-target-point point4-x action-move -1 stance-no-attack)
 	(up-chat-data-to-self "naval scout route leg: %d" c: 0)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-scout-focus)
@@ -429,6 +461,9 @@
 	(up-bound-point point4-x gl-naval-scout-target-x)
 	(up-full-reset-search)
 	(up-set-group search-local c: naval-scout-group)
+	;OWNERSHIP command: naval-scout-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != naval-scout-group)
 	(up-target-point point4-x action-move -1 stance-no-attack)
 	(up-chat-data-to-self "naval scout route leg: %d" c: 1)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-scout-focus)
@@ -449,6 +484,9 @@
 	(up-bound-point point4-x gl-naval-scout-target-x)
 	(up-full-reset-search)
 	(up-set-group search-local c: naval-scout-group)
+	;OWNERSHIP command: naval-scout-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != naval-scout-group)
 	(up-target-point point4-x action-move -1 stance-no-attack)
 	(up-chat-data-to-self "naval scout route leg: %d" c: 2)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-scout-focus)
@@ -469,6 +507,9 @@
 	(up-bound-point point4-x gl-naval-scout-target-x)
 	(up-full-reset-search)
 	(up-set-group search-local c: naval-scout-group)
+	;OWNERSHIP command: naval-scout-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != naval-scout-group)
 	(up-target-point point4-x action-move -1 stance-no-attack)
 	(up-chat-data-to-self "naval scout route leg: %d" c: 3)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-scout-focus)
@@ -1045,6 +1086,9 @@
 	(up-compare-goal gl-naval-opportunity-ship-count c:> 0)
 	(up-set-target-object search-remote c: 0)
 =>
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 1 action-default -1 stance-aggressive)
 	(up-modify-goal gl-naval-opportunity-active-id g:= gl-naval-opportunity-target-id)
 	(up-modify-goal gl-naval-opportunity-refresh g:= gl-game-time)
@@ -1839,6 +1883,9 @@
 	(up-full-reset-search)
 	(up-find-local c: transport-ship c: 40)
 	(up-remove-objects search-local object-data-id g:!= gl-island-migration-transport-id)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-create-group 0 0 c: migration-transport-group)
 	(up-modify-group-flag 1 c: migration-transport-group)
 	(up-chat-data-to-self "migration transport: %d" g: gl-island-migration-transport-id)
@@ -1860,6 +1907,9 @@
 	(up-full-reset-search)
 	(up-find-local c: transport-ship c: 40)
 	(up-remove-objects search-local object-data-id g:!= gl-island-migration-transport-id)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-create-group 0 0 c: migration-transport-group)
 	(up-modify-group-flag 1 c: migration-transport-group)
 	(up-modify-goal gl-island-scout-attempts c:+ 1)
@@ -1876,6 +1926,32 @@
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 60)
 	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-BOARDING)
+	(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
+	(goal gl-owner-explore-suspended NO)
+=>
+	(set-strategic-number sn-number-explore-groups 0)
+	(set-strategic-number sn-total-number-explorers 0)
+	(set-strategic-number sn-cap-civilian-explorers 0)
+	(set-strategic-number sn-minimum-civilian-explorers 0)
+	(up-reset-scouts)
+	(set-goal gl-owner-explore-suspended YES)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-BOARDING)
+	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+	(goal gl-owner-native-hold-applied NO)
+=>
+	(set-goal gl-owner-worker-hold YES)
+	(up-modify-goal gl-owner-native-builder-assist s:= sn-disable-builder-assistance)
+	(up-modify-goal gl-owner-native-repair s:= sn-object-repair-level)
+	(set-strategic-number sn-disable-builder-assistance 1)
+	(set-strategic-number sn-object-repair-level 0)
+	(set-goal gl-owner-native-hold-applied YES)
 )
 
 (defrule
@@ -1900,15 +1976,12 @@
 	(up-remove-objects search-local object-data-language-id == lid-villager-forager)
 	(up-remove-objects search-local object-data-language-id == lid-villager-hunter)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-capacity)
-	(up-create-group 0 0 c: migration-boarding-group)
-	(up-modify-group-flag 1 c: migration-boarding-group)
-	(up-get-search-state local-total)
-	(up-modify-goal gl-island-migration-load-target g:= local-total)
-	(set-goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
+	(set-goal gl-island-migration-state MIGRATION-OWNERSHIP-CLAIM)
 )
-
 ;When the known map is depleted, evacuate available non-critical workers even
 ;if the economy still gives them futile gather orders. Animal workers and
 ;builders remain protected until their current task finishes.
@@ -1936,15 +2009,12 @@
 	(up-remove-objects search-local object-data-target == prey-animal-class)
 	(up-remove-objects search-local object-data-target == livestock-class)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-capacity)
-	(up-create-group 0 0 c: migration-boarding-group)
-	(up-modify-group-flag 1 c: migration-boarding-group)
-	(up-get-search-state local-total)
-	(up-modify-goal gl-island-migration-load-target g:= local-total)
-	(set-goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
+	(set-goal gl-island-migration-state MIGRATION-OWNERSHIP-CLAIM)
 )
-
 ;After the first productive colony exists, later reinforcement lifts must not
 ;strip the home food economy. Select miners, lumberjacks, or genuinely idle
 ;generic workers while preserving every established farm and natural-food role.
@@ -1976,15 +2046,12 @@
 	(up-remove-objects search-local object-data-language-id == lid-villager-forager)
 	(up-remove-objects search-local object-data-language-id == lid-villager-hunter)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-capacity)
-	(up-create-group 0 0 c: migration-boarding-group)
-	(up-modify-group-flag 1 c: migration-boarding-group)
-	(up-get-search-state local-total)
-	(up-modify-goal gl-island-migration-load-target g:= local-total)
-	(set-goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
+	(set-goal gl-island-migration-state MIGRATION-OWNERSHIP-CLAIM)
 )
-
 (defrule
 	(goal gl-island-migration-state MIGRATION-BOARDING)
 	(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
@@ -1999,20 +2066,32 @@
 	(up-find-local c: scout-cavalry-class c: 3)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index >= 1)
+	(set-goal gl-island-migration-state MIGRATION-OWNERSHIP-CLAIM)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-OWNERSHIP-CLAIM)
+=>
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-create-group 0 0 c: migration-boarding-group)
 	(up-modify-group-flag 1 c: migration-boarding-group)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-island-migration-load-target g:= local-total)
 	(set-goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
 )
-
 (defrule
 	(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
 	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
 	(up-compare-goal gl-island-migration-load-target c:>= 2)
 =>
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-chat-data-to-self "migration board target: %d" g: gl-island-migration-load-target)
 	(set-goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
@@ -2029,6 +2108,9 @@
 	(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
 	(up-compare-goal gl-island-migration-load-target c:>= 1)
 =>
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-chat-data-to-self "migration scout board: %d" g: gl-island-migration-load-target)
 	(set-goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
@@ -2088,6 +2170,7 @@
 	(up-chat-data-to-all "RAW44B migration load target: %d" g: gl-island-migration-load-target)
 	(set-goal gl-island-migration-route-waits 0)
 	(up-set-timer c: t-island-migration c: 120)
+	(set-goal gl-owner-worker-hold NO)
 	(set-goal gl-island-migration-state MIGRATION-ROUTE-PREPARE)
 )
 
@@ -2103,6 +2186,7 @@
 	(up-chat-data-to-all "RAW44B migration load target: %d" g: gl-island-migration-load-target)
 	(set-goal gl-island-migration-route-waits 0)
 	(up-set-timer c: t-island-migration c: 120)
+	(set-goal gl-owner-worker-hold NO)
 	(set-goal gl-island-migration-state MIGRATION-ROUTE-PREPARE)
 )
 
@@ -2241,6 +2325,9 @@
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-find-remote c: transport-ship c: 40)
 	(up-remove-objects search-remote object-data-id g:!= gl-island-migration-transport-id)
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(set-goal gl-island-migration-load-reported YES)
 	(up-set-timer c: t-island-migration-board-retry c: 3)
@@ -2257,10 +2344,21 @@
 	(fe-filter-garrisoned c: 1)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
+	;Release the failed shore passengers; only actual cargo retains the mission.
+	(up-modify-group-flag 0 c: migration-boarding-group)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-garrisoned != 1)
+	(up-create-group 0 0 c: migration-boarding-group)
+	(up-modify-group-flag 1 c: migration-boarding-group)
 	(set-goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
 	(set-goal gl-island-migration-route-waits 0)
 	(up-set-timer c: t-island-migration c: 120)
+	(set-goal gl-owner-worker-hold NO)
 	(set-goal gl-island-migration-state MIGRATION-ROUTE-PREPARE)
 )
 
@@ -2275,9 +2373,15 @@
 	(fe-filter-garrisoned c: 1)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-goal gl-island-migration-rejected-zone3 g:= gl-island-migration-rejected-zone2)
 	(up-modify-goal gl-island-migration-rejected-zone2 g:= gl-island-migration-rejected-zone)
@@ -2298,6 +2402,9 @@
 	(fe-filter-garrisoned c: 1)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
 	(up-modify-group-flag 0 c: migration-boarding-group)
 	(up-reset-group c: migration-boarding-group)
@@ -2318,6 +2425,9 @@
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
 	(up-modify-group-flag 0 c: migration-boarding-group)
 	(up-reset-group c: migration-boarding-group)
@@ -2388,6 +2498,9 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-chat-data-to-self "migration route held: %d" c: 1)
@@ -2414,6 +2527,9 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-island-migration-route-waypoint-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-chat-data-to-self "migration route side: %d" c: 0)
@@ -2436,6 +2552,9 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-island-migration-route-waypoint-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-chat-data-to-self "migration route side: %d" c: 1)
@@ -2477,6 +2596,9 @@
 	(up-compare-goal gl-island-migration-route-waits c:< 4)
 =>
 	(up-get-object-data object-data-distance gl-island-migration-route-distance)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-island-migration-route-waypoint-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-route-waits 0)
@@ -2492,6 +2614,9 @@
 	(up-object-data object-data-distance g:>= gl-island-migration-route-distance)
 	(up-compare-goal gl-island-migration-route-waits c:< 4)
 =>
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-island-migration-route-waypoint-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-modify-goal gl-island-migration-route-waits c:+ 1)
@@ -2537,6 +2662,9 @@
 	(up-object-data object-data-distance g:>= gl-island-migration-route-distance)
 	(up-compare-goal gl-island-migration-route-waits c:>= 4)
 =>
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-chat-data-to-self "migration route unreachable: %d" g: gl-island-migration-transport-id)
@@ -2597,6 +2725,9 @@
 	(goal gl-island-migration-state MIGRATION-RETURN-DEPOSIT)
 	(up-set-target-object search-remote c: 0)
 =>
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-chat-data-to-self "migration cargo deposit target: %d" c: 1)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
@@ -2631,6 +2762,9 @@
 	(up-object-data object-data-garrison-count > 0)
 	(up-compare-goal gl-island-migration-route-waits c:< 4)
 =>
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-modify-goal gl-island-migration-route-waits c:+ 1)
@@ -2692,6 +2826,9 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-chat-data-to-self "migration alternate return: %d" g: gl-island-migration-transport-id)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
@@ -2766,6 +2903,9 @@
 	;Retry unloading at the hull's current shoreline rather than navigating to
 	;the normally inland home anchor.
 	(up-get-point position-object point-x)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point point-x action-unload -1 stance-no-attack)
 	(up-chat-data-to-self "migration quarantine slot busy: %d" g: gl-island-migration-transport-id)
 	(up-modify-group-flag 0 c: migration-boarding-group)
@@ -2818,6 +2958,9 @@
 	(up-compare-goal gl-quarantine-transport-attempts c:< 3)
 =>
 	(up-get-point position-object point-x)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point point-x action-unload -1 stance-no-attack)
 	(up-chat-data-to-self "detached quarantine retry: %d" g: gl-quarantine-transport-id)
 	(up-modify-goal gl-quarantine-transport-attempts c:+ 1)
@@ -2905,6 +3048,9 @@
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-find-remote c: transport-ship c: 40)
 	(up-remove-objects search-remote object-data-id g:!= gl-island-migration-transport-id)
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-set-timer c: t-island-migration-board-retry c: 3)
 	(set-goal gl-island-migration-state MIGRATION-LOADING)
@@ -2967,6 +3113,9 @@
 =>
 	;Now that the reserved scout is proven ashore in the destination zone, clear
 	;its stale board order before the empty Transport is allowed to move.
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
 	(set-goal gl-island-migration-state MIGRATION-TASK-SCOUT)
 )
@@ -2980,6 +3129,9 @@
 	(up-reset-group c: migration-boarding-group)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 60)
@@ -3050,6 +3202,9 @@
 	(up-reset-group c: migration-boarding-group)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 60)
@@ -3125,6 +3280,9 @@
 	(up-add-object-by-id search-remote g: gl-island-migration-anchor-id)
 	;Let the reserved settlers begin harvesting while placement is negotiated,
 	;but retain the group until they own and finish the remote foundation.
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-placement-attempts 0)
@@ -3448,6 +3606,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
 	(or
 		(goal gl-island-migration-anchor-class gold-mine-class)
@@ -3551,6 +3710,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
 	(goal gl-island-migration-anchor-class tree-class)
 	(up-pending-objects c: lumber-camp <= 0)
@@ -3565,6 +3725,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
 	(or
 		(goal gl-island-migration-anchor-class forage-class)
@@ -3727,6 +3888,9 @@
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-add-object-by-id search-remote g: gl-island-migration-dropsite-id)
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-chat-data-to-self "migration dropsite builders assigned: %d" g: gl-island-migration-dropsite-id)
 	(up-set-timer c: t-island-migration c: 120)
@@ -3880,6 +4044,9 @@
 	(up-get-search-state local-total)
 	(set-strategic-number sn-focus-player-number 0)
 	(up-add-object-by-id search-remote g: gl-island-migration-anchor-id)
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-chat-data-to-self "migration settlers retasked: %d" g: local-total)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
@@ -3895,6 +4062,9 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 60)
@@ -3973,6 +4143,11 @@
 	(up-get-search-state local-total)
 	(up-modify-goal gl-island-migration-load-target g:= local-total)
 	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != migration-transport-group)
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-set-timer c: t-island-migration c: 45)
 	(set-goal gl-island-migration-state MIGRATION-RECALL-LOADING)
@@ -3986,6 +4161,9 @@
 	(up-reset-group c: migration-boarding-group)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 60)
@@ -4006,6 +4184,9 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count g:>= gl-island-migration-load-target)
 =>
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-route-waits 0)
@@ -4020,6 +4201,9 @@
 	(up-object-data object-data-garrison-count > 0)
 	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
 =>
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-route-waits 0)
@@ -4045,6 +4229,9 @@
 	(up-chat-data-to-self "migration settler recall failed: %d" g: gl-island-migration-zone)
 	(up-modify-group-flag 0 c: migration-boarding-group)
 	(up-reset-group c: migration-boarding-group)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 60)
@@ -4094,6 +4281,9 @@
 	(up-reset-group c: migration-boarding-group)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 60)
@@ -4139,6 +4329,9 @@
 	(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT-FALLBACK)
 	(up-set-target-object search-local c: 0)
 =>
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-point point3-x action-patrol -1 stance-no-attack)
 	(up-copy-point gl-island-scout-patrol-x point3-x)
 	(up-modify-goal gl-island-scout-missions c:+ 1)
@@ -4148,6 +4341,9 @@
 	(up-chat-data-to-self "migration scout fallback patrol: %d" g: gl-island-migration-zone)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 15)
@@ -4158,6 +4354,9 @@
 	(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT)
 	(up-set-target-object search-local c: 0)
 =>
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-point point2-x action-patrol -1 stance-no-attack)
 	(up-copy-point gl-island-scout-patrol-x point2-x)
 	(up-modify-goal gl-island-scout-missions c:+ 1)
@@ -4167,6 +4366,9 @@
 	(up-chat-data-to-self "migration scout landed: %d" g: gl-island-migration-zone)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 15)
@@ -4209,6 +4411,9 @@
 	(up-modify-goal point3-x c:+ 10)
 	(up-modify-goal point3-y c:- 10)
 	(up-bound-point point4-x point3-x)
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-point point4-x action-move -1 stance-no-attack)
 	(up-chat-data-to-self "migration scout patrol retry: %d" g: gl-island-migration-zone)
 	(up-modify-group-flag 0 c: migration-boarding-group)
@@ -4239,11 +4444,17 @@
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
 	(up-modify-group-flag 0 c: migration-boarding-group)
 	(up-reset-group c: migration-boarding-group)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 60)
@@ -4342,6 +4553,9 @@
 	(up-set-target-object search-local c: 0)
 	(up-path-distance gl-island-migration-route-waypoint-x 0 != 65535)
 =>
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-island-migration-route-waypoint-x action-unload -1 stance-no-attack)
 	(up-chat-data-to-all "RAW44M landing path clear hull: %d" g: gl-island-migration-transport-id)
 	(up-chat-data-to-all "RAW44M landing candidate: %d" g: gl-island-migration-landing-attempts)
@@ -4402,6 +4616,9 @@
 	(up-modify-goal gl-island-migration-rejected-zone g:= gl-island-migration-zone)
 	(set-goal gl-island-migration-rejection-armed NO)
 	(set-goal gl-island-migration-route-waits 0)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 15)
@@ -4416,6 +4633,9 @@
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
 	(up-modify-group-flag 0 c: migration-boarding-group)
 	(up-reset-group c: migration-boarding-group)
@@ -4437,9 +4657,15 @@
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	;OWNERSHIP command: migration-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 15)
@@ -4551,6 +4777,9 @@
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-repair-id)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point point3-x action-move -1 stance-no-attack)
 	(set-goal gl-transport-repair-state TRANSPORT-REPAIR-TASK)
 )
@@ -4562,10 +4791,15 @@
 	(up-set-target-point point3-x)
 	(up-filter-distance c: -1 c: 12)
 	(up-find-local c: villager-class c: 20)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
 	(up-remove-objects search-local object-data-idling != 1)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index >= 2)
 	(up-add-object-by-id search-remote g: gl-transport-repair-id)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-repair-focus)
 	(set-goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
@@ -4666,6 +4900,9 @@
 	(up-compare-goal gl-transport-clear-attempts c:< 2)
 =>
 	(up-get-point position-object point-x)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point point-x action-unload -1 stance-no-attack)
 	(up-modify-goal gl-transport-clear-attempts c:+ 1)
 	(up-set-timer c: t-transport-clear c: 15)
@@ -4800,6 +5037,9 @@
 	(up-get-point position-object gl-transport-clear-target-x)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-clear-id)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point gl-transport-clear-target-x action-move -1 stance-no-attack)
 	(set-goal gl-transport-clear-attempts 0)
 	(up-set-timer c: t-transport-clear c: 15)
@@ -4977,6 +5217,9 @@
 	(up-get-point position-object gl-transport-clear-target-x)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-clear-id)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point gl-transport-clear-target-x action-move -1 stance-no-attack)
 	(set-goal gl-transport-clear-attempts 0)
 	(up-set-timer c: t-transport-clear c: 15)
@@ -5019,6 +5262,9 @@
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-clear-id)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point gl-transport-clear-target-x action-move -1 stance-no-attack)
 	(up-modify-goal gl-transport-clear-attempts c:+ 1)
 	(up-set-timer c: t-transport-clear c: 15)
@@ -5121,6 +5367,9 @@
 	;The thirty-second boarding window cannot silently retarget a full lift.
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
 	(up-chat-data-to-self "attack lift target invalidated: %d" g: gl-transport-route-load-player)
 	(up-set-timer c: t-transport-route c: 15)
@@ -5130,6 +5379,36 @@
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-FIND)
 	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-player == my-player-number)
+	(up-object-data object-data-group-flag < 0)
+=>
+	;Claim a natively/manual-loaded FREE hull before it enters route ownership.
+	;Script-loaded full/partial hulls retain their existing group instead.
+	(up-get-object-data object-data-id gl-transport-route-id)
+	(up-reset-search 1 1 0 0)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-create-group 0 0 c: attack-transport-group)
+	(up-modify-group-flag 1 c: attack-transport-group)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-FIND)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-group-flag != attack-transport-group)
+=>
+	;A selection-to-acquisition race is a rejected claim, not a transfer.
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-set-timer c: t-transport-route c: 30)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-FIND)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-player == my-player-number)
+	(up-object-data object-data-group-flag == attack-transport-group)
 =>
 	(up-get-object-data object-data-id gl-transport-route-id)
 	(up-get-point position-object gl-transport-route-origin-x)
@@ -5186,6 +5465,9 @@
 	(up-reset-group c: attack-transport-group)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-create-group 0 0 c: attack-transport-group)
 	(up-modify-group-flag 1 c: attack-transport-group)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-SELECT)
@@ -5199,6 +5481,19 @@
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 30)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+;Cancel native exploration before this first explicit land claim.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-SELECT)
+	(goal gl-owner-explore-suspended NO)
+=>
+	(set-strategic-number sn-number-explore-groups 0)
+	(set-strategic-number sn-total-number-explorers 0)
+	(set-strategic-number sn-cap-civilian-explorers 0)
+	(set-strategic-number sn-minimum-civilian-explorers 0)
+	(up-reset-scouts)
+	(set-goal gl-owner-explore-suspended YES)
 )
 
 (defrule
@@ -5224,11 +5519,15 @@
 	(up-remove-objects search-local object-data-type == palintonon)
 	(up-remove-objects search-local object-data-type == palintonon-packed)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-idling != 1)
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-route-load-target)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-create-group 0 0 c: attack-boarding-group)
 	(up-modify-group-flag 1 c: attack-boarding-group)
 	(up-get-search-state local-total)
@@ -5241,6 +5540,9 @@
 	(up-compare-goal gl-transport-route-load-target c:>= 5)
 	(up-set-target-object search-remote c: 0)
 =>
+	;OWNERSHIP command: attack-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(set-goal gl-transport-route-script-load YES)
 	(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
@@ -5289,8 +5591,6 @@
 	(up-chat-data-to-self "attack lift ready: %d" g: gl-transport-route-load-target)
 	(up-chat-data-to-all "RAW44C assault ready hull: %d" g: gl-transport-route-id)
 	(up-chat-data-to-all "RAW44C assault ready target: %d" g: gl-transport-route-load-target)
-	(up-modify-group-flag 0 c: attack-transport-group)
-	(up-reset-group c: attack-transport-group)
 	(up-full-reset-search)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)
 )
@@ -5325,6 +5625,11 @@
 	(up-set-group search-local c: attack-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
+	;OWNERSHIP command: attack-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-modify-goal gl-transport-route-load-next g:= gl-game-time)
 	(up-modify-goal gl-transport-route-load-next c:+ 4)
@@ -5446,6 +5751,11 @@
 	(up-set-group search-local c: attack-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
+	;OWNERSHIP command: attack-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(set-goal gl-transport-route-load-reported YES)
 	(up-modify-goal gl-transport-route-load-next g:= gl-game-time)
@@ -5464,6 +5774,9 @@
 	(fe-filter-garrisoned c: 1)
 	(up-set-group search-local c: attack-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	;OWNERSHIP command: attack-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
 	(up-full-reset-search)
 	(fe-filter-garrisoned c: 1)
@@ -5472,15 +5785,29 @@
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-PARTIAL-MANIFEST)
 )
 
+;Cancel native exploration before this first explicit land claim.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-PARTIAL-MANIFEST)
+	(goal gl-owner-explore-suspended NO)
+=>
+	(set-strategic-number sn-number-explore-groups 0)
+	(set-strategic-number sn-total-number-explorers 0)
+	(set-strategic-number sn-cap-civilian-explorers 0)
+	(set-strategic-number sn-minimum-civilian-explorers 0)
+	(up-reset-scouts)
+	(set-goal gl-owner-explore-suspended YES)
+)
+
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-PARTIAL-MANIFEST)
 =>
 	(up-modify-group-flag 0 c: attack-boarding-group)
 	(up-reset-group c: attack-boarding-group)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-create-group 0 0 c: attack-boarding-group)
 	(up-modify-group-flag 1 c: attack-boarding-group)
-	(up-modify-group-flag 0 c: attack-transport-group)
-	(up-reset-group c: attack-transport-group)
 	(up-modify-goal gl-transport-route-load-target g:= gl-transport-route-load-observed)
 	(up-chat-data-to-all "RAW44B attack partial departure: %d" g: gl-transport-route-load-observed)
 	(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
@@ -5494,6 +5821,9 @@
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
 	(up-chat-data-to-self "attack lift boarding aborted: %d" g: gl-transport-route-load-target)
 	(up-chat-data-to-all "RAW44B attack load terminal abort: %d" g: gl-transport-route-load-observed)
@@ -5520,28 +5850,7 @@
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 )
 
-(defrule
-	(or
-		(and
-			(up-compare-goal gl-transport-route-state c:>= TRANSPORT-ROUTE-LOAD-FIND)
-			(up-compare-goal gl-transport-route-state c:<= TRANSPORT-ROUTE-LOAD-READY)
-		)
-		(and
-			(up-compare-goal gl-transport-route-state c:>= TRANSPORT-ROUTE-LOAD-DIAG-FIND)
-			(up-compare-goal gl-transport-route-state c:<= TRANSPORT-ROUTE-LOAD-PARTIAL-MANIFEST)
-		)
-	)
-	(goal gl-home-defense-state YES)
-=>
-	;An attack lift still beside home yields immediately to a real home defense.
-	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-transport-route-id)
-	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
-	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
-	;The partial hull remains owned until the recovery check proves it empty.
-	(up-set-timer c: t-transport-route c: 15)
-	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
-)
+;Ownership preemption is handled by rawai-severe-defense.
 
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-FIND)
@@ -5644,6 +5953,9 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 15)
@@ -5806,6 +6118,9 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 15)
@@ -5887,8 +6202,14 @@
 	(up-reset-group c: transport-screen-group)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-screen-id)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-create-group 0 0 c: transport-screen-group)
 	(up-modify-group-flag 1 c: transport-screen-group)
+	;OWNERSHIP command: transport-screen-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
 	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 30)
@@ -5914,6 +6235,9 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-modify-group-flag 0 c: transport-screen-group)
@@ -5945,9 +6269,15 @@
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-screen-id)
+	;OWNERSHIP command: transport-screen-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
 	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-modify-group-flag 0 c: transport-screen-group)
@@ -5966,6 +6296,9 @@
 	(up-object-data object-data-distance > 10)
 	(up-compare-goal gl-transport-screen-waits c:< 4)
 =>
+	;OWNERSHIP command: transport-screen-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
 	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-modify-goal gl-transport-screen-waits c:+ 1)
@@ -6009,6 +6342,9 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-modify-group-flag 0 c: transport-screen-group)
@@ -6028,6 +6364,9 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-screen-id)
+	;OWNERSHIP command: transport-screen-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
 	(up-target-point gl-transport-route-landing-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(set-goal gl-transport-screen-waits 0)
@@ -6042,6 +6381,9 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-modify-group-flag 0 c: transport-screen-group)
@@ -6085,6 +6427,9 @@
 	(up-object-data object-data-distance > 10)
 	(up-compare-goal gl-transport-screen-waits c:< 4)
 =>
+	;OWNERSHIP command: transport-screen-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
 	(up-target-point gl-transport-route-landing-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-modify-goal gl-transport-screen-waits c:+ 1)
@@ -6144,6 +6489,9 @@
 	(up-cross-tiles point-x gl-transport-route-waypoint-x c: 18)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-screen-id)
+	;OWNERSHIP command: transport-screen-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
 	(up-target-point point-x action-move -1 stance-aggressive)
 	(up-chat-data-to-all "RAW44T2 route-screen landing cleared: %d" g: gl-transport-screen-id)
 	(up-modify-group-flag 0 c: transport-screen-group)
@@ -6169,9 +6517,15 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-screen-id)
+	;OWNERSHIP command: transport-screen-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
 	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-modify-group-flag 0 c: transport-screen-group)
@@ -6224,6 +6578,9 @@
 	(up-modify-goal gl-transport-departure-progress-limit g:= gl-transport-departure-current-distance)
 	(up-modify-goal gl-transport-departure-progress-limit c:- 2)
 	(set-goal gl-transport-departure-stalls 0)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 8)
@@ -6273,9 +6630,15 @@
 	(up-bound-point point-x gl-transport-route-landing-x)
 	(up-cross-tiles point-x gl-transport-route-waypoint-x c: -18)
 	(up-set-group search-local c: transport-escort-group)
+	;OWNERSHIP command: transport-escort-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
 	(up-target-point point-x action-move -1 stance-aggressive)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-transport-route-landing-x action-unload -1 stance-no-attack)
 	(up-chat-data-to-all "RAW44T2 transport landing escort staged: %d" g: gl-transport-route-id)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
@@ -6312,6 +6675,9 @@
 	(set-goal gl-transport-departure-failed-blocker-id -1)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
 	(up-set-timer c: t-transport-route c: 8)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
@@ -6328,6 +6694,9 @@
 	(set-goal gl-transport-departure-stalls 0)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
 	(up-set-timer c: t-transport-route c: 8)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
@@ -6343,6 +6712,9 @@
 	(up-modify-goal gl-transport-departure-stalls c:+ 1)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
 	(up-set-timer c: t-transport-route c: 8)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
@@ -6408,6 +6780,9 @@
 	(up-compare-goal gl-transport-departure-clear-attempts c:>= 3)
 =>
 	(up-chat-data-to-all "RAW44T transport departure congestion unresolved: %d" g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(set-goal gl-transport-departure-congested NO)
 	(set-goal gl-transport-departure-blocker-id -1)
@@ -6432,6 +6807,9 @@
 	(set-goal gl-transport-departure-congested NO)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-transport-route-waypoint-x action-move -1 stance-no-attack)
 	(up-set-timer c: t-transport-route c: 8)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
@@ -6536,6 +6914,9 @@
 	(up-modify-goal gl-transport-departure-blockers g:= local-total)
 	(up-get-object-data object-data-id gl-transport-departure-blocker-id)
 	(up-remove-objects search-local object-data-index >= 1)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point gl-transport-departure-target-x action-move -1 stance-no-attack)
 	(up-modify-goal gl-transport-departure-clear-attempts c:+ 1)
 	(set-goal gl-transport-departure-blocker-retries 0)
@@ -6587,6 +6968,9 @@
 	(up-object-data object-data-group-flag < 0)
 	(up-compare-goal gl-transport-departure-blocker-id g:!= gl-quarantine-transport-id)
 =>
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point gl-transport-departure-target-x action-move -1 stance-no-attack)
 	(up-modify-goal gl-transport-departure-blocker-retries c:+ 1)
 	(up-chat-data-to-all "RAW44T transport blocker clearance retry: %d" g: gl-transport-departure-blocker-id)
@@ -6690,6 +7074,9 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(set-goal gl-transport-screen-id -1)
@@ -6721,11 +7108,17 @@
 	(up-full-reset-search)
 	(up-set-group search-local c: attack-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	;OWNERSHIP command: attack-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
 	(up-target-point gl-transport-route-target-x action-move -1 stance-aggressive)
 	(up-modify-group-flag 0 c: attack-boarding-group)
 	(up-reset-group c: attack-boarding-group)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
 	(set-goal gl-transport-route-script-load NO)
 	(up-chat-data-to-self "attack lift landed: %d" g: gl-transport-route-load-target)
@@ -6741,6 +7134,9 @@
 	(up-object-data object-data-garrison-count <= 0)
 	(goal gl-transport-route-script-load NO)
 =>
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
 	(set-goal gl-transport-screen-id -1)
 	(up-set-timer c: t-transport-route c: 45)
@@ -6821,6 +7217,9 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count > 0)
 =>
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 15)
@@ -6833,6 +7232,9 @@
 	(up-object-data object-data-garrison-count <= 0)
 	(up-object-data object-data-distance > 12)
 =>
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 15)
@@ -6947,8 +7349,8 @@
 	(up-get-object-data object-data-map-zone-id gl-transport-recovery-zone)
 	(up-get-point position-object gl-transport-recovery-unit-x)
 	(set-goal gl-transport-recovery-attempts 0)
-	(up-modify-group-flag 0 c: migration-transport-group)
-	(up-reset-group c: migration-transport-group)
+	(up-modify-group-flag 0 c: recovery-transport-group)
+	(up-reset-group c: recovery-transport-group)
 	(up-full-reset-search)
 	(up-set-target-point gl-transport-recovery-unit-x)
 	(up-find-remote c: transport-ship c: 40)
@@ -6976,10 +7378,32 @@
 	(up-get-object-data object-data-id gl-transport-recovery-transport-id)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-recovery-transport-id)
-	(up-create-group 0 0 c: migration-transport-group)
-	(up-modify-group-flag 1 c: migration-transport-group)
-	(up-modify-group-flag 0 c: migration-boarding-group)
-	(up-reset-group c: migration-boarding-group)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-create-group 0 0 c: recovery-transport-group)
+	(up-modify-group-flag 1 c: recovery-transport-group)
+	(set-goal gl-transport-recovery-state TRANSPORT-RECOVERY-OWNERSHIP-CLAIM)
+)
+
+;Cancel native exploration before this first explicit land claim.
+(defrule
+	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-OWNERSHIP-CLAIM)
+	(goal gl-owner-explore-suspended NO)
+=>
+	(set-strategic-number sn-number-explore-groups 0)
+	(set-strategic-number sn-total-number-explorers 0)
+	(set-strategic-number sn-cap-civilian-explorers 0)
+	(set-strategic-number sn-minimum-civilian-explorers 0)
+	(up-reset-scouts)
+	(set-goal gl-owner-explore-suspended YES)
+)
+
+(defrule
+	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-OWNERSHIP-CLAIM)
+=>
+	(up-modify-group-flag 0 c: recovery-boarding-group)
+	(up-reset-group c: recovery-boarding-group)
 	(up-full-reset-search)
 	(up-set-target-point gl-transport-recovery-unit-x)
 	(up-filter-distance c: -1 c: 12)
@@ -6995,11 +7419,19 @@
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-transport-recovery-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-capacity)
-	(up-create-group 0 0 c: migration-boarding-group)
-	(up-modify-group-flag 1 c: migration-boarding-group)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-create-group 0 0 c: recovery-boarding-group)
+	(up-modify-group-flag 1 c: recovery-boarding-group)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-transport-recovery-load-target g:= local-total)
 	(up-add-object-by-id search-remote g: gl-transport-recovery-transport-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != recovery-transport-group)
+	;OWNERSHIP command: recovery-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != recovery-boarding-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(set-goal gl-transport-recovery-state TRANSPORT-RECOVERY-LOADING)
 )
@@ -7025,10 +7457,10 @@
 	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-LOADING)
 	(up-compare-goal gl-transport-recovery-load-target c:< 1)
 =>
-	(up-modify-group-flag 0 c: migration-boarding-group)
-	(up-reset-group c: migration-boarding-group)
-	(up-modify-group-flag 0 c: migration-transport-group)
-	(up-reset-group c: migration-transport-group)
+	(up-modify-group-flag 0 c: recovery-boarding-group)
+	(up-reset-group c: recovery-boarding-group)
+	(up-modify-group-flag 0 c: recovery-transport-group)
+	(up-reset-group c: recovery-transport-group)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-recovery-focus)
 	(set-goal gl-transport-recovery-unit-id -1)
 	(set-goal gl-transport-recovery-transport-id -1)
@@ -7043,6 +7475,9 @@
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-recovery-transport-id)
+	;OWNERSHIP command: recovery-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != recovery-transport-group)
 	(up-target-point gl-transport-recovery-target-x action-unload -1 stance-no-attack)
 	(set-goal gl-transport-recovery-state TRANSPORT-RECOVERY-SAILING)
 )
@@ -7067,11 +7502,17 @@
 	(up-timer-status t-transport-recovery == timer-triggered)
 =>
 	(up-full-reset-search)
-	(up-set-group search-local c: migration-boarding-group)
+	(up-set-group search-local c: recovery-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	;OWNERSHIP command: recovery-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != recovery-boarding-group)
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-recovery-transport-id)
+	;OWNERSHIP command: recovery-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != recovery-transport-group)
 	(up-target-point gl-transport-recovery-target-x action-unload -1 stance-no-attack)
 	(up-chat-data-to-self "transport recovery partial departure: %d" g: gl-transport-recovery-load-target)
 	(up-set-timer c: t-transport-recovery c: 30)
@@ -7085,10 +7526,10 @@
 	(up-timer-status t-transport-recovery == timer-triggered)
 =>
 	(up-chat-data-to-self "transport recovery boarding aborted: %d" g: gl-transport-recovery-zone)
-	(up-modify-group-flag 0 c: migration-boarding-group)
-	(up-reset-group c: migration-boarding-group)
-	(up-modify-group-flag 0 c: migration-transport-group)
-	(up-reset-group c: migration-transport-group)
+	(up-modify-group-flag 0 c: recovery-boarding-group)
+	(up-reset-group c: recovery-boarding-group)
+	(up-modify-group-flag 0 c: recovery-transport-group)
+	(up-reset-group c: recovery-transport-group)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-recovery-focus)
 	(set-goal gl-transport-recovery-unit-id -1)
 	(set-goal gl-transport-recovery-transport-id -1)
@@ -7110,7 +7551,7 @@
 	(up-object-data object-data-garrison-count <= 0)
 =>
 	(up-full-reset-search)
-	(up-set-group search-local c: migration-boarding-group)
+	(up-set-group search-local c: recovery-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-transport-recovery-target-zone)
 	(set-goal gl-transport-recovery-state TRANSPORT-RECOVERY-VERIFY-LANDING)
@@ -7123,14 +7564,20 @@
 	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-VERIFY-LANDING)
 	(up-set-target-object search-local c: 0)
 =>
+	;OWNERSHIP command: recovery-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != recovery-boarding-group)
 	(up-target-point gl-transport-recovery-target-x action-move -1 stance-defensive)
-	(up-modify-group-flag 0 c: migration-boarding-group)
-	(up-reset-group c: migration-boarding-group)
+	(up-modify-group-flag 0 c: recovery-boarding-group)
+	(up-reset-group c: recovery-boarding-group)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-recovery-transport-id)
+	;OWNERSHIP command: recovery-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != recovery-transport-group)
 	(up-target-point gl-transport-recovery-unit-x action-move -1 stance-no-attack)
-	(up-modify-group-flag 0 c: migration-transport-group)
-	(up-reset-group c: migration-transport-group)
+	(up-modify-group-flag 0 c: recovery-transport-group)
+	(up-reset-group c: recovery-transport-group)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-recovery-focus)
 	(set-goal gl-transport-recovery-unit-id -1)
 	(set-goal gl-transport-recovery-transport-id -1)
@@ -7146,7 +7593,7 @@
 	(not (up-set-target-object search-local c: 0))
 =>
 	(up-full-reset-search)
-	(up-set-group search-local c: migration-boarding-group)
+	(up-set-group search-local c: recovery-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(set-goal gl-transport-recovery-state TRANSPORT-RECOVERY-FIND-WRONG-ZONE)
@@ -7163,6 +7610,11 @@
 	(up-get-search-state local-total)
 	(up-modify-goal gl-transport-recovery-load-target g:= local-total)
 	(up-add-object-by-id search-remote g: gl-transport-recovery-transport-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != recovery-transport-group)
+	;OWNERSHIP command: recovery-boarding-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != recovery-boarding-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-modify-goal gl-transport-recovery-attempts c:+ 1)
 	(up-chat-data-to-self "transport recovery wrong-zone reboard: %d" g: gl-transport-recovery-landing-zone)
@@ -7179,10 +7631,10 @@
 	;Do not report the wrong island as success. Release the stranded survivors
 	;and quarantine this exact route hull so another controller cannot claim it
 	;in the same sweep.
-	(up-modify-group-flag 0 c: migration-boarding-group)
-	(up-reset-group c: migration-boarding-group)
-	(up-modify-group-flag 0 c: migration-transport-group)
-	(up-reset-group c: migration-transport-group)
+	(up-modify-group-flag 0 c: recovery-boarding-group)
+	(up-reset-group c: recovery-boarding-group)
+	(up-modify-group-flag 0 c: recovery-transport-group)
+	(up-reset-group c: recovery-transport-group)
 	(up-modify-goal gl-quarantine-transport-id g:= gl-transport-recovery-transport-id)
 	(up-modify-goal gl-quarantine-transport-next g:= gl-game-time)
 	(up-modify-goal gl-quarantine-transport-next c:+ 60)
@@ -7201,13 +7653,16 @@
 	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-FIND-WRONG-ZONE)
 	(not (up-set-target-object search-local c: 0))
 =>
-	(up-modify-group-flag 0 c: migration-boarding-group)
-	(up-reset-group c: migration-boarding-group)
+	(up-modify-group-flag 0 c: recovery-boarding-group)
+	(up-reset-group c: recovery-boarding-group)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-recovery-transport-id)
+	;OWNERSHIP command: recovery-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != recovery-transport-group)
 	(up-target-point gl-transport-recovery-unit-x action-move -1 stance-no-attack)
-	(up-modify-group-flag 0 c: migration-transport-group)
-	(up-reset-group c: migration-transport-group)
+	(up-modify-group-flag 0 c: recovery-transport-group)
+	(up-reset-group c: recovery-transport-group)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-recovery-focus)
 	(up-chat-data-to-self "transport recovery no survivors: %d" g: gl-transport-recovery-target-zone)
 	(set-goal gl-transport-recovery-unit-id -1)
@@ -7229,10 +7684,10 @@
 	(not (goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE))
 	(up-compare-goal gl-transport-recovery-transport-id c:< 0)
 =>
-	(up-modify-group-flag 0 c: migration-boarding-group)
-	(up-reset-group c: migration-boarding-group)
-	(up-modify-group-flag 0 c: migration-transport-group)
-	(up-reset-group c: migration-transport-group)
+	(up-modify-group-flag 0 c: recovery-boarding-group)
+	(up-reset-group c: recovery-boarding-group)
+	(up-modify-group-flag 0 c: recovery-transport-group)
+	(up-reset-group c: recovery-transport-group)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-recovery-focus)
 	(up-set-timer c: t-transport-recovery c: 90)
 	(set-goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
@@ -7247,6 +7702,9 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-recovery-transport-id)
+	;OWNERSHIP command: recovery-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != recovery-transport-group)
 	(up-target-point gl-transport-recovery-target-x action-unload -1 stance-no-attack)
 	(up-modify-goal gl-transport-recovery-attempts c:+ 1)
 	(up-chat-data-to-self "transport recovery unload retry: %d" g: gl-transport-recovery-attempts)
@@ -7267,6 +7725,9 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-recovery-transport-id)
+	;OWNERSHIP command: recovery-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != recovery-transport-group)
 	(up-target-point gl-transport-recovery-target-x action-unload -1 stance-no-attack)
 	(set-goal gl-transport-recovery-attempts 4)
 	(up-chat-data-to-self "transport recovery recalled: %d" g: gl-transport-recovery-zone)
@@ -7283,10 +7744,10 @@
 	;A hull that cannot unload even at its own origin must not be reclaimed by a
 	;new controller. Quarantine the exact object instead of recreating the loop.
 	(up-modify-goal gl-quarantine-transport-id g:= gl-transport-recovery-transport-id)
-	(up-modify-group-flag 0 c: migration-boarding-group)
-	(up-reset-group c: migration-boarding-group)
-	(up-modify-group-flag 0 c: migration-transport-group)
-	(up-reset-group c: migration-transport-group)
+	(up-modify-group-flag 0 c: recovery-boarding-group)
+	(up-reset-group c: recovery-boarding-group)
+	(up-modify-group-flag 0 c: recovery-transport-group)
+	(up-reset-group c: recovery-transport-group)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-recovery-focus)
 	(up-chat-data-to-self "transport recovery quarantined: %d" g: gl-quarantine-transport-id)
 	(set-goal gl-transport-recovery-unit-id -1)
@@ -7422,11 +7883,23 @@
 	(up-get-object-data object-data-id gl-relic-ferry-transport-id)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-relic-ferry-transport-id)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-create-group 0 0 c: relic-ferry-transport-group)
 	(up-modify-group-flag 1 c: relic-ferry-transport-group)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-relic-ferry-unit-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-create-group 0 0 c: relic-ferry-passenger-group)
+	(up-modify-group-flag 1 c: relic-ferry-passenger-group)
 	(up-add-object-by-id search-remote g: gl-relic-ferry-transport-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != relic-ferry-transport-group)
+	;OWNERSHIP command: relic-ferry-passenger-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != relic-ferry-passenger-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(set-goal gl-relic-ferry-load-wait-reported NO)
 	(set-goal gl-relic-ferry-state RELIC-FERRY-LOADING)
@@ -7465,6 +7938,9 @@
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-relic-ferry-transport-id)
+	;OWNERSHIP command: relic-ferry-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != relic-ferry-transport-group)
 	(up-target-point gl-relic-ferry-target-x action-unload -1 stance-no-attack)
 	(up-chat-data-to-all "RAW44R relic ferry outbound unit: %d" g: gl-relic-ferry-unit-id)
 	(up-chat-data-to-all "RAW44R relic ferry outbound hull: %d" g: gl-relic-ferry-transport-id)
@@ -7481,6 +7957,9 @@
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-relic-ferry-transport-id)
+	;OWNERSHIP command: relic-ferry-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != relic-ferry-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-chat-data-to-all "RAW44R relic ferry return unit: %d" g: gl-relic-ferry-unit-id)
 	(up-chat-data-to-all "RAW44R relic ferry return hull: %d" g: gl-relic-ferry-transport-id)
@@ -7568,6 +8047,9 @@
 	(up-add-object-by-id search-local g: gl-relic-ferry-unit-id)
 	(set-strategic-number sn-focus-player-number 0)
 	(up-add-object-by-id search-remote g: gl-relic-ferry-target-id)
+	;OWNERSHIP command: relic-ferry-passenger-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != relic-ferry-passenger-group)
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	;Keep the exact transport reserved beside the landing while the priest walks
 	;to and picks up the relic. Releasing ownership here caused other transport
@@ -7593,6 +8075,9 @@
 	(up-set-target-object search-remote c: 0)
 =>
 	(set-goal gl-relic-ferry-direction RELIC-FERRY-RETURN)
+	;OWNERSHIP command: relic-ferry-passenger-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != relic-ferry-passenger-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-chat-data-to-self "relic carrier return boarding: %d" g: gl-relic-ferry-unit-id)
 	(up-set-timer c: t-relic-ferry c: 90)
@@ -7632,6 +8117,9 @@
 	(up-find-remote c: monastery c: 5)
 	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-home-zone)
 	(up-clean-search search-remote object-data-distance search-order-asc)
+	;OWNERSHIP command: relic-ferry-passenger-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != relic-ferry-passenger-group)
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-modify-group-flag 0 c: relic-ferry-transport-group)
 	(up-reset-group c: relic-ferry-transport-group)
@@ -7652,6 +8140,9 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-relic-ferry-transport-id)
+	;OWNERSHIP command: relic-ferry-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != relic-ferry-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	;Do not release the exact hull merely because its controller timed out. Keep
 	;ownership until it is empty and physically back beside the active home.
@@ -7696,6 +8187,9 @@
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-relic-ferry-transport-id)
+	;OWNERSHIP command: relic-ferry-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != relic-ferry-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-goal gl-relic-ferry-return-attempts c:+ 1)
 	(up-set-timer c: t-relic-ferry c: 30)
@@ -7800,6 +8294,7 @@
 ;This keeps colonies actionable without confusing an unreachable enemy on an
 ;adjacent island for a home incursion.
 (defrule
+	(goal gl-home-defense-state NO)
 	(up-timer-status t-defense-leash == timer-triggered)
 	(goal gl-local-response-state LOCAL-RESPONSE-IDLE)
 =>
@@ -7950,6 +8445,8 @@
 	(up-set-target-point gl-local-response-target-x)
 	(up-filter-distance c: -1 c: 18)
 	(up-find-local c: villager-class c: 40)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
 	(up-remove-objects search-local object-data-action != actionid-build)
 	;object-data-target is a class-domain operand for builders. Match both wall
 	;families through wall-class instead of comparing it with unit-line IDs.
@@ -7957,6 +8454,9 @@
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-local-response-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
 	(up-set-target-point gl-local-response-target-x)
 	(up-filter-distance c: 12 c: 48)
@@ -7964,6 +8464,9 @@
 	(up-find-remote c: town-center c: 10)
 	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-local-response-zone)
 	(up-clean-search search-remote object-data-distance search-order-asc)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-local-response-player)
 )
@@ -7980,11 +8483,16 @@
 	(up-set-target-point gl-local-response-target-x)
 	(up-filter-distance c: -1 c: 18)
 	(up-find-local c: villager-class c: 40)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
 	(up-remove-objects search-local object-data-action != actionid-build)
 	(up-remove-objects search-local object-data-target != gate-class)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-local-response-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
 	(up-set-target-point gl-local-response-target-x)
 	(up-filter-distance c: 12 c: 48)
@@ -7992,6 +8500,9 @@
 	(up-find-remote c: town-center c: 10)
 	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-local-response-zone)
 	(up-clean-search search-remote object-data-distance search-order-asc)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-local-response-player)
 )
@@ -8025,7 +8536,9 @@
 	;Builder evacuation deliberately reuses search-remote for a safe owned TC.
 	;Revalidate the hostile list here so responder dispatch never consumes that
 	;temporary target or another controller's stale shared search.
+	(up-modify-sn sn-focus-player-number g:= gl-local-response-player)
 	(up-full-reset-search)
+	(up-filter-status c: status-ready c: list-active)
 	(up-set-target-point gl-local-response-target-x)
 	(up-filter-distance c: -1 c: 32)
 	(up-find-remote c: scout-cavalry-class c: 40)
@@ -8036,6 +8549,7 @@
 	(up-find-remote c: siege-weapon-class c: 40)
 	(up-find-remote c: priest c: 10)
 	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-local-response-zone)
+	(up-remove-objects search-remote object-data-player g:!= gl-local-response-player)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-local-response-state LOCAL-RESPONSE-REBUILD)
 )
@@ -8055,76 +8569,56 @@
 	(up-find-local c: infantry-class c: 40)
 	(up-find-local c: archery-class c: 40)
 	(up-find-local c: siege-weapon-class c: 40)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-idling != 1)
 	(up-remove-objects search-local object-data-type == palintonon)
 	(up-remove-objects search-local object-data-type == palintonon-packed)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-local-response-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 8)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-local-response-responders g:= local-total)
 	(set-goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)
 )
 
+;Cancel native exploration before this first explicit land claim.
 (defrule
 	(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)
-	(goal gl-home-defense-state NO)
 	(up-compare-goal gl-local-response-responders c:> 0)
-	(or
-		(up-compare-goal gl-local-response-siege-threats c:>= 1)
-		(or
-			(up-compare-goal gl-local-response-threats c:>= 5)
-			(and
-				(up-compare-goal gl-local-response-threats c:>= 2)
-				(up-compare-goal gl-game-time g:>= gl-attack-dwell-until)
-			)
-		)
-	)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-player g:== gl-local-response-player)
+	(up-object-data object-data-status == status-ready)
+	(goal gl-owner-explore-suspended NO)
 =>
-	;Only a real same-zone response suppresses the whole offense.  A lone raider
-	;or a presence inside the attack-commitment window must not yank the army.
-	;T8: mark the exact caller without changing recall, selection, or ownership.
-	(up-chat-data-to-all "RAW44O recall source: %d" c: 1)
-	(up-chat-data-to-all "RAW44O recall assault state: %d" g: gl-transport-route-state)
-	(up-chat-data-to-all "RAW44O recall assault hull: %d" g: gl-transport-route-id)
-	(up-chat-data-to-all "RAW44O recall migration state: %d" g: gl-island-migration-state)
-	(up-chat-data-to-all "RAW44O recall migration hull: %d" g: gl-island-migration-transport-id)
-	(up-reset-attack-now)
-	(up-retreat-now)
-	(set-goal gl-home-defense-state YES)
-	(set-goal current-action ACTION-RETREAT)
-	(up-set-timer c: t-home-defense-hold c: 45)
-	(up-create-group 0 0 c: home-defense-response-group)
-	(up-modify-group-flag 1 c: home-defense-response-group)
-	(up-target-objects 1 action-default -1 stance-aggressive)
-	(up-chat-data-to-self "asset defense responders: %d" g: gl-local-response-responders)
-	(up-modify-sn sn-focus-player-number g:= gl-local-response-focus)
-	(set-goal gl-local-response-state LOCAL-RESPONSE-IDLE)
+	(set-strategic-number sn-number-explore-groups 0)
+	(set-strategic-number sn-total-number-explorers 0)
+	(set-strategic-number sn-cap-civilian-explorers 0)
+	(set-strategic-number sn-minimum-civilian-explorers 0)
+	(up-reset-scouts)
+	(set-goal gl-owner-explore-suspended YES)
 )
 
 (defrule
 	(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)
 	(up-compare-goal gl-local-response-responders c:> 0)
-	(or
-		(goal gl-home-defense-state YES)
-		(and
-			(up-compare-goal gl-local-response-siege-threats c:< 1)
-			(and
-				(up-compare-goal gl-local-response-threats c:< 5)
-				(or
-					(up-compare-goal gl-local-response-threats c:< 2)
-					(up-compare-goal gl-game-time g:< gl-attack-dwell-until)
-				)
-			)
-		)
-	)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-player g:== gl-local-response-player)
+	(up-object-data object-data-status == status-ready)
 =>
-	;Below the global-retreat threshold, inside the attack-commitment window, or
-	;already latched, release quietly so the engaged responders are not recalled
-	;to the Town Center on every leash scan.
-	(up-chat-data-to-self "asset defense quiet release: threats %d" g: gl-local-response-threats)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-create-group 0 0 c: home-defense-response-group)
+	(up-modify-group-flag 1 c: home-defense-response-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != home-defense-response-group)
+	(up-target-objects 1 action-default -1 stance-aggressive)
+	(up-chat-data-to-self "asset defense responders: %d" g: gl-local-response-responders)
 	(up-modify-sn sn-focus-player-number g:= gl-local-response-focus)
 	(set-goal gl-local-response-state LOCAL-RESPONSE-IDLE)
 )
+;Routine probes now dispatch bounded FREE responders in the preceding rule.
 
 (defrule
 	(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)
@@ -8191,6 +8685,8 @@
 	(up-find-remote c: infantry-class c: 40)
 	(up-find-remote c: archery-class c: 40)
 	(up-find-remote c: siege-weapon-class c: 20)
+	(up-remove-objects search-remote object-data-player g:!= gl-naval-response-player)
+	(up-remove-objects search-remote object-data-status != status-ready)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-naval-response-threats g:= remote-total)
@@ -8268,9 +8764,12 @@
 	(up-set-target-point gl-naval-response-target-x)
 	(up-find-local c: warship-class c: 40)
 	(up-find-local c: boarding-ship c: 10)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-idling != 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-response-zone)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 8)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-naval-response-responders g:= local-total)
 	(set-goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)
@@ -8289,7 +8788,10 @@
 	(up-find-local c: warship-class c: 40)
 	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 8)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-naval-response-responders g:= local-total)
 	(set-goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)
@@ -8298,55 +8800,25 @@
 (defrule
 	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)
 	(goal gl-naval-response-land-threat NO)
-	(goal gl-home-defense-state NO)
 	(up-compare-goal gl-naval-response-responders c:> 0)
-	(up-compare-goal gl-naval-response-threats c:>= 2)
-	(or
-		(up-compare-goal gl-game-time g:>= gl-attack-dwell-until)
-		(up-compare-goal gl-naval-response-threats c:>= 4)
-	)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-player g:== gl-naval-response-player)
+	(up-object-data object-data-status == status-ready)
 =>
-	(up-chat-data-to-all "RAW44O recall source: %d" c: 2)
-	(up-chat-data-to-all "RAW44O recall assault state: %d" g: gl-transport-route-state)
-	(up-chat-data-to-all "RAW44O recall assault hull: %d" g: gl-transport-route-id)
-	(up-chat-data-to-all "RAW44O recall migration state: %d" g: gl-island-migration-state)
-	(up-chat-data-to-all "RAW44O recall migration hull: %d" g: gl-island-migration-transport-id)
-	(up-reset-attack-now)
-	(up-retreat-now)
-	(set-goal gl-home-defense-state YES)
-	(set-goal current-action ACTION-RETREAT)
-	(up-set-timer c: t-home-defense-hold c: 30)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-create-group 0 0 c: home-naval-response-group)
 	(up-modify-group-flag 1 c: home-naval-response-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != home-naval-response-group)
 	(up-target-objects 1 action-default -1 stance-aggressive)
 	(up-chat-data-to-self "naval defense responders: %d" g: gl-naval-response-responders)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-response-focus)
 	(up-set-timer c: t-naval-response c: 10)
 	(set-goal gl-naval-response-state NAVAL-RESPONSE-IDLE)
 )
-
-(defrule
-	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)
-	(goal gl-naval-response-land-threat NO)
-	(up-compare-goal gl-naval-response-responders c:> 0)
-	(or
-		(goal gl-home-defense-state YES)
-		(or
-			(up-compare-goal gl-naval-response-threats c:< 2)
-			(and
-				(up-compare-goal gl-game-time g:< gl-attack-dwell-until)
-				(up-compare-goal gl-naval-response-threats c:< 4)
-			)
-		)
-	)
-=>
-	;A lone or in-window naval probe must not recall the whole army, and an
-	;already-latched defense must not re-retreat its engaged responders.
-	(up-chat-data-to-self "naval defense quiet release: threats %d" g: gl-naval-response-threats)
-	(up-modify-sn sn-focus-player-number g:= gl-naval-response-focus)
-	(up-set-timer c: t-naval-response c: 10)
-	(set-goal gl-naval-response-state NAVAL-RESPONSE-IDLE)
-)
+;Routine probes now dispatch bounded FREE responders in the preceding rule.
 
 ;For a land unit attacking a coastal asset, Euclidean proximity cannot prove
 ;that a responding ship shares the same navigable basin.  Still issue coastal
@@ -8356,9 +8828,18 @@
 	(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)
 	(goal gl-naval-response-land-threat YES)
 	(up-compare-goal gl-naval-response-responders c:> 0)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-player g:== gl-naval-response-player)
+	(up-object-data object-data-status == status-ready)
 =>
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-create-group 0 0 c: home-naval-response-group)
 	(up-modify-group-flag 1 c: home-naval-response-group)
+	;OWNERSHIP command: home-naval-response-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != home-naval-response-group)
 	(up-target-objects 1 action-default -1 stance-aggressive)
 	(up-chat-data-to-self "coastal support responders: %d" g: gl-naval-response-responders)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-response-focus)
@@ -8406,6 +8887,8 @@
 	(up-find-remote c: infantry-class c: 40)
 	(up-find-remote c: archery-class c: 40)
 	(up-find-remote c: siege-weapon-class c: 20)
+	(up-remove-objects search-remote object-data-player g:!= gl-naval-response-player)
+	(up-remove-objects search-remote object-data-status != status-ready)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(up-get-search-state local-total)
 	(set-goal gl-naval-response-state NAVAL-RESPONSE-FIND-THREAT)
@@ -8437,7 +8920,12 @@
 	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-response-zone)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-idling != 1)
 	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 8)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 1 action-default -1 stance-aggressive)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-response-focus)
 	(up-set-timer c: t-naval-response c: 10)
@@ -8460,7 +8948,12 @@
 	(up-find-local c: warship-class c: 40)
 	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-idling != 1)
 	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 8)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 1 action-default -1 stance-aggressive)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-response-focus)
 	(up-set-timer c: t-naval-response c: 10)
@@ -8500,6 +8993,7 @@
 	;Capture the exact grouped scout here instead of depending on a shared local
 	;search surviving another rule boundary.
 	(up-get-object-data object-data-id gl-juggernaut-evasion-unit-id)
+	(up-get-object-data object-data-group-flag gl-owner-evasion-flag)
 	(up-get-object-data object-data-map-zone-id gl-juggernaut-evasion-zone)
 	(up-get-point position-object gl-juggernaut-evasion-target-x)
 	(up-find-player enemy find-attacker gl-juggernaut-evasion-player)
@@ -8536,6 +9030,7 @@
 	(up-set-target-object search-local c: 0)
 =>
 	(up-get-object-data object-data-id gl-juggernaut-evasion-unit-id)
+	(up-get-object-data object-data-group-flag gl-owner-evasion-flag)
 	(up-get-object-data object-data-map-zone-id gl-juggernaut-evasion-zone)
 	(up-get-point position-object gl-juggernaut-evasion-target-x)
 	(up-find-player enemy find-attacker gl-juggernaut-evasion-player)
@@ -8582,6 +9077,9 @@
 	(up-get-point position-object point2-x)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-juggernaut-evasion-unit-id)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag g:!= gl-owner-evasion-flag)
 	(up-target-point point2-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-juggernaut-evasion-focus)
 	(up-set-timer c: t-juggernaut-evasion c: 8)
@@ -8637,6 +9135,9 @@
 	(goal gl-siege-target-state SIEGE-TARGET-FALLBACK)
 	(up-set-target-object search-local c: 0)
 =>
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 1 action-pack -1 stance-no-attack)
 	(up-chat-data-to-self "idle Palintonons packed: %d" g: gl-siege-source-count)
 	(up-set-timer c: t-siege-target c: 12)
@@ -8730,6 +9231,9 @@
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 1 action-pack -1 stance-no-attack)
 	;Pack is asynchronous. Do not immediately replace it with group/default.
 	;Rebuild both exact-ID target and engine list after a bounded conversion wait.
@@ -8755,11 +9259,15 @@
 	(up-find-local c: palintonon-packed c: 20)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-siege-target-zone)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-idling != 1)
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-siege-source-count g:= local-total)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-create-group 0 0 c: siege-objective-group)
 	(up-modify-group-flag 1 c: siege-objective-group)
 	(set-goal gl-siege-target-state SIEGE-TARGET-PACK-CHECK)
@@ -8787,6 +9295,9 @@
 	(goal gl-siege-target-state SIEGE-TARGET-COMMAND)
 	(up-compare-goal gl-siege-source-count c:> 0)
 =>
+	;OWNERSHIP command: siege-objective-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != siege-objective-group)
 	(up-target-objects 1 action-default -1 stance-aggressive)
 	(up-chat-data-to-self "siege objective group: %d" g: gl-siege-source-count)
 	(up-modify-sn sn-focus-player-number g:= gl-siege-target-focus)
@@ -8990,6 +9501,9 @@
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-create-group 0 0 c: juggernaut-bombardment-group)
 	(up-modify-group-flag 1 c: juggernaut-bombardment-group)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-ESCORT-SELECT)
@@ -9015,6 +9529,9 @@
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-create-group 0 0 c: octeres-bombardment-group)
 	(up-modify-group-flag 1 c: octeres-bombardment-group)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-ESCORT-SELECT)
@@ -9060,6 +9577,9 @@
 	(up-get-search-state local-total)
 	(up-modify-goal gl-naval-siege-escort-count g:= local-total)
 	(up-add-object-by-id search-remote g: gl-naval-siege-source-id)
+	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-guard -1 stance-aggressive)
 	(up-find-player enemy find-closest gl-naval-siege-player)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-player)
@@ -9164,6 +9684,9 @@
 	(goal gl-naval-siege-family 0)
 	(up-compare-goal gl-naval-siege-source-count c:> 0)
 =>
+	;OWNERSHIP command: juggernaut-bombardment-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != juggernaut-bombardment-group)
 	(up-target-objects 1 action-default -1 stance-aggressive)
 	(up-chat-data-to-self "Juggernaut bombardment escorts: %d" g: gl-naval-siege-escort-count)
 	(up-chat-data-to-self "naval bombardment target type: %d" g: gl-naval-siege-target-type)
@@ -9180,6 +9703,9 @@
 	(goal gl-naval-siege-family 1)
 	(up-compare-goal gl-naval-siege-source-count c:> 0)
 =>
+	;OWNERSHIP command: juggernaut-bombardment-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != juggernaut-bombardment-group)
 	(up-target-objects 1 action-default -1 stance-aggressive)
 	(up-chat-data-to-self "Octeres bombardment escorts: %d" g: gl-naval-siege-escort-count)
 	(up-chat-data-to-self "naval bombardment target type: %d" g: gl-naval-siege-target-type)
@@ -9295,145 +9821,24 @@
 
 ;Positive land/naval responder dispatches own the home-defense latch.  A threat
 ;with no reachable responders must not globally freeze attacks and migration.
-(defrule
-	(up-timer-status t-home-defense-hold == timer-triggered)
-	(goal gl-home-defense-state YES)
-	(or
-		(and
-			(up-compare-goal gl-local-response-threats c:< 1)
-			(up-compare-goal gl-naval-response-threats c:< 1)
-		)
-		(and
-			(up-compare-goal gl-local-response-responders c:<= 0)
-			(up-compare-goal gl-naval-response-responders c:<= 0)
-		)
-	)
-=>
-	(set-goal gl-home-defense-state NO)
-	(set-goal current-action ACTION-WAIT)
-)
+;Ownership preemption is handled by rawai-severe-defense.
 
-(defrule
-	(up-timer-status t-home-defense-hold == timer-triggered)
-	(goal gl-home-defense-state YES)
-	(or
-		(and
-			(up-compare-goal gl-local-response-threats c:>= 1)
-			(up-compare-goal gl-local-response-responders c:> 0)
-		)
-		(and
-			(up-compare-goal gl-naval-response-threats c:>= 1)
-			(up-compare-goal gl-naval-response-responders c:> 0)
-		)
-	)
-=>
-	(up-set-timer c: t-home-defense-hold c: 30)
-)
+;Ownership preemption is handled by rawai-severe-defense.
 
 ;Abort a transport route when an attacked-home threat is observed, even when
 ;no ordinary responder exists to raise the global defense latch. Re-resolve
 ;the exact route hull and include the outbound RETURN stages: they begin after
 ;the unload command is issued, not after the passengers are proven ashore.
-(defrule
-	(or
-		(and
-			(up-compare-goal gl-local-response-threats c:>= 2)
-			(up-compare-goal gl-local-response-zone g:== gl-home-zone)
-		)
-		(and
-			(up-compare-goal gl-naval-response-threats c:>= 2)
-			(up-compare-goal gl-naval-response-asset-zone g:== gl-home-zone)
-		)
-	)
-	;A committed attack keeps loading through a light home probe; only a severe
-	;incursion or an expired commitment window recalls the lift.
-	(or
-		(up-compare-goal gl-game-time g:>= gl-attack-dwell-until)
-		(or
-			(up-compare-goal gl-local-response-threats c:>= 5)
-			(up-compare-goal gl-naval-response-threats c:>= 5)
-		)
-	)
-	(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))
-	(up-compare-goal gl-transport-screen-id c:>= 0)
-=>
-	(set-strategic-number sn-focus-player-number my-player-number)
-	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-transport-screen-id)
-	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
-	(up-modify-group-flag 0 c: transport-screen-group)
-	(up-reset-group c: transport-screen-group)
-	(set-goal gl-transport-screen-id -1)
-)
+;Ownership preemption is handled by rawai-severe-defense.
 
-(defrule
-	(or
-		(and
-			(up-compare-goal gl-local-response-threats c:>= 2)
-			(up-compare-goal gl-local-response-zone g:== gl-home-zone)
-		)
-		(and
-			(up-compare-goal gl-naval-response-threats c:>= 2)
-			(up-compare-goal gl-naval-response-asset-zone g:== gl-home-zone)
-		)
-	)
-	;A committed attack keeps loading through a light home probe; only a severe
-	;incursion or an expired commitment window recalls the lift.
-	(or
-		(up-compare-goal gl-game-time g:>= gl-attack-dwell-until)
-		(or
-			(up-compare-goal gl-local-response-threats c:>= 5)
-			(up-compare-goal gl-naval-response-threats c:>= 5)
-		)
-	)
-	(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))
-	(not (goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT))
-	(not (goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK))
-=>
-	(set-strategic-number sn-focus-player-number my-player-number)
-	(up-full-reset-search)
-	(up-find-local c: transport-ship c: 40)
-	(up-remove-objects search-local object-data-id g:!= gl-transport-route-id)
-	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
-	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
-	(up-modify-group-flag 0 c: transport-screen-group)
-	(up-reset-group c: transport-screen-group)
-	(set-goal gl-transport-screen-id -1)
-	(up-set-timer c: t-transport-route c: 15)
-	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
-)
+;Ownership preemption is handled by rawai-severe-defense.
 
-(defrule
-	(goal gl-home-defense-state YES)
-	(not (goal gl-raid-state RAID-IDLE))
-=>
-	(up-modify-group-flag 0 c: opportunistic-raid-group)
-	(up-reset-group c: opportunistic-raid-group)
-	(up-modify-sn sn-focus-player-number g:= gl-raid-focus-player)
-	(set-goal gl-raid-state RAID-IDLE)
-)
+;Ownership preemption is handled by rawai-severe-defense.
 
 ;The raid state returns to IDLE immediately after dispatch, so state alone does
 ;not identify a launched DUC raid. Recall the reserved group itself when home
 ;defense activates, then release its ownership flag.
-(defrule
-	(goal gl-home-defense-state YES)
-	(goal map-type LAND)
-	(up-group-size c: opportunistic-raid-group > 0)
-=>
-	(set-strategic-number sn-focus-player-number my-player-number)
-	(up-full-reset-search)
-	(up-find-local c: scout-cavalry-class c: 10)
-	(up-find-local c: cavalry-archer-class c: 10)
-	(up-find-local c: cavalry-class c: 10)
-	(up-find-local c: infantry-class c: 10)
-	(up-find-local c: archery-class c: 10)
-	(up-remove-objects search-local object-data-group-flag != opportunistic-raid-group)
-	(up-target-point position-self-x action-move -1 stance-defensive)
-	(up-modify-group-flag 0 c: opportunistic-raid-group)
-	(up-reset-group c: opportunistic-raid-group)
-	(up-modify-sn sn-focus-player-number g:= gl-raid-focus-player)
-)
+;Ownership preemption is handled by rawai-severe-defense.
 
 ;Response groups leash to the attacked anchor's zone, not always to the original
 ;Town Center. Otherwise an island defender is ordered to walk across water.
@@ -9455,6 +9860,9 @@
 	(up-remove-objects search-local object-data-type == palintonon)
 	(up-remove-objects search-local object-data-type == palintonon-packed)
 	(up-remove-objects search-local object-data-group-flag != home-defense-response-group)
+	;OWNERSHIP command: home-defense-response-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != home-defense-response-group)
 	(up-target-point gl-local-response-target-x action-move -1 stance-defensive)
 	(up-modify-sn sn-focus-player-number g:= gl-local-response-focus)
 )
@@ -9470,6 +9878,9 @@
 	(up-filter-distance c: 72 c: -1)
 	(up-find-local c: warship-class c: 40)
 	(up-find-local c: boarding-ship c: 10)
+	(up-remove-objects search-local object-data-group-flag != home-naval-response-group)
+	;OWNERSHIP command: home-naval-response-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != home-naval-response-group)
 	(up-target-point gl-naval-response-target-x action-move -1 stance-defensive)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-response-focus)
@@ -9492,7 +9903,9 @@
 	(up-find-local c: archery-class c: 40)
 	(up-find-local c: siege-weapon-class c: 40)
 	(up-remove-objects search-local object-data-group-flag != home-defense-response-group)
-	(up-target-point gl-local-response-target-x action-move -1 stance-defensive)
+	;OWNERSHIP command: home-defense-response-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != home-defense-response-group)
 	(up-modify-group-flag 0 c: home-defense-response-group)
 	(up-reset-group c: home-defense-response-group)
 	(up-modify-sn sn-focus-player-number g:= gl-local-response-focus)
@@ -9508,31 +9921,15 @@
 	(up-find-local c: warship-class c: 40)
 	(up-find-local c: boarding-ship c: 10)
 	(up-remove-objects search-local object-data-group-flag != home-naval-response-group)
-	(up-target-point gl-naval-response-target-x action-move -1 stance-defensive)
+	;OWNERSHIP command: home-naval-response-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != home-naval-response-group)
 	(up-modify-group-flag 0 c: home-naval-response-group)
 	(up-reset-group c: home-naval-response-group)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-response-focus)
 )
 
-(defrule
-	(up-timer-status t-defense-leash == timer-triggered)
-=>
-	(up-full-reset-search)
-	(up-set-target-point gl-home-anchor-x)
-	(up-filter-distance c: 18 c: -1)
-	(up-filter-include -1 actionid-defend -1 -1)
-	(up-find-local c: scout-cavalry-class c: 40)
-	(up-find-local c: cavalry-archer-class c: 40)
-	(up-find-local c: cavalry-class c: 40)
-	(up-find-local c: infantry-class c: 40)
-	(up-find-local c: archery-class c: 40)
-	(up-find-local c: siege-weapon-class c: 40)
-	(up-remove-objects search-local object-data-type == palintonon)
-	(up-remove-objects search-local object-data-type == palintonon-packed)
-	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
-	(up-clean-search search-local -1 search-order-asc)
-	(up-target-point gl-home-anchor-x action-move -1 stance-defensive)
-)
+;Native defenders are not a free group; no convenience home leash.
 
 ;Keep the main army available for decisive attacks while a small detachment raids
 ;known economy and production targets outside the nearest enemy Town Center.
@@ -9623,6 +10020,20 @@
 	(set-goal gl-raid-state RAID-FIND-TARGET)
 )
 
+;Cancel native exploration before this first explicit land claim.
+(defrule
+	(goal gl-raid-state RAID-FIND-TARGET)
+	(up-set-target-object search-remote c: 0)
+	(goal gl-owner-explore-suspended NO)
+=>
+	(set-strategic-number sn-number-explore-groups 0)
+	(set-strategic-number sn-total-number-explorers 0)
+	(set-strategic-number sn-cap-civilian-explorers 0)
+	(set-strategic-number sn-minimum-civilian-explorers 0)
+	(up-reset-scouts)
+	(set-goal gl-owner-explore-suspended YES)
+)
+
 (defrule
 	(goal gl-raid-state RAID-FIND-TARGET)
 	(up-set-target-object search-remote c: 0)
@@ -9635,12 +10046,20 @@
 	(up-find-local c: cavalry-class c: 10)
 	(up-find-local c: infantry-class c: 10)
 	(up-find-local c: archery-class c: 10)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-idling != 1)
 	(up-clean-search search-local -1 search-order-asc)
 	(up-remove-objects search-local object-data-action == actionid-retreat)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-raid-group-size)
+	;OWNERSHIP acquire: only FREE objects may be claimed.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-create-group 0 0 c: opportunistic-raid-group)
 	(up-modify-group-flag 1 c: opportunistic-raid-group)
+	;OWNERSHIP command: opportunistic-raid-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != opportunistic-raid-group)
 	(up-target-objects 1 action-default -1 stance-aggressive)
 	(up-modify-sn sn-focus-player-number g:= gl-raid-focus-player)
 	(set-goal gl-raid-state RAID-IDLE)
@@ -9727,13 +10146,6 @@
 	(up-compare-goal gl-known-fortifications c:>= 3)
 	(up-compare-goal gl-attack-escalation-state c:!= ATTACK-ESCALATION-SIEGE)
 =>
-	(up-chat-data-to-all "RAW44O recall source: %d" c: 3)
-	(up-chat-data-to-all "RAW44O recall assault state: %d" g: gl-transport-route-state)
-	(up-chat-data-to-all "RAW44O recall assault hull: %d" g: gl-transport-route-id)
-	(up-chat-data-to-all "RAW44O recall migration state: %d" g: gl-island-migration-state)
-	(up-chat-data-to-all "RAW44O recall migration hull: %d" g: gl-island-migration-transport-id)
-	(up-reset-attack-now)
-	(up-retreat-now)
 	(set-goal current-action ACTION-WAIT)
 	(set-goal gl-attack-escalation-state ATTACK-ESCALATION-SIEGE)
 	(up-modify-goal land-attack-requirement g:= gl-fifteen-percent)
@@ -9751,13 +10163,6 @@
 	(up-compare-goal gl-failed-attack-streak c:>= 2)
 	(up-compare-goal gl-attack-escalation-state c:!= ATTACK-ESCALATION-REGROUP)
 =>
-	(up-chat-data-to-all "RAW44O recall source: %d" c: 4)
-	(up-chat-data-to-all "RAW44O recall assault state: %d" g: gl-transport-route-state)
-	(up-chat-data-to-all "RAW44O recall assault hull: %d" g: gl-transport-route-id)
-	(up-chat-data-to-all "RAW44O recall migration state: %d" g: gl-island-migration-state)
-	(up-chat-data-to-all "RAW44O recall migration hull: %d" g: gl-island-migration-transport-id)
-	(up-reset-attack-now)
-	(up-retreat-now)
 	(set-goal current-action ACTION-WAIT)
 	(set-goal gl-attack-escalation-state ATTACK-ESCALATION-REGROUP)
 	(up-modify-goal land-attack-requirement g:= gl-fifteen-percent)
@@ -9806,21 +10211,13 @@
 	)
 =>
 	;Source 5 includes the all-unit STOP immediately before the global recall.
-	(up-chat-data-to-all "RAW44O recall source: %d" c: 5)
-	(up-chat-data-to-all "RAW44O recall assault state: %d" g: gl-transport-route-state)
-	(up-chat-data-to-all "RAW44O recall assault hull: %d" g: gl-transport-route-id)
-	(up-chat-data-to-all "RAW44O recall migration state: %d" g: gl-island-migration-state)
-	(up-chat-data-to-all "RAW44O recall migration hull: %d" g: gl-island-migration-transport-id)
-	(up-reset-attack-now)
-	(up-reset-unit c: -1)
 	(up-modify-sn sn-minimum-attack-group-size c:= 0)
 	(up-modify-sn sn-maximum-attack-group-size c:= 0)
 	(up-modify-sn sn-number-attack-groups c:= 0)
-	(up-retreat-now)
 	(up-modify-sn sn-minimum-attack-group-size g:= gl-pop-atkgrp-minsize)
 	(up-modify-sn sn-maximum-attack-group-size g:= gl-pop-atkgrp-maxsize)
 	(up-modify-sn sn-number-attack-groups g:= gl-pop-number-groups)
-	(set-goal current-action ACTION-RETREAT)
+	(set-goal current-action ACTION-WAIT)
 )
 
 (defrule
@@ -10436,7 +10833,7 @@
 	(goal spread-units 0)
 	(up-timer-status t-unit-spread != timer-running)
 =>
-	(set-strategic-number sn-task-ungrouped-soldiers 1)
+	(set-strategic-number sn-task-ungrouped-soldiers 0)
 	(set-goal spread-units 1)
 	(up-set-timer c: t-unit-spread g: military-spread-time)
 )
@@ -10833,6 +11230,8 @@
 ;This extra cadence works on hybrid maps where the LAND-only periodic pressure
 ;and opportunistic-raid rules cannot fire.  Sixty percent is deliberately
 ;bounded below a superior normal attack, and every normal safety gate remains.
+(load "rawai-native-attack-ownership")
+
 (defrule
 	(up-compare-goal gl-game-time g:>= gl-age-advantage-next)
 	(goal gl-age-advantage-pressure YES)

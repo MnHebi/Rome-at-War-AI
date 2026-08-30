@@ -1,5 +1,118 @@
 # Rome at War AI handoff
 
+## CURRENT — T11 source-first ownership implementation, 2026-08-30
+
+This section supersedes the diagnostic-stage priorities below. User directive:
+`18529df3-3d8e-4635-84a9-871e505b439d/pasted-text.txt` (source-first ownership).
+
+- Canonical ordinary development repository remains
+  `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`.
+- Authorized **experimental recovery checkout**, and location to edit for this
+  objective: `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`.
+  It does NOT replace the canonical repository. Branch:
+  `recovery/p3b44-transport-only`. Starting HEAD:
+  `a5de7d85bad71f36f4c8903747908d71ac164a7e`, clean before implementation.
+  Resolve current implementation/documentation HEAD with `git rev-parse HEAD`;
+  deployed source identity is independently fixed by the hash below. No new
+  clone/worktree, branch switch, push or PR update was performed.
+- Immutable attack control remains clean at
+  `8ec870075d08fcac98bad55b4ff045bf7abbc42e` in
+  `.recovery-work\P3B44-attack-baseline`. Do not edit it.
+- Build **RAWAI-P3B44T11:456**, **73 plain-source runtime files**, SHA-256
+  `2CA656510A99D71A9C5A2CB5014FC3138904D120E806269127DEB5FF5824DABF`.
+  **Installed and independently rechecked:** all 73 files match, with no missing,
+  different or unexpected runtime files, at
+  `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`.
+  R4:455 was installed at session start. T11 does **not** use `--writer-trace`
+  or a lifetime quota. A fresh match is required; an existing game is not T11.
+- Status: **OWNERSHIP IMPLEMENTED FOR SOURCE-PROVEN PATHS — NATIVE BOUNDARY
+  REQUIRES ONE DISCRIMINATING TEST**. Gameplay is not CLOSED.
+
+### Implementation / evidence
+
+TASK-OWNERSHIP.md contains the full owner/fault/compatibility matrix and review
+dispositions. OWNERSHIP-SOURCE-INVENTORY.md enumerates **662 relevant current
+rule sites**, including actual selectors, commands/delegations, reservation
+mutations and permission filters. `tools/audit_ownership_source.py --patch`
+and `tools/generate_ownership_policy.py` emit reviewable patches for these
+generated artifacts. The one-use transformation helper was removed.
+
+- Removed global reset/retreat/ALL-unit STOP from routine land/naval defense,
+  siege escalation, loss regroup, periodic-loss recovery and taunt retreat.
+  R1/R2/T8 already establish reserved-passenger intersections.
+- Separate migration 10/11, recovery 12/13, relic 14/15, naval Scout 16 and
+  relief 17 from assault 3/4, raid 8, screen 7 and escorts 9. Capital siege's
+  Juggernaut/Octeres slot 2 remains an intentional single-controller alias.
+- Direct writers recheck self/ownership. Worker selectors exclude all
+  reservations and the active boar lurer. Pass-start group hygiene removes
+  foreign/other-owner references before legacy release mutations. Partial
+  migration releases failed shore passengers, retaining only actual cargo.
+- Native exploration is zeroed AND reset before Scout-capable claims. Native
+  build/percentage/hunter admissions pause during worker boarding; assistance/
+  repair settings are saved/restored. No claim that a flag is an engine lock.
+- Native attack type exclusions are rebuilt from reserved groups before normal
+  and taunt dispatch. FREE same-type units temporarily wait too; ordinary
+  attacks are not globally disabled while unrelated missions run.
+- Routine defense uses <=8 FREE idle responders. Severe defense requires >=8
+  live military from one enemy within home 24 and the same land zone. It may
+  cancel a wholly local ashore assault/raid/relief owner, release, then acquire
+  <=16 responders. Loaded/split/remote missions stay protected.
+- Persistent first-reliable TC coordinates for all eight players survive TC
+  destruction. Allied help checks actual live enemies around that anchor,
+  claims <=12 compatible responders, checks actual count/target, then promises
+  help. No arbitrary-villager or allied-under-attack substitution.
+- Existing RAW44B/C/R mission evidence remains, rearmed for later missions.
+  Old writer tests/maps are archival against immutable source `a5de7d85`, not
+  current source with obsolete writer-site IDs. Blue's historical STOP producer
+  is still unidentified; that did not block these source-supported fixes.
+
+### Validation and limits
+
+- **PASS:** 190 regression tests, including 27 ownership-contract tests. These
+  execute actual filters, reservation/release operations, partial manifests
+  and native-exclusion relative jumps, plus source invariants for enemy/zone,
+  anchor persistence, actual responder count and generator synchronization.
+- **PASS:** PER structure/operands/DE group domain 0..19; attack/strategy
+  synchronization (1,156 matchups); naval doctrine; workbook round-trip;
+  32 replay benchmarks; all 662 ownership sites audited with zero unguarded
+  direct writers/global resets remaining; `git diff --check`.
+- **PASS:** adversarial read-only review with accepted findings corrected:
+  split/loaded severe release, exact hostile selection, converted group
+  references, partial shore-passenger release, loop RuleDelta and ambiguous
+  generated patch context. Tests now protect these corrections.
+- Formatting-only restoration preserved original unchanged-line PER endings.
+  String budget: 1,421 literals, zero writer literals, conservative eight-player
+  projection 11,368 under the project's existing budget. This is not measured
+  engine string-table capacity or an engine compilation claim.
+- **PENDING:** fresh engine compilation and gameplay acceptance of T11.
+  Existing R1/R2 and static tests cannot validate this new runtime.
+
+### Unresolved defect ledger / next actions
+
+| Defect | Status | Direct evidence / implementation | Acceptance / next action |
+|---|---|---|---|
+| Routine/convenience recall steals passengers | FIXED-PENDING-RUNTIME | Source callers + R1/R2/T8; compatible local/severe response implemented | No ordinary recall of active missions; genuine severe defense works |
+| Exploration steals boarding Scouts | FIXED-PENDING-RUNTIME | R1 explore 705; budgets zero + reset before claim, positive writers gated | Reserved Scouts board; early exploration can resume after release |
+| Direct worker/group conflicts | FIXED-PENDING-RUNTIME | Unsafe selectors/aliases + T7 symptoms; common guards, distinct groups, admission hold | Workers retain task; partial cargo stays owned; released units can work |
+| Native worker/attack queued reassignment | INVESTIGATING | Documented suppressions/type exclusions implemented; no per-villager lock or proof of queued-order cancellation | ONE controlled T11 preserved-lobby replay, occupancy-aware early/terminal samples |
+| Allied help after original TC destruction | FIXED-PENDING-RUNTIME | Persistent anchors + actual enemy/responders | Help at living/destroyed original TC; no false promise without hostile/responders |
+| Historical Blue Scout STOP writer | INVESTIGATING | R2 stream established repeated STOP; old quota exhausted before event | Check recurrence in T11; not a prerequisite to implementing proven source fixes |
+| Congestion, landing geometry, unload spam, Port placement, boar resumption, drop-site race, Market/Wonder salvage, crash, landing memory | KNOWN ISSUE — POST-RELEASE | Preserved observations below; deliberately no unrelated behavioral changes | Outside this ownership release unless build is fundamentally unusable |
+| Existing Palintonon pack call through up-target-objects action-pack | KNOWN ISSUE — POST-RELEASE | Source/API inspection: that action is unsupported on this command | Separate supported packing correction after ownership acceptance |
+
+1. Start a **fresh** recorded T11 match with the preserved authoritative lobby;
+   identify players by selected/visible colors, never slots. Confirm T11:456.
+2. Audit every reasonably reconstructable transport/migration/scout/relic/help
+   episode across all players. Preserve P3B44 combined attacks and T1–T7 full/
+   partial lifts. No own-TC flood, shoreline-fishing flood or routine recall.
+3. Test the precise native boundary in TASK-OWNERSHIP.md: distinguish a harmful
+   command to an ashore reserved unit from STOP after garrison. Existing native
+   gathering/building/queued attacks may still bypass new admission controls.
+4. Keep noncritical discoveries in KNOWN ISSUE — POST-RELEASE. Do not start
+   another unrelated development cycle before ownership acceptance.
+
+## Historical R4/R2 checkpoint (superseded by T11 above)
+
 ## Release-blocking recovery completed — ownership work resumes
 
 **R4 release checkpoint, 2026-08-30:** requested invariant recovery, separate
@@ -73,8 +186,8 @@ current documentation HEAD with `git rev-parse HEAD`. No push/PR update.
   unload-bounded window because its normal hull-specific terminal is missing.
   Full/ready does not prove exact selected membership or productive landing.
 - **Direct recall evidence:** all 76 retreat packets match existing RAW44O
-  labels: source 1 land-defense 56, source 2 regroup 6, source 3 siege escalation
-  12, source 4 unstick 2. Orange priest 33235 starts boarding at 27:26.906 and
+  labels: source 1 land-defense 56, source 2 naval-defense 6, source 3 siege escalation
+  12, source 4 loss-regroup 2. Orange priest 33235 starts boarding at 27:26.906 and
   is recalled at 27:37; priest 34388 starts at 37:08.684 and is recalled at
   37:18. Both attempts end in roughly three-minute recovery unloads, without
   outbound relic announcements. Routine recall must respect relic/recovery

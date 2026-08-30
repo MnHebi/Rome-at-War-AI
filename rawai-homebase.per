@@ -5,6 +5,7 @@
 ;buildings without globally converting most gatherers -- including animal-food
 ;workers -- into builders every time a foundation appears.
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(true)
 =>
 	(up-assign-builders c: town-center-foundation c: 6)
@@ -897,6 +898,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-colony-towncenter-state COLONY-TC-ISSUE)
 	(up-pending-objects c: town-center <= 0)
 	(not (up-pending-placement c: town-center))
@@ -965,6 +967,7 @@
 	(up-set-target-point gl-colony-towncenter-target-x)
 	(up-filter-distance c: -1 c: 24)
 	(up-find-local c: villager-class c: 6)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-colony-zone)
 	(up-remove-objects search-local object-data-language-id == lid-villager-shepherd)
@@ -972,6 +975,10 @@
 	(up-remove-objects search-local object-data-language-id == lid-villager-fisherman)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-add-object-by-id search-remote g: gl-colony-towncenter-id)
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-chat-data-to-self "colony TC accepted in zone: %d" g: gl-island-colony-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
@@ -1223,6 +1230,10 @@
 	(up-pending-objects c: town-center <= 0)
 	(not (up-pending-placement c: town-center))
 =>
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point 0 action-delete -1 -1)
 	(up-chat-data-to-self "home TC retired exact id: %d" g: gl-home-retirement-target-id)
 	(set-goal gl-home-retirement-target-id -2)
@@ -1273,6 +1284,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age >= middle-antiquity-age)
 	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
 	(goal gl-island-migration-state MIGRATION-IDLE)
@@ -1287,6 +1299,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal allow-houses 1)
 	(building-type-count-total house == 0)
 	(building-type-count-total mill == 0)
@@ -1303,6 +1316,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age <= early-antiquity-age)
 	(goal allow-houses 1)
 	(building-type-count-total house > 0)
@@ -1321,6 +1335,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age <= early-antiquity-age)
 	(goal allow-houses 1)
 	(building-type-count-total house > 0)
@@ -1341,6 +1356,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age >= middle-antiquity-age)
 	(goal allow-houses 1)
 	(building-type-count-total house > 0)
@@ -1358,6 +1374,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal allow-houses 1)
 	(building-type-count-total house == 0)
 	(building-type-count-total mill >= 1)
@@ -1379,6 +1396,7 @@
 ;colony instead of consuming another military-production tile around the home
 ;Mill. This is replacement-free: completed inner housing is never deleted.
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-house-pressure YES)
 	(goal gl-island-colony-established YES)
 	(goal gl-migration-placement-lock NO)
@@ -1410,6 +1428,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-house-pressure YES)
 	(up-timer-status t-house-pressure == timer-triggered)
 	(building-type-count-total mill >= 1)
@@ -1428,6 +1447,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-house-pressure YES)
 	(up-timer-status t-house-pressure == timer-triggered)
 	(building-type-count-total mill == 0)
@@ -1445,6 +1465,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age >= middle-antiquity-age)
 	(goal allow-houses 1)
 	(building-type-count-total house > 0)
@@ -1659,6 +1680,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
 	(goal gl-lumbercamp-placement-attempts 0)
 	(can-afford-building lumber-camp)
@@ -1676,6 +1698,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
 	(goal gl-lumbercamp-placement-attempts 1)
 	(can-afford-building lumber-camp)
@@ -1692,6 +1715,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
 	(goal gl-lumbercamp-placement-attempts 2)
 	(can-afford-building lumber-camp)
@@ -1708,6 +1732,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
 	(goal gl-lumbercamp-placement-attempts 3)
 	(can-afford-building lumber-camp)
@@ -1767,6 +1792,10 @@
 	(up-object-data object-data-map-zone-id g:!= gl-lumbercamp-resource-zone)
 =>
 	(up-get-object-data object-data-id gl-lumbercamp-foundation-id)
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point 0 action-delete -1 -1)
 	(up-reset-placement c: lumber-camp)
 	(up-chat-data-to-self "lumber camp deleted wrong-zone foundation: %d" g: gl-lumbercamp-foundation-id)
@@ -1801,12 +1830,17 @@
 	(up-set-target-point gl-lumbercamp-target-x)
 	(up-filter-distance c: -1 c: 12)
 	(up-find-local c: villager-class c: 20)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-gather-type != wood)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-lumbercamp-resource-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= 2)
 	(up-get-search-state local-total)
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-chat-data-to-self "lumber camp builders assigned: %d" g: local-total)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
@@ -1830,6 +1864,10 @@
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-lumbercamp-foundation-id)
 	(up-set-target-object search-local c: 0)
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point 0 action-delete -1 -1)
 	(up-reset-placement c: lumber-camp)
 	(up-modify-goal gl-lumbercamp-rejected-resource-id3 g:= gl-lumbercamp-rejected-resource-id2)
@@ -1954,6 +1992,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(and	
 		(up-gaia-type-count c: food >= 5)
 		(and
@@ -2050,6 +2089,7 @@
 	(up-reset-search 1 1 0 0)
 	(up-set-target-point point2-x)
 	(up-find-local c: villager-class c: 240)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-language-id != lid-villager-fisherman)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-farm-staffing-zone)
@@ -2063,6 +2103,10 @@
 	(up-set-target-object search-local c: 0)
 =>
 	(up-add-object-by-id search-remote g: gl-farm-staffing-id)
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-chat-data-to-self "farm staffing fisherman: %d" g: gl-farm-staffing-id)
 	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
@@ -2077,6 +2121,7 @@
 	(up-reset-search 1 1 0 0)
 	(up-set-target-point point2-x)
 	(up-find-local c: villager-class c: 240)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-idling != 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-farm-staffing-zone)
@@ -2090,6 +2135,10 @@
 	(up-set-target-object search-local c: 0)
 =>
 	(up-add-object-by-id search-remote g: gl-farm-staffing-id)
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-chat-data-to-self "farm staffing idle: %d" g: gl-farm-staffing-id)
 	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
@@ -2104,6 +2153,7 @@
 	(up-reset-search 1 1 0 0)
 	(up-set-target-point point2-x)
 	(up-find-local c: villager-class c: 240)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-action == actionid-build)
 	(up-remove-objects search-local object-data-action == actionid-repair)
@@ -2127,6 +2177,10 @@
 	(up-set-target-object search-local c: 0)
 =>
 	(up-add-object-by-id search-remote g: gl-farm-staffing-id)
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-chat-data-to-self "farm staffing worker: %d" g: gl-farm-staffing-id)
 	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
@@ -2157,6 +2211,7 @@
 	(up-set-target-point position-self-x)
 	(up-filter-distance c: -1 g: map-size)
 	(up-find-local c: villager-class c: 240)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-language-id != lid-villager-fisherman)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-clean-search search-local object-data-distance search-order-asc)
@@ -2193,6 +2248,10 @@
 	(up-add-object-by-id search-local g: gl-farm-staffing-worker-id)
 	(set-strategic-number sn-focus-player-number 0)
 	(up-add-object-by-id search-remote g: gl-farm-staffing-id)
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-chat-data-to-self "fisherman redirected to resource: %d" g: gl-farm-staffing-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
@@ -2392,6 +2451,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-farm-placement-suspended NO)
 	(building-type-count mill >= 1)
 	(up-compare-goal point3-x >= 0)
@@ -2431,6 +2491,7 @@
 ;jumps end
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-farm-placement-suspended NO)
 	(wood-amount > 150)
 	(building-type-count mill >= 1)
@@ -2441,6 +2502,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
 	(goal gl-island-migration-state MIGRATION-IDLE)
 	(goal gl-migration-placement-lock NO)
@@ -2669,6 +2731,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-opening-mill-state OPENING-MILL-FALLBACK)
 =>
 	(set-goal gl-opening-mill-candidate-index 0)
@@ -2726,6 +2789,7 @@
 ;advances one candidate at a time so another cluster cannot be skipped merely
 ;because home-distance sorting interleaves the two clusters.
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-opening-mill-state OPENING-MILL-PLACE)
 	(goal gl-opening-mill-placement-attempts 0)
 	(can-afford-building mill)
@@ -2743,6 +2807,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-opening-mill-state OPENING-MILL-PLACE)
 	(goal gl-opening-mill-placement-attempts 1)
 	(can-afford-building mill)
@@ -2760,6 +2825,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-opening-mill-state OPENING-MILL-PLACE)
 	(goal gl-opening-mill-placement-attempts 2)
 	(can-afford-building mill)
@@ -2777,6 +2843,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-opening-mill-state OPENING-MILL-PLACE)
 	(goal gl-opening-mill-placement-attempts 3)
 	(can-afford-building mill)
@@ -3216,6 +3283,7 @@
 ;Try four bounded diagonals around the resource target. Retain state ownership
 ;until a foundation exists or every offset has failed.
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
 	(goal gl-miningcamp-placement-attempts 0)
 	(can-afford-building mining-camp)
@@ -3232,6 +3300,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
 	(goal gl-miningcamp-placement-attempts 1)
 	(can-afford-building mining-camp)
@@ -3248,6 +3317,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
 	(goal gl-miningcamp-placement-attempts 2)
 	(can-afford-building mining-camp)
@@ -3264,6 +3334,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
 	(goal gl-miningcamp-placement-attempts 3)
 	(can-afford-building mining-camp)
@@ -3323,6 +3394,10 @@
 	(up-object-data object-data-map-zone-id g:!= gl-miningcamp-resource-zone)
 =>
 	(up-get-object-data object-data-id gl-miningcamp-foundation-id)
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point 0 action-delete -1 -1)
 	(up-reset-placement c: mining-camp)
 	(up-chat-data-to-self "mining camp deleted wrong-zone foundation: %d" g: gl-miningcamp-foundation-id)
@@ -3389,6 +3464,10 @@
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-miningcamp-foundation-id)
 	(up-set-target-object search-local c: 0)
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point 0 action-delete -1 -1)
 	(up-reset-placement c: mining-camp)
 	(up-chat-data-to-self "mining camp deleted stale resource foundation: %d" g: gl-miningcamp-foundation-id)
@@ -3468,6 +3547,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(can-afford-building barracks)
 	(goal wait-techup-requirements NO)
 	(goal gl-opening-drop-sites-ready YES)
@@ -3497,6 +3577,7 @@
 ;while age-up escrow is active; this rule is threat-gated and cannot restore the
 ;old opening Barracks regression.
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age >= early-antiquity-age)
 	(goal gl-local-threat-active YES)
 	(building-type-count-total barracks < 1)
@@ -3524,6 +3605,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age >= early-antiquity-age)
 	(goal wait-techup-requirements NO)
 	(can-afford-building archery-range)
@@ -3544,6 +3626,7 @@
 	(up-build place-normal 0 c: archery-range))
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age >= early-antiquity-age)
 	(goal wait-techup-requirements NO)
 	(can-afford-building stable)
@@ -3564,6 +3647,7 @@
 	(up-build place-normal 0 c: stable))
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age >= middle-antiquity-age)
 	(goal wait-techup-requirements NO)
 	(can-afford-building siege-workshop)
@@ -3580,6 +3664,7 @@
 	(up-build place-normal 0 c: siege-workshop))
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age >= early-antiquity-age)
 	(can-afford-building blacksmith)
 	(building-type-count-total blacksmith g:< desired-number-blacksmiths)
@@ -3609,6 +3694,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(or
 		(current-age == early-antiquity-age)
 		(and
@@ -3639,6 +3725,7 @@
 ;After three normal failures, clear the managed placement and retry from a
 ;positive town radius. This cannot issue thousands of identical commands.
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age >= early-antiquity-age)
 	(goal gl-migration-placement-lock NO)
 	(or
@@ -3672,6 +3759,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age == imperial-age)
 	(goal gl-migration-placement-lock NO)
 	(can-afford-building market)
@@ -3688,6 +3776,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(can-afford-building dock)
 	(goal wait-techup-requirements NO)
 	(or
@@ -3708,6 +3797,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age >= middle-antiquity-age)
 	(or
 		(building-type-count town-center >= 2)
@@ -3720,6 +3810,7 @@
 	(up-build place-normal 0 c: university))
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age >= middle-antiquity-age)
 	(or
 		(building-type-count town-center >= 2)
@@ -3732,6 +3823,7 @@
 	(up-build place-normal 0 c: monastery))
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age >= middle-antiquity-age)
 	(building-type-count town-center >= 2)
 	(goal gl-migration-placement-lock NO)
@@ -3751,6 +3843,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age >= middle-antiquity-age)
 	(building-type-count town-center >= 2)
 	(can-afford-building outpost)
@@ -3760,6 +3853,7 @@
 	(up-build place-normal 0 c: outpost))
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age >= early-antiquity-age)
 	(or
 		(current-age < middle-antiquity-age)
@@ -3964,6 +4058,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age >= early-antiquity-age)
 	(goal gl-wall-needed YES)
 	(goal gl-wall-material WALL-MATERIAL-STONE)
@@ -3985,6 +4080,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(current-age >= early-antiquity-age)
 	(goal gl-wall-needed YES)
 	(goal gl-wall-material WALL-MATERIAL-PALISADE)
@@ -4059,6 +4155,7 @@
 ;or unrelated gate elsewhere must not suppress these requests. Gate timing is
 ;independent of the wall command/backoff deadline.
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-wall-needed YES)
 	(goal gl-wall-enabled YES)
 	(goal gl-wall-material WALL-MATERIAL-STONE)
@@ -4081,6 +4178,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-wall-needed YES)
 	(goal gl-wall-enabled YES)
 	(goal gl-wall-material WALL-MATERIAL-PALISADE)
@@ -4103,6 +4201,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-wall-needed YES)
 	(goal gl-wall-enabled YES)
 	(goal gl-wall-material WALL-MATERIAL-STONE)
@@ -4125,6 +4224,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-wall-needed YES)
 	(goal gl-wall-enabled YES)
 	(goal gl-wall-material WALL-MATERIAL-PALISADE)
@@ -4191,6 +4291,7 @@
 ;farm fallback
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-farm-placement-suspended NO)
 	(current-age >= early-antiquity-age)
 	(wood-amount > 150)

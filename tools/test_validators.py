@@ -7,6 +7,7 @@ import hashlib
 import json
 import re
 import unittest
+from historical_test_source import historical_source
 from pathlib import Path
 
 from validate_per import code_without_comments_or_strings, validate_command_domains, validate_timer_sources
@@ -378,9 +379,9 @@ class PerDomainTests(unittest.TestCase):
         self.assertIn("timer_id_out_of_range", kinds)
         self.assertIn("duplicate_timer_id", kinds)
 
-    def test_duc_group_ids_must_be_between_zero_and_nine(self) -> None:
+    def test_duc_group_ids_must_be_between_zero_and_nineteen(self) -> None:
         issues = self.validate_text(
-            """(defconst invalid-naval-group 10)
+            """(defconst invalid-naval-group 20)
 (defrule
     (up-group-size c: invalid-naval-group > 0)
 =>
@@ -399,7 +400,7 @@ class PerDomainTests(unittest.TestCase):
         self.assertEqual(
             [],
             self.validate_text(
-                """(defconst valid-naval-group 9)
+                """(defconst valid-naval-group 19)
 (defrule
     (true)
 =>
@@ -1598,12 +1599,12 @@ class FarmPolicyTests(unittest.TestCase):
             )
         }
         self.assertTrue(groups)
-        self.assertTrue(all(0 <= value <= 9 for value in groups.values()))
-        self.assertEqual(groups["naval-scout-group"], groups["opportunistic-raid-group"])
-        self.assertEqual(groups["relic-ferry-transport-group"], groups["transport-screen-group"])
+        self.assertTrue(all(0 <= value <= 19 for value in groups.values()))
+        self.assertNotEqual(groups["naval-scout-group"], groups["opportunistic-raid-group"])
+        self.assertNotEqual(groups["relic-ferry-transport-group"], groups["transport-screen-group"])
         self.assertNotEqual(groups["attack-boarding-group"], 0)
-        self.assertEqual(groups["attack-boarding-group"], groups["migration-boarding-group"])
-        self.assertEqual(groups["attack-transport-group"], groups["migration-transport-group"])
+        self.assertNotEqual(groups["attack-boarding-group"], groups["migration-boarding-group"])
+        self.assertNotEqual(groups["attack-transport-group"], groups["migration-transport-group"])
         self.assertEqual(
             groups["juggernaut-bombardment-group"],
             groups["octeres-bombardment-group"],
@@ -1618,7 +1619,11 @@ class FarmPolicyTests(unittest.TestCase):
                 "up-group-size c: opportunistic-raid-group > 0",
             ),
         )
-        self.assertEqual(len(raid_release), 1)
+        self.assertEqual(len(raid_release), 0) # no routine global home recall
+        severe = (Path(__file__).resolve().parents[1] / "rawai-severe-defense.per").read_text()
+        self.assertEqual(len(matching_rules(severe,
+            facts=("(goal gl-owner-severe-armed YES)", "local-total g:== gl-owner-severe-members"),
+            actions=("(set-goal gl-raid-state RAID-IDLE)",))), 1)
 
     def test_naval_opportunities_are_vessel_first_and_fortification_averse(self) -> None:
         trigger = matching_rules(
@@ -3047,7 +3052,7 @@ class FarmPolicyTests(unittest.TestCase):
             facts=("(goal gl-home-resource-pressure YES)",),
             actions=(
                 "(up-find-local c: villager-class c: 40)",
-                "(set-goal gl-island-migration-state MIGRATION-ISSUE-BOARD)",
+                "(set-goal gl-island-migration-state MIGRATION-OWNERSHIP-CLAIM)",
             ),
         )
         self.assertEqual(len(evacuation), 2)
@@ -3644,7 +3649,7 @@ class FarmPolicyTests(unittest.TestCase):
         actions = cleanup[0][4]
         reservation_filter = (
             "(up-remove-objects search-local object-data-group-flag "
-            "== migration-boarding-group)"
+            ">= 0)"
         )
         self.assertIn(reservation_filter, actions)
         self.assertLess(actions.index(reservation_filter), actions.index("(up-create-group"))
@@ -3660,7 +3665,7 @@ class FarmPolicyTests(unittest.TestCase):
         def after_cleanup(source_actions: str) -> dict[int, int]:
             selected = list(roster)
             if reservation_filter in source_actions:
-                selected = [unit for unit in selected if roster[unit] != reservation]
+                selected = [unit for unit in selected if roster[unit] < 0]
             result = dict(roster)
             for unit in selected:
                 result[unit] = 0
@@ -3876,27 +3881,12 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(unit-type-count-total transport-ship < 3)", facts)
         self.assertIn("Relocation bridge: buy wood", self.trade)
 
-    def test_home_attack_recalls_the_exact_loaded_transport(self) -> None:
-        recalls = matching_rules(
-            self.military,
-            facts=(
-                "(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))",
-                "gl-local-response-threats c:>= 2",
-                "gl-naval-response-threats c:>= 2",
-                "gl-local-response-zone g:== gl-home-zone",
-                "gl-naval-response-asset-zone g:== gl-home-zone",
-            ),
-            actions=(
-                "(up-find-local c: transport-ship c: 40)",
-                "object-data-id g:!= gl-transport-route-id",
-                "gl-home-anchor-x action-unload",
-                "TRANSPORT-ROUTE-RECOVERY-WAIT",
-            ),
-        )
-        self.assertEqual(len(recalls), 1)
-        recall_facts = recalls[0][3]
-        self.assertNotIn("TRANSPORT-ROUTE-RETURN-WAIT", recall_facts)
-        self.assertNotIn("TRANSPORT-ROUTE-RETURN-CHECK", recall_facts)
+    def test_home_emergency_does_not_recall_loaded_or_remote_passengers(self) -> None:
+        severe = (Path(__file__).resolve().parents[1] / "rawai-severe-defense.per").read_text()
+        self.assertIn("object-data-garrisoned == 1", severe)
+        self.assertIn("local-total g:== gl-owner-severe-members", severe)
+        self.assertIn("object-data-map-zone-id g:!= gl-home-zone", severe)
+        self.assertNotIn("action-unload", severe)
 
     def test_home_tc_retirement_requires_a_live_colony_and_spare_tc(self) -> None:
         starts = matching_rules(
@@ -4961,10 +4951,9 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertEqual(len(selector), 2)
         boarding = matching_rules(
             self.military,
-            facts=("TRANSPORT-RECOVERY-FIND-TRANSPORT",),
+            facts=("TRANSPORT-RECOVERY-OWNERSHIP-CLAIM",),
             actions=(
-                "migration-transport-group",
-                "migration-boarding-group",
+                                "recovery-boarding-group",
                 "g:!= gl-transport-recovery-zone",
                 "(up-target-objects 0 action-garrison",
             ),
@@ -5175,7 +5164,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertNotIn("up-find-player enemy find-closest", self.taunts)
         self.assertIn("up-find-player enemy find-ordered", self.taunts)
         self.assertIn("up-find-next-player enemy find-ordered", self.taunts)
-        self.assertIn("up-find-remote c: town-center c: 20", self.taunts)
+        self.assertIn("up-find-remote c: town-center c: 20", (Path(__file__).resolve().parents[1] / "rawai-home-anchors.per").read_text())
         self.assertNotIn(
             "up-remove-objects search-remote object-data-under-attack <= 0",
             self.taunts,
@@ -5211,12 +5200,12 @@ class FarmPolicyTests(unittest.TestCase):
         dispatch = matching_rules(
             self.taunts,
             facts=(
-                "(goal gl-ally-help-state ALLY-HELP-DISPATCH)",
+                "(goal gl-ally-help-state ALLY-HELP-OWNERSHIP-COMMAND)",
                 "gl-ally-help-responders c:> 0",
                 "(up-set-target-object search-remote c: 0)",
             ),
             actions=(
-                "(up-target-objects 1 action-default -1 stance-aggressive)",
+                "(up-target-objects 0 action-default -1 stance-aggressive)",
                 "ally relief responders: %d",
                 "Reinforcements have been dispatched",
             ),
@@ -5462,7 +5451,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "TRANSPORT-ROUTE-RECOVERY-WAIT",
             ),
         )
-        self.assertEqual(len(defense_interrupt), 1)
+        self.assertEqual(len(defense_interrupt), 0) # central severe policy only
         self.assertFalse(
             matching_rules(
                 self.military,
@@ -5485,8 +5474,8 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertGreaterEqual(len(lost_terminals), 3)
 
     def test_recall_caller_trace_covers_every_existing_global_recall(self) -> None:
-        military_rules = matching_rules(self.military, actions=("(up-retreat-now)",))
-        taunt_rules = matching_rules(self.taunts, actions=("(up-retreat-now)",))
+        military_rules = matching_rules(historical_source('rawai-military.per'), actions=("(up-retreat-now)",))
+        taunt_rules = matching_rules(historical_source('rawai-tauntcommands.per'), actions=("(up-retreat-now)",))
         self.assertEqual(len(military_rules), 5)
         self.assertEqual(len(taunt_rules), 1)
         for source, rule in enumerate(military_rules + taunt_rules, 1):
@@ -5500,8 +5489,8 @@ class FarmPolicyTests(unittest.TestCase):
             for goal in ("gl-transport-route-state", "gl-transport-route-id",
                          "gl-island-migration-state", "gl-island-migration-transport-id"):
                 self.assertRegex(actions, rf'up-chat-data-to-all "RAW44O[^\n]+g: {goal}\)')
-        self.assertEqual(self.military.count('"RAW44O '), 25)
-        self.assertEqual(self.taunts.count('"RAW44O '), 5)
+        self.assertEqual(historical_source('rawai-military.per').count('"RAW44O '), 25)
+        self.assertEqual(historical_source('rawai-tauntcommands.per').count('"RAW44O '), 5)
 
     def test_recall_diagnostic_preserves_every_t7_executable_rule(self) -> None:
         # T7 e17a4ed fingerprints, excluding comments and string contents.
@@ -5509,8 +5498,8 @@ class FarmPolicyTests(unittest.TestCase):
         # searches, commands, or controller writes. Strip those and additive
         # logs only: the complete original program must still match T7.
         for source, expected in (
-            (self.military, "5983e05d67f97430a5b567ad37b2c498b5091eaa638e79492bf78897de000546"),
-            (self.taunts, "8f3b3e3e92a87b94a706c4d380d8056b4f8f0d0bd868811e821d5d8f1d45c447"),
+            (historical_source('rawai-military.per'), "5983e05d67f97430a5b567ad37b2c498b5091eaa638e79492bf78897de000546"),
+            (historical_source('rawai-tauntcommands.per'), "8f3b3e3e92a87b94a706c4d380d8056b4f8f0d0bd868811e821d5d8f1d45c447"),
         ):
             source = re.sub(r'; P3B44T9 OBSERVER BEGIN.*?; P3B44T9 OBSERVER END',
                             '', source, flags=re.S)
@@ -5584,7 +5573,7 @@ class FarmPolicyTests(unittest.TestCase):
 
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         self.assertIn(
-            '(up-chat-data-to-all "RAWAI-P3B44T9: %d" c: 450)',
+            '(up-chat-data-to-all "RAWAI-P3B44T11: %d" c: 456)',
             self.init_goals,
         )
         initial = matching_rules(
@@ -5994,20 +5983,16 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertEqual(len(collision), 1)
 
-    def test_unreachable_threat_without_responders_cannot_latch_defense(self) -> None:
-        latches = matching_rules(
-            self.military,
-            actions=(
-                "(set-goal gl-home-defense-state YES)",
-                "(set-goal current-action ACTION-RETREAT)",
-            ),
-        )
-        self.assertGreaterEqual(len(latches), 2)
-        for _, _, _, facts, _ in latches:
-            self.assertTrue(
-                "gl-local-response-responders" in facts
-                or "gl-naval-response-responders" in facts
-            )
+    def test_unreachable_or_routine_threat_cannot_latch_severe_defense(self) -> None:
+        self.assertNotIn("(set-goal gl-home-defense-state YES)", self.military)
+        severe = (Path(__file__).resolve().parents[1] / "rawai-severe-defense.per").read_text()
+        latches = matching_rules(severe, actions=("(set-goal gl-home-defense-state YES)",))
+        self.assertEqual(len(latches), 8)
+        for row in latches:
+            self.assertIn("gl-owner-severe-count c:>= 8", row[3])
+            self.assertIn("enemy)", row[3])
+        self.assertIn("object-data-map-zone-id g:!= gl-home-zone", severe)
+        self.assertIn("(up-filter-distance c: -1 c: 24)", severe)
 
     def test_legacy_naval_permission_writers_are_compile_gated(self) -> None:
         compatibility_flag = "#load-if-defined RAWAI-LEGACY-NAVY-SWITCHER"

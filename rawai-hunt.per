@@ -96,6 +96,7 @@
 	(up-set-target-object search-remote c: 0)
 =>
 	(set-strategic-number sn-enable-boar-hunting 0)
+	(set-goal gl-boar-lurer-id -1)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
 	(up-modify-goal gl-boar-commit-deadline g:= gl-game-time)
 	(up-modify-goal gl-boar-commit-deadline c:+ 15)
@@ -175,6 +176,7 @@
 ;kill group immediately in the same script pass, before another worker role can
 ;become eligible for the tactical support selector.
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-boar-commit-state BOAR-COMMIT-VERIFY)
 	(up-set-target-object search-local c: 0)
 	(unit-type-count livestock-class <= 0)
@@ -197,6 +199,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-boar-commit-state BOAR-COMMIT-VERIFY)
 	(up-set-target-object search-local c: 0)
 	(unit-type-count livestock-class <= 0)
@@ -247,6 +250,7 @@
 	(set-strategic-number sn-enable-boar-hunting 0)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
 	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-lurer-id -1)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
 	(up-chat-data-to-self "boar commit cancelled for sheep: %d" c: 1)
@@ -260,6 +264,7 @@
 	(set-strategic-number sn-enable-boar-hunting 0)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
 	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-lurer-id -1)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
 	(up-chat-data-to-self "boar commit timed out: %d" g: gl-boar-commit-deadline)
@@ -297,6 +302,7 @@
 	(up-set-target-point gl-boar-target-x)
 	(up-filter-distance c: -1 c: 24)
 	(up-find-local c: villager-class c: 240)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-action == actionid-hunt)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-boar-target-zone)
@@ -311,6 +317,7 @@
 	(set-strategic-number sn-minimum-boar-lure-group-size 1)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
 	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-lurer-id -1)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
 	(up-chat-data-to-self "boar rescue target gone: %d" g: gl-boar-target-id)
@@ -355,6 +362,9 @@
 	(up-compare-goal local-total c:>= 5)
 =>
 	(up-add-object-by-id search-remote g: gl-boar-target-id)
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(set-strategic-number sn-minimum-boar-lure-group-size 300)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
@@ -372,6 +382,9 @@
 	(up-compare-goal local-total c:>= 6)
 =>
 	(up-add-object-by-id search-remote g: gl-boar-target-id)
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(set-strategic-number sn-minimum-boar-lure-group-size 300)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
@@ -429,10 +442,14 @@
 	(up-set-target-object search-local c: 0)
 	(up-set-target-object search-remote c: 0)
 =>
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(set-strategic-number sn-enable-boar-hunting 0)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
 	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-lurer-id -1)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
 	(up-chat-data-to-self "boar rescue garrisoned lurer: %d" g: gl-boar-lurer-id)
@@ -446,6 +463,7 @@
 	(set-strategic-number sn-minimum-boar-lure-group-size 1)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
 	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-lurer-id -1)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
 	(up-chat-data-to-self "boar rescue lurer gone: %d" g: gl-boar-lurer-id)
@@ -506,6 +524,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-boar-commit-state BOAR-COMMIT-RETRY-COMMIT)
 	(up-set-target-object search-local c: 0)
 	(up-set-target-object search-remote c: 0)
@@ -524,6 +543,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal gl-boar-commit-state BOAR-COMMIT-RETRY-COMMIT)
 	(up-set-target-object search-local c: 0)
 	(up-set-target-object search-remote c: 0)
@@ -566,6 +586,7 @@
 	(set-strategic-number sn-minimum-boar-lure-group-size 1)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
 	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-lurer-id -1)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
 	(up-chat-data-to-self "boar retry exact target gone: %d" g: gl-boar-target-id)
@@ -669,6 +690,7 @@
 	(set-strategic-number sn-minimum-boar-lure-group-size 1)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
 	(set-strategic-number sn-minimum-number-hunters 1)
+	(set-goal gl-boar-lurer-id -1)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
 	(up-chat-data-to-self "boar commit released: %d" c: 1)
 )

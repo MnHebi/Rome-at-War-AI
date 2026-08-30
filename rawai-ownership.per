@@ -1,0 +1,86 @@
+;Source-first ownership policy. Group flags are cooperative reservations, not
+;engine locks. Direct writers must check them at acquisition AND command time.
+
+(defrule
+	(true)
+=>
+	(set-goal gl-owner-explore-suspended NO)
+	(set-goal gl-owner-worker-hold NO)
+	(set-goal gl-owner-native-hold-applied NO)
+	(set-goal gl-owner-severe-until 0)
+	(set-goal gl-owner-severe-armed NO)
+	(set-goal gl-owner-severe-target -1)
+	(set-goal gl-owner-relief-until 0)
+	(set-goal gl-owner-relief-target -1)
+	;TSA has no per-passenger exclusion; direct bounded response owns defense.
+	(set-strategic-number sn-disable-defend-groups 1)
+	(set-strategic-number sn-task-ungrouped-soldiers 0)
+	(disable-self)
+)
+
+;Reset native soldier exploration BEFORE the ferry can reserve its passenger.
+;Zero counts alone do not disband existing explorer groups (AIRef).
+(defrule
+	(goal gl-owner-explore-suspended NO)
+	(or (up-compare-goal current-phase c:>= 4)
+	(or (not (goal gl-island-migration-state MIGRATION-IDLE))
+	(or (up-group-size c: attack-boarding-group > 0)
+	(or (up-group-size c: recovery-boarding-group > 0)
+	(or (up-group-size c: home-defense-response-group > 0)
+	(or (up-group-size c: opportunistic-raid-group > 0)
+	     (up-group-size c: allied-relief-group > 0)))))))
+=>
+	(set-strategic-number sn-number-explore-groups 0)
+	(set-strategic-number sn-total-number-explorers 0)
+	(set-strategic-number sn-cap-civilian-explorers 0)
+	(set-strategic-number sn-minimum-civilian-explorers 0)
+	(up-reset-scouts)
+	(set-goal gl-owner-explore-suspended YES)
+)
+
+(defrule
+	(goal gl-owner-explore-suspended YES)
+	(up-compare-goal current-phase c:< 4)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(up-group-size c: migration-boarding-group == 0)
+	(up-group-size c: attack-boarding-group == 0)
+	(up-group-size c: recovery-boarding-group == 0)
+	(up-group-size c: allied-relief-group == 0)
+	(up-group-size c: home-defense-response-group == 0)
+	(up-group-size c: opportunistic-raid-group == 0)
+=>
+	(set-goal gl-owner-explore-suspended NO)
+)
+
+;Do not trust stale migration state alone: release the native admission hold
+;when the manifest has gone, including empty-abort/loss paths.
+(defrule
+	(goal gl-owner-worker-hold YES)
+	(up-group-size c: migration-boarding-group == 0)
+=>
+	(set-goal gl-owner-worker-hold NO)
+)
+
+;Native builder assistance and automatic repair have no object-ID predicate.
+;Suspend those admissions during boarding, then restore the exact prior policy.
+;Existing builders/gatherers keep their work. Native idle gathering is the
+;remaining boundary requiring the controlled acceptance test in TASK-OWNERSHIP.
+(defrule
+	(goal gl-owner-worker-hold YES)
+	(goal gl-owner-native-hold-applied NO)
+=>
+	(up-modify-goal gl-owner-native-builder-assist s:= sn-disable-builder-assistance)
+	(up-modify-goal gl-owner-native-repair s:= sn-object-repair-level)
+	(set-strategic-number sn-disable-builder-assistance 1)
+	(set-strategic-number sn-object-repair-level 0)
+	(set-goal gl-owner-native-hold-applied YES)
+)
+
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-owner-native-hold-applied YES)
+=>
+	(up-modify-sn sn-disable-builder-assistance g:= gl-owner-native-builder-assist)
+	(up-modify-sn sn-object-repair-level g:= gl-owner-native-repair)
+	(set-goal gl-owner-native-hold-applied NO)
+)

@@ -1,4 +1,5 @@
 from pathlib import Path
+from historical_test_source import historical_runtime
 import re
 import tempfile
 import unittest
@@ -20,8 +21,9 @@ def normalized(text):
 class WriterTraceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.source = {p.name: p.read_bytes() for p in ROOT.glob('*.per')}
-        cls.source.update({p.name: p.read_bytes() for p in ROOT.glob('*.ai')})
+        # R4 diagnostics remain analyzable with immutable historical site IDs.
+        # T11 behavior is independently tested in test_ownership_contract.
+        cls.source = historical_runtime()
         cls.payload, cls.manifest = compile_payload(cls.source)
 
     def identity(self, player=2):

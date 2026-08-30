@@ -1,5 +1,6 @@
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted NO)
 	(and
 		(goal current-phase 1)
@@ -22,6 +23,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted NO)
 	(and
 		(goal current-phase 1)
@@ -44,6 +46,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted NO)
 	(and
 		(goal current-phase 1)
@@ -66,6 +69,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted NO)
 	(and
 		(goal current-phase 2)
@@ -87,6 +91,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted NO)
 	(and
 		(goal current-phase 3)
@@ -112,6 +117,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted NO)
 	(and
 		(goal current-phase 3)
@@ -141,6 +147,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted NO)
 	(and
 		(goal current-phase 3)
@@ -169,6 +176,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted NO)
 	(and
 		(goal current-phase 3)
@@ -194,6 +202,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted NO)
 	(goal current-phase 4)
 =>
@@ -207,6 +216,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted NO)
 	(and
 		(current-age-time < 120)
@@ -227,6 +237,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted NO)
 	(and
 		(current-age-time < 120)
@@ -246,6 +257,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted NO)
 	(and
 		(current-age-time > 120)
@@ -268,6 +280,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted NO)
 	(and
 		(current-age-time > 120)
@@ -293,6 +306,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted NO)
 	(goal current-phase 6)
 =>
@@ -306,6 +320,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted NO)
 	(goal current-phase 7)
 =>
@@ -319,6 +334,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(and
 		(goal gold-present NO)
 		(goal stone-present NO)
@@ -356,6 +372,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted YES)
 	(nor
 		(goal map-type RIVERS)
@@ -378,6 +395,7 @@
 ;the exhausted starting land mass rather than every reachable zone. Preserve
 ;nonzero remote-resource demand without rebalancing a failed migration.
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted YES)
 	(goal gl-island-colony-established YES)
 	(or
@@ -401,6 +419,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(goal resources-depleted YES)
 	(goal gl-island-colony-established NO)
 	(or
@@ -1752,6 +1771,7 @@
 	(up-full-reset-search)
 	(up-set-target-point gl-home-anchor-x)
 	(up-find-local c: villager-class c: 240)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-idling != 1)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-group-flag >= 0)
@@ -1773,6 +1793,10 @@
 	(goal gl-trade-action-verified YES)
 	(up-compare-goal gl-trade-active-count c:>= 3)
 =>
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point position-self-x action-delete -1 stance-no-attack)
 	(up-modify-goal gl-trade-retirement-next g:= gl-game-time)
 	(up-modify-goal gl-trade-retirement-next c:+ 2)
