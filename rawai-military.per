@@ -9231,14 +9231,34 @@
 	;unthreatened engines so they remain movable for the next objective.
 	(up-modify-group-flag 0 c: siege-objective-group)
 	(up-reset-group c: siege-objective-group)
+	;Emergency/no-enemy fallback historically covers all source land zones.
+	(set-goal gl-siege-target-zone -1)
+	(set-goal gl-siege-target-state SIEGE-TARGET-FALLBACK)
+)
+
+;The full-enemy-cycle producer is below this consumer and resumes next pass.
+;DUC search lists are shared, not persistent siege-owned snapshots. Rebuild
+;here, immediately before the scope filter and PACK; never pack a cached list
+;that a Port/Shipyard or other controller may have replaced in the meantime.
+(defrule
+	(goal gl-siege-target-state SIEGE-TARGET-FALLBACK)
+=>
 	(up-full-reset-search)
 	(up-find-local c: palintonon c: 20)
+	(up-remove-objects search-local object-data-type != palintonon)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-remove-objects search-local object-data-idling != 1)
-	(up-get-search-state local-total)
-	(up-modify-goal gl-siege-source-count g:= local-total)
-	(set-goal gl-siege-target-state SIEGE-TARGET-FALLBACK)
+)
+
+(defrule
+	(goal gl-siege-target-state SIEGE-TARGET-FALLBACK)
+	(up-compare-goal gl-siege-target-zone c:>= 0)
+=>
+	;Ordinary exhausted-objective fallback remains confined to its source zone.
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-siege-target-zone)
 )
 
 (defrule
@@ -9246,8 +9266,11 @@
 	(up-set-target-object search-local c: 0)
 =>
 	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-type != palintonon)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-siege-source-count g:= local-total)
 	;action-pack is a point action; target-objects treats it as action-none.
 	(up-target-point position-self-x action-pack -1 stance-no-attack)
 	(up-chat-data-to-self "idle Palintonons packed: %d" g: gl-siege-source-count)
@@ -9343,6 +9366,7 @@
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	;OWNERSHIP command: FREE.
+	(up-remove-objects search-local object-data-type != palintonon)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	;action-pack is a point action; target-objects treats it as action-none.
@@ -9470,15 +9494,7 @@
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-modify-group-flag 0 c: siege-objective-group)
 	(up-reset-group c: siege-objective-group)
-	(up-full-reset-search)
-	(up-find-local c: palintonon c: 20)
-	(up-remove-objects search-local object-data-map-zone-id g:!= gl-siege-target-zone)
-	(up-remove-objects search-local object-data-garrisoned == 1)
-	(up-remove-objects search-local object-data-under-attack > 0)
-	(up-remove-objects search-local object-data-idling != 1)
-	(up-clean-search search-local object-data-distance search-order-asc)
-	(up-get-search-state local-total)
-	(up-modify-goal gl-siege-source-count g:= local-total)
+	;Only persist the state and source zone; FALLBACK rebuilds on its next pass.
 	(up-modify-sn sn-focus-player-number g:= gl-siege-target-focus)
 	(set-goal gl-siege-target-state SIEGE-TARGET-FALLBACK)
 )

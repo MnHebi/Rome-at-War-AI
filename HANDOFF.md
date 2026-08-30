@@ -1,6 +1,80 @@
 # Rome at War AI handoff
 
-## CURRENT — integrated T13:458 deployed; RC screening blocker, 2026-08-31
+## CURRENT — Port/Shipyard PACK safety fix; NOT DEPLOYED, 2026-08-31
+
+The user is still testing the original T13 below. This regression takes priority
+over further screening/backlog changes. The existing authorized editing directory
+and Git root remain `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`,
+branch `recovery/p3b44-transport-only`. This causal patch follows documentation
+HEAD `4aa5d7baa4834ff55aa7b732c6b69dc9a1ff55c6`; resolve its current commit with
+`git rev-parse HEAD`. Ordinary canonical path/control remain unchanged.
+
+- **Status / symptom:** FIXED-PENDING-RUNTIME, local patch not deployed. User
+  reports repeated real Packing progress on both Ports and Shipyards. Screenshot
+  directly shows Red's Port, Vespasian Augustus, Packing48% at53:31; it is not
+  merely an inferred animation. No completed T13 replay supplied yet.
+- **Direct evidence:** screenshot outside Git at
+  `C:\Users\LostSoul\AppData\Local\Temp\codex-clipboard-bedeeadf-a2ae-4c1c-af5e-103b17d49300.jpg`,
+  SHA-256 `3BD2FAD15CC8F95FA29647C380EFA73BC3EA9C9D5C0343E86E8E4ED3A0EF49C7`.
+  Shipyard symptom is direct user testimony. Do not infer any other player's
+  color from slot order in this match.
+- **Established source defect:** land siege's full-enemy-cycle producer sets
+  FALLBACK below its consumer, so packing resumes next pass. The old consumer
+  trusted shared `search-local`, filtering self/group flag but not unit type.
+  Other controllers can replace that list with owned unreserved buildings.
+  Only two explicit PACK writers exist, both in land siege. T13 commit
+  `f10912c` made their formerly ineffective `up-target-objects action-pack`
+  into working `up-target-point action-pack`, exposing the unsafe handoff.
+  [AIRef](https://airef.github.io/commands/commands-details.html#up-target-point)
+  specifies that the point action commands the local search results.
+- **Causal limits / contradictory evidence:** the command-recipient defect is
+  reproduced from actual PER rules, but the exact intervening list writer for
+  Red53:31 and the Shipyards is not yet attributed without the replay. No
+  contradictory observation is known. Port placement SNs issue no PACK action;
+  they were not changed as a guessed response to this symptom.
+- **Implementation:** `rawai-military.per` rebuilds the fallback search immediately
+  before scope/dispatch. Both PACK sites enforce exact unpacked Palintonon42,
+  self ownership and FREE status. Fallback also freshly enforces idle,
+  ungarrisoned, unthreatened membership; normal fallback retains its source zone,
+  emergency/no-enemy fallback explicitly uses global zone sentinel-1. Actual
+  filtered count replaces the stale count. The late producer persists only state
+  and zone, not a search snapshot. No new telemetry, goals or strings.
+- **Tests / latest result:** all six new `tools/test_pack_selection.py` fixtures
+  FAILED against original T13, including a clobbered list actually receiving
+  PACK for both fixture Port4501 and Shipyard12511 (synthetic object IDs, not
+  replay IDs). All six PASS after repair, including fresh Palintonon reacquisition,
+  protected/busy/packed exclusion, empty-list no-command, scopes and actual count.
+  Full248 tests PASS,0 failures/errors/skips; PER PASS;33 benchmark metadata
+  checks PASS;672-site ownership audit PASS,0 permission failures; inventory and
+  generated ownership/command-counter sources synchronized. Initial sandbox
+  temporary-file error was rerun successfully with approval. No fresh engine
+  acceptance is claimed.
+- **Non-regression / read-only adversarial review:** every source line outside
+  the land-siege controller is identical to `4aa5d7b`, including Juggernauts,
+  all transports and ordinary attacks. ACCEPTED command-time role validation,
+  fresh selection instead of merely filtering a stale list, emergency/global
+  versus ordinary/same-zone scope, and recomputing the reported count. REJECTED
+  reverting to ineffective PACK or altering Port geometry as a fix. Exact
+  incident clobber attribution remains pending replay, not invented. The user
+  separately reports Juggernaut use is far improved in the running T13; preserve
+  that positive observation without calling the entire subsystem CLOSED.
+- **Deployment identity:** no files copied, marker unchanged, no push/PR update.
+  Installed original `RAWAI-P3B44T13:458` remains the80-file payload
+  `A260148B2998E72203883BF34578D96B9AD6B72A561857C89ADBB28F23C96FB6`.
+  Before edits it matched exactly. Afterwards only `rawai-military.per` differs
+  in the checkout, intentionally; local unmarked patched payload is
+  `F9C1F670BD66F1CD311C0998205F50D6F613BCDDD6C18DF26D65BBC15586E1F3`.
+  Do NOT deploy this patch under the old T13 marker. Assign a distinct next-build
+  identity and verify the full payload when preparing the next test after the
+  running one finishes. No live-game repair is claimed.
+- **Acceptance / next action:** audit all reconstructable PACK actions across
+  all players in the running T13 replay and bind53:31 to exact objects/controller
+  state. Then test the corrected build: no Port/Shipyard/non-Palintonon receives
+  PACK; eligible idle/out-of-range Palintonons still pack and resume targeting;
+  protected groups and improved Juggernaut behavior survive. Keep other defects
+  in the deployed-T13 ledger below explicit; this patch resolves none of them.
+
+## DEPLOYED — integrated T13:458; RC screening blocker, 2026-08-31
 
 This section supersedes earlier audit pauses/integration queues below. Read
 [T13-RELEASE-INTEGRATION.md](T13-RELEASE-INTEGRATION.md) for the full queue,

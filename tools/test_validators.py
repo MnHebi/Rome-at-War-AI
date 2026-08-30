@@ -3282,11 +3282,22 @@ class FarmPolicyTests(unittest.TestCase):
             ),
             actions=(
                 "up-reset-group c: siege-objective-group",
-                "object-data-idling != 1",
+                "(set-goal gl-siege-target-zone -1)",
                 "SIEGE-TARGET-FALLBACK",
             ),
         )
         self.assertEqual(len(idle_pack_selection), 1)
+        fallback_rebuild = matching_rules(
+            self.military,
+            facts=("(goal gl-siege-target-state SIEGE-TARGET-FALLBACK)",),
+            actions=(
+                "(up-full-reset-search)",
+                "(up-find-local c: palintonon c: 20)",
+                "object-data-type != palintonon",
+                "object-data-idling != 1",
+            ),
+        )
+        self.assertEqual(len(fallback_rebuild), 1)
 
     def test_completed_farms_are_restaffed_same_zone(self) -> None:
         start = matching_rules(
