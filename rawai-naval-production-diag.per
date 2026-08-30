@@ -1,0 +1,171 @@
+;T12: observational production gates, at most one snapshot per minute/player.
+;Masks and field IDs are documented in T11-REPLAY-REVIEW.md. No train/order/search mutations.
+(defrule
+	(true)
+=>
+	(up-get-fact game-time 0 gl-t12-clock)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+=>
+	(set-goal gl-t12-q-mask 0)
+	(set-goal gl-t12-o-mask 0)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+	(not (or (unit-available quadrireme) (unit-available quinquereme)))
+=>
+	(up-modify-goal gl-t12-q-mask c:+ 1)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+	(not (up-can-train gl-unitescrow-state c: quadrireme-line))
+=>
+	(up-modify-goal gl-t12-q-mask c:+ 2)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+	(not (up-can-train gl-unitescrow-state c: quadrireme))
+=>
+	(up-modify-goal gl-t12-q-mask c:+ 4)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+	(up-compare-goal gl-naval-fleet-count-total g:>= gl-naval-fleet-cap)
+=>
+	(up-modify-goal gl-t12-q-mask c:+ 8)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+	(unit-type-count-total quadrireme-line g:>= gl-one-percent)
+=>
+	(up-modify-goal gl-t12-q-mask c:+ 16)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+	(not (goal ship-train Q-REME))
+=>
+	(up-modify-goal gl-t12-q-mask c:+ 32)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+	(not (research-completed ri-advanced-weaponry))
+=>
+	(up-modify-goal gl-t12-q-mask c:+ 64)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+	(not (or (unit-available octeres) (unit-available octeres)))
+=>
+	(up-modify-goal gl-t12-o-mask c:+ 1)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+	(not (up-can-train gl-unitescrow-state c: octeres))
+=>
+	(up-modify-goal gl-t12-o-mask c:+ 2)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+	(not (up-can-train gl-unitescrow-state c: octeres))
+=>
+	(up-modify-goal gl-t12-o-mask c:+ 4)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+	(up-compare-goal gl-naval-fleet-count-total g:>= gl-naval-fleet-cap)
+=>
+	(up-modify-goal gl-t12-o-mask c:+ 8)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+	(unit-type-count-total octeres g:>= gl-one-percent)
+=>
+	(up-modify-goal gl-t12-o-mask c:+ 16)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+	(not (goal ship-train OCTERES))
+=>
+	(up-modify-goal gl-t12-o-mask c:+ 32)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+	(not (research-completed ri-advanced-weaponry))
+=>
+	(up-modify-goal gl-t12-o-mask c:+ 64)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 100)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-q-mask)
+	(up-chat-data-to-all str-t12-diag-id c: 110)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-o-mask)
+	(up-chat-data-to-all str-t12-diag-id c: 120)
+	(up-chat-data-to-all str-t12-diag-value g: current-phase)
+	(up-chat-data-to-all str-t12-diag-id c: 121)
+	(up-chat-data-to-all str-t12-diag-value g: gl-naval-role)
+	(up-chat-data-to-all str-t12-diag-id c: 122)
+	(up-chat-data-to-all str-t12-diag-value g: ship-train)
+	(up-chat-data-to-all str-t12-diag-id c: 123)
+	(up-chat-data-to-all str-t12-diag-value g: gl-naval-fleet-count-total)
+	(up-chat-data-to-all str-t12-diag-id c: 124)
+	(up-chat-data-to-all str-t12-diag-value g: gl-naval-fleet-cap)
+	(up-chat-data-to-all str-t12-diag-id c: 125)
+	(up-chat-data-to-all str-t12-diag-value g: gl-one-percent)
+	(up-chat-data-to-all str-t12-diag-id c: 130)
+	(up-chat-data-to-all str-t12-diag-value g: gl-unitescrow-state)
+)
+(defrule
+	(up-compare-goal current-phase c:>= 4)
+	(building-type-count shipyard > 0)
+	(up-compare-goal gl-t12-clock g:>= gl-t12-navy-next)
+=>
+	(up-get-fact wood-amount 0 gl-t12-value)
+	(up-chat-data-to-all str-t12-diag-id c: 126)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-value)
+	(up-get-fact gold-amount 0 gl-t12-value)
+	(up-chat-data-to-all str-t12-diag-id c: 127)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-value)
+	(up-get-fact population-headroom 0 gl-t12-value)
+	(up-chat-data-to-all str-t12-diag-id c: 128)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-value)
+	(up-get-fact building-type-count shipyard gl-t12-value)
+	(up-chat-data-to-all str-t12-diag-id c: 129)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-value)
+	(up-modify-goal gl-t12-navy-next g:= gl-t12-clock)
+	(up-modify-goal gl-t12-navy-next c:+ 60)
+)

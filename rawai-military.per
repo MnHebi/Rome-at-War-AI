@@ -3630,7 +3630,9 @@
 	(not (up-pending-placement c: mining-camp))
 	(up-can-build 0 c: mining-camp)
 =>
+	(up-get-point position-target gl-t12-drop-x)
 	(up-build place-point 0 c: mining-camp)
+	(set-goal gl-t12-drop-stage 1)
 	(up-modify-goal gl-island-migration-placement-attempts c:+ 1)
 	(up-chat-data-to-self "migration mining camp attempt: %d" g: gl-island-migration-placement-attempts)
 	(up-set-timer c: t-island-migration c: 20)
@@ -3731,7 +3733,9 @@
 	(not (up-pending-placement c: lumber-camp))
 	(up-can-build 0 c: lumber-camp)
 =>
+	(up-get-point position-target gl-t12-drop-x)
 	(up-build place-point 0 c: lumber-camp)
+	(set-goal gl-t12-drop-stage 1)
 	(up-modify-goal gl-island-migration-placement-attempts c:+ 1)
 	(up-chat-data-to-self "migration lumber camp attempt: %d" g: gl-island-migration-placement-attempts)
 	(up-set-timer c: t-island-migration c: 20)
@@ -3749,7 +3753,9 @@
 	(not (up-pending-placement c: mill))
 	(up-can-build 0 c: mill)
 =>
+	(up-get-point position-target gl-t12-drop-x)
 	(up-build place-point 0 c: mill)
+	(set-goal gl-t12-drop-stage 1)
 	(up-modify-goal gl-island-migration-placement-attempts c:+ 1)
 	(up-chat-data-to-self "migration mill attempt: %d" g: gl-island-migration-placement-attempts)
 	(up-set-timer c: t-island-migration c: 20)
@@ -3836,6 +3842,8 @@
 
 ;A global pending count is not proof that the remote request succeeded. Find
 ;the matching pending foundation and reject it unless it is in the landing zone.
+(load "rawai-dropsite-diag")
+
 (defrule
 	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
 	(or
@@ -8356,6 +8364,15 @@
 	(set-goal gl-local-response-state LOCAL-RESPONSE-ASSET-FIND)
 )
 
+;Capture evidence without adding searches to the threat producer/consumer.
+(defrule
+	(goal gl-local-response-state LOCAL-RESPONSE-ASSET-FIND)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-t12-help-pending-asset)
+	(up-get-point position-object gl-t12-help-pending-x)
+)
+
 (defrule
 	(goal gl-local-response-state LOCAL-RESPONSE-ASSET-FIND)
 	(up-set-target-object search-local c: 0)
@@ -8394,6 +8411,11 @@
 	(goal gl-local-response-state LOCAL-RESPONSE-ASSET-THREAT)
 	(up-set-target-object search-remote c: 0)
 =>
+	(set-goal gl-t12-help-kind 2)
+	(up-modify-goal gl-t12-help-asset g:= gl-t12-help-pending-asset)
+	(up-copy-point gl-t12-help-anchor-x gl-t12-help-pending-x)
+	(up-get-object-data object-data-id gl-t12-help-hostile)
+	(up-get-fact game-time 0 gl-t12-help-time)
 	(up-get-point position-object gl-local-response-target-x)
 	(up-get-object-data object-data-map-zone-id gl-local-response-zone)
 	(up-chat-data-to-self "asset defense response zone: %d" g: gl-local-response-zone)
@@ -8446,6 +8468,11 @@
 	(goal gl-local-response-state LOCAL-RESPONSE-FIND)
 	(up-set-target-object search-remote c: 0)
 =>
+	(set-goal gl-t12-help-kind 3)
+	(set-goal gl-t12-help-asset -1)
+	(up-copy-point gl-t12-help-anchor-x gl-home-anchor-x)
+	(up-get-object-data object-data-id gl-t12-help-hostile)
+	(up-get-fact game-time 0 gl-t12-help-time)
 	(up-get-point position-object gl-local-response-target-x)
 	(up-get-object-data object-data-map-zone-id gl-local-response-zone)
 	(set-goal gl-local-response-state LOCAL-RESPONSE-COMMAND)

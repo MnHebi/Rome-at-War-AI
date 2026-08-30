@@ -1,0 +1,149 @@
+;T12: immediately after a drop-site request, then at its wait timeout.
+;Rebuilds only diagnostic local selection before WAIT-DROPSITE rebuilds its own.
+;No task orders, flags, timers, or placement mutations. Captures one settler, not a full manifest.
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+	(or (goal gl-t12-drop-stage 1) (and (goal gl-t12-drop-stage 2) (up-timer-status t-island-migration == timer-triggered)))
+=>
+	(set-goal gl-t12-drop-mask 0)
+)
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+	(or (goal gl-t12-drop-stage 1) (and (goal gl-t12-drop-stage 2) (up-timer-status t-island-migration == timer-triggered)))
+	(or (goal gl-island-migration-anchor-class gold-mine-class) (goal gl-island-migration-anchor-class stone-mine-class))
+	(up-pending-placement c: mining-camp)
+=>
+	(up-modify-goal gl-t12-drop-mask c:+ 1)
+)
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+	(or (goal gl-t12-drop-stage 1) (and (goal gl-t12-drop-stage 2) (up-timer-status t-island-migration == timer-triggered)))
+	(or (goal gl-island-migration-anchor-class gold-mine-class) (goal gl-island-migration-anchor-class stone-mine-class))
+	(up-pending-objects c: mining-camp > 0)
+=>
+	(up-modify-goal gl-t12-drop-mask c:+ 2)
+)
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+	(or (goal gl-t12-drop-stage 1) (and (goal gl-t12-drop-stage 2) (up-timer-status t-island-migration == timer-triggered)))
+	(or (goal gl-island-migration-anchor-class gold-mine-class) (goal gl-island-migration-anchor-class stone-mine-class))
+	(not (can-afford-building mining-camp))
+=>
+	(up-modify-goal gl-t12-drop-mask c:+ 4)
+)
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+	(or (goal gl-t12-drop-stage 1) (and (goal gl-t12-drop-stage 2) (up-timer-status t-island-migration == timer-triggered)))
+	(goal gl-island-migration-anchor-class tree-class)
+	(up-pending-placement c: lumber-camp)
+=>
+	(up-modify-goal gl-t12-drop-mask c:+ 1)
+)
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+	(or (goal gl-t12-drop-stage 1) (and (goal gl-t12-drop-stage 2) (up-timer-status t-island-migration == timer-triggered)))
+	(goal gl-island-migration-anchor-class tree-class)
+	(up-pending-objects c: lumber-camp > 0)
+=>
+	(up-modify-goal gl-t12-drop-mask c:+ 2)
+)
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+	(or (goal gl-t12-drop-stage 1) (and (goal gl-t12-drop-stage 2) (up-timer-status t-island-migration == timer-triggered)))
+	(goal gl-island-migration-anchor-class tree-class)
+	(not (can-afford-building lumber-camp))
+=>
+	(up-modify-goal gl-t12-drop-mask c:+ 4)
+)
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+	(or (goal gl-t12-drop-stage 1) (and (goal gl-t12-drop-stage 2) (up-timer-status t-island-migration == timer-triggered)))
+	(or (goal gl-island-migration-anchor-class forage-class) (goal gl-island-migration-anchor-class prey-animal-class))
+	(up-pending-placement c: mill)
+=>
+	(up-modify-goal gl-t12-drop-mask c:+ 1)
+)
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+	(or (goal gl-t12-drop-stage 1) (and (goal gl-t12-drop-stage 2) (up-timer-status t-island-migration == timer-triggered)))
+	(or (goal gl-island-migration-anchor-class forage-class) (goal gl-island-migration-anchor-class prey-animal-class))
+	(up-pending-objects c: mill > 0)
+=>
+	(up-modify-goal gl-t12-drop-mask c:+ 2)
+)
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+	(or (goal gl-t12-drop-stage 1) (and (goal gl-t12-drop-stage 2) (up-timer-status t-island-migration == timer-triggered)))
+	(or (goal gl-island-migration-anchor-class forage-class) (goal gl-island-migration-anchor-class prey-animal-class))
+	(not (can-afford-building mill))
+=>
+	(up-modify-goal gl-t12-drop-mask c:+ 4)
+)
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+	(or (goal gl-t12-drop-stage 1) (and (goal gl-t12-drop-stage 2) (up-timer-status t-island-migration == timer-triggered)))
+	(goal gl-owner-worker-hold YES)
+=>
+	(up-modify-goal gl-t12-drop-mask c:+ 8)
+)
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+	(or (goal gl-t12-drop-stage 1) (and (goal gl-t12-drop-stage 2) (up-timer-status t-island-migration == timer-triggered)))
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 200)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-drop-stage)
+	(up-chat-data-to-all str-t12-diag-id c: 201)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-drop-mask)
+	(up-chat-data-to-all str-t12-diag-id c: 202)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-drop-x)
+	(up-chat-data-to-all str-t12-diag-id c: 203)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-drop-y)
+	(up-chat-data-to-all str-t12-diag-id c: 204)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-zone)
+	(up-chat-data-to-all str-t12-diag-id c: 205)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-placement-attempts)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-target-x)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-t12-value g:= local-total)
+	(up-chat-data-to-all str-t12-diag-id c: 206)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-value)
+)
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+	(or (goal gl-t12-drop-stage 1) (and (goal gl-t12-drop-stage 2) (up-timer-status t-island-migration == timer-triggered)))
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-t12-value)
+	(up-chat-data-to-all str-t12-diag-id c: 210)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-value)
+	(up-get-object-data object-data-action gl-t12-value)
+	(up-chat-data-to-all str-t12-diag-id c: 211)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-value)
+	(up-get-object-data object-data-order gl-t12-value)
+	(up-chat-data-to-all str-t12-diag-id c: 212)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-value)
+	(up-get-object-data object-data-target-id gl-t12-value)
+	(up-chat-data-to-all str-t12-diag-id c: 213)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-value)
+	(up-get-object-data object-data-group-flag gl-t12-value)
+	(up-chat-data-to-all str-t12-diag-id c: 214)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-value)
+	(up-get-object-data object-data-map-zone-id gl-t12-value)
+	(up-chat-data-to-all str-t12-diag-id c: 215)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-value)
+	(up-get-object-data object-data-idling gl-t12-value)
+	(up-chat-data-to-all str-t12-diag-id c: 216)
+	(up-chat-data-to-all str-t12-diag-value g: gl-t12-value)
+)
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+	(or (goal gl-t12-drop-stage 1) (and (goal gl-t12-drop-stage 2) (up-timer-status t-island-migration == timer-triggered)))
+=>
+	(set-goal gl-t12-drop-stage 2)
+)

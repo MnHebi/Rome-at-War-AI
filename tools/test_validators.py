@@ -1374,7 +1374,7 @@ class FarmPolicyTests(unittest.TestCase):
             ),
             actions=(
                 "(up-find-player-flare any-ally gl-flared-delete-x)",
-                "(up-filter-distance c: -1 c: 6)",
+                "(up-filter-distance c: -1 c: 2)",
                 "(up-modify-goal gl-delete-flare-candidates g:= local-total)",
                 "(set-goal deletion-flare MAYBE)",
             ),
@@ -5298,7 +5298,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "TRANSPORT-ROUTE-LOAD-CHECK",
                 "object-data-garrison-count >= 5",
                 "object-data-garrison-count g:< gl-transport-route-load-target",
-                "gl-game-time g:>= gl-transport-route-load-deadline",
+                "gl-transport-load-clock g:>= gl-transport-route-load-deadline",
             ),
             actions=(
                 "object-data-garrison-count gl-transport-route-load-observed",
@@ -5312,7 +5312,7 @@ class FarmPolicyTests(unittest.TestCase):
             facts=(
                 "TRANSPORT-ROUTE-LOAD-CHECK",
                 "object-data-garrison-count < 5",
-                "gl-game-time g:>= gl-transport-route-load-deadline",
+                "gl-transport-load-clock g:>= gl-transport-route-load-deadline",
             ),
             actions=(
                 "TRANSPORT-LOAD-TERMINAL-ABORT",
@@ -5343,7 +5343,7 @@ class FarmPolicyTests(unittest.TestCase):
             facts=(
                 "TRANSPORT-ROUTE-LOAD-CHECK",
                 "gl-transport-route-load-reported NO",
-                "gl-game-time g:>= gl-transport-route-load-next",
+                "gl-transport-load-clock g:>= gl-transport-route-load-next",
             ),
             actions=(
                 "object-data-garrison-count gl-transport-route-load-observed",

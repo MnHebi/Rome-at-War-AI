@@ -45,6 +45,8 @@ class BoardingClockTests(unittest.TestCase):
 
 class NavalSearchTests(unittest.TestCase):
     def test_expansion_has_bounded_clock_and_real_progress_not_command_progress(self):
+        self.assertIn('object-data-player g:!= gl-naval-watch-player',
+                      source('rawai-naval-siege-watch.per'))
         rows = list(rule_blocks(source('rawai-naval-siege-watch.per')))
         expand = next(r for r in rows if 'RAW12 siege search radius:' in r[4])
         self.assertIn('gl-naval-search-clock g:>= gl-naval-search-progress', expand[3])
@@ -90,6 +92,52 @@ class NavalSearchTests(unittest.TestCase):
             if '(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)' in r[3] and 'up-target-objects' in r[4]:
                 self.assertLess(rebuild[0], r[0])
                 self.assertIn('object-data-id g:== gl-naval-siege-target-id', r[3])
+
+
+class FailurePointDiagnosticsTests(unittest.TestCase):
+    def test_naval_snapshots_are_bounded_and_observational(self):
+        text = source('rawai-naval-production-diag.per')
+        self.assertNotRegex(text, r'\(up-(?:train|target|find|reset|set-group)\b')
+        self.assertIn('gl-t12-navy-next c:+ 60', text)
+        for row in rule_blocks(text):
+            if 'up-chat-data-to-all' in row[4]:
+                self.assertIn('gl-t12-clock g:>= gl-t12-navy-next', row[3])
+        self.assertIn('(not (up-can-train gl-unitescrow-state c: quadrireme-line))', text)
+        self.assertIn('(not (up-can-train gl-unitescrow-state c: quadrireme))', text)
+        self.assertIn('(not (research-completed ri-advanced-weaponry))', text)
+
+    def test_drop_probes_cannot_retask_workers_or_clobber_adjacent_goals(self):
+        text = source('rawai-dropsite-diag.per')
+        self.assertNotRegex(text, r'\(up-(?:target|create-group|modify-group|set-timer|build|reset-placement)\b')
+        self.assertIn('object-data-player != my-player-number', text)
+        self.assertIn('object-data-group-flag != migration-boarding-group', text)
+        self.assertIn('object-data-map-zone-id g:!= gl-island-migration-zone', text)
+        self.assertIn('(up-get-search-state local-total)', text)
+        self.assertNotIn('(up-get-search-state gl-t12-value)', text)
+        for row in rule_blocks(text):
+            self.assertIn('MIGRATION-WAIT-DROPSITE', row[3])
+            self.assertIn('gl-t12-drop-stage 1', row[3])
+            self.assertIn('timer-triggered', row[3])
+
+    def test_help_reports_preserve_kind_identity_and_scan_freshness(self):
+        text = source('rawai-military.per')
+        self.assertIn('(set-goal gl-t12-help-kind 2)', text)
+        self.assertIn('(set-goal gl-t12-help-kind 3)', text)
+        self.assertEqual(text.count('(up-get-fact game-time 0 gl-t12-help-time)'), 2)
+        # A failed later scan must not relabel an older latched threat.
+        for row in rule_blocks(text):
+            if '(set-goal gl-t12-help-kind ' in row[4]:
+                self.assertIn('(up-set-target-object search-remote c: 0)', row[3])
+        calls = source('rawai-diplomacy.per')
+        for goal in ['gl-t12-help-kind', 'gl-t12-help-asset', 'gl-t12-help-hostile',
+                     'gl-t12-help-time', 'gl-local-response-zone']:
+            self.assertIn('str-t12-diag-value g: ' + goal, calls)
+        reports = [r for r in rule_blocks(source('rawai-tauntcommands.per'))
+                   if 'str-t12-diag-id c: 320' in r[4]]
+        self.assertEqual(len(reports), 4)
+        for row in reports:
+            self.assertLess(row[4].index('str-t12-diag-value g: gl-ally-help-player'),
+                            row[4].index('(set-goal gl-ally-help-player -1)'))
 
 
 class CommandCounterTests(unittest.TestCase):
