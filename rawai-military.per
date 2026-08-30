@@ -9383,6 +9383,7 @@
 ;Juggernauts and Octeres have different range envelopes but the engine exposes
 ;only DUC groups 0..9. Both families remain reserved in one valid shared group;
 ;the consumer filters that group to the active family before issuing a target.
+(load "rawai-naval-siege-watch")
 ;Escorts are rebuilt from a positive light-hull allowlist and guard the exact
 ;capital without consuming a second persistent group slot.
 (defrule
@@ -9590,11 +9591,20 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-guard -1 stance-aggressive)
-	(up-find-player enemy find-closest gl-naval-siege-player)
+	(up-find-player enemy find-ordered gl-naval-siege-player)
+	(up-modify-goal gl-naval-search-first-player g:= gl-naval-siege-player)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-SEARCH)
+)
+
+;Rebuild in the same sweep as the consumers. An enemy-advance state can span
+;a pass, but the shared remote search results must never survive that boundary.
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-SEARCH)
+=>
 	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-player)
 	(up-full-reset-search)
 	(up-set-target-point gl-naval-siege-target-x)
-	(up-filter-distance c: -1 c: 120)
+	(up-filter-distance c: -1 g: gl-naval-search-sea-radius)
 	(up-find-remote c: sea-tower c: 20)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-FIND-STRUCTURE)
@@ -9688,11 +9698,63 @@
 	(set-goal gl-naval-siege-state SIEGE-TARGET-COMMAND)
 )
 
+;Fallback selection is below the command rules and can cross a sweep. Recover
+;both identities here, after all unrelated shared-search writers have run.
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)
+=>
+	(up-full-reset-search)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-player)
+	(up-add-object-by-id search-remote g: gl-naval-siege-target-id)
+	(up-remove-objects search-remote object-data-player g:!= gl-naval-siege-player)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-set-group search-local c: juggernaut-bombardment-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != juggernaut-bombardment-group)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-naval-siege-zone)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)
+	(goal gl-naval-siege-family 0)
+=>
+	(up-remove-objects search-local object-data-type == octeres)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-naval-siege-source-count g:= local-total)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)
+	(goal gl-naval-siege-family 1)
+=>
+	(up-remove-objects search-local object-data-type != octeres)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-naval-siege-source-count g:= local-total)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
+	(up-modify-goal gl-naval-siege-family c:* -1)
+	(up-modify-goal gl-naval-siege-family c:+ 1)
+	(up-set-timer c: t-naval-siege c: 12)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+)
+
 (defrule
 	(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)
 	(goal gl-naval-siege-family 0)
 	(up-compare-goal gl-naval-siege-source-count c:> 0)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-id g:== gl-naval-siege-target-id)
 =>
+	(up-modify-goal gl-naval-watch-source g:= gl-naval-siege-source-id)
+	(up-modify-goal gl-naval-watch-target g:= gl-naval-siege-target-id)
+	(up-modify-goal gl-naval-watch-player g:= gl-naval-siege-player)
+	(up-get-object-data object-data-hitpoints gl-naval-watch-hp)
 	;OWNERSHIP command: juggernaut-bombardment-group.
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != juggernaut-bombardment-group)
@@ -9711,7 +9773,13 @@
 	(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)
 	(goal gl-naval-siege-family 1)
 	(up-compare-goal gl-naval-siege-source-count c:> 0)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-id g:== gl-naval-siege-target-id)
 =>
+	(up-modify-goal gl-naval-watch-source g:= gl-naval-siege-source-id)
+	(up-modify-goal gl-naval-watch-target g:= gl-naval-siege-target-id)
+	(up-modify-goal gl-naval-watch-player g:= gl-naval-siege-player)
+	(up-get-object-data object-data-hitpoints gl-naval-watch-hp)
 	;OWNERSHIP command: juggernaut-bombardment-group.
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != juggernaut-bombardment-group)
@@ -9752,14 +9820,11 @@
 	(goal gl-naval-siege-state SIEGE-TARGET-FIND-STRUCTURE)
 	(not (up-set-target-object search-remote c: 0))
 =>
-	;The scripting API exposes no dependable naval path query. Keep non-sea-
-	;tower fallback targets close to the selected capital ship to reduce the
-	;chance of choosing an unreachable inland structure. A Town Center is always
-	;inland, so a capital ship ordered against one lurches inland toward a town
-	;instead of bombarding from water.
+	;Expand discovery after bounded inactivity, not the ship's weapon range.
+	;Still restrict targets to fortifications; do not add inland Town Centers.
 	(up-full-reset-search)
 	(up-set-target-point gl-naval-siege-target-x)
-	(up-filter-distance c: -1 c: 48)
+	(up-filter-distance c: -1 g: gl-naval-search-radius)
 	(up-find-remote c: tower-class c: 20)
 	(up-find-remote c: castle c: 10)
 	(up-find-remote c: wall-class c: 20)
@@ -9811,10 +9876,7 @@
 	(goal gl-naval-siege-family 0)
 	(not (up-set-target-object search-remote c: 0))
 =>
-	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
-	(set-goal gl-naval-siege-family 1)
-	(up-set-timer c: t-naval-siege c: 12)
-	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-ADVANCE-PLAYER)
 )
 
 (defrule
@@ -9822,8 +9884,33 @@
 	(goal gl-naval-siege-family 1)
 	(not (up-set-target-object search-remote c: 0))
 =>
+	(set-goal gl-naval-siege-state SIEGE-TARGET-ADVANCE-PLAYER)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-ADVANCE-PLAYER)
+=>
+	(up-find-next-player enemy find-ordered gl-naval-siege-player)
+	(set-goal gl-naval-siege-state SIEGE-TARGET-NEXT-PLAYER)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-NEXT-PLAYER)
+	(up-compare-goal gl-naval-siege-player g:!= gl-naval-search-first-player)
+	(up-compare-goal gl-naval-siege-player c:>= 1)
+=>
+	(set-goal gl-naval-siege-state SIEGE-TARGET-SEARCH)
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-NEXT-PLAYER)
+	(or (up-compare-goal gl-naval-siege-player g:== gl-naval-search-first-player)
+	    (up-compare-goal gl-naval-siege-player c:< 1))
+=>
 	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
-	(set-goal gl-naval-siege-family 0)
+	;Only finish after every live enemy has been considered once.
+	(up-modify-goal gl-naval-siege-family c:* -1)
+	(up-modify-goal gl-naval-siege-family c:+ 1)
 	(up-set-timer c: t-naval-siege c: 12)
 	(set-goal gl-naval-siege-state SIEGE-TARGET-IDLE)
 )

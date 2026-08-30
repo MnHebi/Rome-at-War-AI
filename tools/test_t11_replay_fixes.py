@@ -43,6 +43,55 @@ class BoardingClockTests(unittest.TestCase):
         self.assertIn('(up-remove-objects search-local object-data-group-flag != attack-boarding-group)', text)
 
 
+class NavalSearchTests(unittest.TestCase):
+    def test_expansion_has_bounded_clock_and_real_progress_not_command_progress(self):
+        rows = list(rule_blocks(source('rawai-naval-siege-watch.per')))
+        expand = next(r for r in rows if 'RAW12 siege search radius:' in r[4])
+        self.assertIn('gl-naval-search-clock g:>= gl-naval-search-progress', expand[3])
+        self.assertIn('gl-naval-search-radius c:< 255', expand[3])
+        self.assertIn('gl-naval-search-progress c:+ 120', expand[4])
+        factor = int(re.search(r'gl-naval-search-radius c:\* (\d+)', expand[4])[1])
+        cap = int(re.search(r'gl-naval-search-radius c:min (\d+)', expand[4])[1])
+        radius = 48
+        actual = []
+        for _ in range(4):
+            radius = min(radius * factor, cap)
+            actual.append(radius)
+        self.assertEqual(actual, [96, 192, 255, 255])
+        progress = next(r for r in rows if 'object-data-hitpoints g:<' in r[3])
+        self.assertIn('(goal gl-naval-watch-attacking YES)', progress[3])
+        self.assertIn('object-data-id g:== gl-naval-watch-target', progress[3])
+        commands = [r for r in rule_blocks(source('rawai-military.per'))
+                    if '(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)' in r[3]
+                    and 'up-target-objects' in r[4]]
+        self.assertEqual(len(commands), 2)
+        self.assertTrue(all('gl-naval-search-progress' not in r[4] for r in commands))
+
+    def test_enemy_iteration_rebuilds_before_consuming_search(self):
+        text = source('rawai-military.per')
+        rows = list(rule_blocks(text))
+        scan = next(r for r in rows if '(goal gl-naval-siege-state SIEGE-TARGET-SEARCH)' in r[3])
+        self.assertIn('gl-naval-search-sea-radius', scan[4])
+        self.assertIn('up-full-reset-search', scan[4])
+        consumers = [r for r in rows if '(goal gl-naval-siege-state SIEGE-TARGET-FIND-STRUCTURE)' in r[3]]
+        self.assertTrue(all(scan[0] < r[0] for r in consumers))
+        self.assertIn('up-find-next-player enemy find-ordered gl-naval-siege-player', text)
+        self.assertIn('gl-naval-siege-player g:== gl-naval-search-first-player', text)
+
+    def test_cross_sweep_command_revalidates_target_and_owned_family(self):
+        text = source('rawai-military.per')
+        rows = list(rule_blocks(text))
+        rebuild = next(r for r in rows if '(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)' in r[3]
+                       and 'up-add-object-by-id search-remote g: gl-naval-siege-target-id' in r[4])
+        self.assertIn('object-data-player g:!= gl-naval-siege-player', rebuild[4])
+        self.assertIn('object-data-group-flag != juggernaut-bombardment-group', rebuild[4])
+        self.assertIn('object-data-map-zone-id g:!= gl-naval-siege-zone', rebuild[4])
+        for r in rows:
+            if '(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)' in r[3] and 'up-target-objects' in r[4]:
+                self.assertLess(rebuild[0], r[0])
+                self.assertIn('object-data-id g:== gl-naval-siege-target-id', r[3])
+
+
 class FlareDeletionTests(unittest.TestCase):
     def test_small_radius_nearest_one_and_no_candidate_fallback(self):
         text = source('rawai-tauntcommands.per')
