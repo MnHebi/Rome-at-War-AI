@@ -18,7 +18,8 @@ def source(name):
 def expressions(text):
     """Parse the small selected PER rule subset; never pretend this is the engine."""
     text = re.sub(r'^\s*\(defrule\s*', '', text)
-    tokens = re.findall(r'\(|\)|[^\s()]+', '\n'.join(x.split(';')[0] for x in text.splitlines()))
+    tokens = [t for t in re.findall(r'"(?:[^"\\]|\\.)*"|;[^\n]*|[()]|[^\s();]+', text)
+              if not t.startswith(';')]
     stack, result = [], []
     for token in tokens:
         if token == '(':

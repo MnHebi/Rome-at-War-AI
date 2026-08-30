@@ -394,8 +394,42 @@
 )
 
 
+;Saving purchases share the Imperial transaction deadline.
 (defrule
 	(current-age == imperial-age)
+	(goal gl-wonder-state WONDER-STATE-SAVING)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
+	(gold-amount >= 1600)
+	(wood-amount < 1400)
+	(commodity-buying-price wood <= 250)
+	(can-buy-commodity wood)
+=>
+	(buy-commodity wood)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Wonder portfolio: buy wood")
+)
+
+
+(defrule
+	(current-age == imperial-age)
+	(goal gl-wonder-state WONDER-STATE-SAVING)
+	(up-compare-goal gl-game-time g:>= gl-market-portfolio-next)
+	(gold-amount >= 1600)
+	(stone-amount < 1400)
+	(commodity-buying-price stone <= 350)
+	(can-buy-commodity stone)
+=>
+	(buy-commodity stone)
+	(up-modify-goal gl-market-portfolio-next g:= gl-game-time)
+	(up-modify-goal gl-market-portfolio-next c:+ 15)
+	(chat-local-to-self "Wonder portfolio: buy stone")
+)
+
+
+(defrule
+	(current-age == imperial-age)
+	(not (goal gl-wonder-state WONDER-STATE-SAVING))
 	(wood-amount >= 1200)
 	(gold-amount < 300)
 	(commodity-selling-price wood >= 30)
@@ -407,6 +441,7 @@
 
 (defrule
 	(current-age == imperial-age)
+	(not (goal gl-wonder-state WONDER-STATE-SAVING))
 	(food-amount >= 1000)
 	(gold-amount < 200)
 	(can-sell-commodity food)

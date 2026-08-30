@@ -1,0 +1,214 @@
+;Standalone policy adaptation of 0e1169f. No attack/transport/SN ownership writes.
+;Three quiet 300s windows after 60:00, only Standard victory and Imperial Age.
+;Cumulative losses cannot be hidden by replacement production. The exposed unit
+;loss counter includes civilians AND military: five losses conservatively reset
+;the sequence; this is deliberately NOT labelled a civilian-only counter.
+(defrule
+	(true)
+=>
+	(set-goal gl-wonder-state WONDER-STATE-MONITOR)
+	(set-goal gl-wonder-baseline-valid NO)
+	(set-goal gl-wonder-stall-windows 0)
+	(set-goal gl-wonder-sample-next 3600)
+	(set-goal gl-wonder-build-next 0)
+	(set-goal gl-wonder-build-attempts 0)
+	(disable-self)
+)
+
+(defrule
+	(victory-condition standard)
+	(current-age == imperial-age)
+	(up-compare-goal gl-game-time c:>= 3600)
+	(up-compare-goal gl-game-time g:>= gl-wonder-sample-next)
+	(or (goal gl-wonder-state WONDER-STATE-MONITOR)
+	    (goal gl-wonder-state WONDER-STATE-SAVING))
+=>
+	(up-get-fact-sum any-enemy resource-amount amount-razed-by-others gl-wonder-enemy-build-loss)
+	(up-get-fact-sum any-enemy resource-amount amount-killed-by-others gl-wonder-enemy-unit-loss)
+	(up-get-fact-sum any-ally resource-amount amount-razed-by-others gl-wonder-team-build-loss)
+	(up-get-fact-sum any-ally resource-amount amount-killed-by-others gl-wonder-team-unit-loss)
+	(up-get-fact resource-amount amount-razed-by-others gl-wonder-self-build-loss)
+	(up-get-fact resource-amount amount-killed-by-others gl-wonder-self-unit-loss)
+	(up-modify-goal gl-wonder-team-build-loss g:+ gl-wonder-self-build-loss)
+	(up-modify-goal gl-wonder-team-unit-loss g:+ gl-wonder-self-unit-loss)
+	(up-modify-goal gl-wonder-delta-eb g:= gl-wonder-enemy-build-loss)
+	(up-modify-goal gl-wonder-delta-eu g:= gl-wonder-enemy-unit-loss)
+	(up-modify-goal gl-wonder-delta-tb g:= gl-wonder-team-build-loss)
+	(up-modify-goal gl-wonder-delta-tu g:= gl-wonder-team-unit-loss)
+	(up-modify-goal gl-wonder-delta-eb g:- gl-wonder-old-eb)
+	(up-modify-goal gl-wonder-delta-eu g:- gl-wonder-old-eu)
+	(up-modify-goal gl-wonder-delta-tb g:- gl-wonder-old-tb)
+	(up-modify-goal gl-wonder-delta-tu g:- gl-wonder-old-tu)
+	(up-modify-goal gl-wonder-resume-state g:= gl-wonder-state)
+	(set-goal gl-wonder-state WONDER-STATE-SAMPLE)
+)
+
+(defrule
+	(goal gl-wonder-state WONDER-STATE-SAMPLE)
+	(or (goal gl-wonder-baseline-valid NO)
+	 (or (goal gl-home-defense-state YES)
+	  (or (up-compare-goal gl-wonder-delta-eb c:>= 3)
+	   (or (up-compare-goal gl-wonder-delta-tb c:>= 3)
+	    (or (up-compare-goal gl-wonder-delta-eu c:>= 5)
+	     (or (up-compare-goal gl-wonder-delta-tu c:>= 5)
+	      (or (up-compare-goal gl-wonder-delta-eb c:< 0)
+	       (or (up-compare-goal gl-wonder-delta-tb c:< 0)
+	        (or (up-compare-goal gl-wonder-delta-eu c:< 0)
+	            (up-compare-goal gl-wonder-delta-tu c:< 0))))))))))
+=>
+	;Membership/counter changes reset instead of confusing low counts with a sentinel.
+	(up-modify-goal gl-wonder-old-eb g:= gl-wonder-enemy-build-loss)
+	(up-modify-goal gl-wonder-old-eu g:= gl-wonder-enemy-unit-loss)
+	(up-modify-goal gl-wonder-old-tb g:= gl-wonder-team-build-loss)
+	(up-modify-goal gl-wonder-old-tu g:= gl-wonder-team-unit-loss)
+	(set-goal gl-wonder-baseline-valid YES)
+	(set-goal gl-wonder-stall-windows 0)
+	(up-modify-goal gl-wonder-sample-next g:= gl-game-time)
+	(up-modify-goal gl-wonder-sample-next c:+ 300)
+	(set-goal gl-wonder-state WONDER-STATE-MONITOR)
+)
+
+(defrule
+	(goal gl-wonder-state WONDER-STATE-SAMPLE)
+	(up-compare-goal gl-wonder-stall-windows c:< 3)
+=>
+	(up-modify-goal gl-wonder-stall-windows c:+ 1)
+	(up-modify-goal gl-wonder-sample-next g:= gl-game-time)
+	(up-modify-goal gl-wonder-sample-next c:+ 300)
+	;Do not advance the loss baseline: small losses accumulate across windows.
+)
+
+(defrule
+	(goal gl-wonder-state WONDER-STATE-SAMPLE)
+	(up-compare-goal gl-wonder-stall-windows c:< 3)
+=>
+	(set-goal gl-wonder-state WONDER-STATE-MONITOR)
+)
+
+(defrule
+	(goal gl-wonder-state WONDER-STATE-SAMPLE)
+	(up-compare-goal gl-wonder-stall-windows c:>= 3)
+	(goal gl-wonder-resume-state WONDER-STATE-MONITOR)
+=>
+	(up-modify-goal gl-wonder-election-time g:= gl-self-player-number)
+	(up-modify-goal gl-wonder-election-time c:* 30)
+	(up-modify-goal gl-wonder-election-time g:+ gl-game-time)
+)
+
+(defrule
+	(goal gl-wonder-state WONDER-STATE-SAMPLE)
+	(up-compare-goal gl-wonder-stall-windows c:>= 3)
+=>
+	(up-modify-goal gl-wonder-sample-next g:= gl-game-time)
+	(up-modify-goal gl-wonder-sample-next c:+ 300)
+	(set-goal gl-wonder-state WONDER-STATE-SAVING)
+)
+
+(defrule
+	(goal gl-wonder-state WONDER-STATE-SAVING)
+	(players-building-type-count any-ally wonder >= 1)
+=>
+	(chat-local-to-self "Allied stalemate Wonder detected")
+	(set-goal gl-wonder-state WONDER-STATE-ALLY-ACTIVE)
+)
+
+(defrule
+	(goal gl-wonder-state WONDER-STATE-SAVING)
+	(victory-condition standard)
+	(current-age == imperial-age)
+	(goal gl-owner-worker-hold NO)
+	(up-compare-goal gl-game-time g:>= gl-wonder-election-time)
+	(up-compare-goal gl-game-time g:>= gl-wonder-build-next)
+	(goal gl-home-defense-state NO)
+	(building-type-count town-center >= 1)
+	(up-object-type-count-total c: villager-class >= 60)
+	(building-type-count-total wonder <= 0)
+	(up-pending-objects c: wonder <= 0)
+	(not (up-pending-placement c: wonder))
+	(players-building-type-count any-ally wonder <= 0)
+	(wood-amount >= 1400)
+	(gold-amount >= 1500)
+	(stone-amount >= 1400)
+	(up-can-build 0 c: wonder)
+=>
+	;Normal placement keeps the foundation in the established defended town, and
+	;the existing Wonder assignment/placement-pressure owners supply 15 builders.
+	(up-build place-normal 0 c: wonder)
+	(up-modify-goal gl-wonder-build-attempts c:+ 1)
+	(up-modify-goal gl-wonder-build-next g:= gl-game-time)
+	(up-modify-goal gl-wonder-build-next c:+ 180)
+	(up-chat-data-to-self "stalemate Wonder requested player: %d" g: gl-self-player-number)
+	(chat-to-allies "Long stalemate detected; I am building a Wonder")
+	(set-goal gl-wonder-state WONDER-STATE-BUILDING)
+)
+
+(defrule
+	(goal gl-wonder-state WONDER-STATE-BUILDING)
+	(building-type-count-total wonder >= 1)
+=>
+	(up-chat-data-to-self "stalemate Wonder foundation active: %d" g: gl-self-player-number)
+	(set-goal gl-wonder-state WONDER-STATE-ACTIVE)
+)
+
+(defrule
+	(goal gl-wonder-state WONDER-STATE-BUILDING)
+	(players-building-type-count any-ally wonder >= 1)
+	(building-type-count-total wonder <= 0)
+=>
+	(chat-local-to-self "Allied Wonder won the build election")
+	(set-goal gl-wonder-state WONDER-STATE-ALLY-ACTIVE)
+)
+
+(defrule
+	(goal gl-wonder-state WONDER-STATE-BUILDING)
+	(building-type-count-total wonder <= 0)
+	(up-compare-goal gl-game-time g:>= gl-wonder-build-next)
+	(up-compare-goal gl-wonder-build-attempts c:< 3)
+=>
+	(up-reset-placement c: wonder)
+	(set-goal gl-wonder-state WONDER-STATE-SAVING)
+)
+
+(defrule
+	(goal gl-wonder-state WONDER-STATE-BUILDING)
+	(building-type-count-total wonder <= 0)
+	(up-compare-goal gl-game-time g:>= gl-wonder-build-next)
+	(up-compare-goal gl-wonder-build-attempts c:>= 3)
+=>
+	(up-modify-goal gl-wonder-cooldown-until g:= gl-game-time)
+	(up-modify-goal gl-wonder-cooldown-until c:+ 900)
+	(up-reset-placement c: wonder)
+	(set-goal gl-wonder-state WONDER-STATE-COOLDOWN)
+)
+
+(defrule
+	(goal gl-wonder-state WONDER-STATE-ACTIVE)
+	(building-type-count-total wonder <= 0)
+	(up-pending-objects c: wonder <= 0)
+=>
+	(up-modify-goal gl-wonder-cooldown-until g:= gl-game-time)
+	(up-modify-goal gl-wonder-cooldown-until c:+ 900)
+	(chat-to-allies "Our stalemate Wonder was destroyed; rebuilding is on cooldown")
+	(set-goal gl-wonder-state WONDER-STATE-COOLDOWN)
+)
+
+(defrule
+	(goal gl-wonder-state WONDER-STATE-ALLY-ACTIVE)
+	(players-building-type-count any-ally wonder <= 0)
+=>
+	(up-modify-goal gl-wonder-cooldown-until g:= gl-game-time)
+	(up-modify-goal gl-wonder-cooldown-until c:+ 900)
+	(set-goal gl-wonder-state WONDER-STATE-COOLDOWN)
+)
+
+(defrule
+	(goal gl-wonder-state WONDER-STATE-COOLDOWN)
+	(up-compare-goal gl-game-time g:>= gl-wonder-cooldown-until)
+=>
+	(set-goal gl-wonder-stall-windows 0)
+	(set-goal gl-wonder-baseline-valid NO)
+	(set-goal gl-wonder-build-attempts 0)
+	(up-modify-goal gl-wonder-sample-next g:= gl-game-time)
+	(up-modify-goal gl-wonder-sample-next c:+ 300)
+	(set-goal gl-wonder-state WONDER-STATE-MONITOR)
+)
