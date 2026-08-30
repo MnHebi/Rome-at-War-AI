@@ -2,6 +2,16 @@
 
 Status: **ROOT CAUSE NOT FULLY PROVEN — OWNERSHIP TELEMETRY REQUIRED**.
 
+R2-arrival release priority completed first: R4:455 is installed and all 68
+files verified. Only hunt distance changed 28 -> 16; food 12 and all eight
+self-target fallback guards were already present. Eight new regression tests
+protect both invariants; all 163 tests pass. No ownership or military runtime
+change. The directive's premise that these guards were lost is contradicted
+by current source/history; do not use it to explain away the observed own-TC
+or passenger behavior. See HANDOFF.md for hashes, separate commits and pending
+fresh-runtime acceptance. R2 ownership analysis resumes with the archived R2
+map, not the current R4 map.
+
 This is the user's 2026-08-30 architectural recovery objective. It supersedes
 the earlier narrow restriction against changing ownership/recall in this
 experimental worktree. It does not authorize navigation, landing-coordinate,
@@ -16,7 +26,7 @@ T10:451 passenger-writer telemetry FAILED engine compilation (ERR6003 at
 rawai-init-goals.per:362). T10R1:452 reused 12 string constants and produced
 visible RAW44W output in the user's running match, but misclassified generic
 villager cleanup as a reservation change and logged it while no mission existed.
-T10R3:454 is now installed: retains R2's actual-mutation classification and
+T10R4:455 is now installed: retains R2's actual-mutation classification and
 adds delayed, staggered, bounded identity announcements after R1's startup
 marker/map loss was established. All 351 source sites are retained;
 R3 engine/replay acceptance remains pending. The R1 replay map is preserved at
@@ -246,7 +256,7 @@ successful T1-T5 missions, safe partial lifts and economic settlement progress.
 Packet/lifecycle-tool tests are separate and cannot substitute for these tests.
 
 No selector/global-retreat/anchor patch or navigation change was made here.
-Installed runtime is T10R3:454, generated in memory from this same checkout by
+Installed runtime is T10R4:455, generated in memory from this same checkout by
 `tools/sync_test_ai.py --writer-trace`; T9 was never a separate installed test.
 T10:451 was rejected by the engine's string table. T10R1 reduces payload literal
 occurrences from 5,665 to 1,465 and adds an occurrence-based build budget plus

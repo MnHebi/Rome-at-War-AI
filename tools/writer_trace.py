@@ -16,8 +16,8 @@ import re
 
 from validate_naval_doctrine import rule_blocks
 
-MARKER = 'RAWAI-P3B44T10R3: %d'
-VALUE = 454
+MARKER = 'RAWAI-P3B44T10R4: %d'
+VALUE = 455
 TOTAL_LIMIT = 512
 MINUTE_LIMIT = 96
 IDENTITY_ATTEMPTS = 3

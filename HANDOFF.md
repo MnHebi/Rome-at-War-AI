@@ -1,11 +1,45 @@
 # Rome at War AI handoff
 
-## Active release-blocking recovery — runs BEFORE R2 analysis
+## Release-blocking recovery completed — ownership work resumes
+
+**R4 release checkpoint, 2026-08-30:** requested invariant recovery, separate
+commits, full static validation and verified deployment completed BEFORE R2
+analysis. A: `3b8d534d1d1be48c1bb5a179229c353e53c37d4d`. B guard tests:
+`34a53f6055ecd324d7b95368613c37871fb31fde`. The existing R3 work was preserved
+in `ea8a382cb2919bed9b02fdc263f7cd3687afb886`; no new worktree or PR update.
+Starting branch `recovery/p3b44-transport-only`, HEAD
+`544bd843065245235227018635947e48a077f715`, installed R3:454 hash
+`DD38785FB1D67813D6F9E8BF88E7D88D8B86B9C441460806C38AE10CC279CBB2`.
+
+- Runtime diff: only hunt 28 -> 16, two operands. Food 12 and all eight self
+  fallback exclusions were already present; B required tests, not duplicate
+  code. Both cited historical fixes are ancestors of the pre-task checkout.
+- Read-only adversarial/protected-diff review: PASS. Attack behavior changed
+  beyond self-exclusion: **NO** (no attack runtime delta at all). Transport:
+  **NO**. Ownership: **NO**. Migration: **NO**. Farm staffing/gather percentages:
+  unchanged. All other PER files match `ea8a382` byte-for-byte. Existing T9/R3
+  diagnostics are preserved, not newly implemented by this release.
+- PASS: 163 regression tests (8 recovery); PER structure/operands/domains;
+  attack/strategy (1,156 matchups); naval doctrine; workbook round-trip;
+  31 replay benchmarks; `git diff --check`. Post-marker compiled validation
+  and all 17 writer-trace tests PASS. The first sandboxed baseline run had a
+  temporary-directory permission error; authorized rerun passed all 155.
+- Installed **RAWAI-P3B44T10R4:455**, all **68** files independently verified,
+  no missing/different/unexpected files. Source/install aggregate SHA-256:
+  `C7554880AC95FE2DBB80325ABEA9130CF91C9BE9A845FC5E291A7AEDEBD57B15`.
+  Plain-input SHA: `FA9E0C54BD5395B5B3EB79E19F31FE3CEE44DF008C47CCEF6124CB3C024917D1`.
+  Writer-map fingerprint: `806FAFCA8EABC51B70FECA1B0F63937806BCA82A4BF1521F00B3538A9242DC90`.
+  Only generated entry identity, init marker and economy file were copied.
+- **FIXED-PENDING-RUNTIME**, not gameplay CLOSED. R2 predates this release and
+  cannot validate hunt 16. All-player fresh-runtime acceptance remains the
+  historical fish/farm and self-target/TSA flood checks specified below.
+- Next: analyze supplied R2 (`20260830-182330`) with its archived R2 map, then
+  continue TASK-OWNERSHIP.md. No new congestion/salvage/Port micro-fix first.
 
 **Latest user instruction, 2026-08-30:** "Once you receive the R2 replay,
 this directive takes all precedence before analyzing the R2 replay data."
-R2 (`20260830-182330`) has now been supplied. Complete the recovery below BEFORE
-analyzing R2, then resume ownership work. The replay has not been analyzed yet.
+R2 (`20260830-182330`) supplied the trigger. Recovery above is complete; the
+following retained requirements document the release, not a request to repeat it.
 This section overrides conflicting priority/next-action text elsewhere below.
 
 **Pre-edit source/deployment audit:** installed R3 matches all 68 generated
@@ -271,12 +305,14 @@ Other controls:
 
 ## Installed runtime identity
 
-**Current: `RAWAI-P3B44T10R3:454`, 68 files**, deployed and independently rechecked
+**Current: `RAWAI-P3B44T10R4:455`, 68 files**, deployed and independently rechecked
 with `tools/sync_test_ai.py --writer-trace`. Full generated/installed SHA-256:
-`DD38785FB1D67813D6F9E8BF88E7D88D8B86B9C441460806C38AE10CC279CBB2`.
+`C7554880AC95FE2DBB80325ABEA9130CF91C9BE9A845FC5E291A7AEDEBD57B15`.
 There are zero missing, different or unexpected runtime files in this mode.
 The source-site map fingerprint is
-`1B2D0EC445BC8E79EE88F934C4B7725C1FD532A5B7A4624987039A24D3F0CEAF`.
+`806FAFCA8EABC51B70FECA1B0F63937806BCA82A4BF1521F00B3538A9242DC90`.
+R4 preserves R3 telemetry and restores only hunt 16; food 12 and all eight
+self-target fallback guards were already present. Runtime acceptance pending.
 T10:451 **FAILED engine compilation** with user-reported ERR6003, String table
 full, at rawai-init-goals.per:362. T10R1 reuses string constants; subsequent user
 screenshots show RAW44W output in a running match, but also inappropriate idle
@@ -1922,10 +1958,11 @@ mod files remain external and must never be committed to the AI repository.
 
 ## Exact next actions
 
-**R2 arrival gate:** the queued release-blocking recovery at the top takes
-precedence over steps 1-8. Implement, separately commit, fully validate and
-deploy the two known regression fixes BEFORE analyzing the supplied R2 data;
-then return to ownership. Before R2 arrives, keep that implementation queued.
+**R2 arrival gate satisfied:** the release recovery at the top is implemented,
+separately committed, fully statically validated and deployed as R4:455.
+Resume R2/ownership analysis now; do not repeat recovery or use R2 as validation
+of changes that postdate it. Older R3 references in historical sections are
+not the current installed identity.
 
 1. Verify this worktree, branch, T8 diagnostic commit `d10f33e`, audit successor,
    installed marker/hash, and current working-tree status. The intentional
