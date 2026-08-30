@@ -234,7 +234,7 @@ def main() -> None:
             "demolition-ship-line",
             "hemiolia-line",
             "boarding-ship",
-            "quadrireme-line",
+            "gl-heavy-reme-train-id",
             "octeres",
             "juggernaut-line",
         )
@@ -262,9 +262,9 @@ def main() -> None:
                 "(goal gl-naval-role NAVAL-ROLE-SUPPORT)",
                 "(goal gl-naval-specialist-support YES)",
                 specialist_cap,
-                "(unit-type-count-total quadrireme-line < 1)",
+                "(up-compare-goal gl-heavy-reme-count c:< 1)",
             ),
-            actions=("quadrireme-line",),
+            actions=("gl-heavy-reme-train-id",),
         )
         imperial_octeres = matching_rules(
             text,
@@ -284,9 +284,9 @@ def main() -> None:
                 "(goal gl-naval-role NAVAL-ROLE-SUPPORT)",
                 "(goal gl-naval-specialist-support YES)",
                 specialist_cap,
-                "(unit-type-count-total quadrireme-line < 2)",
+                "(up-compare-goal gl-heavy-reme-count c:< 2)",
             ),
-            actions=("quadrireme-line",),
+            actions=("gl-heavy-reme-train-id",),
         )
         if len(pre_imperial_q) != 1:
             issues.append(f"{filename}: pre-Imperial support Quadrireme must be bounded to one")

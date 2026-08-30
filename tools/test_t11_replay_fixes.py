@@ -103,7 +103,7 @@ class FailurePointDiagnosticsTests(unittest.TestCase):
         for row in rule_blocks(text):
             if 'up-chat-data-to-all' in row[4]:
                 self.assertIn('gl-t12-clock g:>= gl-t12-navy-next', row[3])
-        self.assertIn('(not (up-can-train gl-unitescrow-state c: quadrireme-line))', text)
+        self.assertIn('(not (or (up-can-train gl-unitescrow-state c: quadrireme) (up-can-train gl-unitescrow-state c: quinquereme)))', text)
         self.assertIn('(not (up-can-train gl-unitescrow-state c: quadrireme))', text)
         self.assertIn('(not (research-completed ri-advanced-weaponry))', text)
 

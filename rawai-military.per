@@ -575,7 +575,8 @@
 	(up-find-local c: scout-galley-line c: 30)
 	(up-find-local c: polyreme-line c: 30)
 	(up-find-local c: hemiolia-line c: 30)
-	(up-find-local c: quadrireme-line c: 30)
+	(up-find-local c: quadrireme c: 30)
+	(up-find-local c: quinquereme c: 30)
 	(up-find-local c: liburna-line c: 30)
 	(up-find-local c: fire-ship-line c: 30)
 	(up-find-local c: boarding-ship c: 30)
@@ -589,9 +590,15 @@
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-map-zone-id g:== gl-naval-opportunity-rejected-zone)
 	(up-remove-objects search-local object-data-map-zone-id g:== gl-naval-opportunity-rejected-zone2)
+	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-FIND-SOURCE)
+)
+
+;Same-pass continuation keeps the concrete two-form search within the rule limit.
+(defrule
+	(goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-FIND-SOURCE)
+=>
 	(up-remove-objects search-local object-data-map-zone-id g:== gl-naval-opportunity-rejected-zone3)
 	(up-clean-search search-local object-data-distance search-order-asc)
-	(set-goal gl-naval-opportunity-state NAVAL-OPPORTUNITY-FIND-SOURCE)
 )
 
 (defrule
@@ -654,7 +661,8 @@
 	(up-find-remote c: scout-galley-line c: 30)
 	(up-find-remote c: polyreme-line c: 30)
 	(up-find-remote c: hemiolia-line c: 30)
-	(up-find-remote c: quadrireme-line c: 30)
+	(up-find-remote c: quadrireme c: 30)
+	(up-find-remote c: quinquereme c: 30)
 	(up-find-remote c: liburna-line c: 30)
 	(up-find-remote c: fire-ship-line c: 30)
 	(up-find-remote c: fire-galley c: 30)
@@ -900,7 +908,8 @@
 	(up-find-remote c: scout-galley-line c: 30)
 	(up-find-remote c: polyreme-line c: 30)
 	(up-find-remote c: hemiolia-line c: 30)
-	(up-find-remote c: quadrireme-line c: 30)
+	(up-find-remote c: quadrireme c: 30)
+	(up-find-remote c: quinquereme c: 30)
 	(up-find-remote c: liburna-line c: 30)
 	(up-find-remote c: fire-ship-line c: 30)
 	(up-find-remote c: fire-galley c: 30)
@@ -922,7 +931,8 @@
 	(up-find-remote c: scout-galley-line c: 30)
 	(up-find-remote c: polyreme-line c: 30)
 	(up-find-remote c: hemiolia-line c: 30)
-	(up-find-remote c: quadrireme-line c: 30)
+	(up-find-remote c: quadrireme c: 30)
+	(up-find-remote c: quinquereme c: 30)
 	(up-find-remote c: liburna-line c: 30)
 	(up-find-remote c: fire-ship-line c: 30)
 	(up-find-remote c: fire-galley c: 30)
@@ -1060,7 +1070,8 @@
 	(up-find-local c: scout-galley-line c: 30)
 	(up-find-local c: polyreme-line c: 30)
 	(up-find-local c: hemiolia-line c: 30)
-	(up-find-local c: quadrireme-line c: 30)
+	(up-find-local c: quadrireme c: 30)
+	(up-find-local c: quinquereme c: 30)
 	(up-find-local c: liburna-line c: 30)
 	(up-find-local c: fire-ship-line c: 30)
 	(up-find-local c: fire-galley c: 30)
@@ -9089,7 +9100,8 @@
 	(up-find-local c: scout-galley-line c: 10)
 	(up-find-local c: polyreme-line c: 20)
 	(up-find-local c: hemiolia-line c: 10)
-	(up-find-local c: quadrireme-line c: 10)
+	(up-find-local c: quadrireme c: 10)
+	(up-find-local c: quinquereme c: 10)
 	(up-find-local c: liburna-line c: 10)
 	(up-remove-objects search-local object-data-under-attack <= 0)
 	(up-remove-objects search-local object-data-group-flag >= 0)
@@ -9637,7 +9649,8 @@
 	(up-find-local c: scout-galley-line c: 30)
 	(up-find-local c: polyreme-line c: 30)
 	(up-find-local c: hemiolia-line c: 30)
-	(up-find-local c: quadrireme-line c: 30)
+	(up-find-local c: quadrireme c: 30)
+	(up-find-local c: quinquereme c: 30)
 	(up-find-local c: liburna-line c: 30)
 	(up-find-local c: fire-ship-line c: 30)
 	(up-find-local c: fire-galley c: 30)
@@ -9656,6 +9669,12 @@
 	(up-target-objects 0 action-guard -1 stance-aggressive)
 	;Retain T11's nearest-enemy policy. Range growth and command-time identity
 	;reconstruction are independent of the reverted T12 enemy-priority change.
+)
+
+(defrule
+	(goal gl-naval-siege-state SIEGE-TARGET-ESCORT)
+	(up-group-size c: juggernaut-bombardment-group > 0)
+=>
 	(up-find-player enemy find-closest gl-naval-siege-player)
 	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-player)
 	(up-full-reset-search)
