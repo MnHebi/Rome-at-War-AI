@@ -1,5 +1,14 @@
 # T11 replay review and T12 acceptance
 
+**Subsequent source-first audit:** [T12-SOURCE-AUDIT.md](T12-SOURCE-AUDIT.md)
+supersedes any implication that all T12 changes are causal fixes. It identifies
+the wrong Quadrireme-line production ID and the competing builder-assistance
+writer, separates allied victim/location defects from cooldown, and records the
+complete STOP-writer audit. Ordered-all-enemy naval priority is classified as
+speculative; radius growth and the smaller flare area are requested policies.
+The evidence below remains the historical T11/T12 test record, not runtime
+validation or proof that the diagnostic-only defects have been repaired.
+
 ## Identity and scope
 
 Replay: `SP Replay v101.103.48987.0 @2026.08.30 211106.aoe2record`;

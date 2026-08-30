@@ -1,5 +1,64 @@
 # Rome at War AI handoff
 
+## CURRENT — T12 source-first audit checkpoint; no runtime change
+
+The user's audit directive takes precedence over the integration queue below.
+Read [T12-SOURCE-AUDIT.md](T12-SOURCE-AUDIT.md) before making the next patch.
+It classifies every T12 change separately as causal, user-requested policy,
+diagnostic-only, or speculative; it supersedes the earlier blanket causal label.
+
+- Audit checkout/git root:
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`;
+  branch `recovery/p3b44-transport-only`, HEAD
+  `37a310872dccabc52db02962509f76f813ba4f3a`. Started clean; audit documentation
+  and benchmark wording are intentional uncommitted edits. No runtime edits.
+- Canonical ordinary repository remains `.pr-work\Rome-at-War-AI`; the existing
+  recovery exception remains authorized. No switch, clone or replacement.
+- No new telemetry, runtime deployment, commit, push or PR update in this audit.
+  Installed identity remains the T12:457 payload documented below; no T12
+  gameplay replay validates it yet.
+- Retain: live assault clock, command-time naval identity reconstruction,
+  spacing-only help cooldown, user-requested two-tile flare area and bounded
+  inactivity radius growth (with converted-target guard).
+- Selectively revert before the next candidate: the unproven ordered-all-enemy
+  naval priority/iteration change; preserve the independent radius request and
+  command-time reconstruction. No such runtime revert has been applied yet.
+- Retain bounded existing diagnostics as diagnostics only. The drop-site probe
+  mutates shared search/point/scratch state despite issuing no orders; do not
+  call it search-neutral or add another tracing build by default.
+
+### Audit findings / defect-state amendments
+
+| Defect | Status / established boundary | Next action / acceptance |
+|---|---|---|
+| Roman Quadrireme/Quinquereme production | ROOT-CAUSE-PROVEN: `quadrireme-line = -282` selects DE Turtle Ship 831/832, not DAT 1870 -> 1750. Both common production files exclusively train the wrong line. | Concrete 1870/1750 checks/train actions and combined family cap, preserving role/rotation/fleet/resource limits. Audit other alias users. Deterministic gates then actual bounded Roman production before CLOSED. |
+| Roman Octeres production | INVESTIGATING: concrete 1884 is correct; full availability/prerequisite/demand/cap/resource/producer/rotation/train gate checked. No permanent source disable found. | Existing evidence must distinguish actual research completion, cap/headroom, affordability and producer queue. Do not claim the Q alias explains Octeres or add probes before using existing ones. |
+| Native boarding builder-assistance hold | ROOT-CAUSE-PROVEN competing writer: later homebase animal-food rule can enable assistance after ownership's one-shot hold, without checking hold. | Reconcile writer ownership and restoration; test load order, active hold, release, hunters present/absent. Not proven STOP attribution or Red colony cause. |
+| False/missed allied attacks | ROOT-CAUSE-PROVEN query/claim defects; individual T11 incident attribution still INVESTIGATING. Proximity is labeled attack without victim check; ally relief searches original TC, not actual attacked asset/relocated home. | Verified hostile/victim/location and correct-location relief; test Yellow-only fight near Green, friendly fire, relocated colony, wrong-first-enemy miss. Cooldown does not resolve detection. |
+| 152771 STOPs / 7561 identical Red group STOPs | INVESTIGATING after every explicit and native-boundary writer was inspected. First 17-member STOP precedes landing chat by122ms; earlier individual orders repeatedly target Red home TC4503. | Reuse exact packet/ownership/counter evidence at that earlier transition. No identified source writer yet; no blanket STOP/native-economy suppression. |
+| Red 18-settler no-foundation landing | INVESTIGATING: native queue request is not a concrete foundation/creator. Red's 20-second waits differ from known Purple one-second failure. | Establish admission/placement rejection using existing request/timeout evidence; actual foundation/completion/drop-off required. |
+| Purple global-pending foundation race | ROOT-CAUSE-PROVEN, still unfixed (existing ledger below) | Wait for exact own same-zone foundation within bounded deadline; global pending count must not trigger immediate recall. Preserve T5 Red's successful full lifecycle. |
+
+### Exact continuation order
+
+Complete selective T12 cleanup and the source-proven Q identifier, native
+builder-hold writer, verified-attack/location, and concrete-foundation race
+patches separately before broader integration. No fresh runtime deployment is
+part of this audit. Continue unresolved STOP/Octeres/Red-foundation attribution
+without presenting diagnostics as fixes.
+
+Then resume **Authorized post-T7 work** below: bank-gated aid tiers, independent
+Market purchases, isolated Wonder with recorded corrections, then Port SN work.
+Offline salvage D is already integrated. This remains authorized, not canceled
+or silently deferred; do not import unrelated military/transport changes.
+
+Audit checks: PASS existing 14 focused T11/T12 tests, 666-site permission
+inventory, 33 benchmark validations, whitespace check, and read-only 78-file
+runtime identity check (no copied/missing/different/unexpected files). Full suite
+not rerun because no runtime/test code changed. Runtime acceptance remains
+PENDING. Detailed evidence, precise reversibility and
+adversarial dispositions are in T12-SOURCE-AUDIT.md.
+
 ## CURRENT — T11 all-player audit; T12:457 installed, 2026-08-30
 
 This section supersedes prior current-state sections, not their unresolved backlog.
@@ -74,7 +133,7 @@ instrumentation, implementation, latest result and exact acceptance are detailed
 in the linked report. Failed camp, command spam, heavy production and allied
 detection are **not** considered resolved by adding diagnostics.
 
-### Recent causal commits
+### Historical T12 commits — mixed classifications, not all causal fixes
 
 - 5c3a7ff: fresh clock for full assault boarding window.
 - e2c43b3: two-tile taunt 69 deletion radius.
