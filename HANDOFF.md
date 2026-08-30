@@ -21,6 +21,31 @@ source evidence does not disprove the observed own-TC/passenger behavior.
 R1-R3 intentional telemetry/evidence is checkpointed separately BEFORE causal
 patches, not silently included in either restoration commit. No new T9 work.
 
+### Recovery B — protection retained; FIXED-PENDING-RUNTIME acceptance
+
+- Historical source: `8998cdedc1b5942ec6b93b60b1f33a0188238c94`; every explicit
+  military fallback 1..8 already retains its top-level `gl-self-player-number
+  c:!= N` guard. No `rawai-military.per` change is needed or manufactured.
+- Historical symptom/cause: self is not ally in `stance-toward`, admitting
+  self in an unguarded fallback and producing own-TC TSA orders. Current
+  contradictory evidence: these guards were NOT lost; the observed ongoing
+  own-TC behavior remains an ownership/runtime investigation, not proof of
+  this already-guarded fallback failing.
+- Tests: four additional source-executed/invariant tests cover all 64
+  candidate/self combinations; valid enemy selectable, self rejected even
+  when in-game/non-allied/building-owning; valid current targets retained.
+  Removing each guard reproduces self selection and fails the invariant.
+  Self identity is initialized once from `my-player-number` before military
+  rules; automatic explicit writers are scanned across all runtime files.
+  Eight focused A+B tests PASS. No attack dispatch/ranking/ownership changes.
+- Audit boundary: other target writers are normal `up-find-player enemy`,
+  preferred-target save/restore, and explicit user taunts 61..68. Taunts are
+  not automatic fallbacks and remain unchanged. Do not generalize fallback
+  exclusion into an unproved claim that no other writer can ever select self.
+- Acceptance/next action: validate/deploy the recovered cap plus retained
+  target invariant, then fresh all-player self-target/TSA flood acceptance.
+  Existing R2 can diagnose pre-fix ownership, not validate the new cap.
+
 ### Recovery A — FIXED-PENDING-RUNTIME
 
 - Historical source: `56959e6c45fd688710abc3f167aade7262dd4d2f`.
