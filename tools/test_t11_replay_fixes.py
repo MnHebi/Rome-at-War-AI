@@ -98,7 +98,7 @@ class FailurePointDiagnosticsTests(unittest.TestCase):
     def test_naval_snapshots_are_bounded_and_observational(self):
         text = source('rawai-naval-production-diag.per')
         self.assertNotRegex(text, r'\(up-(?:train|target|find|reset|set-group)\b')
-        self.assertIn('gl-t12-navy-next c:+ 60', text)
+        self.assertIn('gl-t12-navy-next c:+ 300', text)
         for row in rule_blocks(text):
             if 'up-chat-data-to-all' in row[4]:
                 self.assertIn('gl-t12-clock g:>= gl-t12-navy-next', row[3])

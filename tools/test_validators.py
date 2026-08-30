@@ -5573,7 +5573,7 @@ class FarmPolicyTests(unittest.TestCase):
 
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         self.assertIn(
-            '(up-chat-data-to-all "RAWAI-P3B44T11: %d" c: 456)',
+            '(up-chat-data-to-all "RAWAI-P3B44T12: %d" c: 457)',
             self.init_goals,
         )
         initial = matching_rules(
