@@ -31,9 +31,14 @@ All gameplay outcomes below are **FIXED-PENDING-RUNTIME**, not CLOSED. Policy ad
 | D — offline analysis; already integrated | `9b3dded` remains present. Reused exact-packet/ownership evidence and existing all-player boarding windows; did not add a competing replay parser. | Existing commit | Historical packet tests PASS. |
 | Hunting; OPEN / optional source audit | `rawai-hunt.per`: zero hunters cannot enter ordinary retry, and retry rejects a lurer whose target changed even if saved boar still exists. However Yellow22–24's exact post-garrison state, target/carcass survival and selected path remain unestablished. | No behavioral patch | Keep OPEN; correlate saved target/lurer and garrison transition before safe FREE-worker reacquisition. |
 
+Runtime source commit: `fb54ae46ed1ea35f2590157d5abb7bb1606e1802` includes the
+literal-budget repair and final integration validation artifacts. Later handoff
+documentation does not alter the runtime.
+
 ## Important policy limits and open defects
 
 - Wonder uses cumulative **all-unit** deaths as a conservative proxy: five civilian OR military deaths reset the sequence; three building losses do likewise. Replacement production cannot cancel those losses. It is not a civilian-only statistic. Continuing military attrition can postpone a Wonder even without territorial progress. Small losses accumulate across windows. Counter/team-membership decreases also reset safely.
+- Aid/Market/Wonder intervals are configured game-time deadlines using the existing sampled `gl-game-time`; they are not proof of exact wall-clock spacing. Coarse-clock cadence remains a measurement limit, not a closed timing guarantee.
 - Port surface area is not channel width. Front/back means toward/away from map center, not opposite sides of an island. This supported preference cannot certify cliff access, open crevices, or two opposite shores.
 - Exact historical STOP producer remains **INVESTIGATING**: 152,771 STOP706 records, including7,561 to one Red17-settler group. The earlier home-TC4503-directed transition remains the lead; existing command counters/ownership evidence must be reused. No blanket STOP/native-economy disabling and no further tracing build was added.
 - Octeres rejection remains **INVESTIGATING**. Availability/prerequisite/role/cap/resources/producer/rotation/concrete train gates have source paths; no exact failed runtime gate is established. The bad Quadrireme alias does not explain Octeres.
@@ -111,6 +116,6 @@ Screen recall reasons: no screen ship8; route waypoint timeout5; beach approach 
 Candidate: **RAWAI-P3B44T13:458**, **80 plain runtime files**, aggregate SHA-256 **A260148B2998E72203883BF34578D96B9AD6B72A561857C89ADBB28F23C96FB6**.
 
 Deployment target: `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`.
-Final installation result is recorded in the current section of [HANDOFF.md](HANDOFF.md). No writer-trace compilation overlay, extra runtime payload, push or PR mutation is part of this session.
+Installation **PASS**: source and installed aggregate hashes match, all80 files checked, missing0/mismatched0/unexpected0. The current section of [HANDOFF.md](HANDOFF.md) records the source commit and next actions. No writer-trace compilation overlay, extra runtime payload, push or PR mutation is part of this session.
 
 BACKLOG INTEGRATED — RC TRANSPORT BLOCKER IDENTIFIED

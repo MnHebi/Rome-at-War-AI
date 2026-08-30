@@ -1,6 +1,102 @@
 # Rome at War AI handoff
 
-## CURRENT — T12 source-first audit checkpoint; no runtime change
+## CURRENT — integrated T13:458 deployed; RC screening blocker, 2026-08-31
+
+This section supersedes earlier audit pauses/integration queues below. Read
+[T13-RELEASE-INTEGRATION.md](T13-RELEASE-INTEGRATION.md) for the full queue,
+separate causal/policy commits, tests, limits and non-regression results.
+
+- **Authorized editing directory / Git root:**
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`.
+- **Branch:** `recovery/p3b44-transport-only`.
+- **Runtime source HEAD:** `fb54ae46ed1ea35f2590157d5abb7bb1606e1802`.
+  The final handoff-only commit follows this runtime commit; resolve current
+  documentation HEAD with `git rev-parse HEAD`. No runtime changes follow it.
+- **Single canonical ordinary repository:**
+  `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`.
+  Existing recovery-workspace exception remains authorized for this milestone;
+  future agents must edit the recovery path above, not silently synchronize the
+  ordinary checkout or workspace-root snapshots. No new workspace or branch was created.
+- **Installed:** `RAWAI-P3B44T13:458`, 80 plain-source runtime files,
+  SHA-256 `A260148B2998E72203883BF34578D96B9AD6B72A561857C89ADBB28F23C96FB6`.
+  Source/install byte identity verified after the single integrated deployment;
+  missing0, mismatched0, unexpected0. No writer-trace overlay.
+- **Install path:** `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`.
+- **Validation:** 242 tests PASS, zero failures/errors/skips;33 replay benchmarks
+  PASS; PER/naval/strategy/evaluation/workbook/generator checks PASS;671 ownership
+  sites with zero direct permission failures. Current literal budget1430/1500.
+  Tests requiring temporary-directory access were rerun successfully with approval.
+- **Runtime acceptance:** NOT RUN. Gameplay fixes are FIXED-PENDING-RUNTIME,
+  not CLOSED. Source/fixtures detected no regression in ordinary attacks,
+  ownership, full/partial lifts, migration landing, relic ferry, departure
+  clearance or genuine defense; engine non-regression remains to be demonstrated.
+- **Preserved control:** `8ec870075d08fcac98bad55b4ff045bf7abbc42e` untouched.
+  Existing PR6/remote were not changed or pushed in this session.
+
+### Current objective and defects
+
+1. **RC BLOCKER — INVESTIGATING: loaded-assault route-screen acquisition/progress.**
+   [T13-ASSAULT-FUNNEL.json](T13-ASSAULT-FUNNEL.json) covers all39 identified T11
+   assault boarding episodes across all eight players:33 useful loads,28
+   pre-departure screen recalls,4 cleared-screen/landing-command episodes,
+   2 completed Purple landings,2 Orange landing timeouts,1 replay-ended case.
+   Nineteen screen recalls are acquisition/progress cases;9 are danger/loss.
+   Physical viability is not proven for all recalled routes. Acceptance: viable
+   loaded missions obtain an owned screen, make progress and deliver useful
+   troops without weakening legitimate safety checks. Next isolate exact screen
+   identity/ownership and first failed movement boundary; do not steal ships or
+   broaden attack changes from this aggregate alone.
+2. **FIXED-PENDING-RUNTIME:** concrete1870/1750 production and family census;
+   active worker builder-assistance ownership/current-animal release; exact
+   victim/hostile allied verification at actual asset point; concrete migration
+   foundation race; bounded recovery unloads; supported Palintonon pack action.
+   Focused fixtures and causal commits are in the integration report. Next fresh
+   replay must demonstrate each behavior; no claim of historical incident closure.
+3. **Implemented policies, pending runtime:** 100/500/1000 need-gated aid,
+   independent Imperial Market purchases, bounded Standard-victory Wonder,
+   documented Port SN placement preferences. A/B/C integrated; offline D already
+   present and not duplicated. Wonder resets on cumulative all-unit losses as a
+   conservative proxy, not a claimed civilian-only counter. Port area/front/back
+   preferences do not prove channel clearance/opposite island shores.
+4. **INVESTIGATING — historical STOP flood:**152,771 STOP706 orders including
+   7,561 to Red's fixed17 settlers. Earlier home-TC4503-directed task transition
+   remains the lead. Builder writer correction is not historical producer proof.
+   Reuse existing command counters and ownership packets; do not deploy another
+   tracing-only milestone or disable all native economy/STOP behavior.
+5. **INVESTIGATING — Octeres non-production:** concrete1884 source gate chain
+   audited; exact runtime rejection remains unknown. Do not transfer the proven
+   Quadrireme alias cause to Octeres or remove doctrine caps without evidence.
+6. **INVESTIGATING — T11 Red18-settler Mining Camp missing:** no concrete
+   foundation appeared. Distinct from the proven Purple pending/search race.
+   Require actual foundation, correct-zone builders, completion and resource
+   drop-off; preserve the T5 successful Red colony as control.
+7. **OPEN — Yellow interrupted boar gathering at22–24:** ordinary retry requires
+   an existing hunter; target-changed lurer is rejected. Exact Yellow branch and
+   saved carcass survival are not yet established. Optional hunting behavioral
+   patch was not included; inspect those identities before safe reacquisition.
+8. Cross-water allied relief, historical friendly-fire ambiguity, route danger,
+   command-flood causality and other previously recorded defects remain open
+   unless the integration report explicitly narrows their status. No crash fix.
+
+### Exact next actions
+
+1. Start a fresh match using T13:458 and the authoritative comparison lobby.
+   Verify marker/hash and selected colors; do not infer colors from player slots.
+2. Audit all reconstructable transport episodes across all players, including
+   successes, aborts, safety recalls, unresolved events and postlanding tasks.
+   Prioritize the screen acquisition/progress stage rather than only boarding.
+3. Validate new production, foundation, defense, recovery and policy behavior;
+   preserve source-vs-engine uncertainty in the defect ledger.
+4. Maintain the existing source-first STOP/Octeres/Red-foundation investigations
+   without holding the completed integration hostage or adding broad speculative fixes.
+
+Raw T11 inputs remain outside Git under
+`G:\Projects\Codex\Rome at War AI\.analysis`: `p3b44t11-exact.json`,
+`p3b44t11-task-ownership.json`, `p3b44t11-transport-audit.json`, related artifacts
+listed in T11-REPLAY-REVIEW.md. Full T12 classification remains T12-SOURCE-AUDIT.md.
+The report records every patch/provenance/commit and runtime acceptance criterion.
+
+## HISTORICAL — T12 source-first audit checkpoint; no runtime change
 
 The user's audit directive takes precedence over the integration queue below.
 Read [T12-SOURCE-AUDIT.md](T12-SOURCE-AUDIT.md) before making the next patch.
