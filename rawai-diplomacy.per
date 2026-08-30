@@ -20,12 +20,13 @@
 )
 
 ;The formal town fact misses attacked colonies, wall sites, and small raiding
-;parties. A sustained local threat with no same-zone responder is the stronger
-;reason to ask teammates for relief, independent of the global team ratio.
+;parties. A sustained multi-unit local threat with no same-zone responder is the
+;stronger reason to ask teammates for relief, independent of the global team
+;ratio. A lone scout must not trigger a team-wide call for help.
 (defrule
 	(goal dont-spam-taunts NO)
 	(goal gl-local-threat-active YES)
-	(up-compare-goal gl-local-response-threats c:>= 1)
+	(up-compare-goal gl-local-response-threats c:>= 2)
 	(up-compare-goal gl-local-response-responders c:<= 0)
 =>
 	(chat-to-allies "48 I'm under attack and have no local defenders!")

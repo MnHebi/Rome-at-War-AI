@@ -47,6 +47,10 @@
 	(up-full-reset-search)
 	(up-filter-exclude -1 actionid-explore orderid-explore -1)
 	(up-find-local c: villager-class g: villager-count)
+	;P3B44T6: temporary group 0 replaced the migrant reservation, then its
+	;cleanup cleared that flag. Keep the transport owner's passengers out of
+	;both generic stop handling and temporary-group flag mutations.
+	(up-remove-objects search-local object-data-group-flag == migration-boarding-group)
 	(up-remove-objects search-local object-data-target == tree-class)
 	(up-create-group 0 0 c: 0)
 	(up-modify-group-flag 1 c: 0)

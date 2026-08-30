@@ -1,9 +1,16 @@
 ;31 "Attack an enemy now"
 (defrule
+	(goal gl-home-defense-state NO)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(taunt-detected any-ally 31)
 =>
 	(acknowledge-taunt this-any-ally 31)
-	(chat-local-to-self "land attack, response to taunt 36")
+	(chat-local-to-self "land attack, response to taunt 31")
+	;Serialize the taunt attack through the normal dispatch owner so the
+	;post-dispatch rule arms the attack-commitment dwell: the defense latch can
+	;no longer recall the army to its Town Center an instant after the order.
+	(set-goal current-action ACTION-ATTACK)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 	(up-modify-sn sn-percent-attack-soldiers g:= land-attack-percentage)
 	(up-modify-sn sn-percent-attack-boats g:= naval-attack-percentage)
 	(up-modify-sn sn-maximum-town-size c:= 250)
@@ -20,6 +27,11 @@
 	(taunt-detected any-ally 45)
 =>
 	(acknowledge-taunt this-any-ally 45)
+	(up-chat-data-to-all "RAW44O recall source: %d" c: 6)
+	(up-chat-data-to-all "RAW44O recall assault state: %d" g: gl-transport-route-state)
+	(up-chat-data-to-all "RAW44O recall assault hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44O recall migration state: %d" g: gl-island-migration-state)
+	(up-chat-data-to-all "RAW44O recall migration hull: %d" g: gl-island-migration-transport-id)
 	(up-reset-attack-now)
 	(up-reset-unit c: -1)
 	(up-retreat-now)
@@ -120,7 +132,17 @@
 	(taunt-detected any-ally 48)
 =>
 	(acknowledge-taunt this-any-ally 48)
-	(chat-to-allies "42 I cannot spare troops while my own town is under attack.")
+	(chat-to-allies "39 I cannot spare troops while my own town is under attack.")
+)
+
+;The AI's own help call also reaches its own taunt detector. Ignore it so a
+;player never dispatches its own relief flow in answer to its own request.
+(defrule
+	(goal gl-ally-help-state ALLY-HELP-FIND-ASSET)
+	(up-compare-goal gl-ally-help-player c:== gl-self-player-number)
+=>
+	(set-goal gl-ally-help-player -1)
+	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
 )
 
 ;Resolve the requester's attacked asset and the exact hostile beside it.  The
@@ -136,25 +158,13 @@
 	(up-full-reset-search)
 	(up-set-target-point gl-ally-help-target-x)
 	(up-filter-distance c: -1 c: 255)
-	(up-find-remote c: villager-class c: 240)
+	;object-data-under-attack never triggers for an allied object, so anchor the
+	;relief on the requester's town center and scan a radius around it instead.
 	(up-find-remote c: town-center c: 20)
-	(up-find-remote c: mining-camp c: 20)
-	(up-find-remote c: lumber-camp c: 20)
-	(up-find-remote c: mill c: 20)
-	(up-find-remote c: market c: 10)
-	(up-find-remote c: barracks c: 10)
-	(up-find-remote c: archery-range c: 10)
-	(up-find-remote c: stable c: 10)
-	(up-find-remote c: siege-workshop c: 10)
-	(up-find-remote c: castle c: 10)
-	(up-find-remote c: dock c: 20)
-	(up-find-remote c: port c: 20)
-	(up-find-remote c: shipyard c: 20)
-	;Taunt 48 carries no flare or coordinates. Only a currently attacked allied
-	;asset can safely anchor a reinforcement promise; an arbitrary nearest base
-	;object could miss an outlying raid or misdirect help to an unrelated threat.
-	(up-remove-objects search-remote object-data-under-attack <= 0)
+	(up-find-remote c: villager-class c: 240)
 	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-get-search-state local-total)
+	(up-chat-data-to-self "ally help anchors: %d" g: remote-total)
 	(set-goal gl-ally-help-state ALLY-HELP-FIND-THREAT)
 )
 
@@ -177,7 +187,7 @@
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-enemy-player)
 	(up-full-reset-search)
 	(up-set-target-point gl-ally-help-target-x)
-	(up-filter-distance c: -1 c: 32)
+	(up-filter-distance c: -1 c: 48)
 	(up-find-remote c: scout-cavalry-class c: 40)
 	(up-find-remote c: cavalry-archer-class c: 40)
 	(up-find-remote c: cavalry-class c: 40)
@@ -187,6 +197,8 @@
 	(up-find-remote c: priest c: 10)
 	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-ally-help-zone)
 	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-get-search-state local-total)
+	(up-chat-data-to-self "ally help threats: %d" g: remote-total)
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
 	(set-goal gl-ally-help-state ALLY-HELP-CHECK-THREAT)
 )
@@ -224,7 +236,7 @@
 	(up-compare-goal gl-ally-help-enemy-player g:== gl-ally-help-first-enemy)
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
-	(chat-to-allies "42 I cannot verify a reachable attack on that ally.")
+	(chat-to-allies "39 I cannot verify a reachable attack on that ally.")
 	(set-goal gl-ally-help-player -1)
 	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
 )
@@ -234,7 +246,7 @@
 	(not (up-set-target-object search-remote c: 0))
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
-	(chat-to-allies "42 I cannot verify a reachable attack on that ally.")
+	(chat-to-allies "39 I cannot verify a reachable attack on that ally.")
 	(set-goal gl-ally-help-player -1)
 	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
 )
@@ -272,7 +284,7 @@
 	(not (up-set-target-object search-remote c: 0))
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
-	(chat-to-allies "42 The attacker is no longer at the reported position.")
+	(chat-to-allies "39 The attacker is no longer at the reported position.")
 	(set-goal gl-ally-help-player -1)
 	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
 )
@@ -300,7 +312,7 @@
 		(not (up-set-target-object search-remote c: 0))
 	)
 =>
-	(chat-to-allies "42 I have no reachable spare troops for that position.")
+	(chat-to-allies "39 I have no reachable spare troops for that position.")
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
 	(set-goal gl-ally-help-player -1)
 	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
@@ -310,7 +322,7 @@
 	(not (goal gl-ally-help-state ALLY-HELP-IDLE))
 	(goal gl-home-defense-state YES)
 =>
-	(chat-to-allies "42 I cannot spare troops while my own town is under attack.")
+	(chat-to-allies "39 I cannot spare troops while my own town is under attack.")
 	(up-modify-sn sn-focus-player-number g:= gl-ally-help-focus)
 	(set-goal gl-ally-help-player -1)
 	(set-goal gl-ally-help-state ALLY-HELP-IDLE)
@@ -379,10 +391,14 @@
 
 ;61 "Attack player 1!"
 (defrule
+	(goal gl-home-defense-state NO)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(taunt-detected any-ally 61)
 =>
 	(acknowledge-taunt this-any-ally 61)
 	(up-modify-sn sn-target-player-number c:= 1)
+	(set-goal current-action ACTION-ATTACK)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 	(set-goal land-attack-percentage 90)
 	(up-modify-sn sn-maximum-town-size c:= 120)
 	(attack-now)
@@ -393,10 +409,14 @@
 ;62 "Attack player 2!"
 
 (defrule
+	(goal gl-home-defense-state NO)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(taunt-detected any-ally 62)
 =>
 	(acknowledge-taunt this-any-ally 62)
 	(up-modify-sn sn-target-player-number c:= 2)
+	(set-goal current-action ACTION-ATTACK)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 	(set-goal land-attack-percentage 90)
 	(up-modify-sn sn-maximum-town-size c:= 120)
 	(attack-now)
@@ -407,10 +427,14 @@
 ;63 "Attack player 3!"
 
 (defrule
+	(goal gl-home-defense-state NO)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(taunt-detected any-ally 63)
 =>
 	(acknowledge-taunt this-any-ally 63)
 	(up-modify-sn sn-target-player-number c:= 3)
+	(set-goal current-action ACTION-ATTACK)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 	(set-goal land-attack-percentage 90)
 	(up-modify-sn sn-maximum-town-size c:= 120)
 	(attack-now)
@@ -421,10 +445,14 @@
 ;64 "Attack player 4!"
 
 (defrule
+	(goal gl-home-defense-state NO)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(taunt-detected any-ally 64)
 =>
 	(acknowledge-taunt this-any-ally 64)
 	(up-modify-sn sn-target-player-number c:= 4)
+	(set-goal current-action ACTION-ATTACK)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 	(set-goal land-attack-percentage 90)
 	(up-modify-sn sn-maximum-town-size c:= 120)
 	(attack-now)
@@ -435,10 +463,14 @@
 ;65 "Attack player 5!"
 
 (defrule
+	(goal gl-home-defense-state NO)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(taunt-detected any-ally 65)
 =>
 	(acknowledge-taunt this-any-ally 65)
 	(up-modify-sn sn-target-player-number c:= 5)
+	(set-goal current-action ACTION-ATTACK)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 	(set-goal land-attack-percentage 90)
 	(up-modify-sn sn-maximum-town-size c:= 120)
 	(attack-now)
@@ -449,10 +481,14 @@
 ;66 "Attack player 6!"
 
 (defrule
+	(goal gl-home-defense-state NO)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(taunt-detected any-ally 66)
 =>
 	(acknowledge-taunt this-any-ally 66)
 	(up-modify-sn sn-target-player-number c:= 6)
+	(set-goal current-action ACTION-ATTACK)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 	(set-goal land-attack-percentage 90)
 	(up-modify-sn sn-maximum-town-size c:= 120)
 	(attack-now)
@@ -463,10 +499,14 @@
 ;67 "Attack player 7!"
 
 (defrule
+	(goal gl-home-defense-state NO)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(taunt-detected any-ally 67)
 =>
 	(acknowledge-taunt this-any-ally 67)
 	(up-modify-sn sn-target-player-number c:= 7)
+	(set-goal current-action ACTION-ATTACK)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 	(set-goal land-attack-percentage 90)
 	(up-modify-sn sn-maximum-town-size c:= 120)
 	(attack-now)
@@ -477,10 +517,14 @@
 ;68 "Attack player 8!"
 
 (defrule
+	(goal gl-home-defense-state NO)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(taunt-detected any-ally 68)
 =>
 	(acknowledge-taunt this-any-ally 68)
 	(up-modify-sn sn-target-player-number c:= 8)
+	(set-goal current-action ACTION-ATTACK)
+	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 	(set-goal land-attack-percentage 90)
 	(up-modify-sn sn-maximum-town-size c:= 120)
 	(attack-now)

@@ -359,7 +359,71 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-self "RAWAI-P3B32: %d" c: 32)
+	(up-chat-data-to-all "RAWAI-P3B44T8: %d" c: 449)
+	(disable-self)
+)
+
+;P3B44T6 keeps terminal boarding evidence and partial-manifest ownership out of
+;the already dense transport startup rules.
+(defrule
+	(true)
+=>
+	(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
+	(set-goal gl-transport-route-load-observed 0)
+	(set-goal gl-transport-route-load-remaining 0)
+	(set-goal gl-transport-route-load-candidate-id -1)
+	(set-goal gl-transport-route-load-candidate-action -1)
+	(set-goal gl-transport-route-load-candidate-distance -1)
+	(set-goal gl-transport-route-load-candidate-zone -1)
+	(set-goal gl-transport-route-load-candidate-group-flag -1)
+	(set-goal gl-transport-route-load-candidate-target-id -1)
+	(set-goal gl-transport-route-load-candidate-order -1)
+	(set-goal gl-transport-route-load-candidate-cmdid -1)
+	(set-goal gl-transport-route-load-candidate-move-x -1)
+	(set-goal gl-transport-route-load-candidate-move-y -1)
+	(set-goal gl-transport-route-load-candidate-idling -1)
+	(set-goal gl-transport-route-load-reported NO)
+	(set-goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
+	(set-goal gl-island-migration-load-observed 0)
+	(set-goal gl-island-migration-load-remaining 0)
+	(set-goal gl-island-migration-load-candidate-id -1)
+	(set-goal gl-island-migration-load-candidate-action -1)
+	(set-goal gl-island-migration-load-candidate-target-id -1)
+	(set-goal gl-island-migration-load-candidate-order -1)
+	(set-goal gl-island-migration-load-candidate-cmdid -1)
+	(set-goal gl-island-migration-load-candidate-distance -1)
+	(set-goal gl-island-migration-load-candidate-zone -1)
+	(set-goal gl-island-migration-load-candidate-group-flag -1)
+	(set-goal gl-island-migration-load-candidate-move-x -1)
+	(set-goal gl-island-migration-load-candidate-move-y -1)
+	(set-goal gl-island-migration-load-candidate-idling -1)
+	(set-goal gl-island-migration-load-reported NO)
+	(disable-self)
+)
+
+;P3B44T3 keeps active-route departure progress and verified one-at-a-time
+;blocker clearance out of the ordinary berth-clear controller. The route owns
+;these goals only while the exact loaded military hull is trying to leave its
+;embarkation area.
+(defrule
+	(true)
+=>
+	(set-goal gl-transport-departure-best-distance 0)
+	(set-goal gl-transport-departure-current-distance 0)
+	(set-goal gl-transport-departure-progress-limit 0)
+	(set-goal gl-transport-departure-stalls 0)
+	(set-goal gl-transport-departure-clear-attempts 0)
+	(set-goal gl-transport-departure-blockers 0)
+	(set-goal gl-transport-departure-garrison 0)
+	(set-goal gl-transport-departure-water-zone -1)
+	(set-goal gl-transport-departure-hull-x 0)
+	(set-goal gl-transport-departure-hull-y 0)
+	(set-goal gl-transport-departure-target-x 0)
+	(set-goal gl-transport-departure-target-y 0)
+	(set-goal gl-transport-departure-congested NO)
+	(set-goal gl-transport-departure-blocker-id -1)
+	(set-goal gl-transport-departure-blocker-retries 0)
+	(set-goal gl-transport-departure-failed-blocker-id -1)
 	(disable-self)
 )
 
@@ -733,6 +797,10 @@
 	(set-goal gl-transport-escort-focus-player 0)
 	(set-goal gl-transport-escort-state ESCORT-IDLE)
 	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)
+	(set-goal gl-attack-dwell-until 0)
+	(up-get-fact my-player-number 0 gl-self-player-number)
+	(set-goal gl-naval-siege-target-id -1)
+	(set-goal gl-local-response-siege-threats 0)
 
 	(disable-self)
 )
@@ -813,6 +881,7 @@
 	(set-goal gl-relic-ferry-unit-id -1)
 	(set-goal gl-relic-ferry-target-id -1)
 	(set-goal gl-relic-ferry-direction 0)
+	(set-goal gl-relic-ferry-load-wait-reported NO)
 	(disable-self)
 )
 

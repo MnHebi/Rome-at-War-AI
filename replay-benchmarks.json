@@ -1318,6 +1318,531 @@
         "The Shipyard/cliff pathing, Merchant Vessel plateau, attack-transport failures, and Red Town Center order loop remain recorded unresolved work; this batch does not infer fixes without stronger engine-state evidence."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260829-110101-p3b44-transport-congestion",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.29 110101.aoe2record",
+        "sha256": "C1F85E836D59CBC2D77643D2608930DC3D7940C3ECFDC6081F0C08BBF833917F",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The selected visible colors and resolved teams match the preserved authoritative lobby. Color is not inferred from lobby row or internal color_id.",
+        "duration_seconds": 3531,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The replay lasted 58:51 and ended when the user manually resigned because the match was not advancing. The separately verified pre-match deployment was the immutable 68-file P3B44 payload with SHA-256 EE04DE7BFA1448E90D54E8AC592D0EEECF4E9DAD93100272D2941F0209B75846.",
+        "The user visually observed a loaded Purple mission Transport unable to depart because Purple's own idle Transports physically blocked its path. The loaded hull remained stuck rather than clearing the obstruction or reaching the selected route.",
+        "The user visually observed Gray and Blue performing proper combined attacks. That P3B44 attack behavior is the non-regression control for this transport-only patch."
+      ],
+      "implementation_inferences": [
+        "P3B44's active attack-lift waypoint check treats distance greater than eight as a reason to reissue the identical move every eight seconds. It records no previous or best distance, so it cannot distinguish continued movement from a stationary hull.",
+        "Both independent transport-clear entry rules require TRANSPORT-ROUTE-IDLE. They cannot grant right-of-way while the active loaded route owns the hull, and their selectors are designed for stale partial loads or empty idle berth obstruction.",
+        "The established causal gap is therefore missing forward-progress and near-origin congestion handling in the active mission controller. The replay does not prove a separate landing, threat-screen, or route-selection defect in this event."
+      ],
+      "changes_under_test": [
+        "Use the dedicated recovery/p3b44-transport-only branch derived from exact P3B44. Keep recovery/p3b44-attack-baseline immutable and do not backport P3B46-P3B50 attack changes.",
+        "Emit RAWAI-P3B44T1 and track the exact mission hull's best/current waypoint distance. Require at least two tiles of improvement to reset the stall count and classify congestion only after three non-progress checks while the loaded hull remains within twenty tiles of its saved embarkation point.",
+        "Let the active route move at most three nearby empty, idle, unattacked, ungrouped, same-zone Transport Ships to another known ship position 28-200 tiles away in the same water zone. Exclude the mission hull, loaded hulls, quarantined hulls, and grouped mission-owned hulls.",
+        "Retry the unchanged waypoint after an eight-second clearance wait. After two unsuccessful clearance attempts, emit one terminal congestion reason and enter the existing loaded-lift recovery path."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports all 68 P3B44T1 runtime files byte-identical to the transport branch and replay chat contains RAWAI-P3B44T1 near startup.",
+        "With empty friendly Transports clustered around a loaded mission hull, the route emits a bounded departure-stalled record, identifies eligible blockers, orders one or more blockers to the proved same-water position, and then emits departure-resumed after the exact loaded hull's waypoint distance decreases.",
+        "The loaded hull leaves the embarkation area and continues the original selected waypoint and landing. No loaded, attacked, grouped, quarantined, or mission hull is displaced as a blocker.",
+        "If clearance cannot restore progress after two attempts, exactly one congestion-unresolved record precedes the existing recovery path; the route does not continue identical waypoint orders indefinitely.",
+        "Gray and Blue retain coordinated ordinary attacks comparable to the immutable P3B44 control, and no non-transport attack, target, defense, escalation, or ownership behavior changes."
+      ],
+      "known_limits": [
+        "The user's visual observation establishes the friendly-ship departure blockage. The compact replay does not expose arbitrary hull type, garrison, collision geometry, or path progress, so runtime escape still requires a fresh visual and replay test.",
+        "The patch deliberately does not change landing selection, cliff reachability, route scouting, passenger policy, migration, relic ferries, hostile-fire survival, naval pathfinding, or transport production.",
+        "Mid-route stalls are not classified as friendly departure congestion and do not authorize moving nearby ships."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260829-122745-p3b44t1-landing-escort",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.29 122745.aoe2record",
+        "sha256": "D891771AA04A4EA626A42B9F5353C495314E033FC00D312DECDB413C397B82D2",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The selected visible colors and resolved teams match the preserved authoritative lobby. Color is not inferred from lobby row or internal color_id.",
+        "duration_seconds": 3243,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The replay parsed cleanly, lasted 54:03, and ended when Red manually resigned. Startup chat contains RAWAI-P3B44T1: 442 from players 2 through 8, matching the separately verified P3B44T1 runtime payload.",
+        "The user visually observed Purple's loaded Transport abort near the end instead of having a friendly Scout Ship move out of its way.",
+        "Purple Transport 32174 received six move orders to route waypoint 28,182 from 50:40 through 51:21, then issued an unload at remote landing 72,185 at 51:29. This proves the hull passed the P3B44T1 departure-progress state and reached the selected route waypoint.",
+        "Purple Scout Ship 32389 guarded Transport 32174 at 47:05, was then selected as the route screen, received waypoint orders to 28,182 at 49:24 and 49:54, and received the landing order to 72,185 at 50:10. It received no later order, exactly matching the route-screen branch that released the Scout while leaving it parked at the landing.",
+        "A second Purple Scout Ship, 32970, received guard orders targeting Transport 32174 at 50:49, 51:10, 51:30, and 51:51 during the landing approach/window, matching the transport-escort controller's twenty-second refresh cadence.",
+        "The Transport remained loaded for the complete forty-five-second landing window. At 52:15 it began repeated unload attempts at home point 31,136, exactly matching the route controller's unconditional landing-timeout recall. No RAW44T departure-stall, blocker-scan, clearance, resumed, or unresolved event was serialized."
+      ],
+      "implementation_inferences": [
+        "This event is not the P3B44T1 departure-congestion case. The exact action sequence proves that the loaded hull reached its waypoint and entered TRANSPORT-ROUTE-RETURN-WAIT before failing to unload.",
+        "The first causal divergence is the route-screen success branch clearing gl-transport-screen-id and releasing transport-screen-group without moving exact Scout 32389 off the landing it had just exposed. The later unload therefore targeted a point occupied by the AI's own stationary screen ship.",
+        "The transport-escort controller independently rebuilds its group every twenty seconds and guards any loaded moving Transport. During the final unload window the hull remains loaded and non-idle, so the selector also repeatedly reattached Scout 32970 to the same hull.",
+        "The landing owner had no final-approach spacing action for either friendly-Scout owner and no gate preventing guard refresh. The fixed forty-five-second terminal then recalled the still-loaded hull without trying to clear either Scout."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B44T2. After the exact route-screen Scout verifies a safe landing, move it eighteen tiles to one side of the screened approach before clearing its ID and group ownership.",
+        "Immediately before the remote unload, move the already-owned transport escort group eighteen tiles to the opposite side of the landing while retaining its group ownership.",
+        "Suppress the periodic escort selector only while the active attack lift is in TRANSPORT-ROUTE-RETURN-WAIT, preventing a new guard command from putting the escort back against the unloading hull.",
+        "Publish one bounded route-ID event when landing staging/unload is issued and one terminal completed or timed-out event. Preserve the P3B44 attack baseline and P3B44T1 departure-congestion behavior unchanged."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports all runtime files byte-identical to the transport branch and replay startup chat contains RAWAI-P3B44T2: 443.",
+        "For a loaded attack Transport, RAW44T2 route-screen landing cleared identifies the exact screen Scout and that ship visibly leaves the landing before the hull arrives.",
+        "RAW44T2 landing escort staged appears once, the active escort moves to the opposite side of the landing, and no guard order is reissued to that hull while passengers remain in the landing window.",
+        "The passengers disembark and RAW44T2 transport landing completed appears before the forty-five-second deadline. RAW44T2 transport landing timed out does not appear for that mission, and the hull subsequently withdraws normally.",
+        "Escort protection persists through the screened route, P3B44T1 departure-congestion telemetry and clearance remain available, and Gray/Blue ordinary attacks remain comparable to the immutable P3B44 control."
+      ],
+      "known_limits": [
+        "Replay actions establish the route state transition, exact recurring guard source, and exact timeout branch. They do not encode collision polygons; the user's direct visual observation supplies the physical Scout-blocking fact.",
+        "The fix changes only attack-lift escort spacing during final unload. It does not change landing selection, hostile path safety, migration, relic ferries, passenger policy, or independent Port/Shipyard clearance.",
+        "P3B44T1's original departure-congestion acceptance was not exercised by this event because Transport 32174 made normal waypoint progress. That earlier runtime criterion remains pending."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260829-131027-p3b44t2-all-transport",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.29 131027.aoe2record",
+        "sha256": "932E900C02D50DD01B0FC24FF3B113F562BACE88F102B180C7316550B1412F88",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The selected visible colors and resolved teams match the preserved authoritative lobby. Color is not inferred from lobby row or internal color_id.",
+        "duration_seconds": 6199,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The replay parsed with zero errors, lasted 1:43:19, and startup chat contains RAWAI-P3B44T2: 443 from players 2 through 8. Selected-color metadata independently resolves the preserved Red/Green/Yellow/Purple Roman team and Orange Picts/Cyan Britons/Blue Germani/Gray Gauls team.",
+        "A systematic all-player union found 28 active transport hulls, 393 load commands, 284 unload commands, 108 alternating load-to-unload phases, 10 load-only phases, and 4 unload-only phases. These low-level phases are evidence inputs rather than an assertion that each phase is a separate mission.",
+        "Eighteen public landing-screen events collapse to seventeen semantic assault missions. Fifteen reached an unload window: six completed and nine timed out. Two Green missions failed at departure congestion before an unload window. Completed missions were Purple 2, Orange 3, and Cyan 1; timed-out missions were Orange 6 and Cyan 3.",
+        "Every landing-screen event has an exact same-timestamp Scout Ship move action. None of the fifteen unload windows contains a guard action targeting its active hull. Both Purple unload windows completed, at 62:59 and 88:41, establishing that the P3B44T2 landing-screen/escort spacing fix worked in this replay.",
+        "Green's two failed assault missions used hulls 58807 and 30210. Each reported three blockers and then issued one group move containing the same exact ships 30476, 53715, and 57617. The loaded hull made no progress and each mission ended in departure-congestion-unresolved recovery.",
+        "Purple's user-observed odd actions around 14 and 24 minutes were hull 30184's scout-migration landing recovery. It tried the selected landing and four fixed eight-tile diagonal offsets, then returned home after all five unload positions failed.",
+        "Yellow hull 30277 landed villagers at 27:13/27:34. Passenger 29895 issued a Mining Camp build at 28:38 within two tiles of the landing, corroborating the user's successful-migration observation.",
+        "Purple hull 30184 landed twenty builder-capable passengers at 82:57/83:17. Passenger 30667 issued a Mining Camp build at 83:36, but one second later nineteen passengers were ordered to reboard and the hull began home unloads, so no drop-off became established.",
+        "Orange hull 34221 landed twenty builder-capable passengers at 83:36-84:16. No landed passenger issued a Mill, Lumber Camp, or Mining Camp build within twenty-four tiles during the remaining replay; fifteen passengers were told to reboard at 86:02 and never received a later unload before the replay ended.",
+        "Orange's first public assault-screen event occurred at 42:26 and its first completed assault landing at 53:41. The replay has no serialized defeat/resignation notice for Blue or Gray, so the user's observation that Orange waited until those allies were effectively defeated is preserved without claiming an exact controller gate."
+      ],
+      "implementation_inferences": [
+        "P3B44T2's exact Scout displacement and unload-window guard suppression are runtime-validated by direct command correlation across every reconstructable assault mission; the previously observed friendly-Scout landing obstruction is closed.",
+        "P3B44T1 moved all selected departure blockers as one group and assumed success after a fixed wait. The identical three ships being selected in Green's later mission proves that the command did not clear them, while the controller had no post-move blocker-distance verification. That is the first causal divergence for the remaining departure-congestion defect.",
+        "Purple's immediate recall after a Mining Camp build command follows the migration path in which a global pending-object count advances to drop-site assignment but no concrete nearby same-zone foundation is searchable. The no-target assignment branch immediately marks the drop site failed and bypasses the intended timed placement retries.",
+        "Orange's migration has no public per-controller self telemetry establishing whether anchor discovery, placement ownership, affordability, or a watchdog blocked its drop site. That exact cause remains investigating rather than inferred.",
+        "The nine assault unload timeouts repeatedly reuse low/inaccessible candidates, including Orange near 182,119 and Cyan near 116,1, with no unload-window guard interference. Failed-landing coordinate memory is a separate defect and is not part of the departure-clearance patch."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B44T3. Preserve P3B44T2 landing-screen and escort spacing unchanged.",
+        "Move only one exact eligible empty departure blocker per selection. Save its object ID, rebuild that exact object after eight seconds, and verify that it is now more than twelve tiles from the loaded mission hull.",
+        "If the exact blocker remains nearby and is still empty, unattacked, ungrouped, and unquarantined, reissue its move once. If it remains or becomes unsafe, record its ID as failed, exclude it from the next scan, and try a different eligible blocker. Bound the mission at three blocker selections before the existing terminal recovery path.",
+        "Emit bounded ordered, retry, cleared, failed, unsafe, and absent events carrying the exact blocker ID so a fresh replay proves actual movement rather than command issuance."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports all runtime files byte-identical to this branch and replay startup chat contains RAWAI-P3B44T3: 444.",
+        "A departure-congested mission identifies an exact blocker, issues its move, and subsequently emits blocker-cleared only after that exact object's distance from the mission hull exceeds twelve tiles.",
+        "After one or more verified blocker clearances, the loaded hull emits departure-resumed, leaves the embarkation area, and continues the unchanged waypoint and landing sequence.",
+        "A blocker that ignores both exact move orders is tagged failed and excluded while a different blocker is considered. No mission performs more than three selections, and an unresolvable case emits one congestion-unresolved terminal before recovery.",
+        "Landing-screen Scouts still move away at screen completion, no guard command targets a hull during its unload window, and previously successful Purple-style assault landings remain successful."
+      ],
+      "known_limits": [
+        "Replay commands do not encode ship collision polygons. Fresh runtime evidence must demonstrate that verified individual clearance lets the loaded hull depart; structural checks cannot close that criterion.",
+        "This patch does not change migration landing selection, migration drop-site establishment, attack landing selection/memory, assault activation timing, hostile route safety, or passenger policy. Those separately evidenced defects remain in the handoff ledger.",
+        "Orange's private controller gates are not serialized into the public replay stream, so its delayed first assault and drop-site failure require targeted public telemetry before a causal fix."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260829-151250-p3b44t3-all-transport",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.29 151250.aoe2record",
+        "sha256": "0C1C909D4BB36D3680FEDDACB7E2E74647665CA67B00F1C0F0406D093F2D95DD",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The selected visible colors and resolved teams match the preserved authoritative lobby. Color is not inferred from lobby row or internal color_id.",
+        "duration_seconds": 3573,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The replay parsed with zero errors, lasted 59:33, and stopped during the reported game crash without any decoded resignation action. Startup chat contains RAWAI-P3B44T3: 444 from players 2 through 8, matching the separately byte-verified installed runtime.",
+        "A systematic all-player union reconstructed 16 explicit Transport hulls, 157 load commands, 129 point-coordinate sea unload commands, 45 alternating load-to-unload phases, and 4 terminal load-only phases. These low-level phases are lifecycle evidence rather than an assertion that each phase is a separate mission; generic building and siege ungarrison records were excluded.",
+        "Per-player explicit transport activity was Red 4 hulls/29 loads/23 unloads, Green 2/18/22, Yellow 1/5/13, Purple 2/27/18, Orange 2/23/13, Cyan 1/24/2, Blue 2/16/24, and Gray 2/15/14. The audit therefore covers both teams and every player rather than only the user's visible Red event.",
+        "The only public P3B44T3 congestion-controlled assault mission used Blue hull 31205. Route-screen Scout 37755 moved from the landing to 53,57 at 44:00. At 44:26 the loaded hull reported garrison 10, current distance 53, best distance 54, two stalls, and one blocker.",
+        "Exact blocker 37204 received a clearance order at 44:26 and one bounded retry at 44:34. The controller emitted blocker-cleared at 44:42, which its source can emit only after the exact blocker is more than twelve tiles from the mission hull. Hull 31205 resumed departure at 44:51, staged its escort and issued remote unload at 45:08, completed the landing at 45:47, and then moved home.",
+        "No guard action targeted hull 31205 during its 45:08-45:47 unload window. This preserves the independently runtime-validated P3B44T2 screen/escort fix while exercising P3B44T3 departure clearance.",
+        "Red ordered exact Priest 31572 to garrison Transport 31206 at 19:23. No outbound unload or movement order followed. Exactly 180 seconds later, at 22:23, the relic watchdog issued a home unload at 204,16; after another home unload at 24:25, the same Priest received an ordinary relic order to Red's own-island relic 31456 at 25:11.",
+        "The defect repeated independently: Red ordered the same Priest 31572 aboard Transport 33537 at 31:11, no outbound unload or movement followed, and exactly 180 seconds later at 34:11 the watchdog again issued a home unload at 204,16. This corroborates the user's visual observation and rules out a one-off path or landing failure.",
+        "A separate command-volume anomaly remains visible: Cyan serialized about 586,260 AI_ORDER records, while Green, Yellow, and Blue produced unusually high WORK volumes. The user explicitly deferred the known crash investigation until transport defects are handled, so this replay records but does not attribute or change that anomaly."
+      ],
+      "implementation_inferences": [
+        "P3B44T3's exact one-at-a-time blocker verification is runtime-validated: exact blocker 37204 was ordered, retried once, proved clear by the controller's distance gate, and the previously stalled loaded hull then resumed and completed its landing. The departure-congestion defect is closed by this runtime evidence.",
+        "P3B44T2's landing-screen displacement and unload-window guard suppression remain runtime-valid in the same mission. No attack, target-selection, or non-transport behavior changed in P3B44T3.",
+        "For both Priest episodes, the earliest causal divergence is load confirmation: the relic-ferry issued its exact boarding command but never transitioned to its outbound unload/sailing command before the exact 180-second watchdog. The later own-island relic order is downstream recovery behavior, not the original mission target.",
+        "The P3B44T3 source verifies boarding indirectly through the reserved hull's garrison count and contains no CHECK-LOAD branch when that exact hull lookup is absent. The replay proves that this recognition path failed twice but cannot distinguish an absent hull search target from an unobserved/stale hull count; P3B44T4 bypasses both internal cases by querying the exact reserved passenger.",
+        "Definitive Edition direct-unit searches exclude garrisoned units by default. P3B44T4 explicitly enables both garrisoned and ungarrisoned search results before adding the exact Priest ID, then checks object-data-garrisoned. This is required for the passenger lookup to remain visible across the boarding transition."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B44T4. Preserve all P3B44T3 departure-clearance and P3B44T2 landing-screen/escort behavior unchanged.",
+        "During relic-ferry LOADING, reset the shared search, explicitly include both garrisoned and ungarrisoned units, and rebuild the exact reserved Priest/Brahmin by stored object ID. Transition to the unchanged outbound or home unload only when that exact passenger reports object-data-garrisoned equal to one.",
+        "Remove the indirect hull-garrison-count readiness condition. Retain the existing reserved hull ownership and 180-second hard watchdog for a genuinely missing, dead, or never-boarded passenger.",
+        "Emit one bounded pending-or-missing passenger record per boarding attempt and exact unit/hull/direction records when the departure command is issued, allowing a fresh replay to distinguish passenger lookup from sailing/path failures without per-sweep spam."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports all runtime files byte-identical to this branch and replay startup chat contains RAWAI-P3B44T4: 445.",
+        "For a relic-ferry mission, one exact Priest/Brahmin boarding command is followed by RAW44R outbound unit, hull, and target records, then by the same hull's remote unload command before the 180-second watchdog. The passenger is not unloaded at home before visiting the intended off-home relic island.",
+        "After the carrier acquires the relic, RAW44R return unit and hull records precede the reserved hull's home unload; the carrier then receives the unchanged home Monastery task.",
+        "Pending or missing telemetry is emitted at most once per boarding attempt. A genuinely blocked or lost passenger remains bounded by the existing watchdog rather than causing command spam.",
+        "A loaded assault Transport still clears an exact departure blocker and resumes, route-screen and escort ships remain outside the unload window, and no guard action targets the assault hull while it is unloading."
+      ],
+      "known_limits": [
+        "P3B44T4 directly repairs and instruments relic-ferry load recognition only. It does not change assault passenger policy, migration drop-site establishment, landing-coordinate memory, hostile route safety, naval pathfinding, or transport production.",
+        "Static checks can prove the exact-passenger condition and bounded branches exist, but only a fresh game can prove the DE runtime returns the expected garrisoned state and that the intended off-home relic round trip completes.",
+        "The crash and extreme command-volume anomaly are explicitly deferred and remain separate unresolved work. This replay contains no exception code, module, or dump linkage and does not authorize a crash fix."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260829-214328-p3b44t4-all-transport",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.29 214328.aoe2record",
+        "sha256": "36561ABA8EDCDA3B5623E491ED0222B2852C1435B4F461C713059261CF58B41B",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The selected visible colors and resolved teams match the preserved authoritative lobby. Color is not inferred from lobby row or internal color_id.",
+        "duration_seconds": 6580,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The replay parsed with zero errors, lasted 1:49:40, and contains no decoded resignation action. Startup chat contains RAWAI-P3B44T4: 445 from players 2 through 8, matching the separately byte-verified installed runtime.",
+        "The systematic all-player low-level union reconstructed 35 explicit or likely Transport hull IDs, 509 load commands, 249 point-coordinate unload commands, 120 alternating load-to-unload phases, 7 terminal load-only phases, and 2 unload-only phases. Generic building and siege ungarrison records were excluded; these phases are command lifecycles rather than a claim that each is one semantic mission.",
+        "Per-player explicit transport activity was Red 10 hulls/67 loads/70 unloads/26 phases, Green 2/58/26/7, Yellow 4/61/27/20, Purple 5/47/6/4, Orange 2/50/45/21, Cyan 5/99/56/31, Blue 5/109/15/8, and Gray 2/18/4/3. Both teams and every player are therefore included in the audit.",
+        "Orange's exact relic carrier 33139 boarded hull 31942, received the outbound command at 21:54 toward relic 4656, disembarked at 98,7, received the relic order at 24:10, reboarded the same hull, returned home at 24:12, and was tasked to exact home Monastery 33023. Cyan independently completed the same full lifecycle with carrier 34011, hull 33693, relic 4662, and Monastery 33653 from 28:27 through 30:08.",
+        "Red carrier 33314/hull 31898 and Green carrier 33487/hull 32009 also emitted exact outbound identity and remote unload commands before the old 180-second watchdog. Neither completed a return lifecycle in this replay, but both prove the P3B44T4 garrison-inclusive passenger lookup recognized boarding and advanced to departure.",
+        "Five reconstructable P3B44T2 assault unload windows occurred: Red hull 31898 timed out at 43:26, Orange hull 31942 completed at 47:06, Red timed out again at 50:06 and 56:06, and Red completed at 61:21. No GUARD action targeted either landing hull inside any of the five staged-to-terminal windows, preserving the P3B44T2 final-approach fix.",
+        "Green hull 32009 loaded twenty migration passengers from 77:58 through 78:21, reached its route waypoint, and attempted unloads at 134,196 at 80:42, then at the four fixed diagonals 142,204, 126,204, 142,188, and 126,188 at twenty-second intervals. No passenger landed remotely; the hull then issued five home unload retries at 133,169 from 82:23 through 83:24.",
+        "The replay header's authoritative map tiles identify the original target 134,196 as terrain 0 Grass. The first two eight-tile diagonals 142,204 and 126,204 are terrain 1 Water, Shallow; the other two are Grass tiles on separate landmasses with continuous water between them and the resource island. The authoritative Rome at War DAT independently names terrain 0 Grass and terrain 1 Water, Shallow.",
+        "Green immediately loaded a second twenty-passenger migration on the same hull from 84:40 through 85:07, repeatedly moved toward waypoint 122,112, issued no remote unload, and then retried its home unload at 133,169 from 86:42 through 88:00.",
+        "Green warships repeatedly guarded migration hull 32009 throughout both episodes, including every twenty-second refresh across the first unload/retry window and the second voyage/recall. The replay proves controller overlap but does not serialize collision polygons, so it does not prove which individual unload was physically blocked by an escort.",
+        "The replay contains 1,256,052 ACTION operations, including 580,574 ORDER, 372,491 AI_ORDER, and 194,037 WORK records. Several boarded Green migration passengers each received thousands of repeated orders toward object 4561 at the exact home coordinate while garrisoned; other players also have large repeated-order streams, so the late-match command-volume defect is broader than this migration patch.",
+        "Red produced three public migration/drop-site failures. Two landed groups issued an immediate Mining Camp attempt followed one second later by a same-zone mismatch/failure, reproducing the separately documented premature global-pending drop-site transition; the third reached wrong-zone recovery. This remains separate from landing-candidate selection."
+      ],
+      "implementation_inferences": [
+        "P3B44T4's exact garrison-inclusive relic-passenger check is runtime-validated and closed: two independent full round trips completed, and two additional carriers advanced from boarding to exact outbound commands before the watchdog. The former T3 no-departure failure did not recur.",
+        "P3B44T2 remains runtime-valid: all five assault landing windows were free of guard refreshes, including two completed landings and three bounded timeouts.",
+        "Green's visible migration sequence is the exact source-level fixed-diagonal recovery. up-bound-point only keeps a coordinate inside map bounds; it does not test terrain, destination zone, or path reachability. The replay proves two generated coordinates were water and two were different landmasses, so the four-offset algorithm—not a parser interpretation—caused the absurd cross-water retry pattern.",
+        "The generic escort selector does not exclude the migration controller's reserved hull and is gated only for the assault controller's final landing state. Its repeated guard orders on hull 32009 are a separate ownership-policy defect. Physical obstruction at Green's exact landing remains unproven and is not changed in P3B44T5.",
+        "The repeated ORDER streams begin when several Green passengers disappear from the three-second unboarded retry list and end around their home unload. This establishes a strong garrison correlation but does not identify the source controller that generated every engine order; command-spam behavior remains investigating rather than receiving a guessed transport-only change."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B44T5. Preserve the runtime-closed P3B44T4 relic lookup, P3B44T3 departure clearance, and P3B44T2 assault landing-screen behavior unchanged.",
+        "Replace the four fixed eight-tile diagonal migration retries with close two-tile cardinal candidates around the exact resource anchor, preventing a small destination island from being skipped wholesale.",
+        "Before every initial or alternate migration unload, read the candidate tile's map zone and require it to equal the selected resource anchor's destination zone. Rebuild the exact reserved hull and require up-path-distance option 0 to report a reachable nearby water path. Do not issue an unload for a wrong-zone or unreachable candidate.",
+        "Emit bounded public hull, candidate-index, expected/actual zone, and path-rejection telemetry. Yield rejected candidates through a one-second timer so they advance without falling into the generic watchdog or waiting twenty seconds on an impossible coordinate."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports all runtime files byte-identical to this branch and replay startup chat contains RAWAI-P3B44T5: 446.",
+        "Every migration unload is preceded by RAW44M landing path clear for the exact hull and candidate. No unload command is issued after RAW44M landing wrong zone or landing path rejected for that candidate.",
+        "A Green-style small-island migration either disembarks passengers into the selected resource zone using the initial or a close same-zone candidate, or terminates after bounded explicit wrong-zone/path reasons without issuing unloads into water or other landmasses.",
+        "At least one previously successful migration still loads, travels, lands, and releases passengers. The patch must not regress the already demonstrated Yellow/Purple/Orange-style successful crossings.",
+        "Relic ferry boarding still advances to exact outbound commands, assault departure clearance remains bounded, and no guard action targets an assault hull during its staged unload window."
+      ],
+      "known_limits": [
+        "A same-zone path query proves the candidate belongs to the selected land zone and that the exact hull can approach it; only a fresh game can prove the engine's action-unload finds free shoreline space and disembarks passengers there. P3B44T5 is therefore fixed-pending-runtime, not closed.",
+        "P3B44T5 does not change the generic escort controller. The migration-hull guard overlap is recorded separately and needs collision/clearance evidence before changing escort protection during civilian voyages.",
+        "P3B44T5 does not change migration drop-site establishment, repeated garrisoned-passenger orders, attack landing memory, Orange's delayed assault activation, or the deferred crash investigation."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260829-232526-p3b44t5-all-transport",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.29 232526.aoe2record",
+        "sha256": "B12989601E59BDE4D4BE3ACA4D6C9B0F2F322E31FA7D9E97198AA3CDE61924CE",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The selected visible colors and resolved teams match the preserved authoritative lobby. Color is not inferred from lobby row or internal color_id.",
+        "duration_seconds": 18664,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The replay parsed with zero action-stream errors, lasted 5:11:04, and contains no decoded resignation action. Startup chat contains RAWAI-P3B44T5: 446 from players 2 through 8, matching the separately byte-verified installed runtime.",
+        "Selected-color header metadata independently resolves Red/Green/Yellow/Purple as Roman Empire team 1 and Orange Picts/Cyan Britons/Blue Germani/Gray Gauls as team 2. No color or team is inferred from lobby row or player-slot order.",
+        "The systematic all-player low-level union reconstructed 42 explicit or likely Transport hull IDs, 1,678 load records, 2,054 point unloads, 352 alternating load-to-unload phases, 5 terminal load-only phases, 5 initial unload-only phases, and 11,437 raw transport actions. Generic building and siege ungarrisons were filtered; these phases are evidence inputs rather than one claimed mission per phase.",
+        "Per-player hull/load/unload/alternating-phase totals were Red 8/189/328/93, Green 3/167/459/40, Yellow 3/81/837/24, Purple 1/484/64/64, Orange 9/238/92/36, Cyan 9/210/173/51, Blue 6/84/78/39, and Gray 3/225/23/5. Both teams and every player are included.",
+        "Forty-eight public migration landing-candidate missions occurred across seven players: Orange 23, Red 5, Yellow 3, Green 1, Blue 4, Cyan 11, Gray 1, and Purple 0. Purple nevertheless had low-level Transport activity, so zero public migration-candidate missions is not treated as zero transport use.",
+        "All 95 RAW44M landing-path-clear events had an exact same-second point unload by the reported hull. Four wrong-zone and 36 path-rejected or unreachable events had zero same-second unloads. Four all-invalid missions skipped all five candidates and reached bounded home recall without issuing an invalid unload.",
+        "Red completed four visible same-zone migration landings. The 52:33-54:28 mission landed ten settlers, issued a Mining Camp attempt at a live resource anchor, assigned exact builders, completed the Mining Camp, and retasked the settlers. Three later zone-14 missions landed 2, 6, and 11 settlers but each emitted an explicit Mining Camp resource-wait terminal after 60 seconds and recalled home.",
+        "Thirty of the 48 public migration candidate windows contained guard commands targeting the exact hull, totaling 62 guard events. Several successful or partial Red landings also had guards, so ownership overlap persists but this replay does not prove a guard physically caused a particular landing failure.",
+        "Twelve assault landing windows were staged: six completed, five timed out, and one Cyan window had no public terminal marker. None of the eleven staged-to-terminal windows contained a guard action on its active hull. The Cyan hull did unload and its player later began another route screen; source inspection identifies a quiet built-in-load completion path, so the nonterminal window is unclassified rather than a proven state loss.",
+        "Relic telemetry contained 19 pending, 11 outbound-unit/hull/target triplets, and 7 return-unit/hull pairs. Red and Cyan each repeated outbound/return cycles, preserving the P3B44T4 exact-passenger behavior.",
+        "The replay contains 3,260,167 ACTION operations, 1,830,452 AI_ORDER actions, 916,162 ORDER actions, and 235,131 WORK actions. The largest repeated ORDER stream was Yellow object 52175 to target 57803 at 139,121: 49,780 orders from 180:10 through 311:03; replay build evidence identifies a Yellow Town Center at that coordinate, but the generating rule is not proven.",
+        "Two bounded-looking controller states produced unbounded repeated home unloads: Yellow hull 32151 issued 792 unloads from 108:53 through 311:02 and Green hull 59397 issued 412 unloads from 199:41 through 307:47. Source inspection shows TRANSPORT-ROUTE-RECOVERY-CHECK can reissue home unload every 15 seconds while garrison count remains positive. These 1,204 unloads do not explain the replay's millions of other commands and are recorded separately from the P3B44T5 landing fix."
+      ],
+      "implementation_inferences": [
+        "P3B44T5's migration landing-candidate defect is runtime-closed. Every exact-hull path-clear event issued its unload, no wrong-zone or path-rejected candidate did, all-invalid sequences terminated without invalid unloads, and an actual same-zone crossing completed its drop-off and settler retasking.",
+        "Previously working transport behavior remains present where directly exercised: P3B44T2 assault unload windows remain free of guard refreshes and P3B44T4 exact relic passengers continued outbound and return lifecycles. No public exact-blocker congestion episode independently re-exercised P3B44T3, whose earlier runtime acceptance therefore remains the control evidence.",
+        "Migration escort ownership overlap remains investigating. Guard orders coexist with both successful and incomplete landings, while replay commands do not encode ship collision geometry; removing voyage protection would therefore be a guessed behavioral fix.",
+        "The three late Red drop-site failures are explicit resource-wait terminals and are distinct from the earlier replay-proven Purple immediate global-pending race. This replay does not disprove or close that Purple defect.",
+        "The repeated 15-second recovery unloads have a source-level loop condition, but they are only a small, proven subset of the broader command-volume anomaly. The dominant Town Center target stream and global lag/crash cause remain unresolved."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B44T5 and preserve the runtime-closed P3B44T4 relic lookup, P3B44T3 departure clearance, and P3B44T2 assault landing-screen behavior.",
+        "Use close cardinal migration landing candidates, require the selected resource-anchor zone, and require an exact-hull reachable path before issuing an unload.",
+        "Skip wrong-zone and unreachable candidates with bounded public terminal reasons, retaining the five-attempt and home-recall bounds."
+      ],
+      "fresh_replay_acceptance": [
+        "PASS: the byte-verified runtime marker is present and selected-color metadata matches the preserved lobby.",
+        "PASS: 95 of 95 path-clear events issued same-second exact-hull unloads; 0 of 4 wrong-zone and 0 of 36 path-rejected events issued same-second unloads.",
+        "PASS: all-invalid candidate sequences remained bounded, and a Red same-zone migration landed ten settlers, completed a Mining Camp, and retasked the landed settlers.",
+        "PASS: assault unload windows remained free of guard refreshes and relic passengers continued exact outbound/return lifecycles. P3B44T3 exact-blocker clearance was not independently re-exercised in this replay."
+      ],
+      "known_limits": [
+        "This runtime acceptance closes only blind migration landing-candidate selection. It does not close migration drop-site establishment, escort ownership overlap, partial landing/passenger policy, attack landing memory, hostile route safety, or transport production.",
+        "The replay proves some late Red drop-site failures were resource waits, but it does not prove why the AI lacked or failed to obtain the required resource, nor does it resolve the earlier Purple global-pending race.",
+        "The replay records severe command volume and one small source-proven recovery-unload loop. It does not establish that command volume caused any prior crash or identify the dominant command producer."
+      ],
+      "validation_status": "runtime-confirmed"
+    },
+    {
+      "id": "britain-4v4-20260829-232526-p3b44t6-boarding-evidence",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.29 232526.aoe2record",
+        "sha256": "B12989601E59BDE4D4BE3ACA4D6C9B0F2F322E31FA7D9E97198AA3CDE61924CE",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The selected visible colors and resolved teams match the preserved authoritative lobby. Color is not inferred from lobby row or player-slot order.",
+        "duration_seconds": 18664,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The user reports that several queued passengers did not board until manually loaded, after which their Transport entered its route. This direct visual observation is the priority symptom; the replay audit independently searches for corroborating and additional boarding episodes.",
+        "Red serialized 48 detailed scripted boarding episodes: 31 full-or-ready terminals, 13 aborts, 3 partial departures, and 1 unresolved episode. This does not expose other players' private boarding chat, so the existing all-player low-level union remains the broader transport evidence.",
+        "At 281:51 a Red migration target of eleven was followed by a twelve-object load record that uniquely included exact hull 31558 itself. The route reported migration depart full at 282:05 and immediately issued route movement. AI-generated boarding-group records do not contain the target hull; this is replay-visible corroboration of the user's manual intervention.",
+        "Attack-lift episodes at 51:14, 55:04, 57:38, and 59:46 each began with ten selected passengers, shrank to a one-passenger retry list, and still reached the exact-full abort terminal. Passenger 39672 was the sole serialized retry candidate in the latter three episodes.",
+        "A bounded command audit of passenger 39672 from 55 through 60 minutes found only repeated SPECIAL garrison commands to hull 31558 and no serialized ORDER, AI_ORDER, WORK, GUARD, or PATROL command that visibly transferred it to another owner. The replay therefore does not establish whether geometry, an internal/unserialized overwrite, object state, or an engine load failure stopped that individual unit.",
+        "Across all players, ten load records contained their target hull and all ten belonged to Red, which is consistent with human selection rather than an AI passenger-group construction. The systematic low-level audit also found 163 repeated-load bursts followed by hull movement and 345 repeated-load bursts without a hull point move; those broad counts are evidence inputs, not semantic mission outcomes."
+      ],
+      "implementation_inferences": [
+        "The first source-level route divergence is proven independently of the passenger's upstream nonboarding reason: the assault loader required the exact selected count, so one excluded passenger discarded a useful partial hull instead of allowing the existing screened route to begin.",
+        "A partial assault departure is safe only if shore stragglers are stopped and excluded from the later landing-order group. Rebuilding attack-boarding-group from garrisoned members preserves that ownership invariant; simply lowering the ready count without rebuilding would leak home units into the remote order.",
+        "The exact upstream passenger failure remains INVESTIGATING. P3B44T6 records one candidate before the first automatic retry and again at a partial/abort terminal, including object ID, action, target ID, order, command ID, distance, zone, group flag, move coordinates, and idling state. It deliberately does not use a land-to-water point path query, which cannot distinguish shoreline boarding reachability."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B44T6:447 and preserve the runtime-closed P3B44T2 landing-screen, P3B44T3 departure-clearance, P3B44T4 relic-passenger, and P3B44T5 migration-landing behavior.",
+        "For assault loading only, retain the thirty-second window and ten-passenger maximum. At the terminal, depart with five through nine exact garrisoned soldiers, stop every remaining shore passenger, rebuild the direct-control manifest from garrisoned members only, and continue through the unchanged target revalidation and screened route. Retain the existing recovery abort below five.",
+        "For both assault and migration boarding, publish one bounded pre-retry candidate snapshot and one terminal snapshot when applicable. The telemetry records actual command/target/movement/controller state before reissuing or stopping the passenger and does not alter migration's established full, partial, or abort thresholds."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports all runtime files byte-identical to this branch and replay startup chat contains RAWAI-P3B44T6:447.",
+        "Every assault or migration episode that remains underfilled through its first retry publishes one candidate snapshot whose target/action fields identify whether the exact Transport garrison order is still active before renewal.",
+        "An assault hull with five through nine exact garrisoned soldiers at the thirty-second terminal publishes RAW44B attack partial departure, begins the existing screened route, and later gives the remote landing order only to passengers that were actually aboard. A hull with fewer than five retains the bounded unload/recovery abort.",
+        "Previously working full assault lifts, migration full/partial/abort behavior, exact relic ferries, verified departure clearance, final-landing Scout clearance, and ordinary P3B44 attacks remain present."
+      ],
+      "known_limits": [
+        "P3B44T5 proves the exact-full route gate but does not identify why every individual passenger failed to board. The bounded P3B44T6 candidate snapshots are discriminating instrumentation; this upstream defect is not closed until a fresh replay establishes the first command/state divergence and supports a causal fix.",
+        "P3B44T6 changes only assault underfill behavior. Migration boarding thresholds and route behavior are instrumented but otherwise unchanged.",
+        "The 20260830-114855 P3B44T6 replay runtime-confirms safe partial assault: six Orange terminals retained 9,8,8,8,8,6 soldiers; five completed remote landings with only boarded soldiers receiving landing orders. The sixth entered the existing later home-return path. Four below-five terminals retained abort behavior. This closes the exact-full abort defect, not the separate upstream nonboarding causes.",
+        "This patch does not change landing-coordinate memory, migration drop-site establishment, escort ownership overlap, Orange activation, recovery-unload repetition, dominant command volume, or crash behavior."
+      ],
+      "validation_status": "runtime-confirmed"
+    },
+    {
+      "id": "britain-4v4-20260830-114855-p3b44t6-all-transport",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.30 114855.aoe2record",
+        "sha256": "A26B08497C5168F942A6CA67903FAC61AD32CD2C8BFF2D07BDA69B2DE9512CE8",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Red Roman Empire (team 1)",
+          "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)",
+          "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)",
+          "Cyan Britons (team 2)",
+          "Blue Germani (team 2)",
+          "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Validated DE selected-color fields, joined by player number, match the preserved authoritative lobby. Internal colors and lobby row order were not used as visible colors.",
+        "duration_seconds": 4525,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The replay ends at 75:25 with zero action-stream parser errors and no decoded resignation. Its ending cause is unconfirmed. Players 2-8 serialize RAWAI-P3B44T6:447. The installed 68-file runtime matches source hash D5A2314E461603F68D5327E71BD7FB3737F0518C8969F2D5A4C45809B11598EB before changes.",
+        "All-player transport reconstruction identifies 22 explicit/likely hulls, 183 loading records, 142 point unloads, 55 alternating load/unload phases and seven terminal load-only phases. These are command phases, not a claim that every unload succeeded. Yellow's exact hull is included from public telemetry despite having no movement or unload record. All 4176 raw SPECIAL/UNGARRISON records were screened; Town Center and other non-transport garrisons are not counted as ship missions.",
+        "Per-player hull/load/unload/phase totals are Red 1/4/4/4, Green 1/8/0/0, Yellow 1/8/0/0, Purple 2/25/28/7, Orange 4/29/30/16, Cyan 4/27/23/7, Blue 3/31/15/6, and Gray 6/51/42/15.",
+        "Orange publishes six safe partial assault departures: 43:11 with 9, 51:37 with 8, 56:44 with 8, 59:48 with 8, 63:22 with 8, and 67:12 with 6. The first five complete landings at 46:40,54:15,58:42,61:41,65:26. The last returns home at 68:50; public telemetry does not expose the exact later route rejection. Shore stragglers receive STOP and are excluded from the completed remote landing orders. Four other assault terminals abort at 0,4,0,0 passengers.",
+        "Fifty-six candidate snapshots span all seven non-owner AIs. All twelve mining-migration snapshots, across Purple, Cyan, and Gray, show object-data-group-flag -2 despite construction of reservation group 4. All 27 attack snapshots and 17 scout-migration snapshots retain group 4.",
+        "Three scout-migration samples show action/order 605/705 (exploration) and target -1 rather than the reserved hull. Most other samples retain enter action/order 617/717 and the correct hull. Orange candidate 40673 at 51:22 and 51:37 is idle with no action or target at recorded-origin distance 1. Neither universal command theft nor universal path failure explains every case.",
+        "Nine migration boarding terminals are full, six partial, and seven empty aborts. Ten public migration landing-candidate missions produce 21 clear events with matching same-second unloads, one wrong-zone rejection and 26 path rejections with no corresponding unload. Six assault landing windows complete, including Purple's full lift, with zero active-hull guard commands. Seven exact relic outbound and three return readiness events occur.",
+        "The user identifies Yellow's abandoned boar gathering at approximately 22-24 minutes after an enemy-triggered Town Center garrison. Yellow's private hunt-state chat is absent, and the current WORK decoder lacks worker/target fields, so the proposed lurer-target retry cause is not established. Initial-object metadata separately identifies repeated target 4475 as Yellow's Town Center, not a boar. Red's own private logs show three same-second active-to-released hunt transitions; these are a separate observed state issue.",
+        "Gray's 19-settler load lands and reboards at 57:16 and repeats at 71:29; the drop-site/recall problem remains distinct. The replay contains 727415 ACTION records, including 355625 ORDER and 135582 AI_ORDER records. High repeated Town Center order volumes remain, but do not establish a crash cause."
+      ],
+      "implementation_inferences": [
+        "P3B44T6 runtime-closes the downstream exact-full assault abort: useful partial hulls now complete remote landings without carrying shore stragglers into their later orders. It does not close every boarding or route failure.",
+        "rawai-general.per selects all non-exploring, non-tree-targeting villagers into temporary group 0, sets their group flag to 0, then clears it. It does not exclude the transport owner's reserved villagers. During boarding their target is the hull, so this selector replaces and clears group 4. The source transformation explains the consistent -2 mining-passenger snapshots, contrasting with military and Scout passengers outside the villager selector. The smallest supported change is to exclude migration-boarding-group before group creation, not to redesign all controllers.",
+        "AIRef's up-modify-group-flag documentation states that it changes each object's flag and unassigned objects report -2. Existing T6 candidate telemetry can verify the repaired reservation on the next replay. Preserving that flag alone is not proof of boarding or eventual economic work.",
+        "Other demonstrated issues remain separate: scouts resume exploration, distant passengers approach throughout their loading window, some close soldiers remain entering or idle, and the fifteen-second cached gl-game-time coarsens the nominal four-second assault retry/deadline checks. Do not fold speculative repairs for these into the reservation fix."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B44T7:448. In generic villager cleanup only, remove objects whose flag equals migration-boarding-group before creating/flagging temporary group 0. This preserves the transport owner's reservation and keeps those passengers out of unrelated generic STOP handling.",
+        "Keep rawai-military.per byte-identical to P3B44T6: no changes to assault dispatch, partial thresholds, target checks, scout exploration, migration selection, landing screening, departure clearance, drop-site handling or recovery. Retain existing bounded RAW44B passenger snapshots as the runtime discriminator."
+      ],
+      "fresh_replay_acceptance": [
+        "Replay marker RAWAI-P3B44T7:448 and a byte-identical source/installed runtime identify the next test.",
+        "Mining passengers retain group flag 4 in early and terminal RAW44B snapshots while the migration owner holds them; generic cleanup neither changes that flag nor stops them. Record every contrary example across every player.",
+        "Ordinary unreserved villagers still receive existing invalid-target cleanup; migrated workers return to ordinary economy only after their transport controller releases them. Demonstrate actual boarding and a landing/drop-site/work lifecycle rather than closing the broad defect from a flag alone.",
+        "Previously successful partial and full assaults, exact relic departures, migration landing screening and P3B44 land attacks remain intact. Preserve all unrelated unresolved cases explicitly."
+      ],
+      "known_limits": [
+        "The primary replay_parser directory fails this DE header; replay_parser_kjir supplies validated selected-color metadata. WORK target fields and some AI_ORDER coordinates are incomplete/unreliable; absence of a decoded overwrite is not evidence that none occurred.",
+        "Distances in RAW44B snapshots are relative to the stored boarding origin, not a fresh position of a moving hull. No universal path or object-specific loading cause is asserted.",
+        "The generic cleanup ownership fix is FIXED-PENDING-RUNTIME, not CLOSED. Yellow hunting, Port-placement work deferred to the next development cycle, drop-site recall, escort overlap, command flooding and crash attribution are outside this patch."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260830-131412-p3b44t7-ownership",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.30 131412.aoe2record",
+        "sha256": "04AB5E6664F9DBE0284E320A99AB16070DBC00DE67FE876AC8C5512176E7DDB5",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Red Roman Empire (team 1)", "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)", "Cyan Britons (team 2)",
+          "Blue Germani (team 2)", "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Independent selected-color/resolved-team decoding matches the preserved lobby; no slot-to-color inference.",
+        "duration_seconds": 5909,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2"
+      },
+      "direct_replay_observations": [
+        "User reports military passengers being pulled away and armies accumulating at Town Centers, attributing both to competing controllers and inadequate ownership separation. Preserve the observed symptoms separately from exact caller attribution.",
+        "T7 markers are present for players 2-8. All 68 installed runtime files matched source SHA-256 69C30C50661D3E1E8A1F8DC081C63E80D0C899D8E695B16D3E02F95B910B7738 before editing. The stream parses without errors through 98:29; Red resigns at 98:28.",
+        "All 5390 SPECIAL/UNGARRISON records were screened. The hull union contains 25 hulls, 378 loads, 205 point unloads, 119 load/unload phases, and five terminal load-only phases. Per-player hull/load/unload/phase totals: Red 4/96/50/28; Green 1/42/21/8; Yellow 1/1/3/1; Purple 4/45/24/22; Orange 3/58/43/24; Cyan 1/28/1/1; Blue 7/39/35/11; Gray 4/69/28/24. Command phases do not prove successful voyages.",
+        "The 103 boarding snapshots comprise 43 military candidates with flag 4, 58 migration candidates with flag 4, and two missing migration candidates. All 39 identified mining-worker snapshots retain flag 4. This validates T7's specific generic-cleanup reservation exclusion, not exclusive command ownership or complete migration.",
+        "The 202 DE_RETREAT payloads have internally consistent target, point, count and object-ID arrays. Nineteen load-record/retreat overlaps were found, including repeated loads and some post-unload recalls. Red reserved scout 44331 receives recalls to Town Center 4538 at (82,35) at 55:02.350 and 55:08.354 after its 54:57 group-4 boarding snapshot, before any unload. Blue, Gray and Purple also have selected-passenger overlaps before a recorded unload; exact scripted/native caller attribution is not present in T7.",
+        "Orange's 61:36-62:06 boarding window contains 749 identical AI_ORDER packets whose order field is 706 (STOP), selecting scout 4638 and soldier 30434. Both are in the load manifest and sampled as group 4 with no active target; nine passengers eventually depart and the scout remains ashore. Orange's only DE_RETREAT occurs later, at 67:46.218, so this STOP loop is distinct from an overlapping global retreat event.",
+        "Cyan scout 4639 receives explore order 705 between garrison retries at 11:37 and 11:43. Green reserved worker 47605 receives repeated orders to Town Center 4547 starting at 83:01. These confirm additional command interference without proving a shared producing controller.",
+        "Ten safe partial assault departures occur. Purple completes three assault landing windows with zero active-hull guard refreshes. Its 90:44 nine-passenger partial lift lands at 93:47 and the exact nine boarded units receive the land order; stopped straggler 40008 is excluded. The prior audit compared that order with the ship's unload point instead of the army's enemy-target point and falsely failed this check; correcting the offline comparison passes exact membership.",
+        "Twelve public migration-candidate missions contain 20 clear events, two wrong-zone rejections and 16 path rejections. No rejected candidate issues a same-second unload. Eighteen clear events have same-second unloads; Red's other two follow one second later. Two relic outbound/return readiness pairs survive. Economic drop-site completion, escort overlap and returned migration loads remain separate unresolved outcomes.",
+        "Architectural ownership audit reparses all 378 loads and 202 retreats with exact packet lengths, millisecond times and stream sequence; decoder failures zero. It reconstructs 132 boarding windows: 33 assault, 41 migration, 58 unresolved/recovery/relic. Among 1053 passenger-window instances, 56 have full-load corroboration and nine exact partial-landing membership without an observed conflict; 83 have a conflicting command plus later ashore evidence and a supported task-owner category; 905 remain unresolved, including 323 with a conflict whose pre-boarding timing or continuous ownership is uncertain. These are not counts of distinct units or failed voyages.",
+        "Corroborated pre-boarding conflicts by selected color: Red 9, Green 9, Yellow 0, Purple 4, Orange 3, Cyan 2, Blue 12, Gray 44. First conflicting packets comprise 67 WORK, five ORDER, seven garrisons targeting another object, two AI_ORDER STOP, one AI_ORDER explore and one STOP. Red's first conflict at 55:02.350 is STOP before the retreat. Individual deaths and genuine unavailability cannot be proven from these command records. Exact flags at overwrite and uninterrupted ownership are not universally recorded."
+      ],
+      "implementation_inferences": [
+        "Reservation flags now survive generic cleanup, but replay command packets prove that this alone is not exclusive ownership. Do not reapply the T7 flag fix or equate every remaining stall with theft.",
+        "Five military rules and allied retreat taunt 45 call global up-retreat-now; the loss rule and taunt also stop all unit types. Local defense selection and the generic defend leash do not exclude every reserved group. Their existence is not sufficient to identify every observed recall's producer or to justify replacing the recovered attack implementation.",
+        "A caller-tagged next replay can distinguish the existing scripted recalls/all-unit resets from untagged engine or other controller events. The repeated STOP loop needs separate attribution. T8 adds read-only event logs to the six existing callers without altering conditions, commands, action order, search state, or ownership.",
+        "The user's architectural recovery directive now supersedes the narrow ownership/recall freeze. TASK-OWNERSHIP.md defines the shared invariant, explicit emergency transfer, bounded routine defense and persistent original-Town-Center allied anchors. Source inventory includes 247 command/build-delegation rules and 248 selection rules, with worker, defense, relic and relief gaps. This is not a completed safety certification of every controller or proof that native tasking respects DUC flags. Current completion state: ROOT CAUSE NOT FULLY PROVEN — OWNERSHIP TELEMETRY REQUIRED. No architectural runtime patch is implemented."
+      ],
+      "changes_under_test": [
+        "RAWAI-P3B44T8:449 adds RAW44O recall source plus current assault/migration states and hull IDs immediately before each existing scripted recall. Sources: 1 land defense, 2 naval defense, 3 siege escalation, 4 loss regroup, 5 periodic losses/all-unit reset, 6 allied taunt 45/all-unit reset.",
+        "Salvage D retains offline retreat_actions and generic compact chat categories. No P3B49 runtime code is imported. Salvage A-C and Port strategic-number behavior remain pending outside this diagnostic runtime."
+      ],
+      "fresh_replay_acceptance": [
+        "Verify RAWAI-P3B44T8:449 and the complete deployed payload. Retain T7 reservation survival, useful partial/full lifts, relic readiness and rejected-landing safety across all players.",
+        "Match every RAW44O event with exact retreat packet membership and active boarding episodes. Identify the first caller or native action that cancels a reserved passenger's order, including episodes without completed boarding diagnostics.",
+        "Correlate repeated AI_ORDER STOP packets with source 5/6 events and all other contemporaneous commands. Untagged packets alone are not permission to guess the native mechanism. T8 does not cover every worker command writer, owner acquire/release or native delegation boundary; add discriminating coverage before assigning those packets to a native mechanism.",
+        "Architectural acceptance remains pending: reserved assault and migration passengers retain ownership until explicit release or verified emergency; routine threats use bounded free responders; severe hostile emergencies still function; allied relief searches hostile presence at persistent first-Town-Center anchors before and after TC destruction. Add section-H contract tests and all-player fresh runtime evidence; packet-tool tests are not gameplay acceptance."
+      ],
+      "known_limits": [
+        "T8 is diagnostic only: passenger command exclusivity, the STOP loop, town-center passivity and complete migration remain INVESTIGATING. Logging does not resolve these defects.",
+        "The stock decoder omits retreat membership, misaligns AI_ORDER fields, lacks WORK extraction and misses a byte in this replay's SPECIAL/UNGARRISON object arrays. tools/audit_task_ownership.py reparses those layouts with exact-length checks and retains raw bytes, all selected IDs and full-stream order, without magnitude-based ID shifts or an invented 45-second task cap. Older aggregate artifacts retain their stated heuristic limits.",
+        "The recovery attack/transport program is unchanged apart from event logs. Broader salvage and dock work are authorized but held outside this isolated caller-attribution experiment, not completed or canceled."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

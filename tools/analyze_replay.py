@@ -267,6 +267,7 @@ def main() -> None:
     order_actions: list[dict[str, object]] = []
     transport_actions: list[dict[str, object]] = []
     resign_actions: list[dict[str, object]] = []
+    retreat_actions: list[dict[str, object]] = []
     error_actions: list[dict[str, object]] = []
     wall_actions: list[dict[str, object]] = []
     delete_actions: list[dict[str, object]] = []
@@ -376,6 +377,9 @@ def main() -> None:
             if action == Action.RESIGN:
                 resign_actions.append(action_record)
 
+            if action == Action.DE_RETREAT:
+                retreat_actions.append(action_record)
+
             if action == Action.ERROR:
                 error_actions.append(action_record)
 
@@ -427,6 +431,15 @@ def main() -> None:
         "roman",
         "briton",
         "nero",
+        "migration",
+        "transport",
+        "lift",
+        "route-screen",
+        "retreat",
+        "recall",
+        "blocked",
+        "controller",
+        "home defend leash",
     )
     filtered_chats = [
         item for item in chats if any(term in str(item["message"]).lower() for term in chat_terms)
@@ -500,6 +513,7 @@ def main() -> None:
         "order_actions": order_actions,
         "transport_actions": transport_actions,
         "resign_actions": resign_actions,
+        "retreat_actions": retreat_actions,
         "error_actions": error_actions,
         "wall_actions": wall_actions,
         "delete_actions": delete_actions,
