@@ -5436,6 +5436,7 @@
 	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
 	(up-chat-data-to-self "attack lift target invalidated: %d" g: gl-transport-route-load-player)
 	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-route-unload-attempts 0)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 )
 
@@ -5910,6 +5911,7 @@
 	;back at its origin. Releasing here lets another subsystem steal a partial.
 	(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
 	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-route-unload-attempts 0)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 )
 
@@ -6037,6 +6039,7 @@
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-route-unload-attempts 0)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 	(chat-local-to-self "Transport held: no safe landing approach")
 	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
@@ -6202,6 +6205,7 @@
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-route-unload-attempts 0)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 	(chat-local-to-self "Transport held: all known corridors are defended")
 	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
@@ -6323,6 +6327,7 @@
 	(set-goal gl-transport-screen-id -1)
 	(set-goal gl-transport-screen-waits 0)
 	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-route-unload-attempts 0)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 	(chat-local-to-self "Transport recalled: no route-screen ship available")
 	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
@@ -6362,6 +6367,7 @@
 	(up-reset-group c: transport-screen-group)
 	(set-goal gl-transport-screen-id -1)
 	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-route-unload-attempts 0)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 	(chat-local-to-self "Transport held: route-screen ship drew defensive fire")
 	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
@@ -6429,6 +6435,7 @@
 	(up-reset-group c: transport-screen-group)
 	(set-goal gl-transport-screen-id -1)
 	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-route-unload-attempts 0)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 	(chat-local-to-self "Transport held: route-screen ship was lost")
 	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
@@ -6468,6 +6475,7 @@
 	(up-reset-group c: transport-screen-group)
 	(set-goal gl-transport-screen-id -1)
 	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-route-unload-attempts 0)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 	(chat-local-to-self "Transport held: scout revealed a defended corridor")
 	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
@@ -6611,6 +6619,7 @@
 	(set-goal gl-transport-screen-id -1)
 	(set-goal gl-transport-screen-waits 0)
 	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-route-unload-attempts 0)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 )
 
@@ -6868,6 +6877,7 @@
 	(set-goal gl-transport-departure-failed-blocker-id -1)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-route-unload-attempts 0)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 )
 
@@ -6902,6 +6912,7 @@
 	(set-goal gl-transport-departure-congested NO)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-route-unload-attempts 0)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 )
 
@@ -7159,6 +7170,7 @@
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(set-goal gl-transport-screen-id -1)
 	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-route-unload-attempts 0)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 	(up-chat-data-to-all "RAW44T2 transport landing timed out: %d" g: gl-transport-route-id)
 	(chat-local-to-self "Transport landing timed out; returning home")
@@ -7294,12 +7306,31 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count > 0)
+	(up-compare-goal gl-route-unload-attempts c:< 2)
 =>
 	;OWNERSHIP command: attack-transport-group.
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-modify-goal gl-route-unload-attempts c:+ 1)
+	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
+)
+
+;One final retry uses the retained boarding shoreline, not an inland TC.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+	(goal gl-route-unload-attempts 2)
+=>
+	;OWNERSHIP command: attack-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-modify-goal gl-route-unload-attempts c:+ 1)
 	(up-set-timer c: t-transport-route c: 15)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 )
@@ -7332,6 +7363,45 @@
 	(set-goal gl-transport-screen-id -1)
 	(up-set-timer c: t-transport-route c: 90)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+;Exhausted recovery is terminal for this exact hull. Do not recycle it into
+;another voyage or restart the unload budget when another quarantine is busy.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+	(up-compare-goal gl-route-unload-attempts c:>= 3)
+	(up-compare-goal gl-quarantine-transport-id c:< 0)
+=>
+	(up-modify-goal gl-quarantine-transport-id g:= gl-transport-route-id)
+	(up-modify-goal gl-quarantine-transport-next g:= gl-game-time)
+	(up-modify-goal gl-quarantine-transport-next c:+ 60)
+	(set-goal gl-quarantine-transport-attempts 3)
+	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-TERMINAL)
+	(up-chat-data-to-self "stale transport quarantined: %d" g: gl-transport-route-id)
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
+	(up-modify-group-flag 0 c: attack-transport-group)
+	(up-reset-group c: attack-transport-group)
+	(set-goal gl-transport-route-script-load NO)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-transport-screen-id -1)
+	(up-set-timer c: t-transport-route c: 90)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+	(up-compare-goal gl-route-unload-attempts c:>= 3)
+	(up-compare-goal gl-quarantine-transport-id c:>= 0)
+=>
+	;Retain route ownership without issuing orders until the existing slot clears.
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-set-timer c: t-transport-route c: 60)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 )
 
 ;Recover idle soldiers left on an off-mainland land zone that is well away from
