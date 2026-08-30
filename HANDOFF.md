@@ -43,6 +43,11 @@ This handoff belongs to the dedicated transport-development worktree:
   (`Depart with safe partial attack lifts`). This is the deployed P3B44T6
   behavior commit and the recorded experimental HEAD before this handoff-only
   documentation successor.
+- P3B44T6 evidence handoff: `f25f5bd` (starting HEAD for the T6 replay audit).
+- Migrant reservation implementation: `9d0c87b` (`Preserve migrant reservation
+  through villager cleanup`). This is the current P3B44T7 behavior commit;
+  the handoff-only successor records its deployment and evidence. The user's
+  modified `AGENTS.md` remains unstaged and must be preserved.
 - Project-rules synchronization commit: `bcd484f` (`Adopt evidence-first
   project rules`).
 - Purpose: P3B44-derived transport-only development. P3B44T1 introduced loaded
@@ -63,6 +68,10 @@ This handoff belongs to the dedicated transport-development worktree:
   the canonical workspace.
 - Future ordinary development must use the canonical workspace. Continue this
   exact runtime experiment only in this transport worktree.
+- T6 audit scope exception: P3B44T7 touches `rawai-general.per` only to exclude
+  transport-reserved passengers from the proven generic-cleanup flag mutation.
+  This is a demonstrated dependency of transport ownership, not a general
+  economy redesign. No military controller or other behavior was changed.
 
 Other controls:
 
@@ -78,27 +87,30 @@ Other controls:
 
 ## Installed runtime identity
 
-- Marker: `RAWAI-P3B44T6:447`.
+- Marker: `RAWAI-P3B44T7:448`.
 - Runtime files: 68.
 - Source and installed target SHA-256:
-  `D5A2314E461603F68D5327E71BD7FB3737F0518C8969F2D5A4C45809B11598EB`.
+  `69C30C50661D3E1E8A1F8DC081C63E80D0C899D8E695B16D3E02F95B910B7738`.
 - Deployment check: all 68 runtime files are byte-identical, with no missing,
-  different, or unexpected runtime files. Relative to P3B44T5, exactly
-  `rawai-customconstants.per`, `rawai-init-goals.per`, and
-  `rawai-military.per` were copied.
+  different, or unexpected runtime files. Relative to P3B44T6, exactly
+  `rawai-general.per` and `rawai-init-goals.per` were copied. The T6 replay's
+  original 68-file hash was verified before editing and is retained below.
 
 ## Current objective and preserved behavior
 
-P3B44T5 migration landing-candidate screening remains runtime-accepted and
-CLOSED. The current objective is the newer queued-passenger defect. P3B44T5
-proves that a selected passenger can remain outside a Transport while repeated
-garrison commands continue, and the user directly observed that manually
-loading such passengers caused routes to start. P3B44T6 fixes the proven
-downstream exact-full assault abort and instruments the still-unknown upstream
-nonboarding cause. Status is FIXED-PENDING-RUNTIME for safe partial assault
-departure and INVESTIGATING for why an individual queued passenger does not
-board. Purple's proven drop-site race remains the next separate transport
-patch after this runtime experiment.
+P3B44T6 runtime-closes the exact-full assault abort: five useful partial loads
+completed enemy-shore landings with exact passenger membership, while below-five
+loads retained abort behavior. P3B44T5 landing-candidate screening also remains
+CLOSED. The broader queued-passenger defect remains INVESTIGATING, with several
+distinct observed failure classes rather than one universal explanation.
+
+P3B44T7 addresses the newly established mining-passenger reservation loss:
+generic villager cleanup was overwriting group 4 with temporary group 0 and
+clearing it. All twelve T6 mining-passenger snapshots showed unassigned flag
+-2. The smallest exclusion fix is deployed and FIXED-PENDING-RUNTIME. Retain
+the existing RAW44B telemetry to verify reservation survival and actual
+passenger progress. Purple's separately proven drop-site race remains the next
+isolated transport patch after this runtime experiment; do not mix it into T7.
 
 P3B44 Gray/Blue combined attacks are the known-good behavior at regression
 risk. This patch must preserve ordinary land attack dispatch, superiority,
@@ -263,7 +275,7 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
 
 ### Queued passenger blocks Transport route start
 
-- **Status:** FIXED-PENDING-RUNTIME for the exact-full assault route gate;
+- **Status:** CLOSED for the exact-full assault route gate (T6 runtime PASS);
   INVESTIGATING for the upstream reason an individual queued passenger does
   not board.
 - **User-visible symptom:** several queued units remained outside their
@@ -293,7 +305,8 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
 - **Instrumentation:** P3B44T6 publishes one bounded candidate before the first
   assault or migration retry and another at a partial/abort terminal. Each
   sample includes exact object ID, action, target ID, order, command ID,
-  distance from the embarkation hull point, land zone, controller group flag,
+  distance from the stored embarkation origin (not a moving hull's current
+  position), land zone, controller group flag,
   move coordinates, and idling state. A land-to-water path query was
   deliberately rejected because it cannot distinguish shoreline boarding
   reachability.
@@ -318,12 +331,57 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
   were aboard; a hull below five retains bounded recovery. Candidate action
   and target evidence establishes the first upstream divergence before any
   further passenger-behavior fix.
-- **Latest result / next action:** deterministic and structural validation is
-  PASS and the byte-verified P3B44T6 runtime is installed. Runtime behavior is
-  not yet demonstrated. Obtain one fresh preserved-lobby replay, audit every
-  reconstructable assault and migration boarding lifecycle across all players,
-  and keep the upstream passenger defect open until that evidence supports a
-  causal fix.
+- **Latest result:** T6 runtime PASS for safe partial assault. Orange's six
+  partial terminals at 43:11, 51:37, 56:44, 59:48, 63:22, and 67:12 retained
+  9/8/8/8/8/6 soldiers. The first five completed landings at 46:40, 54:15,
+  58:42, 61:41, and 65:26. Each completed remote-order set exactly equals the
+  original manifest minus the stopped shore stragglers. The sixth received a
+  home-recovery unload at 68:50; its later route rejection is not publicly
+  diagnosed. Four below-five terminals aborted with 0/4/0/0 passengers.
+- **New upstream evidence / next action:** 56 snapshots show distinct cases:
+  all twelve mining samples lost group ownership (causal fix below); three
+  scout samples resumed exploration; most other samples retained enter orders
+  toward the correct hull, sometimes still approaching from far away. Orange
+  soldier 40673 was idle with no target at 51:22 and 51:37, but later belonged
+  to the successful 58:42 landing, so it is not inherently untransportable.
+  Exact geometry/internal command causes for the close military stalls remain
+  unknown. The nominal four-second assault retry and thirty-second terminal
+  use `gl-game-time`, refreshed only every fifteen seconds; observed early
+  snapshots can occur up to fifteen seconds after loading. Keep that timing
+  defect separate from the T7 reservation patch.
+
+### Generic cleanup strips mining-passenger reservation
+
+- **Status:** FIXED-PENDING-RUNTIME, P3B44T7.
+- **User-visible symptom:** queued migrant villagers lose exclusive transport
+  ownership while boarding; this is one established sub-defect of the wider
+  passenger failure report, not a universal explanation for military stalls.
+- **Direct evidence:** twelve RAW44B mining snapshots across Purple, Cyan and
+  Gray show flag -2, including Purple 31871 at 66:38 and 31787 at 67:05. All
+  27 military and 17 scout snapshots retain flag 4.
+- **Root cause:** `rawai-general.per` selects non-exploring villagers with a
+  non-tree target, puts them into group 0, sets their flag to 0, then clears
+  it. Migrants targeting their hull match that selector. The original group-4
+  search membership can still retrieve them, but their ownership flag is gone.
+  AIRef documents that the flag is per-object and -2 means unassigned:
+  <https://airef.github.io/commands/commands-details.html#up-modify-group-flag>.
+- **Contradictory/limiting evidence:** retaining enter orders in these samples
+  does not prove every worker was stopped or that flag loss explains every
+  loading failure. Soldiers are not selected by this villager cleanup.
+- **Implementation:** `9d0c87b` excludes `migration-boarding-group` before
+  temporary group creation. Existing unreserved-villager cleanup remains.
+  `rawai-military.per` is byte-identical to T6; no thresholds, routes, attack
+  owners, hunt rules, or Port settings changed.
+- **Instrumentation/tests:** existing transition-bounded RAW44B group/command
+  snapshots are retained. A focused selector/flag model reproduces old flag
+  4 -> 0 -> -2 behavior and proves reserved exclusion under the patched
+  selector; a mutation removing the filter reproduces the failure.
+- **Acceptance criterion:** early and terminal mining samples retain flag 4
+  while owned, without generic cleanup STOP/flag mutations. Audit all players;
+  verify real boarding/landing/work progress and unreserved-worker cleanup.
+- **Latest result / next action:** deterministic PASS (119 tests and all
+  relevant validators); runtime PENDING. Obtain T7 replay. Never mark the
+  overall transportation defect closed from a flag-only success.
 
 ### Repeated attack-Transport landing timeouts
 
@@ -531,6 +589,66 @@ attack owner. Do not backport P3B46-P3B50 attack changes into this branch.
   the first command-volume producer or corrupting writer before proposing a
   fix.
 
+### Boar gathering abandoned after emergency Town Center garrison
+
+- **Status:** INVESTIGATING; separate hunting/economy defect, not part of the
+  transport-only behavioral patch.
+- **User-visible symptom / direct evidence:** while P3B44T6 was running on
+  2026-08-30, the user observed Yellow abandon gathering a boar at approximately
+  22-24 minutes after its villagers garrisoned in the Town Center during an
+  enemy attack. Color and approximate time were explicitly confirmed by the
+  user. The supplied T6 replay does not expose Yellow's private hunt-state
+  chat; remaining food and exact post-exit worker assignments remain unknown.
+- **Source evidence / causal hypotheses:** `rawai-hunt.per:467-491` requires
+  at least one hunter for the normal support retry. At `:497-571`, retry
+  validation removes the original lurer if its current target is no longer
+  the saved boar, then disables hunting and releases ownership if either the
+  lurer lookup or boar lookup fails. A changed worker assignment is therefore
+  conflated with target loss in that branch. Zero hunters can instead leave
+  the ordinary retry ineligible. Neither branch is yet tied to this event.
+- **Contradictory/alternative evidence:** built-in worker reassignment, a
+  continuing threat, resource exhaustion, or a different hunt state remain
+  untested; source inspection does not establish the in-engine transition.
+- **Instrumentation/tests / latest result:** the all-player chat and relevant
+  order sweep does not establish Yellow's hunt transition. WORK payloads lack
+  worker/target fields in the current parser; absence of decoded boar orders
+  does not contradict the user's observation. Initial-object metadata proves
+  repeated target 4475 is Yellow's Town Center. Red's own logs show three
+  active-to-released transitions at 07:34,18:57,29:08, which are separate
+  evidence and not proof of Yellow's cause.
+- **Implementation:** none for hunting; `rawai-hunt.per` is unchanged.
+- **Acceptance criterion / next action:** improve the missing WORK decoding if
+  reliably possible, or add bounded public owner/lurer/boar/threat transition
+  diagnostics in a separately scoped hunting patch. A safe surviving carcass
+  should regain gatherers after the threat ends
+  without premature ungarrison, a second lure, or disruption of sheep/transport
+  ownership. Do not merge a guessed hunting fix into the transport experiment.
+
+### Port placement: opposite island shores and open-water access
+
+- **Status:** DEFERRED by the user to the next development cycle; retain as
+  required work, separate from the running P3B44T6 transport test.
+- **User-visible symptom / direct evidence:** the user reports Ports being
+  placed in narrow crevices, causing problems for trade ships.
+- **Requested behavior:** for an island start, place the two Ports on opposite
+  sides of the island and avoid narrow crevices that obstruct ship traffic.
+- **Requested controls / causal hypothesis:** investigate and adjust
+  `sn-dock-placement-mode`, `sn-minimum-water-body-size-for-dock`, and
+  `sn-dock-proximity-factor`. Their exact semantics and sufficiency for these
+  requirements are not yet verified; do not treat parameter tuning alone as
+  proof of shoreline clearance or opposite-shore placement.
+- **Contradictory evidence / instrumentation/tests:** no new placement analysis
+  or tests in this note-only session; exact sites and failure mechanisms await
+  replay/source investigation.
+- **Implementation / latest result:** none; documentation only. No runtime
+  changes, deployment, full test suite, commit, or PR update.
+- **Acceptance criterion / next action:** in the next development cycle,
+  inspect Port placement across all players and verify the controls before
+  choosing values. Validate opposite-side placement on island starts with
+  suitable buildable shores, accessible builders, and clear ship approaches,
+  including sustained trade traffic without crevice congestion. Preserve
+  functioning early Port construction and existing transport behavior.
+
 ### Deliberately unchanged defects
 
 This one-cause patch does not change or claim to fix:
@@ -694,6 +812,54 @@ P3B44T5 all-player transport replay:
   `replay-benchmarks.json`. It reuses the same source replay for the distinct
   boarding-lifecycle acceptance target and is `fresh-replay-required`.
 
+P3B44T6 all-player transport replay (2026-08-30 audit):
+
+- Basename: `SP Replay v101.103.48987.0 @2026.08.30 114855.aoe2record`.
+- SHA-256: `A26B08497C5168F942A6CA67903FAC61AD32CD2C8BFF2D07BDA69B2DE9512CE8`.
+- Duration 75:25; zero action-stream parse errors; no decoded resignation.
+  Ending cause is unknown, not assumed to be a crash or manual termination.
+- Markers `RAWAI-P3B44T6:447` from players 2-8; before editing, all 68 installed
+  files matched T6 hash
+  `D5A2314E461603F68D5327E71BD7FB3737F0518C8969F2D5A4C45809B11598EB`.
+- Use parser root `G:\Projects\Codex\Rome at War AI\.analysis\replay_parser_kjir`
+  with repository `tools/analyze_replay.py`. The older `replay_parser` fails
+  this header; do not fall back to inferred colors. The supported parser
+  validates the original selected colors and resolved teams independently.
+  WORK target fields and some AI_ORDER coordinates remain incomplete.
+- External full report:
+  `G:\Projects\Codex\Rome at War AI\.analysis\replay-20260830-114855-p3b44t6-full.json`.
+- External all-player semantic audit helper and outputs:
+  `G:\Projects\Codex\Rome at War AI\.analysis\audit_p3b44t6.py`,
+  `G:\Projects\Codex\Rome at War AI\.analysis\p3b44t6-transport-audit.txt`, and
+  `G:\Projects\Codex\Rome at War AI\.analysis\p3b44t6-transport-audit.json`.
+  The helper reuses `summarize_p3b44t5.py` for existing acceptance checks.
+  Its CORRECTED_PLAYER_TOTAL section adds Yellow's telemetry-identified hull
+  omitted by the older movement/unload-only identity heuristic.
+- Systematic union: 22 hulls, 183 loads, 142 point unloads, 55 alternating
+  load/unload phases and 7 final load-only phases. Empty aborted missions can
+  be load-only: these counts are not interchangeable with successful voyages.
+- Per-player hull/load/unload/phase totals: Red 1/4/4/4, Green 1/8/0/0,
+  Yellow 1/8/0/0, Purple 2/25/28/7, Orange 4/29/30/16, Cyan 4/27/23/7,
+  Blue 3/31/15/6, Gray 6/51/42/15. All 4,176 raw SPECIAL/UNGARRISON records
+  were screened; non-transport Town Center garrisons remain outside that union.
+- Nine public migration boarding terminals are full, six partial and seven
+  empty aborts. Ten candidate missions yield 21 clear/same-second unloads,
+  1 wrong-zone rejection and 26 path rejections with zero invalid unloads.
+- Six assault landing windows complete with zero active-hull guard refreshes.
+  Five are Orange's safe partial lifts; Purple completes a full lift. Seven
+  exact relic outbound and three return-readiness events preserve the T4 check.
+- Migration escort overlap recurs (7 guards across 2 Purple candidate missions).
+  Gray's 19 settlers reboard at 57:16 and 71:29 after remote landings; successful
+  economic settlement is not established. The existing drop-site defect stays
+  separate from reservation loss.
+- 727,415 ACTION records include 355,625 ORDER and 135,582 AI_ORDER records.
+  Yellow worker 31642 targets its initial TC 4475 in 27,669 repeated ORDERs
+  from 17:52 to 47:50. This identifies the destination, not its producing
+  controller or a crash cause; broad command-volume work remains deferred.
+- Repository benchmark: `britain-4v4-20260830-114855-p3b44t6-all-transport`.
+  T6 partial acceptance is runtime-confirmed; this entry's next T7 ownership
+  acceptance is fresh-replay-required.
+
 Replay/savegame files, compact parser output, crash dumps, and Rome at War data
 mod files remain external and must never be committed to the AI repository.
 
@@ -718,14 +884,14 @@ mod files remain external and must never be committed to the AI repository.
   split, shore-straggler stop, garrison-inclusive exact manifest rebuild,
   actual-count update, home-defense interrupt, target revalidation, and prior
   abort recovery are covered).
-- Full P3B44-derived regression suite: PASS (118 tests).
+- Full P3B44-derived regression suite: PASS (119 tests, including T7).
 - PER structural/operand validation: PASS.
 - Naval-doctrine validation: PASS.
 - Strategy execution: PASS (1,156 total matchups; 1,149 historical and 1,152
   Extreme matchups with adjustments).
 - ODS workbook round trip: PASS (34 civilizations, 680 unit-evidence rows, 340
   naval-class rows).
-- Replay benchmarks: PASS (27 entries).
+- Replay benchmarks: PASS (28 entries).
 - `git diff --check`: PASS; only expected CRLF notices.
 - Adversarial P3B44T2 comparison: PASS. P3B44T3 changed only the active
   transport departure state, goals/constants, marker, bounded telemetry,
@@ -784,31 +950,43 @@ mod files remain external and must never be committed to the AI repository.
   passengers continued outbound/return lifecycles. No public exact-blocker
   congestion episode independently re-exercised P3B44T3; its earlier runtime
   acceptance remains the control evidence.
-- Fresh P3B44T6 engine/replay acceptance: PENDING. Do not close safe partial
-  departure or assert the upstream nonboarding cause from structural tests.
+- Fresh P3B44T6 engine/replay acceptance: PASS for safe partial departure.
+  Five completed partial landings pass exact-manifest-minus-stopped comparison;
+  low-strength aborts are preserved. Other boarding failures remain open.
+- P3B44T7 focused selector/flag fixture and regression suite: PASS (119 tests).
+  PER, naval, strategy, workbook and 28 replay-benchmark validators: PASS.
+- P3B44T7 read-only adversarial review: ACCEPTED the demonstrated group-0
+  overwrite/clear and its preselection exclusion. REJECTED universal command
+  theft as an explanation for the military samples: they retain group 4 and
+  many retain the correct hull target. DEFERRED stale-clock boarding timing,
+  scout exploration overrides and close military stalls to separate causal
+  patches. No military, hunt, homebase or economy PER file changed from T6.
+- P3B44T7 deployed byte identity: PASS, 68 source/target files matching
+  `69C30C50661D3E1E8A1F8DC081C63E80D0C899D8E695B16D3E02F95B910B7738`.
+  Only general cleanup and the marker differ from the tested T6 runtime.
+  T7 engine/runtime acceptance is PENDING.
 
 ## Exact next actions
 
-1. Verify this worktree's branch, P3B44T6 behavior commit `14fd09c`, installed
-   marker/hash, handoff successor, and only expected user-owned `AGENTS.md`
-   dirt against this document. Do not deploy from the canonical or obsolete
-   snapshot; P3B44T6 is already installed from this exact transport worktree.
-2. Run one fresh match with the preserved lobby. Audit every reconstructable
-   assault and migration boarding lifecycle across all players, not only the
-   user's visible event. Correlate candidate action/target/command/move fields,
-   exact hull terminal occupancy, partial departure, route start, landing, and
-   passenger membership.
-3. Mark safe partial assault CLOSED only if a five-to-nine exact load begins the
-   screened route and remote orders exclude shore stragglers while below-five
-   loads retain bounded recovery. Keep the upstream passenger cause
-   INVESTIGATING until the new candidate evidence proves the first divergence.
-4. Preserve P3B44T5 migration landing screening as CLOSED. P3B44T6 adds
-   diagnostics but intentionally does not change migration thresholds or route
-   behavior.
-5. After the P3B44T6 runtime result, implement Purple's ROOT-CAUSE-PROVEN
-   premature global-pending drop-site transition as the next isolated
-   transport patch. Keep Orange and the late Red resource-wait failures
-   distinct pending their own first-blocker evidence.
-6. Keep migration escort overlap, recovery-unload repetition, dominant command
-   volume, crash work, P3B44D1 friendly fire, and all non-transport defects out
-   of this causal patch unless the user explicitly redirects the experiment.
+1. Verify this worktree, branch, T7 behavior commit `9d0c87b`, handoff successor,
+   installed marker/hash, and only expected user-owned `AGENTS.md` dirt.
+   T7 was installed from this exact experimental worktree, not the canonical
+   or obsolete checkout. No GitHub push/PR update was made in this session.
+2. Obtain a fresh preserved-lobby T7 replay. Audit all players/controllers,
+   especially mining-passenger flags before first retry and at the terminal.
+   They must stay 4 while reserved. Correlate flags with actual cargo, route,
+   landing, drop-site construction and work; do not equate flag success with
+   complete resolution of transportation.
+3. Preserve T6 safe partial assault as CLOSED and T5 candidate screening as
+   CLOSED. Reject any regression to ordinary P3B44 attacks or successful
+   full/partial/relic lift behavior. Keep other boarding causes INVESTIGATING.
+4. After T7 reservation validation, address the already ROOT-CAUSE-PROVEN
+   premature global-pending drop-site transition as its own patch. Keep
+   resource-wait, stale-time boarding, exploration overrides, military stalls,
+   escort overlap and recovery-unload repetition distinct.
+5. Yellow's 22-24-minute interrupted hunt still needs reliable WORK decoding
+   or bounded public hunt-state evidence. No guessed hunting fix is included.
+   Port controls/opposite-shore placement/crevice avoidance are recorded for
+   the next development cycle, as explicitly requested by the user.
+6. Keep broader command-volume/crash work, P3B44D1 friendly fire, and other
+   non-transport changes outside this causal experiment.
