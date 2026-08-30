@@ -92,6 +92,38 @@ class NavalSearchTests(unittest.TestCase):
                 self.assertIn('object-data-id g:== gl-naval-siege-target-id', r[3])
 
 
+class CommandCounterTests(unittest.TestCase):
+    def test_every_explicit_stop_or_scout_reset_has_one_counter(self):
+        codes = []
+        for path in ROOT.glob('*.per'):
+            for row in rule_blocks(path.read_text(encoding='utf-8-sig')):
+                if 'action-stop' in row[4] or '(up-reset-scouts)' in row[4]:
+                    found = re.findall(r'up-modify-goal gl-command-counter-(\d+) c:\+ 1', row[4])
+                    self.assertEqual(len(found), 1, path.name)
+                    codes.extend(int(c) for c in found)
+        self.assertEqual(sorted(codes), list(range(1, 25)))
+        self.assertIn('up-modify-goal gl-command-counter-23 c:+ 1', source('rawai-severe-defense.per'))
+
+    def test_counter_reports_are_nonzero_and_minute_bounded(self):
+        text = source('rawai-command-counters.per')
+        reports = [r for r in rule_blocks(text) if 'up-chat-data-to-all' in r[4]]
+        self.assertEqual(len(reports), 26)
+        for row in reports:
+            self.assertIn('gl-command-counter-clock g:>= gl-command-counter-next', row[3])
+            self.assertIn('c:> 0', row[3])
+            self.assertRegex(row[4], r'\(set-goal gl-command-counter-\d+ 0\)')
+        self.assertIn('(up-modify-goal gl-command-counter-next c:+ 60)', text)
+        self.assertNotRegex(text, r'up-(?:target|find|reset|set-group)')
+
+    def test_counter_generation_is_synchronized(self):
+        from instrument_command_counters import render
+        for name, expected in render().items():
+            self.assertEqual(source(name), expected, name)
+        text = source('rawai-native-attack-ownership.per')
+        self.assertEqual(text.count('up-modify-goal gl-command-counter-90 c:+ 1'), 1)
+        self.assertEqual(text.count('up-modify-goal gl-command-counter-91 c:+ 1'), 17)
+
+
 class HelpCooldownTests(unittest.TestCase):
     def test_each_help_request_starts_a_full_cooldown(self):
         requests = [r for r in rule_blocks(source('rawai-diplomacy.per'))

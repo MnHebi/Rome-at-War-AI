@@ -103,6 +103,7 @@ def severe():
         '(set-strategic-number sn-total-number-explorers 0)',
         '(set-strategic-number sn-cap-civilian-explorers 0)',
         '(set-strategic-number sn-minimum-civilian-explorers 0)',
+        '(up-modify-goal gl-command-counter-23 c:+ 1)',
         '(up-reset-scouts)', '(set-goal gl-owner-explore-suspended YES)']))
     # Preempt only compatible land military at the threatened home. Civilians,
     # remote colonies, loaded hulls and unrelated expeditions stay protected.
@@ -165,7 +166,8 @@ def native_attack():
            ';DE excludes a TYPE, not an object: FREE same-type units wait too.',
            ';Each loop removes a type from a finite (at most 40-member) owner list.',
            ';No movement, STOP, or reset of the already working native attack manager.']
-    out.append(rule(['(true)'], ['(fe-reset-attack-group-exclusion-list)']))
+    out.append(rule(['(true)'], ['(up-modify-goal gl-command-counter-90 c:+ 1)',
+                               '(fe-reset-attack-group-exclusion-list)']))
     for group in ('siege-objective-group', 'juggernaut-bombardment-group',
                   'attack-transport-group', 'attack-boarding-group', 'home-naval-response-group',
                   'home-defense-response-group', 'opportunistic-raid-group',
@@ -180,6 +182,7 @@ def native_attack():
             f'(up-remove-objects search-local object-data-group-flag != {group})']))
         out.append(rule(['(up-set-target-object search-local c: 0)'], [
             '(up-get-object-data object-data-type gl-owner-native-type)',
+            '(up-modify-goal gl-command-counter-91 c:+ 1)',
             '(fe-exclude-from-attack-group g: gl-owner-native-type)',
             '(up-remove-objects search-local object-data-type g:== gl-owner-native-type)']))
         # RuleDelta is relative to NEXT rule: -1 repeats the jump itself.
