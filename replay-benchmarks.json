@@ -1789,6 +1789,56 @@
         "The generic cleanup ownership fix is FIXED-PENDING-RUNTIME, not CLOSED. Yellow hunting, Port-placement work deferred to the next development cycle, drop-site recall, escort overlap, command flooding and crash attribution are outside this patch."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260830-131412-p3b44t7-ownership",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.30 131412.aoe2record",
+        "sha256": "04AB5E6664F9DBE0284E320A99AB16070DBC00DE67FE876AC8C5512176E7DDB5",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Red Roman Empire (team 1)", "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)", "Cyan Britons (team 2)",
+          "Blue Germani (team 2)", "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Independent selected-color/resolved-team decoding matches the preserved lobby; no slot-to-color inference.",
+        "duration_seconds": 5909,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2"
+      },
+      "direct_replay_observations": [
+        "User reports military passengers being pulled away and armies accumulating at Town Centers, attributing both to competing controllers and inadequate ownership separation. Preserve the observed symptoms separately from exact caller attribution.",
+        "T7 markers are present for players 2-8. All 68 installed runtime files matched source SHA-256 69C30C50661D3E1E8A1F8DC081C63E80D0C899D8E695B16D3E02F95B910B7738 before editing. The stream parses without errors through 98:29; Red resigns at 98:28.",
+        "All 5390 SPECIAL/UNGARRISON records were screened. The hull union contains 25 hulls, 378 loads, 205 point unloads, 119 load/unload phases, and five terminal load-only phases. Per-player hull/load/unload/phase totals: Red 4/96/50/28; Green 1/42/21/8; Yellow 1/1/3/1; Purple 4/45/24/22; Orange 3/58/43/24; Cyan 1/28/1/1; Blue 7/39/35/11; Gray 4/69/28/24. Command phases do not prove successful voyages.",
+        "The 103 boarding snapshots comprise 43 military candidates with flag 4, 58 migration candidates with flag 4, and two missing migration candidates. All 39 identified mining-worker snapshots retain flag 4. This validates T7's specific generic-cleanup reservation exclusion, not exclusive command ownership or complete migration.",
+        "The 202 DE_RETREAT payloads have internally consistent target, point, count and object-ID arrays. Nineteen load-record/retreat overlaps were found, including repeated loads and some post-unload recalls. Red reserved scout 44331 receives recalls to Town Center 4538 at (82,35) at 55:02.350 and 55:08.354 after its 54:57 group-4 boarding snapshot, before any unload. Blue, Gray and Purple also have selected-passenger overlaps before a recorded unload; exact scripted/native caller attribution is not present in T7.",
+        "Orange's 61:36-62:06 boarding window contains 749 identical AI_ORDER packets whose order field is 706 (STOP), selecting scout 4638 and soldier 30434. Both are in the load manifest and sampled as group 4 with no active target; nine passengers eventually depart and the scout remains ashore. Orange's only DE_RETREAT occurs later, at 67:46.218, so this STOP loop is distinct from an overlapping global retreat event.",
+        "Cyan scout 4639 receives explore order 705 between garrison retries at 11:37 and 11:43. Green reserved worker 47605 receives repeated orders to Town Center 4547 starting at 83:01. These confirm additional command interference without proving a shared producing controller.",
+        "Ten safe partial assault departures occur. Purple completes three assault landing windows with zero active-hull guard refreshes. Its 90:44 nine-passenger partial lift lands at 93:47 and the exact nine boarded units receive the land order; stopped straggler 40008 is excluded. The prior audit compared that order with the ship's unload point instead of the army's enemy-target point and falsely failed this check; correcting the offline comparison passes exact membership.",
+        "Twelve public migration-candidate missions contain 20 clear events, two wrong-zone rejections and 16 path rejections. No rejected candidate issues a same-second unload. Eighteen clear events have same-second unloads; Red's other two follow one second later. Two relic outbound/return readiness pairs survive. Economic drop-site completion, escort overlap and returned migration loads remain separate unresolved outcomes."
+      ],
+      "implementation_inferences": [
+        "Reservation flags now survive generic cleanup, but replay command packets prove that this alone is not exclusive ownership. Do not reapply the T7 flag fix or equate every remaining stall with theft.",
+        "Five military rules and allied retreat taunt 45 call global up-retreat-now; the loss rule and taunt also stop all unit types. Local defense selection and the generic defend leash do not exclude every reserved group. Their existence is not sufficient to identify every observed recall's producer or to justify replacing the recovered attack implementation.",
+        "A caller-tagged next replay can distinguish the existing scripted recalls/all-unit resets from untagged engine or other controller events. The repeated STOP loop needs separate attribution. T8 adds read-only event logs to the six existing callers without altering conditions, commands, action order, search state, or ownership."
+      ],
+      "changes_under_test": [
+        "RAWAI-P3B44T8:449 adds RAW44O recall source plus current assault/migration states and hull IDs immediately before each existing scripted recall. Sources: 1 land defense, 2 naval defense, 3 siege escalation, 4 loss regroup, 5 periodic losses/all-unit reset, 6 allied taunt 45/all-unit reset.",
+        "Salvage D retains offline retreat_actions and generic compact chat categories. No P3B49 runtime code is imported. Salvage A-C and Port strategic-number behavior remain pending outside this diagnostic runtime."
+      ],
+      "fresh_replay_acceptance": [
+        "Verify RAWAI-P3B44T8:449 and the complete deployed payload. Retain T7 reservation survival, useful partial/full lifts, relic readiness and rejected-landing safety across all players.",
+        "Match every RAW44O event with exact retreat packet membership and active boarding episodes. Identify the first caller or native action that cancels a reserved passenger's order, including episodes without completed boarding diagnostics.",
+        "Correlate repeated AI_ORDER STOP packets with source 5/6 events and all other contemporaneous commands. Untagged packets alone are not permission to guess the native mechanism. Once a caller is established, implement its smallest supported ownership correction and runtime-test it."
+      ],
+      "known_limits": [
+        "T8 is diagnostic only: passenger command exclusivity, the STOP loop, town-center passivity and complete migration remain INVESTIGATING. Logging does not resolve these defects.",
+        "The stock body decoder omits retreat membership and misaligns some AI_ORDER fields; targeted external packet inspection preserves raw bytes and validates lengths/IDs. Existing packed-ID heuristics and second-resolution aggregate windows require care around late IDs and same-frame ordering.",
+        "The recovery attack/transport program is unchanged apart from event logs. Broader salvage and dock work are authorized but held outside this isolated caller-attribution experiment, not completed or canceled."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

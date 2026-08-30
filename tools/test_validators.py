@@ -3,12 +3,13 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import unittest
 from pathlib import Path
 
-from validate_per import validate_command_domains, validate_timer_sources
+from validate_per import code_without_comments_or_strings, validate_command_domains, validate_timer_sources
 from validate_good_units import EXPECTED_CATEGORIES, validate_document, validate_provenance_sources
 from validate_strategy_execution import bounded_direct_train_blocks
 from validate_naval_doctrine import matching_rules
@@ -5483,9 +5484,42 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertGreaterEqual(len(lost_terminals), 3)
 
+    def test_recall_caller_trace_covers_every_existing_global_recall(self) -> None:
+        military_rules = matching_rules(self.military, actions=("(up-retreat-now)",))
+        taunt_rules = matching_rules(self.taunts, actions=("(up-retreat-now)",))
+        self.assertEqual(len(military_rules), 5)
+        self.assertEqual(len(taunt_rules), 1)
+        for source, rule in enumerate(military_rules + taunt_rules, 1):
+            actions = rule[4]
+            tag = f'(up-chat-data-to-all "RAW44O recall source: %d" c: {source})'
+            self.assertEqual(actions.count(tag), 1)
+            self.assertLess(actions.index(tag), actions.index("(up-reset-attack-now)"))
+            self.assertLess(actions.index(tag), actions.index("(up-retreat-now)"))
+            if "(up-reset-unit" in actions:
+                self.assertLess(actions.index(tag), actions.index("(up-reset-unit"))
+            for goal in ("gl-transport-route-state", "gl-transport-route-id",
+                         "gl-island-migration-state", "gl-island-migration-transport-id"):
+                self.assertRegex(actions, rf'up-chat-data-to-all "RAW44O[^\n]+g: {goal}\)')
+        self.assertEqual(self.military.count('"RAW44O '), 25)
+        self.assertEqual(self.taunts.count('"RAW44O '), 5)
+
+    def test_recall_diagnostic_preserves_every_t7_executable_rule(self) -> None:
+        # T7 e17a4ed fingerprints, excluding comments and string contents.
+        # Removing only the additive event logs must reproduce the entire
+        # military/taunt program, including its conditions and action order.
+        for source, expected in (
+            (self.military, "5983e05d67f97430a5b567ad37b2c498b5091eaa638e79492bf78897de000546"),
+            (self.taunts, "8f3b3e3e92a87b94a706c4d380d8056b4f8f0d0bd868811e821d5d8f1d45c447"),
+        ):
+            retained = [line for line in source.splitlines() if not re.match(
+                r'\s*\(up-chat-data-to-all "RAW44O recall ', line)]
+            normalized = " ".join(" ".join(code_without_comments_or_strings(line)
+                                          for line in retained).split())
+            self.assertEqual(hashlib.sha256(normalized.encode()).hexdigest(), expected)
+
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         self.assertIn(
-            '(up-chat-data-to-all "RAWAI-P3B44T7: %d" c: 448)',
+            '(up-chat-data-to-all "RAWAI-P3B44T8: %d" c: 449)',
             self.init_goals,
         )
         initial = matching_rules(

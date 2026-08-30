@@ -8001,6 +8001,12 @@
 =>
 	;Only a real same-zone response suppresses the whole offense.  A lone raider
 	;or a presence inside the attack-commitment window must not yank the army.
+	;T8: mark the exact caller without changing recall, selection, or ownership.
+	(up-chat-data-to-all "RAW44O recall source: %d" c: 1)
+	(up-chat-data-to-all "RAW44O recall assault state: %d" g: gl-transport-route-state)
+	(up-chat-data-to-all "RAW44O recall assault hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44O recall migration state: %d" g: gl-island-migration-state)
+	(up-chat-data-to-all "RAW44O recall migration hull: %d" g: gl-island-migration-transport-id)
 	(up-reset-attack-now)
 	(up-retreat-now)
 	(set-goal gl-home-defense-state YES)
@@ -8219,6 +8225,11 @@
 		(up-compare-goal gl-naval-response-threats c:>= 4)
 	)
 =>
+	(up-chat-data-to-all "RAW44O recall source: %d" c: 2)
+	(up-chat-data-to-all "RAW44O recall assault state: %d" g: gl-transport-route-state)
+	(up-chat-data-to-all "RAW44O recall assault hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44O recall migration state: %d" g: gl-island-migration-state)
+	(up-chat-data-to-all "RAW44O recall migration hull: %d" g: gl-island-migration-transport-id)
 	(up-reset-attack-now)
 	(up-retreat-now)
 	(set-goal gl-home-defense-state YES)
@@ -9635,6 +9646,11 @@
 	(up-compare-goal gl-known-fortifications c:>= 3)
 	(up-compare-goal gl-attack-escalation-state c:!= ATTACK-ESCALATION-SIEGE)
 =>
+	(up-chat-data-to-all "RAW44O recall source: %d" c: 3)
+	(up-chat-data-to-all "RAW44O recall assault state: %d" g: gl-transport-route-state)
+	(up-chat-data-to-all "RAW44O recall assault hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44O recall migration state: %d" g: gl-island-migration-state)
+	(up-chat-data-to-all "RAW44O recall migration hull: %d" g: gl-island-migration-transport-id)
 	(up-reset-attack-now)
 	(up-retreat-now)
 	(set-goal current-action ACTION-WAIT)
@@ -9654,6 +9670,11 @@
 	(up-compare-goal gl-failed-attack-streak c:>= 2)
 	(up-compare-goal gl-attack-escalation-state c:!= ATTACK-ESCALATION-REGROUP)
 =>
+	(up-chat-data-to-all "RAW44O recall source: %d" c: 4)
+	(up-chat-data-to-all "RAW44O recall assault state: %d" g: gl-transport-route-state)
+	(up-chat-data-to-all "RAW44O recall assault hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44O recall migration state: %d" g: gl-island-migration-state)
+	(up-chat-data-to-all "RAW44O recall migration hull: %d" g: gl-island-migration-transport-id)
 	(up-reset-attack-now)
 	(up-retreat-now)
 	(set-goal current-action ACTION-WAIT)
@@ -9703,6 +9724,12 @@
 		(up-compare-goal gl-current-warboat-losses g:> gl-five-percent)
 	)
 =>
+	;Source 5 includes the all-unit STOP immediately before the global recall.
+	(up-chat-data-to-all "RAW44O recall source: %d" c: 5)
+	(up-chat-data-to-all "RAW44O recall assault state: %d" g: gl-transport-route-state)
+	(up-chat-data-to-all "RAW44O recall assault hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44O recall migration state: %d" g: gl-island-migration-state)
+	(up-chat-data-to-all "RAW44O recall migration hull: %d" g: gl-island-migration-transport-id)
 	(up-reset-attack-now)
 	(up-reset-unit c: -1)
 	(up-modify-sn sn-minimum-attack-group-size c:= 0)
