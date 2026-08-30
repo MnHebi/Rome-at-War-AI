@@ -1677,6 +1677,60 @@
         "The replay records severe command volume and one small source-proven recovery-unload loop. It does not establish that command volume caused any prior crash or identify the dominant command producer."
       ],
       "validation_status": "runtime-confirmed"
+    },
+    {
+      "id": "britain-4v4-20260829-232526-p3b44t6-boarding-evidence",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.29 232526.aoe2record",
+        "sha256": "B12989601E59BDE4D4BE3ACA4D6C9B0F2F322E31FA7D9E97198AA3CDE61924CE",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "p1 Red Roman Empire (team 1)",
+          "p2 Green Roman Empire (team 1)",
+          "p3 Yellow Roman Empire (team 1)",
+          "p4 Purple Roman Empire (team 1)",
+          "p5 Orange Picts (team 2)",
+          "p6 Cyan Britons (team 2)",
+          "p7 Blue Germani (team 2)",
+          "p8 Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "The selected visible colors and resolved teams match the preserved authoritative lobby. Color is not inferred from lobby row or player-slot order.",
+        "duration_seconds": 18664,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The user reports that several queued passengers did not board until manually loaded, after which their Transport entered its route. This direct visual observation is the priority symptom; the replay audit independently searches for corroborating and additional boarding episodes.",
+        "Red serialized 48 detailed scripted boarding episodes: 31 full-or-ready terminals, 13 aborts, 3 partial departures, and 1 unresolved episode. This does not expose other players' private boarding chat, so the existing all-player low-level union remains the broader transport evidence.",
+        "At 281:51 a Red migration target of eleven was followed by a twelve-object load record that uniquely included exact hull 31558 itself. The route reported migration depart full at 282:05 and immediately issued route movement. AI-generated boarding-group records do not contain the target hull; this is replay-visible corroboration of the user's manual intervention.",
+        "Attack-lift episodes at 51:14, 55:04, 57:38, and 59:46 each began with ten selected passengers, shrank to a one-passenger retry list, and still reached the exact-full abort terminal. Passenger 39672 was the sole serialized retry candidate in the latter three episodes.",
+        "A bounded command audit of passenger 39672 from 55 through 60 minutes found only repeated SPECIAL garrison commands to hull 31558 and no serialized ORDER, AI_ORDER, WORK, GUARD, or PATROL command that visibly transferred it to another owner. The replay therefore does not establish whether geometry, an internal/unserialized overwrite, object state, or an engine load failure stopped that individual unit.",
+        "Across all players, ten load records contained their target hull and all ten belonged to Red, which is consistent with human selection rather than an AI passenger-group construction. The systematic low-level audit also found 163 repeated-load bursts followed by hull movement and 345 repeated-load bursts without a hull point move; those broad counts are evidence inputs, not semantic mission outcomes."
+      ],
+      "implementation_inferences": [
+        "The first source-level route divergence is proven independently of the passenger's upstream nonboarding reason: the assault loader required the exact selected count, so one excluded passenger discarded a useful partial hull instead of allowing the existing screened route to begin.",
+        "A partial assault departure is safe only if shore stragglers are stopped and excluded from the later landing-order group. Rebuilding attack-boarding-group from garrisoned members preserves that ownership invariant; simply lowering the ready count without rebuilding would leak home units into the remote order.",
+        "The exact upstream passenger failure remains INVESTIGATING. P3B44T6 records one candidate before the first automatic retry and again at a partial/abort terminal, including object ID, action, target ID, order, command ID, distance, zone, group flag, move coordinates, and idling state. It deliberately does not use a land-to-water point path query, which cannot distinguish shoreline boarding reachability."
+      ],
+      "changes_under_test": [
+        "Emit RAWAI-P3B44T6:447 and preserve the runtime-closed P3B44T2 landing-screen, P3B44T3 departure-clearance, P3B44T4 relic-passenger, and P3B44T5 migration-landing behavior.",
+        "For assault loading only, retain the thirty-second window and ten-passenger maximum. At the terminal, depart with five through nine exact garrisoned soldiers, stop every remaining shore passenger, rebuild the direct-control manifest from garrisoned members only, and continue through the unchanged target revalidation and screened route. Retain the existing recovery abort below five.",
+        "For both assault and migration boarding, publish one bounded pre-retry candidate snapshot and one terminal snapshot when applicable. The telemetry records actual command/target/movement/controller state before reissuing or stopping the passenger and does not alter migration's established full, partial, or abort thresholds."
+      ],
+      "fresh_replay_acceptance": [
+        "The deployment checker reports all runtime files byte-identical to this branch and replay startup chat contains RAWAI-P3B44T6:447.",
+        "Every assault or migration episode that remains underfilled through its first retry publishes one candidate snapshot whose target/action fields identify whether the exact Transport garrison order is still active before renewal.",
+        "An assault hull with five through nine exact garrisoned soldiers at the thirty-second terminal publishes RAW44B attack partial departure, begins the existing screened route, and later gives the remote landing order only to passengers that were actually aboard. A hull with fewer than five retains the bounded unload/recovery abort.",
+        "Previously working full assault lifts, migration full/partial/abort behavior, exact relic ferries, verified departure clearance, final-landing Scout clearance, and ordinary P3B44 attacks remain present."
+      ],
+      "known_limits": [
+        "P3B44T5 proves the exact-full route gate but does not identify why every individual passenger failed to board. The bounded P3B44T6 candidate snapshots are discriminating instrumentation; this upstream defect is not closed until a fresh replay establishes the first command/state divergence and supports a causal fix.",
+        "P3B44T6 changes only assault underfill behavior. Migration boarding thresholds and route behavior are instrumented but otherwise unchanged.",
+        "This patch does not change landing-coordinate memory, migration drop-site establishment, escort ownership overlap, Orange activation, recovery-unload repetition, dominant command volume, or crash behavior."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }

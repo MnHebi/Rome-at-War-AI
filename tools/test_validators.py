@@ -3434,7 +3434,11 @@ class FarmPolicyTests(unittest.TestCase):
                 "(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)",
                 "object-data-garrison-count >= 1",
             ),
-            actions=("MIGRATION-ROUTE-PREPARE",),
+            actions=(
+                "RAW44B migration full hull: %d",
+                "RAW44B migration load target: %d",
+                "MIGRATION-ROUTE-PREPARE",
+            ),
         )
         self.assertEqual(len(scout_departure), 1)
 
@@ -3449,7 +3453,10 @@ class FarmPolicyTests(unittest.TestCase):
             ),
             actions=(
                 "migration depart partial target: %d",
-                "MIGRATION-ROUTE-PREPARE",
+                "RAW44B migration partial hull: %d",
+                "RAW44B migration load target: %d",
+                "TRANSPORT-LOAD-TERMINAL-PARTIAL",
+                "MIGRATION-LOAD-DIAG-FIND",
             ),
         )
         self.assertEqual(len(partial_departure), 1)
@@ -3471,13 +3478,106 @@ class FarmPolicyTests(unittest.TestCase):
             ),
             actions=(
                 "migration boarding abort loaded: %d",
-                "(up-set-group search-local c: migration-boarding-group)",
-                "position-self-x action-stop",
-                "gl-home-anchor-x action-unload",
-                "MIGRATION-RETURNING",
+                "RAW44B migration abort loaded hull: %d",
+                "RAW44B migration load target: %d",
+                "TRANSPORT-LOAD-TERMINAL-ABORT",
+                "MIGRATION-LOAD-DIAG-FIND",
             ),
         )
         self.assertEqual(len(loaded_abort), 1)
+        empty_abort = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-CHECK-LOAD)",
+                "(up-timer-status t-island-migration == timer-triggered)",
+                "object-data-garrison-count <= 0",
+            ),
+            actions=(
+                "RAW44B migration abort empty hull: %d",
+                "RAW44B migration load target: %d",
+            ),
+        )
+        self.assertEqual(len(empty_abort), 2)
+        early_sample = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-CHECK-LOAD)",
+                "(up-timer-status t-island-migration-board-retry == timer-triggered)",
+                "(goal gl-island-migration-load-reported NO)",
+            ),
+            actions=(
+                "object-data-garrison-count gl-island-migration-load-observed",
+                "MIGRATION-LOAD-DIAG-FIND",
+            ),
+        )
+        diagnose = matching_rules(
+            self.military,
+            facts=("MIGRATION-LOAD-DIAG-PASSENGER",),
+            actions=(
+                "object-data-id gl-island-migration-load-candidate-id",
+                "object-data-action gl-island-migration-load-candidate-action",
+                "object-data-target-id gl-island-migration-load-candidate-target-id",
+                "object-data-order gl-island-migration-load-candidate-order",
+                "object-data-cmdid gl-island-migration-load-candidate-cmdid",
+                "object-data-distance gl-island-migration-load-candidate-distance",
+                "object-data-map-zone-id gl-island-migration-load-candidate-zone",
+                "object-data-group-flag gl-island-migration-load-candidate-group-flag",
+                "object-data-move-x gl-island-migration-load-candidate-move-x",
+                "object-data-move-y gl-island-migration-load-candidate-move-y",
+                "object-data-idling gl-island-migration-load-candidate-idling",
+            ),
+        )
+        diagnostic_retry = matching_rules(
+            self.military,
+            facts=(
+                "MIGRATION-LOAD-DIAG-APPLY",
+                "TRANSPORT-LOAD-TERMINAL-NONE",
+            ),
+            actions=(
+                "(up-target-objects 0 action-garrison -1 stance-no-attack)",
+                "(set-goal gl-island-migration-load-reported YES)",
+                "MIGRATION-LOADING",
+            ),
+        )
+        partial_apply = matching_rules(
+            self.military,
+            facts=(
+                "MIGRATION-LOAD-DIAG-APPLY",
+                "TRANSPORT-LOAD-TERMINAL-PARTIAL",
+            ),
+            actions=("position-self-x action-stop", "MIGRATION-ROUTE-PREPARE"),
+        )
+        loaded_abort_apply = matching_rules(
+            self.military,
+            facts=(
+                "MIGRATION-LOAD-DIAG-APPLY",
+                "TRANSPORT-LOAD-TERMINAL-ABORT",
+                "gl-island-migration-load-observed c:== 1",
+            ),
+            actions=("gl-home-anchor-x action-unload", "MIGRATION-RETURNING"),
+        )
+        empty_abort_apply = matching_rules(
+            self.military,
+            facts=(
+                "MIGRATION-LOAD-DIAG-APPLY",
+                "TRANSPORT-LOAD-TERMINAL-ABORT",
+                "gl-island-migration-load-observed c:<= 0",
+            ),
+            actions=(
+                "(up-reset-group c: migration-boarding-group)",
+                "MIGRATION-IDLE",
+            ),
+        )
+        self.assertEqual(len(early_sample), 1)
+        self.assertEqual(len(diagnose), 1)
+        self.assertEqual(len(diagnostic_retry), 1)
+        self.assertEqual(len(partial_apply), 1)
+        self.assertEqual(len(loaded_abort_apply), 1)
+        self.assertEqual(len(empty_abort_apply), 1)
+        self.assertNotIn(
+            "up-path-distance gl-island-migration-origin-x",
+            self.military,
+        )
         self.assertNotIn("MIGRATION-CHECK-LOAD-RESULT", self.military)
 
         watchdog = matching_rules(
@@ -5076,7 +5176,7 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertEqual(len(unavailable), 1)
 
-    def test_cross_water_attack_builds_a_full_scripted_lift(self) -> None:
+    def test_cross_water_attack_builds_a_safe_scripted_lift(self) -> None:
         blocked_empty_capacity = matching_rules(
             self.economy,
             facts=("(goal gl-land-target-needs-transport YES)",),
@@ -5150,11 +5250,108 @@ class FarmPolicyTests(unittest.TestCase):
                 "TRANSPORT-ROUTE-FIND",
             ),
         )
-        abort = matching_rules(
+        partial_terminal = matching_rules(
             self.military,
             facts=(
                 "TRANSPORT-ROUTE-LOAD-CHECK",
+                "object-data-garrison-count >= 5",
+                "object-data-garrison-count g:< gl-transport-route-load-target",
                 "gl-game-time g:>= gl-transport-route-load-deadline",
+            ),
+            actions=(
+                "object-data-garrison-count gl-transport-route-load-observed",
+                "TRANSPORT-LOAD-TERMINAL-PARTIAL",
+                "RAW44B attack load partial hull: %d",
+                "TRANSPORT-ROUTE-LOAD-DIAG-FIND",
+            ),
+        )
+        low_terminal = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-LOAD-CHECK",
+                "object-data-garrison-count < 5",
+                "gl-game-time g:>= gl-transport-route-load-deadline",
+            ),
+            actions=(
+                "TRANSPORT-LOAD-TERMINAL-ABORT",
+                "RAW44B attack load abort hull: %d",
+                "TRANSPORT-ROUTE-LOAD-DIAG-FIND",
+            ),
+        )
+        diagnose = matching_rules(
+            self.military,
+            facts=("TRANSPORT-ROUTE-LOAD-DIAG-PASSENGER",),
+            actions=(
+                "object-data-id gl-transport-route-load-candidate-id",
+                "object-data-action gl-transport-route-load-candidate-action",
+                "object-data-target-id gl-transport-route-load-candidate-target-id",
+                "object-data-order gl-transport-route-load-candidate-order",
+                "object-data-cmdid gl-transport-route-load-candidate-cmdid",
+                "object-data-distance gl-transport-route-load-candidate-distance",
+                "object-data-map-zone-id gl-transport-route-load-candidate-zone",
+                "object-data-group-flag gl-transport-route-load-candidate-group-flag",
+                "object-data-move-x gl-transport-route-load-candidate-move-x",
+                "object-data-move-y gl-transport-route-load-candidate-move-y",
+                "object-data-idling gl-transport-route-load-candidate-idling",
+                "RAW44B attack candidate id: %d",
+            ),
+        )
+        early_sample = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-LOAD-CHECK",
+                "gl-transport-route-load-reported NO",
+                "gl-game-time g:>= gl-transport-route-load-next",
+            ),
+            actions=(
+                "object-data-garrison-count gl-transport-route-load-observed",
+                "TRANSPORT-LOAD-TERMINAL-NONE",
+                "TRANSPORT-ROUTE-LOAD-DIAG-FIND",
+            ),
+        )
+        diagnostic_retry = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-LOAD-DIAG-APPLY",
+                "TRANSPORT-LOAD-TERMINAL-NONE",
+            ),
+            actions=(
+                "(up-target-objects 0 action-garrison -1 stance-no-attack)",
+                "(set-goal gl-transport-route-load-reported YES)",
+                "TRANSPORT-ROUTE-LOAD-WAIT",
+            ),
+        )
+        partial_snapshot = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-LOAD-DIAG-APPLY",
+                "TRANSPORT-LOAD-TERMINAL-PARTIAL",
+            ),
+            actions=(
+                "(fe-filter-garrisoned c: 1)",
+                "(up-set-group search-local c: attack-boarding-group)",
+                "object-data-garrisoned == 1",
+                "position-self-x action-stop",
+                "object-data-garrisoned != 1",
+                "TRANSPORT-ROUTE-LOAD-PARTIAL-MANIFEST",
+            ),
+        )
+        partial_departure = matching_rules(
+            self.military,
+            facts=("TRANSPORT-ROUTE-LOAD-PARTIAL-MANIFEST",),
+            actions=(
+                "(up-reset-group c: attack-boarding-group)",
+                "(up-create-group 0 0 c: attack-boarding-group)",
+                "gl-transport-route-load-target g:= gl-transport-route-load-observed",
+                "RAW44B attack partial departure: %d",
+                "TRANSPORT-ROUTE-LOAD-READY",
+            ),
+        )
+        abort = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-LOAD-DIAG-APPLY",
+                "TRANSPORT-LOAD-TERMINAL-ABORT",
             ),
             actions=("attack lift boarding aborted: %d", "TRANSPORT-ROUTE-RECOVERY-WAIT"),
         )
@@ -5174,6 +5371,18 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertEqual(len(board), 1)
         self.assertEqual(len(ready), 1)
         self.assertEqual(len(ready_rebuild), 1)
+        self.assertEqual(len(partial_terminal), 1)
+        self.assertEqual(len(low_terminal), 1)
+        self.assertEqual(len(diagnose), 1)
+        self.assertEqual(len(early_sample), 1)
+        self.assertEqual(len(diagnostic_retry), 1)
+        self.assertNotIn("TRANSPORT-ROUTE-LOAD-DIAG-PATH", self.military)
+        self.assertNotIn(
+            "up-path-distance gl-transport-route-origin-x",
+            self.military,
+        )
+        self.assertEqual(len(partial_snapshot), 1)
+        self.assertEqual(len(partial_departure), 1)
         self.assertEqual(len(abort), 1)
         self.assertEqual(len(landed), 1)
         invalidated = matching_rules(
@@ -5188,6 +5397,19 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(invalidated), 1)
+        defense_interrupt = matching_rules(
+            self.military,
+            facts=(
+                "(goal gl-home-defense-state YES)",
+                "TRANSPORT-ROUTE-LOAD-DIAG-FIND",
+                "TRANSPORT-ROUTE-LOAD-PARTIAL-MANIFEST",
+            ),
+            actions=(
+                "gl-transport-route-origin-x action-unload",
+                "TRANSPORT-ROUTE-RECOVERY-WAIT",
+            ),
+        )
+        self.assertEqual(len(defense_interrupt), 1)
         self.assertFalse(
             matching_rules(
                 self.military,
@@ -5211,7 +5433,7 @@ class FarmPolicyTests(unittest.TestCase):
 
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         self.assertIn(
-            '(up-chat-data-to-all "RAWAI-P3B44T5: %d" c: 446)',
+            '(up-chat-data-to-all "RAWAI-P3B44T6: %d" c: 447)',
             self.init_goals,
         )
         initial = matching_rules(
