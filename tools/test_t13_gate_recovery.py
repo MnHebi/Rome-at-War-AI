@@ -97,3 +97,44 @@ class FirstMilitaryBuildingTests(unittest.TestCase):
         self.assertFalse(g.accepts(rows[0]))
 
 
+class TradeProducerEpochTests(unittest.TestCase):
+    @staticmethod
+    def gate(land=False):
+        g = Gate(**{'current-age': CONSTANTS['imperial-age'], 'team-game': 1,
+            'gl-trade-route-state': CONSTANTS['TRADE-ROUTE-IDLE'], 'gl-land-trade-route': int(land),
+            'gl-water-trade-route': int(not land), 'gl-game-time': 5000, 'gl-trade-route-next': 4900,
+            'gl-trade-probe-trained': 1, 'map-type': CONSTANTS['RIVERS'], 'gl-trade-own-producer-total': 1})
+        g.counts = {'market': 1, 'dock': 1, 'trade-cog': 1, 'trade-cart': 1}
+        return g
+
+    @staticmethod
+    def rule(land=False):
+        state = 'ACTION' if land else 'WATER'
+        rows = [r for r in rule_blocks(source('rawai-economy.per'))
+                if f'(set-goal gl-trade-route-state TRADE-ROUTE-{state}-PROOF-CHECK)' in r[4]]
+        assert len(rows) == 1
+        return rows[0]
+
+    def test_changed_producer_count_cannot_renew_stale_proof(self):
+        for land, producer in ((False, 'dock'), (True, 'market')):
+            g = self.gate(land)
+            self.assertTrue(g.accepts(self.rule(land)))
+            for count in (0, 2, 3):
+                g.counts[producer] = count
+                self.assertFalse(g.accepts(self.rule(land)), (producer, count))
+
+    def test_fresh_snapshot_restores_proof_without_bypassing_train_limits(self):
+        for land, producer in ((False, 'dock'), (True, 'market')):
+            g = self.gate(land)
+            g.counts[producer] = g.goals['gl-trade-own-producer-total'] = 2
+            self.assertTrue(g.accepts(self.rule(land)))
+        rows = [r for r in rule_blocks(source('rawai-economy.per'))
+                if '(train trade-cog)' in r[4] and '(goal gl-trade-action-verified YES)' in r[3]]
+        self.assertEqual(len(rows), 1)
+        for constraint in ('building-type-count dock g:== gl-trade-own-producer-total',
+                           'unit-type-count-total trade-cog g:< gl-trade-growth-limit',
+                           'unit-type-count-total trade-cog g:< desired-number-cogs', 'can-train trade-cog'):
+            self.assertIn('(' + constraint + ')', rows[0][3])
+
+
+if __name__ == '__main__': unittest.main()

@@ -1200,6 +1200,10 @@
 	(goal gl-trade-route-state TRADE-ROUTE-IDLE)
 	(goal gl-land-trade-route NO)
 	(up-compare-goal gl-game-time g:>= gl-trade-route-next)
+	;A new/lost/packed producer invalidates the source census used by training.
+	;Do not renew live proof forever against an obsolete count: let the existing
+	;endpoint scan below rebuild and validate the inventory instead.
+	(building-type-count dock g:== gl-trade-own-producer-total)
 	(or
 		(up-compare-goal gl-trade-probe-trained c:>= 1)
 		(goal gl-water-trade-route YES)
@@ -1273,6 +1277,9 @@
 	(goal gl-trade-route-state TRADE-ROUTE-IDLE)
 	(goal gl-land-trade-route YES)
 	(up-compare-goal gl-game-time g:>= gl-trade-route-next)
+	;Same inventory epoch rule as water trade; do not simply overwrite the
+	;census here, which would bypass the existing source-zone validation.
+	(building-type-count market g:== gl-trade-own-producer-total)
 	(unit-type-count-total trade-cart >= 1)
 =>
 	(up-modify-goal gl-trade-route-focus s:= sn-focus-player-number)
