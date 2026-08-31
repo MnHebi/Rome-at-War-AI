@@ -374,6 +374,7 @@
 ;normal escort/attack ownership. Heavy bombardment hulls are never candidates.
 (defrule
 	(up-compare-goal gl-game-time g:>= gl-naval-scout-next)
+	(current-age < imperial-age)
 	(goal gl-naval-scout-state NAVAL-SCOUT-IDLE)
 	(up-compare-goal desired-naval-explorers c:>= 1)
 	(goal gl-home-defense-state NO)
@@ -406,6 +407,7 @@
 
 (defrule
 	(goal gl-naval-scout-state NAVAL-SCOUT-CHECK)
+	(current-age < imperial-age)
 	(up-compare-goal gl-naval-scout-count c:> 0)
 =>
 	;Rebuild the filtered list in the consumer instead of depending on a shared
@@ -431,6 +433,7 @@
 ;every order, and therefore cannot indefinitely refresh one allied object.
 (defrule
 	(goal gl-naval-scout-state NAVAL-SCOUT-TARGET)
+	(current-age < imperial-age)
 	(up-group-size c: naval-scout-group > 0)
 	(goal gl-naval-scout-leg 0)
 =>
@@ -454,6 +457,7 @@
 
 (defrule
 	(goal gl-naval-scout-state NAVAL-SCOUT-TARGET)
+	(current-age < imperial-age)
 	(up-group-size c: naval-scout-group > 0)
 	(goal gl-naval-scout-leg 1)
 =>
@@ -477,6 +481,7 @@
 
 (defrule
 	(goal gl-naval-scout-state NAVAL-SCOUT-TARGET)
+	(current-age < imperial-age)
 	(up-group-size c: naval-scout-group > 0)
 	(goal gl-naval-scout-leg 2)
 =>
@@ -500,6 +505,7 @@
 
 (defrule
 	(goal gl-naval-scout-state NAVAL-SCOUT-TARGET)
+	(current-age < imperial-age)
 	(up-group-size c: naval-scout-group > 0)
 	(goal gl-naval-scout-leg 3)
 =>
@@ -1457,6 +1463,7 @@
 	(goal gl-home-resource-pressure NO)
 	(up-compare-goal gl-home-stone-count c:> 0)
 	(current-age >= early-antiquity-age)
+	(current-age < imperial-age)
 	(up-compare-goal gl-island-scout-attempts c:< 3)
 	(unit-type-count transport-ship >= 1)
 	(unit-type-count scout-cavalry-class >= 1)
@@ -1467,6 +1474,12 @@
 			(goal map-type TEAM-ISLANDS)
 		)
 	)
+=>
+	(set-goal gl-island-migration-state MIGRATION-PLAN-SCOUT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-PLAN-SCOUT)
 =>
 	(up-modify-goal gl-island-migration-focus s:= sn-focus-player-number)
 	(set-strategic-number sn-focus-player-number 0)
@@ -4315,6 +4328,7 @@
 )
 
 (defrule
+	(current-age < imperial-age)
 	(goal gl-island-migration-state MIGRATION-TASK-SCOUT)
 	(up-set-target-object search-local c: 0)
 =>
@@ -4330,6 +4344,7 @@
 )
 
 (defrule
+	(current-age < imperial-age)
 	(goal gl-island-migration-state MIGRATION-TASK-SCOUT)
 	(not (up-set-target-object search-local c: 0))
 =>
@@ -4348,6 +4363,7 @@
 )
 
 (defrule
+	(current-age < imperial-age)
 	(goal gl-island-migration-state MIGRATION-FIND-SCOUT-PATROL)
 	(up-set-target-object search-remote c: 0)
 =>
@@ -4363,6 +4379,7 @@
 )
 
 (defrule
+	(current-age < imperial-age)
 	(goal gl-island-migration-state MIGRATION-FIND-SCOUT-PATROL)
 	(not (up-set-target-object search-remote c: 0))
 =>
@@ -4383,6 +4400,7 @@
 )
 
 (defrule
+	(current-age < imperial-age)
 	(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT-FALLBACK)
 	(up-set-target-object search-local c: 0)
 =>
@@ -4408,6 +4426,7 @@
 )
 
 (defrule
+	(current-age < imperial-age)
 	(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT)
 	(up-set-target-object search-local c: 0)
 =>
@@ -4433,6 +4452,7 @@
 )
 
 (defrule
+	(current-age < imperial-age)
 	(goal gl-island-migration-state MIGRATION-SCOUT-PATROL-WAIT)
 	(up-timer-status t-island-migration == timer-triggered)
 =>
@@ -4446,6 +4466,7 @@
 )
 
 (defrule
+	(current-age < imperial-age)
 	(goal gl-island-migration-state MIGRATION-SCOUT-PATROL-CHECK)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-distance <= 12)
@@ -4458,6 +4479,7 @@
 )
 
 (defrule
+	(current-age < imperial-age)
 	(goal gl-island-migration-state MIGRATION-SCOUT-PATROL-CHECK)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-distance > 12)
@@ -4480,6 +4502,7 @@
 )
 
 (defrule
+	(current-age < imperial-age)
 	(goal gl-island-migration-state MIGRATION-SCOUT-PATROL-CHECK)
 	(not (up-set-target-object search-local c: 0))
 =>
@@ -4491,6 +4514,7 @@
 )
 
 (defrule
+	(current-age < imperial-age)
 	(or
 		(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT)
 		(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT-FALLBACK)

@@ -22,13 +22,14 @@
 ;Zero counts alone do not disband existing explorer groups (AIRef).
 (defrule
 	(goal gl-owner-explore-suspended NO)
+	(or (current-age >= imperial-age)
 	(or (up-compare-goal current-phase c:>= 4)
 	(or (not (goal gl-island-migration-state MIGRATION-IDLE))
 	(or (up-group-size c: attack-boarding-group > 0)
 	(or (up-group-size c: recovery-boarding-group > 0)
 	(or (up-group-size c: home-defense-response-group > 0)
 	(or (up-group-size c: opportunistic-raid-group > 0)
-	     (up-group-size c: allied-relief-group > 0)))))))
+	     (up-group-size c: allied-relief-group > 0))))))))
 =>
 	(set-strategic-number sn-number-explore-groups 0)
 	(set-strategic-number sn-total-number-explorers 0)
@@ -42,6 +43,7 @@
 
 (defrule
 	(goal gl-owner-explore-suspended YES)
+	(current-age < imperial-age)
 	(up-compare-goal current-phase c:< 4)
 	(goal gl-island-migration-state MIGRATION-IDLE)
 	(up-group-size c: migration-boarding-group == 0)

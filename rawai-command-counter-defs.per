@@ -7,7 +7,7 @@
 (defconst gl-command-counter-1 14101)
 ; 2: rawai-general.per, STOP: (defrule (up-set-target-object search-local c: 0) (up-object-data object-data-order == orderid-build) (up-object-data object-data-target-id != -1) (up-object-target-data 
 (defconst gl-command-counter-2 14102)
-; 3: rawai-military.per, STOP: (defrule (up-timer-status t-transport-escort == timer-triggered) (goal gl-transport-escort-state ESCORT-IDLE) (not (goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-W
+; 3: rawai-military.per, STOP: (defrule (up-timer-status t-transport-escort == timer-triggered) (goal gl-transport-escort-state ESCORT-IDLE) (not (goal gl-am1-state 2)) (not (goal gl-am2-state 2)) (not
 (defconst gl-command-counter-3 14103)
 ; 4: rawai-military.per, reset-scouts: (defrule (goal gl-island-migration-state MIGRATION-BOARDING) (goal gl-island-migration-mission MIGRATION-MISSION-SCOUT) (goal gl-owner-explore-suspended NO)
 (defconst gl-command-counter-4 14104)
@@ -21,7 +21,7 @@
 (defconst gl-command-counter-8 14108)
 ; 9: rawai-military.per, STOP: (defrule (goal gl-island-migration-state MIGRATION-VERIFY-SCOUT-LANDING) (up-set-target-object search-local c: 0)
 (defconst gl-command-counter-9 14109)
-; 10: rawai-military.per, STOP: (defrule (or (goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT) (goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT-FALLBACK) ) (not (up-set-target-object searc
+; 10: rawai-military.per, STOP: (defrule (current-age < imperial-age) (or (goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT) (goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT-FALLBACK) ) (no
 (defconst gl-command-counter-10 14110)
 ; 11: rawai-military.per, STOP: (defrule (goal gl-island-migration-state MIGRATION-CHECK-LANDING) (not (up-set-target-object search-local c: 0))
 (defconst gl-command-counter-11 14111)
@@ -45,12 +45,16 @@
 (defconst gl-command-counter-20 14120)
 ; 21: rawai-military.per, reset-scouts: (defrule (goal gl-raid-state RAID-FIND-TARGET) (up-set-target-object search-remote c: 0) (goal gl-owner-explore-suspended NO)
 (defconst gl-command-counter-21 14121)
-; 22: rawai-ownership.per, reset-scouts: (defrule (goal gl-owner-explore-suspended NO) (or (up-compare-goal current-phase c:>= 4) (or (not (goal gl-island-migration-state MIGRATION-IDLE)) (or (up-group-size c: a
+; 22: rawai-ownership.per, reset-scouts: (defrule (goal gl-owner-explore-suspended NO) (or (current-age >= imperial-age) (or (up-compare-goal current-phase c:>= 4) (or (not (goal gl-island-migration-state MIGRAT
 (defconst gl-command-counter-22 14122)
 ; 23: rawai-severe-defense.per, reset-scouts: (defrule (goal gl-owner-severe-armed YES) (goal gl-owner-explore-suspended NO)
 (defconst gl-command-counter-23 14123)
 ; 24: rawai-tauntcommands.per, reset-scouts: (defrule (goal gl-ally-help-state ALLY-HELP-DISPATCH) (goal gl-home-defense-state NO) (up-compare-goal gl-ally-help-responders c:> 0) (up-set-target-object search-remote 
 (defconst gl-command-counter-24 14124)
+; 25: rawai-exploration-policy.per, STOP: (defrule (current-age >= imperial-age)
+(defconst gl-command-counter-25 14125)
+; 26: rawai-exploration-policy.per, STOP: (defrule (goal gl-island-migration-state MIGRATION-RETIRE-SCOUT)
+(defconst gl-command-counter-26 14126)
 ; 90: rawai-native-attack-ownership.per, reset attack exclusions: aggregate
 (defconst gl-command-counter-90 14190)
 ; 91: rawai-native-attack-ownership.per, exclude attack type: aggregate
@@ -87,6 +91,8 @@
 	(set-goal gl-command-counter-22 0)
 	(set-goal gl-command-counter-23 0)
 	(set-goal gl-command-counter-24 0)
+	(set-goal gl-command-counter-25 0)
+	(set-goal gl-command-counter-26 0)
 	(set-goal gl-command-counter-90 0)
 	(set-goal gl-command-counter-91 0)
 	(disable-self)
