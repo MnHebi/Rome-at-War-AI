@@ -1,14 +1,17 @@
 (defrule
+	(goal gl-owner-explore-suspended NO)
 	(up-compare-sn sn-number-explore-groups g:!= desired-military-explorers)
 =>
 	(up-modify-sn sn-number-explore-groups g:= desired-military-explorers))
 
 (defrule
+	(goal gl-owner-explore-suspended NO)
 	(up-compare-sn sn-cap-civilian-explorers g:!= desired-civilian-explorers)
 =>
 	(up-modify-sn sn-cap-civilian-explorers g:= desired-civilian-explorers))
 
 (defrule
+	(goal gl-owner-explore-suspended NO)
 	(up-compare-sn sn-minimum-civilian-explorers g:!= desired-civilian-explorers)
 =>
 	(up-modify-sn sn-minimum-civilian-explorers g:= desired-civilian-explorers))
@@ -21,6 +24,7 @@
 	(set-strategic-number sn-number-boat-explore-groups 0))
 
 (defrule
+	(goal gl-owner-explore-suspended NO)
 	(up-compare-goal current-phase c:< 4)
 	(up-compare-sn sn-total-number-explorers c:!= 2)
 =>
@@ -50,7 +54,8 @@
 	;P3B44T6: temporary group 0 replaced the migrant reservation, then its
 	;cleanup cleared that flag. Keep the transport owner's passengers out of
 	;both generic stop handling and temporary-group flag mutations.
-	(up-remove-objects search-local object-data-group-flag == migration-boarding-group)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
 	(up-remove-objects search-local object-data-target == tree-class)
 	(up-create-group 0 0 c: 0)
 	(up-modify-group-flag 1 c: 0)
@@ -64,6 +69,8 @@
 (or	(up-object-data object-data-order == orderid-repair)
 	(up-object-data object-data-order == orderid-enter))))
 =>
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != 0)
 	(up-target-point 0 action-stop -1 -1))
 (defrule
 	(up-set-target-object search-local c: 0)
@@ -71,6 +78,8 @@
 	(up-object-data object-data-target-id != -1)
 	(up-object-target-data object-data-status != status-pending)
 =>
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != 0)
 	(up-target-point 0 action-stop -1 -1))
 (defrule
 	(up-set-target-object search-local c: 0)

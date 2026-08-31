@@ -101,6 +101,7 @@
 )
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(true)
 =>
 	(up-modify-goal desired-number-castles c:= 0)
@@ -359,7 +360,7 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-all "RAWAI-P3B44T8: %d" c: 449)
+	(up-chat-data-to-all "RAWAI-P3B44T11: %d" c: 456)
 	(disable-self)
 )
 
@@ -1045,6 +1046,16 @@
 	(set-goal gl-island-migration-rejected-tree2-y -1)
 	(set-goal gl-island-migration-rejected-tree3-x -1)
 	(set-goal gl-island-migration-rejected-tree3-y -1)
+	(disable-self)
+)
+
+;Diagnostics own their scratch; they cannot borrow controller search/state.
+(defrule
+	(true)
+=>
+	(set-goal gl-transport-observed-x 0)
+	(set-goal gl-transport-observed-y 0)
+	(set-goal gl-transport-observed-value 0)
 	(disable-self)
 )
 

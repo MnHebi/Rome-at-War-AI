@@ -1642,6 +1642,9 @@
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-dejbjerg-id)
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point gl-dejbjerg-target-x action-move -1 stance-no-attack)
 	(set-goal gl-dejbjerg-attempts 1)
 	(up-modify-goal gl-dejbjerg-next g:= gl-game-time)
@@ -1679,6 +1682,9 @@
 	(up-object-data object-data-distance > 8)
 	(up-compare-goal gl-dejbjerg-attempts c:< 4)
 =>
+	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point gl-dejbjerg-target-x action-move -1 stance-no-attack)
 	(up-modify-goal gl-dejbjerg-attempts c:+ 1)
 	(up-modify-goal gl-dejbjerg-next g:= gl-game-time)

@@ -1,0 +1,387 @@
+;Generated native attack admission. Called after DUC owners and before attack-now.
+
+;DE excludes a TYPE, not an object: FREE same-type units wait too.
+
+;Each loop removes a type from a finite (at most 40-member) owner list.
+
+;No movement, STOP, or reset of the already working native attack manager.
+
+(defrule
+	(true)
+=>
+	(fe-reset-attack-group-exclusion-list)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: siege-objective-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != siege-objective-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: juggernaut-bombardment-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != juggernaut-bombardment-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: attack-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: attack-boarding-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: home-naval-response-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != home-naval-response-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: home-defense-response-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != home-defense-response-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: opportunistic-raid-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != opportunistic-raid-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: transport-screen-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: transport-escort-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-escort-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: migration-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: recovery-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != recovery-transport-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: recovery-boarding-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != recovery-boarding-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: relic-ferry-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != relic-ferry-transport-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: relic-ferry-passenger-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != relic-ferry-passenger-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: naval-scout-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != naval-scout-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)
+
+(defrule
+	(true)
+=>
+	(up-set-group search-local c: allied-relief-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != allied-relief-group)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-type gl-owner-native-type)
+	(fe-exclude-from-attack-group g: gl-owner-native-type)
+	(up-remove-objects search-local object-data-type g:== gl-owner-native-type)
+)
+
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+	(up-jump-rule -2)
+)

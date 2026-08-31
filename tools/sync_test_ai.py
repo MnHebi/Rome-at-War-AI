@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import shutil
 import sys
 import tempfile
 from pathlib import Path
@@ -37,11 +36,22 @@ def manifest_digest(paths: list[Path]) -> str:
     return value.hexdigest().upper()
 
 
+def payload_digest(payload: dict[str, bytes]) -> str:
+    value = hashlib.sha256()
+    for name, data in sorted(payload.items()):
+        value.update(name.encode('utf-8'))
+        value.update(b'\0')
+        value.update(hashlib.sha256(data).digest())
+    return value.hexdigest().upper()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Check or copy top-level .ai/.per runtime files to a test-mod AI directory."
     )
     parser.add_argument("target", type=Path, help="Existing resources/_common/ai directory")
+    parser.add_argument('--writer-trace', action='store_true',
+                        help='Compile bounded T10 writer telemetry in memory from this checkout')
     parser.add_argument(
         "--apply",
         action="store_true",
@@ -64,6 +74,14 @@ def main() -> int:
         parser.error("target must be an external test-mod AI directory")
 
     files = runtime_files()
+    payload = {path.name: path.read_bytes() for path in files}
+    source_hash = payload_digest(payload)
+    if args.writer_trace:
+        from writer_trace import compile_payload
+        payload, trace_manifest = compile_payload(payload)
+        saved = ROOT / 'writer-trace-sites.json'
+        if not saved.exists() or json.loads(saved.read_text(encoding='utf-8')) != trace_manifest:
+            parser.error('writer-trace-sites.json is missing/stale; generate it with tools/writer_trace.py --manifest writer-trace-sites.json')
     expected_names = {path.name for path in files}
     unexpected = sorted(
         path.name
@@ -81,7 +99,7 @@ def main() -> int:
             missing.append(source.name)
             needs_copy = True
         else:
-            needs_copy = digest(source) != digest(destination)
+            needs_copy = hashlib.sha256(payload[source.name]).hexdigest().upper() != digest(destination)
             if needs_copy:
                 different.append(source.name)
 
@@ -96,14 +114,15 @@ def main() -> int:
                 ) as temporary:
                     temporary_name = temporary.name
                 temporary_path = Path(temporary_name)
-                shutil.copy2(source, temporary_path)
-                if digest(source) != digest(temporary_path):
+                temporary_path.write_bytes(payload[source.name])
+                expected = hashlib.sha256(payload[source.name]).hexdigest().upper()
+                if expected != digest(temporary_path):
                     raise RuntimeError(f"temporary hash mismatch: {source.name}")
                 temporary_path.replace(destination)
             finally:
                 if temporary_name is not None:
                     Path(temporary_name).unlink(missing_ok=True)
-            if digest(source) != digest(destination):
+            if hashlib.sha256(payload[source.name]).hexdigest().upper() != digest(destination):
                 raise RuntimeError(f"post-replace hash mismatch: {source.name}")
             copied.append(source.name)
 
@@ -111,14 +130,16 @@ def main() -> int:
         source.name
         for source in files
         if not (target / source.name).exists()
-        or digest(source) != digest(target / source.name)
+        or hashlib.sha256(payload[source.name]).hexdigest().upper() != digest(target / source.name)
     ]
     report = {
         "mode": "apply" if args.apply else "check",
         "source": str(source_root),
         "target": str(target),
         "runtime_files": len(files),
-        "source_runtime_sha256": manifest_digest(files),
+        "source_runtime_sha256": payload_digest(payload),
+        "checkout_runtime_sha256": source_hash,
+        "writer_trace": args.writer_trace,
         "target_runtime_sha256": (
             manifest_digest([target / source.name for source in files])
             if not remaining

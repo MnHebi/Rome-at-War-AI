@@ -116,6 +116,18 @@ class OwnershipAuditTests(unittest.TestCase):
         row = analyze(events, {(1, 30)}, {1: "Red"}, (evidence,))["boarding_windows"][0]["passengers"][0]
         self.assertEqual(row["classification"], "successful_reserved_corroborated_partial_landing")
 
+    def test_public_ready_is_hull_specific_without_private_player_chat(self):
+        events = [self.event(1, 1000, "SPECIAL", player_id=7, target_id=30, order_id=5, object_ids=[40]),
+                  self.event(2, 1100, "CHAT", player=7, message="RAW44C assault ready hull: 31"),
+                  self.event(3, 1200, "CHAT", player=7, message="RAW44C assault ready hull: 30")]
+        report = analyze(events, {(7, 30), (7, 31)}, {7: 'Blue'})
+        window = report['boarding_windows'][0]
+        self.assertEqual(window['owner'], 'assault')
+        self.assertEqual(window['terminal']['sequence'], 3)
+        self.assertEqual(window['passengers'][0]['classification'],
+                         'successful_reserved_corroborated_full_load')
+        self.assertTrue(any('not a census' in note for note in report['limitations']))
+
 
 if __name__ == "__main__":
     unittest.main()

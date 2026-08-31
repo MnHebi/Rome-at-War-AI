@@ -3,6 +3,150 @@
   "pending_match_setups": [],
   "benchmarks": [
     {
+      "id": "britain-4v4-20260830-182330-p3b44t10r2-ownership",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.30 182330.aoe2record",
+        "sha256": "06C62FDBD658D27DDDE682FB49A8F9A90F112E7CC0D7FDD33411A935762E904E",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia (preserved user setup; RMS id 50)",
+        "duration_seconds": 3724,
+        "players": [
+          "Red Roman Empire (team 1)", "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)", "Cyan Britons (team 2)",
+          "Blue Germani (team 2)", "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Selected colors, not internal colors or slot order, agree with preserved teams. Replay resolved teams 2/3, Extreme, population 400, Fast 2.0, shared exploration."
+      },
+      "direct_replay_observations": [
+        "All-player sweep: 282006 retained exact command/chat events, zero decoder failures; 20 telemetry/sample-identified hulls, 160 loading commands and 58 raw boarding windows. The earlier load/unload-only census omitted load-only hulls; sample/public-hull evidence was added before conclusions.",
+        "Raw window bounds: 19 assault-ready records, 7 migration-full, 3 assault-partial, 1 migration-partial, 3 assault-abort, 4 migration-empty-abort, 17 unload bounds and 4 unresolved replay-end bounds. These are not counts of productive landings; missing terminal messages can merge missions. Purple also reports a nine-passenger partial departure at 48:02.832 without the usual hull-specific partial header.",
+        "All 76 DE_RETREAT packets have matching RAW44O source labels: 56 land-defense, 6 regroup, 12 siege escalation, 2 unstick. Orange priest 33235, loading from 27:26.906, is recalled to target 4542 at 27:37; priest 34388, loading from 37:08.684, is recalled at 37:18. Both attempts reach their roughly three-minute recovery unload without an outbound relic announcement.",
+        "Purple recall at 48:32.856 includes the original ten-unit loading roster, but the owner is already SCREEN-FIND (19), following nine-passenger partial departure at 48:02.832. It is route-stage recall exposure, NOT proof of boarding interruption or disembarkation. Green recall at 55:24 includes passenger 41942 while migration is WAYPOINT-WAIT (29), also not a boarding-phase proof.",
+        "Blue scout 4608 receives 283 AI_ORDER 706 STOP packets between load at 55:03.414 and sample at 55:12.050; 276 during the second 57:16.740-57:30.078 interval. Samples show it idle ashore, distance 1 and group flag 4. Hull 40501 subsequently reports ready; a ready hull does not prove every originally selected passenger boarded.",
+        "Blue's 20-unit migration load at 59:52 also overlaps STOP packets for 16 selected members, with a partial terminal at 60:21.982. Without per-member post-command occupancy, these packets alone do not establish which prevented boarding versus normal cleanup after garrisoning.",
+        "Before 09:00 each player emits only the three single-use writer sites 10, 11 and 12, rather than R1's recurring idle cleanup flood. Total writer budget exhausts later: Gray 37:00.648, Blue 48:29.402, Purple 56:06.164. There are also temporary per-minute gaps.",
+        "No build marker or map fingerprint survives. Zero players pass exact writer-map identity verification, so the analyzer withholds new source-site attribution. The user identifies R2; the archived R2 map and deployment identity remain separate evidence. There are no parsed resign actions; end cause is not inferred."
+      ],
+      "implementation_inferences": [
+        "Routine global recall reaches relic-ferry passengers while assault/migration state may be zero, showing why a common task contract must cover relic/recovery ownership too. Existing R1/T8 recall evidence remains applicable; do not misclassify R2 route-stage recalls as boarding events.",
+        "The repeated Blue STOP stream is real, but its producer is not identified: the relevant late intervals follow Blue's trace quota exhaustion and there is no replay map fingerprint. Do not label all unbracketed packets native, or assume STOP for an already-garrisoned passenger is harmful.",
+        "Source/history audit before R2 analysis found food 12 and all eight self-target exclusions already present in R3. They were not lost on rollback. Only hunt 28 differed from the requested historical 16; R4 restores that cap and adds eight guard tests. These source facts do not explain away the user-observed own-TC behavior."
+      ],
+      "changes_under_test": [
+        "User-reported R2:453; archived payload 8A6CD4BCFF8770ECB4E3D106D0ED719478C90779CFA3489A9FF4227FC2F39F9D and map B29E7B34A3EDEF681B31CD3740CE36930C2C0D4903CA01558103ECA5E9EDA5E9. No in-replay full fingerprint confirmation.",
+        "R4:455 was implemented, separately committed, fully validated and deployed BEFORE R2 analysis per user directive. It preserves all telemetry/transport/ownership behavior; this older replay does not validate hunt 16 or delayed R3/R4 identity delivery."
+      ],
+      "fresh_replay_acceptance": [
+        "Verify all-player R4 marker/map delivery and the historical gather/self-target invariants; distinguish legitimate TC garrison/deposit/defense/production commands from a self-target military flood.",
+        "Demonstrate task reservation against routine recall, exploration and harmful STOP writers, including relic ferry and recovery tasks. Require actual command membership and occupancy-aware terminal proof while preserving successful full/partial lifts and ordinary attacks."
+      ],
+      "known_limits": [
+        "Unresolved replay-end windows do not prove continuous reservation to match end; later commands/samples from another mission must not be treated as proof of an earlier overwrite. Raw automated classifications are investigation leads, not final causal conclusions.",
+        "Ready/full/partial and unload commands are not equivalent to productive landing. Writer coverage is missing both fingerprint confirmation and some invocation records, with rate/total quota gaps explicitly retained. No new gameplay ownership fix is claimed."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260830-181054-p3b44t10r1-writer-coverage",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.30 181054.aoe2record",
+        "sha256": "FE6D9AAFF07A6478A29BAD07D4FC210F5168B11F2A116340DB4C9A2175CFA91A",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia (preserved user setup; RMS id 50)",
+        "duration_seconds": 1374,
+        "players": [
+          "Red Roman Empire (team 1)", "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)", "Cyan Britons (team 2)",
+          "Blue Germani (team 2)", "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Signed replay players 1..8 map to Red, Green, Yellow, Purple, Orange, Cyan, Blue, Gray by selected_color_id, not row order. Resolved team ids are 2 and 3. The preserved teams agree; replay speed is Fast 2.0 and population cap 400."
+      },
+      "direct_replay_observations": [
+        "User identifies this as R1 and previously observed spam stopping around Port completion. All eight players emit RAW44W coverage gap: 0 at 05:40-05:41, before the first boarding at 10:05.882. No subsequent writer begin or coverage-resumed records occur. The stop is quota exhaustion, not a Port condition; build orders do not establish actual Port completion times.",
+        "66324 retained exact command/chat events, no array decoder failures. All 11 command-linked hulls and 15 one-passenger scout-ferry boarding episodes audited. Red has 2 full-load confirmations, Blue 3; Green 2 empty aborts, Yellow 1, Purple 1, Orange 2, Cyan 1, Gray 3. There are no assault boarding episodes. Full load is not confirmed productive landing.",
+        "All 20 retreat packets match source-1 land-defense labels. Reserved scout 4643 is recalled to Green TC 4555 at 15:21.180 and 18:48.512; Orange scout 4646 is recalled to TC 4582 at 12:34.644 and 14:38.636. Labels report migration state 3 and the corresponding hull; later retries/samples corroborate the passengers remain ashore.",
+        "Purple scout 4645 receives repeated AI_ORDER 705 exploration orders from 13:08.876, following first boarding at 13:07.784 and recurring after retries. Samples at 13:11.760 and 13:38.422 show action 605/order 705 with group flag 4 retained. Orange scout 4646 also receives exploration orders during both attempted lifts.",
+        "Yellow, Cyan and Gray have five empty aborts with no recorded competing command. Enter-order 717 remains active and distance declines between samples: Yellow 60 to 21, Cyan 58 to 19, Gray 82 to 49, 70 to 44 and 74 to 36. Their roughly 30-second load deadlines expire before boarding.",
+        "No RAWAI build marker, RAW44W map0..3 or schema record survives in the replay body; raw-byte search also finds no marker/map strings. The stream begins with Gray's unmatched end:328. Supplied R1 identity and archived deployment are preserved, but zero players pass replay-fingerprint verification. Do not override that failure or identify arbitrary missing writers as native."
+      ],
+      "implementation_inferences": [
+        "The R1 log gate spends the invocation budget on generic cleanup site 41 before transportation. R2 addresses the proven classifier defect; this R1 replay does not validate R2.",
+        "Source-1 global recall violates scout-ferry reservation; exploration order 705 plus action 605 identifies a second competing task while group 4 remains set. This narrows scout ownership failure beyond generic movement, but does not identify every native/script-delegated call or settle T7 worker WORK conflicts.",
+        "The five approach-timeout episodes are distinct from recorded preemption. Fixed deadline expiry while still approaching is established; eventual successful boarding, physical reachability and an appropriate replacement deadline are not. Navigation/timeout changes remain outside the current ownership patch.",
+        "Startup-only marker/map delivery is insufficient. Loss/truncation of startup evidence is established, but the exact engine queue mechanism is not. R3 uses bounded delayed staggered announcements instead of assuming startup delivery."
+      ],
+      "changes_under_test": [
+        "User-reported T10R1:452, archived runtime SHA D4D63605982616602778246C9ED864332E548B7883223A49ED58D49385EDD718 and source-map fingerprint 316DCF71092AC28688ECFDA73F8323D2D492246B98CF2596AF526C86B921B13C. Per-player in-replay identity is incomplete. String-constant trace text demonstrably runs, but useful boarding writer coverage fails.",
+        "Subsequent T10R3:454 retains the R2 idle-gate fix and sends five short marker/map records three times per player, staggered after startup and separated by 30 seconds. No gameplay rule changes. R3 is installed but not runtime-validated by R1."
+      ],
+      "fresh_replay_acceptance": [
+        "All eight players must retain the correct R3 build marker and full map fingerprint after startup, independently of invocation quota. No recurring site-41 logging before boarding. Real boarding/reservation/writer evidence remains available with explicit quota gaps.",
+        "Before declaring ownership fixed, demonstrate exploration-task release and reservation protection against routine defense/global recall, including actual command members and explicit severe-emergency cancellation. Preserve successful scout/full/partial transport missions and ordinary P3B44 attacks.",
+        "Worker and assault acceptance require their own actual episodes; this scout-only replay cannot validate them."
+      ],
+      "known_limits": [
+        "A first update mistakenly called these villagers; source scout selection and one-passenger mission evidence correct them to scout ferries. Do not count them as worker migration tests.",
+        "Raw replays, cache, full/exact reports, transport/ownership audits and preserved R1/R2 maps remain under the external .analysis directory. Current repository map belongs to R3. Initial-object full-header parsing fails in this parser; no object-type inference from numeric ID magnitude.",
+        "Five full-load confirmations do not establish successful off-island settlement; Red's remaining self-visible diagnostics include rejected landing/return failure. No physical blockage census, death proof or all-player gameplay non-regression proof is available."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260830-154021-p3b44t8-recall-migration",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.30 154021.aoe2record",
+        "sha256": "C7BDFAF53DE72F03012C5AD88F4B930E9B7670A07CDC96490489F7428F2CE29F",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "duration_seconds": 4053,
+        "players": [
+          "Red Roman Empire (team 1)", "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)", "Cyan Britons (team 2)",
+          "Blue Germani (team 2)", "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Selected-color fields joined by player number agree with the preserved authoritative teams. Neither internal parser colors nor lobby row order defines visible color.",
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCB3FCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The user supplied missed Blue blockage screenshots at 49:11 and 66:50. Corresponding command windows: assault hull 35026 receives a ten-unit load command at 48:33.312, issues no departure and is told to unload at home at 49:42.634; migration hull 36912 has seven aboard by 64:31.600, issues six orders to (134,99) from 64:31.634-65:48.306, then six home unloads from 66:03.632-67:21.640. Screenshots establish visible crowding, not exact hull identity or enemy cargo. Preserved external images: p3b44t8-blue-4911.jpg SHA256 4E0DF49D3E008D2F93C2EA027FC24F76B102429AFACFD15FC93536EE17156DF1; p3b44t8-blue-6650.jpg SHA256 EFF7EF6100410DADDFA1553979B58C2D4581BA5DFA1C61D80EAA48126C0219F9.",
+        "The user reports Red's late Transport was physically blocked by other friendly Transports and confirms manually moving those blockers. Playback at 66:24 shows a four-villager migration hull and two adjacent empty Transports. Recorded MOVE packets select 48064/31880 at 66:30-32. Migration hull 31691 receives its first scripted departure at 66:31.236, coincident with its partial-load deadline; subsequent waypoint distance is 52/30/15/0 through 67:32. No Red departure-congestion telemetry occurs. The observed crowding and command timing are preserved together, not treated as contradictory proof against the user's observation.",
+        "T8:449 markers appear for players 2-8. All 68 source/installed runtime files match SHA-256 0166808361591E65F29FA4B0770DB90A1C68D1F4A200F220C28C76F13A6D2F92. Zero decoder failures; replay ends at 67:33 without a recorded resignation. Ending cause is not inferred.",
+        "All 3476 SPECIAL/UNGARRISON actions are screened: 19-hull mission union, 190 loads, 130 point unloads, 47 load/unload phases, seven terminal load-only phases. Never-loaded empty blockers are additional objects, not missing completed missions. The 58 boarding windows contain 354 passenger-window instances: 28 full-load-corroborated successes without observed conflict, 34 conflicts with later ashore and task-owner evidence, 292 unresolved (including 108 with a conflict but uncertain timing/ownership). No individual death/unavailability is proven by missing commands.",
+        "Per-color windows/success/conflict/unresolved/retreat-packets: Red 11/23/6/37/5; Green 4/0/0/31/16; Yellow 3/0/1/2/12; Purple 3/0/3/9/26; Orange 14/2/0/82/14; Cyan 1/0/0/1/13; Blue 18/3/22/128/1; Gray 4/0/2/2/13. These are passenger-window classifications, not counts of distinct passengers or failed voyages. All 56 candidate snapshots (26 assault, 30 migration) retain group flag 4.",
+        "All 100 DE_RETREAT packets match 56 RAW44O invocations: source 1 land defense 28 calls/47 packets, source 2 naval defense 16/32, source 3 siege escalation 11/19, source 4 loss regroup 1/2. Sources 5/6 are absent. A single call may emit adjacent land and naval packets at one clock. One-to-one label consumption falsely leaves 44 packets unattributed; the corrected same-clock bundle join leaves none.",
+        "Red source 3 at 54:03.506, assault state 33/hull 31341, recalls 62 land units to TC 4434 (31,136) and 13 naval units to Port 30910 (20.5,122.5). Passengers 40149/43815/47309 were ordered aboard at 53:56.856 and appear again in the 54:10 retry after this recall. Later samples of 47309 and 40149 retain group 4. This establishes actual siege-escalation boarding interference, not just source capability; it does not prove continuous flags at every instant or permanent failure of the later partial lift.",
+        "Orange 40825 detects departure congestion at 53:43, orders blocker 40598, verifies it clear at 53:52 and resumes at 54:00. Landing begins 54:17 but times out 55:02. Across seven assault landing windows no guard refresh targets the active hull; Orange completes at 41:49 and Red at 65:33, with five other timeouts. Nine migration candidate missions produce 18 clear events with same-second unloads, one wrong-zone rejection and 20 path rejections without such unloads, and zero active migration-hull guard overlap. Five relic outbound and four return readiness events occur. These checks do not prove economic settlement or every mission's success."
+      ],
+      "implementation_inferences": [
+        "Blue's two windows cannot be collapsed into one failed departure detector: the first never issues departure, while the second exhausts migration route and recovery retries outside T3 assault clearance. Private hold reasons prevent establishing Blue's first blocking gate. The same migration hull has an additional repeated-order/home-unload episode at 59:42-61:14, but repeat orders alone do not prove collision: Red 31341 repeats nine orders at 63:47-64:54 before a successful landing. Generic idle-berth clearance requires all transport controllers idle; removing that gate without safe blocker ownership/occupancy evidence is not an accepted fix.",
+        "T3 exact-blocker recovery is implemented only in the assault departure controller, not migration boarding/departure. The late Red episode exposes that coverage gap. Because manual clearance overlaps the first departure and normal boarding deadline, this replay cannot measure unassisted post-departure stall duration or establish that every prior second of waiting was caused by collision. Keep phase-aware migration congestion investigation separate from the shared ownership patch.",
+        "Siege escalation is triggered by three known fortifications without requiring a severe home emergency. Its recorded global recall demonstrably intersects reserved passengers and is an established ownership-violation source. This belongs in the already authorized shared permission/preemption fix, not a guess that all worker commands have the same cause.",
+        "T8 identifies all recorded global recalls but still lacks worker command-boundary and owner acquire/release/native-delegation telemetry. The architecture remains ROOT CAUSE NOT FULLY PROVEN — OWNERSHIP TELEMETRY REQUIRED overall; the proven siege-escalation subcause must not be relabeled unknown."
+      ],
+      "changes_under_test": [
+        "The replay tests existing T8:449 caller diagnostics. Subsequent Blue screenshots prompted T9:450 diagnostic input. After the user's priority correction, T10:451 added 351 source command/group/native-policy sites, pre/post boarding states/hulls, selected ID/flag, bounded coverage and a full replay-visible source-map fingerprint. T10:451 subsequently FAILED engine compilation with user-reported ERR6003 at rawai-init-goals.per:362. Corrected T10R1:452 is installed: it reuses 12 string constants, reducing total literal occurrences from 5665 to 1465 while retaining all sites and fields. Engine startup/delivery remains pending. It is compiled in memory from the same checkout; T9 was never separately installed. No navigation or ownership decision was changed. None of these diagnostic additions is runtime-validated by this T8 replay."
+      ],
+      "fresh_replay_acceptance": [
+        "T10 writer telemetry must identify source-rule calls and actual reserved-passenger intersections for all players, using its exact map fingerprint. R1 screenshots subsequently exposed site 41 logging while missions were idle: a group exclusion was mistaken for a reservation mutation. R2:453 is now installed with destination-operand classification and all 351 sites retained; prove idle suppression without hiding actual boarding writers. Preserve the external R1 map for that ongoing match's replay. Account for queued packets arriving after end tags (directly observed in T8), multiple compatible issuers, source group changes, persistent native delegation and explicit coverage exhaustion. Do not infer native origin from untagged packets. Preserve existing attacks, successful boarding and mission timings; diagnostics do not close the passenger-stealing defect.",
+        "T9 diagnostics must deliver exact hull/phase/hold reason and bounded actual-position/cargo snapshots for every emitting player without command/search/controller changes or per-sweep spam. This only discriminates failures; physical blockage remains INVESTIGATING until safe exact blocker handling and unassisted boarding/departure/recovery are demonstrated.",
+        "A shared ownership patch must preserve assault and migration reservations against ordinary controllers, use bounded free responders for routine threats, explicitly cancel old owners for verified severe emergencies, and detect allied threats around persistent first-TC coordinates. All nine required contracts and all-player engine acceptance remain pending.",
+        "A separately scoped migration-clearance change must distinguish blocked boarding access, blocked departure and ordinary loading wait, record safe exact blocker selection/separation, and demonstrate unassisted progress while preserving occupied/task-owned/threatened/wrong-water ships and existing successful assault clearance."
+      ],
+      "known_limits": [
+        "Command-linked hull coverage is not a census of idle/empty ships or physical obstructions. Missing congestion logs do not prove movement/clearance; enemy Transport selection in a screenshot does not expose cargo. The initial audit missed the user's two Blue blockage observations and its physical coverage claim is corrected here.",
+        "Commands are not simulation acknowledgments. Manual intervention prevents a counterfactual unassisted departure measurement. The final migration reaches a landing candidate just before cutoff; resource drop-off construction/work is not established.",
+        "Generic T7-oriented likely_source text in p3b44t8-task-ownership.json is superseded for retreats by the exact-sequence p3b44t8-recall-sources.json join. Raw replay/cache/audit artifacts remain outside the AI repository."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
       "id": "britannia-rome-vs-britons-20260824-090234",
       "source": {
         "file_basename": "SP Replay v101.103.48987.0 @2026.08.24 090234.aoe2record",

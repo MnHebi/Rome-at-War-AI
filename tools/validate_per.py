@@ -40,10 +40,10 @@ MAX_RULE_ELEMENTS = 32
 MIN_TIMER_ID = 1
 MAX_TIMER_ID = 50
 
-# The DUC group table has ten slots. Values outside 0..9 parse as ordinary
-# identifiers but cannot provide dependable runtime ownership.
+# DE extends the UserPatch table to 0..19 (AIRef GroupId and
+# up-modify-group-flag parameter table, archived 2026-08-30).
 MIN_DUC_GROUP_ID = 0
-MAX_DUC_GROUP_ID = 9
+MAX_DUC_GROUP_ID = 19
 
 # These DUC commands mutate search state and are only valid on the action side
 # of a rule. AoE reports ERR2005 when one is accidentally used as a fact.

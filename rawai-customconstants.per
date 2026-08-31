@@ -1134,6 +1134,57 @@
 (defconst gl-island-migration-load-candidate-move-y 1160)
 (defconst gl-island-migration-load-candidate-idling 1161)
 (defconst gl-island-migration-load-reported 1162)
+;Private, read-only diagnostic scratch. Never use these to control a mission.
+(defconst gl-transport-observed-x 1163)
+(defconst gl-transport-observed-y 1164)
+(defconst gl-transport-observed-value 1165)
+
+;Shared ownership policy; 1200+ is separate from the legacy controller goals.
+(defconst gl-owner-explore-suspended 1200)
+(defconst gl-owner-worker-hold 1201)
+(defconst gl-owner-native-builder-assist 1202)
+(defconst gl-owner-native-repair 1203)
+(defconst gl-owner-native-type 1204)
+(defconst gl-owner-severe-members 1205)
+(defconst gl-owner-native-hold-applied 1206)
+(defconst gl-owner-severe-until 1207)
+(defconst gl-owner-anchor-focus 1208)
+(defconst gl-owner-severe-target 1209)
+(defconst gl-owner-severe-player 1210)
+(defconst gl-owner-severe-x 1212)
+(defconst gl-owner-severe-y 1213)
+(defconst gl-owner-severe-count 1214)
+(defconst gl-owner-severe-armed 1215)
+(defconst gl-ally-home-1-x 1220)
+(defconst gl-ally-home-1-y 1221)
+(defconst gl-ally-home-1-zone 1222)
+(defconst gl-ally-home-2-x 1223)
+(defconst gl-ally-home-2-y 1224)
+(defconst gl-ally-home-2-zone 1225)
+(defconst gl-ally-home-3-x 1226)
+(defconst gl-ally-home-3-y 1227)
+(defconst gl-ally-home-3-zone 1228)
+(defconst gl-ally-home-4-x 1229)
+(defconst gl-ally-home-4-y 1230)
+(defconst gl-ally-home-4-zone 1231)
+(defconst gl-ally-home-5-x 1232)
+(defconst gl-ally-home-5-y 1233)
+(defconst gl-ally-home-5-zone 1234)
+(defconst gl-ally-home-6-x 1235)
+(defconst gl-ally-home-6-y 1236)
+(defconst gl-ally-home-6-zone 1237)
+(defconst gl-ally-home-7-x 1238)
+(defconst gl-ally-home-7-y 1239)
+(defconst gl-ally-home-7-zone 1240)
+(defconst gl-ally-home-8-x 1241)
+(defconst gl-ally-home-8-y 1242)
+(defconst gl-ally-home-8-zone 1243)
+(defconst gl-owner-relief-until 1244)
+(defconst gl-owner-relief-target 1245)
+(defconst gl-owner-relief-player 1246)
+(defconst gl-owner-evasion-flag 1247)
+(defconst owner-release-message "RAW45 owner preempted: %d")
+(defconst owner-severe-message "RAW45 severe hostile: %d")
 
 ; Goal Values
 
@@ -1301,10 +1352,14 @@
 ;migration's group three. The general villager cleaner owns group zero every
 ;sweep, so it cannot safely retain military passengers.
 (defconst attack-transport-group 3)
-(defconst naval-scout-group 8)
+(defconst naval-scout-group 16)
 (defconst juggernaut-bombardment-group 2)
 (defconst octeres-bombardment-group 2)
-(defconst relic-ferry-transport-group 7)
+(defconst relic-ferry-transport-group 14)
+(defconst relic-ferry-passenger-group 15)
+(defconst recovery-transport-group 12)
+(defconst recovery-boarding-group 13)
+(defconst allied-relief-group 17)
 (defconst siege-objective-group 1)
 (defconst NAVAL-SCOUT-IDLE 0)
 (defconst NAVAL-SCOUT-CHECK 1)
@@ -1543,6 +1598,7 @@
 (defconst MIGRATION-LOAD-DIAG-FIND 66)
 (defconst MIGRATION-LOAD-DIAG-PASSENGER 67)
 (defconst MIGRATION-LOAD-DIAG-APPLY 68)
+(defconst MIGRATION-OWNERSHIP-CLAIM 69)
 (defconst TRANSPORT-QUARANTINE-IDLE 0)
 (defconst TRANSPORT-QUARANTINE-CHECK 1)
 (defconst TRANSPORT-QUARANTINE-TERMINAL 2)
@@ -1564,8 +1620,8 @@
 (defconst BOAR-COMMIT-RESCUE-GARRISON-SEND 15)
 (defconst MIGRATION-MISSION-MINING 1)
 (defconst MIGRATION-MISSION-SCOUT 2)
-(defconst migration-boarding-group 4)
-(defconst migration-transport-group 3)
+(defconst migration-boarding-group 11)
+(defconst migration-transport-group 10)
 
 ;damaged Transport Ship repair state
 (defconst TRANSPORT-REPAIR-IDLE 0)
@@ -1585,6 +1641,7 @@
 (defconst TRANSPORT-RECOVERY-LOADING 7)
 (defconst TRANSPORT-RECOVERY-VERIFY-LANDING 8)
 (defconst TRANSPORT-RECOVERY-FIND-WRONG-ZONE 9)
+(defconst TRANSPORT-RECOVERY-OWNERSHIP-CLAIM 10)
 
 ;relic ferry state and trip direction
 (defconst RELIC-FERRY-IDLE 0)
@@ -1690,6 +1747,7 @@
 (defconst ALLY-HELP-CHECK-THREAT 6)
 (defconst ALLY-HELP-ADVANCE-THREAT 7)
 (defconst ALLY-HELP-NEXT-THREAT 8)
+(defconst ALLY-HELP-OWNERSHIP-COMMAND 9)
 
 ;adaptive attack escalation state
 (defconst ATTACK-ESCALATION-NORMAL 0)
@@ -1911,6 +1969,7 @@
 (defconst t-farm-staffing 50)
 
 (defrule
+	(goal gl-owner-worker-hold NO)
 	(true)
 =>
 	(set-strategic-number sn-maximum-food-drop-distance 0)
