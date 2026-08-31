@@ -99,7 +99,8 @@ class FallbackSelection:
 
 class PackingSelectionTests(unittest.TestCase):
     def test_clobbered_building_list_never_receives_pack(self):
-        buildings = [obj(4501, 'port'), obj(12511, 'shipyard')]
+        # Built-in Town Center109 was also a T13 recipient (Purple/Blue).
+        buildings = [obj(4501, 'port'), obj(12511, 'shipyard'), obj(10901, 'port', type=109)]
         result = FallbackSelection(buildings, buildings, 14).run()
         self.assertEqual(result.commands, [])
         self.assertEqual(result.logs, [])
