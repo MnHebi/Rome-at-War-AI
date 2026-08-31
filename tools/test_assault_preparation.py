@@ -71,3 +71,64 @@ class PreparationRecoveryTests(unittest.TestCase):
         self.assertFalse(m.commands)
 
 
+class Admission(Missions):
+    def __init__(self):
+        super().__init__()
+        self.g.update({'gl-transport-route-state': self.val('TRANSPORT-ROUTE-FIND'),
+            'gl-assault-manifest-player': 6, 'gl-home-zone': 3,
+            'gl-home-anchor-x': 10, 'gl-home-anchor-y': 10,
+            'gl-land-target-needs-transport': 0, 'gl-land-target-current-player': 7,
+            'gl-land-target-scan-player': 7, 'military-superiority': self.val('SUPERIOR'),
+            'gl-ten-percent': 20, 'gl-ally-help-state': self.val('ALLY-HELP-IDLE')})
+        self.rules = [r for r in rule_blocks(source('rawai-military.per'))
+                      if '(goal gl-transport-route-state TRANSPORT-ROUTE-FIND)' in r[3]
+                      or 'TRANSPORT-ROUTE-ADMISSION-CHECK' in r[3]]
+        self.constants['TRANSPORT-ROUTE-ADMISSION-CHECK'] = 61
+        self.objects[600] = dict(id=600, player=6, type='town-center', point=(90, 90), zone=4)
+        self.objects[10] = dict(id=10, player=2, type='transport-ship', point=(10, 10),
+            cargo=0, idle=1, flag=-2, under_attack=0)
+
+    def fact(self, e):
+        if e[0] == 'soldier-count': return self.compare(60, e[1], e[2])
+        return super().fact(e)
+
+    def action(self, e, pc=0):
+        if e[0] == 'up-filter-status': return 0
+        if e[0] == 'up-clean-search' and e[1] == 'search-remote':
+            self.remote.sort(key=lambda i: self.objects[i]['id'])
+            return 0
+        return super().action(e, pc)
+
+
+class AssaultAdmissionTests(unittest.TestCase):
+    def test_saved_overseas_enemy_admits_despite_local_global_target(self):
+        m = Admission(); m.sweep()
+        self.assertEqual(m.g['gl-transport-route-state'], m.val('TRANSPORT-ROUTE-LOAD-FIND'))
+        self.assertEqual(m.remote, [10])
+        self.assertEqual(m.g['gl-transport-route-load-player'], 6)
+        self.assertEqual(m.g['gl-assault-admission-objective'], 600)
+
+    def test_recent_failed_hull_does_not_displace_another_idle_hull(self):
+        m = Admission(); m.g['gl-assault-recovery-rejected'] = 10
+        m.objects[11] = dict(m.objects[10], id=11)
+        m.sweep()
+        self.assertEqual(m.remote, [11])
+
+    def test_departed_or_nonhostile_saved_enemy_is_rejected(self):
+        for field in ('active', 'enemy'):
+            m = Admission(); m.players[6][field] = False; m.sweep()
+            self.assertNotEqual(m.g['gl-transport-route-state'], m.val('TRANSPORT-ROUTE-LOAD-FIND'))
+
+    def test_local_unknown_or_other_player_objective_cannot_bootstrap_boarding(self):
+        for change in ({'zone': 3}, {'zone': -1}, {'player': 7}):
+            m = Admission(); m.objects[600].update(change)
+            m.g['gl-land-target-needs-transport'] = 1
+            m.sweep()
+            self.assertNotEqual(m.g['gl-transport-route-state'], m.val('TRANSPORT-ROUTE-LOAD-FIND'))
+
+    def test_unknown_home_zone_does_not_assume_overseas(self):
+        m = Admission(); m.g['gl-home-zone'] = -1; m.sweep()
+        self.assertNotEqual(m.g['gl-transport-route-state'], m.val('TRANSPORT-ROUTE-LOAD-FIND'))
+
+
+if __name__ == '__main__': unittest.main()

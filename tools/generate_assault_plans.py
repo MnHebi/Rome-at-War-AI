@@ -100,6 +100,16 @@ def plans():
     for s in ('TRANSPORT-ROUTE-IDLE', 'TRANSPORT-ROUTE-RECOVERY-WAIT', 'TRANSPORT-ROUTE-OWNER-LOST', '101'):
         emit([state(s)], ['(set-goal gl-ap-active NO)'])
     # Existing FIND has already resolved/owned the accepted hull and enemy anchor.
+    # Scripted admission selected an overseas objective. Preserve that exact
+    # objective across loading instead of replacing it with the closest home-zone
+    # TC of the same opponent. If it disappeared, explicitly replan the load.
+    emit([state('TRANSPORT-ROUTE-TARGET'), '(goal gl-transport-route-script-load YES)'], [
+        '(up-full-reset-search)',
+        '(up-add-object-by-id search-remote g: gl-assault-admission-objective)',
+        '(up-remove-objects search-remote object-data-player g:!= gl-assault-manifest-player)',
+        '(up-remove-objects search-remote object-data-hitpoints <= 0)',
+        '(up-remove-objects search-remote object-data-map-zone-id < 0)',
+        '(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)'])
     emit([state('TRANSPORT-ROUTE-TARGET')], [
         '(set-goal gl-ap-active YES)', cp('gl-ap-hull', 'gl-transport-route-id'),
         *deadline('gl-ap-until', 'AP-MISSION-SECONDS'), *deadline('gl-ap-enemy-until', 'AP-ENEMY-SECONDS'),
@@ -110,6 +120,13 @@ def plans():
     emit([state('AP-BEGIN'), '(up-set-target-object search-remote c: 0)'], [
         '(up-get-object-data object-data-id gl-ap-objective)',
         '(up-get-point position-object gl-transport-route-target-x)'])
+    emit([state('AP-BEGIN'), '(goal gl-transport-route-script-load YES)',
+          '(not (up-set-target-object search-remote c: 0))'],
+         ['(set-goal gl-ap-failure 30)',
+          '(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)',
+          '(up-chat-data-to-all str-ap-reason g: gl-ap-failure)',
+          '(up-chat-data-to-all str-ap-objective g: gl-assault-admission-objective)',
+          go('AP-ENEMY-SEARCH')])
     emit([state('AP-BEGIN')], [go('AP-OBJECTIVE')])
     # Guard ALL loaded preparation/wait states, not just the initial load.
     emit(active(), ['(set-goal gl-ap-live NO)'])
@@ -260,6 +277,9 @@ def plans():
         '(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)',
         '(up-get-point position-focus gl-transport-route-target-x)', go('AP-ENEMY-SEARCH')])
     emit([state('AP-ENEMY-SEARCH')], find_objectives(False))
+    emit([state('AP-ENEMY-SEARCH'), '(goal gl-transport-route-script-load YES)'], [
+        '(up-remove-objects search-remote object-data-map-zone-id < 0)',
+        '(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)'])
     emit([state('AP-ENEMY-SEARCH'), '(up-set-target-object search-remote c: 0)'], [
         '(up-get-object-data object-data-id gl-ap-objective)',
         '(up-get-point position-object gl-transport-route-target-x)', go('AP-OBJECTIVE')])

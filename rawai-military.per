@@ -5463,6 +5463,7 @@
 	(goal gl-assault-admission-open YES)
 =>
 	(set-goal gl-assault-manifest-hull -1)
+	(set-goal gl-assault-admission-objective -1)
 	(set-goal gl-assault-manifest-count 0)
 	(set-goal gl-transport-route-script-load NO)
 	(up-modify-goal gl-assault-manifest-player g:= gl-ap-seed-enemy)
@@ -5595,15 +5596,39 @@
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-FIND)
 	(not (up-set-target-object search-remote c: 0))
-	(goal gl-land-target-needs-transport YES)
-	(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)
+	(up-compare-goal gl-home-zone c:>= 0)
 	(up-compare-goal military-superiority c:>= TOLERABLE)
 	(soldier-count g:>= gl-ten-percent)
 	(goal gl-ally-help-state ALLY-HELP-IDLE)
 =>
-	;The engine repeatedly accepted attack-now while seven empty hulls remained
-	;unused. Build one bounded lift under script ownership instead of treating
-	;empty capacity as proof that an attack can execute.
+	;Admission belongs to the proposed mission, not the global land target. Find
+	;a live asset of its saved enemy outside the boarders' home land zone. This
+	;is transport NEED only: screening/landing validation still follows loading.
+	(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)
+	(up-full-reset-search)
+	(up-filter-status c: status-ready c: list-active)
+	(up-set-target-point gl-home-anchor-x)
+	(up-find-remote c: town-center c: 10)
+	(up-find-remote c: villager-class c: 20)
+	(up-find-remote c: market c: 10)
+	(up-find-remote c: barracks c: 10)
+	(up-find-remote c: archery-range c: 10)
+	(up-find-remote c: stable c: 10)
+	(up-find-remote c: siege-workshop c: 10)
+	(up-find-remote c: castle c: 10)
+	(up-remove-objects search-remote object-data-player g:!= gl-assault-manifest-player)
+	(up-remove-objects search-remote object-data-map-zone-id < 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-ADMISSION-CHECK)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-ADMISSION-CHECK)
+	(up-set-target-object search-remote c: 0)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-get-object-data object-data-id gl-assault-admission-objective)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-modify-goal gl-transport-route-load-player g:= gl-assault-manifest-player)
 	(up-full-reset-search)
@@ -5618,6 +5643,16 @@
 	(up-remove-objects search-remote object-data-group-flag >= 0)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-FIND)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-ADMISSION-CHECK)
+=>
+	;No known overseas objective for THIS opponent. Do not substitute another
+	;player's cached zone. Existing bounded retry/target rotation can try later.
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-set-timer c: t-transport-route c: 30)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 )
 
 (defrule

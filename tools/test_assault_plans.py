@@ -116,6 +116,25 @@ class Planner(Missions):
 
 
 class AssaultPlanTests(unittest.TestCase):
+    def test_scripted_load_preserves_admitted_overseas_objective(self):
+        p = Planner(); p.begin(objective=100)
+        p.objective(101, 6, point=(20, 20), zone=8)
+        p.g.update({'gl-transport-route-script-load': 1, 'gl-assault-admission-objective': 100,
+                    'gl-home-zone': 8})
+        p.remote = [101, 100]  # closest generic enemy TC would be on the home island
+        p.step()
+        self.assertEqual(p.g['gl-ap-objective'], 100)
+        self.assertEqual(p.g['gl-transport-route-target-zone'], 3)
+
+    def test_admitted_objective_loss_explicitly_replans_without_home_anchor_substitution(self):
+        p = Planner(); p.begin(objective=100)
+        p.g.update({'gl-transport-route-script-load': 1, 'gl-assault-admission-objective': 999,
+                    'gl-home-zone': 8})
+        p.step()
+        self.assertTrue(any('plan reason:' in text and value == 30 for text, value in p.logs))
+        self.assertEqual(p.objects[10]['cargo'], 9)
+        self.assertFalse(any(ids == (10,) and action == 'action-unload' for ids, action, _ in p.commands))
+
     def test_generated_outputs_and_storage_are_consistent(self):
         for name, text in outputs().items(): self.assertEqual(source(name), text)
         p = Planner()

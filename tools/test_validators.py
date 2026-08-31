@@ -5196,10 +5196,10 @@ class FarmPolicyTests(unittest.TestCase):
         start = matching_rules(
             self.military,
             facts=(
-                "(goal gl-transport-route-state TRANSPORT-ROUTE-FIND)",
-                "not (up-set-target-object search-remote c: 0)",
-                "(goal gl-land-target-needs-transport YES)",
-                "gl-land-target-scan-player g:== gl-land-target-current-player",
+                "(goal gl-transport-route-state TRANSPORT-ROUTE-ADMISSION-CHECK)",
+                "(up-set-target-object search-remote c: 0)",
+                "(player-in-game focus-player)",
+                "(stance-toward focus-player enemy)",
             ),
             actions=(
                 "object-data-garrison-count > 0",

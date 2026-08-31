@@ -55,6 +55,7 @@ def definitions():
             '(defconst gl-assault-recovery-until 14911)',
             '(defconst gl-assault-recovery-rejected 14912)',
             '(defconst gl-assault-recovery-retry 14913)',
+            '(defconst gl-assault-admission-objective 14914)',
             '(defconst str-assault-slot "RAW3 slot: %d")',
             '(defconst str-assault-hull "RAW3 hull: %d")',
             '(defconst str-assault-event "RAW3 event: %d")',

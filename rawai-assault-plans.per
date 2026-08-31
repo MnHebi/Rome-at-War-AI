@@ -69,6 +69,18 @@
 
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-TARGET)
+	(goal gl-transport-route-script-load YES)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-assault-admission-objective)
+	(up-remove-objects search-remote object-data-player g:!= gl-assault-manifest-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id < 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-TARGET)
 =>
 	(set-goal gl-ap-active YES)
 	(up-modify-goal gl-ap-hull g:= gl-transport-route-id)
@@ -101,6 +113,18 @@
 =>
 	(up-get-object-data object-data-id gl-ap-objective)
 	(up-get-point position-object gl-transport-route-target-x)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-BEGIN)
+	(goal gl-transport-route-script-load YES)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-ap-failure 30)
+	(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)
+	(up-chat-data-to-all str-ap-reason g: gl-ap-failure)
+	(up-chat-data-to-all str-ap-objective g: gl-assault-admission-objective)
+	(set-goal gl-transport-route-state AP-ENEMY-SEARCH)
 )
 
 (defrule
@@ -1753,6 +1777,14 @@
 	(up-remove-objects search-remote object-data-id g:== gl-ap-seen2)
 	(up-remove-objects search-remote object-data-id g:== gl-ap-seen3)
 	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-SEARCH)
+	(goal gl-transport-route-script-load YES)
+=>
+	(up-remove-objects search-remote object-data-map-zone-id < 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)
 )
 
 (defrule
