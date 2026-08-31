@@ -67,7 +67,9 @@ separate T21 comparison replay. That deployment is complete and hash-verified.
   Source/fixture history through469 was recovered into the index from the
   hash-verified T21 archive, without replacing any working/deployed files.
   T22 A/B/C commits: `2427dd4`, `6d38b06`, `46d06c1` respectively.
-  Prior PRs5/6 are merged; publish a new PR to `main` from this same branch.
+  Prior PRs5/6 are merged. Publication2026-09-01: PR7 is OPEN against `main`
+  from this same branch: https://github.com/MnHebi/Rome-at-War-AI/pull/7 .
+  The PR includes the pending runtime, tests and evidence; it is not merged.
   Full-branch `git diff --check origin/main` reports two trailing spaces in
   generated command-map comments (`rawai-command-counter-defs.per`, lines8/52).
   Kept the tested/deployed payload unchanged; this is not a gameplay failure.
