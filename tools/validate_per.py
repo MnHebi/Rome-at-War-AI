@@ -34,6 +34,12 @@ ENGINE_RESEARCH_CONSTANTS = {
 # one element for this limit.
 MAX_RULE_ELEMENTS = 32
 
+# Conservative project formatting guard, NOT a claimed engine parser limit.
+# T17's first ERR2005 was on a 727-byte generated condition; the other five
+# outliers were 600/727 bytes, while all other executable lines were <=179.
+# Keep executable physical lines bounded even when the expression is valid.
+MAX_CODE_LINE_BYTES = 240
+
 # The AoE II AI runtime exposes timer slots 1 through 50. Defining a symbolic
 # timer outside this range parses, but its controller cannot be trusted at
 # runtime; sharing one slot between two owners creates the same class of race.
@@ -573,6 +579,15 @@ def validate_file(path: Path) -> list[dict[str, object]]:
     raw_lines = path.read_text(encoding="utf-8-sig").splitlines()
     for line_number, raw_line in enumerate(raw_lines, 1):
         line = code_without_comments_or_strings(raw_line)
+        if line.strip() and len(raw_line.encode("utf-8")) > MAX_CODE_LINE_BYTES:
+            issues.append(
+                {
+                    "kind": "physical_code_line_too_long",
+                    "line": line_number,
+                    "bytes": len(raw_line.encode("utf-8")),
+                    "maximum": MAX_CODE_LINE_BYTES,
+                }
+            )
         for column, char in enumerate(line, 1):
             if char == "(":
                 keyword_match = re.match(r"\s*([^\s()]+)", line[column:])

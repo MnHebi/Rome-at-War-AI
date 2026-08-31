@@ -1,0 +1,657 @@
+;State:0 FREE,1 WAYPOINT,2 LANDING,3 RETURN,4 QUARANTINE,5 RELEASE,6 LANDED COMBAT.
+
+;Event:0 commit,1 enemy left,2 hostile fire,3 invalid landing,
+
+;4 no progress,5 voyage deadline,6 hull lost,7 empty before landing,
+
+;8 landed,9 return empty,10 quarantine,11 obstruction clearance,12 combat release,13 combat target.
+
+(defrule
+	(true)
+=>
+	(set-goal gl-am1-state 0)
+	(set-goal gl-am1-hull -1)
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(set-goal gl-am2-state 0)
+	(set-goal gl-am2-hull -1)
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(set-goal gl-am3-state 0)
+	(set-goal gl-am3-hull -1)
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(up-get-fact game-time 0 gl-assault-mission-clock)
+	(set-goal gl-assault-admission-open NO)
+	(set-goal gl-assault-preflight-live NO)
+	(up-modify-goal gl-assault-diag-checked-enemy g:= gl-assault-manifest-player)
+	(set-goal gl-assault-diag-enemy-failure 411)
+)
+
+(defrule
+	(or (goal gl-am1-state 0) (or (goal gl-am2-state 0) (goal gl-am3-state 0)))
+=>
+	(set-goal gl-assault-admission-open YES)
+)
+
+(defrule
+	(up-compare-goal gl-assault-manifest-player c:> 8)
+=>
+	(set-goal gl-assault-diag-enemy-failure 412)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 1)
+	(not (player-in-game 1))
+=>
+	(set-goal gl-assault-diag-enemy-failure 413)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 1)
+	(player-in-game 1)
+	(not (stance-toward 1 enemy))
+=>
+	(set-goal gl-assault-diag-enemy-failure 414)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 1)
+	(player-in-game 1)
+	(stance-toward 1 enemy)
+=>
+	(set-goal gl-assault-preflight-live YES)
+	(set-goal gl-assault-diag-enemy-failure 0)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 2)
+	(not (player-in-game 2))
+=>
+	(set-goal gl-assault-diag-enemy-failure 413)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 2)
+	(player-in-game 2)
+	(not (stance-toward 2 enemy))
+=>
+	(set-goal gl-assault-diag-enemy-failure 414)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 2)
+	(player-in-game 2)
+	(stance-toward 2 enemy)
+=>
+	(set-goal gl-assault-preflight-live YES)
+	(set-goal gl-assault-diag-enemy-failure 0)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 3)
+	(not (player-in-game 3))
+=>
+	(set-goal gl-assault-diag-enemy-failure 413)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 3)
+	(player-in-game 3)
+	(not (stance-toward 3 enemy))
+=>
+	(set-goal gl-assault-diag-enemy-failure 414)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 3)
+	(player-in-game 3)
+	(stance-toward 3 enemy)
+=>
+	(set-goal gl-assault-preflight-live YES)
+	(set-goal gl-assault-diag-enemy-failure 0)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 4)
+	(not (player-in-game 4))
+=>
+	(set-goal gl-assault-diag-enemy-failure 413)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 4)
+	(player-in-game 4)
+	(not (stance-toward 4 enemy))
+=>
+	(set-goal gl-assault-diag-enemy-failure 414)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 4)
+	(player-in-game 4)
+	(stance-toward 4 enemy)
+=>
+	(set-goal gl-assault-preflight-live YES)
+	(set-goal gl-assault-diag-enemy-failure 0)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 5)
+	(not (player-in-game 5))
+=>
+	(set-goal gl-assault-diag-enemy-failure 413)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 5)
+	(player-in-game 5)
+	(not (stance-toward 5 enemy))
+=>
+	(set-goal gl-assault-diag-enemy-failure 414)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 5)
+	(player-in-game 5)
+	(stance-toward 5 enemy)
+=>
+	(set-goal gl-assault-preflight-live YES)
+	(set-goal gl-assault-diag-enemy-failure 0)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 6)
+	(not (player-in-game 6))
+=>
+	(set-goal gl-assault-diag-enemy-failure 413)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 6)
+	(player-in-game 6)
+	(not (stance-toward 6 enemy))
+=>
+	(set-goal gl-assault-diag-enemy-failure 414)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 6)
+	(player-in-game 6)
+	(stance-toward 6 enemy)
+=>
+	(set-goal gl-assault-preflight-live YES)
+	(set-goal gl-assault-diag-enemy-failure 0)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 7)
+	(not (player-in-game 7))
+=>
+	(set-goal gl-assault-diag-enemy-failure 413)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 7)
+	(player-in-game 7)
+	(not (stance-toward 7 enemy))
+=>
+	(set-goal gl-assault-diag-enemy-failure 414)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 7)
+	(player-in-game 7)
+	(stance-toward 7 enemy)
+=>
+	(set-goal gl-assault-preflight-live YES)
+	(set-goal gl-assault-diag-enemy-failure 0)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 8)
+	(not (player-in-game 8))
+=>
+	(set-goal gl-assault-diag-enemy-failure 413)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 8)
+	(player-in-game 8)
+	(not (stance-toward 8 enemy))
+=>
+	(set-goal gl-assault-diag-enemy-failure 414)
+)
+
+(defrule
+	(goal gl-assault-manifest-player 8)
+	(player-in-game 8)
+	(stance-toward 8 enemy)
+=>
+	(set-goal gl-assault-preflight-live YES)
+	(set-goal gl-assault-diag-enemy-failure 0)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)
+	(goal gl-assault-preflight-live NO)
+=>
+	(up-modify-goal gl-assault-diag-subcode g:= gl-assault-diag-enemy-failure)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)
+	(goal gl-assault-preflight-live NO)
+	(goal gl-assault-diag-subcode 0)
+=>
+	(set-goal gl-assault-diag-subcode 419)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)
+	(goal gl-assault-preflight-live NO)
+	(up-compare-goal gl-assault-diag-subcode c:>= 411)
+	(up-compare-goal gl-assault-diag-checked-enemy g:!= gl-assault-manifest-player)
+=>
+	(set-goal gl-assault-diag-subcode 415)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)
+	(goal gl-assault-preflight-live NO)
+=>
+	(up-modify-goal gl-assault-diag-global-target s:= sn-target-player-number)
+	(up-chat-data-to-all str-assault-deny-stage c: 1)
+	(up-chat-data-to-all str-assault-deny-subcode g: gl-assault-diag-subcode)
+	(up-chat-data-to-all str-assault-deny-hull g: gl-transport-route-id)
+	(up-chat-data-to-all str-assault-saved-enemy g: gl-assault-manifest-player)
+	(up-chat-data-to-all str-assault-deny-global-target g: gl-assault-diag-global-target)
+	(up-chat-data-to-all str-assault-deny-checked-enemy g: gl-assault-diag-checked-enemy)
+	(up-chat-data-to-all str-assault-deny-enemy-failure g: gl-assault-diag-enemy-failure)
+	(up-chat-data-to-all str-assault-deny-live g: gl-assault-preflight-live)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)
+	(goal gl-assault-preflight-live NO)
+	(goal gl-assault-diag-subcode 401)
+=>
+	(up-chat-data-to-all str-assault-deny-401 g: gl-assault-fallback-player)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)
+	(goal gl-assault-preflight-live NO)
+	(goal gl-assault-diag-subcode 402)
+=>
+	(up-chat-data-to-all str-assault-deny-402 g: gl-assault-fallback-player)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)
+	(goal gl-assault-preflight-live NO)
+	(goal gl-assault-diag-subcode 411)
+=>
+	(up-chat-data-to-all str-assault-deny-411 g: gl-assault-diag-checked-enemy)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)
+	(goal gl-assault-preflight-live NO)
+	(goal gl-assault-diag-subcode 412)
+=>
+	(up-chat-data-to-all str-assault-deny-412 g: gl-assault-diag-checked-enemy)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)
+	(goal gl-assault-preflight-live NO)
+	(goal gl-assault-diag-subcode 413)
+=>
+	(up-chat-data-to-all str-assault-deny-413 g: gl-assault-diag-checked-enemy)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)
+	(goal gl-assault-preflight-live NO)
+	(goal gl-assault-diag-subcode 414)
+=>
+	(up-chat-data-to-all str-assault-deny-414 g: gl-assault-diag-checked-enemy)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)
+	(goal gl-assault-preflight-live NO)
+	(goal gl-assault-diag-subcode 415)
+=>
+	(up-chat-data-to-all str-assault-deny-415 g: gl-assault-diag-checked-enemy)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)
+	(goal gl-assault-preflight-live NO)
+	(goal gl-assault-diag-subcode 419)
+=>
+	(up-chat-data-to-all str-assault-deny-419 g: gl-assault-preflight-live)
+)
+
+(defrule
+	(true)
+=>
+	(set-goal gl-ap-seed-enemy -1)
+	(up-modify-goal gl-ap-chosen-enemy s:= sn-target-player-number)
+)
+
+(defrule
+	(up-compare-goal gl-ap-enemy1-until c:> 0)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy1-until)
+=>
+	(set-goal gl-ap-enemy1-until 0)
+	(set-goal gl-ap-enemy1-failures 0)
+)
+
+(defrule
+	(up-compare-goal gl-ap-enemy2-until c:> 0)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy2-until)
+=>
+	(set-goal gl-ap-enemy2-until 0)
+	(set-goal gl-ap-enemy2-failures 0)
+)
+
+(defrule
+	(up-compare-goal gl-ap-enemy3-until c:> 0)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy3-until)
+=>
+	(set-goal gl-ap-enemy3-until 0)
+	(set-goal gl-ap-enemy3-failures 0)
+)
+
+(defrule
+	(up-compare-goal gl-ap-enemy4-until c:> 0)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy4-until)
+=>
+	(set-goal gl-ap-enemy4-until 0)
+	(set-goal gl-ap-enemy4-failures 0)
+)
+
+(defrule
+	(up-compare-goal gl-ap-enemy5-until c:> 0)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy5-until)
+=>
+	(set-goal gl-ap-enemy5-until 0)
+	(set-goal gl-ap-enemy5-failures 0)
+)
+
+(defrule
+	(up-compare-goal gl-ap-enemy6-until c:> 0)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy6-until)
+=>
+	(set-goal gl-ap-enemy6-until 0)
+	(set-goal gl-ap-enemy6-failures 0)
+)
+
+(defrule
+	(up-compare-goal gl-ap-enemy7-until c:> 0)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy7-until)
+=>
+	(set-goal gl-ap-enemy7-until 0)
+	(set-goal gl-ap-enemy7-failures 0)
+)
+
+(defrule
+	(up-compare-goal gl-ap-enemy8-until c:> 0)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy8-until)
+=>
+	(set-goal gl-ap-enemy8-until 0)
+	(set-goal gl-ap-enemy8-failures 0)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 1)
+	(stance-toward 1 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy1-until)
+	(goal gl-ap-preferred-enemy 1)
+=>
+	(set-goal gl-ap-seed-enemy 1)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 2)
+	(stance-toward 2 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy2-until)
+	(goal gl-ap-preferred-enemy 2)
+=>
+	(set-goal gl-ap-seed-enemy 2)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 3)
+	(stance-toward 3 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy3-until)
+	(goal gl-ap-preferred-enemy 3)
+=>
+	(set-goal gl-ap-seed-enemy 3)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 4)
+	(stance-toward 4 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy4-until)
+	(goal gl-ap-preferred-enemy 4)
+=>
+	(set-goal gl-ap-seed-enemy 4)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 5)
+	(stance-toward 5 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy5-until)
+	(goal gl-ap-preferred-enemy 5)
+=>
+	(set-goal gl-ap-seed-enemy 5)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 6)
+	(stance-toward 6 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy6-until)
+	(goal gl-ap-preferred-enemy 6)
+=>
+	(set-goal gl-ap-seed-enemy 6)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 7)
+	(stance-toward 7 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy7-until)
+	(goal gl-ap-preferred-enemy 7)
+=>
+	(set-goal gl-ap-seed-enemy 7)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 8)
+	(stance-toward 8 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy8-until)
+	(goal gl-ap-preferred-enemy 8)
+=>
+	(set-goal gl-ap-seed-enemy 8)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 1)
+	(stance-toward 1 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy1-until)
+	(goal gl-ap-chosen-enemy 1)
+=>
+	(set-goal gl-ap-seed-enemy 1)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 2)
+	(stance-toward 2 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy2-until)
+	(goal gl-ap-chosen-enemy 2)
+=>
+	(set-goal gl-ap-seed-enemy 2)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 3)
+	(stance-toward 3 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy3-until)
+	(goal gl-ap-chosen-enemy 3)
+=>
+	(set-goal gl-ap-seed-enemy 3)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 4)
+	(stance-toward 4 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy4-until)
+	(goal gl-ap-chosen-enemy 4)
+=>
+	(set-goal gl-ap-seed-enemy 4)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 5)
+	(stance-toward 5 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy5-until)
+	(goal gl-ap-chosen-enemy 5)
+=>
+	(set-goal gl-ap-seed-enemy 5)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 6)
+	(stance-toward 6 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy6-until)
+	(goal gl-ap-chosen-enemy 6)
+=>
+	(set-goal gl-ap-seed-enemy 6)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 7)
+	(stance-toward 7 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy7-until)
+	(goal gl-ap-chosen-enemy 7)
+=>
+	(set-goal gl-ap-seed-enemy 7)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 8)
+	(stance-toward 8 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy8-until)
+	(goal gl-ap-chosen-enemy 8)
+=>
+	(set-goal gl-ap-seed-enemy 8)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 1)
+	(stance-toward 1 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy1-until)
+=>
+	(set-goal gl-ap-seed-enemy 1)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 2)
+	(stance-toward 2 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy2-until)
+=>
+	(set-goal gl-ap-seed-enemy 2)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 3)
+	(stance-toward 3 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy3-until)
+=>
+	(set-goal gl-ap-seed-enemy 3)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 4)
+	(stance-toward 4 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy4-until)
+=>
+	(set-goal gl-ap-seed-enemy 4)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 5)
+	(stance-toward 5 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy5-until)
+=>
+	(set-goal gl-ap-seed-enemy 5)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 6)
+	(stance-toward 6 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy6-until)
+=>
+	(set-goal gl-ap-seed-enemy 6)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 7)
+	(stance-toward 7 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy7-until)
+=>
+	(set-goal gl-ap-seed-enemy 7)
+)
+
+(defrule
+	(goal gl-ap-seed-enemy -1)
+	(player-in-game 8)
+	(stance-toward 8 enemy)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-ap-enemy8-until)
+=>
+	(set-goal gl-ap-seed-enemy 8)
+)
+
+(defrule
+	(up-compare-goal gl-assault-mission-clock g:>= gl-assault-recovery-retry)
+=>
+	(set-goal gl-assault-recovery-rejected -1)
+)

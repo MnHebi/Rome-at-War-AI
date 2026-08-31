@@ -1,0 +1,1812 @@
+;Generated loaded-assault planner. Only preparation owns this state.
+
+;Reasons: screening2/4/6/7/8/10/11;21 topology;22 total budget;
+
+;23 enemy budget;24 invalid hull/manifest;26 no alternative enemy;
+
+;27 maximum opponents tried;28 enemy unavailable;29 no longer hostile.
+
+;32 fallback danger;33 fallback topology;35 fallback Scout invalid.
+
+;after-failure:0 next approach,2 next enemy,3 terminal recovery.
+
+;A failed beach is excluded. Different beaches require fresh checks.
+
+(defrule
+	(true)
+=>
+	(set-goal gl-ap-active NO)
+	(set-goal gl-ap-write 1)
+	(set-goal gl-ap-preferred-enemy -1)
+	(set-goal gl-ap-memory1-until 0)
+	(set-goal gl-ap-memory2-until 0)
+	(set-goal gl-ap-memory3-until 0)
+	(set-goal gl-ap-memory4-until 0)
+	(set-goal gl-ap-memory5-until 0)
+	(set-goal gl-ap-memory6-until 0)
+	(set-goal gl-ap-memory7-until 0)
+	(set-goal gl-ap-memory8-until 0)
+	(set-goal gl-ap-memory9-until 0)
+	(set-goal gl-ap-memory10-until 0)
+	(set-goal gl-ap-memory11-until 0)
+	(set-goal gl-ap-memory12-until 0)
+	(set-goal gl-ap-memory13-until 0)
+	(set-goal gl-ap-memory14-until 0)
+	(set-goal gl-ap-memory15-until 0)
+	(set-goal gl-ap-memory16-until 0)
+	(disable-self)
+)
+
+(defrule
+	(true)
+=>
+	(up-get-fact game-time 0 gl-ap-clock)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+=>
+	(set-goal gl-ap-active NO)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
+=>
+	(set-goal gl-ap-active NO)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-OWNER-LOST)
+=>
+	(set-goal gl-ap-active NO)
+)
+
+(defrule
+	(goal gl-transport-route-state 101)
+=>
+	(set-goal gl-ap-active NO)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-TARGET)
+	(goal gl-transport-route-script-load YES)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-assault-admission-objective)
+	(up-remove-objects search-remote object-data-player g:!= gl-assault-manifest-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id < 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-TARGET)
+=>
+	(set-goal gl-ap-active YES)
+	(up-modify-goal gl-ap-hull g:= gl-transport-route-id)
+	(up-modify-goal gl-ap-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-until c:+ AP-MISSION-SECONDS)
+	(up-modify-goal gl-ap-enemy-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-enemy-until c:+ AP-ENEMY-SECONDS)
+	(set-goal gl-ap-enemies-tried 1)
+	(set-goal gl-ap-objective-count 0)
+	(set-goal gl-ap-seen1 -1)
+	(set-goal gl-ap-seen2 -1)
+	(set-goal gl-ap-seen3 -1)
+	(set-goal gl-ap-objective -1)
+	(set-goal gl-ap-valid NO)
+	(set-goal gl-ap-after-failure 0)
+	(set-goal gl-ap-enemy1-visited NO)
+	(set-goal gl-ap-enemy2-visited NO)
+	(set-goal gl-ap-enemy3-visited NO)
+	(set-goal gl-ap-enemy4-visited NO)
+	(set-goal gl-ap-enemy5-visited NO)
+	(set-goal gl-ap-enemy6-visited NO)
+	(set-goal gl-ap-enemy7-visited NO)
+	(set-goal gl-ap-enemy8-visited NO)
+	(set-goal gl-transport-route-state AP-BEGIN)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-BEGIN)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-ap-objective)
+	(up-get-point position-object gl-transport-route-target-x)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-BEGIN)
+	(goal gl-transport-route-script-load YES)
+	(not (up-set-target-object search-remote c: 0))
+=>
+	(set-goal gl-ap-failure 30)
+	(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)
+	(up-chat-data-to-all str-ap-reason g: gl-ap-failure)
+	(up-chat-data-to-all str-ap-objective g: gl-assault-admission-objective)
+	(set-goal gl-transport-route-state AP-ENEMY-SEARCH)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-BEGIN)
+=>
+	(set-goal gl-transport-route-state AP-OBJECTIVE)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+=>
+	(set-goal gl-ap-live NO)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-assault-manifest-player 1)
+	(player-in-game 1)
+	(stance-toward 1 enemy)
+=>
+	(set-goal gl-ap-live YES)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-assault-manifest-player 2)
+	(player-in-game 2)
+	(stance-toward 2 enemy)
+=>
+	(set-goal gl-ap-live YES)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-assault-manifest-player 3)
+	(player-in-game 3)
+	(stance-toward 3 enemy)
+=>
+	(set-goal gl-ap-live YES)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-assault-manifest-player 4)
+	(player-in-game 4)
+	(stance-toward 4 enemy)
+=>
+	(set-goal gl-ap-live YES)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-assault-manifest-player 5)
+	(player-in-game 5)
+	(stance-toward 5 enemy)
+=>
+	(set-goal gl-ap-live YES)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-assault-manifest-player 6)
+	(player-in-game 6)
+	(stance-toward 6 enemy)
+=>
+	(set-goal gl-ap-live YES)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-assault-manifest-player 7)
+	(player-in-game 7)
+	(stance-toward 7 enemy)
+=>
+	(set-goal gl-ap-live YES)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-assault-manifest-player 8)
+	(player-in-game 8)
+	(stance-toward 8 enemy)
+=>
+	(set-goal gl-ap-live YES)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-ap-live NO)
+=>
+	(set-goal gl-ap-failure 28)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-assault-manifest-player 1)
+	(player-in-game 1)
+	(not (stance-toward 1 enemy))
+=>
+	(set-goal gl-ap-failure 29)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-assault-manifest-player 2)
+	(player-in-game 2)
+	(not (stance-toward 2 enemy))
+=>
+	(set-goal gl-ap-failure 29)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-assault-manifest-player 3)
+	(player-in-game 3)
+	(not (stance-toward 3 enemy))
+=>
+	(set-goal gl-ap-failure 29)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-assault-manifest-player 4)
+	(player-in-game 4)
+	(not (stance-toward 4 enemy))
+=>
+	(set-goal gl-ap-failure 29)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-assault-manifest-player 5)
+	(player-in-game 5)
+	(not (stance-toward 5 enemy))
+=>
+	(set-goal gl-ap-failure 29)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-assault-manifest-player 6)
+	(player-in-game 6)
+	(not (stance-toward 6 enemy))
+=>
+	(set-goal gl-ap-failure 29)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-assault-manifest-player 7)
+	(player-in-game 7)
+	(not (stance-toward 7 enemy))
+=>
+	(set-goal gl-ap-failure 29)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-assault-manifest-player 8)
+	(player-in-game 8)
+	(not (stance-toward 8 enemy))
+=>
+	(set-goal gl-ap-failure 29)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-ap-live NO)
+=>
+	(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)
+	(up-chat-data-to-all str-ap-enemy g: gl-assault-manifest-player)
+	(up-chat-data-to-all str-ap-reason g: gl-ap-failure)
+	(set-goal gl-transport-route-state AP-NEXT-ENEMY)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(set-goal gl-ap-active NO)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-OWNER-LOST)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(up-set-target-object search-local c: 0)
+	(or (up-compare-goal gl-ap-hull g:!= gl-transport-route-id)
+	(or (up-compare-goal gl-assault-manifest-hull g:!= gl-transport-route-id)
+	(or (up-compare-goal gl-assault-manifest-count c:< 5)
+	(or (up-object-data object-data-garrison-count g:< gl-assault-manifest-count)
+	(or (up-object-data object-data-hitpoints <= 0)
+	(up-object-data object-data-under-attack > 0))))))
+=>
+	(set-goal gl-ap-failure 24)
+	(set-goal gl-transport-route-state AP-TERMINAL)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-ap-after-failure 0)
+	(up-compare-goal gl-ap-clock g:>= gl-ap-until)
+	(not (goal gl-transport-route-state AP-TERMINAL))
+	(not (goal gl-transport-route-state AP-NEXT-ENEMY))
+=>
+	(set-goal gl-ap-failure 22)
+	(set-goal gl-ap-after-failure 3)
+	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-ap-after-failure 0)
+	(up-compare-goal gl-ap-clock g:>= gl-ap-enemy-until)
+	(not (goal gl-transport-route-state AP-TERMINAL))
+	(not (goal gl-transport-route-state AP-NEXT-ENEMY))
+=>
+	(set-goal gl-ap-failure 23)
+	(set-goal gl-ap-after-failure 2)
+	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE)
+=>
+	(set-goal gl-transport-route-target-zone -1)
+	(up-get-point-zone gl-transport-route-target-x gl-transport-route-target-zone)
+	(up-modify-goal gl-ap-objective-count c:+ 1)
+	(set-goal gl-ap-candidate 0)
+	(set-goal gl-ap-valid NO)
+	(up-modify-goal gl-ap-preferred-enemy g:= gl-assault-manifest-player)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE)
+	(goal gl-ap-objective-count 1)
+=>
+	(up-modify-goal gl-ap-seen1 g:= gl-ap-objective)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE)
+	(goal gl-ap-objective-count 2)
+=>
+	(up-modify-goal gl-ap-seen2 g:= gl-ap-objective)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE)
+	(goal gl-ap-objective-count 3)
+=>
+	(up-modify-goal gl-ap-seen3 g:= gl-ap-objective)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE)
+	(goal gl-assault-manifest-player 1)
+=>
+	(set-goal gl-ap-enemy1-visited YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE)
+	(goal gl-assault-manifest-player 2)
+=>
+	(set-goal gl-ap-enemy2-visited YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE)
+	(goal gl-assault-manifest-player 3)
+=>
+	(set-goal gl-ap-enemy3-visited YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE)
+	(goal gl-assault-manifest-player 4)
+=>
+	(set-goal gl-ap-enemy4-visited YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE)
+	(goal gl-assault-manifest-player 5)
+=>
+	(set-goal gl-ap-enemy5-visited YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE)
+	(goal gl-assault-manifest-player 6)
+=>
+	(set-goal gl-ap-enemy6-visited YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE)
+	(goal gl-assault-manifest-player 7)
+=>
+	(set-goal gl-ap-enemy7-visited YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE)
+	(goal gl-assault-manifest-player 8)
+=>
+	(set-goal gl-ap-enemy8-visited YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE)
+=>
+	(set-goal gl-transport-route-state AP-CANDIDATE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CANDIDATE)
+	(up-compare-goal gl-ap-candidate c:>= 5)
+=>
+	(set-goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CANDIDATE)
+	(goal gl-ap-candidate 0)
+=>
+	(up-bound-point gl-transport-route-landing-x gl-transport-route-target-x)
+	(set-goal gl-ap-zone -1)
+	(up-get-point-zone gl-transport-route-landing-x gl-ap-zone)
+	(set-goal gl-ap-valid YES)
+	(set-goal gl-ap-blocked NO)
+	(up-modify-goal gl-ap-min-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-min-x c:- 12)
+	(up-modify-goal gl-ap-max-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-max-x c:+ 12)
+	(up-modify-goal gl-ap-min-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-min-y c:- 12)
+	(up-modify-goal gl-ap-max-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-max-y c:+ 12)
+	(set-goal gl-transport-route-state AP-CACHE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CANDIDATE)
+	(goal gl-ap-candidate 1)
+=>
+	(up-bound-point gl-transport-route-landing-x gl-transport-route-target-x)
+	(up-cross-tiles gl-transport-route-landing-x gl-transport-route-origin-x c: 28)
+	(set-goal gl-ap-zone -1)
+	(up-get-point-zone gl-transport-route-landing-x gl-ap-zone)
+	(set-goal gl-ap-valid YES)
+	(set-goal gl-ap-blocked NO)
+	(up-modify-goal gl-ap-min-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-min-x c:- 12)
+	(up-modify-goal gl-ap-max-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-max-x c:+ 12)
+	(up-modify-goal gl-ap-min-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-min-y c:- 12)
+	(up-modify-goal gl-ap-max-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-max-y c:+ 12)
+	(set-goal gl-transport-route-state AP-CACHE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CANDIDATE)
+	(goal gl-ap-candidate 2)
+=>
+	(up-bound-point gl-transport-route-landing-x gl-transport-route-target-x)
+	(up-cross-tiles gl-transport-route-landing-x gl-transport-route-origin-x c: -28)
+	(set-goal gl-ap-zone -1)
+	(up-get-point-zone gl-transport-route-landing-x gl-ap-zone)
+	(set-goal gl-ap-valid YES)
+	(set-goal gl-ap-blocked NO)
+	(up-modify-goal gl-ap-min-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-min-x c:- 12)
+	(up-modify-goal gl-ap-max-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-max-x c:+ 12)
+	(up-modify-goal gl-ap-min-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-min-y c:- 12)
+	(up-modify-goal gl-ap-max-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-max-y c:+ 12)
+	(set-goal gl-transport-route-state AP-CACHE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CANDIDATE)
+	(goal gl-ap-candidate 3)
+=>
+	(up-bound-point gl-transport-route-landing-x gl-transport-route-target-x)
+	(up-cross-tiles gl-transport-route-landing-x gl-transport-route-origin-x c: 56)
+	(set-goal gl-ap-zone -1)
+	(up-get-point-zone gl-transport-route-landing-x gl-ap-zone)
+	(set-goal gl-ap-valid YES)
+	(set-goal gl-ap-blocked NO)
+	(up-modify-goal gl-ap-min-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-min-x c:- 12)
+	(up-modify-goal gl-ap-max-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-max-x c:+ 12)
+	(up-modify-goal gl-ap-min-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-min-y c:- 12)
+	(up-modify-goal gl-ap-max-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-max-y c:+ 12)
+	(set-goal gl-transport-route-state AP-CACHE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CANDIDATE)
+	(goal gl-ap-candidate 4)
+=>
+	(up-bound-point gl-transport-route-landing-x gl-transport-route-target-x)
+	(up-cross-tiles gl-transport-route-landing-x gl-transport-route-origin-x c: -56)
+	(set-goal gl-ap-zone -1)
+	(up-get-point-zone gl-transport-route-landing-x gl-ap-zone)
+	(set-goal gl-ap-valid YES)
+	(set-goal gl-ap-blocked NO)
+	(up-modify-goal gl-ap-min-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-min-x c:- 12)
+	(up-modify-goal gl-ap-max-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-max-x c:+ 12)
+	(up-modify-goal gl-ap-min-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-min-y c:- 12)
+	(up-modify-goal gl-ap-max-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-max-y c:+ 12)
+	(set-goal gl-transport-route-state AP-CACHE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(up-compare-goal gl-ap-memory1-enemy g:== gl-assault-manifest-player)
+	(up-compare-goal gl-ap-clock g:< gl-ap-memory1-until)
+	(up-compare-goal gl-ap-memory1-x g:>= gl-ap-min-x)
+	(up-compare-goal gl-ap-memory1-x g:<= gl-ap-max-x)
+	(up-compare-goal gl-ap-memory1-y g:>= gl-ap-min-y)
+	(up-compare-goal gl-ap-memory1-y g:<= gl-ap-max-y)
+=>
+	(set-goal gl-ap-blocked YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(up-compare-goal gl-ap-memory2-enemy g:== gl-assault-manifest-player)
+	(up-compare-goal gl-ap-clock g:< gl-ap-memory2-until)
+	(up-compare-goal gl-ap-memory2-x g:>= gl-ap-min-x)
+	(up-compare-goal gl-ap-memory2-x g:<= gl-ap-max-x)
+	(up-compare-goal gl-ap-memory2-y g:>= gl-ap-min-y)
+	(up-compare-goal gl-ap-memory2-y g:<= gl-ap-max-y)
+=>
+	(set-goal gl-ap-blocked YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(up-compare-goal gl-ap-memory3-enemy g:== gl-assault-manifest-player)
+	(up-compare-goal gl-ap-clock g:< gl-ap-memory3-until)
+	(up-compare-goal gl-ap-memory3-x g:>= gl-ap-min-x)
+	(up-compare-goal gl-ap-memory3-x g:<= gl-ap-max-x)
+	(up-compare-goal gl-ap-memory3-y g:>= gl-ap-min-y)
+	(up-compare-goal gl-ap-memory3-y g:<= gl-ap-max-y)
+=>
+	(set-goal gl-ap-blocked YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(up-compare-goal gl-ap-memory4-enemy g:== gl-assault-manifest-player)
+	(up-compare-goal gl-ap-clock g:< gl-ap-memory4-until)
+	(up-compare-goal gl-ap-memory4-x g:>= gl-ap-min-x)
+	(up-compare-goal gl-ap-memory4-x g:<= gl-ap-max-x)
+	(up-compare-goal gl-ap-memory4-y g:>= gl-ap-min-y)
+	(up-compare-goal gl-ap-memory4-y g:<= gl-ap-max-y)
+=>
+	(set-goal gl-ap-blocked YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(up-compare-goal gl-ap-memory5-enemy g:== gl-assault-manifest-player)
+	(up-compare-goal gl-ap-clock g:< gl-ap-memory5-until)
+	(up-compare-goal gl-ap-memory5-x g:>= gl-ap-min-x)
+	(up-compare-goal gl-ap-memory5-x g:<= gl-ap-max-x)
+	(up-compare-goal gl-ap-memory5-y g:>= gl-ap-min-y)
+	(up-compare-goal gl-ap-memory5-y g:<= gl-ap-max-y)
+=>
+	(set-goal gl-ap-blocked YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(up-compare-goal gl-ap-memory6-enemy g:== gl-assault-manifest-player)
+	(up-compare-goal gl-ap-clock g:< gl-ap-memory6-until)
+	(up-compare-goal gl-ap-memory6-x g:>= gl-ap-min-x)
+	(up-compare-goal gl-ap-memory6-x g:<= gl-ap-max-x)
+	(up-compare-goal gl-ap-memory6-y g:>= gl-ap-min-y)
+	(up-compare-goal gl-ap-memory6-y g:<= gl-ap-max-y)
+=>
+	(set-goal gl-ap-blocked YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(up-compare-goal gl-ap-memory7-enemy g:== gl-assault-manifest-player)
+	(up-compare-goal gl-ap-clock g:< gl-ap-memory7-until)
+	(up-compare-goal gl-ap-memory7-x g:>= gl-ap-min-x)
+	(up-compare-goal gl-ap-memory7-x g:<= gl-ap-max-x)
+	(up-compare-goal gl-ap-memory7-y g:>= gl-ap-min-y)
+	(up-compare-goal gl-ap-memory7-y g:<= gl-ap-max-y)
+=>
+	(set-goal gl-ap-blocked YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(up-compare-goal gl-ap-memory8-enemy g:== gl-assault-manifest-player)
+	(up-compare-goal gl-ap-clock g:< gl-ap-memory8-until)
+	(up-compare-goal gl-ap-memory8-x g:>= gl-ap-min-x)
+	(up-compare-goal gl-ap-memory8-x g:<= gl-ap-max-x)
+	(up-compare-goal gl-ap-memory8-y g:>= gl-ap-min-y)
+	(up-compare-goal gl-ap-memory8-y g:<= gl-ap-max-y)
+=>
+	(set-goal gl-ap-blocked YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(up-compare-goal gl-ap-memory9-enemy g:== gl-assault-manifest-player)
+	(up-compare-goal gl-ap-clock g:< gl-ap-memory9-until)
+	(up-compare-goal gl-ap-memory9-x g:>= gl-ap-min-x)
+	(up-compare-goal gl-ap-memory9-x g:<= gl-ap-max-x)
+	(up-compare-goal gl-ap-memory9-y g:>= gl-ap-min-y)
+	(up-compare-goal gl-ap-memory9-y g:<= gl-ap-max-y)
+=>
+	(set-goal gl-ap-blocked YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(up-compare-goal gl-ap-memory10-enemy g:== gl-assault-manifest-player)
+	(up-compare-goal gl-ap-clock g:< gl-ap-memory10-until)
+	(up-compare-goal gl-ap-memory10-x g:>= gl-ap-min-x)
+	(up-compare-goal gl-ap-memory10-x g:<= gl-ap-max-x)
+	(up-compare-goal gl-ap-memory10-y g:>= gl-ap-min-y)
+	(up-compare-goal gl-ap-memory10-y g:<= gl-ap-max-y)
+=>
+	(set-goal gl-ap-blocked YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(up-compare-goal gl-ap-memory11-enemy g:== gl-assault-manifest-player)
+	(up-compare-goal gl-ap-clock g:< gl-ap-memory11-until)
+	(up-compare-goal gl-ap-memory11-x g:>= gl-ap-min-x)
+	(up-compare-goal gl-ap-memory11-x g:<= gl-ap-max-x)
+	(up-compare-goal gl-ap-memory11-y g:>= gl-ap-min-y)
+	(up-compare-goal gl-ap-memory11-y g:<= gl-ap-max-y)
+=>
+	(set-goal gl-ap-blocked YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(up-compare-goal gl-ap-memory12-enemy g:== gl-assault-manifest-player)
+	(up-compare-goal gl-ap-clock g:< gl-ap-memory12-until)
+	(up-compare-goal gl-ap-memory12-x g:>= gl-ap-min-x)
+	(up-compare-goal gl-ap-memory12-x g:<= gl-ap-max-x)
+	(up-compare-goal gl-ap-memory12-y g:>= gl-ap-min-y)
+	(up-compare-goal gl-ap-memory12-y g:<= gl-ap-max-y)
+=>
+	(set-goal gl-ap-blocked YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(up-compare-goal gl-ap-memory13-enemy g:== gl-assault-manifest-player)
+	(up-compare-goal gl-ap-clock g:< gl-ap-memory13-until)
+	(up-compare-goal gl-ap-memory13-x g:>= gl-ap-min-x)
+	(up-compare-goal gl-ap-memory13-x g:<= gl-ap-max-x)
+	(up-compare-goal gl-ap-memory13-y g:>= gl-ap-min-y)
+	(up-compare-goal gl-ap-memory13-y g:<= gl-ap-max-y)
+=>
+	(set-goal gl-ap-blocked YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(up-compare-goal gl-ap-memory14-enemy g:== gl-assault-manifest-player)
+	(up-compare-goal gl-ap-clock g:< gl-ap-memory14-until)
+	(up-compare-goal gl-ap-memory14-x g:>= gl-ap-min-x)
+	(up-compare-goal gl-ap-memory14-x g:<= gl-ap-max-x)
+	(up-compare-goal gl-ap-memory14-y g:>= gl-ap-min-y)
+	(up-compare-goal gl-ap-memory14-y g:<= gl-ap-max-y)
+=>
+	(set-goal gl-ap-blocked YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(up-compare-goal gl-ap-memory15-enemy g:== gl-assault-manifest-player)
+	(up-compare-goal gl-ap-clock g:< gl-ap-memory15-until)
+	(up-compare-goal gl-ap-memory15-x g:>= gl-ap-min-x)
+	(up-compare-goal gl-ap-memory15-x g:<= gl-ap-max-x)
+	(up-compare-goal gl-ap-memory15-y g:>= gl-ap-min-y)
+	(up-compare-goal gl-ap-memory15-y g:<= gl-ap-max-y)
+=>
+	(set-goal gl-ap-blocked YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(up-compare-goal gl-ap-memory16-enemy g:== gl-assault-manifest-player)
+	(up-compare-goal gl-ap-clock g:< gl-ap-memory16-until)
+	(up-compare-goal gl-ap-memory16-x g:>= gl-ap-min-x)
+	(up-compare-goal gl-ap-memory16-x g:<= gl-ap-max-x)
+	(up-compare-goal gl-ap-memory16-y g:>= gl-ap-min-y)
+	(up-compare-goal gl-ap-memory16-y g:<= gl-ap-max-y)
+=>
+	(set-goal gl-ap-blocked YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(goal gl-ap-blocked YES)
+=>
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+	(or (up-compare-goal gl-transport-route-target-zone c:< 0)
+	(up-compare-goal gl-ap-zone g:!= gl-transport-route-target-zone))
+=>
+	(set-goal gl-ap-failure 21)
+	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CACHE)
+=>
+	(set-goal gl-ap-screen-validated NO)
+	(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-PREPARE)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-FIND)
+	(goal gl-ap-screen-validated NO)
+=>
+	(set-goal gl-ap-resume TRANSPORT-ROUTE-SCREEN-FIND)
+	(set-goal gl-transport-route-state AP-SAFETY)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-transport-route-state AP-FINAL-SAFETY)
+=>
+	(set-goal gl-ap-resume TRANSPORT-ROUTE-DEPARTURE-START)
+	(set-goal gl-transport-route-state AP-SAFETY)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+=>
+	(set-goal gl-ap-landing-threats 0)
+	(set-goal gl-ap-route-threats 0)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(player-in-game 1)
+	(stance-toward 1 enemy)
+=>
+	(set-strategic-number sn-focus-player-number 1)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-landing-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 40)
+	(up-find-remote c: castle c: 40)
+	(up-find-remote c: town-center c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-landing-threats g:+ remote-total)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 40)
+	(up-find-remote c: castle c: 40)
+	(up-find-remote c: town-center c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-route-threats g:+ remote-total)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(player-in-game 2)
+	(stance-toward 2 enemy)
+=>
+	(set-strategic-number sn-focus-player-number 2)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-landing-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 40)
+	(up-find-remote c: castle c: 40)
+	(up-find-remote c: town-center c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-landing-threats g:+ remote-total)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 40)
+	(up-find-remote c: castle c: 40)
+	(up-find-remote c: town-center c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-route-threats g:+ remote-total)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(player-in-game 3)
+	(stance-toward 3 enemy)
+=>
+	(set-strategic-number sn-focus-player-number 3)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-landing-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 40)
+	(up-find-remote c: castle c: 40)
+	(up-find-remote c: town-center c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-landing-threats g:+ remote-total)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 40)
+	(up-find-remote c: castle c: 40)
+	(up-find-remote c: town-center c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-route-threats g:+ remote-total)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(player-in-game 4)
+	(stance-toward 4 enemy)
+=>
+	(set-strategic-number sn-focus-player-number 4)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-landing-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 40)
+	(up-find-remote c: castle c: 40)
+	(up-find-remote c: town-center c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-landing-threats g:+ remote-total)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 40)
+	(up-find-remote c: castle c: 40)
+	(up-find-remote c: town-center c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-route-threats g:+ remote-total)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(player-in-game 5)
+	(stance-toward 5 enemy)
+=>
+	(set-strategic-number sn-focus-player-number 5)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-landing-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 40)
+	(up-find-remote c: castle c: 40)
+	(up-find-remote c: town-center c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-landing-threats g:+ remote-total)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 40)
+	(up-find-remote c: castle c: 40)
+	(up-find-remote c: town-center c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-route-threats g:+ remote-total)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(player-in-game 6)
+	(stance-toward 6 enemy)
+=>
+	(set-strategic-number sn-focus-player-number 6)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-landing-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 40)
+	(up-find-remote c: castle c: 40)
+	(up-find-remote c: town-center c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-landing-threats g:+ remote-total)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 40)
+	(up-find-remote c: castle c: 40)
+	(up-find-remote c: town-center c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-route-threats g:+ remote-total)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(player-in-game 7)
+	(stance-toward 7 enemy)
+=>
+	(set-strategic-number sn-focus-player-number 7)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-landing-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 40)
+	(up-find-remote c: castle c: 40)
+	(up-find-remote c: town-center c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-landing-threats g:+ remote-total)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 40)
+	(up-find-remote c: castle c: 40)
+	(up-find-remote c: town-center c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-route-threats g:+ remote-total)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(player-in-game 8)
+	(stance-toward 8 enemy)
+=>
+	(set-strategic-number sn-focus-player-number 8)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-landing-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 40)
+	(up-find-remote c: castle c: 40)
+	(up-find-remote c: town-center c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-landing-threats g:+ remote-total)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 40)
+	(up-find-remote c: castle c: 40)
+	(up-find-remote c: town-center c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-route-threats g:+ remote-total)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-transport-route-state AP-SAFE-CHECK)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFE-CHECK)
+	(up-compare-goal gl-ap-landing-threats c:> 0)
+=>
+	(set-goal gl-ap-failure 11)
+	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFE-CHECK)
+	(up-compare-goal gl-ap-route-threats c:> 0)
+=>
+	(set-goal gl-ap-failure 7)
+	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFE-CHECK)
+=>
+	(set-goal gl-ap-screen-validated YES)
+	(up-set-timer c: t-transport-route c: 1)
+	(up-modify-goal gl-transport-route-state g:= gl-ap-resume)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-screen-id)
+	;OWNERSHIP command: transport-screen-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
+	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
+	(up-create-group 0 0 c: transport-screen-group)
+	(up-modify-group-flag 0 c: transport-screen-group)
+	(up-reset-group c: transport-screen-group)
+	(set-goal gl-transport-screen-id -1)
+	(set-goal gl-transport-screen-waits 0)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-assault-fallback-deadline 0)
+	(set-goal gl-assault-fallback-progress-deadline 0)
+	(set-goal gl-ap-screen-validated NO)
+	(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)
+	(up-chat-data-to-all str-ap-enemy g: gl-assault-manifest-player)
+	(up-chat-data-to-all str-ap-objective g: gl-ap-objective)
+	(up-chat-data-to-all str-ap-x g: gl-transport-route-landing-x)
+	(up-chat-data-to-all str-ap-y g: gl-transport-route-landing-y)
+	(up-chat-data-to-all str-ap-reason g: gl-ap-failure)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-valid NO)
+=>
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-write 1)
+=>
+	(up-modify-goal gl-ap-memory1-enemy g:= gl-assault-manifest-player)
+	(up-modify-goal gl-ap-memory1-objective g:= gl-ap-objective)
+	(up-modify-goal gl-ap-memory1-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-memory1-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-memory1-reason g:= gl-ap-failure)
+	(up-modify-goal gl-ap-memory1-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-memory1-until c:+ AP-RETRY-SECONDS)
+	(up-chat-data-to-all str-ap-retry g: gl-ap-memory1-until)
+	(set-goal gl-ap-write 2)
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-write 2)
+=>
+	(up-modify-goal gl-ap-memory2-enemy g:= gl-assault-manifest-player)
+	(up-modify-goal gl-ap-memory2-objective g:= gl-ap-objective)
+	(up-modify-goal gl-ap-memory2-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-memory2-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-memory2-reason g:= gl-ap-failure)
+	(up-modify-goal gl-ap-memory2-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-memory2-until c:+ AP-RETRY-SECONDS)
+	(up-chat-data-to-all str-ap-retry g: gl-ap-memory2-until)
+	(set-goal gl-ap-write 3)
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-write 3)
+=>
+	(up-modify-goal gl-ap-memory3-enemy g:= gl-assault-manifest-player)
+	(up-modify-goal gl-ap-memory3-objective g:= gl-ap-objective)
+	(up-modify-goal gl-ap-memory3-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-memory3-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-memory3-reason g:= gl-ap-failure)
+	(up-modify-goal gl-ap-memory3-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-memory3-until c:+ AP-RETRY-SECONDS)
+	(up-chat-data-to-all str-ap-retry g: gl-ap-memory3-until)
+	(set-goal gl-ap-write 4)
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-write 4)
+=>
+	(up-modify-goal gl-ap-memory4-enemy g:= gl-assault-manifest-player)
+	(up-modify-goal gl-ap-memory4-objective g:= gl-ap-objective)
+	(up-modify-goal gl-ap-memory4-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-memory4-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-memory4-reason g:= gl-ap-failure)
+	(up-modify-goal gl-ap-memory4-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-memory4-until c:+ AP-RETRY-SECONDS)
+	(up-chat-data-to-all str-ap-retry g: gl-ap-memory4-until)
+	(set-goal gl-ap-write 5)
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-write 5)
+=>
+	(up-modify-goal gl-ap-memory5-enemy g:= gl-assault-manifest-player)
+	(up-modify-goal gl-ap-memory5-objective g:= gl-ap-objective)
+	(up-modify-goal gl-ap-memory5-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-memory5-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-memory5-reason g:= gl-ap-failure)
+	(up-modify-goal gl-ap-memory5-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-memory5-until c:+ AP-RETRY-SECONDS)
+	(up-chat-data-to-all str-ap-retry g: gl-ap-memory5-until)
+	(set-goal gl-ap-write 6)
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-write 6)
+=>
+	(up-modify-goal gl-ap-memory6-enemy g:= gl-assault-manifest-player)
+	(up-modify-goal gl-ap-memory6-objective g:= gl-ap-objective)
+	(up-modify-goal gl-ap-memory6-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-memory6-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-memory6-reason g:= gl-ap-failure)
+	(up-modify-goal gl-ap-memory6-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-memory6-until c:+ AP-RETRY-SECONDS)
+	(up-chat-data-to-all str-ap-retry g: gl-ap-memory6-until)
+	(set-goal gl-ap-write 7)
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-write 7)
+=>
+	(up-modify-goal gl-ap-memory7-enemy g:= gl-assault-manifest-player)
+	(up-modify-goal gl-ap-memory7-objective g:= gl-ap-objective)
+	(up-modify-goal gl-ap-memory7-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-memory7-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-memory7-reason g:= gl-ap-failure)
+	(up-modify-goal gl-ap-memory7-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-memory7-until c:+ AP-RETRY-SECONDS)
+	(up-chat-data-to-all str-ap-retry g: gl-ap-memory7-until)
+	(set-goal gl-ap-write 8)
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-write 8)
+=>
+	(up-modify-goal gl-ap-memory8-enemy g:= gl-assault-manifest-player)
+	(up-modify-goal gl-ap-memory8-objective g:= gl-ap-objective)
+	(up-modify-goal gl-ap-memory8-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-memory8-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-memory8-reason g:= gl-ap-failure)
+	(up-modify-goal gl-ap-memory8-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-memory8-until c:+ AP-RETRY-SECONDS)
+	(up-chat-data-to-all str-ap-retry g: gl-ap-memory8-until)
+	(set-goal gl-ap-write 9)
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-write 9)
+=>
+	(up-modify-goal gl-ap-memory9-enemy g:= gl-assault-manifest-player)
+	(up-modify-goal gl-ap-memory9-objective g:= gl-ap-objective)
+	(up-modify-goal gl-ap-memory9-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-memory9-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-memory9-reason g:= gl-ap-failure)
+	(up-modify-goal gl-ap-memory9-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-memory9-until c:+ AP-RETRY-SECONDS)
+	(up-chat-data-to-all str-ap-retry g: gl-ap-memory9-until)
+	(set-goal gl-ap-write 10)
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-write 10)
+=>
+	(up-modify-goal gl-ap-memory10-enemy g:= gl-assault-manifest-player)
+	(up-modify-goal gl-ap-memory10-objective g:= gl-ap-objective)
+	(up-modify-goal gl-ap-memory10-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-memory10-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-memory10-reason g:= gl-ap-failure)
+	(up-modify-goal gl-ap-memory10-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-memory10-until c:+ AP-RETRY-SECONDS)
+	(up-chat-data-to-all str-ap-retry g: gl-ap-memory10-until)
+	(set-goal gl-ap-write 11)
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-write 11)
+=>
+	(up-modify-goal gl-ap-memory11-enemy g:= gl-assault-manifest-player)
+	(up-modify-goal gl-ap-memory11-objective g:= gl-ap-objective)
+	(up-modify-goal gl-ap-memory11-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-memory11-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-memory11-reason g:= gl-ap-failure)
+	(up-modify-goal gl-ap-memory11-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-memory11-until c:+ AP-RETRY-SECONDS)
+	(up-chat-data-to-all str-ap-retry g: gl-ap-memory11-until)
+	(set-goal gl-ap-write 12)
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-write 12)
+=>
+	(up-modify-goal gl-ap-memory12-enemy g:= gl-assault-manifest-player)
+	(up-modify-goal gl-ap-memory12-objective g:= gl-ap-objective)
+	(up-modify-goal gl-ap-memory12-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-memory12-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-memory12-reason g:= gl-ap-failure)
+	(up-modify-goal gl-ap-memory12-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-memory12-until c:+ AP-RETRY-SECONDS)
+	(up-chat-data-to-all str-ap-retry g: gl-ap-memory12-until)
+	(set-goal gl-ap-write 13)
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-write 13)
+=>
+	(up-modify-goal gl-ap-memory13-enemy g:= gl-assault-manifest-player)
+	(up-modify-goal gl-ap-memory13-objective g:= gl-ap-objective)
+	(up-modify-goal gl-ap-memory13-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-memory13-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-memory13-reason g:= gl-ap-failure)
+	(up-modify-goal gl-ap-memory13-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-memory13-until c:+ AP-RETRY-SECONDS)
+	(up-chat-data-to-all str-ap-retry g: gl-ap-memory13-until)
+	(set-goal gl-ap-write 14)
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-write 14)
+=>
+	(up-modify-goal gl-ap-memory14-enemy g:= gl-assault-manifest-player)
+	(up-modify-goal gl-ap-memory14-objective g:= gl-ap-objective)
+	(up-modify-goal gl-ap-memory14-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-memory14-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-memory14-reason g:= gl-ap-failure)
+	(up-modify-goal gl-ap-memory14-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-memory14-until c:+ AP-RETRY-SECONDS)
+	(up-chat-data-to-all str-ap-retry g: gl-ap-memory14-until)
+	(set-goal gl-ap-write 15)
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-write 15)
+=>
+	(up-modify-goal gl-ap-memory15-enemy g:= gl-assault-manifest-player)
+	(up-modify-goal gl-ap-memory15-objective g:= gl-ap-objective)
+	(up-modify-goal gl-ap-memory15-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-memory15-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-memory15-reason g:= gl-ap-failure)
+	(up-modify-goal gl-ap-memory15-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-memory15-until c:+ AP-RETRY-SECONDS)
+	(up-chat-data-to-all str-ap-retry g: gl-ap-memory15-until)
+	(set-goal gl-ap-write 16)
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-FAIL)
+	(goal gl-ap-write 16)
+=>
+	(up-modify-goal gl-ap-memory16-enemy g:= gl-assault-manifest-player)
+	(up-modify-goal gl-ap-memory16-objective g:= gl-ap-objective)
+	(up-modify-goal gl-ap-memory16-x g:= gl-transport-route-landing-x)
+	(up-modify-goal gl-ap-memory16-y g:= gl-transport-route-landing-y)
+	(up-modify-goal gl-ap-memory16-reason g:= gl-ap-failure)
+	(up-modify-goal gl-ap-memory16-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-memory16-until c:+ AP-RETRY-SECONDS)
+	(up-chat-data-to-all str-ap-retry g: gl-ap-memory16-until)
+	(set-goal gl-ap-write 1)
+	(set-goal gl-transport-route-state AP-ADVANCE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ADVANCE)
+	(goal gl-ap-after-failure 3)
+=>
+	(set-goal gl-transport-route-state AP-TERMINAL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ADVANCE)
+	(goal gl-ap-after-failure 2)
+=>
+	(set-goal gl-transport-route-state AP-ENEMY-FAILED)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ADVANCE)
+=>
+	(up-modify-goal gl-ap-candidate c:+ 1)
+	(set-goal gl-transport-route-state AP-CANDIDATE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-assault-manifest-player 1)
+=>
+	(up-modify-goal gl-ap-enemy1-failures c:+ 1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-assault-manifest-player 1)
+	(up-compare-goal gl-ap-enemy1-failures c:>= 3)
+=>
+	(set-goal gl-transport-route-state AP-ENEMY-FAILED)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-assault-manifest-player 2)
+=>
+	(up-modify-goal gl-ap-enemy2-failures c:+ 1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-assault-manifest-player 2)
+	(up-compare-goal gl-ap-enemy2-failures c:>= 3)
+=>
+	(set-goal gl-transport-route-state AP-ENEMY-FAILED)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-assault-manifest-player 3)
+=>
+	(up-modify-goal gl-ap-enemy3-failures c:+ 1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-assault-manifest-player 3)
+	(up-compare-goal gl-ap-enemy3-failures c:>= 3)
+=>
+	(set-goal gl-transport-route-state AP-ENEMY-FAILED)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-assault-manifest-player 4)
+=>
+	(up-modify-goal gl-ap-enemy4-failures c:+ 1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-assault-manifest-player 4)
+	(up-compare-goal gl-ap-enemy4-failures c:>= 3)
+=>
+	(set-goal gl-transport-route-state AP-ENEMY-FAILED)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-assault-manifest-player 5)
+=>
+	(up-modify-goal gl-ap-enemy5-failures c:+ 1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-assault-manifest-player 5)
+	(up-compare-goal gl-ap-enemy5-failures c:>= 3)
+=>
+	(set-goal gl-transport-route-state AP-ENEMY-FAILED)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-assault-manifest-player 6)
+=>
+	(up-modify-goal gl-ap-enemy6-failures c:+ 1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-assault-manifest-player 6)
+	(up-compare-goal gl-ap-enemy6-failures c:>= 3)
+=>
+	(set-goal gl-transport-route-state AP-ENEMY-FAILED)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-assault-manifest-player 7)
+=>
+	(up-modify-goal gl-ap-enemy7-failures c:+ 1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-assault-manifest-player 7)
+	(up-compare-goal gl-ap-enemy7-failures c:>= 3)
+=>
+	(set-goal gl-transport-route-state AP-ENEMY-FAILED)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-assault-manifest-player 8)
+=>
+	(up-modify-goal gl-ap-enemy8-failures c:+ 1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-assault-manifest-player 8)
+	(up-compare-goal gl-ap-enemy8-failures c:>= 3)
+=>
+	(set-goal gl-transport-route-state AP-ENEMY-FAILED)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(up-compare-goal gl-ap-objective-count c:>= 3)
+=>
+	(set-goal gl-transport-route-state AP-ENEMY-FAILED)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+=>
+	(set-goal gl-transport-route-state AP-NEXT-OBJECTIVE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-NEXT-OBJECTIVE)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-target-x)
+	(up-find-remote c: town-center c: 20)
+	(up-find-remote c: market c: 20)
+	(up-find-remote c: barracks c: 20)
+	(up-find-remote c: archery-range c: 20)
+	(up-find-remote c: stable c: 20)
+	(up-find-remote c: siege-workshop c: 20)
+	(up-find-remote c: castle c: 20)
+	(up-find-remote c: house c: 20)
+	(up-remove-objects search-remote object-data-player g:!= gl-assault-manifest-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(up-remove-objects search-remote object-data-distance < 24)
+	(up-remove-objects search-remote object-data-id g:== gl-ap-seen1)
+	(up-remove-objects search-remote object-data-id g:== gl-ap-seen2)
+	(up-remove-objects search-remote object-data-id g:== gl-ap-seen3)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-NEXT-OBJECTIVE)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-ap-objective)
+	(up-get-point position-object gl-transport-route-target-x)
+	(set-goal gl-transport-route-state AP-OBJECTIVE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-NEXT-OBJECTIVE)
+=>
+	(set-goal gl-transport-route-state AP-ENEMY-FAILED)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(goal gl-assault-manifest-player 1)
+=>
+	(up-modify-goal gl-ap-enemy1-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-enemy1-until c:+ AP-RETRY-SECONDS)
+	(set-goal gl-ap-enemy1-visited YES)
+	(set-goal gl-ap-preferred-enemy -1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(goal gl-assault-manifest-player 2)
+=>
+	(up-modify-goal gl-ap-enemy2-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-enemy2-until c:+ AP-RETRY-SECONDS)
+	(set-goal gl-ap-enemy2-visited YES)
+	(set-goal gl-ap-preferred-enemy -1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(goal gl-assault-manifest-player 3)
+=>
+	(up-modify-goal gl-ap-enemy3-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-enemy3-until c:+ AP-RETRY-SECONDS)
+	(set-goal gl-ap-enemy3-visited YES)
+	(set-goal gl-ap-preferred-enemy -1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(goal gl-assault-manifest-player 4)
+=>
+	(up-modify-goal gl-ap-enemy4-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-enemy4-until c:+ AP-RETRY-SECONDS)
+	(set-goal gl-ap-enemy4-visited YES)
+	(set-goal gl-ap-preferred-enemy -1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(goal gl-assault-manifest-player 5)
+=>
+	(up-modify-goal gl-ap-enemy5-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-enemy5-until c:+ AP-RETRY-SECONDS)
+	(set-goal gl-ap-enemy5-visited YES)
+	(set-goal gl-ap-preferred-enemy -1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(goal gl-assault-manifest-player 6)
+=>
+	(up-modify-goal gl-ap-enemy6-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-enemy6-until c:+ AP-RETRY-SECONDS)
+	(set-goal gl-ap-enemy6-visited YES)
+	(set-goal gl-ap-preferred-enemy -1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(goal gl-assault-manifest-player 7)
+=>
+	(up-modify-goal gl-ap-enemy7-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-enemy7-until c:+ AP-RETRY-SECONDS)
+	(set-goal gl-ap-enemy7-visited YES)
+	(set-goal gl-ap-preferred-enemy -1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(goal gl-assault-manifest-player 8)
+=>
+	(up-modify-goal gl-ap-enemy8-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-enemy8-until c:+ AP-RETRY-SECONDS)
+	(set-goal gl-ap-enemy8-visited YES)
+	(set-goal gl-ap-preferred-enemy -1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+=>
+	(set-goal gl-transport-route-state AP-NEXT-ENEMY)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-NEXT-ENEMY)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-screen-id)
+	;OWNERSHIP command: transport-screen-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
+	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
+	(up-create-group 0 0 c: transport-screen-group)
+	(up-modify-group-flag 0 c: transport-screen-group)
+	(up-reset-group c: transport-screen-group)
+	(set-goal gl-transport-screen-id -1)
+	(set-goal gl-transport-screen-waits 0)
+	(set-goal gl-ap-chosen-enemy -1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-NEXT-ENEMY)
+	(goal gl-ap-chosen-enemy -1)
+	(player-in-game 1)
+	(stance-toward 1 enemy)
+	(goal gl-ap-enemy1-visited NO)
+	(up-compare-goal gl-ap-clock g:>= gl-ap-enemy1-until)
+=>
+	(set-goal gl-ap-chosen-enemy 1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-NEXT-ENEMY)
+	(goal gl-ap-chosen-enemy -1)
+	(player-in-game 2)
+	(stance-toward 2 enemy)
+	(goal gl-ap-enemy2-visited NO)
+	(up-compare-goal gl-ap-clock g:>= gl-ap-enemy2-until)
+=>
+	(set-goal gl-ap-chosen-enemy 2)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-NEXT-ENEMY)
+	(goal gl-ap-chosen-enemy -1)
+	(player-in-game 3)
+	(stance-toward 3 enemy)
+	(goal gl-ap-enemy3-visited NO)
+	(up-compare-goal gl-ap-clock g:>= gl-ap-enemy3-until)
+=>
+	(set-goal gl-ap-chosen-enemy 3)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-NEXT-ENEMY)
+	(goal gl-ap-chosen-enemy -1)
+	(player-in-game 4)
+	(stance-toward 4 enemy)
+	(goal gl-ap-enemy4-visited NO)
+	(up-compare-goal gl-ap-clock g:>= gl-ap-enemy4-until)
+=>
+	(set-goal gl-ap-chosen-enemy 4)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-NEXT-ENEMY)
+	(goal gl-ap-chosen-enemy -1)
+	(player-in-game 5)
+	(stance-toward 5 enemy)
+	(goal gl-ap-enemy5-visited NO)
+	(up-compare-goal gl-ap-clock g:>= gl-ap-enemy5-until)
+=>
+	(set-goal gl-ap-chosen-enemy 5)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-NEXT-ENEMY)
+	(goal gl-ap-chosen-enemy -1)
+	(player-in-game 6)
+	(stance-toward 6 enemy)
+	(goal gl-ap-enemy6-visited NO)
+	(up-compare-goal gl-ap-clock g:>= gl-ap-enemy6-until)
+=>
+	(set-goal gl-ap-chosen-enemy 6)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-NEXT-ENEMY)
+	(goal gl-ap-chosen-enemy -1)
+	(player-in-game 7)
+	(stance-toward 7 enemy)
+	(goal gl-ap-enemy7-visited NO)
+	(up-compare-goal gl-ap-clock g:>= gl-ap-enemy7-until)
+=>
+	(set-goal gl-ap-chosen-enemy 7)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-NEXT-ENEMY)
+	(goal gl-ap-chosen-enemy -1)
+	(player-in-game 8)
+	(stance-toward 8 enemy)
+	(goal gl-ap-enemy8-visited NO)
+	(up-compare-goal gl-ap-clock g:>= gl-ap-enemy8-until)
+=>
+	(set-goal gl-ap-chosen-enemy 8)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-NEXT-ENEMY)
+	(up-compare-goal gl-ap-clock g:>= gl-ap-until)
+=>
+	(set-goal gl-ap-failure 22)
+	(set-goal gl-transport-route-state AP-TERMINAL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-NEXT-ENEMY)
+	(up-compare-goal gl-ap-enemies-tried c:>= 3)
+=>
+	(set-goal gl-ap-failure 27)
+	(set-goal gl-transport-route-state AP-TERMINAL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-NEXT-ENEMY)
+	(goal gl-ap-chosen-enemy -1)
+=>
+	(set-goal gl-ap-failure 26)
+	(set-goal gl-transport-route-state AP-TERMINAL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-NEXT-ENEMY)
+=>
+	(up-modify-goal gl-assault-manifest-player g:= gl-ap-chosen-enemy)
+	(up-modify-goal gl-ap-preferred-enemy g:= gl-ap-chosen-enemy)
+	(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)
+	(up-chat-data-to-all str-ap-next-enemy g: gl-assault-manifest-player)
+	(up-modify-goal gl-ap-enemies-tried c:+ 1)
+	(up-modify-goal gl-ap-enemy-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-enemy-until c:+ AP-ENEMY-SECONDS)
+	(set-goal gl-ap-after-failure 0)
+	(set-goal gl-ap-objective-count 0)
+	(set-goal gl-ap-valid NO)
+	(set-goal gl-ap-seen1 -1)
+	(set-goal gl-ap-seen2 -1)
+	(set-goal gl-ap-seen3 -1)
+	(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)
+	(up-get-point position-focus gl-transport-route-target-x)
+	(set-goal gl-transport-route-state AP-ENEMY-SEARCH)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-SEARCH)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-target-x)
+	(up-find-remote c: town-center c: 20)
+	(up-find-remote c: market c: 20)
+	(up-find-remote c: barracks c: 20)
+	(up-find-remote c: archery-range c: 20)
+	(up-find-remote c: stable c: 20)
+	(up-find-remote c: siege-workshop c: 20)
+	(up-find-remote c: castle c: 20)
+	(up-find-remote c: house c: 20)
+	(up-remove-objects search-remote object-data-player g:!= gl-assault-manifest-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-id g:== gl-ap-seen1)
+	(up-remove-objects search-remote object-data-id g:== gl-ap-seen2)
+	(up-remove-objects search-remote object-data-id g:== gl-ap-seen3)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-SEARCH)
+	(goal gl-transport-route-script-load YES)
+=>
+	(up-remove-objects search-remote object-data-map-zone-id < 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-SEARCH)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-ap-objective)
+	(up-get-point position-object gl-transport-route-target-x)
+	(set-goal gl-transport-route-state AP-OBJECTIVE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-SEARCH)
+=>
+	(set-goal gl-transport-route-state AP-ENEMY-FAILED)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-TERMINAL)
+=>
+	(set-goal gl-ap-active NO)
+	(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)
+	(up-chat-data-to-all str-ap-reason g: gl-ap-failure)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-RECALL)
+)

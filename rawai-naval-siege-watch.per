@@ -1,0 +1,107 @@
+;Bounded siege search expansion. Commands issued are NOT progress: require an
+;actively attacking source and a decrease in its exact hostile target's HP.
+;One selected source represents the current capital group. This is not a
+;per-projectile kill/damage attribution or a naval path-reachability proof.
+(defrule
+	(true)
+=>
+	(set-goal gl-naval-search-radius 48)
+	(set-goal gl-naval-search-progress -1)
+	(set-goal gl-naval-watch-source -1)
+	(set-goal gl-naval-watch-target -1)
+	(set-goal gl-naval-watch-hp -1)
+	(set-goal gl-naval-watch-player -1)
+	(disable-self)
+)
+
+(defrule
+	(up-timer-status t-naval-siege == timer-triggered)
+	(goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+=>
+	(up-get-fact game-time 0 gl-naval-search-clock)
+	(set-goal gl-naval-watch-attacking NO)
+)
+
+(defrule
+	(goal gl-naval-search-progress -1)
+	(or (unit-type-count-total juggernaut-line > 0)
+	    (unit-type-count-total octeres > 0))
+=>
+	(up-get-fact game-time 0 gl-naval-search-progress)
+	(up-modify-goal gl-naval-search-progress c:+ 120)
+)
+
+(defrule
+	(up-timer-status t-naval-siege == timer-triggered)
+	(goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+	(up-compare-goal gl-naval-watch-source c:>= 0)
+=>
+	(up-modify-goal gl-naval-siege-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-naval-watch-source)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-watch-player)
+	(up-add-object-by-id search-remote g: gl-naval-watch-target)
+	(up-remove-objects search-remote object-data-player g:!= gl-naval-watch-player)
+	(up-modify-sn sn-focus-player-number g:= gl-naval-siege-focus)
+)
+
+(defrule
+	(up-timer-status t-naval-siege == timer-triggered)
+	(goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-id g:== gl-naval-watch-source)
+	(up-object-data object-data-action == actionid-attack)
+	(up-object-data object-data-target-id g:== gl-naval-watch-target)
+=>
+	(set-goal gl-naval-watch-attacking YES)
+)
+
+(defrule
+	(up-timer-status t-naval-siege == timer-triggered)
+	(goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+	(goal gl-naval-watch-attacking YES)
+	(up-compare-goal gl-naval-watch-hp c:>= 0)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-id g:== gl-naval-watch-target)
+	(up-object-data object-data-hitpoints g:< gl-naval-watch-hp)
+=>
+	(up-modify-goal gl-naval-search-progress g:= gl-naval-search-clock)
+	(up-modify-goal gl-naval-search-progress c:+ 120)
+	;Do not collapse an expanded radius after one hit: it found useful work.
+)
+
+(defrule
+	(up-timer-status t-naval-siege == timer-triggered)
+	(goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-id g:== gl-naval-watch-target)
+=>
+	(up-get-object-data object-data-hitpoints gl-naval-watch-hp)
+)
+
+(defrule
+	(up-timer-status t-naval-siege == timer-triggered)
+	(goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+	(up-compare-goal gl-naval-search-progress c:>= 0)
+	(up-compare-goal gl-naval-search-clock g:>= gl-naval-search-progress)
+	(up-compare-goal gl-naval-search-radius c:< 255)
+	(or (unit-type-count-total juggernaut-line > 0)
+	    (unit-type-count-total octeres > 0))
+=>
+	(up-modify-goal gl-naval-search-radius c:* 2)
+	(up-modify-goal gl-naval-search-radius c:min 255)
+	(up-modify-goal gl-naval-search-progress g:= gl-naval-search-clock)
+	(up-modify-goal gl-naval-search-progress c:+ 120)
+	(up-chat-data-to-all "RAW12 siege search radius: %d" g: gl-naval-search-radius)
+)
+
+(defrule
+	(up-timer-status t-naval-siege == timer-triggered)
+	(goal gl-naval-siege-state SIEGE-TARGET-IDLE)
+=>
+	;Retain the previously working 120-tile sea-tower search at startup.
+	(up-modify-goal gl-naval-search-sea-radius g:= gl-naval-search-radius)
+	(up-modify-goal gl-naval-search-sea-radius c:max 120)
+)

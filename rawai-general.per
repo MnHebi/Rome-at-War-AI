@@ -1,17 +1,20 @@
 (defrule
 	(goal gl-owner-explore-suspended NO)
+	(current-age < imperial-age)
 	(up-compare-sn sn-number-explore-groups g:!= desired-military-explorers)
 =>
 	(up-modify-sn sn-number-explore-groups g:= desired-military-explorers))
 
 (defrule
 	(goal gl-owner-explore-suspended NO)
+	(current-age < imperial-age)
 	(up-compare-sn sn-cap-civilian-explorers g:!= desired-civilian-explorers)
 =>
 	(up-modify-sn sn-cap-civilian-explorers g:= desired-civilian-explorers))
 
 (defrule
 	(goal gl-owner-explore-suspended NO)
+	(current-age < imperial-age)
 	(up-compare-sn sn-minimum-civilian-explorers g:!= desired-civilian-explorers)
 =>
 	(up-modify-sn sn-minimum-civilian-explorers g:= desired-civilian-explorers))
@@ -25,6 +28,7 @@
 
 (defrule
 	(goal gl-owner-explore-suspended NO)
+	(current-age < imperial-age)
 	(up-compare-goal current-phase c:< 4)
 	(up-compare-sn sn-total-number-explorers c:!= 2)
 =>
@@ -41,7 +45,8 @@
 	(set-strategic-number sn-total-number-explorers 0))
 
 (defrule
-	(up-compare-goal villager-count <= 0)
+	(or (up-compare-goal villager-count <= 0)
+	    (not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)))
 =>
 	(up-jump-rule 5))
 (defrule
@@ -51,14 +56,14 @@
 	(up-full-reset-search)
 	(up-filter-exclude -1 actionid-explore orderid-explore -1)
 	(up-find-local c: villager-class g: villager-count)
-	;P3B44T6: temporary group 0 replaced the migrant reservation, then its
-	;cleanup cleared that flag. Keep the transport owner's passengers out of
-	;both generic stop handling and temporary-group flag mutations.
+	;Borrow the empty preparation hull group only while that owner is IDLE.
+	;Group 0 now belongs to an independent assault voyage; never touch it here.
+	;The jump above skips this complete scratch lifetime during preparation.
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
 	(up-remove-objects search-local object-data-target == tree-class)
-	(up-create-group 0 0 c: 0)
-	(up-modify-group-flag 1 c: 0)
+	(up-create-group 0 0 c: attack-transport-group)
+	(up-modify-group-flag 1 c: attack-transport-group)
 	(up-get-search-state local-total)
 	(up-remove-objects search-local object-data-index g:!= temporary-goal))
 (defrule
@@ -70,7 +75,9 @@
 	(up-object-data object-data-order == orderid-enter))))
 =>
 	(up-remove-objects search-local object-data-player != my-player-number)
-	(up-remove-objects search-local object-data-group-flag != 0)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+	; RAW12 counter 1
+	(up-modify-goal gl-command-counter-1 c:+ 1)
 	(up-target-point 0 action-stop -1 -1))
 (defrule
 	(up-set-target-object search-local c: 0)
@@ -79,18 +86,20 @@
 	(up-object-target-data object-data-status != status-pending)
 =>
 	(up-remove-objects search-local object-data-player != my-player-number)
-	(up-remove-objects search-local object-data-group-flag != 0)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+	; RAW12 counter 2
+	(up-modify-goal gl-command-counter-2 c:+ 1)
 	(up-target-point 0 action-stop -1 -1))
 (defrule
 	(up-set-target-object search-local c: 0)
 	(up-compare-goal temporary-goal g:< local-total)
 =>
 	(up-modify-goal temporary-goal c:+ 1)
-	(up-set-group search-local c: 0)
+	(up-set-group search-local c: attack-transport-group)
 	(up-remove-objects search-local object-data-index g:!= temporary-goal)
 	(up-jump-rule -3))
 (defrule
 	(true)
 =>
-	(up-modify-group-flag 0 c: 0)
-	(up-reset-group c: 0))
+	(up-modify-group-flag 0 c: attack-transport-group)
+	(up-reset-group c: attack-transport-group))

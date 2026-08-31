@@ -2494,6 +2494,33 @@
 
 ;========================Q-REME BEGIN========================
 
+;Concrete heavy-reme family: queued base and upgraded hulls share one allowance.
+(defrule
+	(true)
+=>
+	(up-get-fact unit-type-count-total quadrireme gl-heavy-reme-count)
+	(up-get-fact unit-type-count-total quinquereme gl-heavy-reme-upgraded-count)
+	(up-modify-goal gl-heavy-reme-count g:+ gl-heavy-reme-upgraded-count)
+	(set-goal gl-heavy-reme-train-id -1)
+)
+(defrule
+	(unit-available quinquereme)
+	(up-can-train gl-unitescrow-state c: quinquereme)
+=>
+	(set-goal gl-heavy-reme-train-id quinquereme)
+)
+(defrule
+	(goal gl-heavy-reme-train-id -1)
+	(unit-available quadrireme)
+	(up-can-train gl-unitescrow-state c: quadrireme)
+=>
+	(set-goal gl-heavy-reme-train-id quadrireme)
+)
+
+
+
+(load "rawai-naval-production-diag")
+
 (defrule
 	(and
 		(up-compare-goal current-phase >= 4)
@@ -2510,10 +2537,12 @@
 		)
 	)
 	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-fleet-cap)
-	(unit-type-count-total quadrireme-line g:< gl-one-percent)
-	(up-can-train gl-unitescrow-state c: quadrireme-line)
+	(up-compare-goal gl-heavy-reme-count g:< gl-one-percent)
+	(up-compare-goal gl-heavy-reme-train-id c:>= 0)
+	(up-can-train gl-unitescrow-state g: gl-heavy-reme-train-id)
 =>
-	(up-train gl-unitescrow-state c: quadrireme-line)
+	(up-train gl-unitescrow-state g: gl-heavy-reme-train-id)
+	(up-modify-goal gl-heavy-reme-count c:+ 1)
 	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 
@@ -2583,12 +2612,14 @@
 	(goal gl-naval-role NAVAL-ROLE-SUPPORT)
 	(goal gl-naval-specialist-support YES)
 	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-specialist-fleet-cap)
-	(unit-type-count-total quadrireme-line < 1)
+	(up-compare-goal gl-heavy-reme-count c:< 1)
 	(wood-amount > 300)
 	(gold-amount > 200)
-	(up-can-train gl-unitescrow-state c: quadrireme-line)
+	(up-compare-goal gl-heavy-reme-train-id c:>= 0)
+	(up-can-train gl-unitescrow-state g: gl-heavy-reme-train-id)
 =>
-	(up-train gl-unitescrow-state c: quadrireme-line)
+	(up-train gl-unitescrow-state g: gl-heavy-reme-train-id)
+	(up-modify-goal gl-heavy-reme-count c:+ 1)
 	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 
@@ -2613,12 +2644,14 @@
 	(goal gl-naval-role NAVAL-ROLE-SUPPORT)
 	(goal gl-naval-specialist-support YES)
 	(up-compare-goal gl-naval-fleet-count-total g:< gl-naval-specialist-fleet-cap)
-	(unit-type-count-total quadrireme-line < 2)
+	(up-compare-goal gl-heavy-reme-count c:< 2)
 	(wood-amount > 300)
 	(gold-amount > 200)
-	(up-can-train gl-unitescrow-state c: quadrireme-line)
+	(up-compare-goal gl-heavy-reme-train-id c:>= 0)
+	(up-can-train gl-unitescrow-state g: gl-heavy-reme-train-id)
 =>
-	(up-train gl-unitescrow-state c: quadrireme-line)
+	(up-train gl-unitescrow-state g: gl-heavy-reme-train-id)
+	(up-modify-goal gl-heavy-reme-count c:+ 1)
 	(up-modify-goal gl-naval-fleet-count-total c:+ 1)
 )
 

@@ -1,0 +1,68 @@
+;User policy: Imperial Age ends general exploration, not active ferry screening
+;or resource fishing. Native land admissions/reset live in rawai-ownership.
+;Run before military so delayed naval scout consumers cannot restart a leg.
+(defrule
+	(current-age >= imperial-age)
+=>
+	(set-strategic-number sn-number-explore-groups 0)
+	(set-strategic-number sn-total-number-explorers 0)
+	(set-strategic-number sn-cap-civilian-explorers 0)
+	(set-strategic-number sn-minimum-civilian-explorers 0)
+	(set-strategic-number sn-number-boat-explore-groups 0)
+	(set-goal gl-owner-explore-suspended YES)
+	(up-full-reset-search)
+	(up-set-group search-local c: naval-scout-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != naval-scout-group)
+	(up-create-group 0 0 c: naval-scout-group)
+	; RAW12 counter 25
+	(up-modify-goal gl-command-counter-25 c:+ 1)
+	(up-target-point position-self-x action-stop -1 stance-no-attack)
+	(up-modify-group-flag 0 c: naval-scout-group)
+	(up-reset-group c: naval-scout-group)
+	(set-goal gl-naval-scout-state NAVAL-SCOUT-IDLE)
+	(set-goal gl-naval-scout-count 0)
+	(disable-self)
+)
+
+;An already-started scout ferry finishes its landing/recovery. Once ashore,
+;retire the patrol instead of cancelling its voyage with passengers on board.
+;This also catches a patrol already in progress when the age changes.
+(defrule
+	(current-age >= imperial-age)
+	(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
+	(or (goal gl-island-migration-state MIGRATION-TASK-SCOUT)
+	(or (goal gl-island-migration-state MIGRATION-FIND-SCOUT-PATROL)
+	(or (goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT)
+	(or (goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT-FALLBACK)
+	(or (goal gl-island-migration-state MIGRATION-SCOUT-PATROL-WAIT)
+	    (goal gl-island-migration-state MIGRATION-SCOUT-PATROL-CHECK))))))
+=>
+	;Split the bounded command/release from the state union (32-element limit).
+	(set-goal gl-island-migration-state MIGRATION-RETIRE-SCOUT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RETIRE-SCOUT)
+=>
+	(up-full-reset-search)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-create-group 0 0 c: migration-boarding-group)
+	; RAW12 counter 26
+	(up-modify-goal gl-command-counter-26 c:+ 1)
+	(up-target-point position-self-x action-stop -1 stance-no-attack)
+	(up-modify-group-flag 0 c: migration-boarding-group)
+	(up-reset-group c: migration-boarding-group)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
+	(up-remove-objects search-local object-data-garrison-count > 0)
+	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(up-set-timer c: t-island-migration c: 60)
+	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)

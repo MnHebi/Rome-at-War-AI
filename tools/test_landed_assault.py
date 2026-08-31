@@ -1,0 +1,80 @@
+"""Actual-PER postlanding ownership/retarget fixtures; not engine combat proof."""
+import unittest
+
+from test_assault_missions import Missions, GROUPS
+
+
+class LandedAssaultTests(unittest.TestCase):
+    def landed(self):
+        m = Missions(); m.prepare(10); m.sweep()
+        m.objects[10]['point'] = (150, 100); m.sweep(8)
+        m.objects[10].update(point=(155, 100), cargo=0)
+        for p in range(1000, 1009):
+            m.objects[p].update(point=(155, 100), garrisoned=0, zone=3, idle=1)
+        m.sweep(8)
+        return m
+
+    def target(self, m, i=99, player=6, zone=3, point=(165, 110)):
+        m.objects[i] = dict(id=i, player=player, zone=zone, point=point, hp=100,
+                            cls='building-class', type='house')
+
+    def attacks(self, m):
+        return [c for c in m.commands if c[2] and c[2][0] == 'object']
+
+    def test_hull_released_but_landed_manifest_keeps_combat_ownership(self):
+        m = self.landed()
+        self.assertEqual(m.g['gl-am1-state'], 6)
+        self.assertEqual(m.objects[10]['flag'], -2)
+        self.assertEqual(m.groups[GROUPS[0]], list(range(1000, 1009)))
+        self.assertTrue(all(m.objects[p]['flag'] == GROUPS[0] for p in range(1000, 1009)))
+
+    def test_target_destruction_retargets_despite_global_target_change(self):
+        m = self.landed(); self.target(m); m.sweep(16)
+        self.assertTrue(self.attacks(m))
+        self.assertEqual(self.attacks(m)[-1][2], ('object', 99))
+        del m.objects[99]; self.target(m, i=100)
+        m.sn['sn-target-player-number'] = 7
+        m.g['gl-land-transport-ready'] = 0
+        m.sweep(16)
+        self.assertEqual(self.attacks(m)[-1][2], ('object', 100))
+
+    def test_busy_converted_other_owner_wrong_zone_and_free_units_not_commanded(self):
+        m = self.landed(); self.target(m)
+        for p, change in ((1000, {'idle': 0}), (1001, {'player': 6}),
+                          (1002, {'flag': 18}), (1003, {'zone': 4}),
+                          (1004, {'garrisoned': 1})):
+            m.objects[p].update(change)
+        m.objects[1010] = dict(m.objects[1005], id=1010, flag=-2)
+        m.sweep(16)
+        self.assertEqual(set(self.attacks(m)[-1][0]), {1005, 1006, 1007, 1008})
+        self.assertEqual(m.objects[1002]['flag'], 18)
+
+    def test_no_targets_and_total_lease_are_bounded_without_stop_or_retreat(self):
+        m = self.landed()
+        for _ in range(5): m.sweep(16)
+        self.assertEqual(m.g['gl-am1-state'], 0)
+        self.assertFalse(self.attacks(m))
+        self.assertTrue(all(m.objects[p]['flag'] == -2 for p in range(1000, 1009)))
+        m = self.landed(); self.target(m)
+        for p in range(1000, 1009): m.objects[p]['idle'] = 0
+        count = len(m.commands)
+        m.sweep(301)
+        self.assertEqual(m.g['gl-am1-state'], 0)
+        self.assertEqual(len(m.commands), count)
+
+    def test_same_island_other_living_enemy_after_original_enemy_leaves(self):
+        m = self.landed(); m.players[6]['active'] = False
+        self.target(m, player=7); m.sweep(16)
+        self.assertEqual(self.attacks(m)[-1][2], ('object', 99))
+
+    def test_friendly_wrong_island_and_failed_target_are_not_selected(self):
+        m = self.landed(); self.target(m, player=3); self.target(m, i=100, zone=4)
+        m.sweep(16); self.assertFalse(self.attacks(m))
+        self.target(m, i=101)
+        for _ in range(3): m.sweep(16)  # three refused/idle orders, not progressing attacks
+        self.target(m, i=102, point=(175, 110))
+        m.sweep(16)
+        self.assertEqual(self.attacks(m)[-1][2], ('object', 102))
+
+
+if __name__ == '__main__': unittest.main()

@@ -99,7 +99,7 @@
 			(goal age-up-finished EARLY-ANTIQUITY)
 			(and
 				(goal age-up-started EARLY-ANTIQUITY)
-				(and
+				(or
 					(building-type-count-total market == 0)
 					(building-type-count-total blacksmith == 0)
 				)
@@ -107,9 +107,12 @@
 		)
 	)
 =>
+	;Age 2 must fund the next age while either prerequisite is missing.
+	;Zero gold also disabled first-Mining-Camp admission; AND left that zero
+	;sticky after only one prerequisite existed. Keep the opening gold share.
 	(up-modify-sn sn-food-gatherer-percentage c:= 20)
-	(up-modify-sn sn-wood-gatherer-percentage c:= 80)
-	(up-modify-sn sn-gold-gatherer-percentage c:= 0)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 70)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
 	(up-modify-goal desired-number-lumbercamps c:= 3)
 	(up-modify-goal desired-number-mills c:= 1)
@@ -124,8 +127,16 @@
 		(and
 			(goal age-up-finished EARLY-ANTIQUITY)
 			(and
-				;Keep a buffer between the food recovery and gold-heavy modes.
-				(food-amount < 700)
+				;Keep the hysteresis band, but initialize it if no gold allocation
+				;survived the prerequisite transition. Do not override a live
+				;40-percent gold mode while food remains between 700 and 900.
+				(or
+					(food-amount < 700)
+					(and
+						(food-amount <= 900)
+						(strategic-number sn-gold-gatherer-percentage < 10)
+					)
+				)
 				(and
 					(goal age-up-started EARLY-ANTIQUITY)
 					(and
@@ -1200,6 +1211,10 @@
 	(goal gl-trade-route-state TRADE-ROUTE-IDLE)
 	(goal gl-land-trade-route NO)
 	(up-compare-goal gl-game-time g:>= gl-trade-route-next)
+	;A new/lost/packed producer invalidates the source census used by training.
+	;Do not renew live proof forever against an obsolete count: let the existing
+	;endpoint scan below rebuild and validate the inventory instead.
+	(building-type-count dock g:== gl-trade-own-producer-total)
 	(or
 		(up-compare-goal gl-trade-probe-trained c:>= 1)
 		(goal gl-water-trade-route YES)
@@ -1273,6 +1288,9 @@
 	(goal gl-trade-route-state TRADE-ROUTE-IDLE)
 	(goal gl-land-trade-route YES)
 	(up-compare-goal gl-game-time g:>= gl-trade-route-next)
+	;Same inventory epoch rule as water trade; do not simply overwrite the
+	;census here, which would bypass the existing source-zone validation.
+	(building-type-count market g:== gl-trade-own-producer-total)
 	(unit-type-count-total trade-cart >= 1)
 =>
 	(up-modify-goal gl-trade-route-focus s:= sn-focus-player-number)
@@ -1867,49 +1885,8 @@
 ;select the depleted camp and can erase the productive remote camp instead.
 ;Targeted object-ID deletion can be added once per-zone depletion is tracked.
 
-;Trim fishing fleets when their fishing grounds shrink.
-
-(defrule
-	(up-timer-status t-update-facts == timer-triggered)
-	(unit-type-count fishing-ship g:> desired-number-fishing)
-=>
-	(delete-unit fishing-ship)
-)
-
-(defrule
-	(and
-		(goal fish-present NO)
-		(building-type-count-total fish-trap <= 0)
-	)
-	(up-timer-status t-update-facts == timer-triggered)
-	(unit-type-count fishing-ship > 0)
-=>
-	(delete-unit fishing-ship)
-)
-
-(defrule
-	(goal fish-present YES)
-	(cc-players-unit-type-count 0 ocean-fish-class < 4)
-	(cc-players-unit-type-count 0 shore-fish-class < 4)
-	(up-timer-status t-update-facts == timer-triggered)
-	(unit-type-count fishing-ship > 2)
-=>
-	(delete-unit fishing-ship)
-)
-
-(defrule
-	(goal fish-present YES)
-	(cc-players-unit-type-count 0 ocean-fish-class < 10)
-	(cc-players-unit-type-count 0 shore-fish-class < 10)
-	(or
-		(cc-players-unit-type-count 0 ocean-fish-class >= 4)
-		(cc-players-unit-type-count 0 shore-fish-class >= 4)
-	)
-	(up-timer-status t-update-facts == timer-triggered)
-	(unit-type-count fishing-ship > 4)
-=>
-	(delete-unit fishing-ship)
-)
+;Keep existing fishing ships for the fish-first / targeted Fish Trap fallback.
+;Fleet growth remains bounded at six; scarce fish is not a deletion criterion.
 
 ;count units for goals
 

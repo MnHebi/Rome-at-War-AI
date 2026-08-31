@@ -1,0 +1,514 @@
+;User-requested fish-first policy; no general scouting or Transport ownership.
+;DAT a1319be7...: Fishing Ship13 has explicit build101/gather5 tasks for Trap199.
+;Round-robin all up-to-40 searchable ships (normal trained fleet capped at6).
+;A per-object carry change is progress; a queued order alone is not.
+
+(defrule
+	(true)
+=>
+	(set-goal gl-fish-init FISH-WATCH-BASE)
+	(set-goal gl-fish-state 0)
+	(set-goal gl-fish-slot 0)
+	(set-goal gl-fish-next 0)
+	(disable-self)
+)
+
+;No automatic villager recruitment; construction is assigned to a specific ship.
+(defrule
+	(goal gl-owner-worker-hold NO)
+=>
+	(up-assign-builders c: fish-trap c: -1)
+	(disable-self)
+)
+
+(defrule
+	(up-compare-goal gl-fish-init c:< FISH-WATCH-END)
+=>
+	(up-set-indirect-goal g: gl-fish-init c: -1)
+	(up-modify-goal gl-fish-init c:+ 1)
+	(up-set-indirect-goal g: gl-fish-init c: -1)
+	(up-modify-goal gl-fish-init c:+ 1)
+	(up-set-indirect-goal g: gl-fish-init c: 0)
+	(up-modify-goal gl-fish-init c:+ 1)
+	(up-set-indirect-goal g: gl-fish-init c: 0)
+	(up-modify-goal gl-fish-init c:+ 1)
+)
+
+(defrule
+	(true)
+=>
+	(up-modify-goal gl-fish-focus s:= sn-focus-player-number)
+)
+
+(defrule
+	(goal gl-fish-state 0)
+	(up-compare-goal gl-fish-init c:>= FISH-WATCH-END)
+	(up-compare-goal gl-game-time g:>= gl-fish-next)
+	(unit-type-count fishing-ship > 0)
+=>
+	(up-modify-goal gl-fish-next g:= gl-game-time)
+	(up-modify-goal gl-fish-next c:+ 2)
+	(up-get-fact unit-type-count fishing-ship gl-fish-boats)
+	(up-full-reset-search)
+	(up-find-local c: fishing-ship-class c: 40)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-clean-search search-local object-data-id search-order-asc)
+	(up-remove-objects search-local object-data-index g:!= gl-fish-slot)
+	(set-goal gl-fish-state 1)
+)
+
+(defrule
+	(goal gl-fish-state 1)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(set-goal gl-fish-slot 0)
+	(set-goal gl-fish-state 0)
+)
+
+(defrule
+	(goal gl-fish-state 1)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-fish-id)
+	(up-get-object-data object-data-carry gl-fish-carry)
+	(up-get-object-data object-data-map-zone-id gl-fish-zone)
+	(up-get-point position-object gl-fish-x)
+	(up-modify-goal gl-fish-pointer g:= gl-fish-slot)
+	(up-modify-goal gl-fish-pointer c:* 4)
+	(up-modify-goal gl-fish-pointer c:+ FISH-WATCH-BASE)
+	(up-get-indirect-goal g: gl-fish-pointer gl-fish-previous-id)
+	(up-modify-goal gl-fish-pointer c:+ 1)
+	(up-get-indirect-goal g: gl-fish-pointer gl-fish-previous-carry)
+	(up-modify-goal gl-fish-pointer c:+ 1)
+	(up-get-indirect-goal g: gl-fish-pointer gl-fish-deadline)
+	(up-modify-goal gl-fish-pointer c:+ 1)
+	(up-get-indirect-goal g: gl-fish-pointer gl-fish-command-next)
+	(up-modify-goal gl-fish-pointer c:- 3)
+	(set-goal gl-fish-state 2)
+)
+
+;Replacing/reordering a ship starts a fresh watch; failures never transfer to another object.
+(defrule
+	(goal gl-fish-state 2)
+	(up-compare-goal gl-fish-id g:!= gl-fish-previous-id)
+=>
+	(up-modify-goal gl-fish-deadline g:= gl-game-time)
+	(up-modify-goal gl-fish-deadline c:+ 120)
+	(set-goal gl-fish-command-next 0)
+)
+
+(defrule
+	(goal gl-fish-state 2)
+	(up-compare-goal gl-fish-carry g:!= gl-fish-previous-carry)
+=>
+	(up-modify-goal gl-fish-deadline g:= gl-game-time)
+	(up-modify-goal gl-fish-deadline c:+ 120)
+)
+
+;120s without observed cargo progress: visible but unusable fish do not postpone traps.
+(defrule
+	(goal gl-fish-state 2)
+	(up-compare-goal gl-game-time g:>= gl-fish-deadline)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-player == my-player-number)
+	(up-object-data object-data-group-flag < 0)
+	(up-object-data object-data-under-attack == 0)
+	(up-object-data object-data-carry == 0)
+	(up-object-data object-data-action != actionid-build)
+=>
+	(set-goal gl-fish-state 6)
+)
+
+(defrule
+	(goal gl-fish-state 2)
+	(up-compare-goal gl-game-time g:>= gl-fish-command-next)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-player == my-player-number)
+	(up-object-data object-data-group-flag < 0)
+	(up-object-data object-data-under-attack == 0)
+	(up-object-data object-data-carry == 0)
+	(up-object-data object-data-action != actionid-build)
+	(or (up-object-data object-data-idling == 1) (up-object-data object-data-action == actionid-explore))
+=>
+	(set-goal gl-fish-state 4)
+)
+
+;Leave gathering, returning cargo, building, danger and other owners alone.
+(defrule
+	(goal gl-fish-state 2)
+=>
+	(set-goal gl-fish-state 90)
+)
+
+(defrule
+	(goal gl-fish-state 4)
+=>
+	(set-strategic-number sn-focus-player-number 0)
+	(up-full-reset-search)
+	(up-set-target-point gl-fish-x)
+	(up-filter-status c: status-resource c: list-active)
+	(up-find-status-remote c: ocean-fish-class c: 40)
+	(up-find-status-remote c: shore-fish-class c: 40)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-status-remote c: ocean-fish-class c: 40)
+	(up-find-status-remote c: shore-fish-class c: 40)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-fish-zone)
+	(up-remove-objects search-remote object-data-carry <= 0)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-remove-objects search-remote object-data-index > 0)
+	(set-goal gl-fish-state 5)
+)
+
+(defrule
+	(goal gl-fish-state 5)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-reset-search 1 1 0 0)
+	(up-add-object-by-id search-local g: gl-fish-id)
+	(up-remove-objects search-local object-data-id g:!= gl-fish-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-type != fishing-ship)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-carry > 0)
+	(up-remove-objects search-local object-data-action == actionid-build)
+	(up-target-objects 0 action-gather -1 stance-no-attack)
+	(up-modify-goal gl-fish-command-next g:= gl-game-time)
+	(up-modify-goal gl-fish-command-next c:+ 45)
+	(set-goal gl-fish-state 90)
+)
+
+;No usable known fish: native fishing exploration is still allowed; never issue STOP/EXPLORE here.
+(defrule
+	(goal gl-fish-state 5)
+=>
+	(set-goal gl-fish-state 90)
+)
+
+(defrule
+	(goal gl-fish-state 6)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-fish-x)
+	(up-find-remote c: dock c: 40)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-fish-zone)
+	(up-remove-objects search-remote object-data-under-attack > 0)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-fish-state 7)
+)
+
+(defrule
+	(goal gl-fish-state 7)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-fish-port-id)
+	(up-get-point position-object gl-fish-port-x)
+	(set-goal gl-fish-attempt 0)
+	(set-goal gl-fish-trap-skip -1)
+	(set-goal gl-fish-state 8)
+)
+
+(defrule
+	(goal gl-fish-state 7)
+=>
+	(set-goal gl-fish-state 80)
+)
+
+(defrule
+	(goal gl-fish-state 8)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-fish-port-x)
+	(up-filter-distance c: -1 c: 10)
+	(up-find-remote c: fish-trap c: 40)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-fish-zone)
+	(up-remove-objects search-remote object-data-id g:<= gl-fish-trap-skip)
+	(up-clean-search search-remote object-data-id search-order-asc)
+	(set-goal gl-fish-state 9)
+)
+
+(defrule
+	(goal gl-fish-state 9)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-fish-target)
+	(up-modify-goal gl-fish-trap-skip g:= gl-fish-target)
+	(set-goal gl-fish-reusable NO)
+	(set-goal gl-fish-state 10)
+)
+
+(defrule
+	(goal gl-fish-state 9)
+=>
+	(set-goal gl-fish-state 20)
+)
+
+(defrule
+	(goal gl-fish-state 10)
+	(up-set-target-object search-remote c: 0)
+	(or (up-object-data object-data-status < status-ready) (up-object-data object-data-carry > 0))
+=>
+	(set-goal gl-fish-reusable YES)
+)
+
+(defrule
+	(goal gl-fish-state 10)
+=>
+	(up-reset-search 1 1 0 0)
+	(up-reset-filters)
+	(up-find-local c: fishing-ship-class c: 40)
+	(up-remove-objects search-local object-data-id g:== gl-fish-id)
+	(up-remove-objects search-local object-data-target-id g:!= gl-fish-target)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-fish-users g:= local-total)
+	(set-goal gl-fish-state 11)
+)
+
+(defrule
+	(goal gl-fish-state 11)
+	(goal gl-fish-reusable YES)
+	(up-compare-goal gl-fish-users c:== 0)
+=>
+	(set-goal gl-fish-state 40)
+)
+
+;Try the next existing trap next pass; never evict another working fishing ship.
+(defrule
+	(goal gl-fish-state 11)
+=>
+	(set-goal gl-fish-state 8)
+)
+
+(defrule
+	(goal gl-fish-state 20)
+	(up-compare-goal gl-fish-attempt c:< 4)
+=>
+	(up-copy-point gl-fish-build-x gl-fish-port-x)
+	(set-goal gl-fish-state 21)
+)
+
+(defrule
+	(goal gl-fish-state 20)
+=>
+	(set-goal gl-fish-state 80)
+)
+
+(defrule
+	(goal gl-fish-state 21)
+	(goal gl-fish-attempt 0)
+=>
+	(up-modify-goal gl-fish-build-x c:+ 5)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-fish-id)
+	(set-goal gl-fish-state 22)
+)
+
+(defrule
+	(goal gl-fish-state 21)
+	(goal gl-fish-attempt 1)
+=>
+	(up-modify-goal gl-fish-build-y c:+ 5)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-fish-id)
+	(set-goal gl-fish-state 22)
+)
+
+(defrule
+	(goal gl-fish-state 21)
+	(goal gl-fish-attempt 2)
+=>
+	(up-modify-goal gl-fish-build-x c:- 5)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-fish-id)
+	(set-goal gl-fish-state 22)
+)
+
+(defrule
+	(goal gl-fish-state 21)
+	(goal gl-fish-attempt 3)
+=>
+	(up-modify-goal gl-fish-build-y c:- 5)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-fish-id)
+	(set-goal gl-fish-state 22)
+)
+
+(defrule
+	(goal gl-fish-state 22)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-player == my-player-number)
+	(up-object-data object-data-group-flag < 0)
+	(up-object-data object-data-under-attack == 0)
+	(up-object-data object-data-carry == 0)
+	(up-object-data object-data-action != actionid-build)
+=>
+	(up-get-point-zone gl-fish-build-x gl-fish-build-zone)
+	(up-reset-search 0 0 1 1)
+	(up-add-object-by-id search-remote g: gl-fish-port-id)
+	(set-goal gl-fish-state 23)
+)
+
+(defrule
+	(goal gl-fish-state 22)
+=>
+	(set-goal gl-fish-state 80)
+)
+
+;One point, one foundation request; four legal-position attempts, no generic build queue.
+(defrule
+	(goal gl-fish-state 23)
+	(goal gl-owner-worker-hold NO)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-player == my-player-number)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-under-attack == 0)
+	(up-compare-goal gl-fish-build-zone g:== gl-fish-zone)
+	(building-type-count-total fish-trap g:< gl-fish-boats)
+	(up-pending-objects c: fish-trap <= 0)
+	(not (up-pending-placement c: fish-trap))
+	(up-can-build-line 0 gl-fish-build-x c: fish-trap)
+=>
+	(up-assign-builders c: fish-trap c: -1)
+	(up-build-line gl-fish-build-x gl-fish-build-x c: fish-trap)
+	(up-modify-goal gl-fish-wait-until g:= gl-game-time)
+	(up-modify-goal gl-fish-wait-until c:+ 20)
+	(set-goal gl-fish-state 30)
+)
+
+(defrule
+	(goal gl-fish-state 23)
+=>
+	(up-modify-goal gl-fish-attempt c:+ 1)
+	(set-goal gl-fish-state 20)
+)
+
+(defrule
+	(goal gl-fish-state 30)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-fish-build-x)
+	(up-filter-distance c: -1 c: 1)
+	(up-find-remote c: fish-trap c: 40)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-fish-zone)
+	(set-goal gl-fish-state 31)
+)
+
+(defrule
+	(goal gl-fish-state 31)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-fish-target)
+	(up-chat-data-to-self "RAW15 trap foundation: %d" g: gl-fish-target)
+	(set-goal gl-fish-state 40)
+)
+
+(defrule
+	(goal gl-fish-state 31)
+	(up-compare-goal gl-game-time g:< gl-fish-wait-until)
+=>
+	(set-goal gl-fish-state 30)
+)
+
+(defrule
+	(goal gl-fish-state 31)
+=>
+	(up-chat-data-to-self "RAW15 trap placement timeout: %d" g: gl-fish-id)
+	(set-goal gl-fish-state 80)
+)
+
+(defrule
+	(goal gl-fish-state 40)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-fish-target)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-type != fish-trap)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-fish-zone)
+	(set-goal gl-fish-state 41)
+)
+
+;Explicit right-click on the concrete self-owned Trap199 foundation invokes the DAT build101 task. A completed unused trap invokes gather5.
+(defrule
+	(goal gl-fish-state 41)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-reset-search 1 1 0 0)
+	(up-add-object-by-id search-local g: gl-fish-id)
+	(up-remove-objects search-local object-data-id g:!= gl-fish-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-type != fishing-ship)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-carry > 0)
+	(up-remove-objects search-local object-data-action == actionid-build)
+	(up-get-search-state local-total)
+	(set-goal gl-fish-state 42)
+)
+
+(defrule
+	(goal gl-fish-state 41)
+=>
+	(set-goal gl-fish-state 80)
+)
+
+(defrule
+	(goal gl-fish-state 42)
+	(up-compare-goal local-total c:> 0)
+	(up-set-target-object search-remote c: 0)
+=>
+	;Same-pass consumer: only the exact freshly validated ship may build/gather.
+	(up-remove-objects search-local object-data-id g:!= gl-fish-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+	(up-chat-data-to-self "RAW15 trap ship assigned: %d" g: gl-fish-id)
+	(set-goal gl-fish-state 80)
+)
+
+(defrule
+	(goal gl-fish-state 42)
+=>
+	(set-goal gl-fish-state 80)
+)
+
+;Terminal backoff applies even on missing port/resources/geometry, not an every-sweep retry.
+(defrule
+	(goal gl-fish-state 80)
+=>
+	(up-modify-goal gl-fish-deadline g:= gl-game-time)
+	(up-modify-goal gl-fish-deadline c:+ 180)
+	(up-modify-goal gl-fish-command-next g:= gl-game-time)
+	(up-modify-goal gl-fish-command-next c:+ 45)
+	(set-goal gl-fish-state 90)
+)
+
+(defrule
+	(goal gl-fish-state 90)
+=>
+	(up-set-indirect-goal g: gl-fish-pointer g: gl-fish-id)
+	(up-modify-goal gl-fish-pointer c:+ 1)
+	(up-set-indirect-goal g: gl-fish-pointer g: gl-fish-carry)
+	(up-modify-goal gl-fish-pointer c:+ 1)
+	(up-set-indirect-goal g: gl-fish-pointer g: gl-fish-deadline)
+	(up-modify-goal gl-fish-pointer c:+ 1)
+	(up-set-indirect-goal g: gl-fish-pointer g: gl-fish-command-next)
+	(up-modify-goal gl-fish-slot c:+ 1)
+	(set-goal gl-fish-state 0)
+)
+
+(defrule
+	(up-compare-goal gl-fish-slot c:>= 40)
+=>
+	(set-goal gl-fish-slot 0)
+)
+
+(defrule
+	(true)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-fish-focus)
+)
