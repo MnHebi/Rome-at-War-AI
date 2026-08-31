@@ -1,8 +1,1385 @@
 # Rome at War AI handoff
 
-## CURRENT — Port/Shipyard PACK safety fix; NOT DEPLOYED, 2026-08-31
+## CURRENT — T22:470 DEPLOYED, 2026-08-31
 
-The user is still testing the original T13 below. This regression takes priority
+User ordered: deploy/test the two T20 voyage fixes, bound preparation recovery,
+remove global-target admission coupling, add bounded landed combat, then revisit
+traffic/emergency unloading/landing quality. Read the T22 section of
+`T19-REPLAY-REVIEW.md` for separate causes, limits, review and acceptance.
+User then explicitly requested deploying T22 on top without waiting for a
+separate T21 comparison replay. That deployment is complete and hash-verified.
+
+- Same authorized working-directory/Git-root exception:
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`;
+  branch `recovery/p3b44-transport-only`, runtime source commit
+  `46d06c1fa74170d980b7ea207bf4073f0b8729ec`; publication/evidence commits follow.
+  Resolve the current documentation-inclusive HEAD with `git rev-parse HEAD`.
+  User requested a new PR after deployment; pending work is now committed in
+  separate policy/causal groups, including separate T22 A/B/C commits. No
+  workspace/branch switch. Normal canonical directory remains
+  `.pr-work\Rome-at-War-AI`; do not edit/synchronize the obsolete root extraction.
+- **Replaced T21:469**,91 files/hash
+  `9B0F1E15A4B928B4AB93FACAB065B7D100761D73097D8ABAFC9CC179C6609A09`.
+  Explicitly deployed from this checkout using `sync_test_ai.py --apply`, replacing
+  only assault-missions, economy and marker from T19. Contains both T20 voyage
+  fixes AND the immediately preceding requested Age2 gold fix. Full manifest
+  independently reverified after T22 edits. No separate T21 replay was supplied.
+- **Installed and local T22:470**,91 files/hash
+  `7B6F61153B5FD927BFC8847008A82E19BD84650D3C50A8C362F4D7504DF89D79`.
+  Deployed from this checkout using `sync_test_ai.py --apply`; independent check
+  confirms all91 files match with no unexpected files. Installed marker verified
+  as `RAWAI-P3B44T22: 470`. Seven runtime files replaced: assault admission/defs/
+  missions/plans, customconstants, military, marker. No economy change after469;
+  T20 voyage fixes and T21 Age2 gold fix remain included. No code changes or full
+  test rerun during this deployment-only turn; payload matches the tested hash.
+  Fresh startup/replay NOT YET OBSERVED.
+- Immutable comparison/rollback archive, NOT a development workspace:
+  `.analysis/p3b44t21-before-upstream.zip` outside the repository, SHA256
+  `3EECE88D96763B73F1CCCB541839A10F4724800CB7AADA820863D10AB45BC140`.
+  Its91 runtime entries reproduce the previous469 payload; includes pre-edit tools.
+- **T22 A FIXED-PENDING-RUNTIME:** preparation recovery has a90s lease, preserving
+  the three unload attempts. Exhaustion with occupied quarantine releases the
+  lane without another order; empty stranded return cannot loop forever. Preserve
+  old quarantine ID/cargo and prune converted/other-owner group references.
+  The most recently relinquished hull is excluded from assault intake for300s
+  (single recent-failure record, replaced by a later failure). This is explicit
+  relinquishment to native/manual/utility recovery, NOT successful unloading or
+  permanent quarantine. No active voyage slot is consumed.
+- **T22 B FIXED-PENDING-RUNTIME:** empty-lift admission checks a known asset of its
+  saved enemy outside the home/boarder land zone, retains exact objective across
+  boarding, revalidates ownership/zone at planning. Missing objective logs plan
+  reason30 and uses bounded overseas replan. Global target/scan/transport flag no
+  longer decides admission. Existing team-wide strength/army/defense guards stay.
+- **T22 C FIXED-PENDING-RUNTIME:** successful cargo-empty landing transfers exact
+  troops to state6 combat in the existing mission group; empty hull/screen released.
+  Every16s command only idle owned same-zone ungarrisoned members to a live hostile
+  same-zone building/villager. Prefer saved enemy, then other living enemies.
+  Three idle retries skip that target; four no-target checks or300s total releases
+  ownership without STOP/retreat. Busy units untouched. IMPORTANT capacity limit:
+  landed combat occupies its existing assault slot for up to300s; still at most
+  three simultaneous owned assault lifecycles, not three voyages PLUS land groups.
+- **PASS:**404 regression tests, including94 assault tests and6 landed-combat
+  tests; PER/generation/strategy/naval/39 benchmarks;801 ownership sites/zero
+  direct permission failures. Writer-trace sandbox temp-file failure was resolved
+  by authorized rerun. Runtime acceptance remains NOT RUN, not CLOSED.
+- PR publication audit: the working and installed91-file runtime still matches
+  the tested470 hash above; no runtime edits or full-suite rerun for publication.
+  Source/fixture history through469 was recovered into the index from the
+  hash-verified T21 archive, without replacing any working/deployed files.
+  T22 A/B/C commits: `2427dd4`, `6d38b06`, `46d06c1` respectively.
+  Prior PRs5/6 are merged; publish a new PR to `main` from this same branch.
+  Full-branch `git diff --check origin/main` reports two trailing spaces in
+  generated command-map comments (`rawai-command-counter-defs.per`, lines8/52).
+  Kept the tested/deployed payload unchanged; this is not a gameplay failure.
+  No replay, DAT, dump, archive or external binary is included in publication.
+
+Next: start a fresh470 game and confirm marker470; audit all-player replay and
+manual interventions against T20/T21 and A/B/C acceptance criteria in the report.
+The user waived a separate469-first comparison. Congestion, near-beach emergency
+unloads and landing-plan quality were revisited but NOT changed in470; neither were migration dropsites,
+taunt31 receive/defer gates, STOP flood, naval production or other backlog issues.
+
+## PREVIOUS — T21:469 Age 2 gold bootstrap LOCAL ONLY, 2026-08-31
+
+User prioritized a Mining Camp near gold promptly in Age 2. Read the T21 section
+in `T19-REPLAY-REVIEW.md`. **FIXED-PENDING-RUNTIME**, not a migration-placement fix.
+
+- Working directory/Git root remains the authorized recovery exception:
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`.
+  Branch `recovery/p3b44-transport-only`, HEAD
+  `387eccab36a3311ca90d9e39bea6d73013584a8b` plus preserved intentional changes.
+  No workspace/branch switch, commit or push.
+- Source cause: phase3 (Age2) set gold to0 while both Market/Blacksmith were
+  absent, then left that allocation unchanged when only one existed. Positive
+  gold demand gates the existing first-camp search. Both buildings appearing at
+  700–900 food could also leave zero gold unchanged in the hysteresis band.
+- Small independent economy patch: while either prerequisite is missing use
+  food20/wood70/gold10/stone0. Initialize the food-recovery allocation only when
+  both exist, food<=900 and gold share<10. Preserve existing40% gold hysteresis,
+  worker ownership/depletion guards, Age1 opening and all placement code.
+- **PASS:**6 new actual-PER allocation/admission tests;387 full regression tests,
+  PER, strategy, naval and39 replay-benchmark validations. Sandbox run had one
+  temporary-file permission error; authorized rerun passed all387. No gameplay
+  proof claimed. All-player camp timings and review triage are in the report.
+- **Installed remains T19:467**,91 files, full hash
+  `35526EFC8E958DB8BBC7C366B4126B123D676763287E890EA66BCA597D7B58DF`.
+  **Local T21:469**,91 files, full hash
+  `9B0F1E15A4B928B4AB93FACAB065B7D100761D73097D8ABAFC9CC179C6609A09`.
+  Includes prior T20 voyage fixes unchanged. Only economy, assault missions and
+  marker differ from installed T19. No deployment; install on explicit request.
+- Next acceptance: with affordable wood and visible home-zone gold, start the
+  camp placement cycle within its existing <=10s idle retry cadence in Age2,
+  without waiting for Market/Blacksmith; verify a nearby completed camp and
+  actual gold deposits. Blocked geometry/construction can still fail and must
+  remain explicit. Gray's full age delay is not declared closed. Transport
+  upstream/traffic/landed-combat and overseas drop-site defects below remain open.
+
+## PREVIOUS — T19 audited; T20:468 voyage fixes LOCAL ONLY, 2026-08-31
+
+Read `T19-REPLAY-REVIEW.md` first. Latest replay204847 SHA256
+`ED6963FB76DB551C9A05828F70E04847F72FF5F241AC966752DAC5442CA9C726`,
+157:24, manually resigned for stalled play. User organized Red's larger land
+attacks against Blue and assisted two unloads; those are NOT autonomous successes.
+User additionally confirmed Purple was silent to31, then Yellow later was silent.
+
+- **Working directory/Git root:**
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`.
+  **Branch:** `recovery/p3b44-transport-only`; **HEAD:**
+  `387eccab36a3311ca90d9e39bea6d73013584a8b` plus intentional pending changes.
+  Same documented recovery exception; no workspace/branch switch. Preserve all
+  preceding changes; do not synchronize the obsolete workspace-root extraction.
+- **Installed remains T19:467**,91 files/full hash
+  `35526EFC8E958DB8BBC7C366B4126B123D676763287E890EA66BCA597D7B58DF`.
+  **Local T20:468**,91 files/full hash
+  `02F378ACB020A471A9B5B45492894E5A75AF21F561658F831128B1D88DBD67D7`.
+  Only `rawai-assault-missions.per` and marker differ in runtime. Nothing deployed,
+  committed, pushed, or changed in the data mod. Install only on explicit request.
+- Immutable pre-edit `.analysis/p3b44t19-runtime-control.zip`, SHA256
+  `9DC862F1BEC8988EAE34D81D643837644915562211B0FD71EE9AE89EA1307A0C`;
+ 91 runtime entries independently match installed467; generator/test copies
+  included. Archive for rollback/comparison, not another development workspace.
+- **T20 causal A — FIXED-PENDING-RUNTIME:** landing leg inherited near-zero
+  waypoint best distance, so real beachward motion did not refresh progress.
+  Reset only private best/stall history on state1→2. Actual-PER moving-hull fixture
+  FAIL in all3 slots before / PASS after; total voyage budget unchanged.
+- **T20 causal B — FIXED-PENDING-RUNTIME:** timeout before completion suppresses
+  passenger handoff. Red44797 logs no-progress then return-empty in same93:58
+  sample. Move existing distance read and completed-unload rule before policy
+  cancellation. Progress/total deadline coincidence fixtures FAIL before/PASS
+  after. No permission added to unload a still-loaded hull under enemy fire.
+  A/B are independently reversible generator edits, not a transport redesign.
+- **PASS:**381 full regression tests;19 actual-PER voyage fixtures; generation,
+  PER, strategy, naval and ownership762-site checks. Historical fingerprint was
+  explicitly adjusted only for the authorized transition/order changes, marker
+  test updated. Temporary-file sandbox failure cleared on authorized full rerun.
+  Runtime acceptance for468 NOT RUN. Do not call the gameplay defects closed.
+
+### Current priority and next actions
+
+**Latest diagnostic follow-up:** read the upstream-formation section in
+`T19-REPLAY-REVIEW.md`. Source/actual-PER checks prove conditional unbounded
+preparation recovery when quarantine is occupied (3660s still WAIT; free-slot
+control IDLE), and an empty hull unable to regain origin also retains the lane.
+Both block new admission and31; Purple's exact post63:28 gate remains unrecorded,
+so do not assert that this explains its whole stall. Also found mission/global
+target mismatch in empty-hull boarding and home-zone/global-readiness coupling
+that denies ordinary dispatch for already-landed troops. Yellow continues to
+commit through155:00, so do not classify its28 failed/unfinished missions as no
+formation. No runtime edits/deployment in this follow-up; T20 remains local only.
+These upstream issues need separate bounded fixes/acceptance, not a claim that
+T20's voyage changes resolve them.
+
+1. Validate T20's long landing leg and deadline-coincident emptying in a fresh
+   replay when authorized, preserving3 concurrent missions/partial loads. All-player
+   T19 census:48 linked hulls,41 slot commits,4 landing events,30 return-empty,
+   5 missing hulls,1 quarantine,1 underway. Five no-progress cases had issued an
+   outbound unload; **25 Yellow cases failed before that** and are not explained
+   by the landing-leg fix. No new telemetry or broad policy bundled into T20.
+2. **OPEN requested traffic and emergency-unload policies:** user wants loaded
+   missions to wait/yield/reroute through friendly traffic rather than expire and
+   recall; and bounded immediate unloading when under attack a few tiles from a
+   validated target beach. Neither was implemented by T20. Keep safety elsewhere.
+   Red assisted hulls49166/46594 at120:26/120:42 were not active RAW3 missions;
+   investigate their recovery/native owner separately, do not claim these fixed.
+3. **INVESTIGATING landed idle/31:** Green nine landed98:42; last actor commands
+  98:49–99:13 then none through157:24, despite4 acknowledgments. No later STOPs
+   to those exact units. Purple no acknowledgments, Yellow4 then user-reported
+   silence. Taunt acknowledgment is behind defense/preparation gates; exact gate
+   snapshot missing. Postlanding gives one point-MOVE then releases; native
+   type-wide exclusions may block free same-type soldiers. Source is not proof
+   of retained flags. Separate receive/defer/dispatch and inspect exact ownership
+   before adding bounded offshore combat continuation. Acceptance requires actual
+   action, not merely an acknowledgment. Full IDs and next diagnostic in report.
+4. **INVESTIGATING migration:**20 Red settlers land61:40, reserved member receives
+   distant house BUILD61:58; camp65:30 near a different stone anchor, completed
+  66:28. Global pending-house/Market wait and distant alternate-anchor choice
+   remain suspect; T18 exact placement did produce a matching foundation. Later
+  117:36 and138:45 landings fail after60s unaffordable-camp waits before any build.
+   Do not reapply the old point-placement fix to these different failure classes.
+5. **INVESTIGATING** Gray Age2→3 delay (10:14→31:09, first camp request32:41),
+   Imperial/Workshop prerequisite failure; STOP52213 and TC-loss lag; Yellow tower
+   beach choice; enemy-adjacent walls; old Boarding Ship failures. Blue conversion
+   success is user-observed positive control, not universal closure.
+
+External `.analysis/p3b44t19-*` contains full/exact/command stream, transport
+audit, dispatch, evidence and followups;225 passenger snapshots/53 partial-abort
+records, zero decoder failures. `audit_t19_evidence.py` separates stored/terminal
+plan reasons from next-enemy bundles and preserves exact member IDs. The report
+and new replay benchmark preserve failures, intervention provenance and limits.
+
+## PREVIOUS — T19:467 loaded-assault replanning, DEPLOYED, 2026-08-31
+
+The user's latest directive replaces immediate recall after failed screening with
+failed-approach memory and bounded approach -> objective -> opponent replanning.
+Read the T19 follow-up in `T17-REPLAY-REVIEW.md` for scope, reason codes, review,
+acceptance criteria and remaining engine uncertainty. **FIXED-PENDING-RUNTIME**.
+
+- **Working directory and Git root:**
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`.
+  **Branch:** `recovery/p3b44-transport-only`; **HEAD:**
+  `387eccab36a3311ca90d9e39bea6d73013584a8b` plus intentional pending changes.
+  This remains the documented recovery exception; no workspace/branch change.
+  Preserve all preceding T13–T18 work. Do not synchronize the obsolete root copy.
+- **Installed and local T19:467**, 91 files, independently verified SHA256
+  `35526EFC8E958DB8BBC7C366B4126B123D676763287E890EA66BCA597D7B58DF`.
+  Deployed on explicit user request using `tools/sync_test_ai.py --apply` to
+  `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`.
+  Seven files copied (five replacements, two additions); read-only recheck PASS,
+  no missing, differing or unexpected runtime files. Installed marker467 verified.
+  Replaced T17A1:465 (89 files, hash `B7BBA84A...EC6` recorded below); its existing
+  `p3b44t17a1-runtime-control.zip` remains available for rollback.
+  T18 migration placement is still included and still untested in the engine.
+  No code changes, full-suite rerun, commit or push during deployment; source hash
+  still matches the payload which passed378 tests. Fresh game startup not yet observed.
+- Pre-edit archive:
+  `G:\Projects\Codex\Rome at War AI\.analysis\p3b44t18-before-approach-replan.zip`,
+  SHA256 `6E4C6E29193BB7F542A8A90D89A31520A4074ADD99B679F2FD4BD4DD9A405FF2`.
+  Its 89 runtime files reproduce T18 hash `7CD27F5B...905` recorded below.
+  Contains runtime and tools for comparison/reversal, not a development directory.
+- Memory: 16 expiring opponent/objective/landing/reason/retry-after records;
+  failed beaches within 12 tiles on each axis excluded for 300 game-seconds.
+  Up to five candidates (anchor, lateral +/-28 and +/-56), three distinct
+  objectives on the same landmass, then explicit opponent rotation. Three
+  exhausted objectives or 180s per enemy trigger 300s deprioritization; no other
+  objective also exhausts that bounded plan. At most three opponents /360s total.
+  Budgets start at accepted-load planning, not every retry.
+- Positive danger/lost Scout vetoes that candidate. Another candidate needs fresh
+  same-island/all-hostile defense checks and a replacement free Scout or existing
+  reason3/5/9 fallback. Accepted 5–9 partial loads remain eligible. Hull, manifest
+  and passenger ownership survive replans. Global target SN is not modified and
+  cannot overwrite the preparation choice. Three dispatched slots are unchanged.
+- `tools/generate_assault_plans.py` is integrated into the existing assault
+  generator/check. New generated runtime files are `rawai-assault-plan-defs.per`
+  and `rawai-assault-plans.per`. Main loader, admission, screening/fallback and
+  marker are the only other runtime edits relative to the T18 archive.
+- Validation: **378 full regression tests PASS**, including80 focused assault
+  tests; PER, generation, ownership762 sites, strategy, naval and38 historical
+  replay benchmark checks PASS. String allocations1434/1500
+  project budget; max physical runtime line215 characters. These are not engine
+  acceptance or an engine string-limit measurement. Ownership inventory refreshed.
+
+### Immediate next actions and open defects
+
+1. Start a fresh test game and confirm467. Audit all-player approach episodes:
+   A excluded, same hull/load tries B,
+   bounded objective/opponent changes, no known-danger dispatch, useful partial
+   load preservation, no interference with ongoing slots, then actual landings.
+   Cached same-island points do not prove navigable coastline or a safe route.
+2. Validate T18's separate drop-site fix: correct nearby foundation, reserved
+   builders construct, resource gather/drop-off, no premature recall. Preserve
+   separate causal attribution and reversibility from the T19 planner change.
+3. Boarding Ship nonconversion remains **INVESTIGATING** (next section), not
+   silently resolved by this transport work. STOP flood, Gray age-up/Workshop
+   fallback, trade congestion and older ledger defects remain open.
+
+## PREVIOUS inquiry — Boarding Ship nonconversion, diagnostic only, 2026-08-31
+
+Read `BOARDING-SHIP-AUDIT.md`. Status **INVESTIGATING**, not a proven conversion
+fix. Audited DAT task/target/enablement/range/charge fields, source command writers,
+and all-player T16/T17 packet evidence (43/23 Boarding Ship train requests).
+Normal1880 has zero conversion range; positive-range reference ships provide a
+controlled-test lead, not proof. Siege-escort acquisition lacks a busy/converting
+exclusion and can issue GUARD to an ungrouped converter, but the early Red
+candidate has no explicit actor command25:59–58:32, so this does not establish the
+reported29min failure's cause. Candidate32227's trained type is not proven.
+No runtime/DAT/deployment/commit changes in this inquiry. Installed465 and local
+466 below remain unchanged. Asked user whether direct manual conversion ever
+succeeded; otherwise a small human-vs-AI/range0-vs1 engine comparison is needed.
+External artifacts: `.analysis/audit_boarding_ship.py`,
+`boarding-ship-dat-audit.json`, `p3b44t16-boarding-audit.json`,
+`p3b44t17-boarding-audit.json`. Do not claim absent704 packets mean no conversion.
+
+## PREVIOUS — T17A1 replay audited; T18:466 migration placement LOCAL ONLY, 2026-08-31
+
+Read `T17-REPLAY-REVIEW.md` before further work. Latest replay is183134,
+SHA256 `608B6681C240FC681E5C883A0CA9A138F3934FAE56DB40445B0AEDA45ECA5499`.
+Red's distant camp / premature settler recall and three aborted assaults are
+corroborated. The whole transport subsystem was audited across all eight players,
+not just the reported event. No deploy, commit, push, branch or directory change.
+
+- **Working directory AND Git root:**
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`.
+  **Branch:** `recovery/p3b44-transport-only`; **HEAD:**
+  `387eccab36a3311ca90d9e39bea6d73013584a8b` plus intentional pending work.
+  Continue this documented recovery exception. Do not silently switch to the
+  ordinary canonical `.pr-work\Rome-at-War-AI` or overwrite the pending T13–T17 work.
+- **Installed remains T17A1:465**,89 files, independently verified full hash
+  `B7BBA84A58914C4B8F650FCF183B5CAA79C1A4579DFE1F023E92B02A5AC08EC6`.
+  Local source now **T18:466**,89 files, full hash
+  `7CD27F5BA9D50C1ABA51B5B0C7C1D0829A6CD9F3568B7F522879B3E6F5D1C905`.
+  Only `rawai-military.per` and `rawai-init-goals.per` differ from the pre-turn
+  runtime; tests/knowledge/inventory also updated. Do not claim466 is installed.
+- New immutable pre-edit archive:
+  `G:\Projects\Codex\Rome at War AI\.analysis\p3b44t17a1-runtime-control.zip`,
+ 89 files, verified payload hash B7BBA84A...EC6 above. Purpose: comparison/rollback,
+  not a replacement development directory. Existing controls remain untouched.
+
+### Current defect state
+
+1. **Migration drop-site misplacement: FIXED-PENDING-RUNTIME.** Red32067 lands14
+   settlers56:54 at stone30546/zone3. Four camp BUILD requests57:55–58:59 are
+   24.9–34.0 tiles from the resource; none can satisfy the8-tile foundation check.
+   Failure59:20 explicitly recalls13 settlers before the construction phase.
+   Cause: `up-build place-point` submits an expanding-region placement request,
+   while its consumer requires an exact nearby foundation. T18 uses validated
+   same-point `up-build-line` for migration Mining Camp/Lumber Camp/Mill. Existing
+   owner, pending, generic resource/escrow, exact foundation/zone, partial-load
+   policy, four attempts and genuine-failure recovery stay. No contradiction
+   showing an acceptable nearby foundation was found in this replay.
+   Diagnostics now copy persistent build coordinates: old `position-target`
+   read an enemy building. The old T13 coordinate-based runtime attribution is
+   withdrawn in the T13 report; source point-lifetime protection is retained.
+   Acceptance/next: actual appropriate nearby foundation, reserved builders
+   construct, then gather/drop off; no premature recall or invalid/unsafe builds.
+   Engine result NOT RUN; exact-point terrain/hostile-fire behavior is a specific
+   regression risk, not presumed equivalent to native queue placement.
+2. **Red assault participation: INVESTIGATING.** Three normal accepted10-person
+   loads, zero commits, holds8/8/10. Two exact scouts reported under attack;
+   third exact ID missing. No captured attacker identity or proof of death.
+   Scouts repeat the(137,137) beach. These are not old401 or slot exhaustion.
+   Failure-aware overseas plan/target rotation remains unimplemented;90s recovery
+   has no failed-plan memory. No proof an available safe alternative existed in
+   this replay. No assault behavior changed this turn. Next scoped work: distinct
+   failures/~180s ready-without-plan, ~300s opponent/plan deprioritization, persistent
+   preparation choice, preserve already-dispatched slot identities and all hard
+   danger vetoes. Do not count rule sweeps or weaken reasons8/10 for participation.
+3. **T17 ERR2005 startup: CLOSED for reported symptom.** User confirmed startup;
+  465 replay continues60:43. Physical-line wrapping was token-identical; exact
+   engine parser limit remains unmeasured. Historical notes below are superseded.
+4. **Dispatch ownership/validator T17 acceptance: partial, NOT CLOSED.** All six
+   sampled migration terminal hulls retain group10; no401; Cyan/Gray each commit2,
+   and Gray has two active independent slots. But zero slot landing successes:
+   one fire-status recovery, three no-progress recoveries (last unresolved at end).
+5. **Other unresolved work stays open:** STOP706 total69,741 (Orange58,862), no new
+   writer attribution; Boarding Ship attachment without conversion; Gray Imperial
+   prerequisite/placement failure and the requested bounded Workshop fallback
+   plan; trade congestion; older ledger defects. Generic home-base drop-site
+   controllers also use place-point, but were not changed by this colony patch.
+
+### Validation, artifacts, next action
+
+- **PASS:**11 focused migration tests;357 full regression tests; PER validation;
+  assault generator synchronization; strategy execution; naval doctrine; ownership
+  guard audit758 sites;38 replay benchmarks. Initial new benchmark lacked its
+  acceptance list, corrected before the successful benchmark validation.
+- Three focused new regressions FAIL against archived T17A1 source as expected
+  under the corrected API fixture. That fixture models placement drift from API
+  semantics/replay evidence; it is not an engine simulation or pathfinding proof.
+- Read-only adversarial review: accepted queue/verifier mismatch, wrong enum and
+  escrow/bounded-unavailability protections; rejected distant-foundation acceptance,
+  removing recovery bounds and relaxed screen danger. Deferred engine acceptance
+  only, as above. Full review/results and all-player episodes in T17 report.
+- External artifacts under `G:\Projects\Codex\Rome at War AI\.analysis` use
+  prefix `p3b44t17`: full, command-stream, exact, transport-audit(json/txt),
+  task-ownership, summary, dispatch.53 windows/18 hulls;23 accepted preparations,
+ 19 holds/4 commits. `audit_t16_dispatch.py p3b44t17` reuses the existing reducer;
+  default T16 input/output preserved. No mismatched writer-map attribution.
+- Source is ready for a **scoped T18 engine test**, not runtime-validated.
+  Install only from this checkout when authorized, independently verify466/full
+  hash, and test an unobstructed resource landing plus blocked/unsafe candidates.
+  Keep the migration patch independently reversible; do not silently merge a
+  target-rotation redesign into its validation. Then continue failed-plan selection
+  and the explicit unresolved ledger, rather than declaring transport fixed.
+
+## PREVIOUS — T17A1:465 startup-format correction DEPLOYED, 2026-08-31
+
+T17 startup **FAIL**: user screenshot at about00:09 reports Player1,
+`rawai-transport-preparation-ownership.per2`, line8, ERR2005 Invalid identifier.
+Source/deployment identity before the correction was the89-file T17:464 payload
+`E060FC4BF5B4ABCC71DCA63C29B00E88988346654149D1E125EAB73CE9A11C3D`.
+No T17 gameplay validation can be inferred from that failed startup.
+
+- Continue the documented recovery exception below: working directory/Git root
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`, branch
+  `recovery/p3b44-transport-only`, HEAD `387eccab36a3311ca90d9e39bea6d73013584a8b`
+  plus preserved intentional pending work. No workspace/branch switch or commit.
+- **Startup defect status: INVESTIGATING; formatting correction deployed for
+  engine confirmation.** Every identifier on the reported line is defined before
+  load. That physical line was727bytes, as were lines16/25;100/108/117 were600.
+  All other executable lines were at most179. Physical-line parsing is the
+  isolated hypothesis, NOT a source-proven engine capacity or confirmed closure.
+- Smallest correction: generator `preparation_ownership()` emits the exact same
+  binary OR trees on multiple short lines. Whole-module whitespace-token SHA256
+  remains `17f2e0c44a172bcd4a4b0888ac727be9a248bbaab7a2759bc6eb34ea757341d7`.
+  No condition, action, ordering, ownership or dispatch policy changed. Only this
+  generated module and the marker differ in the installed runtime.
+- `tools/validate_per.py` now rejects executable physical lines over240UTF-8
+  bytes: a conservative PROJECT formatting guard, not an asserted engine limit.
+  `tools/test_per_physical_lines.py` covers the exact old727-byte condition,
+  token preservation, wrapped module, boundary, comments and string bytes.
+  Initial fixture extraction incorrectly included the defrule header; corrected
+  before final validation. **PASS: all352 regression tests**, PER structure,
+  assault generator synchronization, strategy execution, naval doctrine and37
+  replay benchmarks. String budget unchanged1447/1500. Ownership inventory
+  regenerated,758 sites. These are NOT in-engine startup or gameplay results.
+- Read-only adversarial review: **ACCEPTED** token-identical correction and
+  prevention of oversized generated lines; **REJECTED** removing valid states or
+  weakening ownership to silence a parser error; **DEFERRED** exact parser limit/
+  alternative parser causes until fresh startup evidence. Conditions remain under
+  the existing32-element rule limit. No new telemetry/STOP writer introduced.
+- Immutable failing control (never edit/regenerate):
+  `G:\Projects\Codex\Rome at War AI\.analysis\p3b44t17-startup-failure-control.zip`,
+ 89 runtime files, verified payload hash E060FC4B...11C3D above. T15/T16 controls
+  remain untouched. Screenshot source is the user's Temp file
+  `codex-clipboard-571a3f5a-852a-4df9-85b5-8cb2146336bc.jpg`, SHA256
+  `BEF8A2B8E620C5E9C3314B96C0909774AE31CCA41B11B82538077721F4E8B7B4`.
+- Deployment independently verified2026-08-31 18:29+03:00:
+  **RAWAI-P3B44T17A1:465**,89files, source AND installed full-runtime SHA256
+  `B7BBA84A58914C4B8F650FCF183B5CAA79C1A4579DFE1F023E92B02A5AC08EC6`.
+  Target: `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`.
+  No missing/different/unexpected runtime files after independent read-only check.
+- **Next acceptance:** restart the failed test as a fresh game; confirm465 and
+  all players load without AI errors. If ERR2005 persists, retain the failed
+  evidence and inspect the newly localized line; do not claim line length proven.
+  Then perform the T17 dispatch/non-regression acceptance below. Existing
+  dispatch defects remain FIXED-PENDING-RUNTIME; unrelated backlog remains open.
+
+## PREVIOUS — T17:464 dispatch fixes deployed; subsequent startup FAILED
+
+User authorized implementation of the T16 audit's two dispatch corrections and
+deployment after validation. Gameplay status: **FIXED-PENDING-RUNTIME**, not
+CLOSED. No fresh T17 replay exists yet. No unrelated backlog policy was changed.
+
+- Working directory AND Git root:
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`.
+  Branch `recovery/p3b44-transport-only`, HEAD
+  `387eccab36a3311ca90d9e39bea6d73013584a8b`, plus preserved intentional pending
+  work and these T17 changes. Continue in this documented recovery exception;
+  ordinary canonical `.pr-work\Rome-at-War-AI` is not silently substituted.
+- Source **RAWAI-P3B44T17:464**,89 runtime files, full payload SHA256
+  `E060FC4BF5B4ABCC71DCA63C29B00E88988346654149D1E125EAB73CE9A11C3D`.
+  Installed payload independently checked identical; receipt below.
+- Immutable rollback payload created before editing:
+  `G:\Projects\Codex\Rome at War AI\.analysis\p3b44t16a2-runtime-control.zip`.
+  It contains the87-file T16A2:463 runtime from this branch/HEAD plus its pending
+  work, hash `3A246F56182BAEAF2EE4D3C0FA93844B48E8A8A35992791628B2D8C6CD7C7558`.
+  Read/verified, never regenerated. It is a comparison/rollback artifact, not a
+  development directory. The existing immutable T15 control is also untouched.
+
+### Implemented causal patches, separately reversible
+
+1. **Hull acquisition / preparation ownership — FIXED-PENDING-RUNTIME.**
+   `rawai-military.per` revalidates exact self-owned, unflagged, empty, idle,
+   unattacked hull eligibility. Old714/721 order values alone no longer exclude
+   those reusable empty hulls; loaded/moving/owned candidates remain excluded.
+   Mining and scout acquisition now use the exact saved ID, not a second broad
+   nearest-hull search. Successful exact-owner acknowledgement is required before
+   boarding; scout attempts are consumed only after that acknowledgement.
+   `rawai-transport-preparation-ownership.per` detects later lease loss during
+   loading/predeparture resource routing. It reclaims only the original idle,
+   unowned, unattacked self hull for bounded terminal unloading/recovery; moving,
+   foreign-owned/player and missing hulls are yielded, releasing only this
+   preparation's passenger flags. No STOP action is added. Independent dispatched
+   voyages are outside the handler. Failed FIND acquisition no longer silently
+   resets after a useful load. New attempt clears stale script-load ownership.
+   Generator: `preparation_ownership()` in `tools/generate_assault_missions.py`;
+   new states in `rawai-customconstants.per`, scratch goal14909. Revert this
+   function/output/load and the claim/acknowledgement hunks independently of2.
+2. **Fallback player enumeration — FIXED-PENDING-RUNTIME.**
+   `rawai-assault-screen-fallback.per` visits literal players1–8 once. Generated
+   `rawai-assault-enemy-scan.per` admits only an active hostile player, then the
+   original waypoint AND landing defense searches run for that player. No
+   `up-find-player`/`up-find-next-player` dependency remains in this fallback.
+   Known danger, damaged/lost scout, exact cargo/ownership, same-island landing,
+   sealed opponent liveness and bounded voyage watchdogs remain enforced.
+   Codes401/402 now diagnose a corrupt initial/subsequent scan cursor, retaining
+   raw values/seen count;413/414/etc. still distinguish saved-enemy failure.
+   Generator: `fallback_enemy_scan()`, scratch goal14910. Revert its output/load
+   and fallback enumeration hunks independently of1; keep claim safety if doing so.
+
+### Validation and adversarial review
+
+- **PASS:**346 full regression tests. First run exposed a stale scout-attempt
+  source assertion and a Windows sandbox temporary-folder permission error.
+  Assertion now requires actual HULL-VERIFY ownership/ID predicates; rerun with
+  required temporary-file access passed all346. Focused acquisition tests7 and
+  assault tests59 include many subcases, not just string assertions.
+- **PASS:**PER structure/operands, generated assault synchronization, strategy
+  execution, naval doctrine,37 replay benchmarks, ownership source audit758
+  sites/zero direct permission failures. Inventory regenerated. String budget
+  **1447/1500** project literals; no per-sweep chat or new STOP writer.
+- Actual-rule tests repair the six T16 failure inputs and preserve ordinary
+  successful acquisition; rejected/raced/missing candidates cannot board or
+  consume scout attempts. Test native iterator returning-1 without blocking valid
+  manifests, every literal player, both danger points,5–10 accepted cargo,
+  departed/nonhostile opponents, damaged scouts and unchanged independent slots.
+- Read-only adversarial review **ACCEPTED**: retain loaded/native voyage
+  protection; do not interpret old orders alone as activity on an empty idle
+  hull; acknowledge exact acquisition; bound owner-loss recovery and never steal
+  another slot; preserve all-enemy danger scanning and final revalidation.
+  **REJECTED:** suppress401 or skip the safety scan; blanket-remove native-order
+  protection; infer gameplay closure from tests. **DEFERRED/outside patch:**
+  landing-plan coverage, real Trade Cog/shore obstruction, drop-sites, STOP,
+  boarding-ship conversion, Gray placement/Imperial and reactive Skirmishers.
+- **Runtime acceptance PENDING:** fresh game must show autonomous useful full/
+  approved-partial departures, no loaded-but-unowned preparation loops, and
+  fallback commits with valid enemies while real-danger rejections still work.
+  Preserve Yellow's native-path success, Red's working committed voyage and
+  three independently sealed missions. A quieter but inactive AI is a FAIL.
+
+### Deployment receipt — 2026-08-31 18:08 +03:00
+
+- Deployed with `tools/sync_test_ai.py --apply` from this recovery checkout to
+  `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`.
+  Two new and five changed runtime files copied atomically; no other runtime
+  files removed or replaced. No writer-trace overlay or mixed-checkout payload.
+- Independent subsequent read-only check: **89 files identical**, zero missing,
+  different or unexpected files; full source/installed SHA256
+  `E060FC4BF5B4ABCC71DCA63C29B00E88988346654149D1E125EAB73CE9A11C3D`.
+  Installed `rawai-init-goals.per` directly confirms `RAWAI-P3B44T17`, value464.
+  `git diff --check` passed (line-ending warnings only).
+- Next action: start a fresh test, confirm **464**, then audit all-player
+  acquisition/ownership terminal events, accepted loads, independent voyage
+  commits/landings and code4 details. Deployment integrity is not engine startup
+  or gameplay proof. No match was started by the agent. Both patches remain
+  **FIXED-PENDING-RUNTIME**. No commit, push or PR in this implementation session.
+
+## PRIOR — T16 replay dispatch audit, 2026-08-31; runtime unchanged463
+
+User supplied `SP Replay v101.103.48987.0 @2026.08.31 162617.aoe2record` and asked
+what prevents dispatch. All-player/source audit is recorded in
+`T16-REPLAY-REVIEW.md` and `replay-benchmarks.json`. **No gameplay edits,
+deployment, commit, push, PR or workspace switch during this audit.**
+
+- Working directory AND Git root remain
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`;
+  branch `recovery/p3b44-transport-only`, HEAD
+  `387eccab36a3311ca90d9e39bea6d73013584a8b`, with preserved intentional pending
+  T13–T16 work. This is the documented recovery exception to ordinary canonical
+  `.pr-work\Rome-at-War-AI`; future agents continue here, not a stale snapshot.
+- Installed/source **RAWAI-P3B44T16A2:463**, all87 files independently identical;
+  SHA256 `3A246F56182BAEAF2EE4D3C0FA93844B48E8A8A35992791628B2D8C6CD7C7558`.
+  Replay has seven matching startup markers, selected-color teams correct,
+  zero final header/exact decoder failures,1,158,622 retained events. Duration
+  97:06; user-ended stalemate, not a crash. Replay SHA256
+  `F8D75EC49C2FF9DA206B872CAD697E98DF56F9C17FCE559F012F90BE130859E7`.
+
+### Immediate dispatch defects and next actions
+
+1. **ROOT-CAUSE-PROVEN source fault; runtime attribution qualified:** T16's
+   assault/mining/scout claim rules exclude native orders714/721 AFTER candidate
+   selection, but unconditionally advance into boarding even when the owner
+   group is empty. Later movement requires the missing ownership flag. Actual
+   T15/T16 rule comparison on identical inputs reproduces six T16 claim-contract
+   FAILs;12 controls PASS. T16 migration terminals:11/12 outbound and12/16 return
+   samples flag-2, versus all24 comparable T15 samples flag10. Red40804 accepts16
+   at67:27 but is idle/unowned at its origin68:59; Red31594 accepts20 at90:39 and
+   is idle/unowned92:11. Exact order at every claim instant is not logged; do not
+   assert this explains every hull or excludes every later ownership writer.
+   **Implementation:** none. **Next:** align selection/claim eligibility, verify
+   exact-hull acquisition before boarding/attempt consumption, explicitly recover
+   or terminate lost preparation ownership. Preserve genuinely active native/
+   manual voyages. **Acceptance:** no loaded-but-unowned preparation loop; actual
+   autonomous departure/landing; ordinary claims and prior successes survive.
+2. **INVESTIGATING lookup failure; exact cancellation gate established:** all11
+   code4 denials are401 (Gray5,Blue4,Green1,Cyan1). First enemy lookup returns-1,
+   scanned0, while saved/checked enemy is valid and live and global target agrees.
+   Not enemy death, target rotation, or detected danger. Numeric `find-ordered`
+   constant3 and output goal14205 are supported by cached reference; engine cause
+   is not yet established. **Implementation:** none. **Next:** bounded literal
+   1–8 hostile/live scan preserving all-enemy danger checks, separate causal patch.
+   **Acceptance:** eligible full/approved partial fallbacks pass and actually sail;
+   dead/nonhostile targets and known dangerous routes still reject.
+3. **INVESTIGATING landing/congestion:** seven hold1 events combine defended
+   anchor/two lateral samples and wrong-island rejection; not proof every beach
+   is impossible. Green multiple later ready loads never reach RAW3. Yellow's
+   ~79-minute migration was manually freed by deleting Shipyards, then user saw
+   no drop-site. Allied Trade Cog jam at1:30:20 remains separate. Do not conflate
+   actual collisions with filtered-out movement recipients; do not relax real
+   danger/same-island protection. No implementation or closure.
+
+All-player52 command-linked hulls;66 full-ready+26 approved-partial checkpoints
+(NOT92 unique missions),22 underfill aborts. Only one RAW3 commit: Red41383 slot1,
+52:38, original enemy5=Orange; landing53:58. Yellow's user-observed49-minute Blue
+assault follows native order714 at49:12, not RAW3. **Three occupied voyage slots
+are not the main bottleneck.** Preserve both successes and three-slot isolation.
+
+Other observations remain OPEN in report/earlier ledger: Red scout count label,
+boarding-ship nonconversion, changing escort, Gray no University/Imperial,
+Skirmisher reactive gate, missing drop-sites, repeated loading/abort and physical
+congestion. STOP remains INVESTIGATING:353,691 STOP706 orders; S1 has no isolated
+runtime success proof. No new STOP closure or broad backlog integration.
+
+Timing discrepancy preserved: Red40804 logs initial loading abort59:05, before
+manual moves59:53–60:00; another unload60:06. User observed an abort after moving
+the hull toward boarders. Asked whether that post-input event was unloading/
+returning; no answer yet. Do not blame user input for the earlier logged timeout.
+
+### Diagnostic artifacts / validation
+
+External `G:\Projects\Codex\Rome at War AI\.analysis\p3b44t16-*` full/exact streams,
+transport/ownership audits, dispatch event bundles and claim reproduction remain
+outside Git. Helpers `audit_t16_dispatch.py` and `reproduce_t16_claim_gap.py`
+reuse existing exact decoder/reducers and repository actual-PER fixture engine.
+Use `replay_parser_kjir`, not the incompatible older `replay_parser` header parser.
+Immutable T15 ZIP was read without modification; see report for paths and hashes.
+Source-bound reproduction PASS in exposing six defects; gameplay dispatch
+acceptance FAIL; no fresh fixed runtime exists. Read-only adversarial review and
+limits are in the report. No unnecessary full regression suite for docs/diagnosis.
+Final checks **PASS**:37 replay benchmarks, `git diff --check` (line-ending
+warnings only), and independent read-only runtime sync:87 files unchanged, zero
+missing/different/unexpected files and the same463 payload hash. No files copied.
+
+## PRIOR — T16A2:463 complete T16 payload DEPLOYED, 2026-08-31
+
+User requested fine-grained code-4 reasons and original enemy identity. This is
+**DIAGNOSTIC ONLY**, not a further cancellation-policy fix. The user subsequently
+requested deployment of ALL T16 changes; the complete payload is now installed.
+
+- Working directory AND Git root:
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`.
+  Branch `recovery/p3b44-transport-only`; HEAD
+  `387eccab36a3311ca90d9e39bea6d73013584a8b` plus preserved intentional pending work.
+  This agrees with the documented recovery exception to the ordinary canonical
+  `.pr-work\Rome-at-War-AI`. No workspace/branch switch, commit, push or PR.
+- Source marker **RAWAI-P3B44T16A2:463**, 87 runtime files, full payload SHA256
+  `3A246F56182BAEAF2EE4D3C0FA93844B48E8A8A35992791628B2D8C6CD7C7558`.
+  Installed runtime independently rechecked: **T16A2:463**, all87 files identical
+  to that source hash; zero missing, different or unexpected runtime files.
+  T16A1's three voyage slots and the unvalidated S1 STOP experiment are retained.
+  Nothing here proves the STOP flood or assault-participation defect resolved.
+
+### Deployment receipt — 2026-08-31 16:23 +03:00
+
+- Deployed from the documented recovery checkout above using
+  `tools/sync_test_ai.py --apply`, without `--writer-trace`, to
+  `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`.
+  Four new and nine changed runtime files were copied; all87 runtime files were
+  then verified by an independent read-only sync check. Installed marker source
+  reads `RAWAI-P3B44T16A2: %d`, value463. No game was started by the agent.
+- Includes the entire pending T16 runtime, not only A2 diagnostics: three
+  independent assault voyages, sealed enemy/manifest/destination state, dispatched
+  ownership protection, native-voyage takeover exclusions, code4 detail and the
+  four S1 idle-reset-delay experimental changes. No new gameplay edits this turn.
+- **PASS:**deployment preflight found the exact previously validated source hash;
+  PER structural checks, assault generator sync and1434/1500 string budget passed.
+  Reused the334-test/54-final-assault-test results below; no unnecessary full suite
+  rerun for an unchanged runtime. Deployment byte/hash integrity is not gameplay
+  or engine compilation proof; fresh-match startup/replay remains required.
+- Existing rollback archive was verified before installation and not overwritten:
+  `G:\Projects\Codex\Rome at War AI\.analysis\p3b44t15-runtime-control.zip`.
+  Its83-file T15 payload hash is
+  `8C9DF5B2B90E69656627ED1ACC5174EC22C16A47E8EEE83A519E8DD76FEF664B`.
+  No source files, replays, data-mod payload or immutable controls were removed.
+
+### Exact code-4 contract
+
+Source evidence: the old `RAW44T screening bypass denied:4` conflated an invalid
+enemy iterator with a rejected saved-enemy liveness snapshot. It could not identify
+which branch fired. Keep that coarse record for existing replay consumers; the
+new `RAW44T cancellation subcode` and short human-readable `RAW44T deny ...` line
+provide the following distinctions:
+
+| Subcode | Actual failing check |
+|---|---|
+| 401 | Initial enemy search returned a player below 1, before scanning any enemy. |
+| 402 | Next-enemy search returned a player below 1 after one or more enemies were scanned. This is NOT proof that the saved enemy exited. |
+| 411 | Checked saved-enemy ID is below 1; log the actual sentinel/value. |
+| 412 | Checked saved-enemy ID is above 8; log the actual value. |
+| 413 | `player-in-game` is false for the checked saved enemy. Does not distinguish defeat, resignation or disconnection. |
+| 414 | Checked saved enemy is still in game, but `stance-toward ... enemy` is false. |
+| 415 | The checked enemy and current saved manifest enemy differ. Preserve both identities and the original snapshot's failure code. |
+| 419 | The live gate rejects despite a passing recorded snapshot; explicit internal inconsistency, not an invented enemy-death explanation. |
+
+- Each cancellation reports stage (1=LOAD-READY, 2=unscreened bypass), hull,
+  saved mission enemy, current global target, checked enemy, snapshot failure and
+  live-gate value. Iterator failures additionally report current invalid result,
+  first enemy, previous scanned enemy and count scanned. IDs are raw engine player
+  IDs, not lobby-row/color guesses. Preserve replay identity/color evidence.
+- Snapshot details are recorded alongside the ORIGINAL literal-player checks in
+  `rawai-assault-admission.per`, not recomputed after cancellation. The same detail
+  explains LOAD-READY enemy cancellations. Independent voyage event records now
+  include their own slot's sealed enemy, never the next preparation/global enemy.
+- Namespace distinction: **RAW3 event4 means voyage no-progress**, and RAW44C hold4
+  is the existing screen-failure reason. Neither is the RAW44T denial4 split here.
+- Terminal-only reporting: no status/sweep chats. At most16 lines including legacy
+  fields for one iterator denial, 12 for another bypass code4, 9 for LOAD-READY.
+  The existing same-pass cancellation consumes the reporting state. Shared string
+  definitions avoid duplicating literals across eight player predicates/three slots.
+
+### Implementation / validation / next action
+
+- `tools/generate_assault_missions.py` owns mission definitions, admission,
+  voyage event identity and new `rawai-assault-cancel-details.per`.
+  `rawai-assault-screen-fallback.per` records which existing failure branch fired
+  and loads the terminal report before the existing recall. Diagnostic goals
+  14904–14908 do not control gameplay or alias existing goals. Runtime marker,
+  focused tests and `OWNERSHIP-SOURCE-INVENTORY.md` are synchronized.
+- **PASS:**334 full regression tests (first run failed only the stale T16A1 marker
+  expectation; corrected and rerun). Final shortening of four diagnostic labels
+  was followed by **54 assault tests PASS**. Eleven new tests execute the actual
+  admission/report PER, including both circular and exhausted enemy iterators,
+  all eight literal players, invalid IDs, dead/nonhostile players, stale snapshots,
+  bounded terminal output, cross-slot enemy identity and diagnostic goal isolation.
+- **PASS:**T16A1 predicate/action fingerprints unchanged after stripping ONLY chat
+  and new diagnostic-goal writes; no new gameplay commands, searches, cancellation
+  predicates, ownership mutations or timeouts. PER structural checks, generator
+  synchronization, strategy/naval validators and36 historical replay benchmarks
+  passed. Ownership audit:748 sites, zero direct permission failures. String budget:
+  **1434/1500** literals; this budget does not prove engine compilation.
+- Read-only adversarial review ACCEPTED: preserve checked versus saved identities
+  so stale validation is not mislabeled as enemy defeat; distinguish first versus
+  subsequent iterator failure and record the previous enemy; keep short shared
+  labels; retain legacy coarse fields; keep diagnostics out of control predicates.
+  No behavior change was smuggled into this telemetry request.
+- **Runtime acceptance PENDING.** Underlying assault cancellations remain
+  INVESTIGATING / previous implementation FIXED-PENDING-RUNTIME, not CLOSED.
+  Deployment identity is now verified. In the next fresh match confirm startup
+  marker T16A2:463, then inspect ALL players' transport lifecycles and cancellation records.
+  Accept diagnostics only when a real cancellation identifies its branch and
+  original enemy without repeated unchanged logs. Continue T16A1's concurrent
+  voyage/non-regression acceptance below. Do not treat this as a STOP fix or an
+  isolated STOP experiment. Existing dropsite, Market, naval-target, Port and
+  Gray-Imperial defects remain explicitly open in the earlier ledger.
+
+## PREVIOUS — T16A1:462 three independent assault voyages, LOCAL ONLY, 2026-08-31
+
+User explicitly prioritized three concurrent assaults with independent mission
+storage, persistent enemy identity and protection after dispatch. This supersedes
+the next-action ordering below for this implementation. **NOT DEPLOYED.** Installed
+runtime remains T15:460. No commit/push/PR, branch change or workspace switch.
+
+- Working directory/Git root: `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`.
+  Branch `recovery/p3b44-transport-only`; HEAD `387eccab36a3311ca90d9e39bea6d73013584a8b`
+  plus preserved intentional pending changes. Documented recovery exception to
+  ordinary canonical `.pr-work\Rome-at-War-AI` continues; immutable P3B44 untouched.
+- Source marker **RAWAI-P3B44T16A1:462**, 86 runtime files, full payload SHA256
+  `9960126E4842AC96DA69F94B9503620C17FF69F79D52CBB70310963A1A391BAA`.
+  Installed T15 rechecked independently:83 files, payload
+  `8C9DF5B2B90E69656627ED1ACC5174EC22C16A47E8EEE83A519E8DD76FEF664B`.
+- The four pending S1 idle-reset-delay changes (0→5) are preserved, NOT newly
+  validated. **T16A1 is not an isolated STOP experiment.** The T15 ZIP below plus
+  those four SN changes and S1 marker still describes the separate S1 control.
+
+### Evidence and implementation
+
+- **CAUSAL FIX / FIXED-PENDING-RUNTIME:** T15 Purple hull33348 received native
+  `AI_ORDER714` to `(195.5,42.5)` at1:16:43, then scripted hold1 and home UNGARRISON
+  at1:18:37. Purple's1:16:01–1:17:45 wave contained eight distinct 714 hulls;
+  multiple assigned passenger sets later received orders against Gray. This is
+  not three sequential singleton missions. Existing SPECIAL-only boarding census
+  omits this native717/714 path; do not treat it as a census of all voyages.
+  This overlap does NOT establish the cause of every Red abort.
+- **USER-REQUESTED POLICY / FIXED-PENDING-RUNTIME:** one existing boarding/screening
+  preparation lane feeds up to THREE concurrently owned voyages. Preparation is
+  serialized; three simultaneous boarding controllers were NOT implemented.
+  `tools/generate_assault_missions.py` generates definitions, admission and voyage
+  PER. Each voyage has independent goals14600+/14700+/14800+, a group0/18/19,
+  hull, accepted manifest, screen, enemy, origin/waypoint/landing/target coordinates,
+  zone, timing/progress bounds, obstruction count and terminal reason.
+  No engine timer IDs are shared between these voyages. A full three-slot bank
+  prevents starting a fourth scripted preparation; existing native voyages are
+  protected, not counted as newly scripted missions.
+- Seal enemy when preparation begins; subsequent FIND/screen steps use that
+  saved player. Global target rotation and zero KNOWN buildings no longer
+  invalidate LOAD-READY/fallback. Saved-player liveness uses literal player
+  predicates, not mutable target/focus aliases. Actual player exit permits recall.
+- Native transport/unload orders are excluded from loaded-hull intake and FREE
+  transport acquisition/retasking; boarding selection excludes native ENTER units.
+  Dispatched groups are protected by existing direct-writer ownership guards,
+  conversion-safe group hygiene and native attack exclusion. Severe home defense
+  does not preempt voyage groups. No global attack/retreat/reset was introduced.
+- Bounded emergencies: saved enemy exits; hull takes HP loss with an identified
+  hostile attacker (friendly under-attack alone is insufficient); invalid landing
+  zone; no net voyage progress; total travel deadline; hull loss. Screened voyage
+  cap600s, unscreened retains its300s cap; progress watchdog90s, landing initially60s.
+  Return180s then quarantine retains cargo/ownership without a command loop.
+  Quarantined slots are occupied until manual emptying, loss or conversion;
+  three such quarantines can exhaust admission and must remain visible in testing.
+- Moving hulls are not repeatedly ordered. Idle retry cadence8s; clearance may
+  move only one FREE, idle, empty, unattacked same-water ship to a known same-water
+  position; max3 issued clearance attempts. It cannot move another mission hull.
+  Landing stages only this slot's screen and escorts whose target is this hull.
+  Generic escort refresh pauses while any slot is landing; other escorts retain
+  existing orders. Cargo-empty at the accepted beach issues the reserved landed
+  troops an attack order, releases ownership, and orders the empty hull home.
+- Group0 was also used by generic villager cleanup. That scratch work now borrows
+  the preparation hull group ONLY while preparation is IDLE; its entire scratch
+  lifetime is skipped during preparation. This defers generic broken-job cleanup
+  during preparation and is a regression-risk item, not a STOP-resolution claim.
+
+### Validation / review / next action
+
+- **PASS:**323 regression tests, including16 new executed-PER voyage fixtures;
+  PER structure/operand checks; generator synchronization; goal-range collision
+  check; command-counter synchronization; strategy and naval validators;
+  36 historical replay benchmarks. Permissioned test rerun needed for Windows
+  writer-trace temporary-directory cleanup; full permissioned suite PASS.
+  Historical replay benchmarks do NOT validate this new runtime.
+- Read-only adversarial review ACCEPTED and corrected: scratch-group0 collision,
+  per-slot admission search reconstruction, stale/foreign screen claims, native
+  takeover, paired-escort staging and conversion-safe release. Old singleton
+  voyage assertions were ported to executed three-slot fixtures; loading/partial
+  acceptance tests remain. No new STOP writer or per-sweep chat was added.
+- **Runtime acceptance PENDING; NOT CLOSED.** Test three overlapping missions;
+  rotate the global enemy while they travel; defeat one saved enemy and verify
+  only its mission recovers; demonstrate useful partial loads, safe landings,
+  active landed armies, and congestion recovery without commandeering another
+  mission. Audit ALL players, including717 ENTER and714 TRANSPORT orders, not
+  merely SPECIAL/UNGARRISON. `RAW3 slot/hull/event` logs are transition/bounded
+  events; code legend is in generated `rawai-assault-admission.per`.
+- **Known unresolved boundary:** group flags are cooperative script ownership,
+  not engine locks. Native exclusion is TYPE-wide: protecting passengers can
+  delay FREE/landed units of the same type. Explicitly test continued land/native
+  attack participation while other slots remain occupied. No runtime assurance
+  of absence of native interference, path success or throughput is claimed.
+- STOP flood remains INVESTIGATING. Code4 final building-count/target-alias gate
+  changed to the requested liveness contract, but initial enemy iteration and
+  real fallback participation still need replay evidence. Failure-aware target
+  rotation, migration dropoffs, Market surplus handling, naval target fixation,
+  Port congestion/placement and Gray's age advancement remain OPEN as below.
+- Next: obtain requested deployment and fresh replay of this clearly labeled
+  runtime, or test the separately described S1 control first. Do not silently
+  install or treat this combined runtime as an isolated STOP comparison.
+
+## CURRENT — T15 audited; isolated T16S1:461 STOP experiment LOCAL ONLY, 2026-08-31
+
+This supersedes the untested-T15 status below. **T15 remains installed; T16S1 is
+NOT deployed and NOT a proven STOP fix.** No commit, push, PR update or workspace
+switch. Existing intentional T13–T15 changes are preserved.
+
+- Authorized recovery editing directory AND Git root:
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`.
+  Branch `recovery/p3b44-transport-only`; HEAD
+  `387eccab36a3311ca90d9e39bea6d73013584a8b` plus pending changes.
+  Ordinary canonical `.pr-work\Rome-at-War-AI` is unchanged; documented recovery
+  exception continues. Immutable P3B44 baseline remains untouched.
+- Supplied replay `SP Replay v101.103.48987.0 @2026.08.31 134755.aoe2record`, hash
+  `46367A652B0823505591B6997E3A8E71B847F2C74F14361C4DE00CC2EB8F1F79`, duration157:27.
+  All selected-color teams validated; full/exact decoder errors0. Final RESIGN
+  player8 Gray; no crash attribution. See [T15 audit](T15-REPLAY-REVIEW.md) and the
+  new `replay-benchmarks.json` entry for complete findings and provenance.
+- Installed/source T15 identity independently verified BEFORE edits:83 files,
+  `RAWAI-P3B44T15:460`, payload
+  `8C9DF5B2B90E69656627ED1ACC5174EC22C16A47E8EEE83A519E8DD76FEF664B`.
+  Exact immutable control archive created before changes:
+  `G:\Projects\Codex\Rome at War AI\.analysis\p3b44t15-runtime-control.zip`.
+  Extracted-entry hash matches T15. Diagnostic archive only, not a new checkout.
+- Source T16S1 marker **RAWAI-P3B44T16S1:461**,83 files, payload
+  `91F8328EC2782301CDDE9295BF9248E3AE0CAB8AA109A98EDAB866734FD22955`.
+  Only two runtime files differ from the T15 archive: `rawai-sn-defines.per`
+  (four native idle-group reset delays0→5 seconds) and `rawai-init-goals.per`
+  (marker only). No other behavioral change or new tracing overlay.
+
+### Results / current defect state
+
+- **STOP — INVESTIGATING / T15 acceptance FAIL.**52,514 STOP706 packets, Red38,515.
+  Total lower than T14, but Red worse; Gray improves without reaching Imperial.
+  Red's dominant recipients are migration workers.5,113 identical group STOPs
+  67:06–70:12; other long runs remain. Generic missing-target STOP writer1 runs
+  only twice, so the previous simple attribution is rejected. Partial STOP at
+  65:21 occurs after the flood began. Every explicit STOP site and existing
+  counter boundary was audited; exact native producer remains unproven.
+  **T16S1 is the authorized one-variable experiment**, not FIXED-PENDING-RUNTIME
+  or CLOSED: test nonzero native idle-group recycling delay against T15.
+- **Overseas fallback — INVESTIGATING / FAIL.**256 all-player boarding windows,
+  157 assault.62 code4 denials, two code1, zero unscreened commits. Existing
+  accepted loads still predominantly recall. Preserve queue **STOP → code4 →
+  failure-aware target rotation → RC**. No code4 fix/rotation implemented yet.
+- **Migration dropoffs — OPEN / FAIL.** Red two failed drop-site logs. User-built
+  mineral Camp and AI-observed Camp on a mineral-free wooded island remain
+  distinct from a separate confirmed AI foundation89178. Stale placement linkage
+  unproven; initial wood availability unknown. Manual landings are not successes.
+- **Market food surplus/wood starvation — INVESTIGATING.** User's manual sales
+  and purchases are confirmed context; ordinary thresholds have a gap but a
+  relocation bridge exists, so source thresholds alone do not establish cause.
+- **Naval target fixation — OPEN, missing recovery policy source-proven.** Target
+  59165 selected170 times over~37min after radius reached255. Expansion does not
+  reject a preferred unreachable target. No naval behavioral change in this trial.
+- **Allied Port congestion, manual Fortress interruption, Gray Imperial — OPEN /
+  INVESTIGATING.** User confirmed127:28 Outpost was THEIR test, not AI takeover;
+  no explicit STOP packet at that worker's failed Fortress attempts. Gray has
+  Monastery/University build requests, which can satisfy DAT age prerequisites
+  if completed; Fortress is not mandatory. Do not replace symptoms with guesses.
+- Positive/limited:zero PACK packets;25 all-player Fish Trap BUILD requests and
+  follow-up task orders, Red three exact foundations/ship assignments. Actual
+  trap construction/food income still unproven. Cleared-Blue→Gray retargeting is
+  positive user evidence, not validation of new failure-aware rotation.
+
+### Validation and next actions
+
+- PASS:two new configuration tests; **307 regression tests** on rerun; PER/
+  operands; strategy execution; naval doctrine; command-counter synchronization;
+  **36 replay-benchmark validations**;694 ownership sites/zero direct permission
+  failures. Generated ownership
+  inventory synchronized. Initial suite had one Windows temp-folder permission
+  error in writer-trace fixture; permissioned rerun PASS. No engine test yet.
+- Read-only adversarial review ACCEPTED speculative mechanism classification and
+  legitimate-retasking-delay risk; REJECTED generic/partial STOP attribution from
+  mismatched counter/onset evidence; DEFERRED unrelated changes. Details and
+  pass/fail criteria in T15-REPLAY-REVIEW.md. No claim a configuration test models
+  engine STOP generation.
+- Obtain authorized deployment/fresh engine test of T16S1; T15 currently installed.
+  Compare same manifest/boarding/voyage exposure, repeated STOP burst lengths and
+  per-recipient rates where possible. Preserve gathering, construction, approved
+  partial lifts, route progress, fishing and attacks. Inactivity is a failed test.
+  Revert this one-SN experiment if ineffective/regressive before another trial.
+- After this STOP trial is assessed, resolve the exact code4 branch (initial
+  enemy lookup vs final saved objective), then implement the already-authorized
+  failure-aware target policy. Do not bundle those into this isolation test.
+- Private artifacts under `.analysis`: `p3b44t15-{command-stream,exact,transport-audit,
+  task-ownership,summary,findings,inspection,episodes}.json`, transport-audit.txt,
+  `replay-20260831-134755-t15-full.json`, runtime ZIP. Reducers `inspect_t15.py`
+  and `reduce_t15_episodes.py` supplement existing all-player audit tooling.
+  All raw replay/DAT/control payloads remain outside the AI repository.
+
+## CURRENT — T15:460 exploration/fishing policy, DEPLOYED, 2026-08-31
+
+This supersedes the T14 audit's no-runtime-edit statement below. **Deployed at
+the user's request; in-game acceptance is still pending.**
+No commit, push, PR update, branch change or new development workspace this turn.
+Existing intentional T13/T14 pending work is preserved.
+
+- Authorized recovery editing directory AND Git root:
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`.
+  Branch `recovery/p3b44-transport-only`, HEAD
+  `387eccab36a3311ca90d9e39bea6d73013584a8b` plus intentional pending changes.
+  Ordinary canonical workspace remains `.pr-work\Rome-at-War-AI`; this is the
+  previously documented recovery exception, not a silent relocation.
+- Source marker **RAWAI-P3B44T15:460**, 83 runtime files, payload SHA256
+  `8C9DF5B2B90E69656627ED1ACC5174EC22C16A47E8EEE83A519E8DD76FEF664B`.
+- Installed **T15:460**, 83 files, from this exact checkout into
+  `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`.
+  Full installed/source SHA256:
+  `8C9DF5B2B90E69656627ED1ACC5174EC22C16A47E8EEE83A519E8DD76FEF664B`.
+  Installation and subsequent independent read-only sync check PASS: no missing,
+  differing or unexpected runtime files. Installed marker verified as
+  `RAWAI-P3B44T15:460`; no writer-trace overlay. Eleven files copied (nine updated,
+  two added), no deletions. No source-code changes or repeated full suite for this
+  installation-only turn: the payload exactly matches the 305-test validated build.
+- Exact T14 runtime control preserved before edits at
+  `G:\Projects\Codex\Rome at War AI\.analysis\p3b44t14-runtime-control.zip`.
+  Its 81 extracted-entry payload hash is
+  `DE6010CD8942E7D790A161FDE1A02CFC3F3C1F085E735731B16748F2A782B8A8`.
+  Immutable diagnostic/control artifact only; NOT a development checkout.
+
+### Release queue and classification
+
+User's queue remains **STOP flood -> fallback code4 -> failure-aware overseas
+target rotation -> RC**. Code4 must work before assessing target rotation.
+Suggested rotation policy is three distinct opponent/plan failures or about180s
+ready without a viable plan, then about300s deprioritization; pin the overseas
+choice so closest-enemy selection cannot overwrite it. Neither that policy nor
+code4 was implemented in this turn. Shipyard placement and reinforcement remain
+behind this queue unless catastrophic.
+
+During STOP investigation, user explicitly requested the following policy changes.
+They are **USER-REQUESTED BEHAVIOR CHANGES**, not proven STOP root-cause fixes:
+
+1. **Imperial general-exploration cutoff — FIXED-PENDING-RUNTIME.**
+   `rawai-ownership.per` suspends native exploration on actual Imperial Age and
+   cannot release the suspension afterward even if economic phase falls below4.
+   `rawai-general.per` guards all positive native explorer quotas by actual age.
+   `rawai-exploration-policy.per` stops/releases only own naval-scout-group16 once;
+   `rawai-military.per` blocks new naval scout legs/scout ferry intake and
+   postlanding exploratory patrols. A preexisting scout ferry can finish landing
+   or recovery; retirement is restricted to its postlanding patrol states.
+   Resource migration, assault screening/group7, escorts and productive fishing
+   are not cancelled. The 32-element limit required splitting scout admission
+   from planning; all original transport/stone/attempt predicates remain.
+   Acceptance: no new general explorer admission/leg/patrol after Imperial;
+   existing exploration retires once; mission screening and early exploration
+   still work, with no retirement STOP loop. Engine acceptance NOT YET RUN.
+
+2. **Fish-first / targeted Fish Trap fallback — FIXED-PENDING-RUNTIME.**
+   `rawai-fishing.per` samples ships round-robin every2s, with up to40 exact-ID
+   progress records (normal trained fleet remains capped at6). Known nonempty
+   fish are preferred in that ship's water zone; idle/exploring ships get at most
+   one direct gather command per45s. Missing fish leaves native resource-search
+   exploration allowed, including after Imperial. No fish-disable SN or explicit
+   STOP/EXPLORE command was added to this controller.
+   Cargo change, not an issued gather order, refreshes a120s progress deadline.
+   After sustained non-productivity, even with visible fish, find a completed,
+   unattacked own Port in the same water zone. Reuse an unoccupied nearby trap
+   first; otherwise test four cardinal positions five tiles from the Port and
+   request at most one concrete Trap199 foundation with `up-build-line`.
+   Global trap count is capped by existing Fishing Ship count. Missing resources,
+   Port, legal position or a foundation within20s leads to180s terminal backoff.
+   A real self-owned, same-zone Trap199 is assigned to the exact still-free
+   Fishing Ship13 using `up-target-objects ... action-default`; this invokes its
+   DAT build task for pending traps and gather task for completed traps.
+   `up-assign-builders fish-trap -1` excludes automatic villager recruitment.
+   No Construction Ship production is enabled. Cargo-carrying, already-building,
+   attacked, converted or reserved ships are not retasked. The old untargeted
+   fishing-ship deletion rules in `rawai-economy.per` were removed because they
+   erased precisely the fleet that needs this fallback; training caps remain.
+   Acceptance: visible usable fish produce food; without progress, an actual
+   Port-side trap foundation is created, constructed by a Fishing Ship and
+   produces food. No villager construction, working-ship eviction, build spam,
+   excessive traps or loss of productive fishing. Engine acceptance NOT YET RUN.
+
+These two policies have separate PER modules/load lines and can be independently
+reverted against the exact T14 control. Shared marker/constants/counter changes
+are supporting infrastructure; never restore whole files over unrelated pending
+fixes. No claim that a STOP reduction from this combined requested policy build
+would identify one exclusive engine cause.
+
+### Evidence, review and validation
+
+- STOP remains **INVESTIGATING**. New reducer
+  `.analysis\investigate_t14_stop.py` and output `p3b44t14-stop-onsets.json`
+  show dominant Gray objects alternating EXPLORE705/STOP706 tens of milliseconds
+  apart before assault boarding. Exact singleton STOP totals remain in the T14
+  review; per-recipient totals including group packets differ: Gray31795 has
+  111321 STOP and111350 EXPLORE,31892 has110107/110113,32192 has104134/104134.
+  Native exploration is implicated by the command family, but the exact native
+  subcontroller/object type is not proven by source. Fishing Ship training timing
+  is suggestive, not definitive identity. Other worker/garrison STOP clusters
+  remain separate. Do not call this defect closed or disable productive fishing
+  to manufacture a lower packet count.
+- Authoritative external DAT inspected read-only:
+  `RaW data fix\resources\_common\dat\empires2_x2_p1.dat`, SHA256
+  `a1319be7e0d4ccf68a13e719ba2d8b4b39383d01b7d3fdd3123452f6a0d36356`.
+  All34 civs' Fishing Ship13 has build action101 and gather action5 targeting
+  Trap199; trap costs100wood, producer13, nominal construction40s. Private helper
+  `.analysis\inspect_fish_trap.py`; no DAT/replay/dump payload added to Git.
+- Existing AIRef reference cached at `.analysis\airef-reference-20260830.js`:
+  fish traps use point foundations via up-build-line and explicit ship targeting,
+  not generic build; remote resource searches include resource and ready statuses.
+  `object-data-carry`, not `object-data-resource` (which is resource TYPE), measures
+  cargo/remaining food. [Command reference](https://airef.github.io/commands/commands-details.html).
+- Adversarial read-only review ACCEPTED and corrected before handoff: preserve
+  command-counter IDs across new controllers; clear the local LIST as well as its
+  search index; include resource-status fish; revalidate the Port at placement;
+  keep foundation request separate from existence; refuse assignment/reporting
+  with an empty eligible ship selection. Existing counters1-24/90-91 retain IDs;
+  new once-only retirement writers are25/26. `instrument_command_counters.py`
+  now preserves existing IDs and allocates only new ones. No tracing overlay.
+- Focused actual-source fixtures:6 Imperial/ownership tests and12 fishing tests
+  PASS. They explicitly exercise missing/delayed foundations, blocked fish,
+  productive cargo, busy/converted/reserved ships, occupied traps, water-zone
+  mismatch, placement failure, timeout/cooldown, all40 records and ID replacement.
+  They do not simulate actual engine movement, construction or food income.
+- Final full regression suite: **305 tests PASS** (26.305s).
+  Structural/operand checks PASS, naval doctrine PASS, strategy sync/execution
+  PASS,35 replay-benchmark metadata validations PASS,694 ownership sites with
+  zero direct-permission failures. Updated generated ownership inventory.
+  Literal budget1436/1500; no writer-trace overlay. An initial sandbox temporary
+  directory permission error was resolved by rerunning tests with approval;
+  three historical source-shape tests were updated for split scout admission.
+
+### Exact next actions
+
+1. Start a fresh test match and confirm replay marker `RAWAI-P3B44T15:460`.
+   Installed full83-file hash is verified; all305 tests passed before installation.
+   No T15 replay exists yet. Already-running games are not T15 acceptance evidence.
+2. In the next authorized fresh test compare all-player actual STOP706/EXPLORE705
+   episodes before/after each player's Imperial timing, productive fishing/cargo,
+   targeted trap BUILD/WORK events, attack/boarding and screening participation.
+   Quieter chat or fewer productive units is not STOP acceptance.
+3. Continue STOP-first trials; then repair the25/25 fallback-code4 rejection,
+   measure optional-screening participation, then implement failure-aware rotation.
+   All other defect ledger entries below retain their previous statuses.
+
+## CURRENT AUDIT — T14 replay115504 and target-rotation proposal, 2026-08-31
+
+Read `T14-REPLAY-REVIEW.md` first. This supersedes the "start a fresh match"
+next action below; deployment and workspace identity are unchanged. User requested
+analysis/proposals, explicitly including failure-driven enemy rotation. No runtime
+edits, installation, commit, push or branch change during this audit.
+
+- Same recovery editing directory/Git root and branch below, HEAD
+  `387eccab36a3311ca90d9e39bea6d73013584a8b` plus intentional pending changes.
+  All81 installed/source files still match T14:459 / `DE6010CD8942E7D790A161FDE1A02CFC3F3C1F085E735731B16748F2A782B8A8`.
+- Replay SHA256 `E1D8B629F1743E086AE5D9729CAB2E0B7C6D9E440ADD7E115F342E53BFE43977`;
+ 105:36, player1 resignation, exact decoder errors0. Selected-color teams preserved.
+  All-player121 boarding windows,60 assault; Purple19 accepted/19 recalled;
+  Cyan18 accepted/18 recalled; Orange13 accepted, four completion logs, one landing
+  timeout, six recalls, two unresolved. Completion logs are not useful-combat proof.
+- Purple15 reason1 rejections conflate defended and disconnected two-sided landing
+  candidates; remaining recalls are actual scout danger/defended landing. Cyan17
+  no-screen attempts all fail fallback code4. All25 global fallback attempts
+  (Cyan17/Orange3/Gray5) deny4; zero unscreened commits. Optional-screening runtime
+  acceptance FAIL, cause below the combined code4 still INVESTIGATING. Do not call
+  this feature validated or treat all these vetoes as known route danger.
+- **Target rotation source finding:** closest-enemy selection and dead/allied/
+  zero-building fallback have no failed-assault feedback. Recovery retries after90s
+  without opponent-specific failure memory. Proposed three distinct planning failures
+  or180s ready-without-plan -> bounded alternative-enemy evaluation and temporary
+  cooldown. A persistent overseas choice and pinned active mission are necessary;
+  otherwise the closest-target writer can immediately undo rotation. Proposal only.
+  Public target IDs absent: no claim that one exact opponent explains every episode.
+- **Unresolved observed defects:** no help-call messages despite user's observed
+  attacks/absent defenders; exact verifier/request blocker unresolved. Cyan has zero
+  Shipyard BUILD requests; newest-anchor14-tile search/7-tile clearance and other
+  admission gates require distinction. No claim that placement geometry alone is
+  proven, or that lowering help cooldown repairs identity detection.
+- **STOP first remains next implementation priority:**432,975 STOP706 packets,
+  Gray351,920. Gray exact IDs31795/31892/32192 each exceed100,000 repeated STOPs.
+  Cyan group[4649,31914,31984] receives8,395 in69:28–73:57. Reuse full T14 baseline
+  and prior counters/ownership work for the already-authorized one-at-a-time,
+  reversible experiment; do not quietly replace STOP work with broad transport policy.
+- Evidence/reducers live outside Git under workspace `.analysis`, prefix
+  `p3b44t14`; details, status/acceptance and exact next actions are in the review.
+  Raw replay/data mod not copied into Git. Other existing defect ledger entries
+  remain open unless specifically demonstrated otherwise.
+
+## CURRENT — T14:459 all pending fixes DEPLOYED, 2026-08-31
+
+### User priority override after the T14 replay — STOP flood first
+
+User directive,2026-08-31: after the current replay, squashing STOP spam takes
+priority over unrelated development. The user explicitly permits reversible
+behavioral experiments based on unproven hypotheses for THIS defect, overriding
+the usual no-guessed-behavioral-fix restriction within this scope. Do not require
+proven attribution before trying a controlled intervention. This is not permission
+to call a hypothesis proven, change unrelated systems, or hide diagnostic output.
+
+- Keep T14 unchanged while this test runs. On receipt, establish the all-player
+  STOP baseline and assess its existing acceptance checks; then focus development
+  on STOP spam rather than another unrelated backlog or telemetry-only cycle.
+- Preserve the exact T14 payload and use the existing command-boundary/ownership
+  evidence. Make one independently reversible hypothesis-driven change per trial,
+  label it EXPERIMENTAL, and state its predicted telemetry effect before testing.
+- Compare actual replay STOP orders, affected object/group IDs, repetition rates
+  per comparable time window and controller counters. Separate troop movement/
+  attack churn from actual STOP706. Match context and exposure, not only raw
+  whole-match totals.
+- Revert ineffective or regressive experimental changes without reverting other
+  pending fixes. A reduction caused by fewer active units, disabled productive
+  behavior or suppressed logs is not successful resolution. Preserve gathering,
+  boarding, attacks and legitimate defensive stops; repeat/narrow informative
+  experiments until evidence supports a fix.
+- STOP remains INVESTIGATING until behavior demonstrates improvement. Continue
+  into a verified fix; recording hypotheses or adding telemetry alone is not closure.
+  No runtime changes, deployment, full test run, commit or PR update for this
+  priority-recording turn.
+
+The user explicitly requested installation of ALL pending fixes for testing.
+Deployment below supersedes the historical NOT DEPLOYED/installed-T13 statements
+in the pre-deployment checkpoint. Runtime acceptance is still pending.
+
+- **Editing directory AND Git root:** `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`.
+  Branch `recovery/p3b44-transport-only`; HEAD
+  `387eccab36a3311ca90d9e39bea6d73013584a8b` plus intentional pending changes.
+  This remains the documented recovery exception. Ordinary canonical repository
+  stays `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`.
+  No new workspace, branch switch, commit, push or PR update.
+- **Installed marker:** `RAWAI-P3B44T14:459`.
+- **Installed target:** `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`.
+- **Full81-file source AND installed SHA256:**
+  `DE6010CD8942E7D790A161FDE1A02CFC3F3C1F085E735731B16748F2A782B8A8`
+  using `tools/sync_test_ai.py:manifest_digest` / `payload_digest`.
+  Both the post-install read-only sync check and direct81-file byte comparison
+  PASS: no missing/different/unexpected runtime files. No writer-trace overlay.
+- **Installed bundle:** exact-type/fresh-selection Palintonon PACK repair;
+  first demanded military structure admission with one TC; trade producer census
+  revalidation; same-target-island assault candidate checks; naval roster startup;
+  persistent migration drop-site request point; one-way optional screening for
+  accepted full OR useful partial manifests, with hard danger vetoes and bounded
+  progress/travel. Detailed evidence, independent patch boundaries and acceptance
+  criteria remain below and in `T13-REPLAY-REVIEW.md`.
+- Compared with installedT13, five runtime files were replaced
+  (`rawai-customconstants.per`, `rawai-economy.per`, `rawai-homebase.per`,
+  `rawai-init-goals.per`, `rawai-military.per`) and
+  `rawai-assault-screen-fallback.per` was added. The other75 files already matched.
+  Only AI scripts were synchronized; no data mod, savegames or replays touched.
+  PriorT13 remains recoverable from source `fb54ae46ed1ea35f2590157d5abb7bb1606e1802`
+  and its recorded80-file hash. Immutable P3B44 control untouched.
+- **Release PASS:**287 regression tests; PER structure/operands; naval doctrine;
+  strategy execution (no errors);34 replay metadata checks;676 ownership sites
+  (zero permission failures); command-counter and generated-inventory consistency.
+  The marker change invalidated the inventory fingerprint: regenerated and
+  rechecked before deployment. Literal budget1431/1500. No gameplay redesign
+  occurred in this deployment turn: only marker, marker assertion and release
+  documentation/inventory updates after the already-reviewed fixes.
+- **Status:** all bundled gameplay repairs remain FIXED-PENDING-RUNTIME.
+  Installed does not mean validated in game. Native STOP attribution, first
+  migration anchor loss, path geometry, dangerous trade selection, fortified
+  gathering, allied detection and ineffective wall bombardment remain OPEN.
+- **Next action:** start a fresh recorded comparison match, confirmT14:459,
+  preserve the authoritative lobby settings, then audit all players' relevant
+  episodes. Priority: no non-Palintonon PACK; autonomous drop-site foundations;
+  naval roster production; accepted partial/full unscreened departures with
+  no re-screen loop, real-danger recalls and useful same-island deliveries.
+  Preserve Blue screened follow-through and existing combined attacks.
+  Game process was left running; user was told to wait for verification before
+  starting the next fresh match. No restart/termination or existing-match claim.
+
+## PRE-DEPLOYMENT CHECKPOINT — T13 audit and optional screening, 2026-08-31
+
+Read [T13-REPLAY-REVIEW.md](T13-REPLAY-REVIEW.md) before resuming. It supersedes
+the pre-replay acceptance and next-action text below, not the unresolved ledger.
+
+### Latest user-requested policy: accepted manifests and one-way optional screening
+
+**Classification: USER-REQUESTED BEHAVIOR CHANGE. Status: FIXED-PENDING-RUNTIME;
+NOT DEPLOYED.** This refinement supersedes the earlier full-only
+`min(capacity,10)` fallback. Scouting failure is not evidence of route safety.
+
+- `rawai-military.per` now seals the accepted hull ID/count at normal boarding
+  completion, after the existing T6 boarded-only partial-manifest rebuild, or
+  after the existing native/manual loaded-hull admission. New missions clear old
+  certificates/deadlines. The saved target player is captured at route selection.
+- `rawai-assault-screen-fallback.per` admits the accepted normal manifest OR an
+  already-approved useful partial (existing minimum5). It checks the exact owned
+  hull, live cargo against the sealed count, and no current attack before and after
+  the bounded scan. Lowering an unfinished request to9 does not certify it; accepted
+  5–9 loads no longer need10 or literal hull capacity. Passenger ownership unchanged.
+- Reason3 (no eligible free scout) starts validation immediately after the first
+  search, without the former three20s acquisition retries. Reasons5/9 retain their
+  waypoint/beach approach budget:30s initial approach plus four15s retries.
+- Fresh known-defense scans at waypoint AND landing cover all enemies, bounded
+  to eight passes. Revalidate the original live hostile player with known buildings,
+  exact hull/manifest, and T13 same-target land zone immediately before committing.
+  Timed-out scouts must remain owned/alive, not under attack, and at least their
+  acquisition HP: damage/loss during validation vetoes fallback. Existing hard
+  recall rules1/2/4/6/7/8/10/11 and successful screened landing rule remain unchanged.
+- Commitment enters the existing departure/congestion controller once; source graph
+  inspection across every runtime file finds no path back to screening before
+  terminal recovery/new mission. A fresh arrival sample must improve the persistent
+  best waypoint distance by at least2 tiles to refresh an unscreened-only60s
+  progress deadline. Retries, oscillation and ordinary mid-route baseline resets
+  cannot refresh it. Total unscreened travel still limited to300s; unloading retains
+  its45s limit. Screened voyages do not inherit these deadlines.
+- Transition pair: `RAW44T screening bypass hull/reason`. Denial retains original
+  RAW44C soft reason and `RAW44T screening bypass denied`:1 invalid/attacked/
+  incomplete or stale manifest;2 static defense;3 wrong/unknown land zone;
+  4 invalid/finished enemy objective;5 scout loss/damage/ownership change.
+  Hold13 = total unscreened travel expiry; hold14 = no net progress. Terminal logs
+  occur once, not per sweep. Extend the next all-player reducer with these tags.
+- Evidence: T13 has30 soft recalls (25 reason3,2 reason5,3 reason9), across Red/Cyan/
+  Blue/Gray; not30 counterfactual successes. User's33 useful loads/four departures
+  refers to T11. T6 accepted partials are explicitly preserved by this refinement.
+- **PASS:**22 focused executable-rule/state tests (full and partial sealing, stale
+  certificates, immediate reason3, scout loss/damage, target invalidation, all-enemy
+  defenses, land zone, ownership, one-way graph, monotonic progress and deadlines).
+  **287 full regression tests PASS**, zero failures/errors/skips after the approved
+  rerun for the sandbox temp-file PermissionError. PER/naval,34 benchmark checks,
+  676-site ownership audit (zero failures), counter/inventory synchronization PASS.
+  Literal budget1431/1500. No subagents, new workspace, commit, push or PR update.
+- Read-only adversarial review: **ACCEPTED** the user's partial-manifest objection,
+  stale-token protection, post-scan target/scout checks and independent net-progress
+  clock. **REJECTED** renewed screen acquisition during the same voyage and treating
+  an action or passing fixture as route safety. **DEFERRED/OPEN** actual path geometry,
+  hidden danger, useful post-unload reachability and native STOP attribution.
+- Local81-file payload SHA256:
+  `20016970910388293B5D2DD4A3FB5191499A10DF42F240A4F6924C6A45A591A8`
+  (`tools/sync_test_ai.py:manifest_digest`). Installed original80-file T13 hash
+  remains `A260148B2998E72203883BF34578D96B9AD6B72A561857C89ADBB28F23C96FB6`.
+  Marker unchanged. Do not deploy this modified payload under T13's old identity.
+- Fresh-game acceptance NOT RUN: verify eligible full and accepted5–9 loads actually
+  depart and deliver useful troops after soft failures; no incomplete-load bypass,
+  no re-screen loop, one bounded recovery on stalls, and no damage/defense exemption.
+  Audit every player's bypass/denial/expiry/landing, preserving Blue screened
+  follow-through, all earlier causal patches, group ownership and T6 partials.
+  Geometry failures remain OPEN. A separately identified deployment is the next
+  runtime step; none was authorized/performed in this refinement.
+- Reversion boundary: only this policy module, its constants, military certificate/
+  scout snapshot/progress/soft-trigger hooks and tests; preserve the independent
+  PACK, migration, naval bootstrap, trade and same-island causal patches below.
+
+- **Ordinary canonical repository remains**
+  `G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`.
+- **Authorized current editing directory AND Git root remain**
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`, branch
+  `recovery/p3b44-transport-only`, HEAD
+  `387eccab36a3311ca90d9e39bea6d73013584a8b`. This is the documented recovery
+  exception, not a new or silently replaced canonical workspace. Future agents
+  must use this recovery directory for the milestone. No workspace switch.
+- The tree was clean at audit entry. It now has **intentional uncommitted causal
+  patches, tests and evidence** listed below. Preserve them; do not reset or
+  synchronize stale copies. No commits, push, PR update or deployment in this audit.
+- **Replay identity:** `SP Replay v101.103.48987.0 @2026.08.31 002333.aoe2record`,
+  SHA `3106EDB647E64D12752788F1C6E4D1A281E6E130BE64ED8B14260EA6C429E70D`,
+  121:55, resignation by replay player1. Selected-color mapping remains
+  Red/Green/Yellow/Purple Romans versus Orange Picts/Cyan Britons/Blue Germani/Gray
+  Gauls; do not infer visible colors from scoreboard numbers or body colors.
+  Terrain array is220×220. Exact action decoder failures0.
+- **Installed runtime unchanged:** `RAWAI-P3B44T13:458`, source `fb54ae46ed1ea35f2590157d5abb7bb1606e1802`;
+  all80 installed files re-compared byte-for-byte against that commit, mismatches0.
+  Existing payload hash `A260148B2998E72203883BF34578D96B9AD6B72A561857C89ADBB28F23C96FB6`.
+  No writer-trace overlay. Local changes are NOT installed, and must not be
+  deployed under the unchanged T13 marker.
+- **Local payload:** five runtime files differ from installed T13:
+  `rawai-military.per`, `rawai-customconstants.per`, `rawai-homebase.per`,
+  `rawai-economy.per`, `rawai-init-goals.per`. Audit fingerprint
+  `15F7A959CC9ABFE7D51BF910DCD39811B381FF728C913737223070F4B704FA8C`
+  uses SHA256 of sorted root `.ai/.per` entries, each UTF8 filename + NUL + raw
+  SHA256(file) bytes; this explicitly stated algorithm need not equal older
+  deployment-report hash algorithms. Full file comparison is the identity check.
+
+### Patch state and runtime acceptance
+
+All are **FIXED-PENDING-RUNTIME**, not CLOSED. Preserve their independent
+boundaries when committing/reverting; do not add unrelated policy into them.
+
+1. Existing `387ecca` PACK selection repair now corroborated by229 packets across
+   five players, including Purple/Blue TC producers. Additional TC fixture in
+   `tools/test_pack_selection.py`. Require no non-Palintonon PACK, with legitimate
+   Palintonon recovery preserved. Exact per-incident clobber writer unassigned.
+2. First demanded Fortress/range/stable with one completed TC: four homebase gates
+   admit first copy, retain expansion/need/ownership/resource restrictions.
+   Red's single TC was a source-visible prerequisite blocker; geometry remains
+   unproven. Tests in `tools/test_t13_gate_recovery.py`.
+3. Trade census: live proof must not keep bypassing endpoint revalidation after
+   a Port/Market count change. Two economy gates, same test file. Dangerous route
+   selection, profitability and broader recovery remain OPEN.
+4. Assault candidate geometry: compare target/left/right land zones before choosing
+   a ±28-tile landing; constants14200–14202. Red64:07 unloaded on a separate island.
+   Tests `tools/test_assault_landing_zone.py`. Empty-hull completion alone still
+   does not prove useful delivery or actual passenger zone.
+5. Naval roster bootstrap: one-shot `ship-train SCOUTSHIP` in init. All125 recorded
+   navy snapshots show-1; Red101:41 had trainable Q/Oct and capacity but selection
+   stayed unset. Four failing-before/passing-after actual-rotation fixtures in
+   `tools/test_naval_rotation_bootstrap.py`. Preserve caps/roles/12s choice duration.
+6. Dropsite point lifetime: persist bounded offset during PLACE, restore immediately
+   before each camp/mill ISSUE. Red116:35 requested158,211 while six settlers were
+   in the stone island's zone near32,51. Actual-rule delayed-request fixture in
+   `tools/test_migration_foundation.py` fails old code/passes fix. Separate from
+   first82:16 no-resource-anchor failure; no universal migration closure.
+
+### Highest-priority unresolved state
+
+- **INVESTIGATING — STOP flood:**195,024 STOP706; Red48,213, Gray97,549. Red's fixed
+  three settlers receive36,017 until the manual camp at100:56. Explicit counter
+  invocations do not account for the flood; native task/delegation cause remains
+  unproven. It starts while boarding, not only after landing. Gray has no PACK.
+  Reuse first-divergence packets/counters, not blanket native disabling.
+- **INVESTIGATING — Juggernaut command churn/wall:** user confirms visible stopping.
+  Nine identified Red siege hulls have no706, but repeated attack/move orders;
+  wall43240 receives25 tagged attacks. User's manual ground fire on nearby
+  in-range tiles did NO damage. This is not successful alternate-position fire.
+- **INVESTIGATING — Red first migration:** ten landed82:16, immediate no-resource
+  anchor/failure before a build request; cap-after-search/zone/visibility unresolved.
+  Manual camp100:56 is not AI success. Later coordinate fault is separately patched.
+- **RC screening blocker:** Red17 useful assault loads ->13 safety/screen recalls,
+  one landing timeout, three empty-hull completions (one on wrong island).
+  Blue has nine completion logs and some ensuing attack orders; preserve those.
+  Gray26 recalls include18 no-screen cases. The explicitly requested soft-failure
+  fallback above now addresses that policy gate locally, pending fresh runtime;
+  legitimate safety checks and the unresolved geometry issue remain separate.
+- **OPEN/INVESTIGATING:** unsafe trade assignment and autonomous re-probe, Cyan
+  fortified gathering, geometry-limited construction, allied false/missed alerts
+  (no300-series acceptance snapshots), Yellow boar interruption, Wonder completion,
+  old crash attribution and cross-water relief. See report for evidence/next action.
+- **Positive control:** user reports substantially better Juggernaut use and good
+  Palintonon behavior. Blue useful landings/attacks, full/partial lifts, genuine
+  defense and safety recalls must survive. Immutable P3B44 `8ec8700` untouched.
+
+### Validation and exact next actions
+
+- **PASS:**265 regression tests, zero failures/errors/skips;34 replay benchmark
+  metadata checks; PER/operands; naval doctrine;672-site ownership audit with zero
+  direct permission failures; command-counter/inventory generator consistency.
+  The full
+  suite's initial sandbox temp-directory error was rerun successfully with approval.
+  Ownership inventory regenerated; no runtime correctness inferred from static PASS.
+- All replay evidence, manual interventions, review triage and external artifacts
+  are indexed in `T13-REPLAY-REVIEW.md`; benchmark entry is
+  `britain-4v4-20260831-002333-p3b44t13-all-player`.
+- Before preparing a test build: review/commit isolated causal changes if desired,
+  then assign a distinct runtime marker and verify the whole payload. **No runtime
+  was deployed during this audit.** Require actual camp completion/drop-off,
+  heavy-ship production, trade recovery, correct-island useful assaults and zero
+  erroneous PACK. Keep unmet criteria OPEN rather than calling them fixed in game.
+- Continue STOP first-divergence and first-landing anchor investigation with the
+  existing evidence. Do not defer them behind another general backlog or infer
+  one root cause for all visible stopping.
+
+## HISTORICAL — pre-replay Port/Shipyard PACK safety fix, 2026-08-31
+
+At this earlier checkpoint the user was still testing original T13. The regression took priority
 over further screening/backlog changes. The existing authorized editing directory
 and Git root remain `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`,
 branch `recovery/p3b44-transport-only`. This causal patch follows documentation
@@ -12,7 +1389,7 @@ HEAD `4aa5d7baa4834ff55aa7b732c6b69dc9a1ff55c6`; resolve its current commit with
 - **Status / symptom:** FIXED-PENDING-RUNTIME, local patch not deployed. User
   reports repeated real Packing progress on both Ports and Shipyards. Screenshot
   directly shows Red's Port, Vespasian Augustus, Packing48% at53:31; it is not
-  merely an inferred animation. No completed T13 replay supplied yet.
+  merely an inferred animation. The completed T13 replay is now audited above.
 - **Direct evidence:** screenshot outside Git at
   `C:\Users\LostSoul\AppData\Local\Temp\codex-clipboard-bedeeadf-a2ae-4c1c-af5e-103b17d49300.jpg`,
   SHA-256 `3BD2FAD15CC8F95FA29647C380EFA73BC3EA9C9D5C0343E86E8E4ED3A0EF49C7`.

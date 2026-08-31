@@ -3,6 +3,256 @@
   "pending_match_setups": [],
   "benchmarks": [
     {
+      "id": "britain-4v4-20260831-204847-p3b44t19-all-player",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.31 204847.aoe2record",
+        "sha256": "ED6963FB76DB551C9A05828F70E04847F72FF5F241AC966752DAC5442CA9C726",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia;400 population;Fast speed2",
+        "duration_seconds": 9444,
+        "players": ["Red Roman Empire (team 1)", "Green Roman Empire (team 1)", "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)", "Orange Picts (team 2)", "Cyan Britons (team 2)", "Blue Germani (team 2)", "Gray Gauls (team 2)"],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Selected-color fields joined by player number, not slot/internal-color order. Romans p1-4;opponents p5-8. Actual replay speed is Fast, not the old pending Normal-speed fixture."
+      },
+      "direct_replay_observations": [
+        "T19:467 markers players2-8;91 installed/source files verified35526EFC8E958DB8BBC7C366B4126B123D676763287E890EA66BCA597D7B58DF.537299 exact events/zero decoder failures. User ended157:24 for stalled progression;no crash.",
+        "All48 command-linked hulls,225 passenger snapshots,53 partial/abort records and41 slot commits audited: Red4/Green6/Yellow28/Cyan3,others0.4 landing events,30 return-empty,5 missing hulls,1 quarantine,1 underway.30 no-progress events;5 followed outbound unload requests,25 Yellow cases did not. See T19-REPLAY-REVIEW.md for the complete census and limitations.",
+        "Red44797 landing leg begins82:38 then no-progress83:42. Its next mission begins landing92:54 and emits event4 then9 together93:58. The latter sample sees an already-empty hull but takes failure cleanup. Other Red assisted unloads at120:26/120:42 are not active RAW3 slot commits. User organized Red's larger Blue attacks;do not credit them to the AI.",
+        "Green9-member landing98:42 gets last individual orders98:49-99:13 and none afterward through157:24;no later STOP on those members. Green acknowledges31 four times,Yellow four,Purple none. User confirms Purple silence and later Yellow silence. Acknowledgment does not establish military action.",
+        "Red20 settlers land61:40;manifest member34146 house BUILD61:58;camp58465:30 near alternative stone32240,completed66:28. Later117:36/138:45 landings enter unaffordable-camp wait then fail60s later before placement. Gray Age3 is31:09,first camp request32:41. Total explicit STOP52213;not proof of a particular writer. Blue conversion success is user-observed."
+      ],
+      "implementation_inferences": [
+        "Waypoint-to-landing transition kept private near-zero best distance. Actual-PER fixture with continuous movement on an80-tile second leg wrongly recalls in all3 slots. Reset per-leg best/stall history;preserve overall voyage deadline.",
+        "Watchdogs ran before completed unloading;event4 then9 corresponds to an already-empty sample bypassing the landing handoff. Sample distance and process existing valid completion before cancellation.",
+        "Do not apply these two causes to all Yellow waypoint failures, Red assisted non-slot hulls or Green's post-handoff idleness. Taunt receive/ack is behind defense/preparation gates;exact blocking snapshot absent. Persistent offshore combat continuation, native type-exclusion effects, congestion policy and near-beach emergency unloading remain separate open work."
+      ],
+      "changes_under_test": [
+        "Local T20:468 only: per-leg best/stall reset and existing completion reordered before cancellation. Exactly rawai-assault-missions.per plus runtime marker differ from installed467. Both causal patches independently reversible;no deployment.",
+        "381 regression tests including19 voyage fixtures PASS;new movement test failed all3 slots before A,deadline-coincident completion failed before B. Generated runtime,PER,strategy,naval and762-site ownership guard checks PASS. Runtime acceptance NOT RUN."
+      ],
+      "fresh_replay_acceptance": [
+        "Verify468/full payload and preserve all3 independent dispatched missions,full/accepted partial manifests,target independence,wrong-island rejection and genuine hostile-fire safety.",
+        "Moving long landing legs refresh their own progress baseline while the overall voyage deadline stays bounded;true stalls still recover without order spam.",
+        "Already-empty correct-beach sample executes passenger handoff even on deadline expiry;verify actual landing and subsequent combat separately. Do not credit human-assisted unloads/attacks.",
+        "Continue all-player analysis of25 Yellow waypoint failures,other loaded hull recovery,taunt silence/acknowledged idleness,migration local foundations and productive gathering. Those do not become closed when the two T20 tests pass."
+      ],
+      "known_limits": [
+        "Orders are not execution or position/HP/death simulation. Event8 is script cargo-empty/near-beach evidence;native/manual activity must retain user provenance. Zero slot commits is not proof of zero transport activity.",
+        "No runtime proof for T20. Gray construction requests do not establish completed prerequisites. Affordability telemetry does not give exact wood/escrow. STOP totals do not explain the TC-loss lag or Green's idle group."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260831-183134-p3b44t17a1-all-player",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.31 183134.aoe2record",
+        "sha256": "608B6681C240FC681E5C883A0CA9A138F3934FAE56DB40445B0AEDA45ECA5499",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia; preserved selected-color teams",
+        "duration_seconds": 3643,
+        "players": ["Red Roman Empire (team 1)", "Green Roman Empire (team 1)", "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)", "Orange Picts (team 2)", "Cyan Britons (team 2)", "Blue Germani (team 2)", "Gray Gauls (team 2)"],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Selected colors joined by replay player number, not slot-derived colors; user lobby preserved."
+      },
+      "direct_replay_observations": [
+        "T17A1:465 markers players2-8; recorder self-marker asymmetry. All89 installed/source runtime files match B7BBA84A58914C4B8F650FCF183B5CAA79C1A4579DFE1F023E92B02A5AC08EC6. User confirmed startup; replay runs60:43 with Red resignation60:42, no crash attribution. Exact decoder457946 events/no errors. See T17-REPLAY-REVIEW.md.",
+        "All-player53 boarding windows/18 command-linked hulls.23 accepted assault preparations (21 normal plus2 partial),19 holds,4 slot commits. Red3 accepts/3 holds (8,8,10), no slot commit. Cyan and Gray each commit2; Gray slots1/2 overlap. No RAW3 event8 assault landing. Cyan first mission event2 then return-empty; remaining3 commits hit no-progress, with last Cyan recovery unresolved at cutoff.",
+        "Red32067 accepts14 of20 settlers55:21, reports14 landed56:54 at stone anchor30546, zone3. Four Mining Camp584 BUILD coordinates57:55(154,124),58:17(152,126),58:39(154,124),58:59(151,113) are24.9-34.0 tiles from stone(175.5,136.5). Drop-site failure59:20 orders13 settlers back aboard; home-unload requests60:05-60:36. User observed the distant foundation and premature recall.",
+        "Red screen36734 approaches(143,141), recall8 at46:29;36607 approaches(137,137), recall8 at49:48;36734 repeats(137,137), missing-scout hold10 at53:36. Source predicate8 is under-attack,10 is failed exact-ID lookup, not proof of attacker identity or ship death. Three fallback denials across Cyan/Gray are reason2 known danger; no401.",
+        "All six sampled migration terminal hulls retain group10. STOP706 total69741, dominated by Orange58862; no writer attribution from totals. Scouting/relic/native unload commands were inspected but not counted as confirmed assault landings."
+      ],
+      "implementation_inferences": [
+        "Migration ISSUE-DROPSITE uses an expanding place-point queue while verification only accepts same-zone camps within8 tiles of resource and issued point. Recorded distant BUILD requests cannot satisfy that verifier, so builders never receive the matching-foundation job and bounded recovery recalls them. Exact-point placement is the causal boundary to fix.",
+        "The coordinate diagnostic used position-target, which reads an enemy building, not the mutable target point. Old T13 runtime scratch-overwrite attribution based on that diagnostic is withdrawn; persistent source point ownership remains useful. Corrected tests distinguish these APIs.",
+        "Red assault holds are not old401 or slot exhaustion. Failed approaches have no persistent failure feedback into target selection. Missing failure-aware rotation is a separate open policy; exact opponent and available safe alternatives for these pre-dispatch holds remain unproven. Hard-danger safeguards must not be relaxed."
+      ],
+      "changes_under_test": [
+        "T17 ownership/gate changes receive partial positive sampled evidence; end-to-end dispatch remains FAIL. Startup correction passes user confirmation and fresh465 replay.",
+        "LOCAL ONLY T18:466 replaces three migration place-point requests with validated same-point up-build-line, preserves normal up-can-build resource/escrow and owner/pending gates, bounded retries and foundation verification; copies persistent coordinates for diagnostics.11 focused/357 full tests PASS; three new regression cases fail archived T17A1 source as expected. Fresh engine validation required; no deployment or assault-policy changes in this audit."
+      ],
+      "fresh_replay_acceptance": [
+        "A same-island foundation of the correct drop-site type appears within8 tiles of the live resource, reserved settlers construct it and gather/drop off, with no premature recall. Verify actual engine execution, not BUILD alone.",
+        "Unbuildable or unsafe exact points do not produce bad remote foundations; bounded retries and genuine failure recovery remain. Preserve useful partial loads, resource/escrow policy, other controllers and normal construction.",
+        "All-player assault audit distinguishes viable dispatch/landing from danger or geometry failures. Do not declare participation fixed by this migration-only patch; retain missing plan-rotation and all other defects."
+      ],
+      "known_limits": [
+        "Orders do not prove physical movement, construction, damage, conversion or unloading. Private detail is principally Red. No claim every scout was killed by an enemy or every hold1 represents actual danger; hold1 also encodes disconnected geometry.",
+        "Exact-point engine placement/building, terrain and hostile-fire behavior remain unverified. STOP, boarding-ship conversions, Gray Imperial prerequisites, trade congestion and prior ledger defects remain open. Raw replay, data mod and large diagnostics remain outside Git."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260831-162617-p3b44t16-all-player",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.31 162617.aoe2record",
+        "sha256": "F8D75EC49C2FF9DA206B872CAD697E98DF56F9C17FCE559F012F90BE130859E7",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia; decoded selected-color teams agree with preserved setup",
+        "duration_seconds": 5826,
+        "players": ["Red Roman Empire (team 1)", "Green Roman Empire (team 1)", "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)", "Orange Picts (team 2)", "Cyan Britons (team 2)", "Blue Germani (team 2)", "Gray Gauls (team 2)"],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Selected colors joined by replay player number, never inferred from row/internal color. Resolved teams2/3 agree with user teams1/2."
+      },
+      "direct_replay_observations": [
+        "T16A2:463 markers players2-8;87 source/installed files match 3A246F56182BAEAF2EE4D3C0FA93844B48E8A8A35992791628B2D8C6CD7C7558. Recorder self-marker asymmetry persists. Final parser/exact decoder errors0;1158622 retained events. Final Red RESIGN97:06 follows user-ended stalemate, not a crash. See T16-REPLAY-REVIEW.md.",
+        "All-player52 command-linked hulls,66 full-ready and26 approved-partial checkpoints,22 underfill aborts. Checkpoints are not unique missions. Only one RAW3 commit:Red41383 slot1 at52:38, saved enemy5 Orange, landing53:58. Yellow's observed Blue landing around49 minutes corresponds to native transport order714 at49:12, not RAW3. Green's later multiple ready loads never reach RAW3.",
+        "All11 fallback denials are401:Gray5,Blue4,Green1,Cyan1. Initial/first enemy iterator-1, scanned0; saved/checked enemy valid, snapshot failure0, live gate1, global target unchanged. Seven hold1 landing-plan rejections coexist with no-screen/timeout denials and Yellow's47:35 landing-scout under-attack hold8.",
+        "Migration terminals28:outbound11 flag-2/one flag10;return12 flag-2/four flag10. T15 comparable terminal group reports all24 flag10. Red40804 accepts16 at67:27 but is idle/unowned at origin68:59;Red31594 accepts20 at90:39 but is idle/unowned92:11. Purple/Yellow reused hulls show the same unowned terminal class.",
+        "User reports multiple loaded Green/Red hulls not departing, assisted Yellow79-minute landing without drop-site, major allied Trade Cog congestion, boarding-ship nonconversion, escort changes and Gray lacking University/Imperial. Red40804 initial abort59:05 predates manual moves59:53-60:00 and unload60:06; user's post-intervention abort observation remains separately preserved pending clarification.",
+        "353691 STOP706 orders:Red10859,Green158453,Yellow35879,Purple146171,Orange223,Cyan983,Blue655,Gray468. Different exposures and bundled T16 changes prevent an isolated causal conclusion about S1; STOP remains open."
+      ],
+      "implementation_inferences": [
+        "Actual unchanged T15/T16 PER comparison reproduces a source regression in assault/mining/scout acquisition: candidate selection admits an idle empty hull that claim filters remove for order714/721, but boarding state advances anyway. Six T16 claim-contract failures;12 controls pass. Later commands require missing ownership. Exact order at every runtime claim is unlogged, so this is not proof that every unowned or blocked hull has the same cause.",
+        "Code401 identifies failing initial enemy enumeration, not saved-enemy death or a target-selector overwrite. Constant3 and output goal14205 are reference-supported. Bounded literal1-8 hostile/live enumeration preserving all-enemy danger checks is the narrow proposed replacement; engine lookup failure cause remains unresolved.",
+        "Loaded fleet accumulation is mainly before independent slot commit, not three-slot exhaustion. Landing hold1 conflates defense and wrong-island rejection at two lateral candidates; it does not exhaust the coast. Genuine congestion and missing drop-sites remain separate defects."
+      ],
+      "changes_under_test": [
+        "Deployed T16A2 includes three independent sealed voyage slots, active-voyage takeover protection, code4 diagnostics and unvalidated S1 idle-reset-delay experiment. The initial audit changed documentation/diagnostic artifacts only.",
+        "Subsequently authorized T17:464 implements exact-hull acquisition acknowledgement, reusable empty/idle hull eligibility, bounded preparation lease recovery and literal1-8 hostile enemy scanning.346 tests and structural/semantic checks passed, but user startup screenshot then showed ERR2005 in preparation ownership line8. T17A1:465 wraps the six oversized lines with identical tokens;352 tests pass, engine startup confirmation pending. Gameplay remains FIXED-PENDING-RUNTIME. This T16 replay does not validate either later runtime. See current HANDOFF for identity and T16-REPLAY-REVIEW.md for causal evidence."
+      ],
+      "fresh_replay_acceptance": [
+        "First causal patch: exact hull ownership must succeed before boarding/attempt consumption; denied claims must not create loaded orphan loops. Preserve genuine active native/manual voyages and ordinary successful acquisition. Actual autonomous departure/landing is required, not merely fewer logs.",
+        "Separate fallback-enumeration patch must admit eligible full and approved5-9 partial manifests, scan all living hostile players for known route/landing danger, and preserve same-island and bounded-progress checks. Preserve Red's working RAW3 voyage, Yellow's native-path success and three independent sealed missions.",
+        "Reassess residual loading, landing-planning and collision failures after the first two blockers are corrected; keep STOP, dropsite, boarding, placement and economy defects explicitly open."
+      ],
+      "known_limits": [
+        "Commands and terminal samples are not complete simulation state. Private chat is principally Red; exact acquisition order/flag is not logged for every hull. User manual ferrying and Shipyard deletion are not autonomous successes. No blanket blame on another controller or physical pathfinding.",
+        "Diagnostic reproduction confirms six source-contract failures, not an engine fix. No fresh fixed runtime or full regression rerun in this audit. Raw replay/DAT/large diagnostics and immutable T15 control remain outside Git."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260831-134755-p3b44t15-all-player",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.31 134755.aoe2record",
+        "sha256": "46367A652B0823505591B6997E3A8E71B847F2C74F14361C4DE00CC2EB8F1F79",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia; selected-color teams preserved",
+        "duration_seconds": 9447,
+        "players": ["Red Roman Empire (team 1)", "Green Roman Empire (team 1)", "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)", "Orange Picts (team 2)", "Cyan Britons (team 2)", "Blue Germani (team 2)", "Gray Gauls (team 2)"],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Selected colors joined by replay player number, not internal colors or slots; resolved teams2/3 match preserved user teams1/2."
+      },
+      "direct_replay_observations": [
+        "T15:460 markers players2-8 and83 source/installed files match 8C9DF5B2B90E69656627ED1ACC5174EC22C16A47E8EEE83A519E8DD76FEF664B. Recorder self-marker asymmetry persists. Parser/exact decoder errors0;787809 retained events. Final RESIGN Gray157:27; no crash attribution. Detailed evidence/limits: T15-REPLAY-REVIEW.md.",
+        "All-player256 boarding windows:157 assault,61 migration,38 unresolved/recovery/relic. Assault windows/accepted:Red24/13,Green23/22,Yellow37/36,Purple14/13,Orange0/0,Cyan0/0,Blue19/19,Gray40/37. Red completion log75:33 and Yellow landing timeout147:51 are not proof of useful autonomous combat.64 fallback denials:62 code4 and two code1; zero unscreened commits.",
+        "52514 STOP706 packets:Red38515,Green1072,Yellow1030,Purple5089,Orange266,Cyan687,Blue3866,Gray1989. Red worker group gets5113 identical STOPs67:06-70:12; generic missing-target writer1 runs only twice. Gray remains Middle Age. Different matches and exposures prevent a causal claim from the aggregate drop versus T14's432975.",
+        "Red logs failed drop-sites70:07/92:55; user built mineral-island Camp and manually ferried workers/troops. User observed a Camp on a mineral-free wooded island, unreachable naval fixation, allied Trade Cog congestion, manual Fortress interruptions and Gray never Imperial. User confirms worker53684's127:28 Outpost was manual input; no explicit STOP packet targets that worker during the failed Fortress attempts.",
+        "Red reselects naval target59165 170 times98:27-135:19 despite radius255 by61:00. PACK packets0 across all players.25 Fish Trap BUILD requests with subsequent target orders:Red3,Green5,Yellow4,Purple5,Orange1,Cyan1,Blue2,Gray4; completion/food income unproven. Red/Green retarget cleared Blue before formal defeat according to user; Red landings onto Blue/Gray were manually assisted."
+      ],
+      "implementation_inferences": [
+        "STOP root remains INVESTIGATING. Direct counter totals/onset reject a simple generic or partial-terminal STOP explanation, not every script-triggered native loop. Code4 still conflates initial enemy lookup with final objective validation; no unsupported blanket safety bypass implemented.",
+        "Naval no-progress watch expands the search but does not reject an unreachable preferred target after reaching its limit. Gray's requested Monastery/University can satisfy DAT Imperial prerequisites if completed; a Fortress is not mandatory. Market relocation bridge means ordinary sell/buy threshold gaps alone do not prove Red's failure. Wrong-island Camp linkage to stale work remains a hypothesis."
+      ],
+      "changes_under_test": [
+        "T15 exploration/fishing policy audited. Subsequent LOCAL-ONLY T16S1:461 tests one authorized reversible STOP hypothesis: native idle-group reset delay0->5 seconds in four advanced-difficulty initializers. Only other runtime difference from archived T15 is the marker. No deployment; not a proven causal fix."
+      ],
+      "fresh_replay_acceptance": [
+        "T16S1 must reduce repeated-identical STOP bursts/exposure-matched rates while preserving productive gathering/building, early scouting, Imperial retirement, fishing, useful full/partial lifts and attacks. Quieter inactivity fails. Revert the one-SN experiment if ineffective/regressive before the next hypothesis.",
+        "Keep queue STOP -> code4 -> failure-aware overseas rotation -> RC. Real-danger vetoes, same-island landing, approved5-9 partials and bounded voyages must survive. All additional defects remain explicit in T15-REPLAY-REVIEW.md; engine outcome evidence is required for closure."
+      ],
+      "known_limits": [
+        "Private chat principally Red. Commands do not prove positions, resources, completion, damage or every issuer; manual actions are not autonomous successes. EXPLORE705 alone cannot distinguish exempt Fishing Ships from general scouts. Raw replay, DAT and diagnostic/control artifacts remain outside Git.",
+        "307 deterministic tests PASS for T16S1 after rerunning a Windows temporary-folder permission failure. No T16S1 runtime validation or deployment; T15 remains installed."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260831-115504-p3b44t14-all-player",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.31 115504.aoe2record",
+        "sha256": "E1D8B629F1743E086AE5D9729CAB2E0B7C6D9E440ADD7E115F342E53BFE43977",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia; selected-color teams preserved",
+        "duration_seconds": 6336,
+        "players": [
+          "Red Roman Empire (team 1)", "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)", "Cyan Britons (team 2)",
+          "Blue Germani (team 2)", "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Validated selected colors joined by replay player number; not internal colors or lobby-row inference. Resolved teams2/3 agree with preserved user teams1/2."
+      },
+      "direct_replay_observations": [
+        "T14:459 serialized by players2-8;81 installed/source runtime files match DE6010CD8942E7D790A161FDE1A02CFC3F3C1F085E735731B16748F2A782B8A8. Full/exact decoder errors0. Ends105:36 with player1 resignation. See T14-REPLAY-REVIEW.md.",
+        "All-player121 boarding windows:60 assault,38 migration,23 unresolved/recovery/relic. Purple19 accepted loads all recalled; Cyan18 accepted all recalled; Orange13 accepted with four completion logs, one landing timeout, six recalls and two unresolved. Blue six windows:five accepted/recalls and one abort. Gray four accepted/recalls. No identified assault boarding windows for Red/Green/Yellow; not absence of other transportation.",
+        "Purple recalls:15 reason1, three reason8, one reason11. Cyan:17 reason3 plus one reason1. All25 unscreened fallback attempts deny4: Cyan17, Orange3, Gray5, including one Gray event outside the joined boarding windows. Zero bypass commits. Denial4 does not identify which of its two source branches failed.",
+        "Zero settlement-reinforcement call messages, consistent with user-observed missed help. Cyan zero Shipyard BUILD1251 requests while every other player requests at least two; Cyan requests four Ports and nine Transports. Orders are not completed buildings or survival counts.",
+        "432975 STOP706 packets: Red24647, Green629, Yellow355, Purple2179, Orange36371, Cyan8881, Blue7993, Gray351920. Gray individual objects31795/31892/32192 receive108046/104142/101106 identical STOPs. Cyan group4649/31914/31984 receives8395 in69:28-73:57. Writer/type not proven by counts.",
+        "User reports Trihemiolia newly produced. No Roman PACK packets; Blue2 and Gray25 PACK packets remain subject to exact role verification. No blanket closure of T14 fixes."
+      ],
+      "implementation_inferences": [
+        "Source target selection repeatedly chooses closest enemy and only falls back on inactive/allied/zero-building targets. No per-opponent failed-assault memory or elapsed-ready-without-viable-plan rotation exists. Recovery waits90s without penalizing a failed enemy/landing. This explains a repeatable source-level trap, not every runtime failure or a proven constant target ID for Purple/Cyan.",
+        "Two28-tile lateral landing candidates plus same-island/defense rejection do not exhaust an enemy coastline. Reason1 conflates geometry and danger. Candidate replanning/alternative enemy choice must preserve real-danger vetoes.",
+        "Fallback denial4 covers no valid enemy at scan start OR invalid final saved enemy objective. The exact branch/values remain unlogged. Do not assume lack of a scout, load size or actual danger alone explains Cyan's failure. Help and Shipyard gate causes remain INVESTIGATING."
+      ],
+      "changes_under_test": [
+        "Installed T14 bundle described in HANDOFF remains unchanged. This turn edits evidence/reducers only; no runtime implementation/deployment. Optional-screening runtime acceptance FAILS here: zero unscreened commits and25 objective-validation denials."
+      ],
+      "fresh_replay_acceptance": [
+        "Proposed, not implemented: ready army plus three distinct objective/landing failures or180s without a viable plan evaluates alternative living enemies; nearest-target refresh cannot undo the choice. Active progressing voyages remain bound to original objectives. Temporary cooldowns retry later; no permanent blacklist or real-danger exemption.",
+        "Resolve fallback denial4 separately; eligible accepted full/partial manifests must actually depart and deliver useful troops when their original objective and safety checks pass. Preserve same-island checks and bounded progress.",
+        "STOP remains next implementation priority using already-authorized reversible controlled experiments. Compare actual orders and exposure-matched rates, not quieter logs or suppressed productive behavior. Help/Shipyard observations stay explicit open defects."
+      ],
+      "known_limits": [
+        "Private telemetry mostly Red. All-player public events expose loading/recall gates, not every mission enemy ID, physical path, completed construction, surviving landed units or exact STOP writer. No historical wake-up cause proven from this replay alone.",
+        "Parser/static PASS is not gameplay closure. No new runtime or full regression suite for a proposal-only audit. Data mod, replay and raw diagnostic streams remain outside Git."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260831-002333-p3b44t13-all-player",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.08.31 002333.aoe2record",
+        "sha256": "3106EDB647E64D12752788F1C6E4D1A281E6E130BE64ED8B14260EA6C429E70D",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia; decoded terrain 220x220",
+        "duration_seconds": 7315,
+        "players": [
+          "Red Roman Empire (team 1)", "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)", "Cyan Britons (team 2)",
+          "Blue Germani (team 2)", "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Validated selected-color fields and resolved teams, corroborated by screenshots. Scoreboard color numbers and internal body color fields are not replay player identities. No automatic inheritance of the old lobby's nominal terrain dimension."
+      },
+      "direct_replay_observations": [
+        "T13:458, source fb54ae46ed1ea35f2590157d5abb7bb1606e1802. All80 installed files byte-match source. Exact stream parser failures0. Ends121:55 with player1 resignation, not an attributed crash. Detailed evidence and artifacts: T13-REPLAY-REVIEW.md.",
+        "All-player134 boarding windows:74 assault,35 migration,25 unresolved/recovery/relic. Assault67 useful load terminals, seven boarding aborts,52 screen/safety recalls, three landing timeouts,12 empty-hull completion logs. These are request/telemetry outcomes, not12 useful assaults. Red64:07 follows unload43,39 on the separate resource island while passengers target67,53.",
+        "229 PACK packets across five players include verified Red Port producers and Purple/Blue TC producers. User observations of real Port/Shipyard Packing and Purple packed TCs are accepted; not every packet recipient's type is reconstructed.",
+        "195024 STOP706 packets, including48213 Red and97549 Gray. Red's exact three-worker group receives36017 until the user's camp request100:56. It begins during boarding. Gray has no PACK. Existing explicit STOP counters do not identify a per-packet writer.",
+        "User reports visible repeated stopping including Juggernauts. Nine source-tagged Red naval siege hulls have zero706 and one literal STOP but repeated attack/movement commands; wall43240 receives25 tagged attacks. User manual ground fire at nearby in-range tiles did no wall damage.",
+        "All125 recorded naval snapshots show roster choice-1. Red101:41 has Q/Oct mask32: trainable, prerequisites and caps pass but selection fails. No concrete MAKE1870/1750/1884 anywhere. Other Roman samples also include resource/prerequisite blockers.",
+        "Red82:16 lands ten settlers then reports no resources before requesting construction. At116:35 six correct-zone settlers accompany a mining-camp request at158,211, far from stone29347 near32,51; the request stays pending without a foundation. These are distinct failures.",
+        "Red ten AI merchant MAKE17 requests end28:24;15 subsequent manual DE_QUEUE17 records are not AI recovery. Red has one initial TC, no TC/range/stable BUILD, and three user-assisted Fortress requests. Cyan71-77min has1035 WORK orders involving112 workers toward a tree cluster near a Purple Fortress request;112 is not a death count."
+      ],
+      "implementation_inferences": [
+        "Existing387ecca PACK fix addresses a stale shared search consumed without an exact Palintonon filter. The new TC evidence belongs to that defect; it does not explain every STOP flood.",
+        "Source-visible causes supported here: first military building blocked behind two TCs; live trade proof repeatedly bypassing a changed producer census; lateral assault candidate not checked against objective land zone; naval rotation lacking an initial roster choice; delayed dropsite issue using another controller's shared target point.",
+        "STOP native callback, first migration's discarded/capped resource anchor, ineffective wall approach/fire, dangerous trade assignment and Cyan exact fortified-gathering writer remain unresolved. No guessed behavioral repairs for them. No300-series allied-claim snapshots establish runtime acceptance."
+      ],
+      "changes_under_test": [
+        "DEPLOYED FOR NEW TESTING as T14:459, not validated by this T13 replay: existing PACK exact-role/fresh-selection repair, plus five causal patches: first demanded military structure admission; trade producer epoch revalidation; same-target-land-zone assault candidate guard; one-shot SCOUTSHIP roster bootstrap; persistent drop-site placement point restored at each build boundary.",
+        "The causal-patch audit passed265 tests at its checkpoint. Subsequent complete release passed287 tests;81 installed files byte-match the current checkout. T14 full-runtime SHA256 DE6010CD8942E7D790A161FDE1A02CFC3F3C1F085E735731B16748F2A782B8A8. Fresh-game acceptance remains pending.",
+        "SUBSEQUENT USER-REQUESTED BEHAVIOR CHANGE, now included in deployed T14:459: optional screening for a sealed accepted full OR useful-partial5-9 manifest, never literal capacity/10 or merely a lowered request. Reason3 validates immediately; reasons5/9 retain bounded approach retries. Fresh exact hull/manifest, live original enemy, all-enemy known-defense and same-island checks; damaged/lost scouts veto. One-way departure with300s travel and60s net-progress deadlines; unchanged45s unload bound. Hard recalls and screened voyages unchanged. Transition-only bypass/denial tags, hold13 travel expiry and14 no progress.287 tests, PER/naval/strategy,676-site ownership and generator checks PASS. See HANDOFF."
+      ],
+      "fresh_replay_acceptance": [
+        "Distinct next-build marker and complete deployment verification before attribution. Zero non-Palintonon PACK while legitimate Palintonon packing/target recovery and improved Juggernaut use survive.",
+        "Demanded first military foundations appear autonomously with one TC; heavy Roman ships train when concretely available and affordable, within unchanged role/family/fleet caps. Training choices advance and remain stable for12 seconds.",
+        "Trade revalidates changed producers and resumes bounded autonomous production; safe profitable routing still needs separate proof. Migration build requests retain their intended resource-island point through admission delays and yield a completed, used drop-off.",
+        "Assaults reject other-island lateral points, retain valid alternatives and real danger screening, and demonstrate useful postlanding combat. Audit all players; preserve Blue follow-through and useful partial/full lifts. Track STOP and first-anchor defects until independently resolved.",
+        "For optional screening, distinguish bypass, screened departure, denial, hold13 travel expiry and14 no progress across every player. Demonstrate actual full AND already-accepted5-9 partial departures/useful delivery; reject unfinished/stale manifests, damaged/lost scouts, invalid original enemies and wrong islands. No re-screening loop; movement retries cannot reset the progress clock. Preserve hard recalls and Blue screened follow-through. No claim that all30 historical soft recalls would pass or survive."
+      ],
+      "known_limits": [
+        "Orders are not damage, successful construction, completed landings or delivered profit. User-built camp/Fortresses and manual merchant queues/ground fire cannot validate autonomous AI behavior. Private chat coverage differs by player.",
+        "Route-screen-clear carries a scout ID, not a hull ID. Offline terrain component IDs are not engine map-zone IDs. UNKNOWN109 is not assumed to be research. MAKE payload sequence is not global stream sequence.",
+        "T14 gameplay fixes are deployed but FIXED-PENDING-RUNTIME; this T13 replay does not validate them. Empty-hull completion remains weaker than useful arrival. No crash fix, PR update or broad native-controller disabling."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
       "id": "britain-4v4-20260830-211106-p3b44t11-all-player",
       "source": {
         "file_basename": "SP Replay v101.103.48987.0 @2026.08.30 211106.aoe2record",
