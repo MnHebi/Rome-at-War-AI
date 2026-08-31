@@ -172,7 +172,7 @@ class CommandCounterTests(unittest.TestCase):
             self.assertEqual(source(name), expected, name)
         text = source('rawai-native-attack-ownership.per')
         self.assertEqual(text.count('up-modify-goal gl-command-counter-90 c:+ 1'), 1)
-        self.assertEqual(text.count('up-modify-goal gl-command-counter-91 c:+ 1'), 17)
+        self.assertEqual(text.count('up-modify-goal gl-command-counter-91 c:+ 1'), 20)
 
 
 class HelpCooldownTests(unittest.TestCase):

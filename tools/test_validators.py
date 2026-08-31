@@ -2932,7 +2932,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "(unit-type-count scout-cavalry-class >= 1)",
             ),
             actions=(
-                "(set-goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)",
+                "(set-goal gl-island-migration-state MIGRATION-PLAN-SCOUT)",
             ),
         )
         self.assertEqual(len(scout_rules), 1)
@@ -2940,12 +2940,13 @@ class FarmPolicyTests(unittest.TestCase):
         reserved_attempt = matching_rules(
             self.military,
             facts=(
-                "(goal gl-island-migration-state MIGRATION-FIND-TRANSPORT)",
+                "(goal gl-island-migration-state MIGRATION-HULL-VERIFY)",
                 "(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)",
+                "(up-object-data object-data-group-flag == migration-transport-group)",
+                "(up-object-data object-data-id g:== gl-island-migration-transport-id)",
             ),
             actions=(
                 "(up-modify-goal gl-island-scout-attempts c:+ 1)",
-                "migration-transport-group",
             ),
         )
         self.assertEqual(len(reserved_attempt), 1)
@@ -3035,7 +3036,7 @@ class FarmPolicyTests(unittest.TestCase):
             self.military,
             facts=("gl-home-stone-count c:> 0",),
             actions=(
-                "(set-goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)",
+                "(set-goal gl-island-migration-state MIGRATION-PLAN-SCOUT)",
             ),
         )
         self.assertEqual(len(stone_refresh), 1)
@@ -3592,8 +3593,8 @@ class FarmPolicyTests(unittest.TestCase):
             self.general,
             actions=(
                 "(up-find-local c: villager-class g: villager-count)",
-                "(up-create-group 0 0 c: 0)",
-                "(up-modify-group-flag 1 c: 0)",
+                "(up-create-group 0 0 c: attack-transport-group)",
+                "(up-modify-group-flag 1 c: attack-transport-group)",
             ),
         )
         self.assertEqual(len(cleanup), 1)
@@ -3626,8 +3627,8 @@ class FarmPolicyTests(unittest.TestCase):
 
         self.assertEqual(after_cleanup(actions), {31871: reservation, 60000: -2})
         self.assertEqual(after_cleanup(actions.replace(reservation_filter, ""))[31871], -2)
-        self.assertIn("(up-modify-group-flag 0 c: 0)", self.general)
-        self.assertIn("(up-reset-group c: 0)", self.general)
+        self.assertIn("(up-modify-group-flag 0 c: attack-transport-group)", self.general)
+        self.assertIn("(up-reset-group c: attack-transport-group)", self.general)
         self.assertIn("(up-object-data object-data-order == orderid-enter)", self.general)
 
     def test_naval_exploration_is_scout_ship_only(self) -> None:
@@ -4812,6 +4813,12 @@ class FarmPolicyTests(unittest.TestCase):
                 "(goal gl-island-migration-state MIGRATION-GATE-OWNER)",
                 "gl-island-scout-attempts c:< 3",
             ),
+            actions=("MIGRATION-PLAN-SCOUT",),
+        )
+        self.assertEqual(len(scout_gate), 1)
+        scout_plan = matching_rules(
+            self.military,
+            facts=("(goal gl-island-migration-state MIGRATION-PLAN-SCOUT)",),
             actions=(
                 "object-data-map-zone-id g:== gl-island-scout-visited-zone",
                 "object-data-map-zone-id g:== gl-island-scout-visited-zone2",
@@ -4819,7 +4826,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "MIGRATION-FIND-SCOUT-LANDING",
             ),
         )
-        self.assertEqual(len(scout_gate), 1)
+        self.assertEqual(len(scout_plan), 1)
         patrol_watchdog = matching_rules(
             self.military,
             facts=(
@@ -5236,9 +5243,7 @@ class FarmPolicyTests(unittest.TestCase):
             self.military,
             facts=(
                 "TRANSPORT-ROUTE-LOAD-READY",
-                "(goal gl-home-defense-state NO)",
-                "gl-transport-route-load-player g:== gl-land-target-current-player",
-                "(goal gl-land-target-needs-transport YES)",
+                "(goal gl-assault-preflight-live YES)",
             ),
             actions=(
                 "(set-strategic-number sn-focus-player-number my-player-number)",
@@ -5351,19 +5356,9 @@ class FarmPolicyTests(unittest.TestCase):
             ),
             actions=("attack lift boarding aborted: %d", "TRANSPORT-ROUTE-RECOVERY-WAIT"),
         )
-        landed = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-RETURN-CHECK",
-                "(goal gl-transport-route-script-load YES)",
-                "object-data-garrison-count <= 0",
-            ),
-            actions=(
-                "attack-boarding-group",
-                "gl-transport-route-target-x action-move -1 stance-aggressive",
-                "attack lift landed: %d",
-            ),
-        )
+        mission_text = (Path(__file__).resolve().parents[1] / 'rawai-assault-missions.per').read_text(encoding='utf-8')
+        landed = matching_rules(mission_text, facts=('(goal gl-am1-state 2)', 'gl-am1-cargo c:<= 0'),
+                               actions=('gl-am1-target-x action-default',))
         self.assertEqual(len(board), 1)
         self.assertEqual(len(ready), 1)
         self.assertEqual(len(ready_rebuild), 1)
@@ -5385,10 +5380,9 @@ class FarmPolicyTests(unittest.TestCase):
             self.military,
             facts=(
                 "TRANSPORT-ROUTE-LOAD-READY",
-                "gl-transport-route-load-player g:!= gl-land-target-current-player",
+                "(goal gl-assault-preflight-live NO)",
             ),
             actions=(
-                "attack lift target invalidated: %d",
                 "TRANSPORT-ROUTE-RECOVERY-WAIT",
             ),
         )
@@ -5425,7 +5419,9 @@ class FarmPolicyTests(unittest.TestCase):
                 "(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)",
             ),
         )
-        self.assertGreaterEqual(len(lost_terminals), 3)
+        self.assertGreaterEqual(len(lost_terminals), 1)
+        for i in range(1, 4):
+            self.assertIn(f"(set-goal gl-am{i}-reason 6)", mission_text)
 
     def test_recall_caller_trace_covers_every_existing_global_recall(self) -> None:
         military_rules = matching_rules(historical_source('rawai-military.per'), actions=("(up-retreat-now)",))
@@ -5499,10 +5495,23 @@ class FarmPolicyTests(unittest.TestCase):
                 self.assertNotIn('RAW44C migration best distance:', actions)
 
     def test_assault_hold_reasons_and_ready_identity_are_public_and_bounded(self) -> None:
-        reasons = matching_rules(self.military, actions=('"RAW44C assault hold reason:',))
-        self.assertEqual(len(reasons), 12)
-        self.assertEqual({int(re.search(r'hold reason: %d" c: (\d+)', r[4])[1])
-                          for r in reasons}, set(range(1, 13)))
+        fallback = (Path(__file__).resolve().parents[1] / 'rawai-assault-screen-fallback.per').read_text(encoding='utf-8-sig')
+        reasons = matching_rules(self.military + '\n' + fallback,
+                                 actions=('"RAW44C assault hold reason:',))
+        direct = {int(m[1]) for r in reasons
+                  if (m := re.search(r'hold reason: %d" c: (\d+)', r[4]))}
+        soft = {int(m[1]) for r in matching_rules(self.military)
+                if (m := re.search(r'set-goal gl-assault-fallback-reason (\d+)', r[4]))}
+        self.assertEqual(direct | soft, {3,5,9,13,14})
+        # T19 hard screening failures retain the load and veto the candidate;
+        # the removed two-candidate reason1 is replaced by bounded plan search.
+        hard={int(m[1]) for r in matching_rules(self.military)
+              if (m:=re.search(r'set-goal gl-ap-failure (\d+)',r[4]))}
+        self.assertEqual(hard,{2,4,6,7,8,10,11})
+        self.assertEqual(soft, {3, 5, 9})
+        deferred = [r for r in reasons if 'hold reason: %d" g: gl-assault-fallback-reason' in r[4]]
+        self.assertEqual(len(deferred), 1)
+        self.assertIn('TRANSPORT-ROUTE-UNSCREENED-DENY', deferred[0][3])
         for rule in reasons:
             self.assertIn('"RAW44C assault hold hull: %d" g: gl-transport-route-id', rule[4])
             self.assertIn('(set-goal gl-transport-route-state ', rule[4])
@@ -5526,388 +5535,39 @@ class FarmPolicyTests(unittest.TestCase):
                     self.assertRegex(line, r'^\s*\(up-(chat-data-to-all|get-point|get-object-data) ')
 
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
-        self.assertIn(
-            '(up-chat-data-to-all "RAWAI-P3B44T13: %d" c: 458)',
-            self.init_goals,
-        )
-        initial = matching_rules(
-            self.military,
-            facts=("TRANSPORT-ROUTE-DEPARTURE-ISSUE",),
-            actions=(
-                "object-data-distance gl-transport-departure-current-distance",
-                "gl-transport-departure-best-distance g:= gl-transport-departure-current-distance",
-                "gl-transport-departure-progress-limit c:- 2",
-                "(set-goal gl-transport-departure-stalls 0)",
-                "gl-transport-route-waypoint-x action-move",
-                "TRANSPORT-ROUTE-WAYPOINT-WAIT",
-            ),
-        )
-        progress = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-DEPARTURE-EVALUATE",
-                "gl-transport-departure-current-distance g:<= gl-transport-departure-progress-limit",
-            ),
-            actions=(
-                "(set-goal gl-transport-departure-stalls 0)",
-                "gl-transport-route-waypoint-x action-move",
-                "TRANSPORT-ROUTE-WAYPOINT-WAIT",
-            ),
-        )
-        self.assertEqual(len(initial), 1)
-        self.assertEqual(len(progress), 2)
-        normal = [rule for rule in progress if "gl-transport-departure-congested NO" in rule[3]]
-        self.assertEqual(len(normal), 1)
-        self.assertNotIn("transport blockers", normal[0][4])
+        from test_assault_missions import AssaultMissionTests
+        AssaultMissionTests().test_moving_hulls_do_not_receive_repeated_orders()
+        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T21: %d" c: 469)', self.init_goals)
 
     def test_transport_departure_stalled_near_origin_activates_clearance(self) -> None:
-        accumulating = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-DEPARTURE-EVALUATE",
-                "gl-transport-departure-current-distance g:> gl-transport-departure-progress-limit",
-                "gl-transport-departure-stalls c:< 2",
-            ),
-            actions=(
-                "gl-transport-departure-stalls c:+ 1",
-                "TRANSPORT-ROUTE-WAYPOINT-WAIT",
-            ),
-        )
-        origin_probe = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-DEPARTURE-EVALUATE",
-                "gl-transport-departure-stalls c:>= 2",
-            ),
-            actions=(
-                "up-set-target-point gl-transport-route-origin-x",
-                "up-add-object-by-id search-local g: gl-transport-route-id",
-                "TRANSPORT-ROUTE-DEPARTURE-ORIGIN",
-            ),
-        )
-        congestion = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-DEPARTURE-ORIGIN",
-                "object-data-distance <= 20",
-                "object-data-garrison-count > 0",
-                "gl-transport-departure-clear-attempts c:< 3",
-            ),
-            actions=(
-                "(set-goal gl-transport-departure-congested YES)",
-                "RAW44T transport departure stalled: %d",
-                "(up-find-local c: transport-ship c: 20)",
-                "gl-transport-departure-blockers g:= local-total",
-                "TRANSPORT-ROUTE-DEPARTURE-BLOCKERS",
-            ),
-        )
-        self.assertEqual(len(accumulating), 1)
-        self.assertEqual(len(origin_probe), 1)
-        self.assertEqual(len(congestion), 1)
+        from test_assault_missions import AssaultMissionTests
+        AssaultMissionTests().test_only_free_idle_blocker_yields_to_stalled_mission()
 
     def test_transport_departure_blocker_selection_preserves_owned_or_unsafe_hulls(self) -> None:
-        blocker_scans = matching_rules(
-            self.military,
-            actions=(
-                "up-set-target-point gl-transport-departure-hull-x",
-                "(up-filter-distance c: -1 c: 12)",
-                "(up-find-local c: transport-ship c: 20)",
-            ),
-        )
-        self.assertEqual(len(blocker_scans), 2)
-        required_exclusions = (
-            "object-data-id g:== gl-transport-route-id",
-            "object-data-id g:== gl-quarantine-transport-id",
-            "object-data-id g:== gl-transport-departure-failed-blocker-id",
-            "object-data-garrison-count > 0",
-            "object-data-under-attack > 0",
-            "object-data-idling != 1",
-            "object-data-group-flag >= 0",
-            "object-data-map-zone-id g:!= gl-transport-departure-water-zone",
-        )
-        for rule in blocker_scans:
-            for exclusion in required_exclusions:
-                self.assertIn(exclusion, rule[4])
-
-        destination = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-DEPARTURE-BLOCKERS",
-                "gl-transport-departure-blockers c:> 0",
-            ),
-            actions=(
-                "(up-filter-distance c: 28 c: 200)",
-                "(up-find-local c: transport-ship c: 20)",
-                "object-data-map-zone-id g:!= gl-transport-departure-water-zone",
-                "TRANSPORT-ROUTE-DEPARTURE-DESTINATION",
-            ),
-        )
-        self.assertEqual(len(destination), 1)
-
-        independent_clear = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-CLEAR-IDLE",
-                "TRANSPORT-ROUTE-IDLE",
-            ),
-            actions=("TRANSPORT-CLEAR-STALE-FIND",),
-        )
-        self.assertEqual(len(independent_clear), 1)
+        text = (Path(__file__).resolve().parents[1] / 'rawai-assault-missions.per').read_text(encoding='utf-8')
+        for i in range(1, 4):
+            rows = matching_rules(text, facts=(f'(goal gl-am{i}-sample 2)',), actions=('up-find-local c: transport-ship c: 20',))
+            self.assertEqual(len(rows), 1)
+            for guard in ('object-data-group-flag >= 0', 'object-data-garrison-count > 0', 'object-data-idling != 1',
+                          'object-data-under-attack > 0', 'orderid-transport', 'orderid-unload', 'object-data-map-zone-id g:!=', 'object-data-index > 0'):
+                self.assertIn(guard, rows[0][4])
 
     def test_transport_departure_clearance_success_resumes_original_waypoint(self) -> None:
-        clearance = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-DEPARTURE-CLEAR",
-                "(up-set-target-object search-local c: 0)",
-            ),
-            actions=(
-                "object-data-id gl-transport-departure-blocker-id",
-                "object-data-index >= 1",
-                "gl-transport-departure-target-x action-move",
-                "gl-transport-departure-clear-attempts c:+ 1",
-                "RAW44T transport blocker clearance ordered: %d",
-                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-WAIT",
-            ),
-        )
-        verified = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK",
-                "object-data-distance > 12",
-            ),
-            actions=(
-                "RAW44T transport blocker cleared: %d",
-                "gl-transport-departure-failed-blocker-id -1",
-                "TRANSPORT-ROUTE-DEPARTURE-RETRY",
-            ),
-        )
-        retry = matching_rules(
-            self.military,
-            facts=("TRANSPORT-ROUTE-DEPARTURE-RETRY",),
-            actions=(
-                "up-set-target-point gl-transport-route-waypoint-x",
-                "up-add-object-by-id search-local g: gl-transport-route-id",
-                "TRANSPORT-ROUTE-DEPARTURE-ISSUE",
-            ),
-        )
-        resumed = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-DEPARTURE-EVALUATE",
-                "gl-transport-departure-current-distance g:<= gl-transport-departure-progress-limit",
-                "(goal gl-transport-departure-congested YES)",
-            ),
-            actions=(
-                "RAW44T transport departure resumed: %d",
-                "(set-goal gl-transport-departure-clear-attempts 0)",
-                "(set-goal gl-transport-departure-congested NO)",
-                "gl-transport-route-waypoint-x action-move",
-                "TRANSPORT-ROUTE-WAYPOINT-WAIT",
-            ),
-        )
-        self.assertEqual(len(clearance), 1)
-        self.assertEqual(len(verified), 1)
-        self.assertEqual(len(retry), 1)
-        self.assertEqual(len(resumed), 1)
-        self.assertNotIn("TRANSPORT-ROUTE-RECOVERY-WAIT", resumed[0][4])
+        from test_assault_missions import AssaultMissionTests
+        AssaultMissionTests().test_only_free_idle_blocker_yields_to_stalled_mission()
 
     def test_transport_departure_clearance_verifies_one_exact_blocker(self) -> None:
-        rebuild = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-WAIT",
-                "t-transport-route == timer-triggered",
-            ),
-            actions=(
-                "up-set-target-point gl-transport-departure-hull-x",
-                "up-add-object-by-id search-local g: gl-transport-departure-blocker-id",
-                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK",
-            ),
-        )
-        retry = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK",
-                "object-data-distance <= 12",
-                "gl-transport-departure-blocker-retries c:< 1",
-                "object-data-garrison-count <= 0",
-                "object-data-under-attack <= 0",
-                "object-data-group-flag < 0",
-                "gl-transport-departure-blocker-id g:!= gl-quarantine-transport-id",
-            ),
-            actions=(
-                "gl-transport-departure-target-x action-move",
-                "gl-transport-departure-blocker-retries c:+ 1",
-                "RAW44T transport blocker clearance retry: %d",
-                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-WAIT",
-            ),
-        )
-        failed = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK",
-                "object-data-distance <= 12",
-                "gl-transport-departure-blocker-retries c:>= 1",
-            ),
-            actions=(
-                "RAW44T transport blocker clearance failed: %d",
-                "gl-transport-departure-failed-blocker-id g:= gl-transport-departure-blocker-id",
-                "TRANSPORT-ROUTE-DEPARTURE-RETRY",
-            ),
-        )
-        absent = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK",
-                "(not (up-set-target-object search-local c: 0))",
-            ),
-            actions=(
-                "RAW44T transport blocker absent: %d",
-                "gl-transport-departure-failed-blocker-id -1",
-                "TRANSPORT-ROUTE-DEPARTURE-RETRY",
-            ),
-        )
-        self.assertEqual(len(rebuild), 1)
-        self.assertEqual(len(retry), 1)
-        self.assertEqual(len(failed), 1)
-        self.assertEqual(len(absent), 1)
-
-        became_unsafe = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK",
-                "object-data-distance <= 12",
-                "gl-transport-departure-blocker-retries c:< 1",
-            ),
-            actions=(
-                "RAW44T transport blocker became unsafe: %d",
-                "gl-transport-departure-failed-blocker-id g:= gl-transport-departure-blocker-id",
-                "TRANSPORT-ROUTE-DEPARTURE-RETRY",
-            ),
-        )
-        self.assertEqual(len(became_unsafe), 4)
-        self.assertTrue(any("object-data-garrison-count > 0" in rule[3] for rule in became_unsafe))
-        self.assertTrue(any("object-data-under-attack > 0" in rule[3] for rule in became_unsafe))
-        self.assertTrue(any("object-data-group-flag >= 0" in rule[3] for rule in became_unsafe))
-        self.assertTrue(
-            any(
-                "gl-transport-departure-blocker-id g:== gl-quarantine-transport-id" in rule[3]
-                for rule in became_unsafe
-            )
-        )
+        from test_assault_missions import AssaultMissionTests
+        AssaultMissionTests().test_only_free_idle_blocker_yields_to_stalled_mission()
 
     def test_transport_departure_clearance_failure_is_terminal_and_bounded(self) -> None:
-        terminal = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-DEPARTURE-ORIGIN",
-                "object-data-distance <= 20",
-                "object-data-garrison-count > 0",
-                "gl-transport-departure-clear-attempts c:>= 3",
-            ),
-            actions=(
-                "RAW44T transport departure congestion unresolved: %d",
-                "gl-home-anchor-x action-unload",
-                "TRANSPORT-ROUTE-RECOVERY-WAIT",
-            ),
-        )
-        self.assertEqual(len(terminal), 1)
-        self.assertEqual(
-            self.military.count("RAW44T transport departure congestion unresolved: %d"),
-            1,
-        )
-        self.assertNotIn("gl-transport-route-waypoint-x action-move", terminal[0][4])
-        attempt_increments = matching_rules(
-            self.military,
-            actions=("gl-transport-departure-clear-attempts c:+ 1",),
-        )
-        self.assertEqual(len(attempt_increments), 4)
+        from test_assault_missions import AssaultMissionTests
+        AssaultMissionTests().test_no_progress_recovers_then_quarantines_without_command_loop()
 
     def test_transport_landing_stages_screen_and_escort_and_blocks_guard_refresh(self) -> None:
-        escort_selector = matching_rules(
-            self.military,
-            facts=(
-                "t-transport-escort == timer-triggered",
-                "ESCORT-IDLE",
-                "(not (goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-WAIT))",
-            ),
-            actions=("(up-find-remote c: transport-ship c: 40)",),
-        )
-        screen_clear = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-SCREEN-LANDING-APPLY",
-                "remote-total <= 0",
-            ),
-            actions=(
-                "up-bound-point point-x gl-transport-route-landing-x",
-                "up-cross-tiles point-x gl-transport-route-waypoint-x c: 18",
-                "up-add-object-by-id search-local g: gl-transport-screen-id",
-                "up-target-point point-x action-move",
-                "RAW44T2 route-screen landing cleared: %d",
-                "up-modify-group-flag 0 c: transport-screen-group",
-                "(set-goal gl-transport-screen-id -1)",
-                "TRANSPORT-ROUTE-DEPARTURE-START",
-            ),
-        )
-        landing = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-WAYPOINT-CHECK",
-                "object-data-distance <= 8",
-            ),
-            actions=(
-                "up-bound-point point-x gl-transport-route-landing-x",
-                "up-cross-tiles point-x gl-transport-route-waypoint-x c: -18",
-                "up-set-group search-local c: transport-escort-group",
-                "up-target-point point-x action-move",
-                "up-add-object-by-id search-local g: gl-transport-route-id",
-                "gl-transport-route-landing-x action-unload",
-                "RAW44T2 transport landing escort staged: %d",
-                "TRANSPORT-ROUTE-RETURN-WAIT",
-            ),
-        )
-        self.assertEqual(len(escort_selector), 1)
-        self.assertEqual(len(screen_clear), 1)
-        self.assertEqual(len(landing), 1)
-        screen_actions = screen_clear[0][4]
-        self.assertLess(
-            screen_actions.index("up-target-point point-x action-move"),
-            screen_actions.index("(set-goal gl-transport-screen-id -1)"),
-        )
-        actions = landing[0][4]
-        self.assertLess(
-            actions.index("up-target-point point-x action-move"),
-            actions.index("gl-transport-route-landing-x action-unload"),
-        )
-        self.assertNotIn("action-guard", actions)
-
-        timeout = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-RETURN-WAIT",
-                "t-transport-route == timer-triggered",
-            ),
-            actions=(
-                "RAW44T2 transport landing timed out: %d",
-                "TRANSPORT-ROUTE-RECOVERY-WAIT",
-            ),
-        )
-        completed = matching_rules(
-            self.military,
-            facts=(
-                "TRANSPORT-ROUTE-RETURN-CHECK",
-                "object-data-garrison-count <= 0",
-                "gl-transport-route-script-load YES",
-            ),
-            actions=(
-                "RAW44T2 transport landing completed: %d",
-                "TRANSPORT-ROUTE-IDLE",
-            ),
-        )
-        self.assertEqual(len(timeout), 1)
-        self.assertEqual(len(completed), 1)
+        from test_assault_missions import AssaultMissionTests
+        AssaultMissionTests().test_landing_stages_only_its_screen_and_paired_escorts()
+        for i in range(1, 4): self.assertIn(f'(not (goal gl-am{i}-state 2))', self.military)
 
     def test_port_clearance_includes_trade_cogs(self) -> None:
         berth_scans = matching_rules(

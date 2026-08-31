@@ -22,7 +22,7 @@ def source(name):
 def constants():
     return {k: int(v) for k, v in re.findall(r'\(defconst\s+(\S+)\s+(-?\d+)\)',
             source('rawai-customconstants.per') + source('rawai-constants.per')
-            + source('rawai-unitconstants.per'))}
+            + source('rawai-unitconstants.per') + source('rawai-assault-mission-defs.per'))}
 
 
 def select(name, facts, action=None):
@@ -213,7 +213,7 @@ class OwnershipContractTests(unittest.TestCase):
 
     def test_native_attack_type_exclusion_is_finite_and_released_next_sweep(self):
         rows = rule_blocks(source('rawai-native-attack-ownership.per'))
-        self.assertEqual(sum('fe-exclude-from-attack-group' in r[4] for r in rows), 17)
+        self.assertEqual(sum('fe-exclude-from-attack-group' in r[4] for r in rows), 20)
         claim = next(r for r in rows if 'up-set-group search-local c: attack-boarding-group' in r[4])
         exclude = next(r for r in rows if 'fe-exclude-from-attack-group' in r[4])
         m = FilterMachine([unit(1, 4), unit(2, 4), unit(3), unit(4, 11)], groups={4: [1, 2, 4]})

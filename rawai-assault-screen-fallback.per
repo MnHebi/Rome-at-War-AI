@@ -1,0 +1,316 @@
+;USER-REQUESTED POLICY: an unavailable/late Scout is not proof of route danger.
+;Only reasons 3/5/9 enter here: no scout, or bounded waypoint/beach timeout.
+;Do not call an unscreened departure a screened/physically proven safe route.
+;The accepted full OR useful-partial manifest is sealed by the loading owner.
+;A mutable request, literal ten, or physical capacity is not an acceptance token.
+
+;Only unscreened trips get this five-minute travel deadline. Ordinary screened
+;voyages and the existing 45-second unload deadline are unchanged.
+(defrule
+	(up-compare-goal gl-assault-fallback-deadline c:> 0)
+	(up-compare-goal gl-transport-load-clock g:>= gl-assault-fallback-deadline)
+	(or (goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
+	    (or (goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-CHECK)
+	        (and (up-compare-goal gl-transport-route-state c:>= TRANSPORT-ROUTE-DEPARTURE-START)
+	             (up-compare-goal gl-transport-route-state c:<= TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK))))
+=>
+	(set-goal gl-assault-fallback-deadline 0)
+	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44C assault hold reason: %d" c: 13)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-RECALL)
+)
+
+;Strict net-progress bound, independent of the ordinary departure baseline,
+;which may reset on a retry. Applies equally to all three soft-failure reasons.
+(defrule
+	(up-compare-goal gl-assault-fallback-deadline c:> 0)
+	(up-compare-goal gl-assault-fallback-progress-deadline c:> 0)
+	(up-compare-goal gl-transport-load-clock g:>= gl-assault-fallback-progress-deadline)
+	(or (goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-WAIT)
+	    (or (goal gl-transport-route-state TRANSPORT-ROUTE-WAYPOINT-CHECK)
+	        (and (up-compare-goal gl-transport-route-state c:>= TRANSPORT-ROUTE-DEPARTURE-START)
+	             (up-compare-goal gl-transport-route-state c:<= TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK))))
+=>
+	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44C assault hold reason: %d" c: 14)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-RECALL)
+)
+
+(defrule
+	(or (up-compare-goal gl-assault-fallback-deadline c:> 0)
+	    (up-compare-goal gl-assault-fallback-progress-deadline c:> 0))
+	(or (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	    (or (goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
+	        (or (goal gl-transport-route-state TRANSPORT-ROUTE-RETURN-WAIT)
+	            (goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-RECALL))))
+=>
+	(set-goal gl-assault-fallback-deadline 0)
+	(set-goal gl-assault-fallback-progress-deadline 0)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-START)
+=>
+	(set-goal gl-assault-fallback-deadline 0)
+	(set-goal gl-assault-fallback-denial 1)
+	(set-goal gl-assault-diag-subcode 0)
+	(set-goal gl-assault-diag-previous-enemy -1)
+	(up-modify-goal gl-assault-fallback-required g:= gl-assault-manifest-count)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-HULL)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-HULL)
+	(up-compare-goal gl-assault-manifest-hull g:== gl-transport-route-id)
+	(up-compare-goal gl-assault-fallback-required c:>= 5)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-hitpoints > 0)
+	(up-object-data object-data-under-attack == 0)
+	(up-object-data object-data-garrison-count g:>= gl-assault-fallback-required)
+=>
+	(set-goal gl-assault-fallback-threats 0)
+	(set-goal gl-assault-fallback-seen 0)
+	;T16 repeatedly received -1 from the engine iterator despite a live enemy.
+	;Visit the finite player range literally; skip only proven inactive/allied IDs.
+	(set-goal gl-assault-fallback-player 1)
+	(set-goal gl-assault-fallback-first 1)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-SCAN)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-HULL)
+=>
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DENY)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-SCAN)
+	(or (up-compare-goal gl-assault-fallback-player c:< 1)
+	    (up-compare-goal gl-assault-fallback-player c:> 8))
+=>
+	(set-goal gl-assault-fallback-denial 4)
+	(set-goal gl-assault-diag-subcode 401)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DENY)
+)
+
+;Fresh known static-defense checks at BOTH the retained waypoint and landing,
+;for each enemy, not just the currently selected opponent. One enemy per pass;
+;no shared search list survives to the next pass. Visibility is NOT path proof.
+(load "rawai-assault-enemy-scan")
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-SCAN)
+	(goal gl-assault-fallback-hostile NO)
+=>
+	(up-modify-goal gl-assault-fallback-player c:+ 1)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-CHECK)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-SCAN)
+	(goal gl-assault-fallback-hostile YES)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-assault-fallback-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 10)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: town-center c: 10)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-assault-fallback-threats g:+ remote-total)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-landing-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 10)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: town-center c: 10)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-assault-fallback-threats g:+ remote-total)
+	(up-modify-goal gl-assault-fallback-seen c:+ 1)
+	(up-modify-goal gl-assault-diag-previous-enemy g:= gl-assault-fallback-player)
+	(up-modify-goal gl-assault-fallback-player c:+ 1)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-CHECK)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-CHECK)
+	(up-compare-goal gl-assault-fallback-threats c:> 0)
+=>
+	(set-goal gl-assault-fallback-denial 2)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DENY)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-CHECK)
+	(goal gl-assault-fallback-player 9)
+=>
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-SCOUT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-CHECK)
+=>
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-SCAN)
+)
+
+;A timed-out scout must still be alive, owned and undamaged since acquisition.
+;This also catches loss/fire while the multi-enemy scan was in progress.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-SCOUT)
+	(goal gl-assault-fallback-reason 3)
+=>
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-FINAL)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-SCOUT)
+=>
+	(set-goal gl-assault-fallback-denial 5)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-screen-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-SCOUT-CHECK)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-SCOUT-CHECK)
+	(up-compare-goal gl-assault-screen-start-hp c:> 0)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-hitpoints g:>= gl-assault-screen-start-hp)
+	(up-object-data object-data-under-attack == 0)
+=>
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-FINAL)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-SCOUT-CHECK)
+=>
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DENY)
+)
+
+;Recheck exact ownership, accepted cargo, live hostile objective and land zone
+;after the bounded scan. Focus is the saved mission enemy, not a retargeted SN.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-FINAL)
+=>
+	(set-goal gl-assault-fallback-zone -1)
+	(up-get-point-zone gl-transport-route-landing-x gl-assault-fallback-zone)
+	(set-goal gl-assault-fallback-denial 1)
+	(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-x)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DECIDE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DECIDE)
+	(goal gl-assault-preflight-live NO)
+=>
+	(set-goal gl-assault-fallback-denial 4)
+	(up-modify-goal gl-assault-diag-subcode g:= gl-assault-diag-enemy-failure)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DENY)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DECIDE)
+	(or (up-compare-goal gl-transport-route-target-zone c:< 0)
+	    (up-compare-goal gl-assault-fallback-zone g:!= gl-transport-route-target-zone))
+=>
+	(set-goal gl-assault-fallback-denial 3)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DENY)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DECIDE)
+	(up-compare-goal gl-assault-manifest-hull g:== gl-transport-route-id)
+	(up-compare-goal gl-assault-fallback-required g:== gl-assault-manifest-count)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-hitpoints > 0)
+	(up-object-data object-data-under-attack == 0)
+	(up-object-data object-data-garrison-count g:>= gl-assault-fallback-required)
+=>
+	;One-way commitment: only departure/progress/landing or terminal recovery
+	;follow this edge. No voyage state returns to any SCREEN-FIND/WAIT state.
+	(up-get-object-data object-data-distance gl-assault-fallback-progress-limit)
+	(up-modify-goal gl-assault-fallback-progress-limit c:- 2)
+	(up-get-fact game-time 0 gl-assault-fallback-progress-deadline)
+	(up-modify-goal gl-assault-fallback-progress-deadline c:+ ASSAULT-UNSCREENED-PROGRESS-LIMIT)
+	;Move only this mission's scout aside if it exists, then release that group.
+	;Do not take an escort/scout owned by any other controller to satisfy screening.
+	(up-bound-point point-x gl-transport-route-landing-x)
+	(up-cross-tiles point-x gl-transport-route-waypoint-x c: 18)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-screen-id)
+	;OWNERSHIP command: transport-screen-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
+	(up-target-point point-x action-move -1 stance-no-attack)
+	(up-modify-group-flag 0 c: transport-screen-group)
+	(up-reset-group c: transport-screen-group)
+	(set-goal gl-transport-screen-id -1)
+	(set-goal gl-transport-screen-waits 0)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-get-fact game-time 0 gl-assault-fallback-deadline)
+	(up-modify-goal gl-assault-fallback-deadline c:+ ASSAULT-UNSCREENED-TRAVEL-LIMIT)
+	(up-chat-data-to-all "RAW44T screening bypass hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44T screening bypass reason: %d" g: gl-assault-fallback-reason)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-START)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DECIDE)
+=>
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DENY)
+)
+
+;Denial:1 invalid/attacked/incomplete hull,2 known static defense,3 wrong/unknown
+;landing zone,4 invalid scan cursor/saved-enemy gate,5 scout lost/damaged/unowned.
+;Retain the original soft-failure reason and coarse denial for old replay parsers.
+;Emit precise code-4 context BEFORE changing state/restoring focus. This is
+;diagnostic only: no search, manifest, ownership, command or cancellation changes.
+(load "rawai-assault-cancel-details")
+;T19: retain the same accepted load while excluding this failed candidate.
+(defrule
+    (goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DENY)
+    (goal gl-ap-active YES)
+    (or (goal gl-assault-fallback-denial 2)
+        (or (goal gl-assault-fallback-denial 3) (goal gl-assault-fallback-denial 5)))
+=>
+    (up-chat-data-to-all "RAW44T screening bypass denied: %d" g: gl-assault-fallback-denial)
+    (up-modify-goal gl-ap-failure g:= gl-assault-fallback-denial)
+    (up-modify-goal gl-ap-failure c:+ 30)
+    (set-goal gl-transport-route-state AP-FAIL)
+)
+
+;Only a proven lost/nonhostile original enemy permits explicit opponent replan.
+;Malformed scan cursors and invalid hulls remain terminal diagnostic failures.
+(defrule
+    (goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DENY)
+    (goal gl-ap-active YES)
+    (goal gl-assault-fallback-denial 4)
+    (goal gl-ap-live NO)
+=>
+    (set-goal gl-transport-route-state AP-NEXT-ENEMY)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DENY)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
+	(up-chat-data-to-all "RAW44C assault hold reason: %d" g: gl-assault-fallback-reason)
+	(up-chat-data-to-all "RAW44T screening bypass denied: %d" g: gl-assault-fallback-denial)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-RECALL)
+)

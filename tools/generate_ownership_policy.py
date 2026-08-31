@@ -175,7 +175,8 @@ def native_attack():
                   'migration-transport-group', 'migration-boarding-group',
                   'recovery-transport-group', 'recovery-boarding-group',
                   'relic-ferry-transport-group', 'relic-ferry-passenger-group',
-                  'naval-scout-group', 'allied-relief-group'):
+                  'naval-scout-group', 'allied-relief-group',
+                  'assault-mission-1-group', 'assault-mission-2-group', 'assault-mission-3-group'):
         out.append(rule(['(true)'], [
             f'(up-set-group search-local c: {group})',
             '(up-remove-objects search-local object-data-player != my-player-number)',
@@ -197,7 +198,7 @@ def releases():
     # Remove stale references BEFORE any controller can mutate a group flag.
     # No flag is changed while rebuilding: valid members retain the same flag;
     # other-owner/converted members retain theirs and cease to be our references.
-    for group in range(1, 18):
+    for group in range(20):
         out.append(rule([f'(up-group-size c: {group} > 0)'], [
             f'(up-set-group search-local c: {group})',
             '(up-remove-objects search-local object-data-player != my-player-number)',
