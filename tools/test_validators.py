@@ -5358,7 +5358,11 @@ class FarmPolicyTests(unittest.TestCase):
         )
         mission_text = (Path(__file__).resolve().parents[1] / 'rawai-assault-missions.per').read_text(encoding='utf-8')
         landed = matching_rules(mission_text, facts=('(goal gl-am1-state 2)', 'gl-am1-cargo c:<= 0'),
-                               actions=('gl-am1-target-x action-default',))
+                               actions=('(set-goal gl-am1-state 14)',))
+        landed_handoff = matching_rules(mission_text, facts=('(goal gl-am1-state 14)',),
+                                        actions=('gl-am1-target-x action-default',
+                                                 '(set-goal gl-am1-state 6)'))
+        self.assertEqual(len(landed_handoff), 1)
         self.assertEqual(len(board), 1)
         self.assertEqual(len(ready), 1)
         self.assertEqual(len(ready_rebuild), 1)
@@ -5537,7 +5541,7 @@ class FarmPolicyTests(unittest.TestCase):
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
         AssaultMissionTests().test_moving_hulls_do_not_receive_repeated_orders()
-        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T21: %d" c: 469)', self.init_goals)
+        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T22: %d" c: 470)', self.init_goals)
 
     def test_transport_departure_stalled_near_origin_activates_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests

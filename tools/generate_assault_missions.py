@@ -15,7 +15,8 @@ FIELDS = ('state', 'hull', 'enemy', 'cargo', 'screen', 'origin-x', 'origin-y',
           'waypoint-x', 'waypoint-y', 'landing-x', 'landing-y', 'target-x', 'target-y',
           'target-zone', 'next', 'progress-until', 'travel-until', 'best', 'distance',
           'hp', 'previous-hp', 'attacker', 'issue', 'reason', 'sample', 'zone',
-          'x', 'y', 'clear-count', 'clear-x', 'clear-y', 'water-zone', 'unscreened', 'stalls')
+          'x', 'y', 'clear-count', 'clear-x', 'clear-y', 'water-zone', 'unscreened', 'stalls',
+          'combat-until', 'combat-target', 'combat-last', 'combat-tries', 'combat-failed', 'combat-misses')
 
 # Diagnostic-only: keep legacy bypass denial 4, qualify the failing predicate.
 # "Not in game" does not distinguish resignation, defeat or disconnection.
@@ -111,10 +112,10 @@ def cancellation_details(facts, stage):
 
 
 def admission():
-    out = [';State:0 FREE,1 WAYPOINT,2 LANDING,3 RETURN,4 QUARANTINE,5 RELEASE.',
+    out = [';State:0 FREE,1 WAYPOINT,2 LANDING,3 RETURN,4 QUARANTINE,5 RELEASE,6 LANDED COMBAT.',
            ';Event:0 commit,1 enemy left,2 hostile fire,3 invalid landing,',
            ';4 no progress,5 voyage deadline,6 hull lost,7 empty before landing,',
-           ';8 landed,9 return empty,10 quarantine,11 obstruction clearance.']
+           ';8 landed,9 return empty,10 quarantine,11 obstruction clearance,12 combat release,13 combat target.']
     for i in range(1, 4):
         out.append(rule(['(true)'], [f'(set-goal gl-am{i}-state 0)',
             f'(set-goal gl-am{i}-hull -1)', '(disable-self)']))
@@ -252,15 +253,21 @@ def missions():
         # Completion is physical cargo-empty near the accepted same-island beach.
         out.append(rule([*sample, f'(goal {v("state")} 2)', f'(up-compare-goal {v("cargo")} c:<= 0)',
                          f'(up-compare-goal {v("distance")} c:<= 12)'], [
+            *command('origin-x', 'action-move'), setv('state', 14)]))
+        out.append(rule([f'(goal {v("state")} 14)'], [
             '(up-full-reset-search)', f'(up-set-group search-local c: {g})',
             '(up-remove-objects search-local object-data-player != my-player-number)',
             f'(up-remove-objects search-local object-data-group-flag != {g})',
+            f'(up-create-group 0 0 c: {g})', f'(up-modify-group-flag 0 c: {g})',
             f'(up-remove-objects search-local object-data-id g:== {v("hull")})',
             f'(up-remove-objects search-local object-data-id g:== {v("screen")})',
             '(up-remove-objects search-local object-data-garrisoned == 1)',
             f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("target-zone")})',
+            f'(up-create-group 0 0 c: {g})', f'(up-modify-group-flag 1 c: {g})',
             f'(up-target-point {v("target-x")} action-default -1 stance-aggressive)',
-            setv('state', 5), setv('reason', 8), *log(8)]))
+            setv('state', 6), setv('reason', 8), *deadline('combat-until', 300),
+            setv('combat-last', -1), setv('combat-failed', -1),
+            setv('combat-tries', 0), setv('combat-misses', 0), *log(8)]))
         outbound = [f'(or (goal {v("state")} 1) (goal {v("state")} 2))']
         for p in range(1, 9):
             out.append(rule([*sample, *outbound, f'(goal {v("enemy")} {p})',
@@ -369,7 +376,65 @@ def missions():
                             [*command(point, action), setv('issue', 0)]))
         # A quarantined loaded hull retains ownership but receives no command
         # loop. Manual recovery, emptying, destruction or conversion releases it.
-        out.append(rule([f'(goal {v("state")} 5)', f'(goal {v("reason")} 8)'], command('origin-x', 'action-move')))
+        # Retain the exact landed manifest, NOT the now-empty hull or screen.
+        # No global attack-readiness/target gate and no recruitment of free troops.
+        # Combat consumes this mission slot for at most 300s; release never STOPs
+        # a continuing attack. This keeps the finite three-group ownership bound.
+        def members():
+            return ['(up-full-reset-search)', f'(up-set-group search-local c: {g})',
+                    '(up-remove-objects search-local object-data-player != my-player-number)',
+                    f'(up-remove-objects search-local object-data-group-flag != {g})']
+        combat = [f'(goal {v("state")} 6)', f'(goal {v("sample")} 6)']
+        out.append(rule([f'(goal {v("state")} 6)',
+                         f'(up-compare-goal gl-assault-mission-clock g:>= {v("next")})'], [
+            setv('sample', 6), *deadline('next', 16), *members(),
+            f'(up-create-group 0 0 c: {g})']))
+        out.append(rule([*combat, f'(or (up-group-size c: {g} <= 0)\n'
+                         f'\t(up-compare-goal gl-assault-mission-clock g:>= {v("combat-until")}))'],
+                        [setv('state', 5), setv('reason', 12), *log(12)]))
+        out.append(rule(combat, [*members(),
+            '(up-remove-objects search-local object-data-garrisoned == 1)',
+            f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("target-zone")})',
+            '(up-remove-objects search-local object-data-idling != 1)',
+            '(up-remove-objects search-local object-data-under-attack > 0)',
+            setv('combat-target', -1)]))
+        out.append(rule([*combat, '(up-set-target-object search-local c: 0)'], [
+            f'(up-get-point position-object {v("x")})', setv('sample', 7)]))
+        seeking = [f'(goal {v("state")} 6)', f'(goal {v("sample")} 7)']
+        # Prefer the sealed opponent, then another living hostile on this landmass.
+        for mode, player in [('g:=', v('enemy')), *[('c:=', str(p)) for p in range(1, 9)]]:
+            search = [*seeking, f'(goal {v("combat-target")} -1)']
+            out.append(rule(search, [f'(up-modify-sn sn-focus-player-number {mode} {player})']))
+            hostile = [*search, '(player-in-game focus-player)', '(stance-toward focus-player enemy)']
+            out.append(rule(hostile, ['(up-full-reset-search)',
+                f'(up-set-target-point {v("x")})', '(up-filter-distance c: -1 c: 255)',
+                '(up-find-remote c: building-class c: 40)', '(up-find-remote c: villager-class c: 40)',
+                '(up-remove-objects search-remote object-data-player != focus-player)',
+                '(up-remove-objects search-remote object-data-hitpoints <= 0)',
+                f'(up-remove-objects search-remote object-data-map-zone-id g:!= {v("target-zone")})',
+                f'(up-remove-objects search-remote object-data-id g:== {v("combat-failed")})',
+                '(up-clean-search search-remote object-data-distance search-order-asc)']))
+            out.append(rule([*hostile, '(up-set-target-object search-remote c: 0)'], [
+                f'(up-get-object-data object-data-id {v("combat-target")})']))
+        found = [*seeking, f'(up-compare-goal {v("combat-target")} c:>= 0)']
+        out.append(rule([*found, f'(up-compare-goal {v("combat-target")} g:!= {v("combat-last")})'], [
+            setv('combat-tries', 0), *log(13),
+            f'(up-chat-data-to-all "RAW landed combat target: %d" g: {v("combat-target")})']))
+        out.append(rule(found, [*members(),
+            '(up-remove-objects search-local object-data-garrisoned == 1)',
+            f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("target-zone")})',
+            '(up-remove-objects search-local object-data-idling != 1)',
+            '(up-remove-objects search-local object-data-under-attack > 0)',
+            f'(up-add-object-by-id search-remote g: {v("combat-target")})',
+            '(up-target-objects 1 action-default -1 stance-aggressive)',
+            copy('combat-last', v('combat-target')), setv('combat-misses', 0),
+            f'(up-modify-goal {v("combat-tries")} c:+ 1)']))
+        out.append(rule([*found, f'(up-compare-goal {v("combat-tries")} c:>= 3)'],
+                        [copy('combat-failed', v('combat-target'))]))
+        out.append(rule([*seeking, f'(goal {v("combat-target")} -1)'],
+                        [f'(up-modify-goal {v("combat-misses")} c:+ 1)']))
+        out.append(rule([*seeking, f'(up-compare-goal {v("combat-misses")} c:>= 4)'],
+                        [setv('state', 5), setv('reason', 12), *log(12)]))
         out.append(rule([f'(goal {v("state")} 5)'], [
             '(up-full-reset-search)', f'(up-set-group search-local c: {g})',
             '(up-remove-objects search-local object-data-player != my-player-number)',

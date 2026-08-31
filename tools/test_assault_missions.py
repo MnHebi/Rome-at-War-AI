@@ -51,12 +51,19 @@ class Missions(ScreenFallback):
         elif op == 'up-target-point':
             point = (self.g.get(a[0], 0), self.g.get(a[0][:-1]+'y', 0))
             self.commands.append((tuple(self.local), a[1], point))
+        elif op == 'up-target-objects':
+            if self.local and self.remote:
+                self.commands.append((tuple(self.local), a[1], ('object', self.remote[0])))
+        elif op == 'up-modify-sn' and a[1] == 'c:=':
+            self.sn[a[0]] = self.val(a[2])
+        elif op == 'up-remove-objects' and a[-1] == 'focus-player':
+            return super().action([*e[:-1], str(self.sn['sn-focus-player-number'])], pc)
         elif op == 'up-clean-search':
-            if a[0] == 'search-local':
-                def key(i):
-                    self.target = i
-                    return self.data(a[1])
-                self.local.sort(key=key, reverse=a[2] == 'search-order-desc')
+            def key(i):
+                self.target = i
+                return self.data(a[1])
+            items = self.local if a[0] == 'search-local' else self.remote
+            items.sort(key=key, reverse=a[2] == 'search-order-desc')
         elif op == 'up-find-local':
             import math
             found = [i for i, o in self.objects.items() if o['player'] == 2
@@ -195,10 +202,10 @@ class AssaultMissionTests(unittest.TestCase):
         m.objects[10].update(point=(155, 100), cargo=0)
         for p in range(1000, 1009): m.objects[p].update(garrisoned=0, zone=3)
         m.sweep(8)
-        self.assertEqual(m.g['gl-am1-state'], 0)
+        self.assertEqual(m.g['gl-am1-state'], 6)
         self.assertEqual([m.g[f'gl-am{i}-state'] for i in (2, 3)], [1, 1])
         self.assertTrue(any(a == 'action-default' and point == (165, 110) for _, a, point in m.commands))
-        self.assertTrue(all(m.objects[p]['flag'] == -2 for p in range(1000, 1009)))
+        self.assertTrue(all(m.objects[p]['flag'] == GROUPS[0] for p in range(1000, 1009)))
 
     def test_wrong_island_never_unloads_there(self):
         m = self.three(); m.zone = 99
@@ -254,7 +261,7 @@ class AssaultMissionTests(unittest.TestCase):
                 for p in range(1000, 1009):
                     m.objects[p].update(garrisoned=0, zone=3)
                 m.sweep(8)
-                self.assertEqual(m.g['gl-am1-state'], 0)
+                self.assertEqual(m.g['gl-am1-state'], 6)
                 self.assertEqual(m.g['gl-am1-reason'], 8)
                 self.assertTrue(any(set(ids)==set(range(1000,1009)) and point==(165,110)
                                     for ids, _, point in m.commands))

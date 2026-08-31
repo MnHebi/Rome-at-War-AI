@@ -225,16 +225,37 @@
 	(up-compare-goal gl-am1-distance c:<= 12)
 =>
 	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-am1-hull)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != assault-mission-1-group)
+	(up-target-point gl-am1-origin-x action-move -1 stance-no-attack)
+	(set-goal gl-am1-state 14)
+)
+
+(defrule
+	(goal gl-am1-state 14)
+=>
+	(up-full-reset-search)
 	(up-set-group search-local c: assault-mission-1-group)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != assault-mission-1-group)
+	(up-create-group 0 0 c: assault-mission-1-group)
+	(up-modify-group-flag 0 c: assault-mission-1-group)
 	(up-remove-objects search-local object-data-id g:== gl-am1-hull)
 	(up-remove-objects search-local object-data-id g:== gl-am1-screen)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-am1-target-zone)
+	(up-create-group 0 0 c: assault-mission-1-group)
+	(up-modify-group-flag 1 c: assault-mission-1-group)
 	(up-target-point gl-am1-target-x action-default -1 stance-aggressive)
-	(set-goal gl-am1-state 5)
+	(set-goal gl-am1-state 6)
 	(set-goal gl-am1-reason 8)
+	(up-modify-goal gl-am1-combat-until g:= gl-assault-mission-clock)
+	(up-modify-goal gl-am1-combat-until c:+ 300)
+	(set-goal gl-am1-combat-last -1)
+	(set-goal gl-am1-combat-failed -1)
+	(set-goal gl-am1-combat-tries 0)
+	(set-goal gl-am1-combat-misses 0)
 	(up-chat-data-to-all str-assault-slot c: 1)
 	(up-chat-data-to-all str-assault-hull g: gl-am1-hull)
 	(up-chat-data-to-all str-assault-saved-enemy g: gl-am1-enemy)
@@ -834,14 +855,461 @@
 )
 
 (defrule
-	(goal gl-am1-state 5)
-	(goal gl-am1-reason 8)
+	(goal gl-am1-state 6)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-am1-next)
 =>
+	(set-goal gl-am1-sample 6)
+	(up-modify-goal gl-am1-next g:= gl-assault-mission-clock)
+	(up-modify-goal gl-am1-next c:+ 16)
 	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-am1-hull)
+	(up-set-group search-local c: assault-mission-1-group)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != assault-mission-1-group)
-	(up-target-point gl-am1-origin-x action-move -1 stance-no-attack)
+	(up-create-group 0 0 c: assault-mission-1-group)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 6)
+	(or (up-group-size c: assault-mission-1-group <= 0)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-am1-combat-until))
+=>
+	(set-goal gl-am1-state 5)
+	(set-goal gl-am1-reason 12)
+	(up-chat-data-to-all str-assault-slot c: 1)
+	(up-chat-data-to-all str-assault-hull g: gl-am1-hull)
+	(up-chat-data-to-all str-assault-saved-enemy g: gl-am1-enemy)
+	(up-chat-data-to-all str-assault-event c: 12)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 6)
+=>
+	(up-full-reset-search)
+	(up-set-group search-local c: assault-mission-1-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != assault-mission-1-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-am1-target-zone)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(set-goal gl-am1-combat-target -1)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 6)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-point position-object gl-am1-x)
+	(set-goal gl-am1-sample 7)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-am1-enemy)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am1-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am1-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am1-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am1-combat-target)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 1)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am1-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am1-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am1-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am1-combat-target)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 2)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am1-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am1-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am1-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am1-combat-target)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 3)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am1-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am1-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am1-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am1-combat-target)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 4)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am1-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am1-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am1-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am1-combat-target)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 5)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am1-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am1-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am1-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am1-combat-target)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 6)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am1-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am1-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am1-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am1-combat-target)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 7)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am1-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am1-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am1-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am1-combat-target)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 8)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am1-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am1-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am1-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am1-combat-target)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(up-compare-goal gl-am1-combat-target c:>= 0)
+	(up-compare-goal gl-am1-combat-target g:!= gl-am1-combat-last)
+=>
+	(set-goal gl-am1-combat-tries 0)
+	(up-chat-data-to-all str-assault-slot c: 1)
+	(up-chat-data-to-all str-assault-hull g: gl-am1-hull)
+	(up-chat-data-to-all str-assault-saved-enemy g: gl-am1-enemy)
+	(up-chat-data-to-all str-assault-event c: 13)
+	(up-chat-data-to-all "RAW landed combat target: %d" g: gl-am1-combat-target)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(up-compare-goal gl-am1-combat-target c:>= 0)
+=>
+	(up-full-reset-search)
+	(up-set-group search-local c: assault-mission-1-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != assault-mission-1-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-am1-target-zone)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-add-object-by-id search-remote g: gl-am1-combat-target)
+	(up-target-objects 1 action-default -1 stance-aggressive)
+	(up-modify-goal gl-am1-combat-last g:= gl-am1-combat-target)
+	(set-goal gl-am1-combat-misses 0)
+	(up-modify-goal gl-am1-combat-tries c:+ 1)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(up-compare-goal gl-am1-combat-target c:>= 0)
+	(up-compare-goal gl-am1-combat-tries c:>= 3)
+=>
+	(up-modify-goal gl-am1-combat-failed g:= gl-am1-combat-target)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(goal gl-am1-combat-target -1)
+=>
+	(up-modify-goal gl-am1-combat-misses c:+ 1)
+)
+
+(defrule
+	(goal gl-am1-state 6)
+	(goal gl-am1-sample 7)
+	(up-compare-goal gl-am1-combat-misses c:>= 4)
+=>
+	(set-goal gl-am1-state 5)
+	(set-goal gl-am1-reason 12)
+	(up-chat-data-to-all str-assault-slot c: 1)
+	(up-chat-data-to-all str-assault-hull g: gl-am1-hull)
+	(up-chat-data-to-all str-assault-saved-enemy g: gl-am1-enemy)
+	(up-chat-data-to-all str-assault-event c: 12)
 )
 
 (defrule
@@ -1073,16 +1541,37 @@
 	(up-compare-goal gl-am2-distance c:<= 12)
 =>
 	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-am2-hull)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != assault-mission-2-group)
+	(up-target-point gl-am2-origin-x action-move -1 stance-no-attack)
+	(set-goal gl-am2-state 14)
+)
+
+(defrule
+	(goal gl-am2-state 14)
+=>
+	(up-full-reset-search)
 	(up-set-group search-local c: assault-mission-2-group)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != assault-mission-2-group)
+	(up-create-group 0 0 c: assault-mission-2-group)
+	(up-modify-group-flag 0 c: assault-mission-2-group)
 	(up-remove-objects search-local object-data-id g:== gl-am2-hull)
 	(up-remove-objects search-local object-data-id g:== gl-am2-screen)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-am2-target-zone)
+	(up-create-group 0 0 c: assault-mission-2-group)
+	(up-modify-group-flag 1 c: assault-mission-2-group)
 	(up-target-point gl-am2-target-x action-default -1 stance-aggressive)
-	(set-goal gl-am2-state 5)
+	(set-goal gl-am2-state 6)
 	(set-goal gl-am2-reason 8)
+	(up-modify-goal gl-am2-combat-until g:= gl-assault-mission-clock)
+	(up-modify-goal gl-am2-combat-until c:+ 300)
+	(set-goal gl-am2-combat-last -1)
+	(set-goal gl-am2-combat-failed -1)
+	(set-goal gl-am2-combat-tries 0)
+	(set-goal gl-am2-combat-misses 0)
 	(up-chat-data-to-all str-assault-slot c: 2)
 	(up-chat-data-to-all str-assault-hull g: gl-am2-hull)
 	(up-chat-data-to-all str-assault-saved-enemy g: gl-am2-enemy)
@@ -1682,14 +2171,461 @@
 )
 
 (defrule
-	(goal gl-am2-state 5)
-	(goal gl-am2-reason 8)
+	(goal gl-am2-state 6)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-am2-next)
 =>
+	(set-goal gl-am2-sample 6)
+	(up-modify-goal gl-am2-next g:= gl-assault-mission-clock)
+	(up-modify-goal gl-am2-next c:+ 16)
 	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-am2-hull)
+	(up-set-group search-local c: assault-mission-2-group)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != assault-mission-2-group)
-	(up-target-point gl-am2-origin-x action-move -1 stance-no-attack)
+	(up-create-group 0 0 c: assault-mission-2-group)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 6)
+	(or (up-group-size c: assault-mission-2-group <= 0)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-am2-combat-until))
+=>
+	(set-goal gl-am2-state 5)
+	(set-goal gl-am2-reason 12)
+	(up-chat-data-to-all str-assault-slot c: 2)
+	(up-chat-data-to-all str-assault-hull g: gl-am2-hull)
+	(up-chat-data-to-all str-assault-saved-enemy g: gl-am2-enemy)
+	(up-chat-data-to-all str-assault-event c: 12)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 6)
+=>
+	(up-full-reset-search)
+	(up-set-group search-local c: assault-mission-2-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != assault-mission-2-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-am2-target-zone)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(set-goal gl-am2-combat-target -1)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 6)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-point position-object gl-am2-x)
+	(set-goal gl-am2-sample 7)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-am2-enemy)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am2-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am2-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am2-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am2-combat-target)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 1)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am2-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am2-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am2-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am2-combat-target)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 2)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am2-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am2-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am2-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am2-combat-target)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 3)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am2-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am2-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am2-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am2-combat-target)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 4)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am2-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am2-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am2-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am2-combat-target)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 5)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am2-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am2-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am2-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am2-combat-target)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 6)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am2-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am2-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am2-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am2-combat-target)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 7)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am2-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am2-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am2-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am2-combat-target)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 8)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am2-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am2-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am2-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am2-combat-target)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(up-compare-goal gl-am2-combat-target c:>= 0)
+	(up-compare-goal gl-am2-combat-target g:!= gl-am2-combat-last)
+=>
+	(set-goal gl-am2-combat-tries 0)
+	(up-chat-data-to-all str-assault-slot c: 2)
+	(up-chat-data-to-all str-assault-hull g: gl-am2-hull)
+	(up-chat-data-to-all str-assault-saved-enemy g: gl-am2-enemy)
+	(up-chat-data-to-all str-assault-event c: 13)
+	(up-chat-data-to-all "RAW landed combat target: %d" g: gl-am2-combat-target)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(up-compare-goal gl-am2-combat-target c:>= 0)
+=>
+	(up-full-reset-search)
+	(up-set-group search-local c: assault-mission-2-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != assault-mission-2-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-am2-target-zone)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-add-object-by-id search-remote g: gl-am2-combat-target)
+	(up-target-objects 1 action-default -1 stance-aggressive)
+	(up-modify-goal gl-am2-combat-last g:= gl-am2-combat-target)
+	(set-goal gl-am2-combat-misses 0)
+	(up-modify-goal gl-am2-combat-tries c:+ 1)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(up-compare-goal gl-am2-combat-target c:>= 0)
+	(up-compare-goal gl-am2-combat-tries c:>= 3)
+=>
+	(up-modify-goal gl-am2-combat-failed g:= gl-am2-combat-target)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(goal gl-am2-combat-target -1)
+=>
+	(up-modify-goal gl-am2-combat-misses c:+ 1)
+)
+
+(defrule
+	(goal gl-am2-state 6)
+	(goal gl-am2-sample 7)
+	(up-compare-goal gl-am2-combat-misses c:>= 4)
+=>
+	(set-goal gl-am2-state 5)
+	(set-goal gl-am2-reason 12)
+	(up-chat-data-to-all str-assault-slot c: 2)
+	(up-chat-data-to-all str-assault-hull g: gl-am2-hull)
+	(up-chat-data-to-all str-assault-saved-enemy g: gl-am2-enemy)
+	(up-chat-data-to-all str-assault-event c: 12)
 )
 
 (defrule
@@ -1921,16 +2857,37 @@
 	(up-compare-goal gl-am3-distance c:<= 12)
 =>
 	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-am3-hull)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != assault-mission-3-group)
+	(up-target-point gl-am3-origin-x action-move -1 stance-no-attack)
+	(set-goal gl-am3-state 14)
+)
+
+(defrule
+	(goal gl-am3-state 14)
+=>
+	(up-full-reset-search)
 	(up-set-group search-local c: assault-mission-3-group)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != assault-mission-3-group)
+	(up-create-group 0 0 c: assault-mission-3-group)
+	(up-modify-group-flag 0 c: assault-mission-3-group)
 	(up-remove-objects search-local object-data-id g:== gl-am3-hull)
 	(up-remove-objects search-local object-data-id g:== gl-am3-screen)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-am3-target-zone)
+	(up-create-group 0 0 c: assault-mission-3-group)
+	(up-modify-group-flag 1 c: assault-mission-3-group)
 	(up-target-point gl-am3-target-x action-default -1 stance-aggressive)
-	(set-goal gl-am3-state 5)
+	(set-goal gl-am3-state 6)
 	(set-goal gl-am3-reason 8)
+	(up-modify-goal gl-am3-combat-until g:= gl-assault-mission-clock)
+	(up-modify-goal gl-am3-combat-until c:+ 300)
+	(set-goal gl-am3-combat-last -1)
+	(set-goal gl-am3-combat-failed -1)
+	(set-goal gl-am3-combat-tries 0)
+	(set-goal gl-am3-combat-misses 0)
 	(up-chat-data-to-all str-assault-slot c: 3)
 	(up-chat-data-to-all str-assault-hull g: gl-am3-hull)
 	(up-chat-data-to-all str-assault-saved-enemy g: gl-am3-enemy)
@@ -2530,14 +3487,461 @@
 )
 
 (defrule
-	(goal gl-am3-state 5)
-	(goal gl-am3-reason 8)
+	(goal gl-am3-state 6)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-am3-next)
 =>
+	(set-goal gl-am3-sample 6)
+	(up-modify-goal gl-am3-next g:= gl-assault-mission-clock)
+	(up-modify-goal gl-am3-next c:+ 16)
 	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-am3-hull)
+	(up-set-group search-local c: assault-mission-3-group)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != assault-mission-3-group)
-	(up-target-point gl-am3-origin-x action-move -1 stance-no-attack)
+	(up-create-group 0 0 c: assault-mission-3-group)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 6)
+	(or (up-group-size c: assault-mission-3-group <= 0)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-am3-combat-until))
+=>
+	(set-goal gl-am3-state 5)
+	(set-goal gl-am3-reason 12)
+	(up-chat-data-to-all str-assault-slot c: 3)
+	(up-chat-data-to-all str-assault-hull g: gl-am3-hull)
+	(up-chat-data-to-all str-assault-saved-enemy g: gl-am3-enemy)
+	(up-chat-data-to-all str-assault-event c: 12)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 6)
+=>
+	(up-full-reset-search)
+	(up-set-group search-local c: assault-mission-3-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != assault-mission-3-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-am3-target-zone)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(set-goal gl-am3-combat-target -1)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 6)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-point position-object gl-am3-x)
+	(set-goal gl-am3-sample 7)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-am3-enemy)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am3-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am3-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am3-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am3-combat-target)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 1)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am3-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am3-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am3-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am3-combat-target)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 2)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am3-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am3-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am3-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am3-combat-target)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 3)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am3-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am3-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am3-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am3-combat-target)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 4)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am3-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am3-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am3-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am3-combat-target)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 5)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am3-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am3-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am3-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am3-combat-target)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 6)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am3-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am3-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am3-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am3-combat-target)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 7)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am3-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am3-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am3-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am3-combat-target)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+=>
+	(up-modify-sn sn-focus-player-number c:= 8)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-am3-x)
+	(up-filter-distance c: -1 c: 255)
+	(up-find-remote c: building-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-remove-objects search-remote object-data-player != focus-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-am3-target-zone)
+	(up-remove-objects search-remote object-data-id g:== gl-am3-combat-failed)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+	(player-in-game focus-player)
+	(stance-toward focus-player enemy)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-am3-combat-target)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(up-compare-goal gl-am3-combat-target c:>= 0)
+	(up-compare-goal gl-am3-combat-target g:!= gl-am3-combat-last)
+=>
+	(set-goal gl-am3-combat-tries 0)
+	(up-chat-data-to-all str-assault-slot c: 3)
+	(up-chat-data-to-all str-assault-hull g: gl-am3-hull)
+	(up-chat-data-to-all str-assault-saved-enemy g: gl-am3-enemy)
+	(up-chat-data-to-all str-assault-event c: 13)
+	(up-chat-data-to-all "RAW landed combat target: %d" g: gl-am3-combat-target)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(up-compare-goal gl-am3-combat-target c:>= 0)
+=>
+	(up-full-reset-search)
+	(up-set-group search-local c: assault-mission-3-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != assault-mission-3-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-am3-target-zone)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-add-object-by-id search-remote g: gl-am3-combat-target)
+	(up-target-objects 1 action-default -1 stance-aggressive)
+	(up-modify-goal gl-am3-combat-last g:= gl-am3-combat-target)
+	(set-goal gl-am3-combat-misses 0)
+	(up-modify-goal gl-am3-combat-tries c:+ 1)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(up-compare-goal gl-am3-combat-target c:>= 0)
+	(up-compare-goal gl-am3-combat-tries c:>= 3)
+=>
+	(up-modify-goal gl-am3-combat-failed g:= gl-am3-combat-target)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(goal gl-am3-combat-target -1)
+=>
+	(up-modify-goal gl-am3-combat-misses c:+ 1)
+)
+
+(defrule
+	(goal gl-am3-state 6)
+	(goal gl-am3-sample 7)
+	(up-compare-goal gl-am3-combat-misses c:>= 4)
+=>
+	(set-goal gl-am3-state 5)
+	(set-goal gl-am3-reason 12)
+	(up-chat-data-to-all str-assault-slot c: 3)
+	(up-chat-data-to-all str-assault-hull g: gl-am3-hull)
+	(up-chat-data-to-all str-assault-saved-enemy g: gl-am3-enemy)
+	(up-chat-data-to-all str-assault-event c: 12)
 )
 
 (defrule

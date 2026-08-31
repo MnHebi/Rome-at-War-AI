@@ -138,10 +138,10 @@ class CancellationDetailsTests(unittest.TestCase):
             'rawai-assault-admission.per': '44e4587711eddcdb865f5706fcb3581c59557231a753eff606ccce7904cede72',
             # T17 deliberately replaces fallback enumeration; dedicated actual-PER
             # scan/safety tests replace only that old diagnostic-only fingerprint.
-            # T20 moves the existing distance sample and unchanged cargo-empty
-            # handoff before cancellation. Dedicated actual-PER tests prove the
-            # old failure/new success; retain all other predicates/actions here.
-            'rawai-assault-missions.per': '68eb64739bad9d1c3b8fa89fb362867fb116638aad693d0eaa8ebc5d390cfe1f',
+            # T22 intentionally retains landed combat ownership and gives it
+            # bounded continuation. Reviewed against the immutable T21 payload;
+            # test_landed_assault + voyage fixtures protect the new contract.
+            'rawai-assault-missions.per': '2948d22ca2a9c2d51b1a201ed45135e675eeb0190b2c8fdd06b96ded8ebc0614',
             'rawai-assault-cancel-details.per': hashlib.sha256(b'[]').hexdigest(),
         }
         for name, fingerprint in expected.items():
