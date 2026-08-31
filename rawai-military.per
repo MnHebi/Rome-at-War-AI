@@ -3330,6 +3330,10 @@
 
 ;Try four bounded diagonals around the colony resource. The migration system
 ;keeps ownership until a foundation appears or every placement expires.
+;Persist the chosen point BEFORE ISSUE can wait for resources/placement. The
+;global target point is scratch state and can belong to another controller on
+;the next pass. Historical position-target diagnostics read an ENEMY building,
+;not that scratch point; they are not evidence of the requested coordinates.
 (defrule
 	(goal gl-island-migration-state MIGRATION-PLACE-DROPSITE)
 	(goal gl-island-migration-placement-attempts 0)
@@ -3338,6 +3342,7 @@
 	(up-modify-goal point2-x c:+ 3)
 	(up-modify-goal point2-y c:+ 3)
 	(up-bound-point point3-x point2-x)
+	(up-copy-point gl-migration-build-x point3-x)
 	(up-set-target-point point3-x)
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
@@ -3351,6 +3356,7 @@
 	(up-modify-goal point2-x c:- 3)
 	(up-modify-goal point2-y c:+ 3)
 	(up-bound-point point3-x point2-x)
+	(up-copy-point gl-migration-build-x point3-x)
 	(up-set-target-point point3-x)
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
@@ -3364,6 +3370,7 @@
 	(up-modify-goal point2-x c:+ 3)
 	(up-modify-goal point2-y c:- 3)
 	(up-bound-point point3-x point2-x)
+	(up-copy-point gl-migration-build-x point3-x)
 	(up-set-target-point point3-x)
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
@@ -3377,6 +3384,7 @@
 	(up-modify-goal point2-x c:- 3)
 	(up-modify-goal point2-y c:- 3)
 	(up-bound-point point3-x point2-x)
+	(up-copy-point gl-migration-build-x point3-x)
 	(up-set-target-point point3-x)
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
@@ -3653,10 +3661,14 @@
 	(up-pending-objects c: mining-camp <= 0)
 	(not (up-pending-placement c: mining-camp))
 	(up-can-build 0 c: mining-camp)
+	(up-can-build-line 0 gl-migration-build-x c: mining-camp)
 =>
-	(up-get-point position-target gl-migration-build-x)
-	(up-get-point position-target gl-t12-drop-x)
-	(up-build place-point 0 c: mining-camp)
+	;place-point queues an expanding search, not an exact foundation. T17's
+	;requests drifted 25-34 tiles from the resource and failed our 8-tile verifier.
+	;Use the explicit point twice for ONE foundation; keep the ordinary
+	;up-can-build gate as well, so up-build-line cannot consume escrow.
+	(up-copy-point gl-t12-drop-x gl-migration-build-x)
+	(up-build-line gl-migration-build-x gl-migration-build-x c: mining-camp)
 	(set-goal gl-t12-drop-stage 1)
 	(up-modify-goal gl-island-migration-placement-attempts c:+ 1)
 	(up-chat-data-to-self "migration mining camp attempt: %d" g: gl-island-migration-placement-attempts)
@@ -3674,7 +3686,10 @@
 	)
 	(up-compare-goal gl-island-migration-placement-attempts c:< 3)
 	(can-afford-building mining-camp)
-	(not (up-can-build 0 c: mining-camp))
+	(or
+		(not (up-can-build 0 c: mining-camp))
+		(not (up-can-build-line 0 gl-migration-build-x c: mining-camp))
+	)
 =>
 	(up-chat-data-to-self "migration rejected mining point: %d" g: gl-island-migration-placement-attempts)
 	(up-modify-goal gl-island-migration-placement-attempts c:+ 1)
@@ -3690,7 +3705,10 @@
 	)
 	(up-compare-goal gl-island-migration-placement-attempts c:>= 3)
 	(can-afford-building mining-camp)
-	(not (up-can-build 0 c: mining-camp))
+	(or
+		(not (up-can-build 0 c: mining-camp))
+		(not (up-can-build-line 0 gl-migration-build-x c: mining-camp))
+	)
 =>
 	(up-chat-data-to-self "migration rejected mining point: %d" g: gl-island-migration-placement-attempts)
 	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
@@ -3701,7 +3719,10 @@
 	(goal gl-island-migration-anchor-class tree-class)
 	(up-compare-goal gl-island-migration-placement-attempts c:< 3)
 	(can-afford-building lumber-camp)
-	(not (up-can-build 0 c: lumber-camp))
+	(or
+		(not (up-can-build 0 c: lumber-camp))
+		(not (up-can-build-line 0 gl-migration-build-x c: lumber-camp))
+	)
 =>
 	(up-chat-data-to-self "migration rejected lumber point: %d" g: gl-island-migration-placement-attempts)
 	(up-modify-goal gl-island-migration-placement-attempts c:+ 1)
@@ -3714,7 +3735,10 @@
 	(goal gl-island-migration-anchor-class tree-class)
 	(up-compare-goal gl-island-migration-placement-attempts c:>= 3)
 	(can-afford-building lumber-camp)
-	(not (up-can-build 0 c: lumber-camp))
+	(or
+		(not (up-can-build 0 c: lumber-camp))
+		(not (up-can-build-line 0 gl-migration-build-x c: lumber-camp))
+	)
 =>
 	(up-chat-data-to-self "migration rejected lumber point: %d" g: gl-island-migration-placement-attempts)
 	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
@@ -3728,7 +3752,10 @@
 	)
 	(up-compare-goal gl-island-migration-placement-attempts c:< 3)
 	(can-afford-building mill)
-	(not (up-can-build 0 c: mill))
+	(or
+		(not (up-can-build 0 c: mill))
+		(not (up-can-build-line 0 gl-migration-build-x c: mill))
+	)
 =>
 	(up-chat-data-to-self "migration rejected mill point: %d" g: gl-island-migration-placement-attempts)
 	(up-modify-goal gl-island-migration-placement-attempts c:+ 1)
@@ -3744,7 +3771,10 @@
 	)
 	(up-compare-goal gl-island-migration-placement-attempts c:>= 3)
 	(can-afford-building mill)
-	(not (up-can-build 0 c: mill))
+	(or
+		(not (up-can-build 0 c: mill))
+		(not (up-can-build-line 0 gl-migration-build-x c: mill))
+	)
 =>
 	(up-chat-data-to-self "migration rejected mill point: %d" g: gl-island-migration-placement-attempts)
 	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
@@ -3757,10 +3787,10 @@
 	(up-pending-objects c: lumber-camp <= 0)
 	(not (up-pending-placement c: lumber-camp))
 	(up-can-build 0 c: lumber-camp)
+	(up-can-build-line 0 gl-migration-build-x c: lumber-camp)
 =>
-	(up-get-point position-target gl-migration-build-x)
-	(up-get-point position-target gl-t12-drop-x)
-	(up-build place-point 0 c: lumber-camp)
+	(up-copy-point gl-t12-drop-x gl-migration-build-x)
+	(up-build-line gl-migration-build-x gl-migration-build-x c: lumber-camp)
 	(set-goal gl-t12-drop-stage 1)
 	(up-modify-goal gl-island-migration-placement-attempts c:+ 1)
 	(up-chat-data-to-self "migration lumber camp attempt: %d" g: gl-island-migration-placement-attempts)
@@ -3778,10 +3808,10 @@
 	(up-pending-objects c: mill <= 0)
 	(not (up-pending-placement c: mill))
 	(up-can-build 0 c: mill)
+	(up-can-build-line 0 gl-migration-build-x c: mill)
 =>
-	(up-get-point position-target gl-migration-build-x)
-	(up-get-point position-target gl-t12-drop-x)
-	(up-build place-point 0 c: mill)
+	(up-copy-point gl-t12-drop-x gl-migration-build-x)
+	(up-build-line gl-migration-build-x gl-migration-build-x c: mill)
 	(set-goal gl-t12-drop-stage 1)
 	(up-modify-goal gl-island-migration-placement-attempts c:+ 1)
 	(up-chat-data-to-self "migration mill attempt: %d" g: gl-island-migration-placement-attempts)
