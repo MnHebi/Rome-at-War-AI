@@ -52,6 +52,9 @@ def definitions():
             '(defconst gl-assault-diag-previous-enemy 14908)',
             '(defconst gl-transport-preparation-owned 14909)',
             '(defconst gl-assault-fallback-hostile 14910)',
+            '(defconst gl-assault-recovery-until 14911)',
+            '(defconst gl-assault-recovery-rejected 14912)',
+            '(defconst gl-assault-recovery-retry 14913)',
             '(defconst str-assault-slot "RAW3 slot: %d")',
             '(defconst str-assault-hull "RAW3 hull: %d")',
             '(defconst str-assault-event "RAW3 event: %d")',
@@ -137,6 +140,8 @@ def admission():
     out.append(cancellation_details(['(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)',
                                      '(goal gl-assault-preflight-live NO)'], 1))
     out.append(seed_rules())
+    out.append(rule(['(up-compare-goal gl-assault-mission-clock g:>= gl-assault-recovery-retry)'],
+                    ['(set-goal gl-assault-recovery-rejected -1)']))
     return '\n\n'.join(out) + '\n'
 
 

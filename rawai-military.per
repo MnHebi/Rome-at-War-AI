@@ -5501,6 +5501,7 @@
 	(up-set-target-point position-self-x)
 	(up-find-remote c: transport-ship c: 40)
 	(up-remove-objects search-remote object-data-id g:== gl-quarantine-transport-id)
+	(up-remove-objects search-remote object-data-id g:== gl-assault-recovery-rejected)
 	(up-remove-objects search-remote object-data-garrison-count g:< gl-transport-min-load)
 	;Do not take over an already dispatched native/manual voyage.
 	(up-remove-objects search-remote object-data-order == orderid-transport)
@@ -5609,6 +5610,7 @@
 	(up-set-target-point gl-home-anchor-x)
 	(up-find-remote c: transport-ship c: 40)
 	(up-remove-objects search-remote object-data-id g:== gl-quarantine-transport-id)
+	(up-remove-objects search-remote object-data-id g:== gl-assault-recovery-rejected)
 	;Do not turn a stale civilian or relic partial load into a military attack.
 	(up-remove-objects search-remote object-data-garrison-count > 0)
 	(up-remove-objects search-remote object-data-idling != 1)
@@ -6533,16 +6535,45 @@
 (load "rawai-assault-missions")
 
 ;A recalled loaded transport remains owned by the route system until it is
-;empty and back in home water. This prevents the departure selector from
-;immediately choosing the same ship for another attack.
+;empty at home OR its bounded preparation recovery lease expires. Failure is
+;not permission to lose cargo, steal a voyage, or wait for quarantine forever.
+(defrule
+	(not (or (goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
+		(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK)))
+=>
+	(set-goal gl-assault-recovery-until 0)
+)
+
+(defrule
+	(or (goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
+		(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK))
+	(goal gl-assault-recovery-until 0)
+=>
+	(up-modify-goal gl-assault-recovery-until g:= gl-game-time)
+	(up-modify-goal gl-assault-recovery-until c:+ 90)
+)
+
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
-	(up-timer-status t-transport-route == timer-triggered)
+	(or (up-timer-status t-transport-route == timer-triggered)
+		(up-compare-goal gl-game-time g:>= gl-assault-recovery-until))
 =>
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
+	;Prune stale/converted references before any terminal flag release.
+	(up-set-group search-local c: attack-boarding-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	(up-create-group 0 0 c: attack-boarding-group)
+	(up-set-group search-local c: attack-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+	(up-create-group 0 0 c: attack-transport-group)
+	(up-full-reset-search)
 	(up-set-target-point gl-transport-route-origin-x)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK)
 )
 
@@ -6584,6 +6615,7 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count > 0)
 	(up-compare-goal gl-route-unload-attempts c:< 2)
+	(up-compare-goal gl-game-time g:< gl-assault-recovery-until)
 =>
 	;OWNERSHIP command: attack-transport-group.
 	(up-remove-objects search-local object-data-player != my-player-number)
@@ -6601,6 +6633,7 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count > 0)
 	(goal gl-route-unload-attempts 2)
+	(up-compare-goal gl-game-time g:< gl-assault-recovery-until)
 =>
 	;OWNERSHIP command: attack-transport-group.
 	(up-remove-objects search-local object-data-player != my-player-number)
@@ -6617,6 +6650,7 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count <= 0)
 	(up-object-data object-data-distance > 12)
+	(up-compare-goal gl-game-time g:< gl-assault-recovery-until)
 =>
 	;OWNERSHIP command: attack-transport-group.
 	(up-remove-objects search-local object-data-player != my-player-number)
@@ -6671,14 +6705,28 @@
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK)
 	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count > 0)
-	(up-compare-goal gl-route-unload-attempts c:>= 3)
-	(up-compare-goal gl-quarantine-transport-id c:>= 0)
+	(or (up-compare-goal gl-game-time g:>= gl-assault-recovery-until)
+		(and (up-object-data object-data-garrison-count > 0)
+			(up-compare-goal gl-route-unload-attempts c:>= 3)))
 =>
-	;Retain route ownership without issuing orders until the existing slot clears.
+	;Explicit relinquishment, NOT successful recovery. The existing quarantine
+	;ID is never overwritten. Leave cargo and the last safe return order intact;
+	;other utility/manual owners may recover it, but assault selection skips this
+	;recent failed hull for 300s. No active voyage slot is consumed by this failure.
+	(up-chat-data-to-all "RAW prep recovery released hull: %d" g: gl-transport-route-id)
+	(up-modify-goal gl-assault-recovery-rejected g:= gl-transport-route-id)
+	(up-modify-goal gl-assault-recovery-retry g:= gl-game-time)
+	(up-modify-goal gl-assault-recovery-retry c:+ 300)
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
+	(up-modify-group-flag 0 c: attack-transport-group)
+	(up-reset-group c: attack-transport-group)
+	(set-goal gl-transport-route-script-load NO)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
-	(up-set-timer c: t-transport-route c: 60)
-	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
+	(set-goal gl-transport-screen-id -1)
+	(set-goal gl-transport-route-id -1)
+	(up-set-timer c: t-transport-route c: 30)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 )
 
 ;Recover idle soldiers left on an off-mainland land zone that is well away from

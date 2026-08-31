@@ -152,6 +152,9 @@ class CancellationDetailsTests(unittest.TestCase):
                 # T19 appends separately tested admission/rotation policy. The
                 # original admission predicates/actions must still be identical.
                 if name == 'rawai-assault-admission.per' and 'gl-ap-' in r[3]+r[4]: continue
+                # T22's independent preparation cooldown does not change the
+                # original liveness/cancellation snapshot protected here.
+                if name == 'rawai-assault-admission.per' and 'gl-assault-recovery-' in r[3]+r[4]: continue
                 # T20's independently tested leg transition adds exactly these
                 # resets. Keep the historical fingerprint for every OTHER write,
                 # predicate and action order rather than replacing the baseline.
