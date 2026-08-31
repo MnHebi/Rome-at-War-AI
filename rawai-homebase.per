@@ -580,7 +580,11 @@
 	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
 	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
 	(current-age >= middle-antiquity-age)
-	(building-type-count town-center >= 2)
+	;A crowded island must not lose its FIRST demanded Fortress merely because
+	;it has room for only one TC. Retain the two-TC policy for further Fortresses.
+	(or (building-type-count town-center >= 2)
+	    (and (building-type-count town-center >= 1)
+	         (building-type-count-total castle < 1)))
 	(building-type-count-total castle g:< desired-number-castles)
 	(up-pending-objects c: castle <= 0)
 	(not (up-pending-placement c: castle))
@@ -3637,7 +3641,9 @@
 	(or
 		(current-age < middle-antiquity-age)
 		(or
-			(building-type-count town-center >= 2)
+			(or (building-type-count town-center >= 2)
+			    (and (building-type-count town-center >= 1)
+			         (building-type-count-total archery-range < 1)))
 			(or
 				(goal gl-home-defense-state YES)
 				(goal rush-rushing YES)
@@ -3658,7 +3664,9 @@
 	(or
 		(current-age < middle-antiquity-age)
 		(or
-			(building-type-count town-center >= 2)
+			(or (building-type-count town-center >= 2)
+			    (and (building-type-count town-center >= 1)
+			         (building-type-count-total stable < 1)))
 			(or
 				(goal gl-home-defense-state YES)
 				(goal rush-rushing YES)
@@ -3848,7 +3856,10 @@
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(current-age >= middle-antiquity-age)
-	(building-type-count town-center >= 2)
+	;Match the first-Fortress admission used by placement-pressure recovery.
+	(or (building-type-count town-center >= 2)
+	    (and (building-type-count town-center >= 1)
+	         (building-type-count-total castle < 1)))
 	(goal gl-migration-placement-lock NO)
 	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
 	(up-compare-goal gl-game-time g:>= gl-castle-request-next)
