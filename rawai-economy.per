@@ -1885,49 +1885,8 @@
 ;select the depleted camp and can erase the productive remote camp instead.
 ;Targeted object-ID deletion can be added once per-zone depletion is tracked.
 
-;Trim fishing fleets when their fishing grounds shrink.
-
-(defrule
-	(up-timer-status t-update-facts == timer-triggered)
-	(unit-type-count fishing-ship g:> desired-number-fishing)
-=>
-	(delete-unit fishing-ship)
-)
-
-(defrule
-	(and
-		(goal fish-present NO)
-		(building-type-count-total fish-trap <= 0)
-	)
-	(up-timer-status t-update-facts == timer-triggered)
-	(unit-type-count fishing-ship > 0)
-=>
-	(delete-unit fishing-ship)
-)
-
-(defrule
-	(goal fish-present YES)
-	(cc-players-unit-type-count 0 ocean-fish-class < 4)
-	(cc-players-unit-type-count 0 shore-fish-class < 4)
-	(up-timer-status t-update-facts == timer-triggered)
-	(unit-type-count fishing-ship > 2)
-=>
-	(delete-unit fishing-ship)
-)
-
-(defrule
-	(goal fish-present YES)
-	(cc-players-unit-type-count 0 ocean-fish-class < 10)
-	(cc-players-unit-type-count 0 shore-fish-class < 10)
-	(or
-		(cc-players-unit-type-count 0 ocean-fish-class >= 4)
-		(cc-players-unit-type-count 0 shore-fish-class >= 4)
-	)
-	(up-timer-status t-update-facts == timer-triggered)
-	(unit-type-count fishing-ship > 4)
-=>
-	(delete-unit fishing-ship)
-)
+;Keep existing fishing ships for the fish-first / targeted Fish Trap fallback.
+;Fleet growth remains bounded at six; scarce fish is not a deletion criterion.
 
 ;count units for goals
 
