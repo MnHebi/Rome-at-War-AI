@@ -99,7 +99,7 @@
 			(goal age-up-finished EARLY-ANTIQUITY)
 			(and
 				(goal age-up-started EARLY-ANTIQUITY)
-				(and
+				(or
 					(building-type-count-total market == 0)
 					(building-type-count-total blacksmith == 0)
 				)
@@ -107,9 +107,12 @@
 		)
 	)
 =>
+	;Age 2 must fund the next age while either prerequisite is missing.
+	;Zero gold also disabled first-Mining-Camp admission; AND left that zero
+	;sticky after only one prerequisite existed. Keep the opening gold share.
 	(up-modify-sn sn-food-gatherer-percentage c:= 20)
-	(up-modify-sn sn-wood-gatherer-percentage c:= 80)
-	(up-modify-sn sn-gold-gatherer-percentage c:= 0)
+	(up-modify-sn sn-wood-gatherer-percentage c:= 70)
+	(up-modify-sn sn-gold-gatherer-percentage c:= 10)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
 	(up-modify-goal desired-number-lumbercamps c:= 3)
 	(up-modify-goal desired-number-mills c:= 1)
@@ -124,8 +127,16 @@
 		(and
 			(goal age-up-finished EARLY-ANTIQUITY)
 			(and
-				;Keep a buffer between the food recovery and gold-heavy modes.
-				(food-amount < 700)
+				;Keep the hysteresis band, but initialize it if no gold allocation
+				;survived the prerequisite transition. Do not override a live
+				;40-percent gold mode while food remains between 700 and 900.
+				(or
+					(food-amount < 700)
+					(and
+						(food-amount <= 900)
+						(strategic-number sn-gold-gatherer-percentage < 10)
+					)
+				)
 				(and
 					(goal age-up-started EARLY-ANTIQUITY)
 					(and
