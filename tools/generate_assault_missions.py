@@ -57,6 +57,10 @@ def definitions():
             '(defconst gl-assault-recovery-rejected 14912)',
             '(defconst gl-assault-recovery-retry 14913)',
             '(defconst gl-assault-admission-objective 14914)',
+            '(defconst gl-assault-rendezvous-x 14915)',
+            '(defconst gl-assault-rendezvous-y 14916)',
+            '(defconst gl-assault-rendezvous-until 14917)',
+            '(defconst gl-assault-rendezvous-next 14918)',
             '(defconst str-assault-slot "RAW3 slot: %d")',
             '(defconst str-assault-hull "RAW3 hull: %d")',
             '(defconst str-assault-event "RAW3 event: %d")',
@@ -481,7 +485,7 @@ def preparation_ownership():
         ('assault', 'gl-transport-route-state', 'gl-transport-route-id',
          'attack-transport-group', 'attack-boarding-group', 'TRANSPORT-ROUTE-',
          ['LOAD-SELECT', 'LOAD-ISSUE', 'LOAD-WAIT', 'LOAD-CHECK', 'LOAD-READY',
-          'LOAD-DIAG-FIND', 'LOAD-DIAG-PASSENGER', 'LOAD-DIAG-APPLY', 'LOAD-PARTIAL-MANIFEST'],
+           'LOAD-DIAG-FIND', 'LOAD-DIAG-PASSENGER', 'LOAD-DIAG-APPLY', 'LOAD-PARTIAL-MANIFEST'],
          'gl-transport-route-origin-x', 'gl-transport-route-focus', 't-transport-route'))
     for kind, state, hull, group, passengers, prefix, phases, origin, focus, timer in kinds:
         facts = [f'(goal {state} {prefix}{phase})' for phase in phases]

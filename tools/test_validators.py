@@ -5202,9 +5202,8 @@ class FarmPolicyTests(unittest.TestCase):
                 "(stance-toward focus-player enemy)",
             ),
             actions=(
-                "object-data-garrison-count > 0",
-                "object-data-group-flag >= 0",
-                "TRANSPORT-ROUTE-LOAD-FIND",
+                "gl-transport-route-load-player g:= gl-assault-manifest-player",
+                "TRANSPORT-ROUTE-MANIFEST-FIND",
             ),
         )
         self.assertEqual(len(start), 1)
@@ -5223,14 +5222,57 @@ class FarmPolicyTests(unittest.TestCase):
         )
         manifest = matching_rules(
             self.military,
-            facts=("TRANSPORT-ROUTE-LOAD-SELECT",),
+            facts=("TRANSPORT-ROUTE-MANIFEST-FIND",),
             actions=(
                 "gl-transport-route-load-target g:= gl-transport-capacity",
                 "gl-transport-route-load-target c:min 10",
                 "object-data-index g:>= gl-transport-route-load-target",
+                "(up-create-group 0 0 c: attack-boarding-group)",
             ),
         )
         self.assertEqual(len(manifest), 1)
+        hull = matching_rules(
+            self.military,
+            facts=("TRANSPORT-ROUTE-HULL-FIND",),
+            actions=(
+                "(up-set-target-point gl-assault-rendezvous-x)",
+                "(up-find-remote c: transport-ship c: 40)",
+                "TRANSPORT-ROUTE-LOAD-FIND",
+            ),
+        )
+        self.assertEqual(len(hull), 1)
+        rendezvous = matching_rules(
+            self.military,
+            facts=("TRANSPORT-ROUTE-RENDEZVOUS-START",),
+            actions=(
+                "gl-assault-rendezvous-until c:+ 120",
+                "gl-assault-rendezvous-x action-move",
+                "(up-target-objects 0 action-garrison -1 stance-no-attack)",
+                "TRANSPORT-ROUTE-RENDEZVOUS-WAIT",
+            ),
+        )
+        self.assertEqual(len(rendezvous), 1)
+        rendezvous_local = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER",
+                "object-data-distance <= 12",
+            ),
+            actions=("str-assault-event c: 24", "TRANSPORT-ROUTE-LOAD-ISSUE"),
+        )
+        self.assertEqual(len(rendezvous_local), 1)
+        rendezvous_timeout = matching_rules(
+            self.military,
+            facts=(
+                "TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER",
+                "object-data-distance > 12",
+                "gl-transport-load-clock g:>= gl-assault-rendezvous-until",
+            ),
+            actions=("str-assault-event c: 25", "TRANSPORT-ROUTE-RECOVERY-WAIT"),
+        )
+        self.assertEqual(len(rendezvous_timeout), 1)
+        for row in matching_rules(self.military, facts=("TRANSPORT-ROUTE-RENDEZVOUS",)):
+            self.assertNotIn("gl-transport-route-load-deadline", row[4])
         ready = matching_rules(
             self.military,
             facts=(
@@ -5541,7 +5583,7 @@ class FarmPolicyTests(unittest.TestCase):
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
         AssaultMissionTests().test_moving_hulls_do_not_receive_repeated_orders()
-        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T22: %d" c: 470)', self.init_goals)
+        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T23: %d" c: 471)', self.init_goals)
 
     def test_transport_departure_stalled_near_origin_activates_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests

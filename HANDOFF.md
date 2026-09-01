@@ -1,6 +1,54 @@
 # Rome at War AI handoff
 
-## CURRENT — T22:470 DEPLOYED, 2026-08-31
+## CURRENT — T23:471 DEPLOYED, 2026-09-01
+
+User reported that assault preparation selected a Transport before selecting its
+passengers, regardless of their separation, then charged the approach against the
+30-second boarding timer. User explicitly authorized correcting the architecture
+before receiving the replay; use that replay to decide whether further measures
+are needed. Read `T23-ASSAULT-RENDEZVOUS.md`.
+
+- Same authorized recovery working-directory/Git-root exception:
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`;
+  branch `recovery/p3b44-transport-only`, pre-session HEAD
+  `2cbfe523f6c3b27a641f4b9769a8e35d0fc5db3d`; the T23 causal/evidence commit
+  follows it. No workspace or branch switch. Normal canonical directory remains
+  `.pr-work\Rome-at-War-AI`; do not edit the obsolete root extraction.
+- **ROOT CAUSE — source proven:** empty-lift admission searched for an idle hull
+  nearest `gl-home-anchor-x`, then selected soldiers nearest that hull with no
+  distance bound, and entered `LOAD-ISSUE`, which immediately started the 30s
+  boarding deadline. Distant rendezvous travel was therefore counted as local
+  boarding failure.
+- **FIXED-PENDING-RUNTIME:** T23 reserves the existing eligible 5–10-member
+  combat manifest first, persists its representative point, chooses the closest
+  eligible empty hull from that point, and gives both sides a separate bounded
+  120s rendezvous. Commands renew every 8s. The existing 30s boarding timer begins
+  only at <=12 tiles, when the manifest is already aboard, or when no reserved
+  passenger remains ashore and exact cargo must be classified. Event23=start,
+  24=local boarding, 25=rendezvous timeout. Timeout enters bounded recovery.
+- Exact hull ownership remains guarded during all new phases. The immutable T17
+  generated lease was restored unchanged after adversarial regression caught an
+  initial extension there; T23 uses a separate narrow guard and existing
+  OWNER-LOST recovery. Verified severe home defense remains valid preemption.
+- Migration, voyage screening/fallback, approach planning, useful partial loads,
+  three independent voyage slots, target persistence/rotation, and landed combat
+  continuation are unchanged. Preserve Green/Gray/T22 successes.
+- **PASS:** five new actual-PER rendezvous tests; **409/409** full regressions;
+  generated assault/command-map sync; 39 replay benchmarks; 813 ownership sites,
+  zero direct permission failures; `git diff --check` has only the two already
+  documented generated-comment trailing-space warnings against `origin/main`.
+- **Installed/source T23:471:**91 files, SHA-256
+  `72A073D5FCC4DD15B33399942AF1CC4B7F4EA64F1AB55FC09E3B9D858BA6BE26`.
+  Exactly five files replaced: assault mission defs, command-counter defs,
+  custom constants, marker, military. Independent post-apply check reports no
+  missing/unexpected/mismatched files; installed marker is
+  `RAWAI-P3B44T23: 471`. No replay/data mod/dump was copied or committed.
+- Runtime acceptance is pending. Audit every player and distinguish preparation
+  rendezvous from downstream loaded-hull dispatch. Cyan never reaching admission
+  and a loaded Red hull never departing are not declared fixed by this patch.
+  PR7 remains the publication target and must be updated, not replaced.
+
+## PREVIOUS — T22:470 DEPLOYED, 2026-08-31
 
 User ordered: deploy/test the two T20 voyage fixes, bound preparation recovery,
 remove global-target admission coupling, add bounded landed combat, then revisit

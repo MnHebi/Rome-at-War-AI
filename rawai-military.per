@@ -57,6 +57,41 @@
 ;their own ownership and recovery rules. Never interrupt an acquired, owned hull.
 (load "rawai-transport-preparation-ownership")
 
+;T23 extends the immutable T17 preparation lease only across the new
+;rendezvous phases. Its existing OWNER-LOST recovery remains authoritative.
+(defrule
+	(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-START)
+		(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)
+			(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-CHECK)
+				(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER))))
+=>
+	(set-goal gl-transport-preparation-owned NO)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+)
+
+(defrule
+	(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-START)
+		(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)
+			(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-CHECK)
+				(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER))))
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-player == my-player-number)
+	(up-object-data object-data-group-flag == attack-transport-group)
+=>
+	(set-goal gl-transport-preparation-owned YES)
+)
+
+(defrule
+	(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-START)
+		(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)
+			(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-CHECK)
+				(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER))))
+	(goal gl-transport-preparation-owned NO)
+=>
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-OWNER-LOST)
+)
+
 ;Reserve half the combat navy, with a one-ship exception, and pair one escort
 ;with each nearest loaded transport. Empty hulls release it on the next refresh.
 (defrule
@@ -5631,18 +5666,9 @@
 	(up-get-object-data object-data-id gl-assault-admission-objective)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-modify-goal gl-transport-route-load-player g:= gl-assault-manifest-player)
-	(up-full-reset-search)
-	(up-set-target-point gl-home-anchor-x)
-	(up-find-remote c: transport-ship c: 40)
-	(up-remove-objects search-remote object-data-id g:== gl-quarantine-transport-id)
-	(up-remove-objects search-remote object-data-id g:== gl-assault-recovery-rejected)
-	;Do not turn a stale civilian or relic partial load into a military attack.
-	(up-remove-objects search-remote object-data-garrison-count > 0)
-	(up-remove-objects search-remote object-data-idling != 1)
-	(up-remove-objects search-remote object-data-under-attack > 0)
-	(up-remove-objects search-remote object-data-group-flag >= 0)
-	(up-clean-search search-remote object-data-distance search-order-asc)
-	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-FIND)
+	;T23: reserve the assault first. Hull selection follows from the manifest's
+	;rendezvous point, so remote travel never consumes the boarding deadline.
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-FIND)
 )
 
 (defrule
@@ -5653,6 +5679,93 @@
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 30)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+;Cancel native exploration before this first explicit land claim.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-FIND)
+	(goal gl-owner-explore-suspended NO)
+=>
+	(set-strategic-number sn-number-explore-groups 0)
+	(set-strategic-number sn-total-number-explorers 0)
+	(set-strategic-number sn-cap-civilian-explorers 0)
+	(set-strategic-number sn-minimum-civilian-explorers 0)
+	; RAW12 counter 13
+	(up-modify-goal gl-command-counter-13 c:+ 1)
+	(up-reset-scouts)
+	(set-goal gl-owner-explore-suspended YES)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-FIND)
+=>
+	(up-modify-goal gl-transport-route-load-target g:= gl-transport-capacity)
+	(up-modify-goal gl-transport-route-load-target c:min 10)
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
+	(up-full-reset-search)
+	(up-set-target-point gl-home-anchor-x)
+	(up-find-local c: scout-cavalry-class c: 40)
+	(up-find-local c: cavalry-archer-class c: 40)
+	(up-find-local c: cavalry-class c: 40)
+	(up-find-local c: infantry-class c: 40)
+	(up-find-local c: archery-class c: 40)
+	(up-find-local c: siege-weapon-class c: 40)
+	(up-remove-objects search-local object-data-type == palintonon)
+	(up-remove-objects search-local object-data-type == palintonon-packed)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-order == orderid-enter)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index g:>= gl-transport-route-load-target)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-create-group 0 0 c: attack-boarding-group)
+	(up-modify-group-flag 1 c: attack-boarding-group)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-transport-route-load-target g:= local-total)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-CHECK)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-CHECK)
+	(up-compare-goal gl-transport-route-load-target c:>= 5)
+	(up-set-target-object search-local c: 0)
+=>
+	;The first member of the home-anchor-sorted manifest is its persistent
+	;rendezvous anchor. The hull search is relative to this army, not the TC.
+	(up-get-point position-object gl-assault-rendezvous-x)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-HULL-FIND)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-CHECK)
+=>
+	(up-chat-data-to-self "attack lift passengers unavailable: %d" g: gl-transport-route-load-target)
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-set-timer c: t-transport-route c: 30)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-HULL-FIND)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-assault-rendezvous-x)
+	(up-find-remote c: transport-ship c: 40)
+	(up-remove-objects search-remote object-data-id g:== gl-quarantine-transport-id)
+	(up-remove-objects search-remote object-data-id g:== gl-assault-recovery-rejected)
+	;Do not turn a stale civilian or relic partial load into a military attack.
+	(up-remove-objects search-remote object-data-garrison-count > 0)
+	(up-remove-objects search-remote object-data-idling != 1)
+	(up-remove-objects search-remote object-data-under-attack > 0)
+	(up-remove-objects search-remote object-data-group-flag >= 0)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-FIND)
 )
 
 (defrule
@@ -5682,13 +5795,15 @@
 	(up-object-data object-data-player == my-player-number)
 	(up-object-data object-data-group-flag == attack-transport-group)
 =>
-	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-SELECT)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-START)
 )
 
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-HULL-VERIFY)
 =>
 	(up-chat-data-to-all "RAW17 assault claim rejected hull: %d" g: gl-transport-route-id)
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 30)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
@@ -5699,60 +5814,11 @@
 	(not (up-set-target-object search-remote c: 0))
 =>
 	(up-chat-data-to-self "attack lift unavailable: %d" c: 0)
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 30)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
-)
-
-;Cancel native exploration before this first explicit land claim.
-(defrule
-	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-SELECT)
-	(goal gl-owner-explore-suspended NO)
-=>
-	(set-strategic-number sn-number-explore-groups 0)
-	(set-strategic-number sn-total-number-explorers 0)
-	(set-strategic-number sn-cap-civilian-explorers 0)
-	(set-strategic-number sn-minimum-civilian-explorers 0)
-	; RAW12 counter 13
-	(up-modify-goal gl-command-counter-13 c:+ 1)
-	(up-reset-scouts)
-	(set-goal gl-owner-explore-suspended YES)
-)
-
-(defrule
-	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-SELECT)
-=>
-			(up-modify-goal gl-transport-route-load-target g:= gl-transport-capacity)
-	(up-modify-goal gl-transport-route-load-target c:min 10)
-	(up-modify-group-flag 0 c: attack-boarding-group)
-	(up-reset-group c: attack-boarding-group)
-	(up-full-reset-search)
-	(up-add-object-by-id search-remote g: gl-transport-route-id)
-	(up-set-target-object search-remote c: 0)
-	(up-get-point position-object point-x)
-	(up-set-target-point point-x)
-	(up-find-local c: scout-cavalry-class c: 40)
-	(up-find-local c: cavalry-archer-class c: 40)
-	(up-find-local c: cavalry-class c: 40)
-	(up-find-local c: infantry-class c: 40)
-	(up-find-local c: archery-class c: 40)
-	(up-find-local c: siege-weapon-class c: 40)
-	(up-remove-objects search-local object-data-type == palintonon)
-	(up-remove-objects search-local object-data-type == palintonon-packed)
-	(up-remove-objects search-local object-data-garrisoned == 1)
-	(up-remove-objects search-local object-data-idling != 1)
-	(up-remove-objects search-local object-data-under-attack > 0)
-	(up-remove-objects search-local object-data-group-flag >= 0)
-	(up-remove-objects search-local object-data-order == orderid-enter)
-	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
-	(up-clean-search search-local object-data-distance search-order-asc)
-	(up-remove-objects search-local object-data-index g:>= gl-transport-route-load-target)
-		(up-remove-objects search-local object-data-player != my-player-number)
-	(up-create-group 0 0 c: attack-boarding-group)
-	(up-modify-group-flag 1 c: attack-boarding-group)
-	(up-get-search-state local-total)
-	(up-modify-goal gl-transport-route-load-target g:= local-total)
-	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)
 )
 
 ;The economy clock updates only every fifteen seconds. Boarding needs a live
@@ -5762,6 +5828,163 @@
 	(true)
 =>
 	(up-get-fact game-time 0 gl-transport-load-clock)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-START)
+=>
+	;The 120-second rendezvous lease includes travel from both sides. It is not
+	;the boarding deadline and cannot silently become an unbounded preparation.
+	(up-modify-goal gl-assault-rendezvous-until g:= gl-transport-load-clock)
+	(up-modify-goal gl-assault-rendezvous-until c:+ 120)
+	(up-modify-goal gl-assault-rendezvous-next g:= gl-transport-load-clock)
+	(up-modify-goal gl-assault-rendezvous-next c:+ 4)
+	(set-goal gl-transport-route-script-load YES)
+	(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
+	(set-goal gl-transport-route-load-reported NO)
+	(set-goal gl-transport-route-load-candidate-id -1)
+	(up-full-reset-search)
+	(up-set-group search-local c: attack-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+	;OWNERSHIP command: attack-transport-group.
+	(up-target-point gl-assault-rendezvous-x action-move -1 stance-no-attack)
+	(up-full-reset-search)
+	(up-set-group search-local c: attack-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
+	;OWNERSHIP command: attack-boarding-group.
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(up-chat-data-to-all str-assault-event c: 23)
+	(up-chat-data-to-all str-assault-hull g: gl-transport-route-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)
+	(up-compare-goal gl-transport-load-clock g:>= gl-assault-rendezvous-next)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-CHECK)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-player == my-player-number)
+	(up-object-data object-data-group-flag == attack-transport-group)
+	(up-object-data object-data-garrison-count g:>= gl-transport-route-load-target)
+=>
+	;A manifest that boarded while the hull approached is immediately eligible
+	;for the normal 30-second load contract and useful-partial sealing logic.
+	(up-full-reset-search)
+	(up-set-group search-local c: attack-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-player == my-player-number)
+	(up-object-data object-data-group-flag == attack-transport-group)
+	(up-object-data object-data-garrison-count g:< gl-transport-route-load-target)
+=>
+	(up-get-point position-object point-x)
+	(up-full-reset-search)
+	(up-set-target-point point-x)
+	(up-set-group search-local c: attack-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance <= 12)
+=>
+	;Only local proximity starts the existing 30-second boarding timer.
+	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
+	(up-chat-data-to-all str-assault-event c: 24)
+	(up-chat-data-to-all str-assault-hull g: gl-transport-route-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER)
+	(not (up-set-target-object search-local c: 0))
+=>
+	;All reserved survivors are already aboard or unavailable. Let the normal
+	;bounded boarding contract classify the exact cargo rather than wait forever.
+	(up-set-group search-local c: attack-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance > 12)
+	(up-compare-goal gl-transport-load-clock g:< gl-assault-rendezvous-until)
+=>
+	;Renew both halves only every eight seconds. The passenger order follows the
+	;moving exact hull while the hull approaches the manifest's saved anchor.
+	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	;OWNERSHIP command: attack-boarding-group.
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(up-full-reset-search)
+	(up-set-group search-local c: attack-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+	;OWNERSHIP command: attack-transport-group.
+	(up-target-point gl-assault-rendezvous-x action-move -1 stance-no-attack)
+	(up-modify-goal gl-assault-rendezvous-next g:= gl-transport-load-clock)
+	(up-modify-goal gl-assault-rendezvous-next c:+ 8)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance > 12)
+	(up-compare-goal gl-transport-load-clock g:>= gl-assault-rendezvous-until)
+=>
+	;Event 25 is a rendezvous timeout, distinct from the later boarding timeout.
+	(up-full-reset-search)
+	(up-set-group search-local c: attack-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+	;OWNERSHIP command: attack-transport-group.
+	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-chat-data-to-all str-assault-event c: 25)
+	(up-chat-data-to-all str-assault-hull g: gl-transport-route-id)
+	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-route-unload-attempts 0)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 )
 
 (defrule

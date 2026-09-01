@@ -40,7 +40,7 @@ class TransportAcquisitionTests(unittest.TestCase):
                     self.acquire(m, claim, verify)
                     self.assertEqual(m.groups[m.val(group)], [10])
                     self.assertEqual(m.objects[10]['flag'], m.val(group))
-                    self.assertEqual(m.g[state], m.val(prefix+('LOAD-SELECT' if kind=='assault' else 'BOARDING')))
+                    self.assertEqual(m.g[state], m.val(prefix+('RENDEZVOUS-START' if kind=='assault' else 'BOARDING')))
                     self.assertEqual(m.g['gl-island-scout-attempts'], int(kind=='scout'))
                     self.assertEqual(m.commands, [])  # acquisition is not a movement/STOP order
 
