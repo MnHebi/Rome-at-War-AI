@@ -2338,6 +2338,60 @@
         "Productive drop-site establishment remains a separate unresolved defect. User clarification of the observed no-migration wording remains pending; parser evidence does not override the visible observation."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260901-141200-p3b44t24-transport-recovery",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.09.01 141200.aoe2record",
+        "sha256": "075741E0A60BFA02CCD089B37960A4F1988C1B617334CAAC461783405D6B6B85",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Red Roman Empire (team 1)", "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)", "Cyan Britons (team 2)",
+          "Blue Germani (team 2)", "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Validated selected-color metadata matches the preserved authoritative lobby; no row/slot color inference.",
+        "duration_seconds": 5705,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "Players 2-8 serialize RAWAI-P3B44T24:472. The replay parses through 95:05 with zero action-stream errors; Red resigns at 95:05.",
+        "The all-player audit reconstructs 39 Transport hulls, 596 garrison orders, 216 unload orders and 11 terminal load-only phases. Per-player hull/load/unload totals are Red 8/161/64, Green 3/53/0, Yellow 3/27/5, Purple 2/13/12, Orange 5/101/33, Cyan 8/61/14, Blue 5/128/73 and Gray 5/52/15. These are command lifecycles, not proof that every engine action completed.",
+        "T24 records 60 migration rendezvous phase-3 starts, no phase-4 timeout, 17 full departures, three useful partial departures and seven local empty aborts. Remote approach is no longer charged against the local boarding timer; later failures belong to route, landing, construction or ownership stages.",
+        "Red completes two worker landings, approximately twenty settlers at 60:17 and ten at 76:03. Both report a live lumber cluster, then a Lumber Camp resource wait, then drop-site failure with no concrete foundation. A third full Red worker load begins near 93:53 and remains unresolved when the user resigns.",
+        "The user reports several partially loaded Red Transports frozen without a mission and screenshots 5/30, 7/30 and 10/30 cargo hulls. Source recovery explicitly releases hull/group/state while cargo may remain aboard; no later generic utility adopts an ungrouped idle loaded hull.",
+        "The user reports a landed Red assault group stopping after destroying its target. Replay telemetry shows the second successful Red landing has no later combat-target event and releases roughly 88 seconds after landing.",
+        "The Red naval fleet visible near 69:48 receives later assignments four to six minutes afterward, so the replay contradicts a permanent-orphan interpretation but preserves the observed temporary non-progress symptom."
+      ],
+      "implementation_inferences": [
+        "Migration drop-site placement has a circular resource gate: spendable affordability ignores wood held in building escrow, while stranded remote choppers need the absent drop site to deposit more wood. Landing also discarded the original resource anchor before placement.",
+        "Loaded-hull recovery has an owner gap after preparation/quarantine release. Exact active missions remain protected by group, movement, damage and attack-state filters; only free idle cargo hulls are eligible for recovery adoption.",
+        "Landed combat releases after four no-target samples despite a five-minute total lease. The replay timing and source transition explain why a group which destroyed its first objective appeared to forget the assault.",
+        "The naval-opportunity controller lacks a progress watcher, but replay orders do not establish an exact unreachable target or exclusive writer for the temporary fleet stall. No naval behavior patch is justified in this release."
+      ],
+      "changes_under_test": [
+        "RAWAI-P3B44T25:473 preserves and exact-ID/class/zone revalidates the migration's original resource anchor, and releases wood escrow only when the matching remote drop-site building is affordable with escrow.",
+        "A bounded free-hull scanner adopts self-owned, idle, ungrouped, undamaged loaded Transports into the existing quarantine unload lifecycle. Terminal exact-hull ownership rotates after one grace interval without touching active missions.",
+        "Landed assault groups retain visible-hostile priority and the five-minute hard lease, but use twelve bounded same-zone probes before no-target release. Only idle, self-owned, ungarrisoned and not-under-attack members receive probe movement.",
+        "The escort census message is relabeled active loaded escort targets; its selection behavior is unchanged."
+      ],
+      "fresh_replay_acceptance": [
+        "Verify RAWAI-P3B44T25:473 and complete source/install byte identity. Audit every player's Transport lifecycle, not only reported Red examples.",
+        "A successful mining migration with escrowed wood issues and completes a concrete Camp/Mill foundation near the preserved original resource, then assigns remote settlers to that resource. Existing wrong-zone/path rejections remain hard vetoes.",
+        "Every free idle orphaned loaded Transport enters bounded recovery or has a recorded ownership/safety exclusion; active voyages, grouped hulls and moving cargo are not stolen.",
+        "A landed assault which destroys its first target acquires another same-zone hostile or visibly advances through bounded same-landmass probes, while busy fighters remain untouched and the five-minute release bound survives.",
+        "Preserve T24 remote rendezvous, full/useful-partial departures, three independent assault missions, exact target persistence and landing safety."
+      ],
+      "known_limits": [
+        "T25 does not identify or repair the temporary naval-opportunity non-progress, the large repeated ORDER floods, Port/trade congestion, or every downstream voyage obstruction.",
+        "The replay-visible loaded transport counter was an escort-eligibility census rather than total cargo hulls. Relabeling it removes the diagnostic ambiguity but is not a recovery fix.",
+        "Structural tests cannot prove foundation creation, engine unload success or post-target combat continuation. These defects remain FIXED-PENDING-RUNTIME until a fresh replay demonstrates the acceptance criteria."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }
