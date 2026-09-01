@@ -1526,8 +1526,27 @@
 	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
 	(up-pending-objects c: town-center <= 0)
 	(not (up-pending-placement c: town-center))
+	(or
+		(up-timer-status t-transport-route != timer-triggered)
+		(or
+			(not (goal gl-assault-admission-open YES))
+			(or
+				(not (goal gl-home-defense-state NO))
+				(or
+					(unit-type-count transport-ship < 1)
+					(up-compare-goal gl-ap-seed-enemy c:< 1)
+				)
+			)
+		)
+	)
 
 =>
+	;T25 Green spent most of the final 36 minutes cycling one failed migration
+	;after another.  The zone rejection ring worked, but this earlier rule won
+	;the shared idle lane whenever both sixty-second migration recovery and the
+	;assault timer were ready. Yield exactly one admission pass when every outer
+	;assault prerequisite is live. A rejected assault resets its own timer, so
+	;the still-triggered migration timer can claim the lane on the next sweep.
 	(set-goal gl-island-migration-state MIGRATION-GATE-OWNER)
 )
 
