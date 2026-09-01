@@ -698,7 +698,6 @@
 	(up-modify-sn sn-camp-max-distance s:max sn-maximum-town-size)
 	(up-modify-goal gl-placement-pressure-next g:= gl-game-time)
 	(up-modify-goal gl-placement-pressure-next c:+ 12)
-	(up-chat-data-to-self "crowded town placement retry size: %d" s: sn-maximum-town-size)
 	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-WAIT)
 )
 
@@ -707,7 +706,6 @@
 	(up-compare-sn sn-maximum-town-size g:>= gl-placement-pressure-cap)
 	(goal gl-placement-pressure-saturated NO)
 =>
-	(up-chat-data-to-self "crowded town placement saturated size: %d" s: sn-maximum-town-size)
 	(set-goal gl-placement-pressure-saturated YES)
 	(up-modify-goal gl-placement-pressure-next g:= gl-game-time)
 	(up-modify-goal gl-placement-pressure-next c:+ 60)
@@ -734,7 +732,6 @@
 	(up-timer-status t-town-size != timer-running)
 =>
 	(up-modify-sn sn-maximum-town-size c:- 1)
-	(up-chat-data-to-self "resize due to enemy buildings in town sn-maximum-town-size; %d" s: sn-maximum-town-size)
 	(enable-timer t-town-size 6)
 )
 
@@ -742,7 +739,6 @@
 	(strategic-number sn-maximum-town-size s:> sn-camp-max-distance)
 =>
 	(up-modify-sn sn-camp-max-distance s:max sn-maximum-town-size)
-	(up-chat-data-to-self "sn-camp-max-distance; %d" s: sn-camp-max-distance)
 )
 
 (defrule
@@ -750,7 +746,6 @@
 	(building-type-count-total town-center == 0)
 =>
 	(set-goal allow-houses NO)
-	(chat-local-to-self "allow-houses NO")
 )
 
 (defrule
@@ -758,7 +753,6 @@
 	(building-type-count-total town-center > 0)
 =>
 	(set-goal allow-houses YES)
-	(chat-local-to-self "allow-houses YES")
 )
 
 ;One House at a time cannot keep pace with several Town Centers and military
@@ -883,7 +877,6 @@
 	(goal gl-colony-towncenter-state COLONY-TC-CHECK-RESOURCES)
 	(up-compare-goal gl-colony-towncenter-resource-count c:< 12)
 =>
-	(up-chat-data-to-self "colony TC resource proxy too small: %d" g: gl-colony-towncenter-resource-count)
 	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
 	(up-set-timer c: t-colony-towncenter c: 120)
 	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
@@ -989,7 +982,6 @@
 =>
 	(up-build place-point 0 c: town-center)
 	(up-modify-goal gl-colony-towncenter-attempts c:+ 1)
-	(up-chat-data-to-self "colony TC placement attempt: %d" g: gl-colony-towncenter-attempts)
 	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
 	(up-set-timer c: t-colony-towncenter c: 20)
 	(set-goal gl-colony-towncenter-state COLONY-TC-WAIT)
@@ -1011,7 +1003,6 @@
 	(can-afford-building town-center)
 	(not (up-can-build 0 c: town-center))
 =>
-	(up-chat-data-to-self "colony TC placement exhausted: %d" g: gl-island-colony-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
 	(up-set-timer c: t-colony-towncenter c: 120)
 	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
@@ -1021,7 +1012,6 @@
 	(goal gl-colony-towncenter-state COLONY-TC-ISSUE)
 	(not (can-afford-building town-center))
 =>
-	(up-chat-data-to-self "colony TC resource wait in zone: %d" g: gl-island-colony-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
 	(up-set-timer c: t-colony-towncenter c: 60)
 	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
@@ -1063,7 +1053,6 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-default -1 stance-no-attack)
-	(up-chat-data-to-self "colony TC accepted in zone: %d" g: gl-island-colony-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
 	(up-set-timer c: t-colony-towncenter c: 180)
 	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
@@ -1073,7 +1062,6 @@
 	(goal gl-colony-towncenter-state COLONY-TC-ASSIGN)
 	(not (up-set-target-object search-local c: 0))
 =>
-	(up-chat-data-to-self "colony TC pending owner mismatch: %d" g: gl-island-colony-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
 	(up-set-timer c: t-colony-towncenter c: 120)
 	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
@@ -1095,7 +1083,6 @@
 	(up-pending-objects c: town-center <= 0)
 	(up-compare-goal gl-colony-towncenter-attempts c:>= 4)
 =>
-	(up-chat-data-to-self "colony TC foundation not accepted: %d" g: gl-island-colony-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
 	(up-set-timer c: t-colony-towncenter c: 120)
 	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
@@ -1126,7 +1113,6 @@
 	(up-get-object-data object-data-id gl-home-retirement-target-id)
 	(up-get-object-data object-data-map-zone-id gl-home-zone)
 	(up-get-point position-object gl-home-anchor-x)
-	(up-chat-data-to-self "starting TC captured: %d" g: gl-home-retirement-target-id)
 	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
 	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
 )
@@ -1226,7 +1212,6 @@
 		(up-object-data object-data-on-mainland != off-mainland)
 	)
 =>
-	(up-chat-data-to-self "colony TC revalidation mismatch: %d" g: gl-colony-towncenter-id)
 	(set-goal gl-colony-towncenter-id -1)
 	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
 	(up-set-timer c: t-home-retirement c: 90)
@@ -1237,7 +1222,6 @@
 	(goal gl-home-retirement-state HOME-RETIRE-VERIFY-COLONY)
 	(not (up-set-target-object search-local c: 0))
 =>
-	(up-chat-data-to-self "colony TC revalidation lost: %d" g: gl-colony-towncenter-id)
 	(set-goal gl-colony-towncenter-id -1)
 	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
 	(up-set-timer c: t-home-retirement c: 90)
@@ -1262,7 +1246,6 @@
 		(up-compare-goal gl-home-retirement-settler-count c:< 6)
 	)
 =>
-	(up-chat-data-to-self "colony TC retirement hold settlers: %d" g: gl-home-retirement-settler-count)
 	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
 	(up-set-timer c: t-home-retirement c: 90)
 	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
@@ -1290,7 +1273,6 @@
 		)
 	)
 =>
-	(up-chat-data-to-self "home TC retirement invalidated: %d" g: gl-home-retirement-target-id)
 	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
 	(up-set-timer c: t-home-retirement c: 90)
 	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
@@ -1318,7 +1300,6 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point 0 action-delete -1 -1)
-	(up-chat-data-to-self "home TC retired exact id: %d" g: gl-home-retirement-target-id)
 	(set-goal gl-home-retirement-target-id -2)
 	(up-modify-goal gl-home-zone g:= gl-island-colony-zone)
 	(up-copy-point gl-home-anchor-x gl-island-colony-x)
@@ -1331,7 +1312,6 @@
 	(goal gl-home-retirement-state HOME-RETIRE-VALIDATE-OLD)
 	(not (up-set-target-object search-local c: 0))
 =>
-	(up-chat-data-to-self "starting TC already absent: %d" g: gl-home-retirement-target-id)
 	(set-goal gl-home-retirement-target-id -2)
 	(up-modify-goal gl-home-zone g:= gl-island-colony-zone)
 	(up-copy-point gl-home-anchor-x gl-island-colony-x)
@@ -1360,7 +1340,6 @@
 		)
 	)
 =>
-	(up-chat-data-to-self "home TC retirement deferred: %d" g: gl-home-retirement-target-id)
 	(up-modify-sn sn-focus-player-number g:= gl-home-retirement-focus)
 	(up-set-timer c: t-home-retirement c: 90)
 	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
@@ -1630,7 +1609,6 @@
 	(up-clean-search search-local object-data-distance search-order-desc)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-lumbercamp-candidate-count g:= local-total)
-	(up-chat-data-to-self "lumber camp live candidates: %d" g: gl-lumbercamp-candidate-count)
 	(set-goal gl-lumbercamp-placement-attempts 0)
 	(up-set-timer c: t-lumbercamp-placement c: 120)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-ASSESS)
@@ -1700,8 +1678,6 @@
 	(up-modify-goal gl-lumbercamp-rejected-resource-id g:= gl-lumbercamp-resource-id)
 	(up-modify-goal gl-lumbercamp-candidate-index c:+ 1)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
-	(up-chat-data-to-self "lumber camp rejected sparse wood zone: %d" g: gl-lumbercamp-resource-zone)
-	(up-chat-data-to-self "lumber camp sparse tree count: %d" g: remote-total)
 	(up-set-timer c: t-lumbercamp-placement c: 15)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 )
@@ -1773,7 +1749,6 @@
 	(up-set-target-point point3-x)
 	(up-build place-point 0 c: lumber-camp)
 	(set-goal gl-lumbercamp-placement-attempts 1)
-	(up-chat-data-to-self "lumber camp resource zone: %d" g: gl-lumbercamp-resource-zone)
 	(up-set-timer c: t-lumbercamp-placement c: 30)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)
 )
@@ -1879,7 +1854,6 @@
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point 0 action-delete -1 -1)
 	(up-reset-placement c: lumber-camp)
-	(up-chat-data-to-self "lumber camp deleted wrong-zone foundation: %d" g: gl-lumbercamp-foundation-id)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
 	(up-set-timer c: t-lumbercamp-placement c: 30)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
@@ -1901,7 +1875,6 @@
 	(up-object-data object-data-class == tree-class)
 	(up-object-data object-data-map-zone-id g:== gl-lumbercamp-resource-zone)
 =>
-	(up-chat-data-to-self "lumber camp accepted live resource: %d" g: gl-lumbercamp-resource-id)
 	;Assign only nearby wood workers to the exact validated foundation. This
 	;finishes the camp without exposing shepherds or hunters to global builder
 	;assistance.
@@ -1923,7 +1896,6 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-default -1 stance-no-attack)
-	(up-chat-data-to-self "lumber camp builders assigned: %d" g: local-total)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
 	(set-goal gl-lumbercamp-placement-attempts 0)
 	(set-goal gl-lumbercamp-candidate-index 0)
@@ -1954,7 +1926,6 @@
 	(up-modify-goal gl-lumbercamp-rejected-resource-id3 g:= gl-lumbercamp-rejected-resource-id2)
 	(up-modify-goal gl-lumbercamp-rejected-resource-id2 g:= gl-lumbercamp-rejected-resource-id)
 	(up-modify-goal gl-lumbercamp-rejected-resource-id g:= gl-lumbercamp-resource-id)
-	(up-chat-data-to-self "lumber camp deleted stale resource foundation: %d" g: gl-lumbercamp-foundation-id)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
 	(set-goal gl-lumbercamp-placement-attempts 0)
 	(up-set-timer c: t-lumbercamp-placement c: 30)
@@ -2005,7 +1976,6 @@
 	(up-object-data object-data-class == tree-class)
 	(up-object-data object-data-map-zone-id g:== gl-lumbercamp-resource-zone)
 =>
-	(up-chat-data-to-self "lumber camp accepted completed resource: %d" g: gl-lumbercamp-resource-id)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
 	(set-goal gl-lumbercamp-placement-attempts 0)
 	(set-goal gl-lumbercamp-candidate-index 0)
@@ -2055,7 +2025,6 @@
 	(up-modify-goal gl-lumbercamp-rejected-resource-id3 g:= gl-lumbercamp-rejected-resource-id2)
 	(up-modify-goal gl-lumbercamp-rejected-resource-id2 g:= gl-lumbercamp-rejected-resource-id)
 	(up-modify-goal gl-lumbercamp-rejected-resource-id g:= gl-lumbercamp-resource-id)
-	(up-chat-data-to-self "lumber camp exhausted offsets at resource: %d" g: gl-lumbercamp-resource-id)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
 	(set-goal gl-lumbercamp-placement-attempts 0)
 	(up-set-timer c: t-lumbercamp-placement c: 60)
@@ -2189,7 +2158,6 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-default -1 stance-no-attack)
-	(up-chat-data-to-self "farm staffing fisherman: %d" g: gl-farm-staffing-id)
 	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
 	(up-set-timer c: t-farm-staffing c: 5)
 	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
@@ -2221,7 +2189,6 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-default -1 stance-no-attack)
-	(up-chat-data-to-self "farm staffing idle: %d" g: gl-farm-staffing-id)
 	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
 	(up-set-timer c: t-farm-staffing c: 5)
 	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
@@ -2263,7 +2230,6 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-default -1 stance-no-attack)
-	(up-chat-data-to-self "farm staffing worker: %d" g: gl-farm-staffing-id)
 	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
 	(up-set-timer c: t-farm-staffing c: 5)
 	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
@@ -2334,7 +2300,6 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-objects 0 action-default -1 stance-no-attack)
-	(up-chat-data-to-self "fisherman redirected to resource: %d" g: gl-farm-staffing-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
 	(up-set-timer c: t-farm-staffing c: 5)
 	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
@@ -2374,14 +2339,6 @@
 	(up-get-fact building-type-count farm gl-farm-report-farms)
 	(up-get-fact dropsite-min-distance hunting gl-farm-report-hunt-distance)
 	(up-get-fact dropsite-min-distance food gl-farm-report-food-distance)
-	(up-chat-data-to-self "farm mode: %d" g: dependent-farms)
-	(up-chat-data-to-self "civilian fishermen: %d" g: gl-farm-report-fishermen)
-	(up-chat-data-to-self "farmers: %d" g: gl-farm-report-farmers)
-	(up-chat-data-to-self "farms: %d" g: gl-farm-report-farms)
-	(up-chat-data-to-self "farm target: %d" g: gl-farm-build-target)
-	(up-chat-data-to-self "farm placement suspended: %d" g: gl-farm-placement-suspended)
-	(up-chat-data-to-self "hunt distance: %d" g: gl-farm-report-hunt-distance)
-	(up-chat-data-to-self "food distance: %d" g: gl-farm-report-food-distance)
 	(disable-timer t-farm-report)
 )
 
@@ -2700,7 +2657,6 @@
 	(goal gl-opening-mill-state OPENING-MILL-CHECK-ALLY-TC)
 	(up-set-target-object search-remote c: 0)
 =>
-	(up-chat-data-to-self "opening Mill rejected allied-base forage: %d" g: gl-opening-mill-resource-id)
 	(up-modify-goal gl-opening-mill-candidate-index c:+ 1)
 	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
 	(set-goal gl-migration-placement-lock NO)
@@ -2765,7 +2721,6 @@
 	;Distance ordering does not guarantee that one spatial cluster is contiguous.
 	;Advance one known candidate at a time; the five-minute fallback bounds retries.
 	(up-modify-goal gl-opening-mill-candidate-index c:+ 1)
-	(up-chat-data-to-self "opening Mill rejected sparse forage: %d" g: remote-total)
 	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
 	(set-goal gl-migration-placement-lock NO)
 	(up-set-timer c: t-opening-mill c: 15)
@@ -2803,7 +2758,6 @@
 	(not (up-set-target-object search-remote c: 0))
 	(game-time < 300)
 =>
-	(up-chat-data-to-self "opening Mill waiting for forage: %d" g: gl-opening-mill-candidate-index)
 	(set-goal gl-opening-mill-candidate-index 0)
 	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
 	(set-goal gl-migration-placement-lock NO)
@@ -2820,7 +2774,6 @@
 	(up-full-reset-search)
 	(up-build place-normal 0 c: mill)
 	(set-goal gl-opening-mill-requested YES)
-	(chat-local-to-self "opening Mill fallback placement")
 	(up-set-timer c: t-opening-mill c: 90)
 	(set-goal gl-opening-mill-state OPENING-MILL-FALLBACK-WAIT)
 )
@@ -2832,7 +2785,6 @@
 		(up-pending-objects c: mill > 0)
 	)
 =>
-	(chat-local-to-self "opening Mill fallback accepted")
 	(set-goal gl-migration-placement-lock NO)
 	(set-goal gl-opening-mill-state OPENING-MILL-IDLE)
 )
@@ -2973,8 +2925,6 @@
 	(up-object-data object-data-distance <= 10)
 	(up-object-data object-data-map-zone-id g:== gl-opening-mill-resource-zone)
 =>
-	(up-chat-data-to-self "opening Mill forage resource: %d" g: gl-opening-mill-resource-id)
-	(up-chat-data-to-self "opening Mill forage zone: %d" g: gl-opening-mill-resource-zone)
 	(set-goal gl-opening-mill-candidate-index 0)
 	(set-goal gl-opening-mill-placement-attempts 0)
 	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
@@ -3025,7 +2975,6 @@
 	(goal gl-opening-mill-state OPENING-MILL-FIND-COMPLETED)
 	(up-set-target-object search-local c: 0)
 =>
-	(up-chat-data-to-self "opening Mill completed at forage: %d" g: gl-opening-mill-resource-id)
 	(set-goal gl-opening-mill-candidate-index 0)
 	(set-goal gl-opening-mill-placement-attempts 0)
 	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
@@ -3069,7 +3018,6 @@
 =>
 	(up-reset-placement c: mill)
 	(up-modify-goal gl-opening-mill-candidate-index c:+ 1)
-	(up-chat-data-to-self "opening Mill rejected blocked forage: %d" g: gl-opening-mill-resource-id)
 	(set-goal gl-opening-mill-requested NO)
 	(set-goal gl-opening-mill-placement-attempts 0)
 	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
@@ -3481,7 +3429,6 @@
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point 0 action-delete -1 -1)
 	(up-reset-placement c: mining-camp)
-	(up-chat-data-to-self "mining camp deleted wrong-zone foundation: %d" g: gl-miningcamp-foundation-id)
 	(up-modify-sn sn-focus-player-number g:= gl-miningcamp-placement-focus)
 	(up-set-timer c: t-miningcamp-placement c: 30)
 	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
@@ -3492,7 +3439,6 @@
 	(not (up-set-target-object search-local c: 0))
 =>
 	(up-reset-placement c: mining-camp)
-	(up-chat-data-to-self "mining camp rejected unrelated foundation: %d" g: gl-miningcamp-resource-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-miningcamp-placement-focus)
 	(up-set-timer c: t-miningcamp-placement c: 30)
 	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
@@ -3513,7 +3459,6 @@
 		)
 	)
 =>
-	(up-chat-data-to-self "mining camp resource zone: %d" g: gl-miningcamp-resource-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-miningcamp-placement-focus)
 	(set-goal gl-miningcamp-placement-attempts 0)
 	(up-set-timer c: t-miningcamp-placement c: 120)
@@ -3551,7 +3496,6 @@
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-target-point 0 action-delete -1 -1)
 	(up-reset-placement c: mining-camp)
-	(up-chat-data-to-self "mining camp deleted stale resource foundation: %d" g: gl-miningcamp-foundation-id)
 	(up-modify-sn sn-focus-player-number g:= gl-miningcamp-placement-focus)
 	(set-goal gl-miningcamp-placement-attempts 0)
 	(up-set-timer c: t-miningcamp-placement c: 60)
@@ -3568,7 +3512,6 @@
 	(up-modify-goal gl-miningcamp-rejected-resource-id3 g:= gl-miningcamp-rejected-resource-id2)
 	(up-modify-goal gl-miningcamp-rejected-resource-id2 g:= gl-miningcamp-rejected-resource-id)
 	(up-modify-goal gl-miningcamp-rejected-resource-id g:= gl-miningcamp-resource-id)
-	(up-chat-data-to-self "mining camp exhausted offsets at resource: %d" g: gl-miningcamp-resource-id)
 	(up-modify-sn sn-focus-player-number g:= gl-miningcamp-placement-focus)
 	(set-goal gl-miningcamp-placement-attempts 0)
 	(up-set-timer c: t-miningcamp-placement c: 180)
@@ -3674,7 +3617,6 @@
 	(up-can-build 0 c: barracks)
 =>
 	(up-build place-normal 0 c: barracks)
-	(chat-local-to-self "Emergency Barracks requested after local attack")
 )
 
 (defrule
@@ -3982,7 +3924,6 @@
 	(goal gl-wall-needed NO)
 =>
 	(set-goal gl-wall-needed YES)
-	(chat-local-to-self "Wall posture: exposed flank")
 )
 
 (defrule
@@ -3997,7 +3938,6 @@
 	(goal gl-wall-needed NO)
 =>
 	(set-goal gl-wall-needed YES)
-	(chat-local-to-self "Wall posture: local threat")
 )
 
 ;A known enemy economy or military structure in the same active land zone is
@@ -4056,7 +3996,6 @@
 	(set-goal gl-wall-needed YES)
 	(up-modify-goal gl-wall-scan-next g:= gl-game-time)
 	(up-modify-goal gl-wall-scan-next c:+ 90)
-	(up-chat-data-to-self "Wall posture same-zone enemy: %d" g: gl-wall-scan-player)
 	(set-goal gl-wall-scan-state WALL-SCAN-IDLE)
 )
 
@@ -4098,7 +4037,6 @@
 =>
 	(enable-wall-placement 2)
 	(set-goal gl-wall-enabled YES)
-	(chat-local-to-self "Wall placement owner enabled")
 )
 
 ;Completion quarters act as a progress latch using only classic wall facts.
@@ -4139,7 +4077,6 @@
 =>
 	(set-goal gl-wall-material WALL-MATERIAL-STONE)
 	(set-strategic-number sn-gate-type-for-wall 0)
-	(chat-local-to-self "Wall owner latched stone perimeter")
 )
 
 (defrule
@@ -4150,7 +4087,6 @@
 =>
 	(set-goal gl-wall-material WALL-MATERIAL-PALISADE)
 	(set-strategic-number sn-gate-type-for-wall 1)
-	(chat-local-to-self "Wall owner latched palisade perimeter")
 )
 
 (defrule
@@ -4172,7 +4108,6 @@
 	(up-modify-goal gl-wall-retries c:+ 1)
 	(up-modify-goal gl-wall-next g:= gl-game-time)
 	(up-modify-goal gl-wall-next c:+ 45)
-	(chat-local-to-self "Wall owner issued stone line")
 )
 
 (defrule
@@ -4194,7 +4129,6 @@
 	(up-modify-goal gl-wall-retries c:+ 1)
 	(up-modify-goal gl-wall-next g:= gl-game-time)
 	(up-modify-goal gl-wall-next c:+ 45)
-	(chat-local-to-self "Wall owner issued palisade line")
 )
 
 (defrule
@@ -4243,7 +4177,6 @@
 	(set-goal gl-wall-retries 0)
 	(up-modify-goal gl-wall-next g:= gl-game-time)
 	(up-modify-goal gl-wall-next c:+ 180)
-	(up-chat-data-to-self "Wall placement no-progress backoff: %d" g: gl-wall-last-percent)
 )
 
 ;Insert one usable opening as soon as a quarter of the perimeter exists and a
@@ -4270,7 +4203,6 @@
 	(set-goal gl-wall-gate-attempts 0)
 	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
 	(up-modify-goal gl-wall-gate-next c:+ 60)
-	(chat-local-to-self "Wall owner issued stone gate 1")
 )
 
 (defrule
@@ -4293,7 +4225,6 @@
 	(set-goal gl-wall-gate-attempts 0)
 	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
 	(up-modify-goal gl-wall-gate-next c:+ 60)
-	(chat-local-to-self "Wall owner issued palisade gate 1")
 )
 
 (defrule
@@ -4316,7 +4247,6 @@
 	(set-goal gl-wall-gate-attempts 0)
 	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
 	(up-modify-goal gl-wall-gate-next c:+ 60)
-	(chat-local-to-self "Wall owner issued stone gate 2")
 )
 
 (defrule
@@ -4339,7 +4269,6 @@
 	(set-goal gl-wall-gate-attempts 0)
 	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
 	(up-modify-goal gl-wall-gate-next c:+ 60)
-	(chat-local-to-self "Wall owner issued palisade gate 2")
 )
 
 ;A partially built line may not yet contain a replaceable gate span. Poll that
@@ -4381,7 +4310,6 @@
 	(set-goal gl-wall-gate-attempts 0)
 	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
 	(up-modify-goal gl-wall-gate-next c:+ 180)
-	(up-chat-data-to-self "Wall gate availability backoff: %d" g: gl-wall-gates-issued)
 )
 
 ;farm fallback
@@ -4399,7 +4327,6 @@
 		(building-type-count farm < gl-farm-build-target)
 	(up-can-build 0 c: farm)
 =>
-	(chat-local-to-self "fallback farm placement")
 	(up-build place-normal 0 c: farm)
 )
 

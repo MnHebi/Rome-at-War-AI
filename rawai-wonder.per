@@ -108,7 +108,6 @@
 	(goal gl-wonder-state WONDER-STATE-SAVING)
 	(players-building-type-count any-ally wonder >= 1)
 =>
-	(chat-local-to-self "Allied stalemate Wonder detected")
 	(set-goal gl-wonder-state WONDER-STATE-ALLY-ACTIVE)
 )
 
@@ -137,7 +136,6 @@
 	(up-modify-goal gl-wonder-build-attempts c:+ 1)
 	(up-modify-goal gl-wonder-build-next g:= gl-game-time)
 	(up-modify-goal gl-wonder-build-next c:+ 180)
-	(up-chat-data-to-self "stalemate Wonder requested player: %d" g: gl-self-player-number)
 	(chat-to-allies "Long stalemate detected; I am building a Wonder")
 	(set-goal gl-wonder-state WONDER-STATE-BUILDING)
 )
@@ -146,7 +144,6 @@
 	(goal gl-wonder-state WONDER-STATE-BUILDING)
 	(building-type-count-total wonder >= 1)
 =>
-	(up-chat-data-to-self "stalemate Wonder foundation active: %d" g: gl-self-player-number)
 	(set-goal gl-wonder-state WONDER-STATE-ACTIVE)
 )
 
@@ -155,7 +152,6 @@
 	(players-building-type-count any-ally wonder >= 1)
 	(building-type-count-total wonder <= 0)
 =>
-	(chat-local-to-self "Allied Wonder won the build election")
 	(set-goal gl-wonder-state WONDER-STATE-ALLY-ACTIVE)
 )
 

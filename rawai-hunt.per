@@ -101,7 +101,6 @@
 	(up-modify-goal gl-boar-commit-deadline g:= gl-game-time)
 	(up-modify-goal gl-boar-commit-deadline c:+ 15)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
-	(up-chat-data-to-self "boar commit waiting for sheep food: %d" c: 1)
 )
 
 ;A support retry must pass the same sheep-food gate as the initial lure. If a
@@ -115,7 +114,6 @@
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
 	(set-strategic-number sn-minimum-number-hunters 1)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-FIND)
-	(up-chat-data-to-self "boar retry preserving sheep food: %d" c: 1)
 )
 
 (defrule
@@ -137,7 +135,6 @@
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
 	(set-strategic-number sn-minimum-number-hunters 1)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
-	(up-chat-data-to-self "boar commit armed: %d" g: gl-boar-commit-deadline)
 )
 
 (defrule
@@ -152,7 +149,6 @@
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
 	(set-strategic-number sn-minimum-number-hunters 1)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
-	(up-chat-data-to-self "boar commit armed: %d" g: gl-boar-commit-deadline)
 )
 
 ;Bind activation to one villager whose current target is in the boar resource
@@ -195,7 +191,6 @@
 	(up-modify-goal gl-boar-commit-deadline g:= gl-game-time)
 	(up-modify-goal gl-boar-commit-deadline c:+ 600)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
-	(up-chat-data-to-self "boar commit active hunters: %d" c: 6)
 )
 
 (defrule
@@ -217,7 +212,6 @@
 	(up-modify-goal gl-boar-commit-deadline g:= gl-game-time)
 	(up-modify-goal gl-boar-commit-deadline c:+ 600)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
-	(up-chat-data-to-self "boar commit active hunters: %d" c: 7)
 )
 
 ;If newly discovered sheep arrives after the lurer has already targeted the
@@ -253,7 +247,6 @@
 	(set-goal gl-boar-lurer-id -1)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
-	(up-chat-data-to-self "boar commit cancelled for sheep: %d" c: 1)
 )
 
 (defrule
@@ -267,7 +260,6 @@
 	(set-goal gl-boar-lurer-id -1)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
-	(up-chat-data-to-self "boar commit timed out: %d" g: gl-boar-commit-deadline)
 )
 
 (defrule
@@ -320,7 +312,6 @@
 	(set-goal gl-boar-lurer-id -1)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
-	(up-chat-data-to-self "boar rescue target gone: %d" g: gl-boar-target-id)
 )
 
 (defrule
@@ -374,7 +365,6 @@
 	(up-modify-goal gl-boar-commit-deadline g:= gl-game-time)
 	(up-modify-goal gl-boar-commit-deadline c:+ 600)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
-	(up-chat-data-to-self "boar rescue non-shepherds: %d" g: local-total)
 )
 
 (defrule
@@ -394,7 +384,6 @@
 	(up-modify-goal gl-boar-commit-deadline g:= gl-game-time)
 	(up-modify-goal gl-boar-commit-deadline c:+ 600)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
-	(up-chat-data-to-self "boar rescue non-shepherds: %d" g: local-total)
 )
 
 (defrule
@@ -452,7 +441,6 @@
 	(set-goal gl-boar-lurer-id -1)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
-	(up-chat-data-to-self "boar rescue garrisoned lurer: %d" g: gl-boar-lurer-id)
 )
 
 (defrule
@@ -466,7 +454,6 @@
 	(set-goal gl-boar-lurer-id -1)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
-	(up-chat-data-to-self "boar rescue lurer gone: %d" g: gl-boar-lurer-id)
 )
 
 (defrule
@@ -589,7 +576,6 @@
 	(set-goal gl-boar-lurer-id -1)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
-	(up-chat-data-to-self "boar retry exact target gone: %d" g: gl-boar-target-id)
 )
 
 ;A sheep line can appear after the first support request was only partially
@@ -692,5 +678,4 @@
 	(set-strategic-number sn-minimum-number-hunters 1)
 	(set-goal gl-boar-lurer-id -1)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-IDLE)
-	(up-chat-data-to-self "boar commit released: %d" c: 1)
 )

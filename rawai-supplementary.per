@@ -14,7 +14,6 @@
 	(up-timer-status t-resource-check == timer-disabled)
 =>
 	(enable-timer t-resource-check 60)
-	(chat-local-to-self "start resource check timer")
 )
 
 (defrule
@@ -25,7 +24,6 @@
 =>
 	(set-goal resource-check SEARCH-BEGIN)
 	(disable-timer t-resource-check)
-	(chat-local-to-self "start checking resources")
 )
 
 (defrule
@@ -41,7 +39,6 @@
 	)
 =>
 	(set-goal forage-present NO)
-	(chat-local-to-self "forage-present NO")
 )
 
 (defrule
@@ -51,7 +48,6 @@
 	)
 =>
 	(set-goal forage-present YES)
-	(chat-local-to-self "forage-present YES")
 )
 
 (defrule
@@ -61,7 +57,6 @@
 	)
 =>
 	(set-goal deer-present NO)
-	(chat-local-to-self "deer-present NO")
 )
 
 (defrule
@@ -71,7 +66,6 @@
 	)
 =>
 	(set-goal deer-present YES)
-	(chat-local-to-self "deer-present YES")
 )
 
 (defrule
@@ -81,7 +75,6 @@
 	)
 =>
 	(set-goal boar-present NO)
-	(chat-local-to-self "boar-present NO")
 )
 
 (defrule
@@ -91,7 +84,6 @@
 	)
 =>
 	(set-goal boar-present YES)
-	(chat-local-to-self "boar-present YES")
 )
 
 (defrule
@@ -105,7 +97,6 @@
 =>
 	(set-goal fish-present NO)
 	(set-goal resource-check WOOD-SEARCH)
-	(chat-local-to-self "fish-present NO")
 )
 
 (defrule
@@ -119,7 +110,6 @@
 =>
 	(set-goal fish-present YES)
 	(set-goal resource-check WOOD-SEARCH)
-	(chat-local-to-self "fish-present YES")
 )
 
 (defrule
@@ -130,7 +120,6 @@
 =>
 	(set-goal wood-present NO)
 	(set-goal resource-check GOLD-SEARCH)
-	(chat-local-to-self "wood-present NO")
 )
 
 (defrule
@@ -141,7 +130,6 @@
 =>
 	(set-goal wood-present YES)
 	(set-goal resource-check GOLD-SEARCH)
-	(chat-local-to-self "wood-present YES")
 )
 
 (defrule
@@ -152,7 +140,6 @@
 =>
 	(set-goal gold-present NO)
 	(set-goal resource-check STONE-SEARCH)
-	(chat-local-to-self "gold-present NO")
 )
 
 (defrule
@@ -163,7 +150,6 @@
 =>
 	(set-goal gold-present YES)
 	(set-goal resource-check STONE-SEARCH)
-	(chat-local-to-self "gold-present YES")
 )
 
 (defrule
@@ -174,7 +160,6 @@
 =>
 	(set-goal stone-present NO)
 	(set-goal resource-check SEARCH-END)
-	(chat-local-to-self "stone-present NO, end resource check")
 )
 
 (defrule
@@ -185,7 +170,6 @@
 =>
 	(set-goal stone-present YES)
 	(set-goal resource-check SEARCH-END)
-	(chat-local-to-self "stone-present YES, end resource check")
 )
 
 ;resources depleted check
@@ -200,6 +184,5 @@
 	)
 =>
 	(set-goal resources-depleted YES)
-	(chat-local-to-self "map resources depleted")
 	(disable-self)
 )

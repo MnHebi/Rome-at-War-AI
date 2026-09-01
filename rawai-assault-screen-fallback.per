@@ -15,8 +15,6 @@
 	             (up-compare-goal gl-transport-route-state c:<= TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK))))
 =>
 	(set-goal gl-assault-fallback-deadline 0)
-	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
-	(up-chat-data-to-all "RAW44C assault hold reason: %d" c: 13)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-RECALL)
 )
 
@@ -31,8 +29,6 @@
 	        (and (up-compare-goal gl-transport-route-state c:>= TRANSPORT-ROUTE-DEPARTURE-START)
 	             (up-compare-goal gl-transport-route-state c:<= TRANSPORT-ROUTE-DEPARTURE-CLEAR-CHECK))))
 =>
-	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
-	(up-chat-data-to-all "RAW44C assault hold reason: %d" c: 14)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-RECALL)
 )
 
@@ -264,8 +260,6 @@
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-get-fact game-time 0 gl-assault-fallback-deadline)
 	(up-modify-goal gl-assault-fallback-deadline c:+ ASSAULT-UNSCREENED-TRAVEL-LIMIT)
-	(up-chat-data-to-all "RAW44T screening bypass hull: %d" g: gl-transport-route-id)
-	(up-chat-data-to-all "RAW44T screening bypass reason: %d" g: gl-assault-fallback-reason)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-START)
 )
 
@@ -280,7 +274,6 @@
 ;Retain the original soft-failure reason and coarse denial for old replay parsers.
 ;Emit precise code-4 context BEFORE changing state/restoring focus. This is
 ;diagnostic only: no search, manifest, ownership, command or cancellation changes.
-(load "rawai-assault-cancel-details")
 ;T19: retain the same accepted load while excluding this failed candidate.
 (defrule
     (goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DENY)
@@ -288,7 +281,6 @@
     (or (goal gl-assault-fallback-denial 2)
         (or (goal gl-assault-fallback-denial 3) (goal gl-assault-fallback-denial 5)))
 =>
-    (up-chat-data-to-all "RAW44T screening bypass denied: %d" g: gl-assault-fallback-denial)
     (up-modify-goal gl-ap-failure g:= gl-assault-fallback-denial)
     (up-modify-goal gl-ap-failure c:+ 30)
     (set-goal gl-transport-route-state AP-FAIL)
@@ -309,8 +301,5 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DENY)
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
-	(up-chat-data-to-all "RAW44C assault hold hull: %d" g: gl-transport-route-id)
-	(up-chat-data-to-all "RAW44C assault hold reason: %d" g: gl-assault-fallback-reason)
-	(up-chat-data-to-all "RAW44T screening bypass denied: %d" g: gl-assault-fallback-denial)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-RECALL)
 )

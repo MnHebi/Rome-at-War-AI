@@ -17,7 +17,6 @@
 	(up-modify-goal desired-number-lumbercamps c:= 1)
 	(up-modify-goal desired-number-mills c:= 1)
 	(up-modify-goal desired-number-miningcamps c:= 1)
-	(chat-local-to-self "initial resource gathering settings")
 	
 	(disable-self)
 )
@@ -40,7 +39,6 @@
 	(up-modify-goal desired-number-lumbercamps c:= 1)
 	(up-modify-goal desired-number-mills c:= 1)
 	(up-modify-goal desired-number-miningcamps c:= 1)
-	(chat-local-to-self "have lumber camp resource gathering settings")
 	
 	(disable-self)
 )
@@ -63,7 +61,6 @@
 	(up-modify-goal desired-number-lumbercamps c:= 1)
 	(up-modify-goal desired-number-mills c:= 1)
 	(up-modify-goal desired-number-miningcamps c:= 1)
-	(chat-local-to-self "have mill & lumber camp resource gathering settings")
 	
 	(disable-self)
 )
@@ -85,7 +82,6 @@
 	;actually distant cluster later instead of following the phase number.
 	(up-modify-goal desired-number-mills c:= 1)
 	(up-modify-goal desired-number-miningcamps c:= 2)
-	(chat-local-to-self "aging to early antiquity age resource gathering settings")
 	
 	(disable-self)
 )
@@ -359,7 +355,6 @@
 	(up-modify-goal desired-number-lumbercamps c:= 5)
 	(up-modify-goal desired-number-mills c:= 5)
 	(up-modify-goal desired-number-miningcamps c:= 0)
-	(up-chat-data-to-self "gatherers: phase 7 no gold/stone -> food %d" c: 50)
 	(disable-self)
 )
 
@@ -398,7 +393,6 @@
 	(up-modify-sn sn-gold-gatherer-percentage c:= 0)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
 	(up-modify-goal desired-depleted-villagers g:= gl-thirty-percent)
-	(up-chat-data-to-self "gatherers: depleted land -> food %d" c: 100)
 	(disable-self)
 )
 
@@ -425,7 +419,6 @@
 	;phase villager target so losses among remote workers and farmers are
 	;replaced instead of waiting for the entire economy to fall below 30%.
 	(up-modify-goal desired-depleted-villagers g:= desired-number-villagers)
-	(up-chat-data-to-self "gatherers: depleted island colony -> food %d" c: 45)
 	(disable-self)
 )
 
@@ -446,7 +439,6 @@
 	(up-modify-sn sn-gold-gatherer-percentage c:= 0)
 	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
 	(up-modify-goal desired-depleted-villagers g:= gl-thirty-percent)
-	(up-chat-data-to-self "gatherers: depleted island no colony -> food %d" c: 100)
 	(disable-self)
 )
 
@@ -702,7 +694,6 @@
 	)
 =>
 	(set-goal dependent-farms FARM-DEMAND-DEPENDENT)
-	(chat-local-to-self "Farm demand depends on nearby natural food")
 	(disable-self)
 )
 
@@ -713,7 +704,6 @@
 	)
 =>
 	(set-goal dependent-farms FARM-DEMAND-DEPENDENT)
-	(chat-local-to-self "Defer independent farms, no mill")
 )
 
 (defrule
@@ -727,7 +717,6 @@
 	)
 =>
 	(set-goal dependent-farms FARM-DEMAND-DEPENDENT)
-	(chat-local-to-self "Defer independent farms, age-up structures missing")
 )
 
 (defrule
@@ -745,7 +734,6 @@
 =>
 	(set-goal dependent-farms FARM-DEMAND-DEPENDENT)
 	(disable-timer t-farm-check)
-	(chat-local-to-self "Farm demand still depends on nearby hunt")
 )
 
 (defrule
@@ -772,7 +760,6 @@
 =>
 	(set-goal dependent-farms FARM-DEMAND-INDEPENDENT)
 	(disable-timer t-farm-check)
-	(chat-local-to-self "Use independent farm target, natural food is exhausted")
 )
 
 (defrule
@@ -1255,7 +1242,6 @@
 	(up-modify-goal gl-trade-growth-limit g:= gl-trade-active-count)
 	(up-modify-goal gl-trade-growth-limit c:* 2)
 	(up-modify-goal gl-trade-growth-limit c:+ 3)
-	(up-chat-data-to-self "merchant route action verified: %d" g: gl-trade-water-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
 	(up-modify-goal gl-trade-route-next g:= gl-game-time)
 	(up-modify-goal gl-trade-route-next c:+ 15)
@@ -1270,7 +1256,6 @@
 	(set-goal gl-trade-action-verified NO)
 	(set-goal gl-trade-active-count 0)
 	(set-goal gl-trade-growth-limit 3)
-	(up-chat-data-to-self "merchant probes idle: %d" g: gl-trade-probe-trained)
 	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
 	(up-modify-goal gl-trade-route-next g:= gl-game-time)
 	(up-modify-goal gl-trade-route-next c:+ 30)
@@ -1313,7 +1298,6 @@
 	(up-modify-goal gl-trade-growth-limit g:= gl-trade-active-count)
 	(up-modify-goal gl-trade-growth-limit c:* 2)
 	(up-modify-goal gl-trade-growth-limit c:+ 3)
-	(chat-local-to-self "merchant land route action verified")
 	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
 	(up-modify-goal gl-trade-route-next g:= gl-game-time)
 	(up-modify-goal gl-trade-route-next c:+ 15)
@@ -1328,7 +1312,6 @@
 	(set-goal gl-trade-action-verified NO)
 	(set-goal gl-trade-active-count 0)
 	(set-goal gl-trade-growth-limit 3)
-	(chat-local-to-self "merchant land route idle")
 	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
 	(up-modify-goal gl-trade-route-next g:= gl-game-time)
 	(up-modify-goal gl-trade-route-next c:+ 30)
@@ -1450,7 +1433,6 @@
 	(set-goal gl-trade-route-failures 0)
 	(up-modify-goal gl-trade-route-next g:= gl-game-time)
 	(up-modify-goal gl-trade-route-next c:+ 90)
-	(up-chat-data-to-self "reachable ally land trade: %d" g: gl-trade-route-player)
 	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
 )
 
@@ -1516,8 +1498,6 @@
 	(up-compare-goal gl-trade-valid-producer-total g:!= gl-trade-own-producer-total)
 =>
 	(up-modify-goal gl-trade-route-failures c:+ 1)
-	(up-chat-data-to-self "trade water source valid: %d" g: gl-trade-valid-producer-total)
-	(up-chat-data-to-self "trade water source total: %d" g: gl-trade-own-producer-total)
 	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
 	(up-modify-goal gl-trade-route-next g:= gl-game-time)
 	(up-modify-goal gl-trade-route-next c:+ 60)
@@ -1529,7 +1509,6 @@
 	(not (up-set-target-object search-local c: 0))
 =>
 	(up-modify-goal gl-trade-route-failures c:+ 1)
-	(up-chat-data-to-self "trade water source missing: %d" g: gl-trade-route-failures)
 	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
 	(up-modify-goal gl-trade-route-next g:= gl-game-time)
 	(up-modify-goal gl-trade-route-next c:+ 60)
@@ -1558,7 +1537,6 @@
 	(set-goal gl-trade-route-failures 0)
 	(up-modify-goal gl-trade-route-next g:= gl-game-time)
 	(up-modify-goal gl-trade-route-next c:+ 90)
-	(up-chat-data-to-self "reachable ally water trade: %d" g: gl-trade-route-player)
 	(set-goal gl-trade-route-state TRADE-ROUTE-IDLE)
 )
 
@@ -1588,7 +1566,6 @@
 	(up-compare-goal gl-trade-route-player g:== gl-trade-route-first)
 =>
 	(up-modify-goal gl-trade-route-failures c:+ 1)
-	(up-chat-data-to-self "trade no shared water zone: %d" g: gl-trade-route-failures)
 	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
 	(up-modify-goal gl-trade-route-next g:= gl-game-time)
 	(up-modify-goal gl-trade-route-next c:+ 60)
@@ -1687,7 +1664,6 @@
 =>
 	(train trade-cog)
 	(up-modify-goal gl-trade-probe-trained c:+ 1)
-	(up-chat-data-to-self "bounded trade cog probe: %d" g: gl-trade-route-failures)
 )
 
 ;A live route, rather than the global Gaia-depletion flag, owns the large-game
@@ -1706,7 +1682,6 @@
 	)
 =>
 	(set-goal gl-trade-transition TRADE-TRANSITION-ROUTE)
-	(chat-local-to-self "Verified late trade transition")
 )
 
 (defrule
@@ -1717,7 +1692,6 @@
 	)
 =>
 	(set-goal gl-trade-transition TRADE-TRANSITION-SCARCE)
-	(chat-local-to-self "Verified scarce-economy trade transition")
 )
 
 (defrule
@@ -1895,8 +1869,6 @@
 =>
 	(up-get-fact unit-type-count villager gl-current-villagers)
 	(up-modify-goal gl-past-villagers g:= gl-current-villagers)
-	(up-chat-data-to-self "previous villagers: %d." g: gl-previous-villagers)
-	(up-chat-data-to-self "current villagers: %d." g: gl-current-villagers)
 )
 
 (defrule
@@ -1908,8 +1880,6 @@
 	(up-modify-goal gl-trained-villagers g:+ gl-villager-counter)
 	(up-modify-goal gl-villager-counter c:= 0)
 	(up-modify-goal gl-previous-villagers g:= gl-past-villagers)
-	(up-chat-data-to-self "starting villagers: %d." g: gl-starting-villagers)
-	(up-chat-data-to-self "trained villagers: %d." g: gl-trained-villagers)
 )
 
 (defrule
@@ -1917,7 +1887,6 @@
 	(up-compare-goal gl-trained-villagers c:> 0)
 =>
 	(up-modify-goal gl-trained-villagers g:- gl-starting-villagers)
-	(up-chat-data-to-self "removed starting villagers from trained villagers, trained villagers: %d." g: gl-trained-villagers)
 	
 	(disable-self)
 )

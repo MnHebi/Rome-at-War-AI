@@ -66,7 +66,6 @@
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
-	(up-chat-data-to-all "RAW17 migration owner lost hull: %d" g: gl-island-migration-transport-id)
 )
 
 (defrule
@@ -74,9 +73,7 @@
 	(up-set-target-object search-local c: 0)
 =>
 	(up-get-object-data object-data-group-flag gl-transport-observed-value)
-	(up-chat-data-to-all "RAW17 actual owner flag: %d" g: gl-transport-observed-value)
 	(up-get-object-data object-data-order gl-transport-observed-value)
-	(up-chat-data-to-all "RAW17 actual hull order: %d" g: gl-transport-observed-value)
 )
 
 (defrule
@@ -105,7 +102,6 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-island-migration-origin-x action-unload -1 stance-no-attack)
-	(up-chat-data-to-all "RAW17 migration owner recovery hull: %d" g: gl-island-migration-transport-id)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 15)
 	(set-goal gl-island-migration-route-waits 0)
@@ -116,7 +112,6 @@
 (defrule
 	(goal gl-island-migration-state MIGRATION-OWNER-LOST)
 =>
-	(up-chat-data-to-all "RAW17 migration owner yield hull: %d" g: gl-island-migration-transport-id)
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-player != my-player-number)
@@ -182,7 +177,6 @@
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-route-id)
-	(up-chat-data-to-all "RAW17 assault owner lost hull: %d" g: gl-transport-route-id)
 )
 
 (defrule
@@ -190,9 +184,7 @@
 	(up-set-target-object search-local c: 0)
 =>
 	(up-get-object-data object-data-group-flag gl-transport-observed-value)
-	(up-chat-data-to-all "RAW17 actual owner flag: %d" g: gl-transport-observed-value)
 	(up-get-object-data object-data-order gl-transport-observed-value)
-	(up-chat-data-to-all "RAW17 actual hull order: %d" g: gl-transport-observed-value)
 )
 
 (defrule
@@ -222,7 +214,6 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
 	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
-	(up-chat-data-to-all "RAW17 assault owner recovery hull: %d" g: gl-transport-route-id)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 15)
 	(set-goal gl-route-unload-attempts 0)
@@ -232,7 +223,6 @@
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-OWNER-LOST)
 =>
-	(up-chat-data-to-all "RAW17 assault owner yield hull: %d" g: gl-transport-route-id)
 	(up-full-reset-search)
 	(up-set-group search-local c: attack-boarding-group)
 	(up-remove-objects search-local object-data-player != my-player-number)
