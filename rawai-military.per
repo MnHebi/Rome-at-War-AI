@@ -2947,6 +2947,24 @@
 	(set-goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-WAIT)
 )
 
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance > 8)
+	(up-object-data object-data-distance <= 12)
+	(up-object-data object-data-distance g:>= gl-island-migration-route-distance)
+	(up-compare-goal gl-island-migration-route-waits c:>= 4)
+=>
+	;T25 hull38985 improved to ten tiles, then oscillated at ten/eleven until
+	;the eight-tile waypoint test recalled it. At this bounded near-waypoint
+	;terminal, advance to the existing exact zone/path landing validation. This
+	;does not issue an unload or weaken wrong-island and unreachable-path checks.
+	(up-copy-point gl-island-migration-route-waypoint-x gl-island-migration-target-x)
+	(up-chat-data-to-self "migration route waypoint reached: %d" g: gl-island-migration-route-waits)
+	(set-goal gl-island-migration-landing-attempts 0)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
+)
+
 ; P3B44T9 OBSERVER BEGIN
 ;Observe the exact object already selected by this owner. No new search,
 ;timer, command, filter, or controller mutation. The identical terminal below
