@@ -85,6 +85,32 @@ class FoundationTests(unittest.TestCase):
         self.assertTrue(any('placement-attempts c:< 4' in r[3] for r in expires))
         self.assertTrue(any('placement-attempts c:>= 4' in r[3] for r in expires))
 
+    def test_successful_landing_revalidates_original_resource_before_fallback(self):
+        rows = [r for r in rule_blocks(source('rawai-military.per'))
+                if '(goal gl-island-migration-state MIGRATION-VERIFY-LANDING)' in r[3]
+                and '(up-compare-goal local-total c:>= 1)' in r[3]]
+        self.assertEqual(len(rows), 1)
+        self.assertIn('(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)',
+                      rows[0][4])
+        self.assertNotIn('(up-find-remote', rows[0][4])
+
+    def test_remote_dropsites_can_release_verified_building_escrow(self):
+        text = source('rawai-military.per')
+        rows = list(rule_blocks(text))
+        for kind in ('mining-camp', 'lumber-camp', 'mill'):
+            issue = [r for r in rows
+                     if '(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)' in r[3]
+                     and f'(not (can-afford-building {kind}))' in r[3]
+                     and f'(can-build-with-escrow {kind})' in r[3]
+                     and '(release-escrow wood)' in r[4]]
+            resume = [r for r in rows
+                      if '(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-RESOURCES)' in r[3]
+                      and f'(can-build-with-escrow {kind})' in r[3]
+                      and '(release-escrow wood)' in r[4]
+                      and 'MIGRATION-VALIDATE-DROPSITE-ANCHOR' in r[4]]
+            self.assertEqual(len(issue), 1, kind)
+            self.assertEqual(len(resume), 1, kind)
+
 
 class PlacementPoint(Gate):
     def __init__(self, kind, attempt=0):

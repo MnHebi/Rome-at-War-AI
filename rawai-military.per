@@ -3468,17 +3468,10 @@
 =>
 	(up-chat-data-to-self "migration settlers landed: %d" g: local-total)
 	(set-goal gl-island-migration-anchor-rejections 0)
-	(set-strategic-number sn-focus-player-number 0)
-	(up-full-reset-search)
-	(up-set-target-point gl-island-migration-target-x)
-	(up-find-remote c: gold-mine-class c: 10)
-	(up-find-remote c: stone-mine-class c: 10)
-	(up-find-remote c: tree-class c: 40)
-	(up-find-remote c: forage-class c: 10)
-	(up-find-remote c: prey-animal-class c: 10)
-	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-island-migration-zone)
-	(up-clean-search search-remote object-data-distance search-order-asc)
-	(set-goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)
+	;Preserve the resource that justified this voyage. Revalidate its exact ID,
+	;class and land zone first; the existing stale-anchor path selects a nearby
+	;alternative only when that original resource truly disappeared.
+	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
 
 (defrule
@@ -3937,6 +3930,44 @@
 	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
 )
 
+;Remote settlers cannot solve a spendable-wood shortage by harvesting before
+;their first drop site exists. Building escrow commonly holds enough total wood
+;for the camp while can-afford-building sees too little. Release that reserved
+;wood only when the matching building is proven affordable with escrow, then let
+;the ordinary exact-point issue rule below own the foundation request.
+(defrule
+	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+	(or
+		(goal gl-island-migration-anchor-class gold-mine-class)
+		(goal gl-island-migration-anchor-class stone-mine-class)
+	)
+	(not (can-afford-building mining-camp))
+	(can-build-with-escrow mining-camp)
+=>
+	(release-escrow wood)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+	(goal gl-island-migration-anchor-class tree-class)
+	(not (can-afford-building lumber-camp))
+	(can-build-with-escrow lumber-camp)
+=>
+	(release-escrow wood)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+	(or
+		(goal gl-island-migration-anchor-class forage-class)
+		(goal gl-island-migration-anchor-class prey-animal-class)
+	)
+	(not (can-afford-building mill))
+	(can-build-with-escrow mill)
+=>
+	(release-escrow wood)
+)
+
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
@@ -4149,8 +4180,9 @@
 		(goal gl-island-migration-anchor-class gold-mine-class)
 		(goal gl-island-migration-anchor-class stone-mine-class)
 	)
-	(can-afford-building mining-camp)
+	(can-build-with-escrow mining-camp)
 =>
+	(release-escrow wood)
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
@@ -4158,8 +4190,9 @@
 (defrule
 	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-RESOURCES)
 	(goal gl-island-migration-anchor-class tree-class)
-	(can-afford-building lumber-camp)
+	(can-build-with-escrow lumber-camp)
 =>
+	(release-escrow wood)
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
@@ -4170,8 +4203,9 @@
 		(goal gl-island-migration-anchor-class forage-class)
 		(goal gl-island-migration-anchor-class prey-animal-class)
 	)
-	(can-afford-building mill)
+	(can-build-with-escrow mill)
 =>
+	(release-escrow wood)
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
