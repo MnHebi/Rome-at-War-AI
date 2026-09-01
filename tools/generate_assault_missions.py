@@ -65,6 +65,13 @@ def definitions():
             '(defconst gl-migration-rendezvous-y 14920)',
             '(defconst gl-migration-rendezvous-until 14921)',
             '(defconst gl-migration-rendezvous-next 14922)',
+            '(defconst gl-assault-admission-diag-next 14923)',
+            '(defconst gl-assault-admission-diag-state 14924)',
+            '(defconst gl-assault-admission-diag-mask 14925)',
+            '(defconst gl-assault-admission-last-stage 14926)',
+            '(defconst gl-assault-admission-last-time 14927)',
+            '(defconst gl-assault-admission-reported-mask 14928)',
+            '(defconst gl-assault-admission-reported-stage 14929)',
             '(defconst str-assault-slot "RAW3 slot: %d")',
             '(defconst str-assault-hull "RAW3 hull: %d")',
             '(defconst str-assault-event "RAW3 event: %d")',
@@ -127,6 +134,15 @@ def admission():
     for i in range(1, 4):
         out.append(rule(['(true)'], [f'(set-goal gl-am{i}-state 0)',
             f'(set-goal gl-am{i}-hull -1)', '(disable-self)']))
+    out.append(rule(['(true)'], [
+        '(set-goal gl-assault-admission-diag-next 0)',
+        '(set-goal gl-assault-admission-diag-state 0)',
+        '(set-goal gl-assault-admission-diag-mask 0)',
+        '(set-goal gl-assault-admission-last-stage 0)',
+        '(set-goal gl-assault-admission-last-time 0)',
+        '(set-goal gl-assault-admission-reported-mask -1)',
+        '(set-goal gl-assault-admission-reported-stage -1)',
+        '(disable-self)']))
     out.append(rule(['(true)'], ['(up-get-fact game-time 0 gl-assault-mission-clock)',
         '(set-goal gl-assault-admission-open NO)', '(set-goal gl-assault-preflight-live NO)',
         '(up-modify-goal gl-assault-diag-checked-enemy g:= gl-assault-manifest-player)',

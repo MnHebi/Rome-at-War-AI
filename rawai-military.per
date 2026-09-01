@@ -5849,6 +5849,128 @@
 ;destination is rebuilt from an observed enemy anchor (or the enemy start as a
 ;fallback), so an engine-generated waypoint on an unrelated islet is rejected.
 (load "rawai-assault-admission")
+;Sparse assault-admission diagnostics.  T25 proves that Green and Purple can
+;remain entirely upstream of the existing load/plan telemetry.  Sample the
+;outer gate once per minute and publish only a mask/stage transition, using the
+;existing generic strings so this cannot consume more string-table entries.
+;Mask: 1 route busy, 2 all slots busy, 4 migration, 8 relic, 16 recovery,
+;32 repair, 64 berth clear, 128 home defense, 256 no Transport,
+;512 no living seed enemy, 1024 route timer waiting.
+(defrule
+	(current-age >= early-antiquity-age)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or (goal map-type ISLANDS) (goal map-type TEAM-ISLANDS))
+		)
+	)
+	(goal gl-assault-admission-diag-state 0)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-assault-admission-diag-next)
+=>
+	(set-goal gl-assault-admission-diag-mask 0)
+	(set-goal gl-assault-admission-diag-state 1)
+	(up-modify-goal gl-assault-admission-diag-next g:= gl-assault-mission-clock)
+	(up-modify-goal gl-assault-admission-diag-next c:+ 60)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 1)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(not (goal gl-assault-admission-open YES))
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 2)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(not (goal gl-island-migration-state MIGRATION-IDLE))
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 4)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(not (goal gl-relic-ferry-state RELIC-FERRY-IDLE))
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 8)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(not (goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE))
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 16)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(not (goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE))
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 32)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(not (goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE))
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 64)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(not (goal gl-home-defense-state NO))
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 128)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(unit-type-count transport-ship < 1)
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 256)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(up-compare-goal gl-ap-seed-enemy c:< 1)
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 512)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(up-timer-status t-transport-route != timer-triggered)
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 1024)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(or
+		(up-compare-goal gl-assault-admission-diag-mask g:!= gl-assault-admission-reported-mask)
+		(up-compare-goal gl-assault-admission-last-stage g:!= gl-assault-admission-reported-stage)
+	)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 400)
+	(up-chat-data-to-all str-t12-diag-value g: gl-assault-admission-diag-mask)
+	(up-modify-goal gl-assault-admission-reported-mask g:= gl-assault-admission-diag-mask)
+	(set-goal gl-assault-admission-diag-state 2)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 2)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 401)
+	(up-chat-data-to-all str-t12-diag-value g: gl-assault-admission-last-stage)
+	(up-modify-goal gl-assault-admission-reported-stage g:= gl-assault-admission-last-stage)
+	(set-goal gl-assault-admission-diag-state 3)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 3)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 402)
+	(up-chat-data-to-all str-t12-diag-value g: gl-assault-admission-last-time)
+	(set-goal gl-assault-admission-diag-state 0)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+=>
+	(set-goal gl-assault-admission-diag-state 0)
+)
 (defrule
 	(up-timer-status t-transport-route == timer-triggered)
 	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
@@ -5863,6 +5985,32 @@
 	(set-goal gl-ap-valid NO)
 	(set-goal gl-assault-fallback-deadline 0)
 	(set-goal gl-assault-fallback-progress-deadline 0)
+)
+(defrule
+	(up-timer-status t-transport-route == timer-triggered)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(goal gl-assault-admission-open YES)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)
+	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
+	(goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
+	(goal gl-home-defense-state NO)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(unit-type-count transport-ship >= 1)
+	(up-compare-goal gl-ap-seed-enemy c:>= 1)
+=>
+	(set-goal gl-assault-admission-last-stage 1)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 )
 (defrule
 	(up-timer-status t-transport-route == timer-triggered)
@@ -6020,6 +6168,8 @@
 	(player-in-game focus-player)
 	(stance-toward focus-player enemy)
 =>
+	(set-goal gl-assault-admission-last-stage 2)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 	(up-get-object-data object-data-id gl-assault-admission-objective)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-modify-goal gl-transport-route-load-player g:= gl-assault-manifest-player)
@@ -6033,6 +6183,8 @@
 =>
 	;No known overseas objective for THIS opponent. Do not substitute another
 	;player's cached zone. Existing bounded retry/target rotation can try later.
+	(set-goal gl-assault-admission-last-stage 3)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 30)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
@@ -6100,6 +6252,8 @@
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-CHECK)
 =>
+	(set-goal gl-assault-admission-last-stage 4)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 	(up-chat-data-to-self "attack lift passengers unavailable: %d" g: gl-transport-route-load-target)
 	(up-modify-group-flag 0 c: attack-boarding-group)
 	(up-reset-group c: attack-boarding-group)
@@ -6158,6 +6312,8 @@
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-HULL-VERIFY)
 =>
+	(set-goal gl-assault-admission-last-stage 6)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 	(up-chat-data-to-all "RAW17 assault claim rejected hull: %d" g: gl-transport-route-id)
 	(up-modify-group-flag 0 c: attack-boarding-group)
 	(up-reset-group c: attack-boarding-group)
@@ -6170,6 +6326,8 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-FIND)
 	(not (up-set-target-object search-remote c: 0))
 =>
+	(set-goal gl-assault-admission-last-stage 5)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 	(up-chat-data-to-self "attack lift unavailable: %d" c: 0)
 	(up-modify-group-flag 0 c: attack-boarding-group)
 	(up-reset-group c: attack-boarding-group)
@@ -6192,6 +6350,8 @@
 =>
 	;The 120-second rendezvous lease includes travel from both sides. It is not
 	;the boarding deadline and cannot silently become an unbounded preparation.
+	(set-goal gl-assault-admission-last-stage 7)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 	(up-modify-goal gl-assault-rendezvous-until g:= gl-transport-load-clock)
 	(up-modify-goal gl-assault-rendezvous-until c:+ 120)
 	(up-modify-goal gl-assault-rendezvous-next g:= gl-transport-load-clock)
@@ -6351,6 +6511,8 @@
 	(up-set-target-object search-remote c: 0)
 =>
 	;OWNERSHIP command: attack-boarding-group.
+	(set-goal gl-assault-admission-last-stage 8)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
@@ -6399,6 +6561,8 @@
 	(up-object-data object-data-garrison-count g:>= gl-transport-route-load-target)
 =>
 	(up-chat-data-to-self "attack lift ready: %d" g: gl-transport-route-load-target)
+	(set-goal gl-assault-admission-last-stage 9)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 	;Seal the accepted manifest, not capacity or a later mutable load target.
 	(up-modify-goal gl-assault-manifest-hull g:= gl-transport-route-id)
 	(up-modify-goal gl-assault-manifest-count g:= gl-transport-route-load-target)
@@ -6669,6 +6833,8 @@
 	;The existing partial acceptance has rebuilt the boarded-only manifest.
 	(up-modify-goal gl-assault-manifest-hull g:= gl-transport-route-id)
 	(up-modify-goal gl-assault-manifest-count g:= gl-transport-route-load-observed)
+	(set-goal gl-assault-admission-last-stage 9)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 	(up-chat-data-to-all "RAW44B attack partial departure: %d" g: gl-transport-route-load-observed)
 	(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
 	(up-full-reset-search)
