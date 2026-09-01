@@ -85,6 +85,7 @@ def definitions():
                for key, label in labels.items())
     out.extend(f'(defconst str-assault-deny-{code} "RAW44T deny {code}: {message}: %d")'
                for code, (message, _) in DENIAL_DETAILS.items())
+    out.append('(load "rawai-transport-unload")')
     return '\n'.join(out) + '\n'
 
 
