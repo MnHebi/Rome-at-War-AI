@@ -4530,7 +4530,7 @@ class FarmPolicyTests(unittest.TestCase):
             facts=(
                 "TRANSPORT-QUARANTINE-CHECK",
                 "object-data-garrison-count > 0",
-                "gl-quarantine-transport-attempts c:>= 3",
+                "(goal gl-quarantine-transport-attempts 3)",
             ),
             actions=(
                 "detached quarantine terminal: %d",

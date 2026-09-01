@@ -147,6 +147,7 @@ class CancellationDetailsTests(unittest.TestCase):
         for name, fingerprint in expected.items():
             rows = []
             for r in rule_blocks(source(name)):
+                facts = expressions(r[3])
                 actions = [e for e in expressions(r[4]) if not e[0].startswith('up-chat') and not
                            (e[0] in ('set-goal', 'up-modify-goal') and e[1].startswith('gl-assault-diag-'))]
                 # T19 appends separately tested admission/rotation policy. The
@@ -159,13 +160,32 @@ class CancellationDetailsTests(unittest.TestCase):
                 # resets. Keep the historical fingerprint for every OTHER write,
                 # predicate and action order rather than replacing the baseline.
                 if name == 'rawai-assault-missions.per':
+                    # T25 deliberately replaces the old four-miss release with
+                    # a separately tested twelve-point continuation probe. Strip
+                    # only that new state machine here so this historical guard
+                    # still fingerprints every unrelated mission predicate and
+                    # action against the immutable T16A1 baseline.
+                    if any(e[0] == 'goal' and re.fullmatch(r'gl-am[123]-sample', e[1]) and
+                           e[2] in ('8', '9') for e in facts):
+                        continue
+                    for e in actions[:]:
+                        if (e[0] == 'set-goal' and re.fullmatch(r'gl-am[123]-sample', e[1]) and
+                                e[2] == '8'):
+                            actions.remove(e)
+                    for index, e in enumerate(facts):
+                        if (e[0] == 'up-compare-goal' and
+                                re.fullmatch(r'gl-am[123]-combat-misses', e[1]) and
+                                e[2:] == ['c:>=', '13']):
+                            e[-1] = '4'
+                            facts.insert(index, ['goal', e[1].replace('combat-misses', 'sample'), '7'])
+                            break
                     for slot in (1, 2, 3):
                         if ['set-goal', f'gl-am{slot}-state', '2'] in actions:
                             for reset in (['set-goal', f'gl-am{slot}-best', '99999'],
                                           ['set-goal', f'gl-am{slot}-stalls', '0']):
                                 self.assertEqual(actions.count(reset), 1)
                                 actions.remove(reset)
-                if actions: rows.append([expressions(r[3]), actions])
+                if actions: rows.append([facts, actions])
             self.assertEqual(hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest(), fingerprint, name)
 
     def test_diagnostic_goals_have_no_aliases_and_never_control_gameplay(self):
