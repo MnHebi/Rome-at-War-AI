@@ -1,6 +1,108 @@
 # Rome at War AI handoff
 
-## CURRENT — T25:473 DEPLOYED, 2026-09-01
+## CURRENT — T26:474 DEPLOYED, 2026-09-01
+
+User supplied the T25 replay after ending a 112-minute Britannia stalemate and
+reported continued assault aborts, a Red hull boxed by merchants/Transports,
+near-shore migration oscillation, partial loads leaving nearby passengers,
+an unexplained Yellow Transport and late inert armies. Read
+`T26-REPLAY-REVIEW.md` and benchmark
+`britain-4v4-20260901-155609-p3b44t25-assault-fairness` before further work.
+
+- **Workspace identity:** the explicitly authorized recovery exception remains
+  canonical for this branch:
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`;
+  Git root is the same path, branch `recovery/p3b44-transport-only`, pre-session
+  HEAD `44fbf7e1f8db849641136444f696aa907cef6c43`. Runtime/evidence commit is
+  `b6ba6dd8e6d7e9bca80cef17f861b8dce6fef40a`; this HANDOFF commit follows it.
+  No checkout/branch switch occurred. The normal project canonical path remains
+  `.pr-work\Rome-at-War-AI`; do not copy selected files between checkouts.
+- **Replay identity:**
+  `SP Replay v101.103.48987.0 @2026.09.01 155609.aoe2record`, SHA-256
+  `70003C7FD3CFCA8079CB1FE388AF8B89E385DE461E0CE12FF6FEF6304C5B400E`,
+  duration112:09, zero action-stream errors and T25:473 marker. Selected
+  colors/resolved teams match the preserved lobby. Replay and `.analysis`
+  payloads stay outside Git.
+- **Broad all-player audit:**47 command-linked hulls,220 transport samples,38
+  assault partial/abort terminals and191 boarding windows. Hull/window/load:
+  Red6/55/215, Green3/11/89, Yellow7/17/151, Purple1/1/18, Orange6/33/215,
+  Cyan7/15/110, Blue7/15/126, Gray10/44/320. These are command lifecycles, not
+  proof that every engine action completed.
+- **Runtime control and divergence:** Gray owns31 assaults and confirms23
+  landing/combat handoffs; Orange15/6. Red owns9 and confirms zero landings:
+  six encounter hostile damage and three reach the90s no-progress terminal.
+  Green/Purple publish no assault stage. Yellow accepts five useful loads but
+  owns no voyage. The same map can support frequent success, so do not classify
+  every failed player as a map-wide pathing failure.
+- **FIXED-PENDING-RUNTIME — all-opponent planning:** Yellow's accepted loads
+  repeatedly check only three opponents and reason-27 before living Blue.
+  Commit `6ce427f` raises the fixed opponent cap3 to the engine maximum7 while
+  preserving target validation, danger vetoes, cooldowns and mission deadline.
+- **FIXED-PENDING-RUNTIME — local boarding grace:** correct group-4 candidates
+  still garrisoning the exact hull at1-4 tiles reach the fixed30s terminal.
+  Commit `04ff4ca` grants one12s grace only with exact group/hull/action/order and
+  distance<=12. Wrong-hull, retasked and distant members keep original bounds.
+- **FIXED-PENDING-RUNTIME — near-waypoint migration:** Red hull38985 improved to
+  ten tiles, then oscillated at10/11 until the strict8-tile gate recalled it.
+  Commit `84add70` sends only the four-stall <=12 terminal into the existing
+  same-zone/path validator; it neither unloads nor weakens geometric vetoes.
+- **FIXED-PENDING-RUNTIME — vanished foundation request:** Red's first18-settler
+  colony issued Mining Camp point(131,199), then had no pending placement/object,
+  worker emergency or foundation. A later voyage reused the identical point and
+  completed foundation67503. Commit `a7a6584` revalidates/reissues the exact point
+  once only when no live request/object or worker emergency exists.
+- **FIXED-PENDING-RUNTIME — idle Trade Cog blockers:** departure clearance did
+  not search `trade-cog-class`. Commit `d326f6a` adds merchants to the same
+  bounded blocker scan but can move only self-owned, idle, empty, ungrouped,
+  safe, same-water-zone ships. Active trade and owned/unsafe ships remain intact.
+- **FIXED-PENDING-RUNTIME — shared-lane fairness:** Green forms nine full failed
+  migrations after76:06. Its rejected-zone ring works, but the earlier migration
+  intake wins whenever both migration and assault timers are due. Commit
+  `a24d379` yields one pass only when assault timer, slot, defense, hull and live
+  enemy prerequisites are ready; a rejected assault resets its timer and leaves
+  migration eligible next sweep.
+- **INVESTIGATING — Green/Purple upstream assault silence:** commit `e1c9dde`
+  adds transition-only one-minute diagnostics using existing strings. IDs400-402
+  publish blocker mask, last stage and stage time. Mask bits:1 route,2 slots,
+  4 migration,8 relic,16 recovery,32 repair,64 berth clear,128 defense,256 no
+  Transport,512 no live seed enemy,1024 timer waiting. Stages0-9 are documented
+  in `T26-REPLAY-REVIEW.md`. This is DIAGNOSTIC ONLY and issues no gameplay order.
+- **Still OPEN — visible late army inertia:** after90:00 Yellow has zero decoded
+  AI attack orders, while Green has1303 and Purple756. This corroborates Yellow
+  silence but prevents treating every visible Green/Purple idle formation as
+  global command silence. Exact group owner/target remains unresolved.
+- **Still OPEN — remaining voyage/congestion classes:** idle Trade Cog detection
+  does not cover active merchant traffic, allied hulls, buildings or every
+  migration obstruction. Red hostile-damage and no-progress terminals are
+  distinct; no known-danger veto was relaxed. The large STOP/order flood remains
+  separately open and is not claimed fixed here.
+- **PASS:**437/437 complete regression tests. Focused all-opponent, boarding
+  grace, waypoint, foundation, blocker and lane-fairness fixtures pass. PER,
+  assault mission/plan generation, strategy execution, naval doctrine,42 replay
+  benchmarks, civ synchronization and825 ownership sites/zero direct permission
+  failures pass. `git diff --check` reports only existing line-ending warnings.
+  The first sandboxed full run hit the known Windows temporary-directory access
+  error; the authorized rerun passed. Historical T16A1 guards normalize only the
+  independently tested diagnostic initializer and six Trade Cog selectors.
+- **Installed/source T26:474:**91 files, full SHA-256
+  `8DD15E63C954C7434D5AA8816F5F4EC74C2F5FCDDA5FE6B5436FB07127FD26F2`.
+  Deployment replaced exactly assault admission/definitions/missions/plans,
+  custom constants, init goals and military. Independent read-only verification
+  reports zero missing/different/unexpected files and marker
+  `RAWAI-P3B44T26:474`.
+- **Next acceptance:** use the user's planned more-open map, verify474/hash, and
+  audit every player/hull. Require fourth-opponent evaluation, at most one local
+  boarding grace, bounded <=12 landing validation, one-shot lost-foundation
+  retry, safe idle-merchant yielding and an assault admission opportunity
+  between failed migrations. Preserve Gray's successful landing control, three
+  independent missions, useful partials, active trade and all danger/zone/path
+  vetoes. Read IDs400-402 for every player still silent; do not call telemetry a
+  fix.
+- **Publication:** local branch remains ahead of
+  `origin/recovery/p3b44-transport-only`; existing PR8 is the publication target.
+  No push/PR mutation was requested in this replay turn.
+
+## PREVIOUS — T25:473 DEPLOYED, 2026-09-01
 
 User supplied the T24 replay after reporting frozen partially loaded Red
 Transports, a temporarily motionless Red fleet, failed productive migrations,
