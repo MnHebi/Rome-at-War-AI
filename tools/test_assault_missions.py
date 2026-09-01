@@ -317,6 +317,25 @@ class AssaultMissionTests(unittest.TestCase):
         self.assertEqual(m.g['gl-am1-state'], 1)
         self.assertEqual(m.g['gl-am1-clear-count'], 1)
 
+    def test_idle_trade_cog_can_yield_but_active_trade_cog_cannot(self):
+        m = self.three()
+        m.objects[10]['idle'] = 1
+        m.objects[43] = dict(id=43, player=2, hp=100, cargo=0, flag=-2, idle=1,
+                             point=(12, 10), zone=8, type='trade-cog',
+                             cls='trade-cog-class', under_attack=0)
+        m.objects[44] = dict(id=44, player=2, hp=100, cargo=0, flag=-2, idle=0,
+                             point=(13, 10), zone=8, type='trade-cog',
+                             cls='trade-cog-class', under_attack=0)
+        m.objects[80] = dict(id=80, player=2, hp=100, cargo=0, flag=-2, idle=0,
+                             point=(70, 10), zone=8, type='transport-ship',
+                             cls='transport-class', under_attack=0)
+        for _ in range(4):
+            m.sweep(8)
+        moved = [(ids, point) for ids, action, point in m.commands
+                 if action == 'action-move' and any(h in ids for h in (43, 44))]
+        self.assertEqual(moved, [((43,), (70, 10))])
+        self.assertEqual(m.g['gl-am1-clear-count'], 1)
+
     def test_landing_stages_only_its_screen_and_paired_escorts(self):
         m = self.three()
         m.g['gl-am1-screen'] = 99

@@ -348,13 +348,15 @@ def missions():
             '(up-set-target-object search-local c: 0)', '(up-object-data object-data-distance <= 20)',
             '(up-object-data object-data-idling == 1)'], [
             '(up-full-reset-search)', f'(up-set-target-point {v("x")})', '(up-filter-distance c: 28 c: 200)',
-            '(up-find-local c: transport-ship c: 40)', '(up-find-local c: warship-class c: 40)',
+            '(up-find-local c: transport-ship c: 40)', '(up-find-local c: trade-cog-class c: 20)',
+            '(up-find-local c: warship-class c: 40)',
             f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("water-zone")})',
             '(up-clean-search search-local object-data-distance search-order-asc)', setv('sample', 2)]))
         out.append(rule([f'(goal {v("sample")} 2)', '(up-set-target-object search-local c: 0)'], [
             f'(up-get-point position-object {v("clear-x")})', '(up-full-reset-search)',
             f'(up-set-target-point {v("x")})', '(up-filter-distance c: -1 c: 12)',
-            '(up-find-local c: transport-ship c: 20)', '(up-find-local c: warship-class c: 20)',
+            '(up-find-local c: transport-ship c: 20)', '(up-find-local c: trade-cog-class c: 20)',
+            '(up-find-local c: warship-class c: 20)',
             '(up-remove-objects search-local object-data-player != my-player-number)',
             '(up-remove-objects search-local object-data-group-flag >= 0)',
             '(up-remove-objects search-local object-data-garrison-count > 0)',
