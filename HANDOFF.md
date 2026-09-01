@@ -50,6 +50,9 @@ beaches with nobody migrating. Read `T24-MIGRATION-RENDEZVOUS.md` and benchmark
   Deployment replaced exactly four files: assault mission defs, custom constants,
   marker/init goals and military. Independent post-apply check reports no missing,
   unexpected or mismatched files; installed marker is `RAWAI-P3B44T24: 472`.
+- Causal/evidence commit `d7e634508b98abf8d05918e0d7a1be92fa7e6338`
+  is pushed to `origin/recovery/p3b44-transport-only`. Existing PR8 was updated,
+  not replaced: `https://github.com/MnHebi/Rome-at-War-AI/pull/8`.
 - Outside-repository diagnostic artifacts:
   `.analysis/replay-20260901-112916-t22-full.json`,
   `.analysis/p3b44t22-transport-audit.{txt,json}`,
