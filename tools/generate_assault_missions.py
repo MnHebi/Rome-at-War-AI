@@ -440,8 +440,39 @@ def missions():
         out.append(rule([*found, f'(up-compare-goal {v("combat-tries")} c:>= 3)'],
                         [copy('combat-failed', v('combat-target'))]))
         out.append(rule([*seeking, f'(goal {v("combat-target")} -1)'],
-                        [f'(up-modify-goal {v("combat-misses")} c:+ 1)']))
-        out.append(rule([*seeking, f'(up-compare-goal {v("combat-misses")} c:>= 4)'],
+                        [f'(up-modify-goal {v("combat-misses")} c:+ 1)', setv('sample', 8)]))
+        # Destroying the visible objective must not cut the landed group's
+        # strings. Probe a bounded ring around the sealed objective, but only
+        # command idle same-zone members and only accept probe points on the
+        # objective's landmass. A visible hostile found on any later sample
+        # still takes priority over these exploratory movements.
+        probes = [(32, 0), (-32, 0), (0, 32), (0, -32),
+                  (64, 0), (-64, 0), (0, 64), (0, -64),
+                  (96, 0), (-96, 0), (0, 96), (0, -96)]
+        for miss, (dx, dy) in enumerate(probes, 1):
+            actions = [f'(up-copy-point {v("clear-x")} {v("target-x")})']
+            if dx:
+                actions.append(f'(up-modify-goal {v("clear-x")} c:{"+" if dx > 0 else "-"} {abs(dx)})')
+            if dy:
+                actions.append(f'(up-modify-goal {v("clear-y")} c:{"+" if dy > 0 else "-"} {abs(dy)})')
+            actions += [f'(up-bound-point {v("x")} {v("clear-x")})',
+                        f'(up-copy-point {v("clear-x")} {v("x")})',
+                        setv('zone', -1), f'(up-get-point-zone {v("clear-x")} {v("zone")})',
+                        setv('sample', 9)]
+            out.append(rule([f'(goal {v("state")} 6)', f'(goal {v("sample")} 8)',
+                             f'(goal {v("combat-misses")} {miss})'], actions))
+        out.append(rule([f'(goal {v("state")} 6)', f'(goal {v("sample")} 9)',
+                         f'(up-compare-goal {v("zone")} g:== {v("target-zone")})'], [
+            *members(), '(up-remove-objects search-local object-data-garrisoned == 1)',
+            f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("target-zone")})',
+            '(up-remove-objects search-local object-data-idling != 1)',
+            '(up-remove-objects search-local object-data-under-attack > 0)',
+            f'(up-target-point {v("clear-x")} action-move -1 stance-aggressive)', setv('sample', 6)]))
+        out.append(rule([f'(goal {v("state")} 6)', f'(goal {v("sample")} 9)',
+                         f'(up-compare-goal {v("zone")} g:!= {v("target-zone")})'],
+                        [setv('sample', 6)]))
+        out.append(rule([f'(goal {v("state")} 6)',
+                         f'(up-compare-goal {v("combat-misses")} c:>= 13)'],
                         [setv('state', 5), setv('reason', 12), *log(12)]))
         out.append(rule([f'(goal {v("state")} 5)'], [
             '(up-full-reset-search)', f'(up-set-group search-local c: {g})',
@@ -575,7 +606,7 @@ def patch():
             old = path.read_text(encoding='utf-8-sig')
             if old == text: continue
             print('*** Update File: ' + path.as_posix())
-            for line in list(difflib.unified_diff(old.splitlines(), text.splitlines(), n=len(old.splitlines())+1))[2:]:
+            for line in list(difflib.unified_diff(old.splitlines(), text.splitlines(), n=3))[2:]:
                 print('@@' if line.startswith('@@') else line)
     print('*** End Patch')
 
