@@ -83,7 +83,6 @@ class Admission(Missions):
         self.rules = [r for r in rule_blocks(source('rawai-military.per'))
                       if '(goal gl-transport-route-state TRANSPORT-ROUTE-FIND)' in r[3]
                       or 'TRANSPORT-ROUTE-ADMISSION-CHECK' in r[3]]
-        self.constants['TRANSPORT-ROUTE-ADMISSION-CHECK'] = 61
         self.objects[600] = dict(id=600, player=6, type='town-center', point=(90, 90), zone=4)
         self.objects[10] = dict(id=10, player=2, type='transport-ship', point=(10, 10),
             cargo=0, idle=1, flag=-2, under_attack=0)
@@ -103,32 +102,34 @@ class Admission(Missions):
 class AssaultAdmissionTests(unittest.TestCase):
     def test_saved_overseas_enemy_admits_despite_local_global_target(self):
         m = Admission(); m.sweep()
-        self.assertEqual(m.g['gl-transport-route-state'], m.val('TRANSPORT-ROUTE-LOAD-FIND'))
-        self.assertEqual(m.remote, [10])
+        self.assertEqual(m.g['gl-transport-route-state'], m.val('TRANSPORT-ROUTE-MANIFEST-FIND'))
         self.assertEqual(m.g['gl-transport-route-load-player'], 6)
         self.assertEqual(m.g['gl-assault-admission-objective'], 600)
 
-    def test_recent_failed_hull_does_not_displace_another_idle_hull(self):
+    def test_admission_does_not_choose_a_hull_before_reserving_passengers(self):
         m = Admission(); m.g['gl-assault-recovery-rejected'] = 10
         m.objects[11] = dict(m.objects[10], id=11)
+        before = m.g['gl-transport-route-id']
         m.sweep()
-        self.assertEqual(m.remote, [11])
+        self.assertEqual(m.g['gl-transport-route-state'], m.val('TRANSPORT-ROUTE-MANIFEST-FIND'))
+        self.assertEqual(m.g['gl-transport-route-id'], before)
+        self.assertEqual([m.objects[i]['flag'] for i in (10, 11)], [-2, -2])
 
     def test_departed_or_nonhostile_saved_enemy_is_rejected(self):
         for field in ('active', 'enemy'):
             m = Admission(); m.players[6][field] = False; m.sweep()
-            self.assertNotEqual(m.g['gl-transport-route-state'], m.val('TRANSPORT-ROUTE-LOAD-FIND'))
+            self.assertNotEqual(m.g['gl-transport-route-state'], m.val('TRANSPORT-ROUTE-MANIFEST-FIND'))
 
     def test_local_unknown_or_other_player_objective_cannot_bootstrap_boarding(self):
         for change in ({'zone': 3}, {'zone': -1}, {'player': 7}):
             m = Admission(); m.objects[600].update(change)
             m.g['gl-land-target-needs-transport'] = 1
             m.sweep()
-            self.assertNotEqual(m.g['gl-transport-route-state'], m.val('TRANSPORT-ROUTE-LOAD-FIND'))
+            self.assertNotEqual(m.g['gl-transport-route-state'], m.val('TRANSPORT-ROUTE-MANIFEST-FIND'))
 
     def test_unknown_home_zone_does_not_assume_overseas(self):
         m = Admission(); m.g['gl-home-zone'] = -1; m.sweep()
-        self.assertNotEqual(m.g['gl-transport-route-state'], m.val('TRANSPORT-ROUTE-LOAD-FIND'))
+        self.assertNotEqual(m.g['gl-transport-route-state'], m.val('TRANSPORT-ROUTE-MANIFEST-FIND'))
 
 
 if __name__ == '__main__': unittest.main()

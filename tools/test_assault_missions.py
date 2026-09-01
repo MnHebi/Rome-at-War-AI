@@ -24,7 +24,9 @@ class Missions(ScreenFallback):
     def data(self, field, target=False):
         obj = self.objects.get(self.target, {})
         keys = {'object-data-attacker-id': 'attacker', 'object-data-idling': 'idle',
-                'object-data-type': 'type', 'object-data-order': 'order'}
+                'object-data-type': 'type', 'object-data-order': 'order',
+                'object-data-cmdid': 'cmdid', 'object-data-move-x': 'move_x',
+                'object-data-move-y': 'move_y'}
         if field in keys: return self.val(str(obj.get(keys[field], -1)))
         if field == 'object-data-index': return self.local.index(self.target)
         return super().data(field, target)
@@ -47,7 +49,8 @@ class Missions(ScreenFallback):
             group = self.val(a[2])
             for i in self.groups.get(group, []):
                 if i in self.objects: self.objects[i]['flag'] = group if a[0] == '1' else -2
-        elif op == 'up-set-timer': pass  # preparation timer is outside this independent voyage module
+        elif op in ('up-set-timer', 'fe-filter-garrisoned'):
+            pass  # preparation timer/search visibility are outside this independent voyage module
         elif op == 'up-target-point':
             point = (self.g.get(a[0], 0), self.g.get(a[0][:-1]+'y', 0))
             self.commands.append((tuple(self.local), a[1], point))
@@ -312,6 +315,25 @@ class AssaultMissionTests(unittest.TestCase):
         m.objects[10].update(point=(60, 40), idle=0)
         for _ in range(3): m.sweep(8)
         self.assertEqual(m.g['gl-am1-state'], 1)
+        self.assertEqual(m.g['gl-am1-clear-count'], 1)
+
+    def test_idle_trade_cog_can_yield_but_active_trade_cog_cannot(self):
+        m = self.three()
+        m.objects[10]['idle'] = 1
+        m.objects[43] = dict(id=43, player=2, hp=100, cargo=0, flag=-2, idle=1,
+                             point=(12, 10), zone=8, type='trade-cog',
+                             cls='trade-cog-class', under_attack=0)
+        m.objects[44] = dict(id=44, player=2, hp=100, cargo=0, flag=-2, idle=0,
+                             point=(13, 10), zone=8, type='trade-cog',
+                             cls='trade-cog-class', under_attack=0)
+        m.objects[80] = dict(id=80, player=2, hp=100, cargo=0, flag=-2, idle=0,
+                             point=(70, 10), zone=8, type='transport-ship',
+                             cls='transport-class', under_attack=0)
+        for _ in range(4):
+            m.sweep(8)
+        moved = [(ids, point) for ids, action, point in m.commands
+                 if action == 'action-move' and any(h in ids for h in (43, 44))]
+        self.assertEqual(moved, [((43,), (70, 10))])
         self.assertEqual(m.g['gl-am1-clear-count'], 1)
 
     def test_landing_stages_only_its_screen_and_paired_escorts(self):

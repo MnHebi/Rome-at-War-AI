@@ -262,8 +262,12 @@ def plans():
               f'(stance-toward {p} enemy)', f'(goal gl-ap-enemy{p}-visited NO)',
               f'(up-compare-goal gl-ap-clock g:>= gl-ap-enemy{p}-until)'],
              [f'(set-goal gl-ap-chosen-enemy {p})'])
+    # One player can have as many as seven living enemies. T25 proved that the
+    # old three-opponent ceiling terminated Yellow after Gray, Orange and Cyan,
+    # without ever evaluating Blue. Visited flags and the mission deadline keep
+    # the complete opponent sweep bounded.
     for condition, reason in (('(up-compare-goal gl-ap-clock g:>= gl-ap-until)',22),
-                              ('(up-compare-goal gl-ap-enemies-tried c:>= 3)',27),
+                              ('(up-compare-goal gl-ap-enemies-tried c:>= 7)',27),
                               ('(goal gl-ap-chosen-enemy -1)',26)):
         emit([state('AP-NEXT-ENEMY'),condition],
              [f'(set-goal gl-ap-failure {reason})',go('AP-TERMINAL')])

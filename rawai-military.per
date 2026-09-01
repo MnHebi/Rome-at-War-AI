@@ -57,6 +57,79 @@
 ;their own ownership and recovery rules. Never interrupt an acquired, owned hull.
 (load "rawai-transport-preparation-ownership")
 
+;T23 extends the immutable T17 preparation lease only across the new
+;rendezvous phases. Its existing OWNER-LOST recovery remains authoritative.
+(defrule
+	(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-START)
+		(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)
+			(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-CHECK)
+				(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER))))
+=>
+	(set-goal gl-transport-preparation-owned NO)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+)
+
+(defrule
+	(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-START)
+		(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)
+			(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-CHECK)
+				(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER))))
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-player == my-player-number)
+	(up-object-data object-data-group-flag == attack-transport-group)
+=>
+	(set-goal gl-transport-preparation-owned YES)
+)
+
+(defrule
+	(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-START)
+		(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)
+			(or (goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-CHECK)
+				(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER))))
+	(goal gl-transport-preparation-owned NO)
+=>
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-OWNER-LOST)
+)
+
+;Migration now has the same lease separation: remote travel to the exact hull
+;is rendezvous work and may not consume the 30-second local boarding window.
+(defrule
+	(or (goal gl-island-migration-state MIGRATION-RENDEZVOUS-ANCHOR)
+		(or (goal gl-island-migration-state MIGRATION-RENDEZVOUS-START)
+			(or (goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)
+				(or (goal gl-island-migration-state MIGRATION-RENDEZVOUS-CHECK)
+					(goal gl-island-migration-state MIGRATION-RENDEZVOUS-PASSENGER)))))
+=>
+	(set-goal gl-transport-preparation-owned NO)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+)
+
+(defrule
+	(or (goal gl-island-migration-state MIGRATION-RENDEZVOUS-ANCHOR)
+		(or (goal gl-island-migration-state MIGRATION-RENDEZVOUS-START)
+			(or (goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)
+				(or (goal gl-island-migration-state MIGRATION-RENDEZVOUS-CHECK)
+					(goal gl-island-migration-state MIGRATION-RENDEZVOUS-PASSENGER)))))
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-player == my-player-number)
+	(up-object-data object-data-group-flag == migration-transport-group)
+=>
+	(set-goal gl-transport-preparation-owned YES)
+)
+
+(defrule
+	(or (goal gl-island-migration-state MIGRATION-RENDEZVOUS-ANCHOR)
+		(or (goal gl-island-migration-state MIGRATION-RENDEZVOUS-START)
+			(or (goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)
+				(or (goal gl-island-migration-state MIGRATION-RENDEZVOUS-CHECK)
+					(goal gl-island-migration-state MIGRATION-RENDEZVOUS-PASSENGER)))))
+	(goal gl-transport-preparation-owned NO)
+=>
+	(set-goal gl-island-migration-state MIGRATION-OWNER-LOST)
+)
+
 ;Reserve half the combat navy, with a one-ship exception, and pair one escort
 ;with each nearest loaded transport. Empty hulls release it on the next refresh.
 (defrule
@@ -109,7 +182,7 @@
 =>
 	(set-goal gl-transport-escort-count 0)
 	(set-goal gl-transport-escort-targets 0)
-	(up-chat-data-to-self "loaded transports: %d" c: 0)
+	(up-chat-data-to-self "active loaded escort targets: %d" c: 0)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-escort-focus-player)
 	(up-full-reset-search)
 	(set-goal gl-transport-escort-state ESCORT-IDLE)
@@ -124,7 +197,7 @@
 	(up-get-fact unit-type-count boarding-ship gl-naval-boarding-count-total)
 	(up-modify-goal gl-transport-escort-count g:+ gl-naval-boarding-count-total)
 	(up-modify-goal gl-transport-escort-count c:/ 2)
-	(up-chat-data-to-self "loaded transports: %d" g: gl-transport-escort-targets)
+	(up-chat-data-to-self "active loaded escort targets: %d" g: gl-transport-escort-targets)
 	(set-goal gl-transport-escort-state ESCORT-PREPARE)
 )
 
@@ -1453,8 +1526,27 @@
 	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
 	(up-pending-objects c: town-center <= 0)
 	(not (up-pending-placement c: town-center))
+	(or
+		(up-timer-status t-transport-route != timer-triggered)
+		(or
+			(not (goal gl-assault-admission-open YES))
+			(or
+				(not (goal gl-home-defense-state NO))
+				(or
+					(unit-type-count transport-ship < 1)
+					(up-compare-goal gl-ap-seed-enemy c:< 1)
+				)
+			)
+		)
+	)
 
 =>
+	;T25 Green spent most of the final 36 minutes cycling one failed migration
+	;after another.  The zone rejection ring worked, but this earlier rule won
+	;the shared idle lane whenever both sixty-second migration recovery and the
+	;assault timer were ready. Yield exactly one admission pass when every outer
+	;assault prerequisite is live. A rejected assault resets its own timer, so
+	;the still-triggered migration timer can claim the lane on the next sweep.
 	(set-goal gl-island-migration-state MIGRATION-GATE-OWNER)
 )
 
@@ -2154,7 +2246,176 @@
 	(up-modify-group-flag 1 c: migration-boarding-group)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-island-migration-load-target g:= local-total)
+	(set-goal gl-island-migration-state MIGRATION-RENDEZVOUS-ANCHOR)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-ANCHOR)
+	(up-set-target-object search-local c: 0)
+=>
+	;The closest reserved passenger is a stable shore rendezvous anchor. Keep the
+	;selected hull/passenger policy unchanged; only separate travel from boarding.
+	(up-get-point position-object gl-migration-rendezvous-x)
+	(set-goal gl-island-migration-state MIGRATION-RENDEZVOUS-START)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-ANCHOR)
+	(not (up-set-target-object search-local c: 0))
+=>
+	;Reuse the established no-passenger branch so reservations and focus restore
+	;exactly as before this rendezvous phase existed.
 	(set-goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-START)
+=>
+	;The 120-second lease includes travel from both sides. It never replaces the
+	;existing 30-second local boarding deadline or the voyage watchdogs.
+	(up-modify-goal gl-migration-rendezvous-until g:= gl-transport-load-clock)
+	(up-modify-goal gl-migration-rendezvous-until c:+ 120)
+	(up-modify-goal gl-migration-rendezvous-next g:= gl-transport-load-clock)
+	(up-modify-goal gl-migration-rendezvous-next c:+ 4)
+	(set-goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
+	(set-goal gl-island-migration-load-reported NO)
+	(set-goal gl-island-migration-load-candidate-id -1)
+	(up-full-reset-search)
+	(up-set-group search-local c: migration-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
+	;OWNERSHIP command: migration-transport-group.
+	(up-target-point gl-migration-rendezvous-x action-move -1 stance-no-attack)
+	(up-full-reset-search)
+	(fe-filter-garrisoned c: 1)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != migration-transport-group)
+	;OWNERSHIP command: migration-boarding-group.
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(up-chat-data-to-all "RAW44C migration terminal hull: %d" g: gl-island-migration-transport-id)
+	(up-chat-data-to-all "RAW44C migration terminal phase: %d" c: 3)
+	(set-goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)
+	(up-compare-goal gl-transport-load-clock g:>= gl-migration-rendezvous-next)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(set-goal gl-island-migration-state MIGRATION-RENDEZVOUS-CHECK)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-player == my-player-number)
+	(up-object-data object-data-group-flag == migration-transport-group)
+	(up-object-data object-data-garrison-count g:>= gl-island-migration-load-target)
+=>
+	;A manifest which completes en route enters the unchanged local load contract.
+	(up-full-reset-search)
+	(fe-filter-garrisoned c: 1)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != migration-transport-group)
+	(set-goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-player == my-player-number)
+	(up-object-data object-data-group-flag == migration-transport-group)
+	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
+=>
+	(up-get-point position-object point-x)
+	(up-full-reset-search)
+	(fe-filter-garrisoned c: 1)
+	(up-set-target-point point-x)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-island-migration-state MIGRATION-RENDEZVOUS-PASSENGER)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-PASSENGER)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance <= 12)
+=>
+	;Only local proximity starts the existing 30-second boarding timer.
+	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != migration-transport-group)
+	(set-goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-PASSENGER)
+	(not (up-set-target-object search-local c: 0))
+=>
+	;All reserved survivors are aboard or gone. Let the established load contract
+	;classify the exact cargo instead of waiting on a vanished shore member.
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != migration-transport-group)
+	(set-goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-PASSENGER)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance > 12)
+	(up-compare-goal gl-transport-load-clock g:< gl-migration-rendezvous-until)
+=>
+	;Renew the exact passenger/hull contract every eight seconds. This is bounded
+	;and cannot become the old per-sweep garrison command loop.
+	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != migration-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	;OWNERSHIP command: migration-boarding-group.
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(up-full-reset-search)
+	(up-set-group search-local c: migration-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
+	;OWNERSHIP command: migration-transport-group.
+	(up-target-point gl-migration-rendezvous-x action-move -1 stance-no-attack)
+	(up-modify-goal gl-migration-rendezvous-next g:= gl-transport-load-clock)
+	(up-modify-goal gl-migration-rendezvous-next c:+ 8)
+	(set-goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-PASSENGER)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance > 12)
+	(up-compare-goal gl-transport-load-clock g:>= gl-migration-rendezvous-until)
+=>
+	;A rendezvous timeout is terminal for this preparation attempt, but the exact
+	;hull/cargo still flows through the existing partial/abort recovery policy.
+	(up-chat-data-to-all "RAW44C migration terminal hull: %d" g: gl-island-migration-transport-id)
+	(up-chat-data-to-all "RAW44C migration terminal phase: %d" c: 4)
+	(up-set-timer c: t-island-migration c: 1)
+	(set-goal gl-island-migration-state MIGRATION-LOADING)
 )
 (defrule
 	(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
@@ -2705,6 +2966,24 @@
 	(set-goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-WAIT)
 )
 
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance > 8)
+	(up-object-data object-data-distance <= 12)
+	(up-object-data object-data-distance g:>= gl-island-migration-route-distance)
+	(up-compare-goal gl-island-migration-route-waits c:>= 4)
+=>
+	;T25 hull38985 improved to ten tiles, then oscillated at ten/eleven until
+	;the eight-tile waypoint test recalled it. At this bounded near-waypoint
+	;terminal, advance to the existing exact zone/path landing validation. This
+	;does not issue an unload or weaken wrong-island and unreachable-path checks.
+	(up-copy-point gl-island-migration-route-waypoint-x gl-island-migration-target-x)
+	(up-chat-data-to-self "migration route waypoint reached: %d" g: gl-island-migration-route-waits)
+	(set-goal gl-island-migration-landing-attempts 0)
+	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
+)
+
 ; P3B44T9 OBSERVER BEGIN
 ;Observe the exact object already selected by this owner. No new search,
 ;timer, command, filter, or controller mutation. The identical terminal below
@@ -3054,16 +3333,36 @@
 	(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-CHECK)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count > 0)
-	(up-compare-goal gl-quarantine-transport-attempts c:>= 3)
+	(goal gl-quarantine-transport-attempts 3)
 =>
-	;Keep the exact hull reserved so ordinary migration and escort selectors do
-	;not recycle it, but stop issuing impossible unload commands. The migration
-	;gate may continue with other empty hulls.
+	;One terminal grace interval retains the exact hull without repeating an
+	;impossible unload. The slot is then rotated so simultaneous orphaned cargo
+	;hulls cannot remain forever outside every automatic controller.
 	(up-chat-data-to-self "detached quarantine terminal: %d" g: gl-quarantine-transport-id)
+	(up-modify-goal gl-quarantine-transport-attempts c:+ 1)
 	(up-modify-sn sn-focus-player-number g:= gl-quarantine-transport-focus)
 	(up-modify-goal gl-quarantine-transport-next g:= gl-game-time)
 	(up-modify-goal gl-quarantine-transport-next c:+ 60)
 	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-TERMINAL)
+)
+
+(defrule
+	(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+	(up-compare-goal gl-quarantine-transport-attempts c:>= 4)
+=>
+	;Remember the terminal hull long enough for the free-hull scanner to choose a
+	;different orphan. Loaded hulls remain excluded from migration and assault
+	;admission even after this scarce exact-ID slot rotates.
+	(up-modify-goal gl-assault-recovery-rejected g:= gl-quarantine-transport-id)
+	(up-modify-goal gl-assault-recovery-retry g:= gl-game-time)
+	(up-modify-goal gl-assault-recovery-retry c:+ 300)
+	(up-modify-sn sn-focus-player-number g:= gl-quarantine-transport-focus)
+	(set-goal gl-quarantine-transport-id -1)
+	(up-modify-goal gl-quarantine-transport-next g:= gl-game-time)
+	(up-modify-goal gl-quarantine-transport-next c:+ 30)
+	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)
 )
 
 (defrule
@@ -3088,6 +3387,56 @@
 	(set-goal gl-quarantine-transport-id -1)
 	(up-modify-goal gl-quarantine-transport-next g:= gl-game-time)
 	(up-modify-goal gl-quarantine-transport-next c:+ 60)
+	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)
+)
+
+;Preparation recovery can relinquish a loaded hull when the exact quarantine
+;slot is already occupied. Once all transport state machines are idle, adopt
+;one such free, motionless cargo hull and put it through the same bounded exact-
+;ID shoreline-unload lifecycle. This scanner never takes a grouped mission,
+;moving hull, damaged hull, or the most recently terminal hull.
+(defrule
+	(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)
+	(up-compare-goal gl-quarantine-transport-id c:< 0)
+	(up-compare-goal gl-game-time g:>= gl-quarantine-transport-next)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
+	(goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
+=>
+	(up-modify-goal gl-quarantine-transport-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-find-local c: transport-ship c: 40)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-id g:== gl-assault-recovery-rejected)
+	(up-remove-objects search-local object-data-garrison-count <= 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-SCAN)
+)
+
+(defrule
+	(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-SCAN)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-quarantine-transport-id)
+	(set-goal gl-quarantine-transport-attempts 0)
+	(up-modify-goal gl-quarantine-transport-next g:= gl-game-time)
+	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-CHECK)
+)
+
+(defrule
+	(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-SCAN)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-quarantine-transport-focus)
+	(up-modify-goal gl-quarantine-transport-next g:= gl-game-time)
+	(up-modify-goal gl-quarantine-transport-next c:+ 30)
 	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)
 )
 
@@ -3226,17 +3575,10 @@
 =>
 	(up-chat-data-to-self "migration settlers landed: %d" g: local-total)
 	(set-goal gl-island-migration-anchor-rejections 0)
-	(set-strategic-number sn-focus-player-number 0)
-	(up-full-reset-search)
-	(up-set-target-point gl-island-migration-target-x)
-	(up-find-remote c: gold-mine-class c: 10)
-	(up-find-remote c: stone-mine-class c: 10)
-	(up-find-remote c: tree-class c: 40)
-	(up-find-remote c: forage-class c: 10)
-	(up-find-remote c: prey-animal-class c: 10)
-	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-island-migration-zone)
-	(up-clean-search search-remote object-data-distance search-order-asc)
-	(set-goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)
+	;Preserve the resource that justified this voyage. Revalidate its exact ID,
+	;class and land zone first; the existing stale-anchor path selects a nearby
+	;alternative only when that original resource truly disappeared.
+	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
 
 (defrule
@@ -3368,6 +3710,7 @@
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-placement-attempts 0)
+	(set-goal gl-island-migration-point-retry-used NO)
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
@@ -3695,6 +4038,44 @@
 	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
 )
 
+;Remote settlers cannot solve a spendable-wood shortage by harvesting before
+;their first drop site exists. Building escrow commonly holds enough total wood
+;for the camp while can-afford-building sees too little. Release that reserved
+;wood only when the matching building is proven affordable with escrow, then let
+;the ordinary exact-point issue rule below own the foundation request.
+(defrule
+	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+	(or
+		(goal gl-island-migration-anchor-class gold-mine-class)
+		(goal gl-island-migration-anchor-class stone-mine-class)
+	)
+	(not (can-afford-building mining-camp))
+	(can-build-with-escrow mining-camp)
+=>
+	(release-escrow wood)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+	(goal gl-island-migration-anchor-class tree-class)
+	(not (can-afford-building lumber-camp))
+	(can-build-with-escrow lumber-camp)
+=>
+	(release-escrow wood)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+	(or
+		(goal gl-island-migration-anchor-class forage-class)
+		(goal gl-island-migration-anchor-class prey-animal-class)
+	)
+	(not (can-afford-building mill))
+	(can-build-with-escrow mill)
+=>
+	(release-escrow wood)
+)
+
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
@@ -3907,8 +4288,9 @@
 		(goal gl-island-migration-anchor-class gold-mine-class)
 		(goal gl-island-migration-anchor-class stone-mine-class)
 	)
-	(can-afford-building mining-camp)
+	(can-build-with-escrow mining-camp)
 =>
+	(release-escrow wood)
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
@@ -3916,8 +4298,9 @@
 (defrule
 	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-RESOURCES)
 	(goal gl-island-migration-anchor-class tree-class)
-	(can-afford-building lumber-camp)
+	(can-build-with-escrow lumber-camp)
 =>
+	(release-escrow wood)
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
@@ -3928,8 +4311,9 @@
 		(goal gl-island-migration-anchor-class forage-class)
 		(goal gl-island-migration-anchor-class prey-animal-class)
 	)
-	(can-afford-building mill)
+	(can-build-with-escrow mill)
 =>
+	(release-escrow wood)
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
@@ -4231,6 +4615,33 @@
 =>
 	(up-chat-data-to-self "migration dropsite foundation lost: %d" g: gl-island-migration-dropsite-id)
 	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+	(up-timer-status t-island-migration == timer-triggered)
+	(up-compare-goal gl-island-migration-placement-attempts c:> 0)
+	(up-compare-goal gl-island-migration-placement-attempts c:< 4)
+	(goal gl-island-migration-point-retry-used NO)
+	(goal gl-owner-worker-hold NO)
+	(up-pending-objects c: mining-camp <= 0)
+	(up-pending-objects c: lumber-camp <= 0)
+	(up-pending-objects c: mill <= 0)
+	(not (up-pending-placement c: mining-camp))
+	(not (up-pending-placement c: lumber-camp))
+	(not (up-pending-placement c: mill))
+=>
+	;T25's first exact (131,199) request vanished with no pending placement or
+	;foundation, while the same point succeeded on the next migration. Retry the
+	;last engine-accepted point once before advancing to geometrically different
+	;offsets. The one-shot token and original four-offset bound prevent a loop.
+	(up-reset-placement c: mining-camp)
+	(up-reset-placement c: lumber-camp)
+	(up-reset-placement c: mill)
+	(set-goal gl-island-migration-point-retry-used YES)
+	(up-modify-goal gl-island-migration-placement-attempts c:- 1)
+	(up-set-timer c: t-island-migration c: 1)
+	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
 
 (defrule
@@ -5457,6 +5868,128 @@
 ;destination is rebuilt from an observed enemy anchor (or the enemy start as a
 ;fallback), so an engine-generated waypoint on an unrelated islet is rejected.
 (load "rawai-assault-admission")
+;Sparse assault-admission diagnostics.  T25 proves that Green and Purple can
+;remain entirely upstream of the existing load/plan telemetry.  Sample the
+;outer gate once per minute and publish only a mask/stage transition, using the
+;existing generic strings so this cannot consume more string-table entries.
+;Mask: 1 route busy, 2 all slots busy, 4 migration, 8 relic, 16 recovery,
+;32 repair, 64 berth clear, 128 home defense, 256 no Transport,
+;512 no living seed enemy, 1024 route timer waiting.
+(defrule
+	(current-age >= early-antiquity-age)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or (goal map-type ISLANDS) (goal map-type TEAM-ISLANDS))
+		)
+	)
+	(goal gl-assault-admission-diag-state 0)
+	(up-compare-goal gl-assault-mission-clock g:>= gl-assault-admission-diag-next)
+=>
+	(set-goal gl-assault-admission-diag-mask 0)
+	(set-goal gl-assault-admission-diag-state 1)
+	(up-modify-goal gl-assault-admission-diag-next g:= gl-assault-mission-clock)
+	(up-modify-goal gl-assault-admission-diag-next c:+ 60)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 1)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(not (goal gl-assault-admission-open YES))
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 2)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(not (goal gl-island-migration-state MIGRATION-IDLE))
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 4)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(not (goal gl-relic-ferry-state RELIC-FERRY-IDLE))
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 8)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(not (goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE))
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 16)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(not (goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE))
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 32)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(not (goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE))
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 64)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(not (goal gl-home-defense-state NO))
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 128)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(unit-type-count transport-ship < 1)
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 256)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(up-compare-goal gl-ap-seed-enemy c:< 1)
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 512)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(up-timer-status t-transport-route != timer-triggered)
+=>
+	(up-modify-goal gl-assault-admission-diag-mask c:+ 1024)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+	(or
+		(up-compare-goal gl-assault-admission-diag-mask g:!= gl-assault-admission-reported-mask)
+		(up-compare-goal gl-assault-admission-last-stage g:!= gl-assault-admission-reported-stage)
+	)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 400)
+	(up-chat-data-to-all str-t12-diag-value g: gl-assault-admission-diag-mask)
+	(up-modify-goal gl-assault-admission-reported-mask g:= gl-assault-admission-diag-mask)
+	(set-goal gl-assault-admission-diag-state 2)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 2)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 401)
+	(up-chat-data-to-all str-t12-diag-value g: gl-assault-admission-last-stage)
+	(up-modify-goal gl-assault-admission-reported-stage g:= gl-assault-admission-last-stage)
+	(set-goal gl-assault-admission-diag-state 3)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 3)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 402)
+	(up-chat-data-to-all str-t12-diag-value g: gl-assault-admission-last-time)
+	(set-goal gl-assault-admission-diag-state 0)
+)
+(defrule
+	(goal gl-assault-admission-diag-state 1)
+=>
+	(set-goal gl-assault-admission-diag-state 0)
+)
 (defrule
 	(up-timer-status t-transport-route == timer-triggered)
 	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
@@ -5471,6 +6004,32 @@
 	(set-goal gl-ap-valid NO)
 	(set-goal gl-assault-fallback-deadline 0)
 	(set-goal gl-assault-fallback-progress-deadline 0)
+)
+(defrule
+	(up-timer-status t-transport-route == timer-triggered)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(goal gl-assault-admission-open YES)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)
+	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
+	(goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
+	(goal gl-home-defense-state NO)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(unit-type-count transport-ship >= 1)
+	(up-compare-goal gl-ap-seed-enemy c:>= 1)
+=>
+	(set-goal gl-assault-admission-last-stage 1)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 )
 (defrule
 	(up-timer-status t-transport-route == timer-triggered)
@@ -5628,11 +6187,105 @@
 	(player-in-game focus-player)
 	(stance-toward focus-player enemy)
 =>
+	(set-goal gl-assault-admission-last-stage 2)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 	(up-get-object-data object-data-id gl-assault-admission-objective)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-modify-goal gl-transport-route-load-player g:= gl-assault-manifest-player)
+	;T23: reserve the assault first. Hull selection follows from the manifest's
+	;rendezvous point, so remote travel never consumes the boarding deadline.
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-FIND)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-ADMISSION-CHECK)
+=>
+	;No known overseas objective for THIS opponent. Do not substitute another
+	;player's cached zone. Existing bounded retry/target rotation can try later.
+	(set-goal gl-assault-admission-last-stage 3)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-set-timer c: t-transport-route c: 30)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+;Cancel native exploration before this first explicit land claim.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-FIND)
+	(goal gl-owner-explore-suspended NO)
+=>
+	(set-strategic-number sn-number-explore-groups 0)
+	(set-strategic-number sn-total-number-explorers 0)
+	(set-strategic-number sn-cap-civilian-explorers 0)
+	(set-strategic-number sn-minimum-civilian-explorers 0)
+	; RAW12 counter 13
+	(up-modify-goal gl-command-counter-13 c:+ 1)
+	(up-reset-scouts)
+	(set-goal gl-owner-explore-suspended YES)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-FIND)
+=>
+	(up-modify-goal gl-transport-route-load-target g:= gl-transport-capacity)
+	(up-modify-goal gl-transport-route-load-target c:min 10)
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
 	(up-full-reset-search)
 	(up-set-target-point gl-home-anchor-x)
+	(up-find-local c: scout-cavalry-class c: 40)
+	(up-find-local c: cavalry-archer-class c: 40)
+	(up-find-local c: cavalry-class c: 40)
+	(up-find-local c: infantry-class c: 40)
+	(up-find-local c: archery-class c: 40)
+	(up-find-local c: siege-weapon-class c: 40)
+	(up-remove-objects search-local object-data-type == palintonon)
+	(up-remove-objects search-local object-data-type == palintonon-packed)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-order == orderid-enter)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index g:>= gl-transport-route-load-target)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-create-group 0 0 c: attack-boarding-group)
+	(up-modify-group-flag 1 c: attack-boarding-group)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-transport-route-load-target g:= local-total)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-CHECK)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-CHECK)
+	(up-compare-goal gl-transport-route-load-target c:>= 5)
+	(up-set-target-object search-local c: 0)
+=>
+	;The first member of the home-anchor-sorted manifest is its persistent
+	;rendezvous anchor. The hull search is relative to this army, not the TC.
+	(up-get-point position-object gl-assault-rendezvous-x)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-HULL-FIND)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-CHECK)
+=>
+	(set-goal gl-assault-admission-last-stage 4)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
+	(up-chat-data-to-self "attack lift passengers unavailable: %d" g: gl-transport-route-load-target)
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-set-timer c: t-transport-route c: 30)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-HULL-FIND)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-assault-rendezvous-x)
 	(up-find-remote c: transport-ship c: 40)
 	(up-remove-objects search-remote object-data-id g:== gl-quarantine-transport-id)
 	(up-remove-objects search-remote object-data-id g:== gl-assault-recovery-rejected)
@@ -5643,16 +6296,6 @@
 	(up-remove-objects search-remote object-data-group-flag >= 0)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-FIND)
-)
-
-(defrule
-	(goal gl-transport-route-state TRANSPORT-ROUTE-ADMISSION-CHECK)
-=>
-	;No known overseas objective for THIS opponent. Do not substitute another
-	;player's cached zone. Existing bounded retry/target rotation can try later.
-	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
-	(up-set-timer c: t-transport-route c: 30)
-	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 )
 
 (defrule
@@ -5682,13 +6325,17 @@
 	(up-object-data object-data-player == my-player-number)
 	(up-object-data object-data-group-flag == attack-transport-group)
 =>
-	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-SELECT)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-START)
 )
 
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-HULL-VERIFY)
 =>
+	(set-goal gl-assault-admission-last-stage 6)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 	(up-chat-data-to-all "RAW17 assault claim rejected hull: %d" g: gl-transport-route-id)
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 30)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
@@ -5698,61 +6345,14 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-FIND)
 	(not (up-set-target-object search-remote c: 0))
 =>
+	(set-goal gl-assault-admission-last-stage 5)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 	(up-chat-data-to-self "attack lift unavailable: %d" c: 0)
+	(up-modify-group-flag 0 c: attack-boarding-group)
+	(up-reset-group c: attack-boarding-group)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 30)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
-)
-
-;Cancel native exploration before this first explicit land claim.
-(defrule
-	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-SELECT)
-	(goal gl-owner-explore-suspended NO)
-=>
-	(set-strategic-number sn-number-explore-groups 0)
-	(set-strategic-number sn-total-number-explorers 0)
-	(set-strategic-number sn-cap-civilian-explorers 0)
-	(set-strategic-number sn-minimum-civilian-explorers 0)
-	; RAW12 counter 13
-	(up-modify-goal gl-command-counter-13 c:+ 1)
-	(up-reset-scouts)
-	(set-goal gl-owner-explore-suspended YES)
-)
-
-(defrule
-	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-SELECT)
-=>
-			(up-modify-goal gl-transport-route-load-target g:= gl-transport-capacity)
-	(up-modify-goal gl-transport-route-load-target c:min 10)
-	(up-modify-group-flag 0 c: attack-boarding-group)
-	(up-reset-group c: attack-boarding-group)
-	(up-full-reset-search)
-	(up-add-object-by-id search-remote g: gl-transport-route-id)
-	(up-set-target-object search-remote c: 0)
-	(up-get-point position-object point-x)
-	(up-set-target-point point-x)
-	(up-find-local c: scout-cavalry-class c: 40)
-	(up-find-local c: cavalry-archer-class c: 40)
-	(up-find-local c: cavalry-class c: 40)
-	(up-find-local c: infantry-class c: 40)
-	(up-find-local c: archery-class c: 40)
-	(up-find-local c: siege-weapon-class c: 40)
-	(up-remove-objects search-local object-data-type == palintonon)
-	(up-remove-objects search-local object-data-type == palintonon-packed)
-	(up-remove-objects search-local object-data-garrisoned == 1)
-	(up-remove-objects search-local object-data-idling != 1)
-	(up-remove-objects search-local object-data-under-attack > 0)
-	(up-remove-objects search-local object-data-group-flag >= 0)
-	(up-remove-objects search-local object-data-order == orderid-enter)
-	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
-	(up-clean-search search-local object-data-distance search-order-asc)
-	(up-remove-objects search-local object-data-index g:>= gl-transport-route-load-target)
-		(up-remove-objects search-local object-data-player != my-player-number)
-	(up-create-group 0 0 c: attack-boarding-group)
-	(up-modify-group-flag 1 c: attack-boarding-group)
-	(up-get-search-state local-total)
-	(up-modify-goal gl-transport-route-load-target g:= local-total)
-	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)
 )
 
 ;The economy clock updates only every fifteen seconds. Boarding needs a live
@@ -5765,11 +6365,173 @@
 )
 
 (defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-START)
+=>
+	;The 120-second rendezvous lease includes travel from both sides. It is not
+	;the boarding deadline and cannot silently become an unbounded preparation.
+	(set-goal gl-assault-admission-last-stage 7)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
+	(up-modify-goal gl-assault-rendezvous-until g:= gl-transport-load-clock)
+	(up-modify-goal gl-assault-rendezvous-until c:+ 120)
+	(up-modify-goal gl-assault-rendezvous-next g:= gl-transport-load-clock)
+	(up-modify-goal gl-assault-rendezvous-next c:+ 4)
+	(set-goal gl-transport-route-script-load YES)
+	(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
+	(set-goal gl-transport-route-load-reported NO)
+	(set-goal gl-transport-route-load-grace-used NO)
+	(set-goal gl-transport-route-load-candidate-id -1)
+	(up-full-reset-search)
+	(up-set-group search-local c: attack-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+	;OWNERSHIP command: attack-transport-group.
+	(up-target-point gl-assault-rendezvous-x action-move -1 stance-no-attack)
+	(up-full-reset-search)
+	(up-set-group search-local c: attack-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
+	;OWNERSHIP command: attack-boarding-group.
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(up-chat-data-to-all str-assault-event c: 23)
+	(up-chat-data-to-all str-assault-hull g: gl-transport-route-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)
+	(up-compare-goal gl-transport-load-clock g:>= gl-assault-rendezvous-next)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-CHECK)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-player == my-player-number)
+	(up-object-data object-data-group-flag == attack-transport-group)
+	(up-object-data object-data-garrison-count g:>= gl-transport-route-load-target)
+=>
+	;A manifest that boarded while the hull approached is immediately eligible
+	;for the normal 30-second load contract and useful-partial sealing logic.
+	(up-full-reset-search)
+	(up-set-group search-local c: attack-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-player == my-player-number)
+	(up-object-data object-data-group-flag == attack-transport-group)
+	(up-object-data object-data-garrison-count g:< gl-transport-route-load-target)
+=>
+	(up-get-point position-object point-x)
+	(up-full-reset-search)
+	(up-set-target-point point-x)
+	(up-set-group search-local c: attack-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance <= 12)
+=>
+	;Only local proximity starts the existing 30-second boarding timer.
+	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
+	(up-chat-data-to-all str-assault-event c: 24)
+	(up-chat-data-to-all str-assault-hull g: gl-transport-route-id)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER)
+	(not (up-set-target-object search-local c: 0))
+=>
+	;All reserved survivors are already aboard or unavailable. Let the normal
+	;bounded boarding contract classify the exact cargo rather than wait forever.
+	(up-set-group search-local c: attack-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance > 12)
+	(up-compare-goal gl-transport-load-clock g:< gl-assault-rendezvous-until)
+=>
+	;Renew both halves only every eight seconds. The passenger order follows the
+	;moving exact hull while the hull approaches the manifest's saved anchor.
+	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	;OWNERSHIP command: attack-boarding-group.
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(up-full-reset-search)
+	(up-set-group search-local c: attack-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+	;OWNERSHIP command: attack-transport-group.
+	(up-target-point gl-assault-rendezvous-x action-move -1 stance-no-attack)
+	(up-modify-goal gl-assault-rendezvous-next g:= gl-transport-load-clock)
+	(up-modify-goal gl-assault-rendezvous-next c:+ 8)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance > 12)
+	(up-compare-goal gl-transport-load-clock g:>= gl-assault-rendezvous-until)
+=>
+	;Event 25 is a rendezvous timeout, distinct from the later boarding timeout.
+	(up-full-reset-search)
+	(up-set-group search-local c: attack-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+	;OWNERSHIP command: attack-transport-group.
+	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-chat-data-to-all str-assault-event c: 25)
+	(up-chat-data-to-all str-assault-hull g: gl-transport-route-id)
+	(up-set-timer c: t-transport-route c: 15)
+	(set-goal gl-route-unload-attempts 0)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
+)
+
+(defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)
 	(up-compare-goal gl-transport-route-load-target c:>= 5)
 	(up-set-target-object search-remote c: 0)
 =>
 	;OWNERSHIP command: attack-boarding-group.
+	(set-goal gl-assault-admission-last-stage 8)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
@@ -5818,6 +6580,8 @@
 	(up-object-data object-data-garrison-count g:>= gl-transport-route-load-target)
 =>
 	(up-chat-data-to-self "attack lift ready: %d" g: gl-transport-route-load-target)
+	(set-goal gl-assault-admission-last-stage 9)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 	;Seal the accepted manifest, not capacity or a later mutable load target.
 	(up-modify-goal gl-assault-manifest-hull g:= gl-transport-route-id)
 	(up-modify-goal gl-assault-manifest-count g:= gl-transport-route-load-target)
@@ -5997,6 +6761,46 @@
 
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)
+	(or
+		(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-PARTIAL)
+		(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-ABORT)
+	)
+	(goal gl-transport-route-load-grace-used NO)
+	(up-compare-goal gl-transport-route-load-candidate-id c:>= 0)
+	(up-compare-goal gl-transport-route-load-candidate-group-flag c:== attack-boarding-group)
+	(up-compare-goal gl-transport-route-load-candidate-target-id g:== gl-transport-route-id)
+	(up-compare-goal gl-transport-route-load-candidate-distance c:<= 12)
+	(or
+		(up-compare-goal gl-transport-route-load-candidate-action c:== action-garrison)
+		(up-compare-goal gl-transport-route-load-candidate-order c:== orderid-transport)
+	)
+=>
+	;T25 repeatedly reached the fixed deadline with the next accepted passenger
+	;still obeying the exact hull order only one to four tiles away. Give that
+	;specific live manifest one bounded grace period; all existing useful-partial
+	;and abort terminals remain authoritative after it expires.
+	(up-full-reset-search)
+	(fe-filter-garrisoned c: 1)
+	(up-set-group search-local c: attack-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	;OWNERSHIP command: attack-boarding-group.
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(set-goal gl-transport-route-load-grace-used YES)
+	(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
+	(up-modify-goal gl-transport-route-load-deadline g:= gl-transport-load-clock)
+	(up-modify-goal gl-transport-route-load-deadline c:+ 12)
+	(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)
+	(up-modify-goal gl-transport-route-load-next c:+ 4)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)
 	(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-PARTIAL)
 =>
 	;Stop only the diagnosed shore stragglers, then snapshot the actually boarded
@@ -6048,6 +6852,8 @@
 	;The existing partial acceptance has rebuilt the boarded-only manifest.
 	(up-modify-goal gl-assault-manifest-hull g:= gl-transport-route-id)
 	(up-modify-goal gl-assault-manifest-count g:= gl-transport-route-load-observed)
+	(set-goal gl-assault-admission-last-stage 9)
+	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 	(up-chat-data-to-all "RAW44B attack partial departure: %d" g: gl-transport-route-load-observed)
 	(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
 	(up-full-reset-search)

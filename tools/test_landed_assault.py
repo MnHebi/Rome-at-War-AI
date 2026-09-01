@@ -49,12 +49,28 @@ class LandedAssaultTests(unittest.TestCase):
         self.assertEqual(set(self.attacks(m)[-1][0]), {1005, 1006, 1007, 1008})
         self.assertEqual(m.objects[1002]['flag'], 18)
 
-    def test_no_targets_and_total_lease_are_bounded_without_stop_or_retreat(self):
+    def test_no_targets_probe_same_landmass_then_release_bounded(self):
         m = self.landed()
-        for _ in range(5): m.sweep(16)
+        initial = len(m.commands)
+        for _ in range(12):
+            m.sweep(16)
+            self.assertEqual(m.g['gl-am1-state'], 6)
+        probes = [c for c in m.commands[initial:] if c[1] == 'action-move']
+        self.assertEqual(len(probes), 12)
+        self.assertEqual(len({c[2] for c in probes}), 12)
+        m.sweep(16)
         self.assertEqual(m.g['gl-am1-state'], 0)
         self.assertFalse(self.attacks(m))
         self.assertTrue(all(m.objects[p]['flag'] == -2 for p in range(1000, 1009)))
+
+    def test_wrong_landmass_probe_is_skipped_without_releasing_ownership(self):
+        m = self.landed(); initial = len(m.commands); m.zone = 4
+        m.sweep(16)
+        self.assertEqual(m.g['gl-am1-state'], 6)
+        self.assertFalse(any(c[1] == 'action-move' for c in m.commands[initial:]))
+        self.assertTrue(all(m.objects[p]['flag'] == GROUPS[0] for p in range(1000, 1009)))
+
+    def test_total_combat_lease_remains_hard_bounded(self):
         m = self.landed(); self.target(m)
         for p in range(1000, 1009): m.objects[p]['idle'] = 0
         count = len(m.commands)

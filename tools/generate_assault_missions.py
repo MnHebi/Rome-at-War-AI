@@ -57,6 +57,21 @@ def definitions():
             '(defconst gl-assault-recovery-rejected 14912)',
             '(defconst gl-assault-recovery-retry 14913)',
             '(defconst gl-assault-admission-objective 14914)',
+            '(defconst gl-assault-rendezvous-x 14915)',
+            '(defconst gl-assault-rendezvous-y 14916)',
+            '(defconst gl-assault-rendezvous-until 14917)',
+            '(defconst gl-assault-rendezvous-next 14918)',
+            '(defconst gl-migration-rendezvous-x 14919)',
+            '(defconst gl-migration-rendezvous-y 14920)',
+            '(defconst gl-migration-rendezvous-until 14921)',
+            '(defconst gl-migration-rendezvous-next 14922)',
+            '(defconst gl-assault-admission-diag-next 14923)',
+            '(defconst gl-assault-admission-diag-state 14924)',
+            '(defconst gl-assault-admission-diag-mask 14925)',
+            '(defconst gl-assault-admission-last-stage 14926)',
+            '(defconst gl-assault-admission-last-time 14927)',
+            '(defconst gl-assault-admission-reported-mask 14928)',
+            '(defconst gl-assault-admission-reported-stage 14929)',
             '(defconst str-assault-slot "RAW3 slot: %d")',
             '(defconst str-assault-hull "RAW3 hull: %d")',
             '(defconst str-assault-event "RAW3 event: %d")',
@@ -119,6 +134,15 @@ def admission():
     for i in range(1, 4):
         out.append(rule(['(true)'], [f'(set-goal gl-am{i}-state 0)',
             f'(set-goal gl-am{i}-hull -1)', '(disable-self)']))
+    out.append(rule(['(true)'], [
+        '(set-goal gl-assault-admission-diag-next 0)',
+        '(set-goal gl-assault-admission-diag-state 0)',
+        '(set-goal gl-assault-admission-diag-mask 0)',
+        '(set-goal gl-assault-admission-last-stage 0)',
+        '(set-goal gl-assault-admission-last-time 0)',
+        '(set-goal gl-assault-admission-reported-mask -1)',
+        '(set-goal gl-assault-admission-reported-stage -1)',
+        '(disable-self)']))
     out.append(rule(['(true)'], ['(up-get-fact game-time 0 gl-assault-mission-clock)',
         '(set-goal gl-assault-admission-open NO)', '(set-goal gl-assault-preflight-live NO)',
         '(up-modify-goal gl-assault-diag-checked-enemy g:= gl-assault-manifest-player)',
@@ -340,13 +364,15 @@ def missions():
             '(up-set-target-object search-local c: 0)', '(up-object-data object-data-distance <= 20)',
             '(up-object-data object-data-idling == 1)'], [
             '(up-full-reset-search)', f'(up-set-target-point {v("x")})', '(up-filter-distance c: 28 c: 200)',
-            '(up-find-local c: transport-ship c: 40)', '(up-find-local c: warship-class c: 40)',
+            '(up-find-local c: transport-ship c: 40)', '(up-find-local c: trade-cog-class c: 20)',
+            '(up-find-local c: warship-class c: 40)',
             f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("water-zone")})',
             '(up-clean-search search-local object-data-distance search-order-asc)', setv('sample', 2)]))
         out.append(rule([f'(goal {v("sample")} 2)', '(up-set-target-object search-local c: 0)'], [
             f'(up-get-point position-object {v("clear-x")})', '(up-full-reset-search)',
             f'(up-set-target-point {v("x")})', '(up-filter-distance c: -1 c: 12)',
-            '(up-find-local c: transport-ship c: 20)', '(up-find-local c: warship-class c: 20)',
+            '(up-find-local c: transport-ship c: 20)', '(up-find-local c: trade-cog-class c: 20)',
+            '(up-find-local c: warship-class c: 20)',
             '(up-remove-objects search-local object-data-player != my-player-number)',
             '(up-remove-objects search-local object-data-group-flag >= 0)',
             '(up-remove-objects search-local object-data-garrison-count > 0)',
@@ -432,8 +458,39 @@ def missions():
         out.append(rule([*found, f'(up-compare-goal {v("combat-tries")} c:>= 3)'],
                         [copy('combat-failed', v('combat-target'))]))
         out.append(rule([*seeking, f'(goal {v("combat-target")} -1)'],
-                        [f'(up-modify-goal {v("combat-misses")} c:+ 1)']))
-        out.append(rule([*seeking, f'(up-compare-goal {v("combat-misses")} c:>= 4)'],
+                        [f'(up-modify-goal {v("combat-misses")} c:+ 1)', setv('sample', 8)]))
+        # Destroying the visible objective must not cut the landed group's
+        # strings. Probe a bounded ring around the sealed objective, but only
+        # command idle same-zone members and only accept probe points on the
+        # objective's landmass. A visible hostile found on any later sample
+        # still takes priority over these exploratory movements.
+        probes = [(32, 0), (-32, 0), (0, 32), (0, -32),
+                  (64, 0), (-64, 0), (0, 64), (0, -64),
+                  (96, 0), (-96, 0), (0, 96), (0, -96)]
+        for miss, (dx, dy) in enumerate(probes, 1):
+            actions = [f'(up-copy-point {v("clear-x")} {v("target-x")})']
+            if dx:
+                actions.append(f'(up-modify-goal {v("clear-x")} c:{"+" if dx > 0 else "-"} {abs(dx)})')
+            if dy:
+                actions.append(f'(up-modify-goal {v("clear-y")} c:{"+" if dy > 0 else "-"} {abs(dy)})')
+            actions += [f'(up-bound-point {v("x")} {v("clear-x")})',
+                        f'(up-copy-point {v("clear-x")} {v("x")})',
+                        setv('zone', -1), f'(up-get-point-zone {v("clear-x")} {v("zone")})',
+                        setv('sample', 9)]
+            out.append(rule([f'(goal {v("state")} 6)', f'(goal {v("sample")} 8)',
+                             f'(goal {v("combat-misses")} {miss})'], actions))
+        out.append(rule([f'(goal {v("state")} 6)', f'(goal {v("sample")} 9)',
+                         f'(up-compare-goal {v("zone")} g:== {v("target-zone")})'], [
+            *members(), '(up-remove-objects search-local object-data-garrisoned == 1)',
+            f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("target-zone")})',
+            '(up-remove-objects search-local object-data-idling != 1)',
+            '(up-remove-objects search-local object-data-under-attack > 0)',
+            f'(up-target-point {v("clear-x")} action-move -1 stance-aggressive)', setv('sample', 6)]))
+        out.append(rule([f'(goal {v("state")} 6)', f'(goal {v("sample")} 9)',
+                         f'(up-compare-goal {v("zone")} g:!= {v("target-zone")})'],
+                        [setv('sample', 6)]))
+        out.append(rule([f'(goal {v("state")} 6)',
+                         f'(up-compare-goal {v("combat-misses")} c:>= 13)'],
                         [setv('state', 5), setv('reason', 12), *log(12)]))
         out.append(rule([f'(goal {v("state")} 5)'], [
             '(up-full-reset-search)', f'(up-set-group search-local c: {g})',
@@ -481,7 +538,7 @@ def preparation_ownership():
         ('assault', 'gl-transport-route-state', 'gl-transport-route-id',
          'attack-transport-group', 'attack-boarding-group', 'TRANSPORT-ROUTE-',
          ['LOAD-SELECT', 'LOAD-ISSUE', 'LOAD-WAIT', 'LOAD-CHECK', 'LOAD-READY',
-          'LOAD-DIAG-FIND', 'LOAD-DIAG-PASSENGER', 'LOAD-DIAG-APPLY', 'LOAD-PARTIAL-MANIFEST'],
+           'LOAD-DIAG-FIND', 'LOAD-DIAG-PASSENGER', 'LOAD-DIAG-APPLY', 'LOAD-PARTIAL-MANIFEST'],
          'gl-transport-route-origin-x', 'gl-transport-route-focus', 't-transport-route'))
     for kind, state, hull, group, passengers, prefix, phases, origin, focus, timer in kinds:
         facts = [f'(goal {state} {prefix}{phase})' for phase in phases]
@@ -567,7 +624,7 @@ def patch():
             old = path.read_text(encoding='utf-8-sig')
             if old == text: continue
             print('*** Update File: ' + path.as_posix())
-            for line in list(difflib.unified_diff(old.splitlines(), text.splitlines(), n=len(old.splitlines())+1))[2:]:
+            for line in list(difflib.unified_diff(old.splitlines(), text.splitlines(), n=3))[2:]:
                 print('@@' if line.startswith('@@') else line)
     print('*** End Patch')
 

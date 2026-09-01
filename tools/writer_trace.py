@@ -142,18 +142,22 @@ def prelude() -> str:
         '(up-modify-goal gl-writer-next g:= gl-writer-now)',
         '(up-modify-goal gl-writer-next c:+ 60)',
         f'(set-goal gl-writer-minute {MINUTE_LIMIT})'])
-    # Includes selection, boarding retry and its diagnostic/partial-manifest states.
+    # Includes passenger-first selection/rendezvous, boarding retry and its
+    # diagnostic/partial-manifest states.
     boarding = rule('''(or
         (and (up-compare-goal gl-transport-route-state c:>= 30)
              (up-compare-goal gl-transport-route-state c:<= 35))
         (or
           (and (up-compare-goal gl-transport-route-state c:>= 46)
                (up-compare-goal gl-transport-route-state c:<= 49))
-          (or (goal gl-island-migration-state MIGRATION-BOARDING)
-            (or (goal gl-island-migration-state MIGRATION-LOADING)
-              (or (goal gl-island-migration-state MIGRATION-CHECK-LOAD)
-                (and (up-compare-goal gl-island-migration-state c:>= 66)
-                     (up-compare-goal gl-island-migration-state c:<= 68)))))))''',
+          (or
+            (and (up-compare-goal gl-transport-route-state c:>= 62)
+                 (up-compare-goal gl-transport-route-state c:<= 68))
+            (or (goal gl-island-migration-state MIGRATION-BOARDING)
+              (or (goal gl-island-migration-state MIGRATION-LOADING)
+                (or (goal gl-island-migration-state MIGRATION-CHECK-LOAD)
+                  (and (up-compare-goal gl-island-migration-state c:>= 66)
+                       (up-compare-goal gl-island-migration-state c:<= 68))))))))''',
         ['(set-goal gl-writer-active 1)'])
     gap = rule('''(goal gl-writer-gap 0)
         (or (up-compare-goal gl-writer-remaining c:<= 0)

@@ -2294,6 +2294,164 @@
         "The recovery attack/transport program is unchanged apart from event logs. Broader salvage and dock work are authorized but held outside this isolated caller-attribution experiment, not completed or canceled."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260901-112916-p3b44t22-migration-rendezvous",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.09.01 112916.aoe2record",
+        "sha256": "02E96FAE79D42D3F9BA276AFEA503374F2DE21738F026D0854AF7F1B0EFB7F59",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Red Roman Empire (team 1)", "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)", "Cyan Britons (team 2)",
+          "Blue Germani (team 2)", "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Validated selected-color metadata matches the preserved authoritative lobby; no row/slot color inference.",
+        "duration_seconds": 5119,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "Players 2-8 serialize RAWAI-P3B44T22:470. The replay parses through 85:19 with zero action-stream errors; Red resigns at 85:19.",
+        "The user directly observed hundreds of villagers waiting on beaches and no migration. Decoded evidence also records full worker departures for Gray at 71:48 and 84:05 and Red at 81:42, with Red's twenty settlers detected landed at 83:19. Preserve both accounts pending clarification of whether the report meant no departures during the pile-up or no sustained productive colony.",
+        "The all-player audit reconstructs 26 migration boarding windows. Yellow, Purple, Orange and Blue early Scout missions retain exact-hull garrison orders and have no competing command before empty aborts while still 25-125 tiles from their hulls. The fixed thirty-second load window expires during travel.",
+        "Late worker attempts show the same boundary. Purple remains 33 tiles away after thirty seconds in one empty abort and 12 tiles away in a six-passenger loaded abort; Blue aborts a late eighteen-passenger attempt. Red and Gray full worker loads depart when they beat the same deadline.",
+        "Red's 29:53 gate snapshot reports idle bucket zero, two Transports, no defense, no depletion and no home-resource pressure. Home-resource pressure becomes five at 50:52 and Red starts its first worker migration at 52:58. Equivalent outer-gate state is not serialized for every player."
+      ],
+      "implementation_inferences": [
+        "Source confirms that migration issues garrison and immediately arms a thirty-second boarding timer with no rendezvous state or passenger-distance gate. Remote travel is therefore misclassified as local boarding failure.",
+        "Source separately confirms that ordinary worker admission needs two engine-idle villagers unless resource depletion/pressure is active. T22 directly proves that blocker for Red, but not the exact outer blocker for every player; no broad worker-admission policy change is justified in T24."
+      ],
+      "changes_under_test": [
+        "RAWAI-P3B44T24:472 preserves existing target, hull and passenger selection but adds an exact-hull 120-second migration rendezvous lease. The unchanged thirty-second load timer starts only within twelve tiles, after full boarding, or when no reserved shore passenger remains.",
+        "Rendezvous commands renew at most every eight seconds; timeout phase 4 flows once into existing full/partial/abort recovery. T23 assault, voyage, landing and drop-site policy remain unchanged."
+      ],
+      "fresh_replay_acceptance": [
+        "Audit every player's migration lifecycle. Remote passengers must spend travel in phase 3 rather than aborting at thirty seconds, then enter existing full/partial loading or one bounded phase-4 timeout.",
+        "Preserve Red/Gray full and useful-partial migration, exact-hull ownership, Scout migration, same-zone landing validation and existing drop-site behavior. Separately classify missions which never reach admission; T24 does not claim to repair that gate."
+      ],
+      "known_limits": [
+        "Replay action data proves command timing and distance closure but not engine path reachability. Structural tests cannot close runtime migration behavior.",
+        "Productive drop-site establishment remains a separate unresolved defect. User clarification of the observed no-migration wording remains pending; parser evidence does not override the visible observation."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260901-141200-p3b44t24-transport-recovery",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.09.01 141200.aoe2record",
+        "sha256": "075741E0A60BFA02CCD089B37960A4F1988C1B617334CAAC461783405D6B6B85",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Red Roman Empire (team 1)", "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)", "Cyan Britons (team 2)",
+          "Blue Germani (team 2)", "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Validated selected-color metadata matches the preserved authoritative lobby; no row/slot color inference.",
+        "duration_seconds": 5705,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "Players 2-8 serialize RAWAI-P3B44T24:472. The replay parses through 95:05 with zero action-stream errors; Red resigns at 95:05.",
+        "The all-player audit reconstructs 39 Transport hulls, 596 garrison orders, 216 unload orders and 11 terminal load-only phases. Per-player hull/load/unload totals are Red 8/161/64, Green 3/53/0, Yellow 3/27/5, Purple 2/13/12, Orange 5/101/33, Cyan 8/61/14, Blue 5/128/73 and Gray 5/52/15. These are command lifecycles, not proof that every engine action completed.",
+        "T24 records 60 migration rendezvous phase-3 starts, no phase-4 timeout, 17 full departures, three useful partial departures and seven local empty aborts. Remote approach is no longer charged against the local boarding timer; later failures belong to route, landing, construction or ownership stages.",
+        "Red completes two worker landings, approximately twenty settlers at 60:17 and ten at 76:03. Both report a live lumber cluster, then a Lumber Camp resource wait, then drop-site failure with no concrete foundation. A third full Red worker load begins near 93:53 and remains unresolved when the user resigns.",
+        "The user reports several partially loaded Red Transports frozen without a mission and screenshots 5/30, 7/30 and 10/30 cargo hulls. Source recovery explicitly releases hull/group/state while cargo may remain aboard; no later generic utility adopts an ungrouped idle loaded hull.",
+        "The user reports a landed Red assault group stopping after destroying its target. Replay telemetry shows the second successful Red landing has no later combat-target event and releases roughly 88 seconds after landing.",
+        "The Red naval fleet visible near 69:48 receives later assignments four to six minutes afterward, so the replay contradicts a permanent-orphan interpretation but preserves the observed temporary non-progress symptom."
+      ],
+      "implementation_inferences": [
+        "Migration drop-site placement has a circular resource gate: spendable affordability ignores wood held in building escrow, while stranded remote choppers need the absent drop site to deposit more wood. Landing also discarded the original resource anchor before placement.",
+        "Loaded-hull recovery has an owner gap after preparation/quarantine release. Exact active missions remain protected by group, movement, damage and attack-state filters; only free idle cargo hulls are eligible for recovery adoption.",
+        "Landed combat releases after four no-target samples despite a five-minute total lease. The replay timing and source transition explain why a group which destroyed its first objective appeared to forget the assault.",
+        "The naval-opportunity controller lacks a progress watcher, but replay orders do not establish an exact unreachable target or exclusive writer for the temporary fleet stall. No naval behavior patch is justified in this release."
+      ],
+      "changes_under_test": [
+        "RAWAI-P3B44T25:473 preserves and exact-ID/class/zone revalidates the migration's original resource anchor, and releases wood escrow only when the matching remote drop-site building is affordable with escrow.",
+        "A bounded free-hull scanner adopts self-owned, idle, ungrouped, undamaged loaded Transports into the existing quarantine unload lifecycle. Terminal exact-hull ownership rotates after one grace interval without touching active missions.",
+        "Landed assault groups retain visible-hostile priority and the five-minute hard lease, but use twelve bounded same-zone probes before no-target release. Only idle, self-owned, ungarrisoned and not-under-attack members receive probe movement.",
+        "The escort census message is relabeled active loaded escort targets; its selection behavior is unchanged."
+      ],
+      "fresh_replay_acceptance": [
+        "Verify RAWAI-P3B44T25:473 and complete source/install byte identity. Audit every player's Transport lifecycle, not only reported Red examples.",
+        "A successful mining migration with escrowed wood issues and completes a concrete Camp/Mill foundation near the preserved original resource, then assigns remote settlers to that resource. Existing wrong-zone/path rejections remain hard vetoes.",
+        "Every free idle orphaned loaded Transport enters bounded recovery or has a recorded ownership/safety exclusion; active voyages, grouped hulls and moving cargo are not stolen.",
+        "A landed assault which destroys its first target acquires another same-zone hostile or visibly advances through bounded same-landmass probes, while busy fighters remain untouched and the five-minute release bound survives.",
+        "Preserve T24 remote rendezvous, full/useful-partial departures, three independent assault missions, exact target persistence and landing safety."
+      ],
+      "known_limits": [
+        "T25 does not identify or repair the temporary naval-opportunity non-progress, the large repeated ORDER floods, Port/trade congestion, or every downstream voyage obstruction.",
+        "The replay-visible loaded transport counter was an escort-eligibility census rather than total cargo hulls. Relabeling it removes the diagnostic ambiguity but is not a recovery fix.",
+        "Structural tests cannot prove foundation creation, engine unload success or post-target combat continuation. These defects remain FIXED-PENDING-RUNTIME until a fresh replay demonstrates the acceptance criteria."
+      ],
+      "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260901-155609-p3b44t25-assault-fairness",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.09.01 155609.aoe2record",
+        "sha256": "70003C7FD3CFCA8079CB1FE388AF8B89E385DE461E0CE12FF6FEF6304C5B400E",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Red Roman Empire (team 1)", "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)", "Cyan Britons (team 2)",
+          "Blue Germani (team 2)", "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Validated selected-color metadata matches the preserved authoritative lobby; no row/slot color inference.",
+        "duration_seconds": 6729,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The user ended the match at 112:09 because neither side could establish an advantage. The user separately reports high assault aborts, one Red hull boxed by Trade Ships and Transports, a two-villager migration oscillating near two viable-looking landings, partial assault loads with nearby passengers ashore, one unexplained Yellow Transport, and visibly inert Yellow/Green formations.",
+        "The replay serializes RAWAI-P3B44T25:473 and parses with zero action-stream errors. The all-player audit reconstructs 47 command-linked Transport hulls, 220 samples, 38 assault partial/abort terminals and 191 boarding windows. Hull/window/load totals: Red 6/55/215, Green 3/11/89, Yellow 7/17/151, Purple 1/1/18, Orange 6/33/215, Cyan 7/15/110, Blue 7/15/126 and Gray 10/44/320.",
+        "Gray owns 31 assault voyages and confirms 23 landing/combat handoffs. Orange owns 15 and confirms six. Red owns nine and confirms none: six encounter hostile damage and three reach the ninety-second no-progress terminal. Green and Purple never emit an assault-stage event. Yellow accepts five useful loads but owns no voyage.",
+        "Yellow's accepted loads repeatedly evaluate only three opponents. The 103:45 Transport in the user's screenshot checks enemies 8, 5 and 6 and terminates reason 27 without evaluating living enemy 7. The source plan-search cap is three.",
+        "Several thirty-second load terminals retain a correct group-4 passenger garrisoning the exact hull within one to four tiles. Red examples include 9/10 at distance 3, 5/10 at distance 3, 7/10 at distance 1 and 7/10 at distance 4.",
+        "Red hull 38985 reaches ten tiles from one migration waypoint, then oscillates at ten/eleven and is recalled by the strict eight-tile gate. It does not alternate between two independently validated landing candidates.",
+        "Red's first eighteen-settler colony issues an exact Mining Camp request at (131,199), but the wait terminal has no pending placement/object or worker emergency. A later migration issues the identical point, immediately creates foundation 67503 and completes it.",
+        "Green produces nine full migration loads after 76:06, repeatedly occupies the shared lane through bounded route/return failures and publishes no assault stage. Source ordering permits the earlier migration intake to win whenever migration and assault timers are both due.",
+        "After 90:00 Yellow has zero decoded AI attack orders, while Green has 1303 and Purple 756. Visible Green/Purple inertia is not equivalent to global command silence and remains unresolved."
+      ],
+      "implementation_inferences": [
+        "Search all seven possible other player numbers before reason-27 recall; keep existing target validity, failure memory and cooldowns.",
+        "One short grace is safe only for a still-reserved passenger with exact-hull garrison intent and local distance; wrong-hull, retasked and distant candidates retain the original terminal.",
+        "A near-waypoint hull can enter the existing exact same-zone/path validator without issuing an unload or weakening geometric vetoes.",
+        "The vanished exact-point foundation request justifies one revalidation/reissue only when no pending placement/object exists and worker emergency is clear.",
+        "Departure clearance cannot classify Trade Cogs because its search omits that class. Only idle, empty, ungrouped, safe, self-owned merchants may be added without stealing active trade.",
+        "The rejected-zone ring is functioning. Shared-lane starvation is instead caused by source order plus the migration intake's failure to yield to an already-due, otherwise viable assault admission."
+      ],
+      "changes_under_test": [
+        "RAWAI-P3B44T26:474 expands the opponent-plan cap from three to seven, adds one twelve-second exact-hull local boarding grace, and sends a four-stall migration within twelve tiles into the existing landing validator.",
+        "One vanished exact-point colony foundation request may be reissued after proving there is no pending placement/object or worker emergency.",
+        "Idle safe Trade Cogs become eligible departure blockers; active trade and owned/unsafe ships remain excluded.",
+        "Migration yields one shared-lane intake pass when assault timing, slot, defense, hull and living-enemy prerequisites are all ready.",
+        "Transition-only admission diagnostics IDs 400-402 expose the upstream blocker mask and last lifecycle stage/time for players which never reach existing assault telemetry."
+      ],
+      "fresh_replay_acceptance": [
+        "Verify RAWAI-P3B44T26:474 and complete installed/source identity, then audit every Transport lifecycle on the next map.",
+        "An accepted load either finds a viable fourth opponent or records all living opponents rejected; nearby exact-hull passengers receive no more than one grace interval.",
+        "Near-waypoint migration retains wrong-zone/path safety, and vanished foundation retry neither duplicates a live foundation nor loops.",
+        "Only eligible idle Trade Cogs yield. Green receives assault admission opportunities between failed migrations without suppressing migration when no assault is viable.",
+        "Use diagnostics 400-402 to identify the first upstream blocker for any assault-silent player. Preserve Gray's successful landing control and three independent mission slots."
+      ],
+      "known_limits": [
+        "T26 does not claim to solve congestion from active Trade routes, allied ships, buildings or every migration hull; it adds only source-proven idle Trade Cog visibility.",
+        "Green/Purple upstream silence and visible late army inertia remain INVESTIGATING. The new transition diagnostics do not alter gameplay and are not resolution.",
+        "Red hostile-damage failures and no-progress failures are distinct. No danger veto is relaxed and no universal voyage cause is asserted.",
+        "Structural fixtures cannot prove engine boarding, pathfinding, foundation creation or assault participation. All behavioral changes remain FIXED-PENDING-RUNTIME."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }
