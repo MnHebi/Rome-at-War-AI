@@ -2392,6 +2392,66 @@
         "Structural tests cannot prove foundation creation, engine unload success or post-target combat continuation. These defects remain FIXED-PENDING-RUNTIME until a fresh replay demonstrates the acceptance criteria."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260901-155609-p3b44t25-assault-fairness",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.09.01 155609.aoe2record",
+        "sha256": "70003C7FD3CFCA8079CB1FE388AF8B89E385DE461E0CE12FF6FEF6304C5B400E",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Red Roman Empire (team 1)", "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)", "Cyan Britons (team 2)",
+          "Blue Germani (team 2)", "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Validated selected-color metadata matches the preserved authoritative lobby; no row/slot color inference.",
+        "duration_seconds": 6729,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "The user ended the match at 112:09 because neither side could establish an advantage. The user separately reports high assault aborts, one Red hull boxed by Trade Ships and Transports, a two-villager migration oscillating near two viable-looking landings, partial assault loads with nearby passengers ashore, one unexplained Yellow Transport, and visibly inert Yellow/Green formations.",
+        "The replay serializes RAWAI-P3B44T25:473 and parses with zero action-stream errors. The all-player audit reconstructs 47 command-linked Transport hulls, 220 samples, 38 assault partial/abort terminals and 191 boarding windows. Hull/window/load totals: Red 6/55/215, Green 3/11/89, Yellow 7/17/151, Purple 1/1/18, Orange 6/33/215, Cyan 7/15/110, Blue 7/15/126 and Gray 10/44/320.",
+        "Gray owns 31 assault voyages and confirms 23 landing/combat handoffs. Orange owns 15 and confirms six. Red owns nine and confirms none: six encounter hostile damage and three reach the ninety-second no-progress terminal. Green and Purple never emit an assault-stage event. Yellow accepts five useful loads but owns no voyage.",
+        "Yellow's accepted loads repeatedly evaluate only three opponents. The 103:45 Transport in the user's screenshot checks enemies 8, 5 and 6 and terminates reason 27 without evaluating living enemy 7. The source plan-search cap is three.",
+        "Several thirty-second load terminals retain a correct group-4 passenger garrisoning the exact hull within one to four tiles. Red examples include 9/10 at distance 3, 5/10 at distance 3, 7/10 at distance 1 and 7/10 at distance 4.",
+        "Red hull 38985 reaches ten tiles from one migration waypoint, then oscillates at ten/eleven and is recalled by the strict eight-tile gate. It does not alternate between two independently validated landing candidates.",
+        "Red's first eighteen-settler colony issues an exact Mining Camp request at (131,199), but the wait terminal has no pending placement/object or worker emergency. A later migration issues the identical point, immediately creates foundation 67503 and completes it.",
+        "Green produces nine full migration loads after 76:06, repeatedly occupies the shared lane through bounded route/return failures and publishes no assault stage. Source ordering permits the earlier migration intake to win whenever migration and assault timers are both due.",
+        "After 90:00 Yellow has zero decoded AI attack orders, while Green has 1303 and Purple 756. Visible Green/Purple inertia is not equivalent to global command silence and remains unresolved."
+      ],
+      "implementation_inferences": [
+        "Search all seven possible other player numbers before reason-27 recall; keep existing target validity, failure memory and cooldowns.",
+        "One short grace is safe only for a still-reserved passenger with exact-hull garrison intent and local distance; wrong-hull, retasked and distant candidates retain the original terminal.",
+        "A near-waypoint hull can enter the existing exact same-zone/path validator without issuing an unload or weakening geometric vetoes.",
+        "The vanished exact-point foundation request justifies one revalidation/reissue only when no pending placement/object exists and worker emergency is clear.",
+        "Departure clearance cannot classify Trade Cogs because its search omits that class. Only idle, empty, ungrouped, safe, self-owned merchants may be added without stealing active trade.",
+        "The rejected-zone ring is functioning. Shared-lane starvation is instead caused by source order plus the migration intake's failure to yield to an already-due, otherwise viable assault admission."
+      ],
+      "changes_under_test": [
+        "RAWAI-P3B44T26:474 expands the opponent-plan cap from three to seven, adds one twelve-second exact-hull local boarding grace, and sends a four-stall migration within twelve tiles into the existing landing validator.",
+        "One vanished exact-point colony foundation request may be reissued after proving there is no pending placement/object or worker emergency.",
+        "Idle safe Trade Cogs become eligible departure blockers; active trade and owned/unsafe ships remain excluded.",
+        "Migration yields one shared-lane intake pass when assault timing, slot, defense, hull and living-enemy prerequisites are all ready.",
+        "Transition-only admission diagnostics IDs 400-402 expose the upstream blocker mask and last lifecycle stage/time for players which never reach existing assault telemetry."
+      ],
+      "fresh_replay_acceptance": [
+        "Verify RAWAI-P3B44T26:474 and complete installed/source identity, then audit every Transport lifecycle on the next map.",
+        "An accepted load either finds a viable fourth opponent or records all living opponents rejected; nearby exact-hull passengers receive no more than one grace interval.",
+        "Near-waypoint migration retains wrong-zone/path safety, and vanished foundation retry neither duplicates a live foundation nor loops.",
+        "Only eligible idle Trade Cogs yield. Green receives assault admission opportunities between failed migrations without suppressing migration when no assault is viable.",
+        "Use diagnostics 400-402 to identify the first upstream blocker for any assault-silent player. Preserve Gray's successful landing control and three independent mission slots."
+      ],
+      "known_limits": [
+        "T26 does not claim to solve congestion from active Trade routes, allied ships, buildings or every migration hull; it adds only source-proven idle Trade Cog visibility.",
+        "Green/Purple upstream silence and visible late army inertia remain INVESTIGATING. The new transition diagnostics do not alter gameplay and are not resolution.",
+        "Red hostile-damage failures and no-progress failures are distinct. No danger veto is relaxed and no universal voyage cause is asserted.",
+        "Structural fixtures cannot prove engine boarding, pathfinding, foundation creation or assault participation. All behavioral changes remain FIXED-PENDING-RUNTIME."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }
