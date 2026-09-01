@@ -81,7 +81,9 @@ class FoundationTests(unittest.TestCase):
         self.assertTrue(all('up-set-timer' not in r[4] for r in wait))
         expires = [r for r in rows if 'MIGRATION-WAIT-DROPSITE)' in r[3]
                    and 'timer-triggered' in r[3]]
-        self.assertEqual(len(expires), 2)
+        self.assertEqual(len(expires), 3)
+        self.assertTrue(any('gl-island-migration-point-retry-used NO' in r[3]
+                            for r in expires))
         self.assertTrue(any('placement-attempts c:< 4' in r[3] for r in expires))
         self.assertTrue(any('placement-attempts c:>= 4' in r[3] for r in expires))
 
@@ -258,6 +260,55 @@ class PlacementPointLifetimeTests(unittest.TestCase):
             self.assertEqual(p.builds, [])
             self.assertEqual(p.goals['gl-island-migration-state'],
                              CONSTANTS['MIGRATION-VALIDATE-DROPSITE-ANCHOR'])
+
+
+class LostPlacementRequestTests(unittest.TestCase):
+    @staticmethod
+    def retry_rule():
+        rows = [r for r in rule_blocks(source('rawai-military.per'))
+                if '(set-goal gl-island-migration-point-retry-used YES)' in r[4]]
+        assert len(rows) == 1
+        return rows[0]
+
+    @staticmethod
+    def gate():
+        class TriggeredGate(Gate):
+            def fact(self, e):
+                if e[0] == 'up-timer-status': return True
+                return super().fact(e)
+        return TriggeredGate(**{
+            'gl-island-migration-state': CONSTANTS['MIGRATION-WAIT-DROPSITE'],
+            'gl-island-migration-placement-attempts': 2,
+            'gl-island-migration-point-retry-used': 0,
+            'gl-owner-worker-hold': 0,
+            'gl-island-migration-anchor-class': CONSTANTS['stone-mine-class'],
+        })
+
+    def test_lost_request_retries_same_accepted_offset_once(self):
+        g = self.gate()
+        row = self.retry_rule()
+        self.assertTrue(g.accepts(row))
+        for op, *a in expressions(row[4]):
+            if op == 'set-goal': g.goals[a[0]] = g.value(a[1])
+            elif op == 'up-modify-goal':
+                g.goals[a[0]] -= g.value(a[2])
+            elif op not in ('up-reset-placement', 'up-set-timer'):
+                self.fail('unmodeled retry action: ' + repr([op, *a]))
+        self.assertEqual(g.goals['gl-island-migration-placement-attempts'], 1)
+        self.assertEqual(g.goals['gl-island-migration-point-retry-used'], 1)
+        self.assertEqual(g.goals['gl-island-migration-state'],
+                         CONSTANTS['MIGRATION-VALIDATE-DROPSITE-ANCHOR'])
+        g.goals['gl-island-migration-state'] = CONSTANTS['MIGRATION-WAIT-DROPSITE']
+        self.assertFalse(g.accepts(row))
+
+    def test_pending_work_or_worker_emergency_is_never_reset(self):
+        row = self.retry_rule()
+        for block in ('pending', 'placement', 'workers'):
+            g = self.gate()
+            if block == 'pending': g.pending.add('mining-camp')
+            if block == 'placement': g.placement.add('mining-camp')
+            if block == 'workers': g.goals['gl-owner-worker-hold'] = 1
+            self.assertFalse(g.accepts(row), block)
 
 
 if __name__ == '__main__': unittest.main()

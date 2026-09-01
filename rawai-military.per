@@ -3691,6 +3691,7 @@
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-placement-attempts 0)
+	(set-goal gl-island-migration-point-retry-used NO)
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
@@ -4595,6 +4596,33 @@
 =>
 	(up-chat-data-to-self "migration dropsite foundation lost: %d" g: gl-island-migration-dropsite-id)
 	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+	(up-timer-status t-island-migration == timer-triggered)
+	(up-compare-goal gl-island-migration-placement-attempts c:> 0)
+	(up-compare-goal gl-island-migration-placement-attempts c:< 4)
+	(goal gl-island-migration-point-retry-used NO)
+	(goal gl-owner-worker-hold NO)
+	(up-pending-objects c: mining-camp <= 0)
+	(up-pending-objects c: lumber-camp <= 0)
+	(up-pending-objects c: mill <= 0)
+	(not (up-pending-placement c: mining-camp))
+	(not (up-pending-placement c: lumber-camp))
+	(not (up-pending-placement c: mill))
+=>
+	;T25's first exact (131,199) request vanished with no pending placement or
+	;foundation, while the same point succeeded on the next migration. Retry the
+	;last engine-accepted point once before advancing to geometrically different
+	;offsets. The one-shot token and original four-offset bound prevent a loop.
+	(up-reset-placement c: mining-camp)
+	(up-reset-placement c: lumber-camp)
+	(up-reset-placement c: mill)
+	(set-goal gl-island-migration-point-retry-used YES)
+	(up-modify-goal gl-island-migration-placement-attempts c:- 1)
+	(up-set-timer c: t-island-migration c: 1)
+	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
 
 (defrule
