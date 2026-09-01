@@ -1,6 +1,97 @@
 # Rome at War AI handoff
 
-## CURRENT — T24:472 DEPLOYED, 2026-09-01
+## CURRENT — T25:473 DEPLOYED, 2026-09-01
+
+User supplied the T24 replay after reporting frozen partially loaded Red
+Transports, a temporarily motionless Red fleet, failed productive migrations,
+and landed assault units stopping after their first target. Read
+`T25-REPLAY-REVIEW.md` and benchmark
+`britain-4v4-20260901-141200-p3b44t24-transport-recovery` before further work.
+
+- **Workspace identity:** the same explicitly authorized recovery exception is
+  canonical for this branch:
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`;
+  Git root is the same path, branch `recovery/p3b44-transport-only`, pre-session
+  HEAD `8a0cc4b6c7952eed1d92eac7b5a9ac7d6dcf3eeb`. Runtime/evidence commit is
+  `e5ce4e738b761006f593c984a26bac39235dd028`; this HANDOFF commit follows it.
+  No directory/branch switch occurred. The normal project canonical path remains
+  `.pr-work\Rome-at-War-AI`; do not copy selected files between these checkouts.
+- **Replay identity:**
+  `SP Replay v101.103.48987.0 @2026.09.01 141200.aoe2record`, SHA-256
+  `075741E0A60BFA02CCD089B37960A4F1988C1B617334CAAC461783405D6B6B85`,
+  duration95:05, zero action-stream errors, T24:472 markers players2-8; Red
+  resigns95:05. Selected colors/resolved teams match the preserved lobby. Replay
+  and parsed `.analysis/replay-20260901-141200-t24-full.json` remain outside Git.
+- **Broad transport audit:**39 hulls,596 garrison orders,216 unload orders and11
+  terminal load-only phases across all players. Per-player hull/load/unload:
+  Red8/161/64, Green3/53/0, Yellow3/27/5, Purple2/13/12, Orange5/101/33,
+  Cyan8/61/14, Blue5/128/73, Gray5/52/15. These are reconstructed command
+  lifecycles, not claims that every engine action completed.
+- **T24 rendezvous CLOSED/runtime-confirmed:**60 phase-3 starts, zero phase-4
+  timeout,17 full departures,3 useful partial departures and7 local empty aborts.
+  Remote travel no longer consumes the30s local boarding deadline. Preserve this
+  behavior; later orphaned cargo and colony construction are separate defects.
+- **Migration drop site FIXED-PENDING-RUNTIME:** both completed Red worker
+  landings report a live lumber cluster, then resource wait, then failure without
+  a foundation. Source checks spendable affordability while wood is held in
+  building escrow, creating a circular dependency for stranded choppers; landing
+  also discarded the voyage's original resource anchor. Commit `9baaf33` first
+  exact-ID/class/zone revalidates the original anchor, and releases wood escrow
+  only when the matching Camp/Mill is affordable with escrow. Require a concrete
+  nearby foundation, completion and resource work in a fresh replay.
+- **Orphaned loaded Transports FIXED-PENDING-RUNTIME:** preparation recovery can
+  clear hull/group/route ownership while cargo remains aboard, and an occupied or
+  terminal quarantine slot previously left no owner to rescan free idle cargo
+  hulls. Commit `9728568` adds a bounded exact-hull orphan scanner, excluding
+  moving, damaged, grouped, under-attack and recently terminal hulls; one terminal
+  grace interval rotates the scarce slot. Active missions must not be stolen.
+- **Landed assault continuation FIXED-PENDING-RUNTIME:** four16s no-target samples
+  released a landed group despite its300s lease; Red's second landing releases
+  about88s later without another combat target. Commit `3c4426d` preserves live
+  hostile priority and the hard lease but gives idle same-zone members twelve
+  bounded same-landmass probes around the sealed objective before release.
+- **Diagnostic label corrected:** `loaded transports:0` was never a total cargo
+  count; the escort scan deliberately removed idle hulls. Commit `b574da0` labels
+  it `active loaded escort targets` with no selection/behavior change.
+- **Adversarial review:** active grouped/moving/attacked hulls remain protected;
+  migration wrong-zone/path vetoes remain hard; only matching resource-building
+  escrow is released; probe commands touch only self-owned, idle, ungarrisoned,
+  same-zone, not-under-attack mission members. Historical T16A1 fingerprinting
+  strips only the independently tested T25 probe state; unrelated mission logic
+  still matches its immutable baseline. All changes are independently revertible.
+- **PASS:**420/420 full regression tests; focused migration-foundation, bounded
+  recovery, assault-preparation and landed-combat fixtures; PER structure and
+  operand domains; generated assault sync; strategy execution; naval doctrine;
+  41 replay benchmarks;824 ownership-relevant sites with zero direct permission
+  failures; `git diff --check` has line-ending warnings only. Initial full run's
+  Windows temporary-directory permission error passed on authorized rerun.
+- **Installed/source T25:473:**91 files, full SHA-256
+  `5DBA1CB89BE98F58B9E954E628E6E5040C0907C113FC916EC816B4D1DAB95405`.
+  `tools/sync_test_ai.py --apply` replaced exactly assault missions, custom
+  constants, init goals and military. Independent post-apply check reports zero
+  missing/different/unexpected files and installed marker
+  `RAWAI-P3B44T25:473`.
+- **Still INVESTIGATING — temporary naval non-progress:** replay disproves a
+  permanently orphaned Red fleet: the visible ships receive new assignments
+  four to six minutes later. Naval opportunity has no progress watchdog, but the
+  replay does not prove the exact target/writer or unreachable geometry. No
+  guessed naval behavior patch was included.
+- **Still OPEN — repeated command flood/lag:** large identical ORDER floods remain,
+  including more than11,000 copies for one player/unit-target pair. This replay
+  does not attribute the source writer. Do not conflate it with the three causal
+  transport/colony fixes or claim a lag/crash fix.
+- **Publication:** local branch is ahead of
+  `origin/recovery/p3b44-transport-only`; existing PR8 remains the publication
+  target. No push/PR mutation was requested in this replay turn. Do not create a
+  replacement PR; update PR8 only on explicit publication request.
+- **Next runtime acceptance:** confirm473 and exact installed hash; audit every
+  player's Transport lifecycle. Require productive original-anchor drop-site
+  construction with escrowed wood, bounded adoption/recovery of every eligible
+  orphaned cargo hull without mission theft, and landed groups acquiring another
+  hostile or advancing through same-island probes within the existing300s lease.
+  Preserve T24 rendezvous, useful partial/full lifts and landing safety.
+
+## PREVIOUS — T24:472 DEPLOYED, 2026-09-01
 
 User supplied the T22 replay and reported hundreds of villagers waiting on
 beaches with nobody migrating. Read `T24-MIGRATION-RENDEZVOUS.md` and benchmark
