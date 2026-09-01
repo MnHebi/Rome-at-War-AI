@@ -232,6 +232,18 @@ class AssaultPlanTests(unittest.TestCase):
         p.sn['sn-target-player-number']=6;p.admission_snapshot()
         self.assertEqual(p.g['gl-ap-seed-enemy'],7)
 
+    def test_fourth_living_enemy_is_evaluated_before_loaded_mission_recovers(self):
+        # T25 Yellow exhausted defended/wrong-zone approaches to player 8, then
+        # found no overseas objectives for players 5 and 6. The historical
+        # three-opponent cap recovered the load before player 7 was inspected.
+        p=Planner(enemies=(5,6,7,8))
+        p.objective(100,8,(100,100));p.defend_objective(100)
+        p.objective(400,7,(220,220));p.begin(enemy=8,objective=100)
+        p.until('TRANSPORT-ROUTE-DEPARTURE-START','TRANSPORT-ROUTE-RECOVERY-WAIT',bound=300)
+        self.assertEqual(p.g['gl-transport-route-state'],p.val('TRANSPORT-ROUTE-DEPARTURE-START'))
+        self.assertEqual(p.g['gl-assault-manifest-player'],7)
+        self.assertEqual(p.g['gl-ap-enemies-tried'],4)
+
     def test_enemy_deadline_rotates_and_total_deadline_recovers(self):
         p=Planner();p.objective(200,7,(220,220));p.begin();p.step()
         p.step(180)
