@@ -373,7 +373,7 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-all "RAWAI-P3B44T23: %d" c: 471)
+	(up-chat-data-to-all "RAWAI-P3B44T24: %d" c: 472)
 	(disable-self)
 )
 
@@ -412,6 +412,18 @@
 	(set-goal gl-island-migration-load-candidate-move-y -1)
 	(set-goal gl-island-migration-load-candidate-idling -1)
 	(set-goal gl-island-migration-load-reported NO)
+	(disable-self)
+)
+
+;Keep migration rendezvous clocks out of the already dense transport startup
+;rules. These are preparation leases, not voyage or local boarding deadlines.
+(defrule
+	(true)
+=>
+	(set-goal gl-migration-rendezvous-x 0)
+	(set-goal gl-migration-rendezvous-y 0)
+	(set-goal gl-migration-rendezvous-until 0)
+	(set-goal gl-migration-rendezvous-next 0)
 	(disable-self)
 )
 

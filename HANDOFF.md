@@ -1,6 +1,67 @@
 # Rome at War AI handoff
 
-## CURRENT — T23:471 DEPLOYED, 2026-09-01
+## CURRENT — T24:472 DEPLOYED, 2026-09-01
+
+User supplied the T22 replay and reported hundreds of villagers waiting on
+beaches with nobody migrating. Read `T24-MIGRATION-RENDEZVOUS.md` and benchmark
+`britain-4v4-20260901-112916-p3b44t22-migration-rendezvous`.
+
+- Same authorized recovery working-directory/Git-root exception:
+  `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`;
+  branch `recovery/p3b44-transport-only`, pre-session HEAD
+  `8854015037aed2e0d879a4d5796db221a2eadcd9`. No workspace/branch switch. Normal
+  canonical directory remains `.pr-work\Rome-at-War-AI`; do not edit or copy
+  selected files into the obsolete root extraction.
+- Replay SHA-256
+  `02E96FAE79D42D3F9BA276AFEA503374F2DE21738F026D0854AF7F1B0EFB7F59`;
+  duration85:19, zero action-stream parse errors, T22:470 markers players2-8,
+  Red resigns at85:19. Replay and all raw analysis stay outside Git.
+- **Evidence conflict preserved:** user directly observed no migration during the
+  beach pile-up. Replay commands also record full Gray worker departures at71:48
+  and84:05 and Red at81:42; Red's twenty settlers are detected landed at83:19.
+  Clarify whether “nobody” meant no departures during the observed pile-up or no
+  sustained productive colony. Do not override either account meanwhile.
+- **ROOT CAUSE — source/runtime proven:** the migration controller selected a
+  hull and passengers, issued exact-hull garrison, and immediately started its
+  30s load timer. It had no rendezvous state or distance gate. Across26 migration
+  boarding windows, distant Yellow/Purple/Orange/Blue Scouts retain the correct
+  order and close distance with no command conflict before empty aborts. Worker
+  missions show the same boundary; Red/Gray full loads depart when they happen
+  to beat it.
+- **FIXED-PENDING-RUNTIME:** preserve existing targets/hulls/passenger eligibility,
+  but save the closest reserved passenger as an anchor and give both sides a
+  separate120s exact-hull rendezvous lease. Commands renew every8s. The unchanged
+  30s local boarding window begins only at <=12 tiles, after full boarding, or
+  when no reserved passenger remains ashore. Phase3=start, phase4=timeout; timeout
+  flows once into existing full/partial/abort recovery.
+- **Separate admission defect remains INVESTIGATING:** Red's29:53 snapshot says
+  idle bucket0, transports2, defense0, depleted0, pressure0. Ordinary worker
+  migration needs two engine-idle villagers unless depletion/pressure is active;
+  visually waiting workers with stale orders therefore do not qualify. Pressure
+  becomes5 at50:52 and Red's worker mission begins52:58. Equivalent outer-gate
+  state is not exposed for every player, so T24 does not add speculative worker
+  stripping or claim that every no-admission case is fixed.
+- **PASS:** five focused actual-PER migration rendezvous tests; **414/414** full
+  regression tests; PER, naval, strategy, generated assault, forty replay
+  benchmarks and ownership checks;821 relevant ownership sites, zero direct
+  permission failures; `git diff --check` has only line-ending warnings.
+- **Installed/source T24:472:**91 files, SHA-256
+  `09DFDC3781921B5E1A95E8181274D86B8EDCEE0E9BE84B2A5FA95E96AD740BEA`.
+  Deployment replaced exactly four files: assault mission defs, custom constants,
+  marker/init goals and military. Independent post-apply check reports no missing,
+  unexpected or mismatched files; installed marker is `RAWAI-P3B44T24: 472`.
+- Outside-repository diagnostic artifacts:
+  `.analysis/replay-20260901-112916-t22-full.json`,
+  `.analysis/p3b44t22-transport-audit.{txt,json}`,
+  `.analysis/p3b44t22-task-ownership.json`, and
+  `.analysis/p3b44t22-migration-admission.txt`.
+- Next: fresh T24 replay, all-player lifecycle audit. Require phase3 remote travel
+  to reach local full/partial boarding or one phase4 timeout. Separately enumerate
+  any player never reaching phase3; add the smallest outer-gate discriminator if
+  existing evidence still cannot name its blocker. Productive remote drop-site
+  construction remains OPEN and is not resolved by rendezvous.
+
+## PREVIOUS — T23:471 DEPLOYED, 2026-09-01
 
 User reported that assault preparation selected a Transport before selecting its
 passengers, regardless of their separation, then charged the approach against the
@@ -46,7 +107,7 @@ are needed. Read `T23-ASSAULT-RENDEZVOUS.md`.
 - Runtime acceptance is pending. Audit every player and distinguish preparation
   rendezvous from downstream loaded-hull dispatch. Cyan never reaching admission
   and a loaded Red hull never departing are not declared fixed by this patch.
-  PR7 remains the publication target and must be updated, not replaced.
+  PR8 remains the publication target and must be updated, not replaced.
 
 ## PREVIOUS — T22:470 DEPLOYED, 2026-08-31
 

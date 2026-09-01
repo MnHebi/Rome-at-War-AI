@@ -2294,6 +2294,50 @@
         "The recovery attack/transport program is unchanged apart from event logs. Broader salvage and dock work are authorized but held outside this isolated caller-attribution experiment, not completed or canceled."
       ],
       "validation_status": "fresh-replay-required"
+    },
+    {
+      "id": "britain-4v4-20260901-112916-p3b44t22-migration-rendezvous",
+      "source": {
+        "file_basename": "SP Replay v101.103.48987.0 @2026.09.01 112916.aoe2record",
+        "sha256": "02E96FAE79D42D3F9BA276AFEA503374F2DE21738F026D0854AF7F1B0EFB7F59",
+        "game_build": "101.103.48987.0",
+        "map": "Britannia",
+        "players": [
+          "Red Roman Empire (team 1)", "Green Roman Empire (team 1)",
+          "Yellow Roman Empire (team 1)", "Purple Roman Empire (team 1)",
+          "Orange Picts (team 2)", "Cyan Britons (team 2)",
+          "Blue Germani (team 2)", "Gray Gauls (team 2)"
+        ],
+        "team_mapping_basis": "decoded-selected-color-and-resolved-team",
+        "team_mapping_note": "Validated selected-color metadata matches the preserved authoritative lobby; no row/slot color inference.",
+        "duration_seconds": 5119,
+        "lobby_fixture_id": "britain-4v4-lobby-20260827-6969d5e2",
+        "lobby_screenshot_sha256": "6969D5E21EE8DF09A01F7176CD928FCEFCBACC61814E2349A64A9E43137C"
+      },
+      "direct_replay_observations": [
+        "Players 2-8 serialize RAWAI-P3B44T22:470. The replay parses through 85:19 with zero action-stream errors; Red resigns at 85:19.",
+        "The user directly observed hundreds of villagers waiting on beaches and no migration. Decoded evidence also records full worker departures for Gray at 71:48 and 84:05 and Red at 81:42, with Red's twenty settlers detected landed at 83:19. Preserve both accounts pending clarification of whether the report meant no departures during the pile-up or no sustained productive colony.",
+        "The all-player audit reconstructs 26 migration boarding windows. Yellow, Purple, Orange and Blue early Scout missions retain exact-hull garrison orders and have no competing command before empty aborts while still 25-125 tiles from their hulls. The fixed thirty-second load window expires during travel.",
+        "Late worker attempts show the same boundary. Purple remains 33 tiles away after thirty seconds in one empty abort and 12 tiles away in a six-passenger loaded abort; Blue aborts a late eighteen-passenger attempt. Red and Gray full worker loads depart when they beat the same deadline.",
+        "Red's 29:53 gate snapshot reports idle bucket zero, two Transports, no defense, no depletion and no home-resource pressure. Home-resource pressure becomes five at 50:52 and Red starts its first worker migration at 52:58. Equivalent outer-gate state is not serialized for every player."
+      ],
+      "implementation_inferences": [
+        "Source confirms that migration issues garrison and immediately arms a thirty-second boarding timer with no rendezvous state or passenger-distance gate. Remote travel is therefore misclassified as local boarding failure.",
+        "Source separately confirms that ordinary worker admission needs two engine-idle villagers unless resource depletion/pressure is active. T22 directly proves that blocker for Red, but not the exact outer blocker for every player; no broad worker-admission policy change is justified in T24."
+      ],
+      "changes_under_test": [
+        "RAWAI-P3B44T24:472 preserves existing target, hull and passenger selection but adds an exact-hull 120-second migration rendezvous lease. The unchanged thirty-second load timer starts only within twelve tiles, after full boarding, or when no reserved shore passenger remains.",
+        "Rendezvous commands renew at most every eight seconds; timeout phase 4 flows once into existing full/partial/abort recovery. T23 assault, voyage, landing and drop-site policy remain unchanged."
+      ],
+      "fresh_replay_acceptance": [
+        "Audit every player's migration lifecycle. Remote passengers must spend travel in phase 3 rather than aborting at thirty seconds, then enter existing full/partial loading or one bounded phase-4 timeout.",
+        "Preserve Red/Gray full and useful-partial migration, exact-hull ownership, Scout migration, same-zone landing validation and existing drop-site behavior. Separately classify missions which never reach admission; T24 does not claim to repair that gate."
+      ],
+      "known_limits": [
+        "Replay action data proves command timing and distance closure but not engine path reachability. Structural tests cannot close runtime migration behavior.",
+        "Productive drop-site establishment remains a separate unresolved defect. User clarification of the observed no-migration wording remains pending; parser evidence does not override the visible observation."
+      ],
+      "validation_status": "fresh-replay-required"
     }
   ]
 }
