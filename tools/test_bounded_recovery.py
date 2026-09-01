@@ -52,5 +52,34 @@ class RecoveryTests(unittest.TestCase):
             if 'TRANSPORT-ROUTE-RECOVERY-CHECK' in row[3]: continue
             self.assertIn('(set-goal gl-route-unload-attempts 0)', row[4])
 
+    def test_free_loaded_orphans_are_serially_adopted_without_stealing_missions(self):
+        rows = list(rule_blocks(source('rawai-military.per')))
+        scan = [r for r in rows if
+                '(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-SCAN)' in r[4]]
+        adopt = [r for r in rows if
+                 '(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-SCAN)' in r[3]
+                 and '(up-get-object-data object-data-id gl-quarantine-transport-id)' in r[4]]
+        self.assertEqual(len(scan), 1)
+        self.assertEqual(len(adopt), 1)
+        for gate in ('object-data-garrison-count <= 0', 'object-data-group-flag >= 0',
+                     'object-data-idling != 1', 'object-data-under-attack > 0',
+                     'object-data-id g:== gl-assault-recovery-rejected'):
+            self.assertIn(gate, scan[0][4])
+        self.assertIn('(set-goal gl-quarantine-transport-attempts 0)', adopt[0][4])
+        self.assertIn('(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-CHECK)',
+                      adopt[0][4])
+
+    def test_terminal_exact_id_rotates_after_one_grace_interval(self):
+        rows = list(rule_blocks(source('rawai-military.per')))
+        terminal = [r for r in rows if
+                    '(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-CHECK)' in r[3]
+                    and '(up-compare-goal gl-quarantine-transport-attempts c:>= 4)' in r[3]]
+        self.assertEqual(len(terminal), 1)
+        self.assertIn('(up-modify-goal gl-assault-recovery-rejected g:= gl-quarantine-transport-id)',
+                      terminal[0][4])
+        self.assertIn('(set-goal gl-quarantine-transport-id -1)', terminal[0][4])
+        self.assertIn('(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)',
+                      terminal[0][4])
+
 
 if __name__ == '__main__': unittest.main()

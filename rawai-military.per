@@ -3296,16 +3296,36 @@
 	(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-CHECK)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count > 0)
-	(up-compare-goal gl-quarantine-transport-attempts c:>= 3)
+	(goal gl-quarantine-transport-attempts 3)
 =>
-	;Keep the exact hull reserved so ordinary migration and escort selectors do
-	;not recycle it, but stop issuing impossible unload commands. The migration
-	;gate may continue with other empty hulls.
+	;One terminal grace interval retains the exact hull without repeating an
+	;impossible unload. The slot is then rotated so simultaneous orphaned cargo
+	;hulls cannot remain forever outside every automatic controller.
 	(up-chat-data-to-self "detached quarantine terminal: %d" g: gl-quarantine-transport-id)
+	(up-modify-goal gl-quarantine-transport-attempts c:+ 1)
 	(up-modify-sn sn-focus-player-number g:= gl-quarantine-transport-focus)
 	(up-modify-goal gl-quarantine-transport-next g:= gl-game-time)
 	(up-modify-goal gl-quarantine-transport-next c:+ 60)
 	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-TERMINAL)
+)
+
+(defrule
+	(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-CHECK)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count > 0)
+	(up-compare-goal gl-quarantine-transport-attempts c:>= 4)
+=>
+	;Remember the terminal hull long enough for the free-hull scanner to choose a
+	;different orphan. Loaded hulls remain excluded from migration and assault
+	;admission even after this scarce exact-ID slot rotates.
+	(up-modify-goal gl-assault-recovery-rejected g:= gl-quarantine-transport-id)
+	(up-modify-goal gl-assault-recovery-retry g:= gl-game-time)
+	(up-modify-goal gl-assault-recovery-retry c:+ 300)
+	(up-modify-sn sn-focus-player-number g:= gl-quarantine-transport-focus)
+	(set-goal gl-quarantine-transport-id -1)
+	(up-modify-goal gl-quarantine-transport-next g:= gl-game-time)
+	(up-modify-goal gl-quarantine-transport-next c:+ 30)
+	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)
 )
 
 (defrule
@@ -3330,6 +3350,56 @@
 	(set-goal gl-quarantine-transport-id -1)
 	(up-modify-goal gl-quarantine-transport-next g:= gl-game-time)
 	(up-modify-goal gl-quarantine-transport-next c:+ 60)
+	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)
+)
+
+;Preparation recovery can relinquish a loaded hull when the exact quarantine
+;slot is already occupied. Once all transport state machines are idle, adopt
+;one such free, motionless cargo hull and put it through the same bounded exact-
+;ID shoreline-unload lifecycle. This scanner never takes a grouped mission,
+;moving hull, damaged hull, or the most recently terminal hull.
+(defrule
+	(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)
+	(up-compare-goal gl-quarantine-transport-id c:< 0)
+	(up-compare-goal gl-game-time g:>= gl-quarantine-transport-next)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
+	(goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
+=>
+	(up-modify-goal gl-quarantine-transport-focus s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-find-local c: transport-ship c: 40)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-id g:== gl-assault-recovery-rejected)
+	(up-remove-objects search-local object-data-garrison-count <= 0)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-SCAN)
+)
+
+(defrule
+	(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-SCAN)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-quarantine-transport-id)
+	(set-goal gl-quarantine-transport-attempts 0)
+	(up-modify-goal gl-quarantine-transport-next g:= gl-game-time)
+	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-CHECK)
+)
+
+(defrule
+	(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-SCAN)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-quarantine-transport-focus)
+	(up-modify-goal gl-quarantine-transport-next g:= gl-game-time)
+	(up-modify-goal gl-quarantine-transport-next c:+ 30)
 	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-IDLE)
 )
 
