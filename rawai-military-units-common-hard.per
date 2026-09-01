@@ -39,6 +39,7 @@
 #load-if-not-defined ITALIAN-CIV ; Roman Republic
 #load-if-not-defined KHMER-CIV ; Pontus
 #load-if-not-defined BURMESE-CIV ; Seleucids
+#load-if-not-defined ETHIOPIANS-CIV ; Dacians
 
 (defrule
 	(and
@@ -112,6 +113,7 @@
 	(up-train gl-unitescrow-state c: militiaman-line)
 )
 
+#end-if
 #end-if
 #end-if
 #end-if
@@ -814,6 +816,143 @@
 	(up-can-train gl-unitescrow-state c: imitation-legionary-line)
 =>
 	(up-train gl-unitescrow-state c: imitation-legionary-line)
+)
+
+#end-if
+
+;========================DACIANS========================
+
+#load-if-defined ETHIOPIANS-CIV
+
+(defrule
+	(current-age < middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal primary-unit CHAMPION)
+	)
+	(unit-type-count-total militiaman-line g:< gl-ten-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: militiaman-line)
+=>
+	(up-train gl-unitescrow-state c: militiaman-line)
+)
+
+(defrule
+	(current-age < middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal secondary-unit CHAMPION)
+	)
+	(unit-type-count-total militiaman-line g:< gl-five-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: militiaman-line)
+=>
+	(up-train gl-unitescrow-state c: militiaman-line)
+)
+
+(defrule
+	(current-age < middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal tertiary-unit CHAMPION)
+	)
+	(unit-type-count-total militiaman-line g:< gl-two-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: militiaman-line)
+=>
+	(up-train gl-unitescrow-state c: militiaman-line)
+)
+
+(defrule
+	(current-age < middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal quaternary-unit CHAMPION)
+	)
+	(unit-type-count-total militiaman-line g:< gl-one-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: militiaman-line)
+=>
+	(up-train gl-unitescrow-state c: militiaman-line)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal primary-unit CHAMPION)
+	)
+	(unit-type-count-total falx-warrior-line g:< gl-ten-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: falx-warrior-line)
+=>
+	(up-train gl-unitescrow-state c: falx-warrior-line)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal secondary-unit CHAMPION)
+	)
+	(unit-type-count-total falx-warrior-line g:< gl-five-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: falx-warrior-line)
+=>
+	(up-train gl-unitescrow-state c: falx-warrior-line)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal tertiary-unit CHAMPION)
+	)
+	(unit-type-count-total falx-warrior-line g:< gl-two-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: falx-warrior-line)
+=>
+	(up-train gl-unitescrow-state c: falx-warrior-line)
+)
+
+(defrule
+	(current-age >= middle-antiquity-age)
+	(and
+		(goal train-champion YES)
+		(goal quaternary-unit CHAMPION)
+	)
+	(unit-type-count-total falx-warrior-line g:< gl-one-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: falx-warrior-line)
+=>
+	(up-train gl-unitescrow-state c: falx-warrior-line)
+)
+
+;Dacians will train Crossbowmen despite ban on Bowmen caused by focus sheet, as they otherwise lack any sort of meaningful ranged support besides siege-tower
+;They will train Bowmen before this.
+(defrule
+	(up-compare-goal current-phase >= 7)
+	(goal train-bowman YES)
+=>
+	(set-goal train-bowman NO)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 7)
+	(goal train-crossbow NO)
+	(unit-available crossbowman)
+=>
+	(set-goal train-crossbow YES)
+)
+
+(defrule
+	(up-compare-goal current-phase >= 7)
+	(goal train-crossbow YES)
+	(unit-type-count-total crossbowman g:< gl-five-percent)
+	(food-amount > 180)
+	(up-can-train gl-unitescrow-state c: crossbowman)
+=>
+	(up-train gl-unitescrow-state c: crossbowman)
 )
 
 #end-if

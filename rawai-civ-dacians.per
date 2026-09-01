@@ -119,8 +119,8 @@
 (defrule
 	(true)
 =>
-	(set-goal champion-affinity 0) ;80 if Civitates Foederate is researched
-	(set-goal spearman-affinity 0) ;90 if Civitates Foederate is researched
+	(set-goal champion-affinity 100) 
+	(set-goal spearman-affinity 99) 
 	(set-goal horus-affinity 0)
 	
 	(disable-self)
@@ -129,10 +129,10 @@
 (defrule
 	(true)
 =>	
-	(set-goal archer-affinity 99)
-	(set-goal skirmisher-affinity 50)
+	(set-goal archer-affinity 66)
+	(set-goal skirmisher-affinity 100)
 	(set-goal cavarcher-affinity 100)
-	(set-goal camarcher-affinity 50)
+	(set-goal camarcher-affinity 0)
 	(set-goal elearcher-affinity 0)
 	(set-goal chrarcher-affinity 0)
 	
@@ -143,8 +143,8 @@
 	(true)
 =>	
 	(set-goal scavalry-affinity 99)
-	(set-goal cavalry-affinity 99)
-	(set-goal crider-affinity 50)
+	(set-goal cavalry-affinity 66)
+	(set-goal crider-affinity 0)
 	(set-goal belephant-affinity 0)
 	(set-goal chariot-affinity 0)
 	
@@ -155,9 +155,9 @@
 	(true)
 =>
 	(set-goal ram-affinity 99)
-	(set-goal mangonel-affinity 66)
-	(set-goal scorpion-affinity 50)
-	(set-goal catapult-affinity 0)
+	(set-goal mangonel-affinity 99)
+	(set-goal scorpion-affinity 100)
+	(set-goal catapult-affinity 100)
 	
 	(disable-self)
 )
@@ -1203,10 +1203,10 @@
 (defrule
 	(up-compare-goal current-phase < 4)
 	(not
-		(goal quaternary-unit CHAMPION)
+		(goal quaternary-unit ARCHER)
 	)
 =>
-	(set-goal quaternary-unit CHAMPION)
+	(set-goal quaternary-unit ARCHER)
 )
 
 (defrule
@@ -1239,10 +1239,10 @@
 (defrule
 	(up-compare-goal current-phase >= 4)
 	(not
-		(goal quaternary-unit SCAVALRY)
+		(goal quaternary-unit ARCHER)
 	)
 =>
-	(set-goal quaternary-unit SCAVALRY)
+	(set-goal quaternary-unit ARCHER)
 )
 
 ;Keep every configured composition line enabled for training.
@@ -1269,6 +1269,13 @@
 )
 
 (defrule
+	(up-compare-goal current-phase < 4)
+	(goal train-bowman NO)
+=>
+	(set-goal train-bowman YES)
+)
+
+(defrule
 	(up-compare-goal current-phase >= 4)
 	(goal train-champion NO)
 =>
@@ -1288,6 +1295,14 @@
 =>
 	(set-goal train-scoutcav YES)
 )
+
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(goal train-bowman NO)
+=>
+	(set-goal train-bowman YES)
+)
+
 
 #end-if
 ;civ specific structure preferences
