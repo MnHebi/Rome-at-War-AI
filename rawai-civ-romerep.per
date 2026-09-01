@@ -1520,60 +1520,6 @@
 	(train praetorian-guard-line)
 )
 
-;The Republic keeps the same role-independent baseline while preferring its
-;melee stance. Both weapon forms share one family bound and request cadence.
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
-	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
-	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: elite-legionary-melee)
-=>
-	(up-train gl-unitescrow-state c: elite-legionary-melee)
-	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
-	(up-modify-goal gl-legionary-request-next c:+ 10)
-	(up-chat-data-to-self "Roman Republic baseline Legionary: %d" c: elite-legionary-melee)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
-	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
-	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: elite-legionary)
-=>
-	(up-train gl-unitescrow-state c: elite-legionary)
-	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
-	(up-modify-goal gl-legionary-request-next c:+ 10)
-	(up-chat-data-to-self "Roman Republic baseline Legionary: %d" c: elite-legionary)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
-	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
-	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: legionary-melee)
-=>
-	(up-train gl-unitescrow-state c: legionary-melee)
-	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
-	(up-modify-goal gl-legionary-request-next c:+ 10)
-	(up-chat-data-to-self "Roman Republic baseline Legionary: %d" c: legionary-melee)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(up-compare-goal gl-legionary-family-count g:< gl-two-percent)
-	(up-compare-goal gl-game-time g:>= gl-legionary-request-next)
-	(food-amount > 180)
-	(up-can-train gl-unitescrow-state c: legionary)
-=>
-	(up-train gl-unitescrow-state c: legionary)
-	(up-modify-goal gl-legionary-request-next g:= gl-game-time)
-	(up-modify-goal gl-legionary-request-next c:+ 10)
-	(up-chat-data-to-self "Roman Republic baseline Legionary: %d" c: legionary)
-)
-
 ;These one-shot messages report engine facts only. Dynamic stance effects may
 ;make unit-available differ from concrete up-can-train at a given instant.
 (defrule

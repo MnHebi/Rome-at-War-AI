@@ -1297,7 +1297,10 @@
 )
 
 (defrule
-	(up-compare-goal current-phase >= 4)
+	(and
+		(up-compare-goal current-phase >= 4)
+		(up-compare-goal current-phase <= 7)
+	)
 	(goal train-bowman NO)
 =>
 	(set-goal train-bowman YES)
@@ -1395,7 +1398,13 @@
 )
 
 (defrule
-	(goal current-phase 4)
+	(or
+		(goal current-phase 4)
+		(or
+			(goal current-phase 5)
+			(goal current-phase 6)
+		)
+	)
 =>
 	(up-modify-goal desired-number-towncenters c:= 4)
 	(up-modify-goal desired-number-barracks c:= 4)
@@ -1412,7 +1421,13 @@
 )
 
 (defrule
-	(goal current-phase 4)
+	(or
+		(goal current-phase 4)
+		(or
+			(goal current-phase 5)
+			(goal current-phase 6)
+		)
+	)
 =>
 	(up-modify-goal desired-number-castles c:= 1)
 	(up-modify-goal desired-number-outposts c:= 4)
@@ -1424,7 +1439,7 @@
 )
 
 (defrule
-	(goal current-phase 5)
+	(goal current-phase 7)
 =>
 	(up-modify-goal desired-number-towncenters c:= 8)
 	(up-modify-goal desired-number-barracks c:= 6)
@@ -1438,26 +1453,6 @@
 	(up-modify-goal desired-number-monasteries c:= 4)
 	
 	(disable-self)
-)
-
-(defrule
-	(goal current-phase 5)
-=>
-	(up-modify-goal desired-number-castles c:= 4)
-	(up-modify-goal desired-number-outposts c:= 6)
-	(up-modify-goal desired-number-watchtowers c:= 10)
-	(up-modify-goal desired-number-seatowers c:= 5)
-	(up-modify-goal desired-number-shipyards c:= 8)
-	
-	(disable-self)
-)
-
-(defrule
-	(up-compare-goal current-phase >= 5)
-	(unit-type-count-total falx-warrior-line g:< gl-five-percent)
-	(can-train falx-warrior-line)
-=>
-	(train falx-warrior-line)
 )
 
 ; Upgrade Falx Warrior
