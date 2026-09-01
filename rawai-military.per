@@ -6153,6 +6153,7 @@
 	(set-goal gl-transport-route-script-load YES)
 	(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
 	(set-goal gl-transport-route-load-reported NO)
+	(set-goal gl-transport-route-load-grace-used NO)
 	(set-goal gl-transport-route-load-candidate-id -1)
 	(up-full-reset-search)
 	(up-set-group search-local c: attack-transport-group)
@@ -6524,6 +6525,46 @@
 	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(set-goal gl-transport-route-load-reported YES)
+	(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)
+	(up-modify-goal gl-transport-route-load-next c:+ 4)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)
+	(or
+		(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-PARTIAL)
+		(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-ABORT)
+	)
+	(goal gl-transport-route-load-grace-used NO)
+	(up-compare-goal gl-transport-route-load-candidate-id c:>= 0)
+	(up-compare-goal gl-transport-route-load-candidate-group-flag c:== attack-boarding-group)
+	(up-compare-goal gl-transport-route-load-candidate-target-id g:== gl-transport-route-id)
+	(up-compare-goal gl-transport-route-load-candidate-distance c:<= 12)
+	(or
+		(up-compare-goal gl-transport-route-load-candidate-action c:== action-garrison)
+		(up-compare-goal gl-transport-route-load-candidate-order c:== orderid-transport)
+	)
+=>
+	;T25 repeatedly reached the fixed deadline with the next accepted passenger
+	;still obeying the exact hull order only one to four tiles away. Give that
+	;specific live manifest one bounded grace period; all existing useful-partial
+	;and abort terminals remain authoritative after it expires.
+	(up-full-reset-search)
+	(fe-filter-garrisoned c: 1)
+	(up-set-group search-local c: attack-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	;OWNERSHIP command: attack-boarding-group.
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(set-goal gl-transport-route-load-grace-used YES)
+	(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
+	(up-modify-goal gl-transport-route-load-deadline g:= gl-transport-load-clock)
+	(up-modify-goal gl-transport-route-load-deadline c:+ 12)
 	(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)
 	(up-modify-goal gl-transport-route-load-next c:+ 4)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)

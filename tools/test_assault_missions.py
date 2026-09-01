@@ -24,7 +24,9 @@ class Missions(ScreenFallback):
     def data(self, field, target=False):
         obj = self.objects.get(self.target, {})
         keys = {'object-data-attacker-id': 'attacker', 'object-data-idling': 'idle',
-                'object-data-type': 'type', 'object-data-order': 'order'}
+                'object-data-type': 'type', 'object-data-order': 'order',
+                'object-data-cmdid': 'cmdid', 'object-data-move-x': 'move_x',
+                'object-data-move-y': 'move_y'}
         if field in keys: return self.val(str(obj.get(keys[field], -1)))
         if field == 'object-data-index': return self.local.index(self.target)
         return super().data(field, target)
@@ -47,7 +49,8 @@ class Missions(ScreenFallback):
             group = self.val(a[2])
             for i in self.groups.get(group, []):
                 if i in self.objects: self.objects[i]['flag'] = group if a[0] == '1' else -2
-        elif op == 'up-set-timer': pass  # preparation timer is outside this independent voyage module
+        elif op in ('up-set-timer', 'fe-filter-garrisoned'):
+            pass  # preparation timer/search visibility are outside this independent voyage module
         elif op == 'up-target-point':
             point = (self.g.get(a[0], 0), self.g.get(a[0][:-1]+'y', 0))
             self.commands.append((tuple(self.local), a[1], point))
