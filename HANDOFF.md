@@ -1,6 +1,6 @@
 # Rome at War AI handoff
 
-## CURRENT — RELEASE BACKPORT CORRECTED (2026-09-02)
+## CURRENT — RELEASE BACKPORT CORRECTED, T27 DEPLOYED (2026-09-02)
 
 The explicitly authorized recovery workspace remains
 `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`, branch
@@ -36,6 +36,13 @@ with release authority`).
   six existing civ-file updates would be generated; no `--write` was run, so
   this correction did not overwrite the explicitly audited release-aligned
   source or introduce unrelated generated strategy changes.
+- **Runtime deployment:** source and installed test-mod payload `T27:475` contain
+  92 runtime files with aggregate SHA-256
+  `D4B4E9F4CC5D8DCA0EA77D3DA922459F5D9963FE7802BAD67308E1C8BF5098D6`.
+  `tools/sync_test_ai.py --apply` copied only the new marker file after the
+  initial source deployment; an independent read-only check reports zero
+  missing, different, unexpected, or remaining-mismatched files. The installed
+  replay marker is `RAWAI-P3B44T27: 475`.
 - **Workspace hygiene:** the pre-existing untracked
   `release_transport_unload.patch` artifact remains untouched. No PR or push was
   made.
