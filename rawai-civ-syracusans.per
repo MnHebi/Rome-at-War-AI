@@ -41,7 +41,7 @@
 (defrule
 	(true)
 =>
-	(set-goal uu1-type CAVALRY-UU)
+	(set-goal uu1-type SIEGE-UU)
 	(set-goal uu2-type NO-UU)
 	(set-goal uu3-type NO-UU)
 	(set-goal uu4-type NO-UU)
@@ -119,8 +119,8 @@
 (defrule
 	(true)
 =>
-	(set-goal champion-affinity 0) ;80 if Civitates Foederate is researched
-	(set-goal spearman-affinity 0) ;90 if Civitates Foederate is researched
+	(set-goal champion-affinity 0)
+	(set-goal spearman-affinity 99)
 	(set-goal horus-affinity 0)
 	
 	(disable-self)
@@ -1394,10 +1394,10 @@
 (defrule
 	(up-compare-goal current-phase < 4)
 	(not
-		(goal tertiary-unit ARCHER)
+		(goal tertiary-unit SPEARMAN)
 	)
 =>
-	(set-goal tertiary-unit ARCHER)
+	(set-goal tertiary-unit SPEARMAN)
 )
 
 (defrule
@@ -1445,6 +1445,15 @@
 	(set-goal quaternary-unit CAVARCHER)
 )
 
+(defrule
+	(up-compare-goal current-phase >= 4)
+	(not
+		(goal quaternary-unit SPEARMAN)
+	)
+=>
+	(set-goal quaternary-unit SPEARMAN)
+)
+
 ;Keep every configured composition line enabled for training.
 
 (defrule
@@ -1459,6 +1468,13 @@
 	(goal train-cavarcher NO)
 =>
 	(set-goal train-cavarcher YES)
+)
+
+(defrule
+	(up-compare-goal current-phase < 4)
+	(goal train-spearman NO)
+=>
+	(set-goal train-spearman YES)
 )
 
 (defrule
@@ -1566,7 +1582,13 @@
 )
 
 (defrule
-	(goal current-phase 4)
+	(or
+		(goal current-phase 4)
+		(or
+			(goal current-phase 5)
+			(goal current-phase 6)
+		)
+	)
 =>
 	(up-modify-goal desired-number-towncenters c:= 4)
 	(up-modify-goal desired-number-barracks c:= 4)
@@ -1583,7 +1605,13 @@
 )
 
 (defrule
-	(goal current-phase 4)
+	(or
+		(goal current-phase 4)
+		(or
+			(goal current-phase 5)
+			(goal current-phase 6)
+		)
+	)
 =>
 	(up-modify-goal desired-number-castles c:= 1)
 	(up-modify-goal desired-number-outposts c:= 4)
@@ -1595,7 +1623,7 @@
 )
 
 (defrule
-	(goal current-phase 5)
+	(goal current-phase 7)
 =>
 	(up-modify-goal desired-number-towncenters c:= 8)
 	(up-modify-goal desired-number-barracks c:= 6)
@@ -1612,7 +1640,7 @@
 )
 
 (defrule
-	(goal current-phase 5)
+	(goal current-phase 7)
 =>
 	(up-modify-goal desired-number-castles c:= 4)
 	(up-modify-goal desired-number-outposts c:= 6)

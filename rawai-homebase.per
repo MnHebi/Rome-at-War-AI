@@ -1,4 +1,64 @@
 
+;======================== CRITICAL BUILD BOOTSTRAP ========================
+
+;University is a hard Middle-Age progression prerequisite.
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(current-age >= middle-antiquity-age)
+	(building-type-count-total university < 1)
+	(up-pending-objects c: university <= 0)
+	(not (up-pending-placement c: university))
+	(up-can-build 0 c: university)
+=>
+	(up-build place-normal 0 c: university)
+)
+
+;At least one Temple is a hard Middle-Age progression prerequisite.
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(current-age >= middle-antiquity-age)
+	(building-type-count-total monastery < 1)
+	(up-pending-objects c: monastery <= 0)
+	(not (up-pending-placement c: monastery))
+	(up-can-build 0 c: monastery)
+=>
+	(up-build place-normal 0 c: monastery)
+)
+
+;Every normal military economy needs its first Barracks.
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-opening-drop-sites-ready YES)
+	(building-type-count-total barracks < 1)
+	(up-pending-objects c: barracks <= 0)
+	(not (up-pending-placement c: barracks))
+	(up-can-build 0 c: barracks)
+=>
+	(up-build place-normal 0 c: barracks)
+)
+
+;Water maps need the first Port independently of later expansion policy.
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(building-type-count-total lumber-camp >= 1)
+	(building-type-count-total dock < 1)
+	(up-pending-objects c: dock <= 0)
+	(not (up-pending-placement c: dock))
+	(up-can-build 0 c: dock)
+=>
+	(up-build place-normal 0 c: dock)
+)
+
 ; Straight from AiBuilder files. Now extensively modified.
 
 ;Spread the first two Ports on water-map openings: rear first, front second,
@@ -1314,8 +1374,7 @@
 	(goal gl-owner-worker-hold NO)
 	(current-age >= middle-antiquity-age)
 	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
-	(goal gl-island-migration-state MIGRATION-IDLE)
-	(goal gl-home-resource-pressure NO)
+	(goal gl-migration-placement-lock NO)
 	(can-afford-building town-center)
 	(building-type-count-total town-center g:< desired-number-towncenters)
 	(up-pending-objects c: town-center <= 0)
@@ -3590,8 +3649,14 @@
 		(or
 			(building-type-count town-center >= 2)
 			(or
-				(goal gl-home-defense-state YES)
-				(goal rush-rushing YES)
+				(building-type-count-total archery-range g:< desired-number-ranges)
+				(or
+					(building-type-count-total stable g:< desired-number-stables)
+					(or
+						(goal gl-home-defense-state YES)
+						(goal rush-rushing YES)
+					)
+				)
 			)
 		)
 	)
@@ -3830,12 +3895,10 @@
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(current-age >= middle-antiquity-age)
-	(or
-		(building-type-count town-center >= 2)
-		(game-time >= 990)
-	)
 	(can-afford-building university)
 	(building-type-count-total university g:< desired-number-universities)
+	(up-pending-objects c: university <= 0)
+	(not (up-pending-placement c: university))
 	(up-can-build 0 c: university)
 =>
 	(up-build place-normal 0 c: university))
@@ -3844,14 +3907,20 @@
 	(goal gl-owner-worker-hold NO)
 	(current-age >= middle-antiquity-age)
 	(or
-		(building-type-count town-center >= 2)
-		(game-time >= 990)
+		(building-type-count-total monastery < 1)
+		(or
+			(building-type-count town-center >= 2)
+			(game-time >= 990)
+		)
 	)
 	(can-afford-building monastery)
 	(building-type-count-total monastery g:< desired-number-monasteries)
+	(up-pending-objects c: monastery <= 0)
+	(not (up-pending-placement c: monastery))
 	(up-can-build 0 c: monastery)
 =>
-	(up-build place-normal 0 c: monastery))
+	(up-build place-normal 0 c: monastery)
+)
 
 (defrule
 	(goal gl-owner-worker-hold NO)
