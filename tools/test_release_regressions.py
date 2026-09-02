@@ -10,7 +10,7 @@ import unittest
 from validate_naval_doctrine import rule_blocks
 
 ROOT = Path(__file__).resolve().parents[1]
-CAPS = {"max-food-distance": 12, "max-hunt-distance": 16}
+CAPS = {"max-food-distance": 12, "max-hunt-distance": 28}
 
 
 def compact(text):

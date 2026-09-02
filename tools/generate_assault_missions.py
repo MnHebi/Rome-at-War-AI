@@ -85,6 +85,7 @@ def definitions():
                for key, label in labels.items())
     out.extend(f'(defconst str-assault-deny-{code} "RAW44T deny {code}: {message}: %d")'
                for code, (message, _) in DENIAL_DETAILS.items())
+    out.append('(load "rawai-transport-unload")')
     return '\n'.join(out) + '\n'
 
 
@@ -421,8 +422,6 @@ def missions():
         out.append(rule(combat, [*members(),
             '(up-remove-objects search-local object-data-garrisoned == 1)',
             f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("target-zone")})',
-            '(up-remove-objects search-local object-data-idling != 1)',
-            '(up-remove-objects search-local object-data-under-attack > 0)',
             setv('combat-target', -1)]))
         out.append(rule([*combat, '(up-set-target-object search-local c: 0)'], [
             f'(up-get-point position-object {v("x")})', setv('sample', 7)]))
@@ -434,7 +433,15 @@ def missions():
             hostile = [*search, '(player-in-game focus-player)', '(stance-toward focus-player enemy)']
             out.append(rule(hostile, ['(up-full-reset-search)',
                 f'(up-set-target-point {v("x")})', '(up-filter-distance c: -1 c: 255)',
-                '(up-find-remote c: building-class c: 40)', '(up-find-remote c: villager-class c: 40)',
+                '(up-find-remote c: scout-cavalry-class c: 40)',
+                '(up-find-remote c: cavalry-archer-class c: 40)',
+                '(up-find-remote c: cavalry-class c: 40)',
+                '(up-find-remote c: infantry-class c: 40)',
+                '(up-find-remote c: archery-class c: 40)',
+                '(up-find-remote c: siege-weapon-class c: 40)',
+                '(up-find-remote c: tower-class c: 40)',
+                '(up-find-remote c: building-class c: 40)',
+                '(up-find-remote c: villager-class c: 40)',
                 '(up-remove-objects search-remote object-data-player != focus-player)',
                 '(up-remove-objects search-remote object-data-hitpoints <= 0)',
                 f'(up-remove-objects search-remote object-data-map-zone-id g:!= {v("target-zone")})',
@@ -449,8 +456,7 @@ def missions():
         out.append(rule(found, [*members(),
             '(up-remove-objects search-local object-data-garrisoned == 1)',
             f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("target-zone")})',
-            '(up-remove-objects search-local object-data-idling != 1)',
-            '(up-remove-objects search-local object-data-under-attack > 0)',
+            '(up-remove-objects search-local object-data-action == actionid-attack)',
             f'(up-add-object-by-id search-remote g: {v("combat-target")})',
             '(up-target-objects 1 action-default -1 stance-aggressive)',
             copy('combat-last', v('combat-target')), setv('combat-misses', 0),
@@ -460,9 +466,10 @@ def missions():
         out.append(rule([*seeking, f'(goal {v("combat-target")} -1)'],
                         [f'(up-modify-goal {v("combat-misses")} c:+ 1)', setv('sample', 8)]))
         # Destroying the visible objective must not cut the landed group's
-        # strings. Probe a bounded ring around the sealed objective, but only
-        # command idle same-zone members and only accept probe points on the
-        # objective's landmass. A visible hostile found on any later sample
+        # strings. Probe a bounded ring around the sealed objective. Command
+        # same-zone mission members that are not already actively attacking;
+        # stale movement or under-attack state must not deadlock continuation.
+        # A visible hostile found on any later sample
         # still takes priority over these exploratory movements.
         probes = [(32, 0), (-32, 0), (0, 32), (0, -32),
                   (64, 0), (-64, 0), (0, 64), (0, -64),
@@ -483,8 +490,7 @@ def missions():
                          f'(up-compare-goal {v("zone")} g:== {v("target-zone")})'], [
             *members(), '(up-remove-objects search-local object-data-garrisoned == 1)',
             f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("target-zone")})',
-            '(up-remove-objects search-local object-data-idling != 1)',
-            '(up-remove-objects search-local object-data-under-attack > 0)',
+            '(up-remove-objects search-local object-data-action == actionid-attack)',
             f'(up-target-point {v("clear-x")} action-move -1 stance-aggressive)', setv('sample', 6)]))
         out.append(rule([f'(goal {v("state")} 6)', f'(goal {v("sample")} 9)',
                          f'(up-compare-goal {v("zone")} g:!= {v("target-zone")})'],

@@ -1,5 +1,85 @@
 # Rome at War AI handoff
 
+## CURRENT ? T28:476 LANDED ASSAULT COMBAT FIX, 2026-09-02
+
+User runtime testing produced at least four independently successful assault
+unloads whose landed passengers then remained inert, including troops that did
+not react while under attack.
+
+- **FIXED-PENDING-RUNTIME ? landed assault inertia:** state-6 target acquisition
+  required an idle, not-under-attack mission member merely to obtain the search
+  anchor, and combat/probe commands repeated the same exclusions. A stale MOVE
+  or incoming attack could therefore exclude the entire privately owned landed
+  manifest from continuation.
+- The generated mission controller now accepts any self-owned, ungarrisoned,
+  same-zone mission member as the target-search anchor. When a hostile is found,
+  stale/moving and under-attack mission members can receive the combat order,
+  while units already performing `actionid-attack` are left alone.
+- Landed hostile acquisition now includes the established land military classes
+  plus Tower, Building and Villager targets instead of only Building/Villager.
+- `tools/test_landed_assault.py` covers stale movement, under-attack recovery,
+  preservation of already-attacking troops, ownership/zone/garrison guards and
+  hostile infantry acquisition.
+- The immutable T16A1 fingerprint remains unchanged; its historical normalizer
+  strips only this independently tested landed-combat delta before comparison.
+- **PASS:** 438/438 regression tests; focused landed assault/mission/screen
+  fixtures; generated assault synchronization; PER structural/physical-line,
+  naval-doctrine and strategy-execution validation.
+- **Runtime identity:** `RAWAI-P3B44T28:476`. Static/deterministic validation does
+  not close engine behavior; require a fresh match/replay showing landed assault
+  groups autonomously acquiring and fighting hostile units.
+- Escort-behind-transport behavior, shore passengers chasing departed hulls and
+  intermittent loaded-departure stalls remain separate observations and are not
+  claimed fixed by this patch.
+
+## CURRENT — RELEASE BACKPORT CORRECTED, T27 DEPLOYED (2026-09-02)
+
+The explicitly authorized recovery workspace remains
+`G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`, branch
+`recovery/p3b44-transport-only`. Release tip
+`ea11d3823467c0b7317ec4c810ca527e0da49e53` is authoritative for runtime
+behavior; `8118dd8` remains the auditable first backport, and this follow-up
+corrects its stale release decisions in `da83807` (`Align backport behavior
+with release authority`).
+
+- **Release corrections:** `rawai-economy.per` now clamps
+  `max-hunt-distance` to 28 (food remains 12). The duplicate role-independent
+  Falx Warrior, Imitation Legionary, and Roman Empire/Republic baseline
+  producers were removed from their civ files. Shared/common production remains
+  responsible for the concrete unit families; Dacian/Syracusan, phase,
+  progression, homebase/bootstrap, ownership, transport-unload, generator and
+  other accepted backports remain intact.
+- **Diagnostics retained:** Roman availability/trainability rules retain their
+  `up-chat-data-to-self` actions, and the transport/assault/migration/ownership
+  telemetry from the transport-only branch remains. Release telemetry stripping
+  (`914d5dd`) was not applied to this debug-friendly branch.
+- **Tests/validators:** stale hunt-16 recovery assertions were updated to the
+  release cap 28. Validator tests now require common concrete Legionary/Falx/
+  Imitation paths and reject reintroduced civ-local duplicate producers. The
+  strategy validator accepts a bounded shared production path where the release
+  architecture moved a family out of a civ file.
+- **Validation:** focused release-regression and validator suites, unique/common
+  production, civ/phase, transport/generator, PER, strategy-execution and naval
+  doctrine checks pass. Full mechanical suite `437/437` PASS (elevated Windows
+  rerun); `validate_good_units.py` still reports the pre-existing
+  `source_provenance/AI RAW.per_sha256` mismatch. No replay or runtime deployment
+  was performed for this source-only correction.
+- **Synchronization note:** the read-only `sync_civ_strategies.py` check reports
+  six existing civ-file updates would be generated; no `--write` was run, so
+  this correction did not overwrite the explicitly audited release-aligned
+  source or introduce unrelated generated strategy changes.
+- **Runtime deployment:** source and installed test-mod payload `T27:475` contain
+  92 runtime files with aggregate SHA-256
+  `D4B4E9F4CC5D8DCA0EA77D3DA922459F5D9963FE7802BAD67308E1C8BF5098D6`.
+  `tools/sync_test_ai.py --apply` copied only the new marker file after the
+  initial source deployment; an independent read-only check reports zero
+  missing, different, unexpected, or remaining-mismatched files. The installed
+  replay marker is `RAWAI-P3B44T27: 475`.
+- **Workspace hygiene:** the pre-existing untracked
+  `release_transport_unload.patch` artifact remains untouched. No PR or push was
+  made.
+
+
 ## CURRENT — T26:474 DEPLOYED, 2026-09-01
 
 User supplied the T25 replay after ending a 112-minute Britannia stalemate and

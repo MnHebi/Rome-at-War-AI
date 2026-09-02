@@ -1,0 +1,201 @@
+;Release transport unload handoff.
+;Keep the planner's landing point as the enemy-land-zone anchor. A screened
+;Scout Ship supplies a separate shoreline reference for physical unloading.
+;Unscreened routes deliberately retain the old geometric landing behavior.
+
+;Unused release-overlay IDs between the generated mission-slot/global ranges.
+(defconst gl-am1-unload-x 14640)
+(defconst gl-am1-unload-y 14641)
+(defconst gl-am1-unload-state 14642)
+(defconst gl-am2-unload-x 14740)
+(defconst gl-am2-unload-y 14741)
+(defconst gl-am2-unload-state 14742)
+(defconst gl-am3-unload-x 14840)
+(defconst gl-am3-unload-y 14841)
+(defconst gl-am3-unload-state 14842)
+(defconst gl-transport-route-unload-x 14930)
+(defconst gl-transport-route-unload-y 14931)
+(defconst gl-transport-route-unload-hull 14932)
+(defconst gl-transport-route-unload-valid 14933)
+
+(defrule
+	(true)
+=>
+	(set-goal gl-transport-route-unload-valid NO)
+	(set-goal gl-transport-route-unload-hull -1)
+	(set-goal gl-am1-unload-state 0)
+	(set-goal gl-am2-unload-state 0)
+	(set-goal gl-am3-unload-state 0)
+	(disable-self)
+)
+
+;A free mission slot has no sealed unload reference.
+(defrule
+	(goal gl-am1-state 0)
+=>
+	(set-goal gl-am1-unload-state 0)
+)
+
+(defrule
+	(goal gl-am2-state 0)
+=>
+	(set-goal gl-am2-unload-state 0)
+)
+
+(defrule
+	(goal gl-am3-state 0)
+=>
+	(set-goal gl-am3-unload-state 0)
+)
+
+;Seal the geometric fallback immediately after dispatch. A captured shoreline
+;for the same hull replaces it in the following rule.
+(defrule
+	(goal gl-am1-state 1)
+	(goal gl-am1-unload-state 0)
+=>
+	(up-bound-point gl-am1-unload-x gl-am1-landing-x)
+	(set-goal gl-am1-unload-state 1)
+)
+
+(defrule
+	(goal gl-am1-state 1)
+	(goal gl-am1-unload-state 1)
+	(goal gl-transport-route-unload-valid YES)
+	(up-compare-goal gl-am1-hull g:== gl-transport-route-unload-hull)
+=>
+	(up-bound-point gl-am1-unload-x gl-transport-route-unload-x)
+	(set-goal gl-am1-unload-state 2)
+)
+
+(defrule
+	(goal gl-am2-state 1)
+	(goal gl-am2-unload-state 0)
+=>
+	(up-bound-point gl-am2-unload-x gl-am2-landing-x)
+	(set-goal gl-am2-unload-state 1)
+)
+
+(defrule
+	(goal gl-am2-state 1)
+	(goal gl-am2-unload-state 1)
+	(goal gl-transport-route-unload-valid YES)
+	(up-compare-goal gl-am2-hull g:== gl-transport-route-unload-hull)
+=>
+	(up-bound-point gl-am2-unload-x gl-transport-route-unload-x)
+	(set-goal gl-am2-unload-state 2)
+)
+
+(defrule
+	(goal gl-am3-state 1)
+	(goal gl-am3-unload-state 0)
+=>
+	(up-bound-point gl-am3-unload-x gl-am3-landing-x)
+	(set-goal gl-am3-unload-state 1)
+)
+
+(defrule
+	(goal gl-am3-state 1)
+	(goal gl-am3-unload-state 1)
+	(goal gl-transport-route-unload-valid YES)
+	(up-compare-goal gl-am3-hull g:== gl-transport-route-unload-hull)
+=>
+	(up-bound-point gl-am3-unload-x gl-transport-route-unload-x)
+	(set-goal gl-am3-unload-state 2)
+)
+
+;The voyage controller validates the untouched geometric landing against the
+;target land zone before state 2. Only then replace its physical unload target.
+(defrule
+	(goal gl-am1-state 2)
+	(or
+		(goal gl-am1-unload-state 1)
+		(goal gl-am1-unload-state 2)
+	)
+=>
+	(up-bound-point gl-am1-landing-x gl-am1-unload-x)
+	(set-goal gl-am1-unload-state 3)
+	(set-goal gl-am1-best 99999)
+	(set-goal gl-am1-stalls 0)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-am1-hull)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != assault-mission-1-group)
+	(up-target-point gl-am1-landing-x action-unload -1 stance-no-attack)
+	(set-goal gl-am1-issue 0)
+)
+
+(defrule
+	(goal gl-am2-state 2)
+	(or
+		(goal gl-am2-unload-state 1)
+		(goal gl-am2-unload-state 2)
+	)
+=>
+	(up-bound-point gl-am2-landing-x gl-am2-unload-x)
+	(set-goal gl-am2-unload-state 3)
+	(set-goal gl-am2-best 99999)
+	(set-goal gl-am2-stalls 0)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-am2-hull)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != assault-mission-2-group)
+	(up-target-point gl-am2-landing-x action-unload -1 stance-no-attack)
+	(set-goal gl-am2-issue 0)
+)
+
+(defrule
+	(goal gl-am3-state 2)
+	(or
+		(goal gl-am3-unload-state 1)
+		(goal gl-am3-unload-state 2)
+	)
+=>
+	(up-bound-point gl-am3-landing-x gl-am3-unload-x)
+	(set-goal gl-am3-unload-state 3)
+	(set-goal gl-am3-best 99999)
+	(set-goal gl-am3-stalls 0)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-am3-hull)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != assault-mission-3-group)
+	(up-target-point gl-am3-landing-x action-unload -1 stance-no-attack)
+	(set-goal gl-am3-issue 0)
+)
+
+;Every new route/screen attempt invalidates a shoreline from an earlier
+;candidate. Dispatched slots seal the previous route before this can matter.
+(defrule
+	(or
+		(goal gl-transport-route-state TRANSPORT-ROUTE-TARGET)
+		(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-FIND)
+	)
+=>
+	(set-goal gl-transport-route-unload-valid NO)
+	(set-goal gl-transport-route-unload-hull -1)
+)
+
+;While the Scout Ship approaches the geometric landing, reconstruct that exact
+;owned screen and capture its position as soon as it is physically within ten
+;tiles. Interpolating halfway toward the land anchor biases narrow rivers toward
+;the intended bank without changing the topology/land-zone reference.
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-LANDING-WAIT)
+=>
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-landing-x)
+	(up-add-object-by-id search-local g: gl-transport-screen-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-LANDING-WAIT)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance <= 10)
+=>
+	(up-get-point position-object gl-transport-route-unload-x)
+	(up-lerp-percent gl-transport-route-unload-x gl-transport-route-landing-x c: 50)
+	(up-modify-goal gl-transport-route-unload-hull g:= gl-transport-route-id)
+	(set-goal gl-transport-route-unload-valid YES)
+)
