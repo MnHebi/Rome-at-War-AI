@@ -1,5 +1,37 @@
 # Rome at War AI handoff
 
+## CURRENT ? T28:476 LANDED ASSAULT COMBAT FIX, 2026-09-02
+
+User runtime testing produced at least four independently successful assault
+unloads whose landed passengers then remained inert, including troops that did
+not react while under attack.
+
+- **FIXED-PENDING-RUNTIME ? landed assault inertia:** state-6 target acquisition
+  required an idle, not-under-attack mission member merely to obtain the search
+  anchor, and combat/probe commands repeated the same exclusions. A stale MOVE
+  or incoming attack could therefore exclude the entire privately owned landed
+  manifest from continuation.
+- The generated mission controller now accepts any self-owned, ungarrisoned,
+  same-zone mission member as the target-search anchor. When a hostile is found,
+  stale/moving and under-attack mission members can receive the combat order,
+  while units already performing `actionid-attack` are left alone.
+- Landed hostile acquisition now includes the established land military classes
+  plus Tower, Building and Villager targets instead of only Building/Villager.
+- `tools/test_landed_assault.py` covers stale movement, under-attack recovery,
+  preservation of already-attacking troops, ownership/zone/garrison guards and
+  hostile infantry acquisition.
+- The immutable T16A1 fingerprint remains unchanged; its historical normalizer
+  strips only this independently tested landed-combat delta before comparison.
+- **PASS:** 438/438 regression tests; focused landed assault/mission/screen
+  fixtures; generated assault synchronization; PER structural/physical-line,
+  naval-doctrine and strategy-execution validation.
+- **Runtime identity:** `RAWAI-P3B44T28:476`. Static/deterministic validation does
+  not close engine behavior; require a fresh match/replay showing landed assault
+  groups autonomously acquiring and fighting hostile units.
+- Escort-behind-transport behavior, shore passengers chasing departed hulls and
+  intermittent loaded-departure stalls remain separate observations and are not
+  claimed fixed by this patch.
+
 ## CURRENT — RELEASE BACKPORT CORRECTED, T27 DEPLOYED (2026-09-02)
 
 The explicitly authorized recovery workspace remains

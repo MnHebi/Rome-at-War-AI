@@ -147,6 +147,9 @@ class CancellationDetailsTests(unittest.TestCase):
         for name, fingerprint in expected.items():
             rows = []
             normalized_trade_cogs = 0
+            normalized_landed_anchors = 0
+            normalized_landed_commands = 0
+            normalized_landed_target_classes = 0
             for r in rule_blocks(source(name)):
                 facts = expressions(r[3])
                 actions = [e for e in expressions(r[4]) if not e[0].startswith('up-chat') and not
@@ -176,6 +179,75 @@ class CancellationDetailsTests(unittest.TestCase):
                         if e == ['up-find-local', 'c:', 'trade-cog-class', 'c:', '20']:
                             actions.remove(e)
                             normalized_trade_cogs += 1
+                    # T27 deliberately recovers landed mission members whose
+                    # stale movement or under-attack state previously excluded
+                    # them from combat. Its dedicated landed-assault fixtures
+                    # protect that contract. Normalize only that exact delta
+                    # before retaining the immutable T16A1 gameplay fingerprint.
+                    slot = None
+                    sample = None
+                    for e in facts:
+                        if (e[0] == 'goal' and
+                                re.fullmatch(r'gl-am[123]-sample', e[1])):
+                            slot = int(re.search(r'gl-am([123])-sample', e[1]).group(1))
+                            sample = e[2]
+                            break
+
+                    if slot is not None and sample == '6':
+                        reset = ['set-goal', f'gl-am{slot}-combat-target', '-1']
+                        if reset in actions:
+                            zone = ['up-remove-objects', 'search-local',
+                                    'object-data-map-zone-id', 'g:!=',
+                                    f'gl-am{slot}-target-zone']
+                            self.assertIn(zone, actions)
+                            pos = actions.index(zone) + 1
+                            actions[pos:pos] = [
+                                ['up-remove-objects', 'search-local',
+                                 'object-data-idling', '!=', '1'],
+                                ['up-remove-objects', 'search-local',
+                                 'object-data-under-attack', '>', '0'],
+                            ]
+                            normalized_landed_anchors += 1
+
+                    if slot is not None and sample == '7':
+                        # Remove only the newly supported hostile land-combat
+                        # classes from target-search rules. Buildings/villagers
+                        # remain and therefore reconstruct the older search.
+                        if (['goal', f'gl-am{slot}-combat-target', '-1'] in facts and
+                                ['player-in-game', 'focus-player'] in facts and
+                                ['stance-toward', 'focus-player', 'enemy'] in facts):
+                            added_classes = {
+                                'scout-cavalry-class',
+                                'cavalry-archer-class',
+                                'cavalry-class',
+                                'infantry-class',
+                                'archery-class',
+                                'siege-weapon-class',
+                                'tower-class',
+                            }
+                            for e in actions[:]:
+                                if (len(e) >= 3 and e[0] == 'up-find-remote' and
+                                        e[2] in added_classes):
+                                    actions.remove(e)
+                                    normalized_landed_target_classes += 1
+
+                        # T27 replaces "idle and not under attack" with
+                        # "not already attacking" when commanding an acquired
+                        # hostile. Restore the old pair only for fingerprinting.
+                        attack_guard = [
+                            'up-remove-objects', 'search-local',
+                            'object-data-action', '==', 'actionid-attack'
+                        ]
+                        if attack_guard in actions:
+                            pos = actions.index(attack_guard)
+                            actions[pos:pos + 1] = [
+                                ['up-remove-objects', 'search-local',
+                                 'object-data-idling', '!=', '1'],
+                                ['up-remove-objects', 'search-local',
+                                 'object-data-under-attack', '>', '0'],
+                            ]
+                            normalized_landed_commands += 1
+
                     # T25 deliberately replaces the old four-miss release with
                     # a separately tested twelve-point continuation probe. Strip
                     # only that new state machine here so this historical guard
@@ -204,6 +276,9 @@ class CancellationDetailsTests(unittest.TestCase):
                 if actions: rows.append([facts, actions])
             if name == 'rawai-assault-missions.per':
                 self.assertEqual(normalized_trade_cogs, 6)
+                self.assertEqual(normalized_landed_anchors, 3)
+                self.assertEqual(normalized_landed_commands, 3)
+                self.assertEqual(normalized_landed_target_classes, 189)
             self.assertEqual(hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest(), fingerprint, name)
 
     def test_diagnostic_goals_have_no_aliases_and_never_control_gameplay(self):

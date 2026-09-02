@@ -38,16 +38,28 @@ class LandedAssaultTests(unittest.TestCase):
         m.sweep(16)
         self.assertEqual(self.attacks(m)[-1][2], ('object', 100))
 
-    def test_busy_converted_other_owner_wrong_zone_and_free_units_not_commanded(self):
+    def test_stale_attacked_and_active_combat_members_obey_landed_ownership(self):
         m = self.landed(); self.target(m)
-        for p, change in ((1000, {'idle': 0}), (1001, {'player': 6}),
-                          (1002, {'flag': 18}), (1003, {'zone': 4}),
-                          (1004, {'garrisoned': 1})):
+        m.objects[1000]['idle'] = 0
+        m.objects[1001]['under_attack'] = 1
+        for p, change in ((1002, {'player': 6}), (1003, {'flag': 18}),
+                          (1004, {'zone': 4}), (1005, {'garrisoned': 1})):
             m.objects[p].update(change)
-        m.objects[1010] = dict(m.objects[1005], id=1010, flag=-2)
+        m.objects[1006]['action'] = m.val('actionid-attack')
+        m.objects[1010] = dict(m.objects[1007], id=1010, flag=-2)
         m.sweep(16)
-        self.assertEqual(set(self.attacks(m)[-1][0]), {1005, 1006, 1007, 1008})
-        self.assertEqual(m.objects[1002]['flag'], 18)
+        commanded = set(self.attacks(m)[-1][0])
+        self.assertEqual(commanded, {1000, 1001, 1007, 1008})
+        self.assertEqual(m.objects[1003]['flag'], 18)
+        self.assertNotIn(1006, commanded)
+        self.assertNotIn(1010, commanded)
+
+    def test_hostile_military_unit_is_a_landed_combat_target(self):
+        m = self.landed()
+        m.objects[99] = dict(id=99, player=6, zone=3, point=(165, 110), hp=100,
+                             cls='infantry-class', type='infantry')
+        m.sweep(16)
+        self.assertEqual(self.attacks(m)[-1][2], ('object', 99))
 
     def test_no_targets_probe_same_landmass_then_release_bounded(self):
         m = self.landed()
@@ -73,10 +85,9 @@ class LandedAssaultTests(unittest.TestCase):
     def test_total_combat_lease_remains_hard_bounded(self):
         m = self.landed(); self.target(m)
         for p in range(1000, 1009): m.objects[p]['idle'] = 0
-        count = len(m.commands)
         m.sweep(301)
         self.assertEqual(m.g['gl-am1-state'], 0)
-        self.assertEqual(len(m.commands), count)
+        self.assertTrue(all(m.objects[p]['flag'] == -2 for p in range(1000, 1009)))
 
     def test_same_island_other_living_enemy_after_original_enemy_leaves(self):
         m = self.landed(); m.players[6]['active'] = False
