@@ -7,6 +7,7 @@ recovery workspace `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transp
 branch `recovery/p3b44-transport-only`. The pre-backport HEAD was
 `c2acc1b71fecdb17bb8e40aa95ee04e55096c559`, the actual merge base with
 `release`; the release tip inspected was `ea11d3823467c0b7317ec4c810ca527e0da49e53`.
+The backport is committed as `8118dd80366c301adf849d59e9df71359019609a`.
 
 - **Commit map:** the six release merge wrappers (`9784b3a`, `3a55613`,
   `c7a65b1`, `0b7e705`, `a1b8929`, `c90481e`) are tree-identical to their
