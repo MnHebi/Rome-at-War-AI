@@ -373,7 +373,7 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-all "RAWAI-P3B44T28: %d" c: 476)
+	(up-chat-data-to-all "RAWAI-P3B44T29: %d" c: 477)
 	(disable-self)
 )
 
@@ -1007,6 +1007,30 @@
 	(set-goal gl-trade-own-producer-total 0)
 	(set-goal gl-trade-valid-producer-total 0)
 	(set-goal gl-trade-route-next 0)
+	(disable-self)
+)
+
+;T29 keeps independent land/water topology state outside the existing scanner
+;initializer so neither rule approaches the engine expression limit.
+(defrule
+	(true)
+=>
+	(set-goal gl-trade-land-mask 0)
+	(set-goal gl-trade-water-mask 0)
+	(set-goal gl-trade-land-source-x 0)
+	(set-goal gl-trade-land-source-y 0)
+	(set-goal gl-trade-land-producer-total 0)
+	(set-goal gl-trade-water-producer-total 0)
+	(set-goal gl-trade-land-verified NO)
+	(set-goal gl-trade-water-verified NO)
+	(set-goal gl-trade-land-active-count 0)
+	(set-goal gl-trade-water-active-count 0)
+	(set-goal gl-trade-land-growth-limit 3)
+	(set-goal gl-trade-water-growth-limit 3)
+	(set-goal gl-trade-scan-count 0)
+	(set-goal gl-trade-topology-next 0)
+	(set-goal gl-trade-land-proof-mask 0)
+	(set-goal gl-trade-water-proof-mask 0)
 	(disable-self)
 )
 
