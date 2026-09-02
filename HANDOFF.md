@@ -1,43 +1,39 @@
 # Rome at War AI handoff
 
-## CURRENT — RELEASE BACKPORT TO TRANSPORT-ONLY (2026-09-02)
+## CURRENT — RELEASE BACKPORT CORRECTED (2026-09-02)
 
-The documented backport directive was executed on the explicitly authorized
-recovery workspace `G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`,
-branch `recovery/p3b44-transport-only`. The pre-backport HEAD was
-`c2acc1b71fecdb17bb8e40aa95ee04e55096c559`, the actual merge base with
-`release`; the release tip inspected was `ea11d3823467c0b7317ec4c810ca527e0da49e53`.
-The backport is committed as `8118dd80366c301adf849d59e9df71359019609a`.
+The explicitly authorized recovery workspace remains
+`G:\Projects\Codex\Rome at War AI\.recovery-work\P3B44-transport-only`, branch
+`recovery/p3b44-transport-only`. Release tip
+`ea11d3823467c0b7317ec4c810ca527e0da49e53` is authoritative for runtime
+behavior; `8118dd8` remains the auditable first backport, and this follow-up
+corrects its stale release decisions.
 
-- **Commit map:** the six release merge wrappers (`9784b3a`, `3a55613`,
-  `c7a65b1`, `0b7e705`, `a1b8929`, `c90481e`) are tree-identical to their
-  already-ancestral second parents and were omitted as no-op history. `e13382a`
-  is a general AI fix and was selectively backported (Dacian/Syracusan
-  production/affinity, homebase bootstrap, and common production); its hunt
-  cap 16→28 hunk was excluded because the recovery regression contract still
-  requires 16. `3c7fe2e` is a general phase/progression fix and was selectively
-  backported across the affected civ files, including the Egypt/Ratha and
-  phase-7 structure corrections. Its duplicate-production cleanup was omitted;
-  the existing Roman, Pontic, Seleucid and Dacian role-independent paths and
-  diagnostics remain intact. `914d5dd` (telemetry removal) was excluded.
-- **Transport fix:** `ea11d38` was backported as the new
-  `rawai-transport-unload.per`, loaded from `rawai-assault-mission-defs.per`,
-  with generator output synchronized. It preserves the screened shoreline
-  reference and existing mission geometry while using the exact hull/mission
-  state for unload handoff.
-- **Telemetry/ownership:** no transport, assault, migration, ownership, or
-  chat-local diagnostics were removed. The restored civ production paths retain
-  the transport-only diagnostics. New bootstrap build rules carry the existing
-  `gl-owner-worker-hold NO` guard.
-- **Validation:** full mechanical suite `437/437` PASS (elevated rerun for the
-  known Windows temporary-directory fixture); assault/migration/rendezvous,
-  transport acquisition/fairness, release-regression, generator, PER,
-  strategy-execution and naval-doctrine checks PASS. `validate_good_units.py`
-  still reports the pre-existing `source_provenance/AI RAW.per_sha256` mismatch;
-  no frozen strategy provenance was changed. No replay or runtime deployment was
-  performed for this source-only backport; gameplay remains runtime-pending.
-- **Workspace hygiene:** the pre-existing untracked `release_transport_unload.patch`
-  artifact was preserved and is not part of the commit. No PR or push was made.
+- **Release corrections:** `rawai-economy.per` now clamps
+  `max-hunt-distance` to 28 (food remains 12). The duplicate role-independent
+  Falx Warrior, Imitation Legionary, and Roman Empire/Republic baseline
+  producers were removed from their civ files. Shared/common production remains
+  responsible for the concrete unit families; Dacian/Syracusan, phase,
+  progression, homebase/bootstrap, ownership, transport-unload, generator and
+  other accepted backports remain intact.
+- **Diagnostics retained:** Roman availability/trainability rules retain their
+  `up-chat-data-to-self` actions, and the transport/assault/migration/ownership
+  telemetry from the transport-only branch remains. Release telemetry stripping
+  (`914d5dd`) was not applied to this debug-friendly branch.
+- **Tests/validators:** stale hunt-16 recovery assertions were updated to the
+  release cap 28. Validator tests now require common concrete Legionary/Falx/
+  Imitation paths and reject reintroduced civ-local duplicate producers. The
+  strategy validator accepts a bounded shared production path where the release
+  architecture moved a family out of a civ file.
+- **Validation:** focused release-regression and validator suites, unique/common
+  production, civ/phase, transport/generator, PER, strategy-execution and naval
+  doctrine checks pass. Full mechanical suite `437/437` PASS (elevated Windows
+  rerun); `validate_good_units.py` still reports the pre-existing
+  `source_provenance/AI RAW.per_sha256` mismatch. No replay or runtime deployment
+  was performed for this source-only correction.
+- **Workspace hygiene:** the pre-existing untracked
+  `release_transport_unload.patch` artifact remains untouched. No PR or push was
+  made.
 
 
 ## CURRENT — T26:474 DEPLOYED, 2026-09-01

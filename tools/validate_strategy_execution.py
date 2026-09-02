@@ -361,6 +361,29 @@ def bounded_direct_train_blocks(
     ]
 
 
+COMMON_PRODUCTION_ALIASES: dict[tuple[str, str], tuple[str, ...]] = {
+    # The manifest names the Dacian semantic line, while the shared production
+    # section correctly trains its concrete base and elite forms.
+    ("dacians", "falx-warrior-line"): ("falx-warrior", "elite-falx-warrior"),
+}
+
+
+def bounded_common_train_blocks(
+    text: str,
+    unit: str,
+    bound_goal: str | None = None,
+) -> list[str]:
+    """Return bounded persistent production paths in shared military rules."""
+    return [
+        block
+        for block in defrule_blocks(text)
+        if unit in trained_units(block)
+        and can_train_unit(block, unit)
+        and has_finite_bound(block, {unit}, bound_goal)
+        and phase_gate_persists(block)
+    ]
+
+
 def bounded_direct_train_units(text: str) -> set[str]:
     """Find all civ-local bounded production independent of generic roles."""
     units = {
@@ -405,6 +428,9 @@ def validate_focus_exemptions(
                 str(value) for value in family.get("bound_units", [])
             )
     common_text = (AI_ROOT / "rawai-military-units-common.per").read_text(
+        encoding="utf-8-sig"
+    )
+    common_hard_text = (AI_ROOT / "rawai-military-units-common-hard.per").read_text(
         encoding="utf-8-sig"
     )
     common_blocks = defrule_blocks(common_text)
@@ -472,15 +498,24 @@ def validate_focus_exemptions(
         }
         for unit, (family_name, bound_units, bound_goal) in expected_units.items():
             for difficulty, active_text in active_by_difficulty.items():
-                if not bounded_direct_train_blocks(
+                if bounded_direct_train_blocks(
                     active_text,
                     unit,
                     bound_units,
                     bound_goal,
                 ):
+                    continue
+
+                common_units = COMMON_PRODUCTION_ALIASES.get((civ, unit), (unit,))
+                common_path = any(
+                    bounded_common_train_blocks(common_text, common_unit, bound_goal)
+                    or bounded_common_train_blocks(common_hard_text, common_unit, bound_goal)
+                    for common_unit in common_units
+                )
+                if not common_path:
                     errors.append(
                         f"{civ_path.name}: {family_name} ({unit}) has no bounded, "
-                        f"role-independent persistent path on {difficulty}"
+                        f"persistent direct or shared production path on {difficulty}"
                     )
 
         allowed_non_composition = {

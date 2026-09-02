@@ -618,6 +618,9 @@ class FarmPolicyTests(unittest.TestCase):
         )
         cls.romeemp = (root / "rawai-civ-romeemp.per").read_text(encoding="utf-8-sig")
         cls.romerep = (root / "rawai-civ-romerep.per").read_text(encoding="utf-8-sig")
+        cls.dacians = (root / "rawai-civ-dacians.per").read_text(encoding="utf-8-sig")
+        cls.pontus = (root / "rawai-civ-pontus.per").read_text(encoding="utf-8-sig")
+        cls.seleucids = (root / "rawai-civ-seleucids.per").read_text(encoding="utf-8-sig")
         cls.unique_manifest = json.loads(
             (root / "unique-unit-production.json").read_text(encoding="utf-8")
         )
@@ -2100,33 +2103,19 @@ class FarmPolicyTests(unittest.TestCase):
             ):
                 self.assertNotIn(invalid_train_operand, common)
 
-        for civ, label, expected_order in (
-            (self.romeemp, "Roman baseline Legionary", empire_order),
-            (self.romerep, "Roman Republic baseline Legionary", republic_order),
-        ):
-            baseline_rules = []
-            for unit in expected_order:
-                baseline = matching_rules(
-                    civ,
-                    facts=(
-                        "gl-legionary-family-count g:< gl-two-percent",
-                        cadence_fact,
+        # The release removed the duplicate civ-local baseline producers. The
+        # common role machinery above remains the sole Legionary producer;
+        # these civ files retain only the engine availability/trainability
+        # diagnostics (including their transport-branch chat actions).
+        for civ in (self.romeemp, self.romerep):
+            for unit in legionaries:
+                self.assertEqual(
+                    matching_rules(
+                        civ,
+                        actions=(f"(up-train gl-unitescrow-state c: {unit})",),
                     ),
-                    actions=(
-                        f"(up-train gl-unitescrow-state c: {unit})",
-                        f"{label}: %d",
-                        *cadence_actions,
-                    ),
+                    [],
                 )
-                self.assertEqual(len(baseline), 1)
-                baseline_rules.extend(baseline)
-            self.assertEqual(
-                tuple(
-                    re.search(r"\(up-train\s+\S+\s+c:\s+([^\s)]+)", rule[4]).group(1)
-                    for rule in sorted(baseline_rules)
-                ),
-                expected_order,
-            )
 
         for civ_name in ("romeemp", "romerep"):
             legionary_family = next(
@@ -2147,6 +2136,30 @@ class FarmPolicyTests(unittest.TestCase):
             "c: scorpion-line",
         ):
             self.assertNotIn(invalid_train_operand, self.military_common)
+
+        # Dacian and Imitation Legionary families are also supplied by the
+        # shared/common bounded production rules after duplicate cleanup.
+        for common in (self.military_common, self.military_common_hard):
+            for unit in ("falx-warrior", "elite-falx-warrior", "imitation-legionary-line"):
+                self.assertTrue(
+                    matching_rules(
+                        common,
+                        actions=(f"(up-train gl-unitescrow-state c: {unit})",),
+                    ),
+                    f"common production is missing {unit}",
+                )
+
+        # Guard the removed role-independent duplicate paths against silent
+        # reintroduction.
+        self.assertEqual(
+            matching_rules(self.dacians, actions=("(train falx-warrior-line)",)),
+            [],
+        )
+        for civ in (self.seleucids, self.pontus):
+            self.assertEqual(
+                matching_rules(civ, actions=("(train imitation-legionary-line)",)),
+                [],
+            )
 
         for civ, label in (
             (self.romeemp, "Roman Legionary"),
