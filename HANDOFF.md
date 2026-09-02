@@ -1,5 +1,32 @@
 # Rome at War AI handoff
 
+## CURRENT - T29:477 INDEPENDENT TEAM TRADE TOPOLOGY, 2026-09-02
+
+- **FIXED-PENDING-RUNTIME - land discovery suppressing water trade:** the team
+  trade scanner now completes a bounded pass over every living ally for land and
+  then every living ally for water. Candidate partner identity is retained in
+  P1..P8 bitmasks; a successful land candidate cannot terminate the water pass.
+- Same-zone endpoint equality is candidate evidence only. Land candidates also
+  require a finite `up-path-distance` from the selected own Market. Water path
+  geometry is deliberately not inferred from land path semantics.
+- Final permission remains engine execution: normal Trade Cart/Trade Cog growth,
+  large-game trade transition and villager retirement require live
+  `actionid-trade`. Candidate-only routes can create at most three probes of the
+  relevant merchant type. The historical no-candidate aquatic fallback remains
+  capped at three Trade Cogs and can become productive only after live trade
+  action is observed.
+- Market and Dock producer epochs, active counts, growth limits and proof state
+  are modality-specific. Water production has no `gl-land-trade-route NO` gate,
+  so land and water trade may coexist.
+- Proof records the observed target player as a one-bit proof mask; topology
+  masks preserve all candidate allies. A topology pass is bounded to eight
+  inspected allies per modality even if diplomacy changes during iteration.
+- **Static acceptance:** dedicated topology tests plus updated producer-epoch and
+  validator contracts; full repository validation still required locally before
+  commit. Engine/path semantics and actual mixed land+water trading remain
+  runtime-pending.
+- **Runtime identity:** `RAWAI-P3B44T29:477`.
+
 ## CURRENT ? T28:476 LANDED ASSAULT COMBAT FIX, 2026-09-02
 
 User runtime testing produced at least four independently successful assault

@@ -1234,7 +1234,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertIn("(set-goal flank-position 0)", pocket_block)
         self.assertIn('"Pocket position"', pocket_block)
 
-    def test_trade_units_require_same_zone_endpoint_routes(self) -> None:
+    def test_trade_units_require_independent_per_ally_topology_and_live_proof(self) -> None:
         phase_three = matching_rules(
             self.pop,
             facts=("(goal current-phase 3)",),
@@ -1244,45 +1244,96 @@ class FarmPolicyTests(unittest.TestCase):
             ),
         )
         self.assertEqual(len(phase_three), 1)
+
         cart = matching_rules(
             self.economy,
             facts=(
                 "(goal gl-land-trade-route YES)",
+                "(goal gl-trade-land-verified YES)",
+                "(goal gl-trade-action-verified YES)",
                 "trade-cart g:< desired-number-carts",
+                "trade-cart g:< gl-trade-land-growth-limit",
             ),
             actions=("(train trade-cart)",),
         )
-        self.assertEqual(len(cart), 1)
         cog = matching_rules(
             self.economy,
             facts=(
-                "(goal gl-land-trade-route NO)",
                 "(goal gl-water-trade-route YES)",
-                "(goal map-type RIVERS)",
-                "(goal map-type TEAM-ISLANDS)",
+                "(goal gl-trade-water-verified YES)",
+                "(goal gl-trade-action-verified YES)",
+                "trade-cog g:< desired-number-cogs",
+                "trade-cog g:< gl-trade-water-growth-limit",
             ),
             actions=("(train trade-cog)",),
         )
+        self.assertEqual(len(cart), 1)
         self.assertEqual(len(cog), 1)
+        self.assertNotIn("(goal gl-land-trade-route NO)", cog[0][3])
+        self.assertIn(
+            "building-type-count market g:== gl-trade-land-producer-total",
+            cart[0][3],
+        )
+        self.assertIn(
+            "building-type-count dock g:== gl-trade-water-producer-total",
+            cog[0][3],
+        )
+
+        # Same-zone is candidate evidence. Land additionally requires a real
+        # finite path, while both modalities still require actionid-trade before
+        # normal growth or retirement can occur.
+        self.assertIn(
+            "(up-path-distance gl-trade-land-source-x 0 != 65535)",
+            self.economy,
+        )
         self.assertIn(
             "object-data-map-zone-id g:!= gl-trade-land-zone", self.economy
         )
         self.assertIn(
             "object-data-map-zone-id g:!= gl-trade-water-zone", self.economy
         )
-        self.assertIn("TRADE-ROUTE-LAND-SOURCE", self.economy)
-        self.assertIn("(not (player-in-game any-ally))", self.economy)
-        self.assertIn("gl-trade-valid-producer-total", self.economy)
-        self.assertIn(
-            "building-type-count market g:== gl-trade-own-producer-total",
-            cart[0][3],
+        self.assertIn("object-data-action != actionid-trade", self.economy)
+        self.assertIn("(up-find-local c: trade-cog-class c: 240)", self.economy)
+        self.assertIn("(up-find-local c: trade-cart c: 240)", self.economy)
+
+        # Land completion must enter water scanning instead of terminating the
+        # controller. Candidate identities are accumulated in bounded masks.
+        land_to_water = matching_rules(
+            self.economy,
+            facts=("TRADE-ROUTE-LAND-NEXT",),
+            actions=("TRADE-ROUTE-WATER-SOURCE",),
         )
-        self.assertIn(
-            "building-type-count dock g:== gl-trade-own-producer-total",
-            cog[0][3],
+        self.assertGreaterEqual(len(land_to_water), 1)
+        self.assertTrue(all("TRADE-ROUTE-IDLE" not in r[4] for r in land_to_water))
+        for mask in ("gl-trade-land-mask", "gl-trade-water-mask"):
+            for bit in (1, 2, 4, 8, 16, 32, 64, 128):
+                self.assertIn(f"(up-modify-goal {mask} c:+ {bit})", self.economy)
+
+        land_probe = matching_rules(
+            self.economy,
+            facts=(
+                "(goal gl-land-trade-route YES)",
+                "(goal gl-trade-land-verified NO)",
+                "trade-cart < 3",
+            ),
+            actions=("(train trade-cart)",),
         )
-        self.assertNotIn("players-building-type-count any-ally market", cart[0][3])
-        probe = matching_rules(
+        water_probe = matching_rules(
+            self.economy,
+            facts=(
+                "(goal gl-water-trade-route YES)",
+                "(goal gl-trade-water-verified NO)",
+                "trade-cog < 3",
+            ),
+            actions=("(train trade-cog)",),
+        )
+        self.assertEqual(len(land_probe), 1)
+        self.assertEqual(len(water_probe), 1)
+        self.assertNotIn("(goal gl-land-trade-route NO)", water_probe[0][3])
+        self.assertNotIn("gl-trade-action-verified YES", land_probe[0][3])
+        self.assertNotIn("gl-trade-action-verified YES", water_probe[0][3])
+
+        fallback = matching_rules(
             self.economy,
             facts=(
                 "gl-trade-route-failures c:>= 3",
@@ -1297,14 +1348,8 @@ class FarmPolicyTests(unittest.TestCase):
                 "bounded trade cog probe: %d",
             ),
         )
-        self.assertEqual(len(probe), 1)
-        self.assertIn("trade water source valid: %d", self.economy)
-        self.assertIn("trade no shared water zone: %d", self.economy)
-        self.assertIn("object-data-action != actionid-trade", self.economy)
-        self.assertIn("(up-find-local c: trade-cog-class c: 240)", self.economy)
-        self.assertIn("(up-find-local c: trade-cart c: 240)", self.economy)
-        self.assertIn("gl-trade-growth-limit c:* 2", self.economy)
-        self.assertIn("gl-trade-growth-limit c:+ 3", self.economy)
+        self.assertEqual(len(fallback), 1)
+
         transition = matching_rules(
             self.economy,
             facts=(
@@ -1314,28 +1359,7 @@ class FarmPolicyTests(unittest.TestCase):
             ),
             actions=("TRADE-TRANSITION-ROUTE",),
         )
-        self.assertEqual(len(transition), 1)
-        route_targets = matching_rules(
-            self.economy,
-            facts=("TRADE-TRANSITION-ROUTE",),
-            actions=(
-                "desired-number-villagers g:= gl-fourty-percent",
-                "desired-number-carts g:= gl-twentyfive-percent",
-                "desired-number-cogs g:= gl-twentyfive-percent",
-            ),
-        )
-        scarce_targets = matching_rules(
-            self.economy,
-            facts=("TRADE-TRANSITION-SCARCE",),
-            actions=(
-                "desired-number-villagers g:= gl-twentyfive-percent",
-                "desired-number-carts g:= gl-fourty-percent",
-                "desired-number-cogs g:= gl-fourty-percent",
-            ),
-        )
-        self.assertEqual(len(route_targets), 1)
-        self.assertEqual(len(scarce_targets), 1)
-        retirement_gates = matching_rules(
+        retirement = matching_rules(
             self.economy,
             facts=(
                 "gl-trade-action-verified YES",
@@ -1345,18 +1369,11 @@ class FarmPolicyTests(unittest.TestCase):
             ),
             actions=("gl-trade-retirement-state TRADE-RETIRE-SELECT",),
         )
-        self.assertEqual(len(retirement_gates), 1)
-        retirement_delete = matching_rules(
-            self.economy,
-            facts=(
-                "TRADE-RETIRE-CHECK",
-                "population-headroom < 2",
-                "gl-trade-action-verified YES",
-                "gl-trade-active-count c:>= 3",
-            ),
-            actions=("position-self-x action-delete", "gl-trade-retirement-next c:+ 2"),
-        )
-        self.assertEqual(len(retirement_delete), 1)
+        self.assertEqual(len(transition), 1)
+        self.assertEqual(len(retirement), 1)
+        for row in transition + retirement:
+            self.assertNotIn("gl-trade-land-mask", row[3])
+            self.assertNotIn("gl-trade-water-mask", row[3])
 
     def test_taunt_69_proves_a_nearby_owned_structure_before_delete(self) -> None:
         trigger = matching_rules(
@@ -5596,7 +5613,7 @@ class FarmPolicyTests(unittest.TestCase):
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
         AssaultMissionTests().test_moving_hulls_do_not_receive_repeated_orders()
-        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T28: %d" c: 476)', self.init_goals)
+        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T29: %d" c: 477)', self.init_goals)
 
     def test_transport_departure_stalled_near_origin_activates_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
