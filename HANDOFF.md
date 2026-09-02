@@ -7,7 +7,8 @@ The explicitly authorized recovery workspace remains
 `recovery/p3b44-transport-only`. Release tip
 `ea11d3823467c0b7317ec4c810ca527e0da49e53` is authoritative for runtime
 behavior; `8118dd8` remains the auditable first backport, and this follow-up
-corrects its stale release decisions.
+corrects its stale release decisions in `da83807` (`Align backport behavior
+with release authority`).
 
 - **Release corrections:** `rawai-economy.per` now clamps
   `max-hunt-distance` to 28 (food remains 12). The duplicate role-independent
@@ -31,6 +32,10 @@ corrects its stale release decisions.
   rerun); `validate_good_units.py` still reports the pre-existing
   `source_provenance/AI RAW.per_sha256` mismatch. No replay or runtime deployment
   was performed for this source-only correction.
+- **Synchronization note:** the read-only `sync_civ_strategies.py` check reports
+  six existing civ-file updates would be generated; no `--write` was run, so
+  this correction did not overwrite the explicitly audited release-aligned
+  source or introduce unrelated generated strategy changes.
 - **Workspace hygiene:** the pre-existing untracked
   `release_transport_unload.patch` artifact remains untouched. No PR or push was
   made.
