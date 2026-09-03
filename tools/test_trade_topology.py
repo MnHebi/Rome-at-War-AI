@@ -1,4 +1,4 @@
-"""Mechanical contract for the T29 per-ally trade topology state machine."""
+"""Mechanical contract for the T30 per-ally trade topology state machine."""
 import re
 import unittest
 
@@ -45,7 +45,7 @@ class TradeTopologyTests(unittest.TestCase):
         for name, value in expected.items():
             self.assertEqual(found.get(name), value, name)
             self.assertIn(f"(set-goal {name} ", self.init)
-        self.assertIn('RAWAI-P3B44T29: %d" c: 477', self.init)
+        self.assertIn('RAWAI-P3B44T30: %d" c: 478', self.init)
 
     def test_land_scan_visits_all_player_bits_and_requires_finite_path(self):
         bits = (1, 2, 4, 8, 16, 32, 64, 128)

@@ -1567,7 +1567,6 @@ def main() -> None:
             for package in visible_packages
         ]
         host_constant = civ_records[civ_id].get("data_name", "")
-        host_constant = {"ETHIOPIAN-CIV": "ETHIOPIANS-CIV"}.get(host_constant, host_constant)
         affinity = affinities.get(host_constant)
         if affinity is None:
             raise ValueError(f"Missing AI affinity block for {key} ({host_constant})")
