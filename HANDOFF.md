@@ -1,11 +1,10 @@
 # Rome at War AI handoff
 
-## CURRENT - T33:481 LANDED-COMMAND ISSUANCE TRACE, LOCAL ONLY, 2026-09-04
+## CURRENT - T33:481 LANDED-COMMAND ISSUANCE TRACE DEPLOYED, 2026-09-04
 
 - **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
   branch `fix/trade-cog-cap-dacian`; T32 commit `a84360a` is the immediate
-  behavioral baseline. This T33 work is diagnostic-only and has not been
-  deployed.
+  behavioral baseline. T33 source commit `1460d58` is diagnostic-only.
 - **REPLAY RESULT:** in the 73:38 replay `SP Replay v101.103.48987.0
   @2026.09.03 114314.aoe2record`, every terminal ORDER for object IDs 35259,
   42698 and 59295 has `player_id: 3`, which is visible Green. IDs 35259 and
@@ -40,8 +39,16 @@
   literals (an allocation guard, not proof of engine compilation). The
   sandboxed full run reached the known
   Windows Temp permission-only writer-trace error after all other tests passed.
-- **Runtime identity:** source marker `RAWAI-P3B44T33:481`. Do not deploy until
-  the crash investigation permits it. The native first writer and
+- **Runtime deployment:** explicitly deployed from commit `1460d58` with
+  `tools/sync_test_ai.py --apply`. Five installed files changed:
+  `rawai-assault-mission-defs.per`, `rawai-assault-missions.per`,
+  `rawai-economy.per`, `rawai-init-goals.per`, and
+  `rawai-unitconstants.per`. An independent post-apply check proves all 92
+  runtime files byte-identical with zero missing, different, or unexpected
+  files. Source/installed aggregate SHA-256 is
+  `E4B6281AEA133A5C56A90CAABB4BDF8F3DD2351B5DAB2DB89635F15EA087E79B`;
+  installed marker is `RAWAI-P3B44T33:481`.
+- The native first writer and
   `STATUS_HEAP_CORRUPTION (0xc0000374)` remain INVESTIGATING; telemetry is not
   resolution.
 
