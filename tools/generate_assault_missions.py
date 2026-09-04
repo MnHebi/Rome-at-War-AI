@@ -282,8 +282,13 @@ def missions():
         # Completion is physical cargo-empty near the accepted same-island beach.
         out.append(rule([*sample, f'(goal {v("state")} 2)', f'(up-compare-goal {v("cargo")} c:<= 0)',
                          f'(up-compare-goal {v("distance")} c:<= 12)'], [
-            *command('origin-x', 'action-move'), setv('state', 14)]))
-        out.append(rule([f'(goal {v("state")} 14)'], [
+            # The hull can report zero cargo before newly ungarrisoned passengers
+            # are visible to a DUC group search. Keep the sealed mission group
+            # intact and give that engine state one sample to settle before the
+            # landed handoff rebuilds it.
+            *command('origin-x', 'action-move'), setv('state', 14), *deadline('next', 8)]))
+        out.append(rule([f'(goal {v("state")} 14)',
+                         f'(up-compare-goal gl-assault-mission-clock g:>= {v("next")})'], [
             '(up-full-reset-search)', f'(up-set-group search-local c: {g})',
             '(up-remove-objects search-local object-data-player != my-player-number)',
             f'(up-remove-objects search-local object-data-group-flag != {g})',
@@ -294,7 +299,8 @@ def missions():
             f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("target-zone")})',
             f'(up-create-group 0 0 c: {g})', f'(up-modify-group-flag 1 c: {g})',
             f'(up-target-point {v("target-x")} action-default -1 stance-aggressive)',
-            setv('state', 6), setv('reason', 8), *deadline('combat-until', 300),
+            setv('state', 6), setv('reason', 8), *deadline('next', 16),
+            *deadline('combat-until', 300),
             setv('combat-last', -1), setv('combat-failed', -1),
             setv('combat-tries', 0), setv('combat-misses', 0), *log(8)]))
         outbound = [f'(or (goal {v("state")} 1) (goal {v("state")} 2))']

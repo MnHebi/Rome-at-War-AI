@@ -13,7 +13,30 @@ class LandedAssaultTests(unittest.TestCase):
         for p in range(1000, 1009):
             m.objects[p].update(point=(155, 100), garrisoned=0, zone=3, idle=1)
         m.sweep(8)
+        self.assertEqual(m.g['gl-am1-state'], 14)
+        m.sweep(8)
         return m
+
+    def test_zero_cargo_waits_for_ungarrison_visibility_before_handoff(self):
+        m = Missions(); m.prepare(10); m.sweep()
+        m.objects[10]['point'] = (150, 100); m.sweep(8)
+        m.objects[10].update(point=(155, 100), cargo=0)
+
+        # Model the engine-visible replay ordering: the hull is empty first,
+        # while every passenger still reports garrisoned for this sample.
+        m.sweep(8)
+        self.assertEqual(m.g['gl-am1-state'], 14)
+        self.assertEqual(m.groups[GROUPS[0]], [*range(1000, 1009), 10])
+        self.assertFalse(any(text == '"RAW3 event: %d"' and value == 8
+                             for text, value in m.logs))
+
+        for p in range(1000, 1009):
+            m.objects[p].update(point=(155, 100), garrisoned=0, zone=3, idle=1)
+        m.sweep(8)
+        self.assertEqual(m.g['gl-am1-state'], 6)
+        self.assertEqual(m.groups[GROUPS[0]], list(range(1000, 1009)))
+        self.assertTrue(all(m.objects[p]['flag'] == GROUPS[0]
+                            for p in range(1000, 1009)))
 
     def target(self, m, i=99, player=6, zone=3, point=(165, 110)):
         m.objects[i] = dict(id=i, player=player, zone=zone, point=point, hp=100,
