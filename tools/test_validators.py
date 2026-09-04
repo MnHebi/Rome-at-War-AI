@@ -1302,11 +1302,11 @@ class FarmPolicyTests(unittest.TestCase):
             cog[0][3],
         )
 
-        # Same-zone is candidate evidence. The bounded merchant probes perform
-        # the actual path test, and both modalities still require actionid-trade
-        # before normal growth or retirement can occur.
+        # A land map-zone match is not a Cart path test. Bounded Cart probes
+        # admit cross-zone Markets, while both modalities still require
+        # actionid-trade before normal growth or retirement can occur.
         self.assertNotIn("(up-path-distance gl-trade-land-source-x", self.economy)
-        self.assertIn(
+        self.assertNotIn(
             "object-data-map-zone-id g:!= gl-trade-land-zone", self.economy
         )
         self.assertIn(
@@ -5637,7 +5637,7 @@ class FarmPolicyTests(unittest.TestCase):
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
         AssaultMissionTests().test_moving_hulls_do_not_receive_repeated_orders()
-        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T37: %d" c: 485)', self.init_goals)
+        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T38: %d" c: 486)', self.init_goals)
 
     def test_transport_departure_stalled_near_origin_activates_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests

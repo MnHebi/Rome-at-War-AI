@@ -1,4 +1,4 @@
-"""Mechanical contract for the T31 per-ally trade topology state machine."""
+"""Mechanical contract for the T38 per-ally trade topology state machine."""
 import re
 import unittest
 
@@ -45,9 +45,9 @@ class TradeTopologyTests(unittest.TestCase):
         for name, value in expected.items():
             self.assertEqual(found.get(name), value, name)
             self.assertIn(f"(set-goal {name} ", self.init)
-        self.assertIn('RAWAI-P3B44T37: %d" c: 485', self.init)
+        self.assertIn('RAWAI-P3B44T38: %d" c: 486', self.init)
 
-    def test_land_scan_accepts_same_zone_markets_without_immobile_path_test(self):
+    def test_land_scan_admits_cross_zone_markets_to_bounded_cart_probe(self):
         bits = (1, 2, 4, 8, 16, 32, 64, 128)
         for player, bit in enumerate(bits, 1):
             rows = matching(
@@ -60,6 +60,8 @@ class TradeTopologyTests(unittest.TestCase):
             self.assertEqual(len(rows), 1, player)
         self.assertNotIn("up-path-distance gl-trade-land-source-x", self.economy)
         self.assertNotIn("trade land candidate unreachable", self.economy)
+        self.assertNotIn(
+            "object-data-map-zone-id g:!= gl-trade-land-zone", self.economy)
         missing = matching(
             facts=("TRADE-ROUTE-LAND-CHECK",
                    "not (up-set-target-object search-remote c: 0)"),

@@ -1179,9 +1179,10 @@
 ;Team trade topology is scanned per living ally and per modality. Candidate
 ;identity is retained in bounded player-bit masks (P1..P8 = 1..128). Land and
 ;water are independent: finding a land candidate never terminates or suppresses
-;the water scan. Same-zone endpoint equality is only candidate evidence. The
-;bounded merchant probes are the topology test; only a live actionid-trade can
-;authorize normal merchant growth or villager retirement.
+;the water scan. Map-zone equality is not a Cart reachability test: traversable
+;roads can cross the engine's zone boundary. The bounded merchant probes are
+;the topology test; only a live actionid-trade can authorize normal merchant
+;growth or villager retirement.
 (defrule
 	(goal team-game YES)
 	(not (player-in-game any-ally))
@@ -1723,7 +1724,6 @@
 	(up-get-search-state local-total)
 	(up-modify-goal gl-trade-land-producer-total g:= local-total)
 	(up-modify-goal gl-trade-own-producer-total g:= local-total)
-	(up-remove-objects search-local object-data-map-zone-id g:!= gl-trade-land-zone)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-trade-valid-producer-total g:= local-total)
 	(up-clean-search search-local object-data-distance search-order-asc)
@@ -1753,7 +1753,6 @@
 	(up-get-search-state local-total)
 	(up-modify-goal gl-trade-land-producer-total g:= local-total)
 	(up-modify-goal gl-trade-own-producer-total g:= local-total)
-	(up-remove-objects search-local object-data-map-zone-id g:!= gl-trade-land-zone)
 	(up-get-search-state local-total)
 	(up-modify-goal gl-trade-valid-producer-total g:= local-total)
 	(up-clean-search search-local object-data-distance search-order-asc)
@@ -1791,7 +1790,6 @@
 	(up-set-target-point gl-trade-land-source-x)
 	(up-filter-status c: status-ready c: list-active)
 	(up-find-remote c: market c: 20)
-	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-trade-land-zone)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
 	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)

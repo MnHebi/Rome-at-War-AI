@@ -1,5 +1,55 @@
 # Rome at War AI handoff
 
+## CURRENT - T38:486 LAND TRADE ZONE-VETO REPAIR, SOURCE ONLY, 2026-09-05
+
+- **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `84429f5`. T36:484 remains
+  installed while its live test is running. T37 and T38 are source-only and
+  must not be silently deployed into that match.
+- **Status: ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** The user directly
+  observed that multiple allied players had viable land routes but no land
+  trade. A read-only 125:00 snapshot of live T36 replay
+  `SP Replay v101.103.48987.0 @2026.09.04 223434.aoe2record` has zero parse
+  errors. Blue/P1 built Markets at 14:00 and 39:12; its allied P2, P3 and P4
+  had built Markets by 11:45, 13:07 and 14:19 respectively. Despite that, Blue
+  emitted no `trade land candidate ally` event and all eight players produced
+  zero Trade Carts (engine `trade-cart` ID 128) through 125:00. Water discovery
+  and proof remained live, repeatedly identifying allied Dock targets.
+- **First causal divergence:** after finding the local and allied Markets, the
+  land topology scan removed every Market whose `object-data-map-zone-id` did
+  not equal the chosen home/colony zone. That is the only remote-Market veto
+  before the land-candidate event. The runtime result proves this zone equality
+  did not represent the user-visible traversable Cart routes on Iberia, so the
+  bounded reachability probe was never admitted. T31 removed the invalid path
+  query against an immobile Market but retained this second invalid pre-proof
+  gate.
+- **Implementation:** remove only the local and remote land Market map-zone
+  filters. A completed own Market and a living ally's completed Market now
+  create a candidate irrespective of their engine zone labels. The existing
+  limit of at most three candidate-only Trade Carts remains the actual bounded
+  path experiment. Normal Cart growth, the larger growth limit and villager
+  retirement still require a live Cart with `actionid-trade`; an unreachable
+  candidate therefore cannot unlock full trade. Water candidate filtering,
+  proof and growth are unchanged.
+- **Preserved contracts:** per-ally masks; independent land/water discovery;
+  completed producer census and producer-epoch invalidation; three-Cart probe
+  ceiling; live target-player proof; `wait-techup-requirements`; `can-train`;
+  desired/growth caps; water same-zone candidacy; and all transport, economy,
+  military and naval controllers.
+- **Validation PASS:** focused trade topology 8/8; general validators 126/126;
+  full Python discovery 468/468 (the first sandboxed compiler-fixture run hit
+  the established temporary-directory permission boundary; the approved full
+  rerun passed); PER validation; naval doctrine; ownership audit 841 sites with
+  zero permission failures; and `git diff --check`.
+- **Runtime acceptance:** in a fresh T38 replay, each AI with its own completed
+  Market and at least one allied Market must produce no more than three Cart
+  probes until a Cart begins `actionid-trade`; a real traversable route must
+  then produce `merchant land proof ally` and unlock bounded normal Cart growth.
+  An unreachable cross-zone candidate must stop at three Carts and must not
+  unlock growth or villager retirement. Water trade must remain independent.
+- **Deployment:** none. Source marker is `RAWAI-P3B44T38:486`; installed runtime
+  remains verified T36:484.
+
 ## CURRENT - T37:485 INDEPENDENT SIEGE-PASSENGER BOARDING, SOURCE ONLY, 2026-09-04
 
 - **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
