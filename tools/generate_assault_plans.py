@@ -7,7 +7,8 @@ FIELDS = ('active', 'clock', 'hull', 'until', 'enemy-until', 'objective',
           'enemies-tried', 'resume')
 STATES = ('BEGIN', 'OBJECTIVE', 'CANDIDATE', 'CACHE', 'SAFETY', 'SAFE-CHECK',
           'FAIL', 'ADVANCE', 'NEXT-OBJECTIVE', 'OBJECTIVE-FAILED',
-          'ENEMY-FAILED', 'NEXT-ENEMY', 'ENEMY-SEARCH', 'TERMINAL', 'FINAL-SAFETY')
+          'ENEMY-FAILED', 'NEXT-ENEMY', 'ENEMY-SEARCH', 'TERMINAL', 'FINAL-SAFETY',
+          'PATH')
 MEMORY = 16
 APPROACHES = (0, 28, -28, 56, -56)
 
@@ -57,7 +58,8 @@ def plans():
            ';Reasons: screening2/4/6/7/8/10/11;21 topology;22 total budget;',
            ';23 enemy budget;24 invalid hull/manifest;26 no alternative enemy;',
            ';27 maximum opponents tried;28 enemy unavailable;29 no longer hostile.',
-           ';32 fallback danger;33 fallback topology;35 fallback Scout invalid.',
+           ';32 fallback danger;33 fallback topology;35 fallback Scout invalid;',
+           ';36 unload vicinity unreachable;37 corridor waypoint unreachable.',
            ';after-failure:0 next approach,2 next enemy,3 terminal recovery.',
            ';A failed beach is excluded. Different beaches require fresh checks.']
     def emit(f, a): out.append(rule(f, a))
@@ -195,6 +197,23 @@ def plans():
     emit([state('AP-CACHE')], ['(set-goal gl-ap-screen-validated NO)',
         '(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)',
         go('TRANSPORT-ROUTE-CORRIDOR-PREPARE')])
+    # A same-land-zone objective is not proof of a usable coast, and the
+    # perpendicular corridor geometry can itself land on terrain. Rebuild the
+    # exact loaded hull before asking whether it can reach an open unload
+    # vicinity and the exact movement waypoint. Invalid geometry is one failed
+    # approach and returns to the existing bounded candidate/objective search.
+    emit([state('AP-PATH')], select_hull())
+    emit([state('AP-PATH'), '(up-set-target-object search-local c: 0)',
+          '(up-path-distance gl-transport-route-landing-x 0 == 65535)'],
+         ['(set-goal gl-ap-failure 36)', go('AP-FAIL')])
+    emit([state('AP-PATH'), '(up-set-target-object search-local c: 0)',
+          '(up-path-distance gl-transport-route-landing-x 0 != 65535)',
+          '(up-path-distance gl-transport-route-waypoint-x 1 == 65535)'],
+         ['(set-goal gl-ap-failure 37)', go('AP-FAIL')])
+    emit([state('AP-PATH'), '(up-set-target-object search-local c: 0)',
+          '(up-path-distance gl-transport-route-landing-x 0 != 65535)',
+          '(up-path-distance gl-transport-route-waypoint-x 1 != 65535)'],
+         [go('TRANSPORT-ROUTE-SCREEN-FIND')])
     # Check all enemies before exposing the Scout AND after its successful screen.
     emit([*active(), state('TRANSPORT-ROUTE-SCREEN-FIND'), '(goal gl-ap-screen-validated NO)'],
          ['(set-goal gl-ap-resume TRANSPORT-ROUTE-SCREEN-FIND)', go('AP-SAFETY')])

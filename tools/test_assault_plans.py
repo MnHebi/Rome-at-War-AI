@@ -19,6 +19,9 @@ class Planner(Missions):
         self.players = {p: dict(active=p in enemies, enemy=p in enemies, buildings=10) for p in range(1, 9)}
         self.starts = {6: (100, 100), 7: (220, 220), 8: (220, 20)}
         self.timers, self.zones = {}, {}
+        # Exact points listed here model engine path rejection for the selected
+        # Transport.  The fixture deliberately does not simulate pathfinding.
+        self.blocked_paths = set()
         self.disabled = set()
         s = source('rawai-military.per')
         s = s[s.index('(load "rawai-assault-plans")'):s.index(';The preparation owner hands')]
@@ -34,6 +37,11 @@ class Planner(Missions):
 
     def fact(self, e):
         if e[0] == 'up-timer-status': return self.now >= self.timers.get(self.val(e[1]), 0)
+        if e[0] == 'up-path-distance':
+            point = self.point_value(e[1])
+            distance = 65535 if point in self.blocked_paths else math.dist(
+                self.objects[self.target]['point'], point)
+            return self.compare(distance, e[3], e[4])
         return super().fact(e)
 
     def action(self, e, pc=0):
@@ -157,6 +165,34 @@ class AssaultPlanTests(unittest.TestCase):
                              p.val('TRANSPORT-ROUTE-DEPARTURE-START'))
             self.assertEqual((p.g['gl-assault-manifest-hull'],p.g['gl-assault-manifest-count']), (10,cargo))
             self.assertFalse(any(10 in ids and a=='action-unload' for ids,a,point in p.commands))
+
+    def test_unreachable_unload_is_remembered_then_another_approach_departs(self):
+        p=Planner();p.begin()
+        p.until('AP-PATH')
+        first=p.point_value('gl-transport-route-landing-x')
+        p.blocked_paths.add(first)
+        state=p.until('TRANSPORT-ROUTE-DEPARTURE-START','TRANSPORT-ROUTE-RECOVERY-WAIT')
+        self.assertEqual(state,p.val('TRANSPORT-ROUTE-DEPARTURE-START'))
+        self.assertTrue(any(m['reason']==36 and (m['x'],m['y'])==first for m in p.memories()))
+        self.assertNotEqual(p.point_value('gl-transport-route-landing-x'),first)
+        self.assertEqual(p.objects[10]['cargo'],9)
+        self.assertFalse(any(10 in ids and action=='action-unload'
+                             for ids,action,_ in p.commands))
+
+    def test_unreachable_exact_corridor_is_remembered_then_another_approach_departs(self):
+        p=Planner();p.begin()
+        p.until('AP-PATH')
+        first_landing=p.point_value('gl-transport-route-landing-x')
+        first_waypoint=p.point_value('gl-transport-route-waypoint-x')
+        p.blocked_paths.add(first_waypoint)
+        state=p.until('TRANSPORT-ROUTE-DEPARTURE-START','TRANSPORT-ROUTE-RECOVERY-WAIT')
+        self.assertEqual(state,p.val('TRANSPORT-ROUTE-DEPARTURE-START'))
+        self.assertTrue(any(m['reason']==37 and (m['x'],m['y'])==first_landing
+                            for m in p.memories()))
+        self.assertNotEqual(p.point_value('gl-transport-route-landing-x'),first_landing)
+        self.assertEqual(p.objects[10]['cargo'],9)
+        self.assertFalse(any(10 in ids and action=='action-unload'
+                             for ids,action,_ in p.commands))
 
     def test_failure_remembers_candidate_without_unloading_or_resetting_budget(self):
         p=Planner(); p.begin(); p.step()

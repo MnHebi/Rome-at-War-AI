@@ -1,5 +1,60 @@
 # Rome at War AI handoff
 
+## CURRENT - T34:482 ASSAULT SHIP-PATH GEOMETRY GATE, LOCAL ONLY, 2026-09-04
+
+- **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
+  branch `fix/trade-cog-cap-dacian`; starting HEAD `08403df` was clean. T33
+  commit `1460d58` remains the deployed runtime represented by this replay.
+- **ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME:** replay `SP Replay
+  v101.103.48987.0 @2026.09.04 151001.aoe2record` (SHA-256
+  `E96FCBDEBF84E000054F0A47E6A954AE27AA3D1DBBF7F717C92997DCF8150DE0`)
+  records Blue hulls 37482 and 35604 following the same private assault route,
+  failing the outbound progress watchdog and then emptying only during recovery.
+  Hull 37482 was commanded to corridor `(155,108)` at 41:01, unload `(86,61)`
+  at 41:57, recovery `(184,186)` at 43:41, and terminated event 9 at 45:25.
+  Hull 35604 repeated those points at 44:01, 44:57, 46:41 and 48:41. There is
+  no native `AI_ORDER` overwrite for either Blue hull in those intervals.
+- **First causal divergence:** the planner derived landing candidates from the
+  enemy objective's land coordinate and perpendicular offsets; the corridor
+  controller derived another geometric point, but neither proved that the
+  selected Transport could path to those points. The decoded map proves Blue's
+  corridor center is terrain 0 (land/grass) and its unload center is terrain 3
+  (land; no water in the 7x7 sample). Green's only admitted mission likewise
+  used a terrain-12 unload point and ended event 4 -> event 9. Native ship
+  projection toward a nearby shore therefore occurred only after mission
+  admission and could select a cliff-side dead end instead of the observed
+  clear beach.
+- **Implementation:** new state `AP-PATH` rebuilds the exact selected, owned,
+  `attack-transport-group` hull after corridor construction. It requires a
+  finite `up-path-distance` to the unload vicinity with option 0 and to the
+  exact corridor waypoint with option 1 before screening or dispatch. Failure
+  reason 36 means unload vicinity unreachable; 37 means exact corridor
+  unreachable. Either records the failed approach and returns to the existing
+  bounded approach -> objective -> enemy search with the accepted cargo still
+  aboard. Existing logs expose the reason without allocating new strings.
+- **Preserved behavior / non-regression criterion:** safe full and accepted
+  partial manifests, same-island zone validation, defense vetoes, Scout
+  screening and fallback, three private mission slots, positive-danger policy,
+  and the event-4 voyage watchdog are unchanged. A reachable candidate must
+  still depart; an unreachable point must choose another bounded candidate
+  without unloading or changing the accepted manifest.
+- **PASS:** generated planner/source synchronization; 32 planner/landing tests;
+  132 assault/transport/landed-combat tests; PER structure; strategy execution;
+  naval doctrine; generated naval synchronization; `git diff --check`.
+  Repository run passed 453/454 in the sandbox; the sole Windows Temp
+  writer-trace permission case passed separately with Temp access, covering all
+  454 tests. Current project string allocation is 1489/1500 literals; this
+  patch adds no runtime strings.
+- **Runtime acceptance:** run a fresh Huge Iberia match under the recorded T33
+  lobby settings. PASS requires reasons 36/37 to reject land/cliff geometry
+  before hull dispatch, another approach/objective/enemy to be tried while
+  cargo remains loaded, and at least one finite-path route to preserve normal
+  dispatch. Runtime acceptance is pending; no test-copy deployment was made.
+- **Diagnostics:** decoded replay products and route rendering are outside the
+  repository under `G:\Projects\Codex\Rome at War AI\.analysis\T33-iberia-*`.
+  The native first-writer/heap-corruption investigation remains open and is not
+  claimed fixed by this independent transport patch.
+
 ## CURRENT - T33:481 LANDED-COMMAND ISSUANCE TRACE DEPLOYED, 2026-09-04
 
 - **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,

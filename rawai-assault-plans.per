@@ -6,7 +6,9 @@
 
 ;27 maximum opponents tried;28 enemy unavailable;29 no longer hostile.
 
-;32 fallback danger;33 fallback topology;35 fallback Scout invalid.
+;32 fallback danger;33 fallback topology;35 fallback Scout invalid;
+
+;36 unload vicinity unreachable;37 corridor waypoint unreachable.
 
 ;after-failure:0 next approach,2 next enemy,3 terminal recovery.
 
@@ -774,6 +776,43 @@
 	(set-goal gl-ap-screen-validated NO)
 	(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-PREPARE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-PATH)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-PATH)
+	(up-set-target-object search-local c: 0)
+	(up-path-distance gl-transport-route-landing-x 0 == 65535)
+=>
+	(set-goal gl-ap-failure 36)
+	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-PATH)
+	(up-set-target-object search-local c: 0)
+	(up-path-distance gl-transport-route-landing-x 0 != 65535)
+	(up-path-distance gl-transport-route-waypoint-x 1 == 65535)
+=>
+	(set-goal gl-ap-failure 37)
+	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-PATH)
+	(up-set-target-object search-local c: 0)
+	(up-path-distance gl-transport-route-landing-x 0 != 65535)
+	(up-path-distance gl-transport-route-waypoint-x 1 != 65535)
+=>
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-FIND)
 )
 
 (defrule
