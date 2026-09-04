@@ -60,6 +60,15 @@
   at 41:57, recovery `(184,186)` at 43:41, and terminated event 9 at 45:25.
   Hull 35604 repeated those points at 44:01, 44:57, 46:41 and 48:41. There is
   no native `AI_ORDER` overwrite for either Blue hull in those intervals.
+- **Replay-wide lifecycle sweep:** all three admitted assaults with enough
+  remaining replay time to terminate failed identically: Green hull 36678
+  (enemy 8) emitted event 0 at 39:51, event 4 at 42:07 and event 9 at 42:39;
+  Blue hull 37482 (enemy 7) emitted 0/4/9 at 41:01/43:41/45:25; Blue hull
+  35604 (enemy 7) emitted 0/4/9 at 44:01/46:41/48:41. Blue hull 36264 was
+  admitted at 46:54 and was still attempting the same `(155,108)` -> `(86,61)`
+  route when the replay ended at 49:15. Thus the recording contains zero
+  successful assault landings and three reproducible outbound-progress aborts;
+  it is not merely the two user-observed Blue episodes.
 - **First causal divergence:** the planner derived landing candidates from the
   enemy objective's land coordinate and perpendicular offsets; the corridor
   controller derived another geometric point, but neither proved that the
@@ -103,7 +112,9 @@
   lobby settings. PASS requires reasons 36/37 to reject land/cliff geometry
   before hull dispatch, another approach/objective/enemy to be tried while
   cargo remains loaded, and at least one finite-path route to preserve normal
-  dispatch. Runtime acceptance is pending in the user's fresh T34 match.
+  dispatch. Runtime acceptance is pending in the user's fresh T34 match. The
+  attached replay marker is T33:481, so this recording cannot establish whether
+  deployed T34:482 rejects these routes or still admits them.
 - **Diagnostics:** decoded replay products and route rendering are outside the
   repository under `G:\Projects\Codex\Rome at War AI\.analysis\T33-iberia-*`.
   The native first-writer/heap-corruption investigation remains open and is not
