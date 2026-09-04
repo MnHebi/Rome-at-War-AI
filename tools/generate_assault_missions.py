@@ -431,7 +431,6 @@ def missions():
                         [setv('state', 5), setv('reason', 12), *log(12)]))
         out.append(rule(combat, [*members(),
             '(up-remove-objects search-local object-data-garrisoned == 1)',
-            f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("target-zone")})',
             setv('combat-target', -1)]))
         out.append(rule([*combat, '(up-set-target-object search-local c: 0)'], [
             f'(up-get-point position-object {v("x")})', setv('sample', 7)]))
@@ -468,7 +467,6 @@ def missions():
         # before another evaluation can observe that this sample already issued.
         out.append(rule(found, [*members(),
             '(up-remove-objects search-local object-data-garrisoned == 1)',
-            f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("target-zone")})',
             '(up-remove-objects search-local object-data-action == actionid-attack)',
             f'(up-add-object-by-id search-remote g: {v("combat-target")})',
             # Diagnostic-only issuance triplet. The sample-10 latch bounds this
@@ -511,7 +509,6 @@ def missions():
         out.append(rule([f'(goal {v("state")} 6)', f'(goal {v("sample")} 9)',
                          f'(up-compare-goal {v("zone")} g:== {v("target-zone")})'], [
             *members(), '(up-remove-objects search-local object-data-garrisoned == 1)',
-            f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("target-zone")})',
             '(up-remove-objects search-local object-data-action == actionid-attack)',
             f'(up-target-point {v("clear-x")} action-move -1 stance-aggressive)', setv('sample', 6)]))
         out.append(rule([f'(goal {v("state")} 6)', f'(goal {v("sample")} 9)',

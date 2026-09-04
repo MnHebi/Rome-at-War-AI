@@ -148,10 +148,20 @@ class LandedAssaultTests(unittest.TestCase):
         m.objects[1010] = dict(m.objects[1007], id=1010, flag=-2)
         m.sweep(16)
         commanded = set(self.attacks(m)[-1][0])
-        self.assertEqual(commanded, {1000, 1001, 1007, 1008})
+        self.assertEqual(commanded, {1000, 1001, 1004, 1007, 1008})
         self.assertEqual(m.objects[1003]['flag'], 18)
         self.assertNotIn(1006, commanded)
         self.assertNotIn(1010, commanded)
+
+    def test_landed_manifest_remains_owned_after_crossing_engine_zone_boundary(self):
+        m = self.landed(); self.target(m)
+        for passenger in range(1000, 1009):
+            m.objects[passenger]['zone'] = 4
+        m.sweep(16)
+        self.assertEqual(set(self.attacks(m)[-1][0]), set(range(1000, 1009)))
+        self.assertEqual(self.attacks(m)[-1][2], ('object', 99))
+        self.assertTrue(all(m.objects[p]['flag'] == GROUPS[0]
+                            for p in range(1000, 1009)))
 
     def test_hostile_military_unit_is_a_landed_combat_target(self):
         m = self.landed()

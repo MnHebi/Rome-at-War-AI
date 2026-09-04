@@ -153,6 +153,7 @@ class CancellationDetailsTests(unittest.TestCase):
             normalized_landed_target_classes = 0
             normalized_landed_settle_waits = 0
             normalized_landed_combat_delays = 0
+            normalized_landed_cross_zone_members = 0
             for r in rule_blocks(source(name)):
                 facts = expressions(r[3])
                 actions = [e for e in expressions(r[4]) if not e[0].startswith('up-chat') and not
@@ -229,15 +230,16 @@ class CancellationDetailsTests(unittest.TestCase):
                             zone = ['up-remove-objects', 'search-local',
                                     'object-data-map-zone-id', 'g:!=',
                                     f'gl-am{slot}-target-zone']
-                            self.assertIn(zone, actions)
-                            pos = actions.index(zone) + 1
-                            actions[pos:pos] = [
+                            self.assertNotIn(zone, actions)
+                            pos = actions.index(reset)
+                            actions[pos:pos] = [zone,
                                 ['up-remove-objects', 'search-local',
                                  'object-data-idling', '!=', '1'],
                                 ['up-remove-objects', 'search-local',
                                  'object-data-under-attack', '>', '0'],
                             ]
                             normalized_landed_anchors += 1
+                            normalized_landed_cross_zone_members += 1
 
                     if slot is not None and sample == '7':
                         # Remove only the newly supported hostile land-combat
@@ -272,11 +274,15 @@ class CancellationDetailsTests(unittest.TestCase):
                             pos = actions.index(attack_guard)
                             actions[pos:pos + 1] = [
                                 ['up-remove-objects', 'search-local',
+                                 'object-data-map-zone-id', 'g:!=',
+                                 f'gl-am{slot}-target-zone'],
+                                ['up-remove-objects', 'search-local',
                                  'object-data-idling', '!=', '1'],
                                 ['up-remove-objects', 'search-local',
                                  'object-data-under-attack', '>', '0'],
                             ]
                             normalized_landed_commands += 1
+                            normalized_landed_cross_zone_members += 1
 
                         # T32 closes a landed object-command sample immediately
                         # in PER state. Remove only that post-issue latch while
@@ -333,6 +339,7 @@ class CancellationDetailsTests(unittest.TestCase):
                 self.assertEqual(normalized_landed_target_classes, 189)
                 self.assertEqual(normalized_landed_settle_waits, 3)
                 self.assertEqual(normalized_landed_combat_delays, 3)
+                self.assertEqual(normalized_landed_cross_zone_members, 6)
             self.assertEqual(hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest(), fingerprint, name)
 
     def test_diagnostic_goals_have_no_aliases_and_never_control_gameplay(self):
