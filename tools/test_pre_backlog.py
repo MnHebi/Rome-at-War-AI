@@ -118,6 +118,11 @@ class PackingTests(unittest.TestCase):
 
 
 class ConcreteHeavyRemeTests(unittest.TestCase):
+    def test_sea_tower_constant_uses_physical_dat_unit(self):
+        constants = source('rawai-unitconstants.per')
+        self.assertIn('(defconst sea-tower 1919)', constants)
+        self.assertNotIn('(defconst sea-tower 1921)', constants)
+
     def test_no_runtime_use_of_turtle_alias(self):
         for path in ROOT.glob('*.per'):
             code = '\n'.join(line.split(';')[0] for line in source(path.name).splitlines())

@@ -1,5 +1,22 @@
 # Rome at War AI handoff
 
+## CURRENT - SEA TOWER PHYSICAL IDENTIFIER CORRECTION, LOCAL ONLY, 2026-09-04
+
+- The user-authorized pending `rawai-unitconstants.per` correction changes
+  semantic `sea-tower` from 1921 to 1919. Direct inspection of the authoritative
+  `empires2_x2_p1.dat` confirms unit 1919 is `STWR` (class 52, type 80), while
+  unit 1921 is `PLACEHOLDER2 (WATER)` (class 30, type 20). The generated
+  CivTechTrees files expose a stale UI/building alias naming 1921 "Sea Tower";
+  runtime searches must use the physical DAT object.
+- Every runtime consumer already uses the semantic `sea-tower` constant, so the
+  correction applies consistently without editing the assault, screening,
+  military or generated landing-plan rules. A regression test now requires
+  1919 and rejects 1921. `unique-unit-production.json` records the re-audited
+  constants hash and the DAT/export distinction.
+- No runtime deployment was performed. The source marker remains
+  `RAWAI-P3B44T31:479`; runtime confirmation of Sea Tower detection remains
+  pending alongside T31 land-trade validation.
+
 ## CURRENT - T31:479 LAND TRADE CANDIDATE REPAIR, LOCAL ONLY, 2026-09-04
 
 - **Workspace identity:** development was explicitly moved to
