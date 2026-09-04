@@ -48,6 +48,19 @@
   files. Source/installed aggregate SHA-256 is
   `E4B6281AEA133A5C56A90CAABB4BDF8F3DD2351B5DAB2DB89635F15EA087E79B`;
   installed marker is `RAWAI-P3B44T33:481`.
+- **Fresh T33 test setup (direct user screenshot evidence; replay pending):**
+  `RaW data fix`, Chronicles civilization set, Random Map / Iberia, Huge (240),
+  Extreme, Standard resources, population 400, Normal speed/reveal, Standard
+  starting and ending ages, no treaty, Standard victory. Lock Teams, Team
+  Together, Shared Exploration and Record Game are enabled; Team Positions,
+  Handicap and all shown advanced variants are disabled. Team 1 is Blue
+  Dacians, Red Pontus, Green Seleucids and Yellow Syracusans; Team 2 is Cyan
+  Nubians, Purple Numidians, Gray Carthaginians and Orange Egyptians. At 00:01,
+  Team 1's shared-exploration minimap shows Green north, Red west/southwest,
+  Yellow south and Blue east/southeast. The live chat visibly confirms
+  `RAWAI-P3B44T33:481` for players 2-8 with no startup script-error dialog;
+  player 1's marker is not visible in the supplied frame and is therefore not
+  claimed from screenshot evidence.
 - The native first writer and
   `STATUS_HEAP_CORRUPTION (0xc0000374)` remain INVESTIGATING; telemetry is not
   resolution.
