@@ -373,7 +373,20 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-all "RAWAI-P3B44T36: %d" c: 484)
+	(up-chat-data-to-all "RAWAI-P3B44T37: %d" c: 485)
+	(disable-self)
+)
+
+;A multi-unit action-garrison order can formation-couple slow siege passengers:
+;one obstructed engine then stops the other engines approaching the same hull.
+;The bounded round-robin below retains the ordinary group order for all units,
+;but gives each reserved siege engine its own command identity.
+(defrule
+	(true)
+=>
+	(set-goal gl-assault-siege-board-index 0)
+	(set-goal gl-assault-siege-board-count 0)
+	(set-goal gl-assault-siege-board-next 0)
 	(disable-self)
 )
 

@@ -1,5 +1,57 @@
 # Rome at War AI handoff
 
+## CURRENT - T37:485 INDEPENDENT SIEGE-PASSENGER BOARDING, SOURCE ONLY, 2026-09-04
+
+- **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `f72e541`. T36:484 remains
+  installed and must not be silently replaced while its live test is running.
+- **Status: ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** During the T36 test the
+  user directly observed a Yellow Pummel stop en route to its assault Transport,
+  and repeatedly observed all other siege engines stop when one engine in the
+  boarding group was obstructed. The current replay snapshot is
+  `SP Replay v101.103.48987.0 @2026.09.04 223434.aoe2record`, duration 62:31,
+  with zero parse errors and T36 marker 484.
+- **Replay evidence:** Yellow completed two earlier assault landings. Its next
+  preparation terminated at 59:22 with only 4/10 aboard while the sampled
+  reserved passenger still had action 617/order 717, exact hull target 35963,
+  group flag 4, and distance 9. The following preparation sealed 7/10 at 62:30
+  while its sampled reserved passenger still had that same valid boarding state
+  only distance 2 from hull 35963. No reservation, target, or ownership loss
+  explains those simultaneous stops.
+- **First causal divergence:** every assault boarding and retry site issued one
+  multi-object `action-garrison` command to the entire mixed manifest. Siege
+  engines therefore shared a formation-coupled command; one obstructed engine
+  could halt its siege peers even though each still retained the right hull
+  target and mission group.
+- **Implementation:** the six assault boarding/retry sites retain the existing
+  group command for non-siege passengers but exclude `siege-weapon-class`.
+  During rendezvous/load wait, a bounded ID-sorted round-robin gives exactly one
+  reserved, ungarrisoned siege engine its own `action-garrison` command per game
+  second. At most ten accepted passengers exist, so every surviving siege
+  member is renewed within ten seconds without sharing a formation command.
+- **Preserved contracts:** passenger-first manifest selection, nearest eligible
+  hull, exact hull and group ownership, 120-second rendezvous lease, 30-second
+  local boarding deadline, 5-unit useful-partial threshold, partial/abort
+  diagnostics, three dispatched mission slots, all non-siege boarding, and all
+  migration behavior are unchanged. No new chat strings were allocated.
+- **Validation PASS:** focused rendezvous fixture including two Pummels
+  proves independent one-member commands, one-second cadence, and no multi-unit
+  siege command; 49 assault preparation/acquisition/ownership tests; 134 marker,
+  topology and validator tests; 19 physical-line/task-ownership tests; PER
+  validation; ownership audit 841 sites with zero permission failures; and
+  `git diff --check`; and full Python 3 discovery, 468/468 tests. The first
+  sandboxed discovery exposed one deliberately strict ownership fixture that
+  lacked `object-data-class`; the fixture now models the existing infantry
+  class field. Its only other error was the established Windows Temp permission
+  boundary for the compiler fixture; the permitted full rerun passed.
+- **Runtime acceptance:** in a fresh T37 replay, obstruct one reserved siege
+  passenger and verify another reserved siege passenger continues and boards;
+  there must be no more than one scripted siege boarding renewal per player per
+  game-second, no loss of the exact hull/group target, normal non-siege boarding,
+  and no regression in departure/landing. Until then this defect is not CLOSED.
+- **Deployment:** none. Source marker is `RAWAI-P3B44T37:485`; installed runtime
+  remains the verified T36:484 payload.
+
 ## CURRENT - T36:484 BOUNDED ASSAULT/MIGRATION SHORELINE RESOLUTION, DEPLOYED, 2026-09-04
 
 - **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,

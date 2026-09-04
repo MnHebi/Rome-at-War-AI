@@ -6424,7 +6424,10 @@
 	(up-add-object-by-id search-remote g: gl-transport-route-id)
 	(up-remove-objects search-remote object-data-player != my-player-number)
 	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
-	;OWNERSHIP command: attack-boarding-group.
+	;Ordinary passengers may share this command. Siege members are renewed one
+	;at a time below so an obstructed engine cannot formation-stop its peers.
+	(up-remove-objects search-local object-data-class == siege-weapon-class)
+	;OWNERSHIP command: non-siege attack-boarding-group members.
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-chat-data-to-all str-assault-event c: 23)
 	(up-chat-data-to-all str-assault-hull g: gl-transport-route-id)
@@ -6521,7 +6524,8 @@
 	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
-	;OWNERSHIP command: attack-boarding-group.
+	(up-remove-objects search-local object-data-class == siege-weapon-class)
+	;OWNERSHIP command: non-siege attack-boarding-group members.
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-full-reset-search)
 	(up-set-group search-local c: attack-transport-group)
@@ -6559,11 +6563,12 @@
 	(up-compare-goal gl-transport-route-load-target c:>= 5)
 	(up-set-target-object search-remote c: 0)
 =>
-	;OWNERSHIP command: attack-boarding-group.
+	;OWNERSHIP command: non-siege attack-boarding-group members.
 	(set-goal gl-assault-admission-last-stage 8)
 	(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	(up-remove-objects search-local object-data-class == siege-weapon-class)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(set-goal gl-transport-route-script-load YES)
 	(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
@@ -6653,9 +6658,10 @@
 	(up-add-object-by-id search-remote g: gl-transport-route-id)
 	(up-remove-objects search-remote object-data-player != my-player-number)
 	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
-	;OWNERSHIP command: attack-boarding-group.
+	;OWNERSHIP command: non-siege attack-boarding-group members.
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	(up-remove-objects search-local object-data-class == siege-weapon-class)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)
 	(up-modify-goal gl-transport-route-load-next c:+ 4)
@@ -6782,6 +6788,7 @@
 	;OWNERSHIP command: attack-boarding-group.
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	(up-remove-objects search-local object-data-class == siege-weapon-class)
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(set-goal gl-transport-route-load-reported YES)
 	(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)
@@ -6818,7 +6825,8 @@
 	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
-	;OWNERSHIP command: attack-boarding-group.
+	(up-remove-objects search-local object-data-class == siege-weapon-class)
+	;OWNERSHIP command: non-siege attack-boarding-group members.
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 	(set-goal gl-transport-route-load-grace-used YES)
 	(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
@@ -6924,6 +6932,45 @@
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 30)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+)
+
+;The engine formation-couples a multi-siege action-garrison order. Runtime T36
+;showed correctly reserved passengers, still targeting the exact hull from two
+;to nine tiles away, stop together when one siege engine was obstructed. Keep
+;the existing group command for ordinary passengers, then independently renew
+;one reserved shore-side siege engine per second. The manifest, target hull,
+;30-second boarding deadline, partial threshold and ownership never change.
+(defrule
+	(or
+		(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)
+		(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)
+	)
+	(up-compare-goal gl-transport-load-clock g:>= gl-assault-siege-board-next)
+=>
+	(up-full-reset-search)
+	(up-set-group search-local c: attack-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
+	(up-remove-objects search-local object-data-class != siege-weapon-class)
+	(up-clean-search search-local object-data-id search-order-asc)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-assault-siege-board-count g:= local-total)
+	(up-remove-objects search-local object-data-index g:!= gl-assault-siege-board-index)
+	(up-add-object-by-id search-remote g: gl-transport-route-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
+	;OWNERSHIP command: one attack-boarding-group siege member.
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(up-modify-goal gl-assault-siege-board-index c:+ 1)
+	(up-modify-goal gl-assault-siege-board-next g:= gl-transport-load-clock)
+	(up-modify-goal gl-assault-siege-board-next c:+ 1)
+)
+
+(defrule
+	(up-compare-goal gl-assault-siege-board-index g:>= gl-assault-siege-board-count)
+=>
+	(set-goal gl-assault-siege-board-index 0)
 )
 
 ;Ownership preemption is handled by rawai-severe-defense.
