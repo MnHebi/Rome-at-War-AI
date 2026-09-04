@@ -4706,6 +4706,44 @@ class FarmPolicyTests(unittest.TestCase):
                 "MIGRATION-CHECK-LANDING-PATH",
             ),
         )
+        crowded_gate = matching_rules(
+            self.military,
+            facts=(
+                "(villager-count >= 60)",
+                "(unit-type-count transport-ship >= 1)",
+            ),
+            actions=(
+                "(set-goal gl-island-migration-mission MIGRATION-MISSION-MINING)",
+            ),
+        )
+        self.assertEqual(len(crowded_gate), 2)
+        crowded_manifest = matching_rules(
+            self.military,
+            facts=(
+                "(villager-count >= 60)",
+                "(goal resources-depleted NO)",
+                "(goal gl-home-resource-pressure NO)",
+            ),
+            actions=(
+                "(up-find-local c: villager-class c: 40)",
+                "(set-goal gl-island-migration-state MIGRATION-OWNERSHIP-CLAIM)",
+            ),
+        )
+        self.assertEqual(len(crowded_manifest), 1)
+        crowded_actions = crowded_manifest[0][4]
+        self.assertNotIn("object-data-idling", crowded_actions)
+        for protected in (
+            "object-data-action == actionid-build",
+            "object-data-action == actionid-repair",
+            "lid-villager-farmer",
+            "lid-villager-fisherman",
+            "lid-villager-shepherd",
+            "lid-villager-forager",
+            "lid-villager-hunter",
+            "object-data-target == prey-animal-class",
+            "object-data-target == livestock-class",
+        ):
+            self.assertIn(protected, crowded_actions)
         self.assertEqual(len(first_candidate), 1)
         self.assertNotIn("action-unload", first_candidate[0][4])
         shoreline_candidates = matching_rules(

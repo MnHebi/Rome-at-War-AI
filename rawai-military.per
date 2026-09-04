@@ -1615,7 +1615,10 @@
 		(up-idle-unit-count idle-type-villager >= 2)
 		(or
 			(goal resources-depleted YES)
-			(goal gl-home-resource-pressure YES)
+			(or
+				(goal gl-home-resource-pressure YES)
+				(villager-count >= 60)
+			)
 		)
 	)
 	(or
@@ -1652,7 +1655,10 @@
 		(up-idle-unit-count idle-type-villager >= 2)
 		(or
 			(goal resources-depleted YES)
-			(goal gl-home-resource-pressure YES)
+			(or
+				(goal gl-home-resource-pressure YES)
+				(villager-count >= 60)
+			)
 		)
 	)
 	(or
@@ -2123,6 +2129,7 @@
 	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
 	(goal resources-depleted NO)
 	(goal gl-home-resource-pressure NO)
+	(villager-count < 60)
 =>
 	(up-modify-group-flag 0 c: migration-boarding-group)
 	(up-reset-group c: migration-boarding-group)
@@ -2134,6 +2141,43 @@
 	(up-find-local c: villager-class c: 40)
 	(up-remove-objects search-local object-data-garrisoned == 1)
 	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-language-id == lid-villager-farmer)
+	(up-remove-objects search-local object-data-language-id == lid-villager-fisherman)
+	(up-remove-objects search-local object-data-language-id == lid-villager-shepherd)
+	(up-remove-objects search-local object-data-language-id == lid-villager-forager)
+	(up-remove-objects search-local object-data-language-id == lid-villager-hunter)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index g:>= gl-transport-capacity)
+	(set-goal gl-island-migration-state MIGRATION-OWNERSHIP-CLAIM)
+)
+;A crowded island economy can leave large numbers of villagers visibly waiting
+;while the native economy still reports them as assigned, so the idle fact never
+;opens migration. At sixty villagers, allow one bounded transport manifest of
+;non-food workers to prove the remote resource route. Builders, grouped units,
+;animal workers and every established food role remain protected.
+(defrule
+	(goal gl-island-migration-state MIGRATION-BOARDING)
+	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+	(goal resources-depleted NO)
+	(goal gl-home-resource-pressure NO)
+	(villager-count >= 60)
+=>
+	(up-modify-group-flag 0 c: migration-boarding-group)
+	(up-reset-group c: migration-boarding-group)
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
+	(up-set-target-object search-remote c: 0)
+	(up-get-point position-object point-x)
+	(up-set-target-point point-x)
+	(up-find-local c: villager-class c: 40)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-build)
+	(up-remove-objects search-local object-data-action == actionid-repair)
+	(up-remove-objects search-local object-data-target == prey-animal-class)
+	(up-remove-objects search-local object-data-target == livestock-class)
 	(up-remove-objects search-local object-data-language-id == lid-villager-farmer)
 	(up-remove-objects search-local object-data-language-id == lid-villager-fisherman)
 	(up-remove-objects search-local object-data-language-id == lid-villager-shepherd)
