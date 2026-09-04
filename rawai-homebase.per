@@ -4253,10 +4253,12 @@
 	(up-chat-data-to-self "Wall placement no-progress backoff: %d" g: gl-wall-last-percent)
 )
 
-;Insert one usable opening as soon as a quarter of the perimeter exists and a
-;second after three quarters. The owner count is perimeter-specific; a scenario
-;or unrelated gate elsewhere must not suppress these requests. Gate timing is
-;independent of the wall command/backoff deadline.
+;Insert the first usable opening as soon as the engine reports a replaceable
+;span, and a second after three quarters. Waiting for the first completion
+;quarter can let the perimeter close before any gate is requested. The owner
+;count is perimeter-specific; a scenario or unrelated gate elsewhere must not
+;suppress these requests. Gate timing is independent of the wall
+;command/backoff deadline.
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-wall-needed YES)
@@ -4266,7 +4268,6 @@
 	(building-type-count town-center >= 1)
 	(up-object-type-count-total c: villager-class >= 20)
 	(goal gl-home-defense-state NO)
-	(wall-completed-percentage 2 >= 25)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
 	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(can-build-gate-with-escrow 2)
@@ -4289,7 +4290,6 @@
 	(building-type-count town-center >= 1)
 	(up-object-type-count-total c: villager-class >= 20)
 	(goal gl-home-defense-state NO)
-	(wall-completed-percentage 2 >= 25)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
 	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(can-build-gate-with-escrow 2)
@@ -4355,7 +4355,6 @@
 	(goal gl-wall-needed YES)
 	(goal gl-wall-enabled YES)
 	(goal gl-wall-gates-issued 0)
-	(wall-completed-percentage 2 >= 25)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
 	(up-compare-goal gl-wall-gate-attempts c:< 3)
 	(not (can-build-gate-with-escrow 2))

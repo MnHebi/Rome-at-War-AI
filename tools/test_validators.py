@@ -1586,7 +1586,14 @@ class FarmPolicyTests(unittest.TestCase):
             actions=("(build-gate 2)",),
         )
         self.assertEqual(len(gate_builders), 4)
-        self.assertTrue(any("wall-completed-percentage 2 >= 25" in rule[3] for rule in gate_builders))
+        first_gate_builders = [
+            rule for rule in gate_builders if "gl-wall-gates-issued 0" in rule[3]
+        ]
+        self.assertEqual(len(first_gate_builders), 2)
+        self.assertTrue(all(
+            "wall-completed-percentage 2 >= 25" not in rule[3]
+            for rule in first_gate_builders
+        ))
         self.assertTrue(any("wall-completed-percentage 2 >= 75" in rule[3] for rule in gate_builders))
         for _, _, _, facts, actions in gate_builders:
             self.assertIn("gl-wall-gate-next", facts)
@@ -1610,6 +1617,16 @@ class FarmPolicyTests(unittest.TestCase):
             self.homebase,
         )
         self.assertIn("Wall gate availability backoff", self.homebase)
+        first_gate_wait = matching_rules(
+            self.homebase,
+            facts=(
+                "gl-wall-gates-issued 0",
+                "not (can-build-gate-with-escrow 2)",
+            ),
+            actions=("gl-wall-gate-attempts c:+ 1",),
+        )
+        self.assertEqual(len(first_gate_wait), 1)
+        self.assertNotIn("wall-completed-percentage 2 >= 25", first_gate_wait[0][3])
 
     def test_dejbjerg_moves_persistent_form_without_unpacking(self) -> None:
         self.assertIn("c: dejbjerg-wagon-stationary c: 10", self.germani)
