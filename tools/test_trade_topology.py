@@ -1,4 +1,4 @@
-"""Mechanical contract for the T30 per-ally trade topology state machine."""
+"""Mechanical contract for the T31 per-ally trade topology state machine."""
 import re
 import unittest
 
@@ -45,25 +45,27 @@ class TradeTopologyTests(unittest.TestCase):
         for name, value in expected.items():
             self.assertEqual(found.get(name), value, name)
             self.assertIn(f"(set-goal {name} ", self.init)
-        self.assertIn('RAWAI-P3B44T30: %d" c: 478', self.init)
+        self.assertIn('RAWAI-P3B44T31: %d" c: 479', self.init)
 
-    def test_land_scan_visits_all_player_bits_and_requires_finite_path(self):
+    def test_land_scan_accepts_same_zone_markets_without_immobile_path_test(self):
         bits = (1, 2, 4, 8, 16, 32, 64, 128)
         for player, bit in enumerate(bits, 1):
             rows = matching(
                 facts=("TRADE-ROUTE-LAND-CHECK",
                        f"gl-trade-route-player c:== {player}",
-                       "up-path-distance gl-trade-land-source-x 0 != 65535"),
+                       "up-set-target-object search-remote c: 0"),
                 actions=(f"gl-trade-land-mask c:+ {bit}",
                          "gl-trade-scan-count c:+ 1",
                          "TRADE-ROUTE-LAND-ADVANCE"))
             self.assertEqual(len(rows), 1, player)
-        unreachable = matching(
+        self.assertNotIn("up-path-distance gl-trade-land-source-x", self.economy)
+        self.assertNotIn("trade land candidate unreachable", self.economy)
+        missing = matching(
             facts=("TRADE-ROUTE-LAND-CHECK",
-                   "up-path-distance gl-trade-land-source-x 0 == 65535"),
+                   "not (up-set-target-object search-remote c: 0)"),
             actions=("gl-trade-scan-count c:+ 1", "TRADE-ROUTE-LAND-ADVANCE"))
-        self.assertEqual(len(unreachable), 1)
-        self.assertNotIn("gl-trade-land-mask c:+", unreachable[0][4])
+        self.assertEqual(len(missing), 1)
+        self.assertNotIn("gl-trade-land-mask c:+", missing[0][4])
 
     def test_land_completion_always_continues_into_water_scan(self):
         by_cycle = matching(

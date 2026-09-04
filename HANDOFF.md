@@ -1,5 +1,48 @@
 # Rome at War AI handoff
 
+## CURRENT - T31:479 LAND TRADE CANDIDATE REPAIR, LOCAL ONLY, 2026-09-04
+
+- **Workspace identity:** development was explicitly moved to
+  `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix` on
+  branch `fix/trade-cog-cap-dacian`, starting from
+  `dc81448571bc4c49d97a3c5574b26c321de209e0`. The pre-existing uncommitted
+  `rawai-unitconstants.per` sea-tower identifier change is user-owned and was
+  preserved outside this patch.
+- **ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME - land candidate rejection:**
+  T29 selected the allied remote Market and then used `up-path-distance` to
+  test that selected object against the local Market coordinates. A Market is
+  immobile, so this was not a valid Trade Cart reachability test. Runtime
+  observation found allied land Markets but produced no Cart probes, while the
+  independent water branch continued to qualify Docks and produce Merchant
+  Ships.
+- **Implementation:** all eight land-player candidate rules now accept a
+  same-map-zone allied Market without the invalid Market path predicate. The
+  matching `65535` rejection rule was removed. The bounded three-Cart probe,
+  live `actionid-trade` proof requirement, modality-specific masks/epochs and
+  independent water scan are unchanged. This supersedes T29's statement below
+  that a finite Market path check was useful candidate evidence.
+- **Regression protection:** `tools/test_trade_topology.py` requires eight
+  same-zone land candidate rules, rejects reintroduction of the Market path
+  test/rejection message, and preserves the no-target advance. The general
+  validator enforces the same contract. It also scans source/data inputs for
+  the invalid plural `ETHIOPIANS-CIV` symbol and requires the singular
+  `ETHIOPIAN-CIV` preprocessor gates. The Ethiopian correction itself was
+  already committed in the starting T30 revision `dc81448`.
+- **PASS:** trade topology 8/8; validator tests 126/126; release regression
+  8/8; release backlog 8/8; pre-backlog 7/7; PER structure; naval doctrine;
+  `git diff --check`. The broad mechanical run passed 447 tests and reached one
+  environment-only error when the sandbox denied the writer-trace fixture
+  access to the Windows user Temp directory. Strategy-execution validation
+  reaches the existing manifest provenance guard and fails only because the
+  user-owned dirty `rawai-unitconstants.per` no longer matches
+  `unique-unit-production.json`; this patch deliberately does not absorb or
+  revert that separate change.
+- **Runtime identity:** source marker `RAWAI-P3B44T31:479`. No test-copy or
+  runtime deployment was performed, per explicit instruction. Acceptance
+  requires a fresh replay showing same-zone allied Markets create no more than
+  three Cart probes until actual `actionid-trade`, after which normal land
+  growth may begin; water trade must remain independent.
+
 ## CURRENT - T29:477 INDEPENDENT TEAM TRADE TOPOLOGY, 2026-09-02
 
 - **FIXED-PENDING-RUNTIME - land discovery suppressing water trade:** the team

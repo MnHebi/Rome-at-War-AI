@@ -1179,9 +1179,8 @@
 ;Team trade topology is scanned per living ally and per modality. Candidate
 ;identity is retained in bounded player-bit masks (P1..P8 = 1..128). Land and
 ;water are independent: finding a land candidate never terminates or suppresses
-;the water scan. Same-zone endpoint equality is only candidate evidence. Land
-;candidates additionally need a finite engine path to the selected own Market;
-;water path semantics are not assumed. Only a live merchant actionid-trade can
+;the water scan. Same-zone endpoint equality is only candidate evidence. The
+;bounded merchant probes are the topology test; only a live actionid-trade can
 ;authorize normal merchant growth or villager retirement.
 (defrule
 	(goal team-game YES)
@@ -1802,7 +1801,6 @@
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 	(up-compare-goal gl-trade-route-player c:== 1)
 	(up-set-target-object search-remote c: 0)
-	(up-path-distance gl-trade-land-source-x 0 != 65535)
 =>
 	(up-modify-goal gl-trade-land-mask c:+ 1)
 	(up-modify-goal gl-trade-scan-count c:+ 1)
@@ -1814,7 +1812,6 @@
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 	(up-compare-goal gl-trade-route-player c:== 2)
 	(up-set-target-object search-remote c: 0)
-	(up-path-distance gl-trade-land-source-x 0 != 65535)
 =>
 	(up-modify-goal gl-trade-land-mask c:+ 2)
 	(up-modify-goal gl-trade-scan-count c:+ 1)
@@ -1826,7 +1823,6 @@
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 	(up-compare-goal gl-trade-route-player c:== 3)
 	(up-set-target-object search-remote c: 0)
-	(up-path-distance gl-trade-land-source-x 0 != 65535)
 =>
 	(up-modify-goal gl-trade-land-mask c:+ 4)
 	(up-modify-goal gl-trade-scan-count c:+ 1)
@@ -1838,7 +1834,6 @@
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 	(up-compare-goal gl-trade-route-player c:== 4)
 	(up-set-target-object search-remote c: 0)
-	(up-path-distance gl-trade-land-source-x 0 != 65535)
 =>
 	(up-modify-goal gl-trade-land-mask c:+ 8)
 	(up-modify-goal gl-trade-scan-count c:+ 1)
@@ -1850,7 +1845,6 @@
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 	(up-compare-goal gl-trade-route-player c:== 5)
 	(up-set-target-object search-remote c: 0)
-	(up-path-distance gl-trade-land-source-x 0 != 65535)
 =>
 	(up-modify-goal gl-trade-land-mask c:+ 16)
 	(up-modify-goal gl-trade-scan-count c:+ 1)
@@ -1862,7 +1856,6 @@
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 	(up-compare-goal gl-trade-route-player c:== 6)
 	(up-set-target-object search-remote c: 0)
-	(up-path-distance gl-trade-land-source-x 0 != 65535)
 =>
 	(up-modify-goal gl-trade-land-mask c:+ 32)
 	(up-modify-goal gl-trade-scan-count c:+ 1)
@@ -1874,7 +1867,6 @@
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 	(up-compare-goal gl-trade-route-player c:== 7)
 	(up-set-target-object search-remote c: 0)
-	(up-path-distance gl-trade-land-source-x 0 != 65535)
 =>
 	(up-modify-goal gl-trade-land-mask c:+ 64)
 	(up-modify-goal gl-trade-scan-count c:+ 1)
@@ -1886,21 +1878,10 @@
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 	(up-compare-goal gl-trade-route-player c:== 8)
 	(up-set-target-object search-remote c: 0)
-	(up-path-distance gl-trade-land-source-x 0 != 65535)
 =>
 	(up-modify-goal gl-trade-land-mask c:+ 128)
 	(up-modify-goal gl-trade-scan-count c:+ 1)
 	(up-chat-data-to-self "trade land candidate ally: %d" g: gl-trade-route-player)
-	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-ADVANCE)
-)
-
-(defrule
-	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
-	(up-set-target-object search-remote c: 0)
-	(up-path-distance gl-trade-land-source-x 0 == 65535)
-=>
-	(up-modify-goal gl-trade-scan-count c:+ 1)
-	(up-chat-data-to-self "trade land candidate unreachable: %d" g: gl-trade-route-player)
 	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-ADVANCE)
 )
 

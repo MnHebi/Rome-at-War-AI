@@ -640,6 +640,26 @@ class FarmPolicyTests(unittest.TestCase):
             encoding="utf-8-sig"
         )
 
+    def test_ethiopian_civ_preprocessor_symbol_is_singular_everywhere(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        audited = [
+            *root.glob("*.per"),
+            root / "tools" / "evaluate_good_units.py",
+            root / "tools" / "sync_civ_strategies.py",
+            root / "good-unit-evaluations.json",
+            root / "naval-capability-scores.json",
+        ]
+        for path in audited:
+            self.assertNotIn(
+                "ETHIOPIANS-CIV",
+                path.read_text(encoding="utf-8-sig"),
+                str(path.relative_to(root)),
+            )
+        self.assertIn("#load-if-defined ETHIOPIAN-CIV", self.main)
+        for common in (self.military_common, self.military_common_hard):
+            self.assertIn("#load-if-not-defined ETHIOPIAN-CIV", common)
+            self.assertIn("#load-if-defined ETHIOPIAN-CIV", common)
+
     def test_dependent_farm_demand_bounds_fisherman_substitution(self) -> None:
         rules = matching_rules(
             self.homebase,
@@ -1279,13 +1299,10 @@ class FarmPolicyTests(unittest.TestCase):
             cog[0][3],
         )
 
-        # Same-zone is candidate evidence. Land additionally requires a real
-        # finite path, while both modalities still require actionid-trade before
-        # normal growth or retirement can occur.
-        self.assertIn(
-            "(up-path-distance gl-trade-land-source-x 0 != 65535)",
-            self.economy,
-        )
+        # Same-zone is candidate evidence. The bounded merchant probes perform
+        # the actual path test, and both modalities still require actionid-trade
+        # before normal growth or retirement can occur.
+        self.assertNotIn("(up-path-distance gl-trade-land-source-x", self.economy)
         self.assertIn(
             "object-data-map-zone-id g:!= gl-trade-land-zone", self.economy
         )
@@ -5613,7 +5630,7 @@ class FarmPolicyTests(unittest.TestCase):
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
         AssaultMissionTests().test_moving_hulls_do_not_receive_repeated_orders()
-        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T30: %d" c: 478)', self.init_goals)
+        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T31: %d" c: 479)', self.init_goals)
 
     def test_transport_departure_stalled_near_origin_activates_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
