@@ -1,10 +1,56 @@
 # Rome at War AI handoff
 
-## CURRENT - T34:482 ASSAULT SHIP-PATH GEOMETRY GATE, LOCAL ONLY, 2026-09-04
+## CURRENT - T35:483 NATIVE VILLAGER WATCH-TOWER GARRISON SUPPRESSION, LOCAL ONLY, 2026-09-04
 
 - **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
-  branch `fix/trade-cog-cap-dacian`; starting HEAD `08403df` was clean. T33
-  commit `1460d58` remains the deployed runtime represented by this replay.
+  branch `fix/trade-cog-cap-dacian`; starting HEAD `a9d000c`. The pre-existing
+  uncommitted `HANDOFF.md` update records the completed T34 deployment and T33
+  replay flood audit below.
+- **ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME:** T33 replay classification
+  proves that the dominant 13-ms Villager-to-drop-site `ORDER` flood is exactly
+  bracketed by engine-native Watch Tower garrison/ungarrison episodes. No PER
+  garrison writer targets a Watch Tower, and the explicit economic-building
+  writers cannot emit that relationship at simulation-frame cadence.
+- **Mode semantics:** cached AIRef
+  `.analysis\airef-reference-20260830.js` documents strategic number 291 as a
+  four-mode value: 0 normal; 1 ignores Gaia but permits any enemy-triggered
+  garrison; 2 ignores Gaia and permits enemy-triggered garrison only when a
+  Town Center can be entered; 3 disables all native Villager auto-garrison.
+  Mode 2 is the narrow causal boundary: it excludes native Watch Tower refuge
+  while retaining native TC assistance and therefore has less worker-survival
+  risk than mode 3.
+- **Implementation:** `rawai-sn-defines.per` sets
+  `sn-disable-villager-garrison` to 2 once in the existing global one-shot
+  initialization rule. No economy percentage, worker tasking, defense
+  threshold, tower, Transport, or explicit `action-garrison` rule changed.
+  Runtime marker is locally advanced to `RAWAI-P3B44T35:483`.
+- **Non-regression contracts:** new
+  `tools/test_villager_garrison_mode.py` proves mode 2 is the only writer and is
+  one-shot, and proves that boar-rescue TC garrison, wall/gate-builder TC
+  evacuation, migration Transport boarding, and assault Transport boarding
+  remain in source. Existing executable migration and assault rendezvous tests
+  still prove their exact `action-garrison` commands.
+- **Validation PASS:** `tools/validate_per.py`; 13 focused native-garrison,
+  assault-rendezvous, and migration-rendezvous tests; full 457-test discovery
+  suite. The writer-trace case required its established unsandboxed temporary
+  directory permission and passed there. `git diff --check` passes.
+- **Deployment:** deliberately not deployed while the user's T34 match is in
+  progress. Installed runtime remains T34:482 with aggregate SHA-256
+  `55454FF4A19BC79EE4653366EE102CCE28ABD8BD577820491F009E324E97F70D`.
+- **Strict runtime acceptance:** PASS requires no large 13-ms
+  Villager-to-TC/Mill/Lumber Camp streams; no corresponding native Watch Tower
+  garrison episodes; healthy ordinary gathering/deposit; working explicit TC
+  safety garrison, boar rescue, wall/gate-builder evacuation, assault boarding,
+  and migration boarding; and no new worker death/passivity regression under
+  attack. Until a fresh deployed replay proves every item, status remains
+  FIXED-PENDING-RUNTIME.
+
+## CURRENT - T34:482 ASSAULT SHIP-PATH GEOMETRY GATE, DEPLOYED, 2026-09-04
+
+- **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
+  branch `fix/trade-cog-cap-dacian`; current HEAD `a9d000c` was clean before and
+  after deployment. T33 commit `1460d58` remains the runtime represented by the
+  replay audited below; T34 commit `a9d000c` is the current installed runtime.
 - **ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME:** replay `SP Replay
   v101.103.48987.0 @2026.09.04 151001.aoe2record` (SHA-256
   `E96FCBDEBF84E000054F0A47E6A954AE27AA3D1DBBF7F717C92997DCF8150DE0`)
@@ -45,15 +91,82 @@
   writer-trace permission case passed separately with Temp access, covering all
   454 tests. Current project string allocation is 1489/1500 literals; this
   patch adds no runtime strings.
+- **Runtime deployment:** explicitly deployed from commit `a9d000c` with
+  `tools/sync_test_ai.py --apply`. Exactly four installed files changed:
+  `rawai-assault-plan-defs.per`, `rawai-assault-plans.per`,
+  `rawai-init-goals.per`, and `rawai-military.per`. An independent read-only
+  check proves all 92 runtime files byte-identical with zero missing, different,
+  or unexpected files. Source/installed aggregate SHA-256 is
+  `55454FF4A19BC79EE4653366EE102CCE28ABD8BD577820491F009E324E97F70D`;
+  installed marker is `RAWAI-P3B44T34:482`.
 - **Runtime acceptance:** run a fresh Huge Iberia match under the recorded T33
   lobby settings. PASS requires reasons 36/37 to reject land/cliff geometry
   before hull dispatch, another approach/objective/enemy to be tried while
   cargo remains loaded, and at least one finite-path route to preserve normal
-  dispatch. Runtime acceptance is pending; no test-copy deployment was made.
+  dispatch. Runtime acceptance is pending in the user's fresh T34 match.
 - **Diagnostics:** decoded replay products and route rendering are outside the
   repository under `G:\Projects\Codex\Rome at War AI\.analysis\T33-iberia-*`.
   The native first-writer/heap-corruption investigation remains open and is not
   claimed fixed by this independent transport patch.
+
+## CURRENT - T33 REPLAY ECONOMIC ORDER FLOOD CLASSIFICATION, 2026-09-04
+
+- **ROOT-CAUSE-PROVEN / FIX NOT IMPLEMENTED:** the dominant flood is not STOP
+  and not landed-assault combat. It is an engine-native conflict involving
+  garrisoned Villagers and their economic return-to-drop-site task. The five
+  named targets account for 37,150 of 43,130 replay `ORDER` packets (86.1%).
+- **Actor classification:** initial objects 7774 (Green/player 3) and 7784
+  (Purple/player 6) are replay-header object type 293, class 70: Villagers.
+  Dynamic objects 34920 and 34717 (Gray/player 7) and 34713 (Green/player 3)
+  repeatedly issue `BUILD` and `WORK`, positively identifying the Villager
+  class; the action stream cannot recover their runtime male/female variant.
+- **Target classification:** 34898 is Gray's Mill at `(117,39)`, created by the
+  type-68 build at 05:07; 7712 is Green's starting type-109 Town Center at
+  `(166,77)`; 7739 is Purple's starting type-109 Town Center at `(28,120)`;
+  35056 is Purple's type-562 Lumber Camp at `(39,118)`, created by the 07:44
+  build; and 34725 is Gray's type-562 Lumber Camp at `(124,36)`, created by the
+  00:32 build. Every actor and target in these tuples has the same owner.
+- **Exact packet classification:** all repeated packets are enum `ORDER`, action
+  opcode 0, with one selected Villager, the friendly building instance as
+  `target_id`, and the building's exact center coordinate. The hidden six-byte
+  field is identically `00000100ffff`. Unlike `SPECIAL` and `AI_ORDER`, this
+  packet format serializes no finer `order_id`; the exact replay-level subtype
+  is therefore generic object interaction. The Villager/drop-site relationship
+  and interleaved `WORK` packets identify economic return/deposit behavior, not
+  STOP, WORK, repair, guard, attack, or transport boarding.
+- **Causal lifecycle:** the main 34920 -> 34898 and 34717 -> 34898 bursts contain
+  5,161 and 4,934 byte-identical packets, median interval 13 ms, while Gray's
+  Villagers are under `SPECIAL` order 5 (garrison) to type-79 Watch Tower 35099;
+  both runs end exactly at the 39:19.485 `UNGARRISON`. Purple's equivalent runs
+  use Watch Tower 35098 and end at the 33:17.062/34:19.311 ungarrisons. Green's
+  runs use Watch Tower 35111 and end at 41:35.822/42:40.705/46:37.543
+  ungarrisons. Order-5 is the replay's explicit garrison subtype.
+- **Source-first writer audit:** no PER garrison writer targets a Watch Tower.
+  Existing explicit garrison writers target a Transport Ship or a bounded Town
+  Center (boar rescue and perimeter wall/gate-builder evacuation). The only
+  `action-default` Villager writers capable of targeting an economic building
+  are bounded pending-foundation/colony/migration taskers: colony Town Center
+  assignment exits to a 180-second timer, Lumber Camp assignment targets the
+  new pending foundation and exits to a 90-second timer, and migration drop-site
+  assignment is restricted to `migration-boarding-group`. Purple and Gray emit
+  no migration telemetry; Green's large flood episodes occur after its observed
+  migration attempt has terminated. Farm staffing targets Farms/resources, not
+  drop sites. These rules cannot produce the ready-drop-site relation at 13 ms.
+- **Source-visible native boundary:** `sn-disable-villager-garrison` is mapped
+  as strategic number 291 in `rawai-constants.per` but is never set by this AI.
+  Native Villager garrison therefore remains the only source-visible owner
+  compatible with the Watch Tower commands and exact garrison/ungarrison flood
+  bracket. Writer IDs 90/91 in the replay are unrelated native attack-group
+  exclusion maintenance; positive counts there do not attribute an `ORDER`.
+- **Next causal patch:** test the smallest native-garrison suppression at that
+  boundary as its own revertible change. Before deployment, preserve explicit
+  boar-rescue, wall/gate evacuation, migration and assault boarding as
+  non-regression criteria; runtime acceptance requires eliminating the
+  garrison-bracketed 13-ms drop-site floods without preventing commanded
+  Transport/Town Center garrison. Do not mix this with transport-route changes.
+- **Diagnostics:** the replay and parsed products remain outside Git under
+  `G:\Projects\Codex\Rome at War AI\.analysis\T33-iberia-*`. This audit changed
+  no gameplay source and did not redeploy after the user's T34 match began.
 
 ## CURRENT - T33:481 LANDED-COMMAND ISSUANCE TRACE DEPLOYED, 2026-09-04
 

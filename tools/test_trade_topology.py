@@ -45,7 +45,7 @@ class TradeTopologyTests(unittest.TestCase):
         for name, value in expected.items():
             self.assertEqual(found.get(name), value, name)
             self.assertIn(f"(set-goal {name} ", self.init)
-        self.assertIn('RAWAI-P3B44T34: %d" c: 482', self.init)
+        self.assertIn('RAWAI-P3B44T35: %d" c: 483', self.init)
 
     def test_land_scan_accepts_same_zone_markets_without_immobile_path_test(self):
         bits = (1, 2, 4, 8, 16, 32, 64, 128)
