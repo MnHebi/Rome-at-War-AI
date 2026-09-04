@@ -3,40 +3,39 @@ import math
 import unittest
 
 from test_assault_plans import Planner
+from shoreline_resolver import shoreline_candidates
 from test_pre_backlog import source
 from validate_naval_doctrine import rule_blocks
 
 
 class AssaultLandingZoneTests(unittest.TestCase):
-    def choose(self, invalid_offsets=(), unknown=False):
-        p=Planner(enemies=(6,));p.begin();p.step();p.failed(8)
-        for offset in invalid_offsets:
-            s=offset/math.sqrt(2)
-            p.zones[(100-s,100+s)]=5
-        if unknown: p.g['gl-transport-route-target-zone']=-1
+    def choose(self, invalid_candidates=()):
+        p=Planner(enemies=(6,))
+        candidates=shoreline_candidates((100,100),(10,10),3,p.zone_function)
+        for index in invalid_candidates:
+            p.blocked_paths.add(candidates[index][2])
+        p.begin()
         state=p.until('TRANSPORT-ROUTE-DEPARTURE-START','TRANSPORT-ROUTE-RECOVERY-WAIT')
         return p,state
 
     def test_other_island_left_landing_does_not_beat_valid_right(self):
-        p,state=self.choose((28,))
-        self.assertEqual(state,p.val('TRANSPORT-ROUTE-DEPARTURE-START'))
-        self.assertEqual(p.g['gl-ap-candidate'],2)
-
-    def test_other_island_right_landing_does_not_beat_valid_left(self):
-        p,state=self.choose((-28,))
-        self.assertEqual(state,p.val('TRANSPORT-ROUTE-DEPARTURE-START'))
-        self.assertEqual(p.g['gl-ap-candidate'],1)
-
-    def test_no_valid_candidate_retains_bounded_recovery(self):
-        for unknown in (False,True):
-            p,state=self.choose((28,-28,56,-56),unknown)
-            self.assertEqual(state,p.val('TRANSPORT-ROUTE-RECOVERY-WAIT'))
-            self.assertTrue(any(m['reason']==21 for m in p.memories()))
-
-    def test_two_failed_lateral_candidates_do_not_exhaust_coastline(self):
-        p,state=self.choose((28,-28))
+        p,state=self.choose((0,))
         self.assertEqual(state,p.val('TRANSPORT-ROUTE-DEPARTURE-START'))
         self.assertEqual(p.g['gl-ap-candidate'],3)
+
+    def test_other_island_right_landing_does_not_beat_valid_left(self):
+        p,state=self.choose((1,))
+        self.assertEqual(state,p.val('TRANSPORT-ROUTE-DEPARTURE-START'))
+        self.assertEqual(p.g['gl-ap-candidate'],0)
+
+    def test_no_valid_candidate_retains_bounded_recovery(self):
+        p,state=self.choose((0,1,2,3,4))
+        self.assertEqual(state,p.val('TRANSPORT-ROUTE-RECOVERY-WAIT'))
+
+    def test_two_failed_lateral_candidates_do_not_exhaust_coastline(self):
+        p,state=self.choose((0,3))
+        self.assertEqual(state,p.val('TRANSPORT-ROUTE-DEPARTURE-START'))
+        self.assertEqual(p.g['gl-ap-candidate'],4)
         self.assertEqual(p.g['gl-assault-manifest-player'],6)
 
     def test_zone_captured_from_exact_points_on_every_entry_path(self):
@@ -55,7 +54,7 @@ class AssaultLandingZoneTests(unittest.TestCase):
         plans=source('rawai-assault-plans.per')
         rows=list(rule_blocks(plans))
         path_rows=[r for r in rows if '(goal gl-transport-route-state AP-PATH)' in r[3]]
-        self.assertEqual(len(path_rows),4)
+        self.assertEqual(len(path_rows),5)
         selector=path_rows[0]
         self.assertIn('(up-add-object-by-id search-local g: gl-transport-route-id)',selector[4])
         self.assertIn('(up-remove-objects search-local object-data-player != my-player-number)',selector[4])
@@ -64,9 +63,11 @@ class AssaultLandingZoneTests(unittest.TestCase):
         self.assertIn('(set-goal gl-ap-failure 36)',path_rows[1][4])
         self.assertIn('(up-path-distance gl-transport-route-waypoint-x 1 == 65535)',path_rows[2][3])
         self.assertIn('(set-goal gl-ap-failure 37)',path_rows[2][4])
-        self.assertIn('(up-path-distance gl-transport-route-landing-x 0 != 65535)',path_rows[3][3])
-        self.assertIn('(up-path-distance gl-transport-route-waypoint-x 1 != 65535)',path_rows[3][3])
-        self.assertIn('(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-FIND)',path_rows[3][4])
+        self.assertIn('(goal gl-ap-direct-threats 0)',path_rows[3][3])
+        self.assertIn('(up-bound-point gl-transport-route-waypoint-x gl-ap-shore-selected-water-x)',path_rows[3][4])
+        self.assertIn('(up-path-distance gl-transport-route-landing-x 0 != 65535)',path_rows[4][3])
+        self.assertIn('(up-path-distance gl-transport-route-waypoint-x 1 != 65535)',path_rows[4][3])
+        self.assertIn('(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-FIND)',path_rows[4][4])
 
         military=source('rawai-military.per')
         corridor_rows=[r for r in rule_blocks(military)

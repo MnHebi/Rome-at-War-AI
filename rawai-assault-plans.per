@@ -8,7 +8,9 @@
 
 ;32 fallback danger;33 fallback topology;35 fallback Scout invalid;
 
-;36 unload vicinity unreachable;37 corridor waypoint unreachable.
+;36 unload vicinity unreachable;37 corridor waypoint unreachable;
+
+;38 shoreline water unreachable;39 shoreline land vicinity unreachable.
 
 ;after-failure:0 next approach,2 next enemy,3 terminal recovery.
 
@@ -448,6 +450,103 @@
 (defrule
 	(goal gl-transport-route-state AP-OBJECTIVE)
 =>
+	(set-goal gl-transport-route-state AP-SHORE-INIT)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SHORE-INIT)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+	(set-goal gl-transport-route-state AP-SHORE-HULL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SHORE-HULL)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-point position-object gl-ap-shore-hull-x)
+	(up-bound-point gl-ap-shore-scan-x gl-transport-route-target-x)
+	(up-bound-point gl-ap-shore-land-x gl-transport-route-target-x)
+	(set-goal gl-ap-shore-steps 0)
+	(set-goal gl-ap-shore-refines 0)
+	(set-goal gl-transport-route-state AP-SHORE-COARSE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SHORE-COARSE)
+	(up-compare-goal gl-ap-shore-steps c:>= 24)
+=>
+	(set-goal gl-ap-failure 21)
+	(set-goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SHORE-COARSE)
+	(up-compare-goal gl-ap-shore-steps c:< 24)
+=>
+	(up-lerp-tiles gl-ap-shore-scan-x gl-ap-shore-hull-x c: 16)
+	(up-bound-point gl-ap-shore-scan-x gl-ap-shore-scan-x)
+	(set-goal gl-ap-zone -2)
+	(up-get-point-zone gl-ap-shore-scan-x gl-ap-zone)
+	(up-modify-goal gl-ap-shore-steps c:+ 1)
+	(set-goal gl-transport-route-state AP-SHORE-COARSE-CHECK)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SHORE-COARSE-CHECK)
+	(up-compare-goal gl-ap-zone g:== gl-transport-route-target-zone)
+=>
+	(up-bound-point gl-ap-shore-land-x gl-ap-shore-scan-x)
+	(set-goal gl-transport-route-state AP-SHORE-COARSE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SHORE-COARSE-CHECK)
+	(up-compare-goal gl-ap-zone g:!= gl-transport-route-target-zone)
+=>
+	(up-bound-point gl-ap-shore-water-x gl-ap-shore-scan-x)
+	(up-bound-point gl-ap-shore-refine-x gl-ap-shore-land-x)
+	(set-goal gl-ap-shore-refines 0)
+	(set-goal gl-transport-route-state AP-SHORE-REFINE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SHORE-REFINE)
+	(up-compare-goal gl-ap-shore-refines c:>= 4)
+=>
+	(set-goal gl-ap-candidate 0)
+	(set-goal gl-transport-route-state AP-CANDIDATE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SHORE-REFINE)
+	(up-compare-goal gl-ap-shore-refines c:< 4)
+=>
+	(up-lerp-tiles gl-ap-shore-refine-x gl-ap-shore-water-x c: 4)
+	(up-bound-point gl-ap-shore-refine-x gl-ap-shore-refine-x)
+	(set-goal gl-ap-zone -2)
+	(up-get-point-zone gl-ap-shore-refine-x gl-ap-zone)
+	(up-modify-goal gl-ap-shore-refines c:+ 1)
+	(set-goal gl-transport-route-state AP-SHORE-REFINE-CHECK)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SHORE-REFINE-CHECK)
+	(up-compare-goal gl-ap-zone g:== gl-transport-route-target-zone)
+=>
+	(up-bound-point gl-ap-shore-land-x gl-ap-shore-refine-x)
+	(set-goal gl-transport-route-state AP-SHORE-REFINE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SHORE-REFINE-CHECK)
+	(up-compare-goal gl-ap-zone g:!= gl-transport-route-target-zone)
+=>
+	(up-bound-point gl-ap-shore-water-x gl-ap-shore-refine-x)
+	(set-goal gl-ap-candidate 0)
 	(set-goal gl-transport-route-state AP-CANDIDATE)
 )
 
@@ -462,19 +561,24 @@
 	(goal gl-transport-route-state AP-CANDIDATE)
 	(goal gl-ap-candidate 0)
 =>
-	(up-bound-point gl-transport-route-landing-x gl-transport-route-target-x)
+	(up-bound-point gl-transport-route-landing-x gl-ap-shore-land-x)
+	(up-bound-point gl-ap-shore-scan-x gl-ap-shore-water-x)
+	(up-bound-point gl-transport-route-landing-x gl-transport-route-landing-x)
+	(up-bound-point gl-ap-shore-scan-x gl-ap-shore-scan-x)
 	(set-goal gl-ap-zone -1)
 	(up-get-point-zone gl-transport-route-landing-x gl-ap-zone)
+	(set-goal gl-ap-water-zone -1)
+	(up-get-point-zone gl-ap-shore-scan-x gl-ap-water-zone)
 	(set-goal gl-ap-valid YES)
 	(set-goal gl-ap-blocked NO)
 	(up-modify-goal gl-ap-min-x g:= gl-transport-route-landing-x)
-	(up-modify-goal gl-ap-min-x c:- 12)
+	(up-modify-goal gl-ap-min-x c:- 6)
 	(up-modify-goal gl-ap-max-x g:= gl-transport-route-landing-x)
-	(up-modify-goal gl-ap-max-x c:+ 12)
+	(up-modify-goal gl-ap-max-x c:+ 6)
 	(up-modify-goal gl-ap-min-y g:= gl-transport-route-landing-y)
-	(up-modify-goal gl-ap-min-y c:- 12)
+	(up-modify-goal gl-ap-min-y c:- 6)
 	(up-modify-goal gl-ap-max-y g:= gl-transport-route-landing-y)
-	(up-modify-goal gl-ap-max-y c:+ 12)
+	(up-modify-goal gl-ap-max-y c:+ 6)
 	(set-goal gl-transport-route-state AP-CACHE)
 )
 
@@ -482,20 +586,26 @@
 	(goal gl-transport-route-state AP-CANDIDATE)
 	(goal gl-ap-candidate 1)
 =>
-	(up-bound-point gl-transport-route-landing-x gl-transport-route-target-x)
-	(up-cross-tiles gl-transport-route-landing-x gl-transport-route-origin-x c: 28)
+	(up-bound-point gl-transport-route-landing-x gl-ap-shore-land-x)
+	(up-bound-point gl-ap-shore-scan-x gl-ap-shore-water-x)
+	(up-cross-tiles gl-transport-route-landing-x gl-ap-shore-water-x c: 8)
+	(up-cross-tiles gl-ap-shore-scan-x gl-ap-shore-land-x c: -8)
+	(up-bound-point gl-transport-route-landing-x gl-transport-route-landing-x)
+	(up-bound-point gl-ap-shore-scan-x gl-ap-shore-scan-x)
 	(set-goal gl-ap-zone -1)
 	(up-get-point-zone gl-transport-route-landing-x gl-ap-zone)
+	(set-goal gl-ap-water-zone -1)
+	(up-get-point-zone gl-ap-shore-scan-x gl-ap-water-zone)
 	(set-goal gl-ap-valid YES)
 	(set-goal gl-ap-blocked NO)
 	(up-modify-goal gl-ap-min-x g:= gl-transport-route-landing-x)
-	(up-modify-goal gl-ap-min-x c:- 12)
+	(up-modify-goal gl-ap-min-x c:- 6)
 	(up-modify-goal gl-ap-max-x g:= gl-transport-route-landing-x)
-	(up-modify-goal gl-ap-max-x c:+ 12)
+	(up-modify-goal gl-ap-max-x c:+ 6)
 	(up-modify-goal gl-ap-min-y g:= gl-transport-route-landing-y)
-	(up-modify-goal gl-ap-min-y c:- 12)
+	(up-modify-goal gl-ap-min-y c:- 6)
 	(up-modify-goal gl-ap-max-y g:= gl-transport-route-landing-y)
-	(up-modify-goal gl-ap-max-y c:+ 12)
+	(up-modify-goal gl-ap-max-y c:+ 6)
 	(set-goal gl-transport-route-state AP-CACHE)
 )
 
@@ -503,20 +613,26 @@
 	(goal gl-transport-route-state AP-CANDIDATE)
 	(goal gl-ap-candidate 2)
 =>
-	(up-bound-point gl-transport-route-landing-x gl-transport-route-target-x)
-	(up-cross-tiles gl-transport-route-landing-x gl-transport-route-origin-x c: -28)
+	(up-bound-point gl-transport-route-landing-x gl-ap-shore-land-x)
+	(up-bound-point gl-ap-shore-scan-x gl-ap-shore-water-x)
+	(up-cross-tiles gl-transport-route-landing-x gl-ap-shore-water-x c: -8)
+	(up-cross-tiles gl-ap-shore-scan-x gl-ap-shore-land-x c: 8)
+	(up-bound-point gl-transport-route-landing-x gl-transport-route-landing-x)
+	(up-bound-point gl-ap-shore-scan-x gl-ap-shore-scan-x)
 	(set-goal gl-ap-zone -1)
 	(up-get-point-zone gl-transport-route-landing-x gl-ap-zone)
+	(set-goal gl-ap-water-zone -1)
+	(up-get-point-zone gl-ap-shore-scan-x gl-ap-water-zone)
 	(set-goal gl-ap-valid YES)
 	(set-goal gl-ap-blocked NO)
 	(up-modify-goal gl-ap-min-x g:= gl-transport-route-landing-x)
-	(up-modify-goal gl-ap-min-x c:- 12)
+	(up-modify-goal gl-ap-min-x c:- 6)
 	(up-modify-goal gl-ap-max-x g:= gl-transport-route-landing-x)
-	(up-modify-goal gl-ap-max-x c:+ 12)
+	(up-modify-goal gl-ap-max-x c:+ 6)
 	(up-modify-goal gl-ap-min-y g:= gl-transport-route-landing-y)
-	(up-modify-goal gl-ap-min-y c:- 12)
+	(up-modify-goal gl-ap-min-y c:- 6)
 	(up-modify-goal gl-ap-max-y g:= gl-transport-route-landing-y)
-	(up-modify-goal gl-ap-max-y c:+ 12)
+	(up-modify-goal gl-ap-max-y c:+ 6)
 	(set-goal gl-transport-route-state AP-CACHE)
 )
 
@@ -524,20 +640,26 @@
 	(goal gl-transport-route-state AP-CANDIDATE)
 	(goal gl-ap-candidate 3)
 =>
-	(up-bound-point gl-transport-route-landing-x gl-transport-route-target-x)
-	(up-cross-tiles gl-transport-route-landing-x gl-transport-route-origin-x c: 56)
+	(up-bound-point gl-transport-route-landing-x gl-ap-shore-land-x)
+	(up-bound-point gl-ap-shore-scan-x gl-ap-shore-water-x)
+	(up-cross-tiles gl-transport-route-landing-x gl-ap-shore-water-x c: 16)
+	(up-cross-tiles gl-ap-shore-scan-x gl-ap-shore-land-x c: -16)
+	(up-bound-point gl-transport-route-landing-x gl-transport-route-landing-x)
+	(up-bound-point gl-ap-shore-scan-x gl-ap-shore-scan-x)
 	(set-goal gl-ap-zone -1)
 	(up-get-point-zone gl-transport-route-landing-x gl-ap-zone)
+	(set-goal gl-ap-water-zone -1)
+	(up-get-point-zone gl-ap-shore-scan-x gl-ap-water-zone)
 	(set-goal gl-ap-valid YES)
 	(set-goal gl-ap-blocked NO)
 	(up-modify-goal gl-ap-min-x g:= gl-transport-route-landing-x)
-	(up-modify-goal gl-ap-min-x c:- 12)
+	(up-modify-goal gl-ap-min-x c:- 6)
 	(up-modify-goal gl-ap-max-x g:= gl-transport-route-landing-x)
-	(up-modify-goal gl-ap-max-x c:+ 12)
+	(up-modify-goal gl-ap-max-x c:+ 6)
 	(up-modify-goal gl-ap-min-y g:= gl-transport-route-landing-y)
-	(up-modify-goal gl-ap-min-y c:- 12)
+	(up-modify-goal gl-ap-min-y c:- 6)
 	(up-modify-goal gl-ap-max-y g:= gl-transport-route-landing-y)
-	(up-modify-goal gl-ap-max-y c:+ 12)
+	(up-modify-goal gl-ap-max-y c:+ 6)
 	(set-goal gl-transport-route-state AP-CACHE)
 )
 
@@ -545,20 +667,26 @@
 	(goal gl-transport-route-state AP-CANDIDATE)
 	(goal gl-ap-candidate 4)
 =>
-	(up-bound-point gl-transport-route-landing-x gl-transport-route-target-x)
-	(up-cross-tiles gl-transport-route-landing-x gl-transport-route-origin-x c: -56)
+	(up-bound-point gl-transport-route-landing-x gl-ap-shore-land-x)
+	(up-bound-point gl-ap-shore-scan-x gl-ap-shore-water-x)
+	(up-cross-tiles gl-transport-route-landing-x gl-ap-shore-water-x c: -16)
+	(up-cross-tiles gl-ap-shore-scan-x gl-ap-shore-land-x c: 16)
+	(up-bound-point gl-transport-route-landing-x gl-transport-route-landing-x)
+	(up-bound-point gl-ap-shore-scan-x gl-ap-shore-scan-x)
 	(set-goal gl-ap-zone -1)
 	(up-get-point-zone gl-transport-route-landing-x gl-ap-zone)
+	(set-goal gl-ap-water-zone -1)
+	(up-get-point-zone gl-ap-shore-scan-x gl-ap-water-zone)
 	(set-goal gl-ap-valid YES)
 	(set-goal gl-ap-blocked NO)
 	(up-modify-goal gl-ap-min-x g:= gl-transport-route-landing-x)
-	(up-modify-goal gl-ap-min-x c:- 12)
+	(up-modify-goal gl-ap-min-x c:- 6)
 	(up-modify-goal gl-ap-max-x g:= gl-transport-route-landing-x)
-	(up-modify-goal gl-ap-max-x c:+ 12)
+	(up-modify-goal gl-ap-max-x c:+ 6)
 	(up-modify-goal gl-ap-min-y g:= gl-transport-route-landing-y)
-	(up-modify-goal gl-ap-min-y c:- 12)
+	(up-modify-goal gl-ap-min-y c:- 6)
 	(up-modify-goal gl-ap-max-y g:= gl-transport-route-landing-y)
-	(up-modify-goal gl-ap-max-y c:+ 12)
+	(up-modify-goal gl-ap-max-y c:+ 6)
 	(set-goal gl-transport-route-state AP-CACHE)
 )
 
@@ -764,7 +892,9 @@
 (defrule
 	(goal gl-transport-route-state AP-CACHE)
 	(or (up-compare-goal gl-transport-route-target-zone c:< 0)
-	(up-compare-goal gl-ap-zone g:!= gl-transport-route-target-zone))
+	(or (up-compare-goal gl-ap-zone g:!= gl-transport-route-target-zone)
+	(or (up-compare-goal gl-ap-water-zone c:< 0)
+	(up-compare-goal gl-ap-water-zone g:== gl-transport-route-target-zone))))
 =>
 	(set-goal gl-ap-failure 21)
 	(set-goal gl-transport-route-state AP-FAIL)
@@ -773,6 +903,54 @@
 (defrule
 	(goal gl-transport-route-state AP-CACHE)
 =>
+	(set-goal gl-transport-route-state AP-CANDIDATE-PATH)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CANDIDATE-PATH)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-path-distance gl-ap-shore-scan-x 1 gl-ap-shore-water-distance)
+	(up-get-path-distance gl-transport-route-landing-x 0 gl-ap-shore-land-distance)
+	(set-goal gl-transport-route-state AP-CANDIDATE-PATH-RESULT)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CANDIDATE-PATH)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(set-goal gl-ap-active NO)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-OWNER-LOST)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CANDIDATE-PATH-RESULT)
+	(or (up-compare-goal gl-ap-shore-water-distance c:< 0)
+	(goal gl-ap-shore-water-distance 65535))
+=>
+	(set-goal gl-ap-failure 38)
+	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CANDIDATE-PATH-RESULT)
+	(up-compare-goal gl-ap-shore-water-distance c:>= 0)
+	(up-compare-goal gl-ap-shore-water-distance c:!= 65535)
+	(or (up-compare-goal gl-ap-shore-land-distance c:< 0)
+	(goal gl-ap-shore-land-distance 65535))
+=>
+	(set-goal gl-ap-failure 39)
+	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-CANDIDATE-PATH-RESULT)
+	(up-compare-goal gl-ap-shore-water-distance c:>= 0)
+	(up-compare-goal gl-ap-shore-water-distance c:!= 65535)
+	(up-compare-goal gl-ap-shore-land-distance c:>= 0)
+	(up-compare-goal gl-ap-shore-land-distance c:!= 65535)
+=>
+	(up-bound-point gl-ap-shore-selected-water-x gl-ap-shore-scan-x)
 	(set-goal gl-ap-screen-validated NO)
 	(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-PREPARE)
@@ -801,6 +979,7 @@
 	(up-set-target-object search-local c: 0)
 	(up-path-distance gl-transport-route-landing-x 0 != 65535)
 	(up-path-distance gl-transport-route-waypoint-x 1 == 65535)
+	(up-compare-goal gl-ap-direct-threats c:> 0)
 =>
 	(set-goal gl-ap-failure 37)
 	(set-goal gl-transport-route-state AP-FAIL)
@@ -808,6 +987,54 @@
 
 (defrule
 	(goal gl-transport-route-state AP-PATH)
+	(up-set-target-object search-local c: 0)
+	(up-path-distance gl-transport-route-landing-x 0 != 65535)
+	(up-path-distance gl-transport-route-waypoint-x 1 == 65535)
+	(goal gl-ap-direct-threats 0)
+=>
+	(up-bound-point gl-transport-route-waypoint-x gl-ap-shore-selected-water-x)
+	(set-goal gl-transport-route-state AP-DIRECT-PATH)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-PATH)
+	(up-set-target-object search-local c: 0)
+	(up-path-distance gl-transport-route-landing-x 0 != 65535)
+	(up-path-distance gl-transport-route-waypoint-x 1 != 65535)
+=>
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-FIND)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-DIRECT-PATH)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-route-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-DIRECT-PATH)
+	(up-set-target-object search-local c: 0)
+	(up-path-distance gl-transport-route-landing-x 0 == 65535)
+=>
+	(set-goal gl-ap-failure 36)
+	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-DIRECT-PATH)
+	(up-set-target-object search-local c: 0)
+	(up-path-distance gl-transport-route-landing-x 0 != 65535)
+	(up-path-distance gl-transport-route-waypoint-x 1 == 65535)
+=>
+	(set-goal gl-ap-failure 37)
+	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-DIRECT-PATH)
 	(up-set-target-object search-local c: 0)
 	(up-path-distance gl-transport-route-landing-x 0 != 65535)
 	(up-path-distance gl-transport-route-waypoint-x 1 != 65535)

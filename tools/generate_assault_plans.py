@@ -1,16 +1,28 @@
 """Generate bounded preparation-only planning; never mutate dispatched slots."""
+from shoreline_resolver import (COARSE_LIMIT, COARSE_STEP, MEMORY_RADIUS,
+                                REFINE_LIMIT, REFINE_STEP, SHORE_OFFSETS)
+
+
 FIELDS = ('active', 'clock', 'hull', 'until', 'enemy-until', 'objective',
           'objective-count', 'seen1', 'seen2', 'seen3', 'candidate', 'valid',
           'failure', 'after-failure', 'write', 'blocked', 'zone', 'live',
           'min-x', 'max-x', 'min-y', 'max-y', 'landing-threats', 'route-threats',
           'screen-validated', 'seed-enemy', 'preferred-enemy', 'chosen-enemy',
-          'enemies-tried', 'resume')
+          'enemies-tried', 'resume', 'shore-hull-x', 'shore-hull-y',
+          'shore-scan-x', 'shore-scan-y', 'shore-land-x', 'shore-land-y',
+          'shore-water-x', 'shore-water-y', 'shore-refine-x', 'shore-refine-y',
+          'shore-selected-water-x', 'shore-selected-water-y', 'shore-steps',
+          'shore-refines', 'water-zone', 'direct-threats',
+          'shore-water-distance', 'shore-land-distance')
 STATES = ('BEGIN', 'OBJECTIVE', 'CANDIDATE', 'CACHE', 'SAFETY', 'SAFE-CHECK',
           'FAIL', 'ADVANCE', 'NEXT-OBJECTIVE', 'OBJECTIVE-FAILED',
           'ENEMY-FAILED', 'NEXT-ENEMY', 'ENEMY-SEARCH', 'TERMINAL', 'FINAL-SAFETY',
-          'PATH')
+          'PATH', 'SHORE-INIT', 'SHORE-HULL', 'SHORE-COARSE',
+          'SHORE-COARSE-CHECK', 'SHORE-REFINE', 'SHORE-REFINE-CHECK',
+          'CANDIDATE-PATH', 'CANDIDATE-PATH-RESULT', 'DIRECT-PATH')
 MEMORY = 16
-APPROACHES = (0, 28, -28, 56, -56)
+# Compatibility name retained for older focused tests and downstream imports.
+APPROACHES = SHORE_OFFSETS
 
 
 def rule(facts, actions):
@@ -59,7 +71,8 @@ def plans():
            ';23 enemy budget;24 invalid hull/manifest;26 no alternative enemy;',
            ';27 maximum opponents tried;28 enemy unavailable;29 no longer hostile.',
            ';32 fallback danger;33 fallback topology;35 fallback Scout invalid;',
-           ';36 unload vicinity unreachable;37 corridor waypoint unreachable.',
+           ';36 unload vicinity unreachable;37 corridor waypoint unreachable;',
+           ';38 shoreline water unreachable;39 shoreline land vicinity unreachable.',
            ';after-failure:0 next approach,2 next enemy,3 terminal recovery.',
            ';A failed beach is excluded. Different beaches require fresh checks.']
     def emit(f, a): out.append(rule(f, a))
@@ -169,19 +182,64 @@ def plans():
     for p in range(1, 9):
         emit([state('AP-OBJECTIVE'), f'(goal gl-assault-manifest-player {p})'],
              [f'(set-goal gl-ap-enemy{p}-visited YES)'])
-    emit([state('AP-OBJECTIVE')], [go('AP-CANDIDATE')])
-    emit([state('AP-CANDIDATE'), f'(up-compare-goal gl-ap-candidate c:>= {len(APPROACHES)})'],
+    emit([state('AP-OBJECTIVE')], [go('AP-SHORE-INIT')])
+    emit([state('AP-SHORE-INIT')], [*select_hull(), go('AP-SHORE-HULL')])
+    emit([state('AP-SHORE-HULL'), '(up-set-target-object search-local c: 0)'], [
+        '(up-get-point position-object gl-ap-shore-hull-x)',
+        '(up-bound-point gl-ap-shore-scan-x gl-transport-route-target-x)',
+        '(up-bound-point gl-ap-shore-land-x gl-transport-route-target-x)',
+        '(set-goal gl-ap-shore-steps 0)', '(set-goal gl-ap-shore-refines 0)',
+        go('AP-SHORE-COARSE')])
+    emit([state('AP-SHORE-COARSE'),
+          f'(up-compare-goal gl-ap-shore-steps c:>= {COARSE_LIMIT})'],
+         ['(set-goal gl-ap-failure 21)', go('AP-OBJECTIVE-FAILED')])
+    emit([state('AP-SHORE-COARSE'),
+          f'(up-compare-goal gl-ap-shore-steps c:< {COARSE_LIMIT})'], [
+        f'(up-lerp-tiles gl-ap-shore-scan-x gl-ap-shore-hull-x c: {COARSE_STEP})',
+        '(up-bound-point gl-ap-shore-scan-x gl-ap-shore-scan-x)',
+        '(set-goal gl-ap-zone -2)', '(up-get-point-zone gl-ap-shore-scan-x gl-ap-zone)',
+        '(up-modify-goal gl-ap-shore-steps c:+ 1)', go('AP-SHORE-COARSE-CHECK')])
+    emit([state('AP-SHORE-COARSE-CHECK'),
+          '(up-compare-goal gl-ap-zone g:== gl-transport-route-target-zone)'], [
+        '(up-bound-point gl-ap-shore-land-x gl-ap-shore-scan-x)', go('AP-SHORE-COARSE')])
+    emit([state('AP-SHORE-COARSE-CHECK'),
+          '(up-compare-goal gl-ap-zone g:!= gl-transport-route-target-zone)'], [
+        '(up-bound-point gl-ap-shore-water-x gl-ap-shore-scan-x)',
+        '(up-bound-point gl-ap-shore-refine-x gl-ap-shore-land-x)',
+        '(set-goal gl-ap-shore-refines 0)', go('AP-SHORE-REFINE')])
+    emit([state('AP-SHORE-REFINE'),
+          f'(up-compare-goal gl-ap-shore-refines c:>= {REFINE_LIMIT})'], [
+        '(set-goal gl-ap-candidate 0)', go('AP-CANDIDATE')])
+    emit([state('AP-SHORE-REFINE'),
+          f'(up-compare-goal gl-ap-shore-refines c:< {REFINE_LIMIT})'], [
+        f'(up-lerp-tiles gl-ap-shore-refine-x gl-ap-shore-water-x c: {REFINE_STEP})',
+        '(up-bound-point gl-ap-shore-refine-x gl-ap-shore-refine-x)',
+        '(set-goal gl-ap-zone -2)', '(up-get-point-zone gl-ap-shore-refine-x gl-ap-zone)',
+        '(up-modify-goal gl-ap-shore-refines c:+ 1)', go('AP-SHORE-REFINE-CHECK')])
+    emit([state('AP-SHORE-REFINE-CHECK'),
+          '(up-compare-goal gl-ap-zone g:== gl-transport-route-target-zone)'], [
+        '(up-bound-point gl-ap-shore-land-x gl-ap-shore-refine-x)', go('AP-SHORE-REFINE')])
+    emit([state('AP-SHORE-REFINE-CHECK'),
+          '(up-compare-goal gl-ap-zone g:!= gl-transport-route-target-zone)'], [
+        '(up-bound-point gl-ap-shore-water-x gl-ap-shore-refine-x)',
+        '(set-goal gl-ap-candidate 0)', go('AP-CANDIDATE')])
+    emit([state('AP-CANDIDATE'), f'(up-compare-goal gl-ap-candidate c:>= {len(SHORE_OFFSETS)})'],
          [go('AP-OBJECTIVE-FAILED')])
-    for i, offset in enumerate(APPROACHES):
+    for i, offset in enumerate(SHORE_OFFSETS):
         emit([state('AP-CANDIDATE'), f'(goal gl-ap-candidate {i})'], [
-            '(up-bound-point gl-transport-route-landing-x gl-transport-route-target-x)',
-            *([f'(up-cross-tiles gl-transport-route-landing-x gl-transport-route-origin-x c: {offset})'] if offset else []),
+            '(up-bound-point gl-transport-route-landing-x gl-ap-shore-land-x)',
+            '(up-bound-point gl-ap-shore-scan-x gl-ap-shore-water-x)',
+            *([f'(up-cross-tiles gl-transport-route-landing-x gl-ap-shore-water-x c: {offset})',
+               f'(up-cross-tiles gl-ap-shore-scan-x gl-ap-shore-land-x c: {-offset})'] if offset else []),
+            '(up-bound-point gl-transport-route-landing-x gl-transport-route-landing-x)',
+            '(up-bound-point gl-ap-shore-scan-x gl-ap-shore-scan-x)',
             '(set-goal gl-ap-zone -1)', '(up-get-point-zone gl-transport-route-landing-x gl-ap-zone)',
+            '(set-goal gl-ap-water-zone -1)', '(up-get-point-zone gl-ap-shore-scan-x gl-ap-water-zone)',
             '(set-goal gl-ap-valid YES)', '(set-goal gl-ap-blocked NO)',
-            cp('gl-ap-min-x', 'gl-transport-route-landing-x'), '(up-modify-goal gl-ap-min-x c:- 12)',
-            cp('gl-ap-max-x', 'gl-transport-route-landing-x'), '(up-modify-goal gl-ap-max-x c:+ 12)',
-            cp('gl-ap-min-y', 'gl-transport-route-landing-y'), '(up-modify-goal gl-ap-min-y c:- 12)',
-            cp('gl-ap-max-y', 'gl-transport-route-landing-y'), '(up-modify-goal gl-ap-max-y c:+ 12)', go('AP-CACHE')])
+            cp('gl-ap-min-x', 'gl-transport-route-landing-x'), f'(up-modify-goal gl-ap-min-x c:- {MEMORY_RADIUS})',
+            cp('gl-ap-max-x', 'gl-transport-route-landing-x'), f'(up-modify-goal gl-ap-max-x c:+ {MEMORY_RADIUS})',
+            cp('gl-ap-min-y', 'gl-transport-route-landing-y'), f'(up-modify-goal gl-ap-min-y c:- {MEMORY_RADIUS})',
+            cp('gl-ap-max-y', 'gl-transport-route-landing-y'), f'(up-modify-goal gl-ap-max-y c:+ {MEMORY_RADIUS})', go('AP-CACHE')])
     # Matching by beach also prevents a different objective evading the exclusion.
     for i in range(1, MEMORY+1):
         v = lambda key: f'gl-ap-memory{i}-{key}'
@@ -192,11 +250,37 @@ def plans():
              ['(set-goal gl-ap-blocked YES)'])
     emit([state('AP-CACHE'), '(goal gl-ap-blocked YES)'], [go('AP-ADVANCE')])
     emit([state('AP-CACHE'), '(or (up-compare-goal gl-transport-route-target-zone c:< 0)\n'
-          '\t(up-compare-goal gl-ap-zone g:!= gl-transport-route-target-zone))'],
+          '\t(or (up-compare-goal gl-ap-zone g:!= gl-transport-route-target-zone)\n'
+          '\t(or (up-compare-goal gl-ap-water-zone c:< 0)\n'
+          '\t(up-compare-goal gl-ap-water-zone g:== gl-transport-route-target-zone))))'],
          ['(set-goal gl-ap-failure 21)', go('AP-FAIL')])
-    emit([state('AP-CACHE')], ['(set-goal gl-ap-screen-validated NO)',
+    emit([state('AP-CACHE')], [go('AP-CANDIDATE-PATH')])
+    emit([state('AP-CANDIDATE-PATH'), '(up-set-target-object search-local c: 0)',
+          ], [
+        '(up-get-path-distance gl-ap-shore-scan-x 1 gl-ap-shore-water-distance)',
+        '(up-get-path-distance gl-transport-route-landing-x 0 gl-ap-shore-land-distance)',
+        go('AP-CANDIDATE-PATH-RESULT')])
+    emit([state('AP-CANDIDATE-PATH'), '(not (up-set-target-object search-local c: 0))'],
+         ['(set-goal gl-ap-active NO)', go('TRANSPORT-ROUTE-OWNER-LOST')])
+    emit([state('AP-CANDIDATE-PATH-RESULT'),
+          '(or (up-compare-goal gl-ap-shore-water-distance c:< 0)\n'
+          '\t(goal gl-ap-shore-water-distance 65535))'],
+         ['(set-goal gl-ap-failure 38)', go('AP-FAIL')])
+    emit([state('AP-CANDIDATE-PATH-RESULT'),
+          '(up-compare-goal gl-ap-shore-water-distance c:>= 0)',
+          '(up-compare-goal gl-ap-shore-water-distance c:!= 65535)',
+          '(or (up-compare-goal gl-ap-shore-land-distance c:< 0)\n'
+          '\t(goal gl-ap-shore-land-distance 65535))'],
+         ['(set-goal gl-ap-failure 39)', go('AP-FAIL')])
+    emit([state('AP-CANDIDATE-PATH-RESULT'),
+          '(up-compare-goal gl-ap-shore-water-distance c:>= 0)',
+          '(up-compare-goal gl-ap-shore-water-distance c:!= 65535)',
+          '(up-compare-goal gl-ap-shore-land-distance c:>= 0)',
+          '(up-compare-goal gl-ap-shore-land-distance c:!= 65535)'], [
+        '(up-bound-point gl-ap-shore-selected-water-x gl-ap-shore-scan-x)',
+        '(set-goal gl-ap-screen-validated NO)',
         '(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)',
-        go('TRANSPORT-ROUTE-CORRIDOR-PREPARE')])
+         go('TRANSPORT-ROUTE-CORRIDOR-PREPARE')])
     # A same-land-zone objective is not proof of a usable coast, and the
     # perpendicular corridor geometry can itself land on terrain. Rebuild the
     # exact loaded hull before asking whether it can reach an open unload
@@ -208,9 +292,28 @@ def plans():
          ['(set-goal gl-ap-failure 36)', go('AP-FAIL')])
     emit([state('AP-PATH'), '(up-set-target-object search-local c: 0)',
           '(up-path-distance gl-transport-route-landing-x 0 != 65535)',
-          '(up-path-distance gl-transport-route-waypoint-x 1 == 65535)'],
+          '(up-path-distance gl-transport-route-waypoint-x 1 == 65535)',
+          '(up-compare-goal gl-ap-direct-threats c:> 0)'],
          ['(set-goal gl-ap-failure 37)', go('AP-FAIL')])
     emit([state('AP-PATH'), '(up-set-target-object search-local c: 0)',
+          '(up-path-distance gl-transport-route-landing-x 0 != 65535)',
+          '(up-path-distance gl-transport-route-waypoint-x 1 == 65535)',
+          '(goal gl-ap-direct-threats 0)'], [
+        '(up-bound-point gl-transport-route-waypoint-x gl-ap-shore-selected-water-x)',
+        go('AP-DIRECT-PATH')])
+    emit([state('AP-PATH'), '(up-set-target-object search-local c: 0)',
+          '(up-path-distance gl-transport-route-landing-x 0 != 65535)',
+          '(up-path-distance gl-transport-route-waypoint-x 1 != 65535)'],
+         [go('TRANSPORT-ROUTE-SCREEN-FIND')])
+    emit([state('AP-DIRECT-PATH')], select_hull())
+    emit([state('AP-DIRECT-PATH'), '(up-set-target-object search-local c: 0)',
+          '(up-path-distance gl-transport-route-landing-x 0 == 65535)'],
+         ['(set-goal gl-ap-failure 36)', go('AP-FAIL')])
+    emit([state('AP-DIRECT-PATH'), '(up-set-target-object search-local c: 0)',
+          '(up-path-distance gl-transport-route-landing-x 0 != 65535)',
+          '(up-path-distance gl-transport-route-waypoint-x 1 == 65535)'],
+         ['(set-goal gl-ap-failure 37)', go('AP-FAIL')])
+    emit([state('AP-DIRECT-PATH'), '(up-set-target-object search-local c: 0)',
           '(up-path-distance gl-transport-route-landing-x 0 != 65535)',
           '(up-path-distance gl-transport-route-waypoint-x 1 != 65535)'],
          [go('TRANSPORT-ROUTE-SCREEN-FIND')])

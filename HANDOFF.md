@@ -1,5 +1,93 @@
 # Rome at War AI handoff
 
+## CURRENT - T36:484 BOUNDED ASSAULT/MIGRATION SHORELINE RESOLUTION, LOCAL ONLY, 2026-09-04
+
+- **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `a378710`. The active HEAD
+  is the T36 commit containing this entry. Do not create a parallel worktree or
+  deploy from another checkout.
+- **Status: ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** T33 replay
+  `SP Replay v101.103.48987.0 @2026.09.04 151001.aoe2record` proved that assault
+  hulls repeatedly received inland corridor `(155,108)` and unload `(86,61)`
+  geometry before dispatch. Three completed missions followed event
+  `0 -> 4 -> 9`, a fourth was still repeating that route at replay end, and no
+  assault landed. The six migration voyages likewise rejected all 30 resource
+  anchor/plus-or-minus-two candidates. No native hull overwrite or global
+  target change preceded these failures.
+- **First causal divergence:** assault offset the inland enemy-objective point,
+  while migration tested the inland resource anchor and four adjacent points.
+  Neither planner searched for the land/water boundary. T34's exact-hull
+  reasons 36/37 could reject the resulting geometry, but could not generate a
+  usable coast.
+- **Implementation:** the shared generator model marches from the inland anchor
+  toward the exact reserved Transport in at most 24 sixteen-tile steps, detects
+  the first departure from the target map zone with `up-get-point-zone`, and
+  refines the bracket in at most four four-tile steps. It then probes a five
+  sector fan (`0`, `+/-8`, `+/-16`) with `up-cross-tiles`. A sector is eligible
+  only when its land point remains in the objective/resource zone, its water
+  point is a different valid zone, the sector is not in bounded failure memory,
+  and both stored exact-hull path queries are finite. No terrain IDs or map
+  coordinates are hardcoded.
+- **PER primitives:** `up-get-point`, `up-bound-point`, `up-lerp-tiles`,
+  `up-get-point-zone`, `up-cross-tiles`, `up-set-target-object`,
+  `up-get-path-distance`, and the existing final `up-path-distance` gates.
+  Cached AIRef semantics were checked before implementation: interpolation
+  mutates its first point toward the second; point-zone writes the queried map
+  zone; exact-hull path distance returns `65535` when unavailable, with option
+  1 requiring the exact water point and option 0 accepting the legal nearby
+  unload vicinity.
+- **Sharing/ownership:** `tools/shoreline_resolver.py` supplies the common
+  mechanical geometry and constants. Assault remains generated in
+  `rawai-assault-plans.per`; migration has its own generated
+  `rawai-migration-shoreline.per`. Their goals/state are intentionally separate
+  (`gl-ap-*` versus `gl-msr-*`), so migration cannot corrupt preparation or any
+  of the three dispatched assault slots.
+- **Hard budget:** per objective/anchor, at most 24 coarse zone samples, four
+  refinement samples, five candidate zone-pair checks, and ten resolver path
+  queries (two per eligible sector). Failure-memory skips occur before path
+  queries. A successful assault candidate can then consume the unchanged T34
+  final path gate; migration likewise retains its final exact-hull landing
+  gate. Exhaustion is terminal for that bounded objective/zone attempt and
+  retains cargo for existing replan/recovery behavior.
+- **Corridors:** assault and migration lateral corridors now derive from the
+  selected water-side shoreline point, not the inland objective. The direct
+  midpoint remains a danger sample. If an arbitrary lateral midpoint is
+  unreachable, the exact validated water approach is rechecked and may be used
+  only when that direct danger sample is clear. T34 reasons 36/37 and final
+  exact-hull validation remain mandatory; danger screening is not weakened.
+- **Failure memory:** failed assault sectors use the existing enemy/objective
+  memory and rotation. Migration now has a separate four-entry, 300-second
+  shoreline-sector ring. Wrong-zone, final path rejection, and post-arrival
+  failure remember the sector and advance the fan instead of regenerating the
+  old inland candidates.
+- **Preserved contracts:** full and accepted-partial manifests, three private
+  assault slots, hull/passenger ownership, same-landmass checks, opponent and
+  objective rotation, Scout screening/fallback, positive-danger vetoes,
+  voyage/congestion watchdogs, migration resource-anchor meaning and final
+  dropsite flow, relic ferrying, trade, ordinary military/naval behavior, T34
+  reasons 36/37, and T35 mode-2 native Watch-Tower garrison suppression.
+- **Validation PASS:** 45 focused shoreline/planner tests; 165 current
+  assault/transport/migration tests; generated assault/migration synchronization;
+  PER structural/operand validation; 840-site ownership source audit with zero
+  permission failures plus 40 ownership tests; all 1,156 strategy matchups;
+  naval doctrine and generated naval sync; 42 replay benchmarks;
+  `git diff --check`; and full Python 3 discovery, 467/467 tests. The full run's
+  compiler fixture required its established Windows Temp permission. Fixtures
+  model state/geometry and supplied path answers; they are not AoE2 engine
+  pathfinding proof.
+- **Runtime/string/deployment:** marker is locally advanced to
+  `RAWAI-P3B44T36:484`. This patch allocates no new replay-chat strings beyond
+  replacing the marker; the conservative project budget is 1,485/1,500 PER
+  literals. **Do not deploy:** the installed runtime remains T34:482; T35 and
+  T36 are local-only together.
+- **Fresh replay acceptance:** deploy only when explicitly requested, then use
+  an authoritative fresh replay. PASS requires old inland/cliff routes rejected
+  before dispatch, a materially different valid shore selected, at least one
+  successful loaded assault landing, migration reaching shoreline beyond its
+  former five local candidates where topology permits, no unsafe route admitted
+  to force success, and no T34/T35/manifest/ownership regression. Until then:
+  **SHORELINE RESOLVER IMPLEMENTED — FIXED-PENDING-RUNTIME**.
+
 ## CURRENT - T35:483 NATIVE VILLAGER WATCH-TOWER GARRISON SUPPRESSION, LOCAL ONLY, 2026-09-04
 
 - **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
@@ -23,7 +111,8 @@
   `sn-disable-villager-garrison` to 2 once in the existing global one-shot
   initialization rule. No economy percentage, worker tasking, defense
   threshold, tower, Transport, or explicit `action-garrison` rule changed.
-  Runtime marker is locally advanced to `RAWAI-P3B44T35:483`.
+  T35's behavior is retained unchanged under the superseding local T36:484
+  marker recorded above.
 - **Non-regression contracts:** new
   `tools/test_villager_garrison_mode.py` proves mode 2 is the only writer and is
   one-shot, and proves that boar-rescue TC garrison, wall/gate-builder TC

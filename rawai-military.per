@@ -2504,7 +2504,7 @@
 	(set-goal gl-island-migration-route-waits 0)
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-owner-worker-hold NO)
-	(set-goal gl-island-migration-state MIGRATION-ROUTE-PREPARE)
+	(set-goal gl-island-migration-state MIGRATION-SHORE-INIT)
 )
 
 (defrule
@@ -2520,7 +2520,7 @@
 	(set-goal gl-island-migration-route-waits 0)
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-owner-worker-hold NO)
-	(set-goal gl-island-migration-state MIGRATION-ROUTE-PREPARE)
+	(set-goal gl-island-migration-state MIGRATION-SHORE-INIT)
 )
 
 ;One nonboarding passenger must not hold the whole colony on shore. Once the
@@ -2694,7 +2694,7 @@
 	(set-goal gl-island-migration-route-waits 0)
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-owner-worker-hold NO)
-	(set-goal gl-island-migration-state MIGRATION-ROUTE-PREPARE)
+	(set-goal gl-island-migration-state MIGRATION-SHORE-INIT)
 )
 
 (defrule
@@ -2777,15 +2777,36 @@
 	(set-goal gl-island-migration-state MIGRATION-IDLE)
 )
 
-;Migration uses a water-valid point captured from the reserved hull and a
-;bounded lateral midpoint.  This cannot prove a fogged route safe, but it no
-;longer sends a loaded civilian/scout hull directly through every known tower
-;between the home shore and an inland natural-resource coordinate.
+;Resolve an actual land/water shoreline pair before any loaded migration hull
+;receives a route order. The generated resolver is bounded and uses state owned
+;only by the migration preparation lane.
+(load "rawai-migration-shoreline")
+
+;The direct midpoint is retained as a danger sample and as the safe fallback
+;when an independently generated lateral corridor is not pathable. Corridor
+;geometry is now derived from the validated water-side shoreline approach.
 (defrule
 	(goal gl-island-migration-state MIGRATION-ROUTE-PREPARE)
 =>
 	(up-modify-sn sn-focus-player-number s:= sn-target-player-number)
-	(up-bound-point gl-island-migration-route-left-x gl-island-migration-target-x)
+	(up-bound-point gl-island-migration-route-left-x gl-msr-selected-water-x)
+	(up-lerp-percent gl-island-migration-route-left-x gl-island-migration-origin-x c: 50)
+	(up-full-reset-search)
+	(up-set-target-point gl-island-migration-route-left-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 10)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: town-center c: 10)
+	(up-get-search-state local-total)
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-DIRECT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-DIRECT)
+=>
+	(up-modify-goal gl-msr-direct-threats g:= remote-total)
+	(up-bound-point gl-island-migration-route-left-x gl-msr-selected-water-x)
 	(up-lerp-percent gl-island-migration-route-left-x gl-island-migration-origin-x c: 50)
 	(up-cross-tiles gl-island-migration-route-left-x gl-island-migration-origin-x c: 30)
 	(up-full-reset-search)
@@ -2803,7 +2824,7 @@
 	(goal gl-island-migration-state MIGRATION-ROUTE-LEFT)
 =>
 	(up-modify-goal gl-island-migration-route-left-threats g:= remote-total)
-	(up-bound-point gl-island-migration-route-right-x gl-island-migration-target-x)
+	(up-bound-point gl-island-migration-route-right-x gl-msr-selected-water-x)
 	(up-lerp-percent gl-island-migration-route-right-x gl-island-migration-origin-x c: 50)
 	(up-cross-tiles gl-island-migration-route-right-x gl-island-migration-origin-x c: -30)
 	(up-full-reset-search)
@@ -2865,18 +2886,8 @@
 	)
 =>
 	(up-bound-point gl-island-migration-route-waypoint-x gl-island-migration-route-left-x)
-	(set-strategic-number sn-focus-player-number my-player-number)
-	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
-	;OWNERSHIP command: migration-transport-group.
-	(up-remove-objects search-local object-data-player != my-player-number)
-	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
-	(up-target-point gl-island-migration-route-waypoint-x action-move -1 stance-no-attack)
-	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-chat-data-to-self "migration route side: %d" c: 0)
-	(set-goal gl-island-migration-route-distance 255)
-	(up-set-timer c: t-island-migration c: 15)
-	(set-goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-WAIT)
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-PATH)
 )
 
 (defrule
@@ -2890,18 +2901,111 @@
 	)
 =>
 	(up-bound-point gl-island-migration-route-waypoint-x gl-island-migration-route-right-x)
+	(up-chat-data-to-self "migration route side: %d" c: 1)
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-PATH)
+)
+
+;Validate the selected lateral corridor before the first loaded move. If its
+;pure geometry is inland/unreachable, the exact validated shoreline approach
+;may replace it only when the direct midpoint danger sample was clear.
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-PATH)
+=>
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-DIRECT-PATH)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-DIRECT-PATH)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-path-distance gl-island-migration-route-waypoint-x 1 gl-msr-water-distance)
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-PATH-RESULT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-DIRECT-PATH)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(set-goal gl-island-migration-state MIGRATION-SHORE-EXHAUSTED)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-PATH-RESULT)
+	(up-compare-goal gl-msr-water-distance c:>= 0)
+	(up-compare-goal gl-msr-water-distance c:!= 65535)
+=>
 	;OWNERSHIP command: migration-transport-group.
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
 	(up-target-point gl-island-migration-route-waypoint-x action-move -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
-	(up-chat-data-to-self "migration route side: %d" c: 1)
 	(set-goal gl-island-migration-route-distance 255)
 	(up-set-timer c: t-island-migration c: 15)
 	(set-goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-WAIT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-PATH-RESULT)
+	(or (up-compare-goal gl-msr-water-distance c:< 0)
+		(goal gl-msr-water-distance 65535))
+	(goal gl-msr-direct-threats 0)
+=>
+	(up-bound-point gl-island-migration-route-waypoint-x gl-msr-selected-water-x)
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-DIRECT-VALIDATE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-DIRECT-VALIDATE)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-path-distance gl-island-migration-route-waypoint-x 1 gl-msr-water-distance)
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-DIRECT-RESULT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-DIRECT-VALIDATE)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(set-goal gl-island-migration-state MIGRATION-SHORE-EXHAUSTED)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-PATH-RESULT)
+	(or (up-compare-goal gl-msr-water-distance c:< 0)
+		(goal gl-msr-water-distance 65535))
+	(up-compare-goal gl-msr-direct-threats c:> 0)
+=>
+	(up-set-timer c: t-island-migration c: 120)
+	(set-goal gl-island-migration-state MIGRATION-SHORE-REMEMBER)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-DIRECT-RESULT)
+	(up-compare-goal gl-msr-water-distance c:>= 0)
+	(up-compare-goal gl-msr-water-distance c:!= 65535)
+=>
+	;OWNERSHIP command: migration-transport-group.
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
+	(up-target-point gl-island-migration-route-waypoint-x action-move -1 stance-no-attack)
+	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
+	(set-goal gl-island-migration-route-distance 255)
+	(up-set-timer c: t-island-migration c: 15)
+	(set-goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-WAIT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ROUTE-DIRECT-RESULT)
+	(or (up-compare-goal gl-msr-water-distance c:< 0)
+		(goal gl-msr-water-distance 65535))
+=>
+	(up-set-timer c: t-island-migration c: 120)
+	(set-goal gl-island-migration-state MIGRATION-SHORE-REMEMBER)
 )
 
 (defrule
@@ -2920,10 +3024,9 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-distance <= 8)
 =>
-	;The resource anchor can be inland or behind cliffs. Preserve it as the first
-	;candidate, then ask the exact reserved hull whether it has a water path close
-	;enough for an unload before issuing any landing order.
-	(up-copy-point gl-island-migration-route-waypoint-x gl-island-migration-target-x)
+	;The route terminates at the resolver's validated land-side point, never at
+	;the inland resource anchor.
+	(up-copy-point gl-island-migration-route-waypoint-x gl-msr-selected-land-x)
 	(up-chat-data-to-self "migration route waypoint reached: %d" g: gl-island-migration-route-waits)
 	(set-goal gl-island-migration-landing-attempts 0)
 	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
@@ -2978,7 +3081,7 @@
 	;the eight-tile waypoint test recalled it. At this bounded near-waypoint
 	;terminal, advance to the existing exact zone/path landing validation. This
 	;does not issue an unload or weaken wrong-island and unreachable-path checks.
-	(up-copy-point gl-island-migration-route-waypoint-x gl-island-migration-target-x)
+	(up-copy-point gl-island-migration-route-waypoint-x gl-msr-selected-land-x)
 	(up-chat-data-to-self "migration route waypoint reached: %d" g: gl-island-migration-route-waits)
 	(set-goal gl-island-migration-landing-attempts 0)
 	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
@@ -5038,67 +5141,17 @@
 	(set-goal gl-island-migration-state MIGRATION-SAILING)
 )
 
-;A resource anchor can be occupied or inland from the first viable beach.
-;Prepare four close alternatives around that same anchor: the former eight-tile
-;diagonals could land in water or on an entirely different island.
+;A loaded hull that did not unload at a validated shore remembers that local
+;sector and advances the existing bounded lateral fan. It never falls back to
+;the inland resource anchor plus four arbitrary two-tile offsets.
 (defrule
 	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count > 0)
 	(up-timer-status t-island-migration == timer-triggered)
-	(goal gl-island-migration-landing-attempts 0)
 =>
-	(up-copy-point point3-x gl-island-migration-target-x)
-	(up-modify-goal point3-x c:+ 2)
-	(up-bound-point gl-island-migration-route-waypoint-x point3-x)
-	(set-goal gl-island-migration-landing-attempts 1)
-	(up-chat-data-to-self "migration alternate landing: %d" c: 1)
-	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
-)
-
-(defrule
-	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
-	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count > 0)
-	(up-timer-status t-island-migration == timer-triggered)
-	(goal gl-island-migration-landing-attempts 1)
-=>
-	(up-copy-point point3-x gl-island-migration-target-x)
-	(up-modify-goal point3-x c:- 2)
-	(up-bound-point gl-island-migration-route-waypoint-x point3-x)
-	(set-goal gl-island-migration-landing-attempts 2)
-	(up-chat-data-to-self "migration alternate landing: %d" c: 2)
-	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
-)
-
-(defrule
-	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
-	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count > 0)
-	(up-timer-status t-island-migration == timer-triggered)
-	(goal gl-island-migration-landing-attempts 2)
-=>
-	(up-copy-point point3-x gl-island-migration-target-x)
-	(up-modify-goal point3-y c:+ 2)
-	(up-bound-point gl-island-migration-route-waypoint-x point3-x)
-	(set-goal gl-island-migration-landing-attempts 3)
-	(up-chat-data-to-self "migration alternate landing: %d" c: 3)
-	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
-)
-
-(defrule
-	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
-	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count > 0)
-	(up-timer-status t-island-migration == timer-triggered)
-	(goal gl-island-migration-landing-attempts 3)
-=>
-	(up-copy-point point3-x gl-island-migration-target-x)
-	(up-modify-goal point3-y c:- 2)
-	(up-bound-point gl-island-migration-route-waypoint-x point3-x)
-	(set-goal gl-island-migration-landing-attempts 4)
-	(up-chat-data-to-self "migration alternate landing: %d" c: 4)
-	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
+	(up-set-timer c: t-island-migration c: 120)
+	(set-goal gl-island-migration-state MIGRATION-SHORE-REMEMBER)
 )
 
 ;Rebuild the exact mission hull and candidate in the same state sequence. The
@@ -5142,8 +5195,8 @@
 	(up-chat-data-to-all "RAW44M wrong-zone actual: %d" g: gl-island-migration-landing-zone)
 	(up-chat-data-to-all "RAW44M wrong-zone expected: %d" g: gl-island-migration-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
-	(up-set-timer c: t-island-migration c: 1)
-	(set-goal gl-island-migration-state MIGRATION-SAILING)
+	(up-set-timer c: t-island-migration c: 120)
+	(set-goal gl-island-migration-state MIGRATION-SHORE-REMEMBER)
 )
 
 (defrule
@@ -5157,10 +5210,8 @@
 	(up-chat-data-to-all "RAW44M rejected x: %d" g: gl-island-migration-route-waypoint-x)
 	(up-chat-data-to-all "RAW44M rejected y: %d" g: gl-island-migration-route-waypoint-y)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
-	;Yield through SAILING with a fresh timer so the generic watchdog cannot
-	;consume the mission before CHECK-LANDING prepares the next candidate.
-	(up-set-timer c: t-island-migration c: 1)
-	(set-goal gl-island-migration-state MIGRATION-SAILING)
+	(up-set-timer c: t-island-migration c: 120)
+	(set-goal gl-island-migration-state MIGRATION-SHORE-REMEMBER)
 )
 
 (defrule
@@ -5168,29 +5219,8 @@
 	(not (up-set-target-object search-local c: 0))
 =>
 	(up-chat-data-to-all "RAW44M landing path hull missing: %d" g: gl-island-migration-transport-id)
-	(set-goal gl-island-migration-state MIGRATION-CHECK-LANDING)
-)
-
-(defrule
-	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
-	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count > 0)
-	(up-timer-status t-island-migration == timer-triggered)
-	(up-compare-goal gl-island-migration-landing-attempts c:>= 4)
-=>
-	(up-chat-data-to-self "migration landing rejected zone: %d" g: gl-island-migration-zone)
-	(up-modify-goal gl-island-migration-rejected-zone3 g:= gl-island-migration-rejected-zone2)
-	(up-modify-goal gl-island-migration-rejected-zone2 g:= gl-island-migration-rejected-zone)
-	(up-modify-goal gl-island-migration-rejected-zone g:= gl-island-migration-zone)
-	(set-goal gl-island-migration-rejection-armed NO)
-	(set-goal gl-island-migration-route-waits 0)
-	;OWNERSHIP command: migration-transport-group.
-	(up-remove-objects search-local object-data-player != my-player-number)
-	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
-	(up-target-point gl-home-anchor-x action-unload -1 stance-no-attack)
-	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
-	(up-set-timer c: t-island-migration c: 15)
-	(set-goal gl-island-migration-state MIGRATION-RETURNING)
+	(up-set-timer c: t-island-migration c: 120)
+	(set-goal gl-island-migration-state MIGRATION-SHORE-EXHAUSTED)
 )
 
 (defrule
@@ -6912,11 +6942,29 @@
 
 ;Landing safety alone is insufficient: a direct engine path can spend its whole
 ;voyage inside a tower's range. Sample both sides of the route at its midpoint
-;and force the loaded ship through the less-defended lateral waypoint.
+;and force the loaded ship through the less-defended lateral waypoint. All
+;midpoints now originate at the validated water-side shoreline approach.
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-PREPARE)
 =>
-	(up-bound-point gl-transport-route-waypoint-left-x gl-transport-route-landing-x)
+	(up-bound-point gl-transport-route-waypoint-left-x gl-ap-shore-selected-water-x)
+	(up-lerp-percent gl-transport-route-waypoint-left-x gl-transport-route-origin-x c: 50)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-waypoint-left-x)
+	(up-filter-distance c: -1 c: 20)
+	(up-find-remote c: tower-class c: 40)
+	(up-find-remote c: sea-tower c: 10)
+	(up-find-remote c: castle c: 10)
+	(up-find-remote c: town-center c: 10)
+	(up-get-search-state local-total)
+	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-DIRECT)
+)
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-DIRECT)
+=>
+	(up-modify-goal gl-ap-direct-threats g:= remote-total)
+	(up-bound-point gl-transport-route-waypoint-left-x gl-ap-shore-selected-water-x)
 	(up-lerp-percent gl-transport-route-waypoint-left-x gl-transport-route-origin-x c: 50)
 	(up-cross-tiles gl-transport-route-waypoint-left-x gl-transport-route-origin-x c: 26)
 	(up-full-reset-search)
@@ -6934,7 +6982,7 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-LEFT)
 =>
 	(up-modify-goal gl-transport-route-corridor-left-threats g:= remote-total)
-	(up-bound-point gl-transport-route-waypoint-right-x gl-transport-route-landing-x)
+	(up-bound-point gl-transport-route-waypoint-right-x gl-ap-shore-selected-water-x)
 	(up-lerp-percent gl-transport-route-waypoint-right-x gl-transport-route-origin-x c: 50)
 	(up-cross-tiles gl-transport-route-waypoint-right-x gl-transport-route-origin-x c: -26)
 	(up-full-reset-search)
@@ -6986,7 +7034,7 @@
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-WIDE-PREPARE)
 =>
-	(up-bound-point gl-transport-route-waypoint-left-x gl-transport-route-landing-x)
+	(up-bound-point gl-transport-route-waypoint-left-x gl-ap-shore-selected-water-x)
 	(up-lerp-percent gl-transport-route-waypoint-left-x gl-transport-route-origin-x c: 50)
 	(up-cross-tiles gl-transport-route-waypoint-left-x gl-transport-route-origin-x c: 52)
 	(up-full-reset-search)
@@ -7004,7 +7052,7 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-WIDE-LEFT)
 =>
 	(up-modify-goal gl-transport-route-corridor-left-threats g:= remote-total)
-	(up-bound-point gl-transport-route-waypoint-right-x gl-transport-route-landing-x)
+	(up-bound-point gl-transport-route-waypoint-right-x gl-ap-shore-selected-water-x)
 	(up-lerp-percent gl-transport-route-waypoint-right-x gl-transport-route-origin-x c: 50)
 	(up-cross-tiles gl-transport-route-waypoint-right-x gl-transport-route-origin-x c: -52)
 	(up-full-reset-search)

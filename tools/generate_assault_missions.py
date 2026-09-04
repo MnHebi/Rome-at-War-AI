@@ -8,6 +8,7 @@ from pathlib import Path
 import argparse
 import difflib
 from generate_assault_plans import outputs as plan_outputs, seed_rules
+from generate_migration_shoreline import outputs as migration_shoreline_outputs
 
 ROOT = Path(__file__).resolve().parents[1]
 GROUPS = (0, 18, 19)
@@ -625,7 +626,8 @@ def preparation_ownership():
 
 
 def outputs():
-    return {**plan_outputs(), 'rawai-assault-mission-defs.per': definitions(),
+    return {**plan_outputs(), **migration_shoreline_outputs(),
+            'rawai-assault-mission-defs.per': definitions(),
             'rawai-assault-admission.per': admission(), 'rawai-assault-missions.per': missions(),
             'rawai-transport-preparation-ownership.per': preparation_ownership(),
             'rawai-assault-enemy-scan.per': fallback_enemy_scan(),
@@ -653,10 +655,18 @@ def patch():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--check', action='store_true')
+    parser.add_argument('--write', action='store_true')
     args = parser.parse_args()
     if args.check:
         mismatches = [name for name, text in outputs().items()
                       if not (ROOT / name).exists() or (ROOT / name).read_text(encoding='utf-8-sig') != text]
         print('assault generation ' + ('FAIL: ' + ', '.join(mismatches) if mismatches else 'PASS'))
         raise SystemExit(bool(mismatches))
+    if args.write:
+        for name, text in outputs().items():
+            # Write the canonical blob representation directly. Path.write_text
+            # performs platform newline translation on Windows and would churn
+            # every otherwise unchanged generated artifact.
+            (ROOT / name).write_bytes(text.encode('utf-8'))
+        raise SystemExit(0)
     patch()
