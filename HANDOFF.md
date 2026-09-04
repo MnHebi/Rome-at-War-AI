@@ -1,5 +1,79 @@
 # Rome at War AI handoff
 
+## CURRENT - T39:487 MIGRATION ADMISSION, LANDED ASSAULT CONTINUATION, AND EARLY GATES, SOURCE ONLY, 2026-09-05
+
+- **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `982e496`. The working
+  changes are deliberately separated into independently revertible commits:
+  `e9053a7` landed visibility handoff, `058991d` crowded-island migration
+  admission, `ba2ef5b` first-gate sequencing, and `f1bba96` landed cross-zone
+  ownership. T36:484 remains installed while its live test is running; T37,
+  T38, and T39 are source-only and must not be injected into that match.
+- **Migration admission — FIXED-PENDING-RUNTIME / bounded behavior change.** The
+  user directly observed hundreds of villagers waiting on beaches while
+  manually loaded Transports still executed migration voyages. The current T36
+  replay independently proves the upstream gate failure: Blue had four
+  Transports but repeatedly reported `migration gate idle bucket: 0` from
+  32:06 through 34:07. At those early samples it had 44–49 villagers, so the new
+  high-population policy deliberately does not rewrite that opening behavior.
+  At 60 villagers, the migration gate can now admit one bounded manifest even
+  when native economy assignments keep the idle fact at zero. Its selector
+  protects builders, repairers, grouped/garrisoned units, the boar lurer,
+  prey/livestock workers, and all established food roles; it remains capped by
+  the exact Transport capacity. The threshold is policy tuning, not a claimed
+  engine constant. Runtime PASS requires a high-population/idle-zero island to
+  emit an AI-owned passenger candidate and board/depart without manual loading,
+  while protected workers remain untouched.
+- **Empty landed handoff — ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** T36
+  repeatedly serialized `RAW3 event 8 -> event 12` only eight displayed seconds
+  apart for Blue slots. Eight seconds cannot exhaust the 300-game-second combat
+  lease; it is the first combat sample finding an empty group. Source rebuilt
+  the mission group in the same sweep that the hull first reported zero cargo,
+  when newly unloaded passengers can still be engine-visible as garrisoned.
+  The voyage now retains its sealed group for one eight-second sample before
+  the landed rebuild, and starts combat on the following bounded sample. The
+  executable fixture reproduces cargo-zero-before-passenger-visibility and
+  proves all passengers survive the handoff.
+- **Landed members crossing engine zones — ROOT-CAUSE-PROVEN /
+  FIXED-PENDING-RUNTIME.** Yellow missions reached event 8, survived until the
+  full combat lease expired, but emitted zero landed target/issuance records.
+  Enemy 7 objective 47510 remained alive and trained units from 49:31 through
+  at least 62:42, covering Yellow's first 56:23 handoff and 59:27 release. Thus
+  the controller had a nonempty owned group and a live sealed-target-zone
+  building, but never passed its local-member selection. That selection removed
+  exact mission members as soon as their inland movement crossed away from the
+  landing zone. T38 separately proved Iberia's engine zone labels do not denote
+  traversable-land boundaries. T39 removes only the zone veto from the exact
+  sealed landed manifest; foreign/free troops remain excluded, garrisoned units
+  remain excluded, and hostile targets still must be in the sealed target zone.
+  Runtime PASS requires Yellow-style landed groups to emit target/issuance and
+  continue fighting after crossing a local engine zone boundary.
+- **First gate before wall closure — FIXED-PENDING-RUNTIME / requested
+  sequencing change.** Both first-gate rules and their availability poll were
+  gated on 25% wall completion, allowing a perimeter to close before a gate was
+  requested. The first stone or palisade gate is now requested as soon as
+  `can-build-gate-with-escrow 2` reports a replaceable wall span. The second
+  gate remains at 75%; all danger, worker, escrow, availability and retry bounds
+  remain unchanged. Runtime PASS requires the first viable gate to precede a
+  closed perimeter without preventing wall completion.
+- **Broader army idleness remains INVESTIGATING.** T39 fixes both source-visible
+  landed-group first divergences; it does not claim that every ordinary army
+  idle episode shares those causes. Native attack protection is type-wide and
+  the T36 replay has substantial writer-91 exclusion activity, so free soldiers
+  sharing a type with a protected mission can wait. Removing that shield would
+  let native attack ownership steal active mission members and is not supported
+  without a discriminating replay. If ordinary unlanded armies remain idle in
+  T39, correlate their exact types with live owner groups and attack dispatch
+  gates before changing that protection.
+- **Validation PASS:** assault generation synchronization; 44 focused landed /
+  mission / historical-fingerprint tests; migration and wall focused tests;
+  PER validation; ownership audit 842 sites with zero permission failures; and
+  `git diff --check`. Full discovery passes all 470 tests, including the
+  compiler fixture in its required permitted temporary environment.
+- **Runtime identity/deployment:** source marker `RAWAI-P3B44T39:487`; no new
+  replay strings beyond replacing the marker. No deployment has occurred;
+  installed runtime remains verified T36:484.
+
 ## CURRENT - T38:486 LAND TRADE ZONE-VETO REPAIR, SOURCE ONLY, 2026-09-05
 
 - **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
