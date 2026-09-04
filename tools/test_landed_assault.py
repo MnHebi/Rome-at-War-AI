@@ -2,6 +2,7 @@
 import unittest
 
 from test_assault_missions import Missions, GROUPS
+from test_pre_backlog import expressions
 
 
 class LandedAssaultTests(unittest.TestCase):
@@ -21,6 +22,18 @@ class LandedAssaultTests(unittest.TestCase):
     def attacks(self, m):
         return [c for c in m.commands if c[2] and c[2][0] == 'object']
 
+    def attack_rule(self, m, slot=1):
+        token = '(up-target-objects 1 action-default -1 stance-aggressive)'
+        rows = [row for row in m.rules
+                if token in row[4] and f'(goal gl-am{slot}-sample 7)' in row[3]]
+        self.assertEqual(len(rows), 1)
+        return rows[0]
+
+    def evaluate_rule(self, m, row):
+        if all(m.fact(e) for e in expressions(row[3])):
+            for action in expressions(row[4]):
+                m.action(action)
+
     def test_hull_released_but_landed_manifest_keeps_combat_ownership(self):
         m = self.landed()
         self.assertEqual(m.g['gl-am1-state'], 6)
@@ -37,6 +50,41 @@ class LandedAssaultTests(unittest.TestCase):
         m.g['gl-land-transport-ready'] = 0
         m.sweep(16)
         self.assertEqual(self.attacks(m)[-1][2], ('object', 100))
+
+    def test_one_object_attack_command_per_logical_combat_sample(self):
+        m = self.landed(); self.target(m)
+        attack_rule = self.attack_rule(m)
+        before = len(self.attacks(m))
+
+        # The fixture deliberately does not change object-data-action after a
+        # command, modelling delayed engine visibility of actionid-attack.
+        m.sweep(16)
+        self.assertEqual(len(self.attacks(m)), before + 1)
+        self.assertEqual(m.g['gl-am1-sample'], 10)
+        self.assertNotEqual(m.objects[1000].get('action'), m.val('actionid-attack'))
+
+        # Even direct repeated evaluation of the issuance rule cannot emit a
+        # duplicate while this logical sample remains open in engine time.
+        for _ in range(4):
+            self.evaluate_rule(m, attack_rule)
+        self.assertEqual(len(self.attacks(m)), before + 1)
+
+        # The ordinary 16-second gate can open a later legitimate sample.
+        m.sweep(16)
+        self.assertEqual(len(self.attacks(m)), before + 2)
+
+    def test_all_three_slots_have_post_issue_latch_and_failed_target_transition(self):
+        m = Missions()
+        command = '(up-target-objects 1 action-default -1 stance-aggressive)'
+        for slot in (1, 2, 3):
+            row = self.attack_rule(m, slot)
+            self.assertEqual(row[4].count(command), 1)
+            self.assertIn(f'(set-goal gl-am{slot}-sample 10)', row[4])
+            failed = [candidate for candidate in m.rules
+                      if f'(goal gl-am{slot}-sample 10)' in candidate[3]
+                      and f'gl-am{slot}-combat-tries c:>= 3' in candidate[3]
+                      and f'gl-am{slot}-combat-failed' in candidate[4]]
+            self.assertEqual(len(failed), 1, slot)
 
     def test_stale_attacked_and_active_combat_members_obey_landed_ownership(self):
         m = self.landed(); self.target(m)

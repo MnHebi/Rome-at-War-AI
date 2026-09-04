@@ -453,6 +453,9 @@ def missions():
         out.append(rule([*found, f'(up-compare-goal {v("combat-target")} g:!= {v("combat-last")})'], [
             setv('combat-tries', 0), *log(13),
             f'(up-chat-data-to-all "RAW landed combat target: %d" g: {v("combat-target")})']))
+        # Close the logical combat sample in persistent PER state as part of the
+        # command action. Do not depend on object-data-action becoming visible
+        # before another evaluation can observe that this sample already issued.
         out.append(rule(found, [*members(),
             '(up-remove-objects search-local object-data-garrisoned == 1)',
             f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("target-zone")})',
@@ -460,8 +463,12 @@ def missions():
             f'(up-add-object-by-id search-remote g: {v("combat-target")})',
             '(up-target-objects 1 action-default -1 stance-aggressive)',
             copy('combat-last', v('combat-target')), setv('combat-misses', 0),
-            f'(up-modify-goal {v("combat-tries")} c:+ 1)']))
-        out.append(rule([*found, f'(up-compare-goal {v("combat-tries")} c:>= 3)'],
+            f'(up-modify-goal {v("combat-tries")} c:+ 1)', setv('sample', 10)]))
+        # The post-issue state preserves third-try failed-target exclusion while
+        # keeping the command rule itself immediately ineligible.
+        out.append(rule([f'(goal {v("state")} 6)', f'(goal {v("sample")} 10)',
+                         f'(up-compare-goal {v("combat-target")} c:>= 0)',
+                         f'(up-compare-goal {v("combat-tries")} c:>= 3)'],
                         [copy('combat-failed', v('combat-target'))]))
         out.append(rule([*seeking, f'(goal {v("combat-target")} -1)'],
                         [f'(up-modify-goal {v("combat-misses")} c:+ 1)', setv('sample', 8)]))

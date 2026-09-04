@@ -1,5 +1,45 @@
 # Rome at War AI handoff
 
+## CURRENT - T32:480 LANDED-COMBAT POST-ISSUE LATCH, LOCAL ONLY, 2026-09-04
+
+- **INVESTIGATION RESULT:** the proposed ordinary rule-reentry mechanism is
+  not reproduced by the generated state machine. Each slot has one object
+  attack-command rule; the next complete rule pass resets its sample to zero,
+  and only the 16-second clock gate can reopen combat sampling. No later rule
+  re-enters sample 7. `combat-tries >= 3` is not an intra-sample guard: it marks
+  the target failed after the third separately sampled command. The observed P3
+  subsecond object-order burst could also involve multiple independent assault
+  slots converging on one target; source evidence cannot map the reported
+  object IDs to mission slots.
+- **CANDIDATE MITIGATION / FIXED-PENDING-RUNTIME:** despite that unresolved
+  native first writer, the object-command rule no longer leaves itself eligible
+  in persistent PER state. Immediately after its one command it changes sample
+  7 to post-issue sample 10. The existing third-try `combat-failed` update now
+  consumes sample 10, preserving failed-target exclusion. The next full rule
+  pass resets the sample normally, and the existing clock deadline still
+  permits another command only at the next legitimate 16-second sample.
+- The authoritative change is in `tools/generate_assault_missions.py`; all three
+  copies in `rawai-assault-missions.per` were regenerated. No transport,
+  landing, lease, target-selection, ownership, zone, cadence, or telemetry
+  policy changed. A delayed `object-data-action == actionid-attack` is no longer
+  relevant to same-sample command eligibility.
+- **Regression coverage:** the actual-PER fixture leaves unit action state
+  unchanged after issuance, directly reevaluates the command rule four times,
+  and proves only one object command. It then proves a later 16-second sample
+  can command again. Structural checks require equivalent sample-10 latches and
+  third-try transitions for slots 1-3. Existing retarget and failed-target
+  fixtures remain green.
+- **PASS:** all assault tests 108/108; landed assault 11/11; validator tests
+  126/126; PER structure; strategy execution; naval doctrine; generated naval
+  synchronization; generator synchronization; full repository suite 451/451
+  outside the sandbox. The sandboxed full run passed 450 tests and hit only a
+  Windows Temp permission error in the writer-trace fixture.
+- **Runtime identity:** source marker `RAWAI-P3B44T32:480`. No deployment was
+  performed. Do not claim that this fixes AoE2DE
+  `STATUS_HEAP_CORRUPTION (0xc0000374)` without a fresh runtime test/replay;
+  rapid duplicate orders correlate with the crash, but the native first writer
+  remains unresolved.
+
 ## CURRENT - SEA TOWER PHYSICAL IDENTIFIER CORRECTION, LOCAL ONLY, 2026-09-04
 
 - The user-authorized pending `rawai-unitconstants.per` correction changes
@@ -13,9 +53,10 @@
   military or generated landing-plan rules. A regression test now requires
   1919 and rejects 1921. `unique-unit-production.json` records the re-audited
   constants hash and the DAT/export distinction.
-- No runtime deployment was performed. The source marker remains
-  `RAWAI-P3B44T31:479`; runtime confirmation of Sea Tower detection remains
-  pending alongside T31 land-trade validation.
+- No runtime deployment was performed. The correction was authored under
+  `RAWAI-P3B44T31:479`; current source is superseded by T32:480. Runtime
+  confirmation of Sea Tower detection remains pending alongside land-trade
+  validation.
 
 ## CURRENT - T31:479 LAND TRADE CANDIDATE REPAIR, LOCAL ONLY, 2026-09-04
 
@@ -54,8 +95,9 @@
   user-owned dirty `rawai-unitconstants.per` no longer matches
   `unique-unit-production.json`; this patch deliberately does not absorb or
   revert that separate change.
-- **Runtime identity:** source marker `RAWAI-P3B44T31:479`. No test-copy or
-  runtime deployment was performed, per explicit instruction. Acceptance
+- **Runtime identity:** T31 source marker `RAWAI-P3B44T31:479`, now superseded
+  locally by T32:480. No test-copy or runtime deployment was performed, per
+  explicit instruction. Acceptance
   requires a fresh replay showing same-zone allied Markets create no more than
   three Cart probes until actual `actionid-trade`, after which normal land
   growth may begin; water trade must remain independent.

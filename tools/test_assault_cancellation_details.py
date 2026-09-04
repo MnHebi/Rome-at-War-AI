@@ -149,6 +149,7 @@ class CancellationDetailsTests(unittest.TestCase):
             normalized_trade_cogs = 0
             normalized_landed_anchors = 0
             normalized_landed_commands = 0
+            normalized_landed_latches = 0
             normalized_landed_target_classes = 0
             for r in rule_blocks(source(name)):
                 facts = expressions(r[3])
@@ -248,6 +249,27 @@ class CancellationDetailsTests(unittest.TestCase):
                             ]
                             normalized_landed_commands += 1
 
+                        # T32 closes a landed object-command sample immediately
+                        # in PER state. Remove only that post-issue latch while
+                        # reconstructing the immutable T16A1 payload.
+                        latch = ['set-goal', f'gl-am{slot}-sample', '10']
+                        if latch in actions:
+                            actions.remove(latch)
+                            normalized_landed_latches += 1
+
+                    if slot is not None and sample == '10':
+                        # T32 moves the existing third-try failed-target update
+                        # behind the post-issue latch. Restore its old sample-7
+                        # predicate for historical fingerprinting.
+                        failed = ['up-modify-goal', f'gl-am{slot}-combat-failed',
+                                  'g:=', f'gl-am{slot}-combat-target']
+                        if failed in actions:
+                            for e in facts:
+                                if (e[0] == 'goal' and
+                                        e[1] == f'gl-am{slot}-sample'):
+                                    e[2] = '7'
+                                    break
+
                     # T25 deliberately replaces the old four-miss release with
                     # a separately tested twelve-point continuation probe. Strip
                     # only that new state machine here so this historical guard
@@ -278,6 +300,7 @@ class CancellationDetailsTests(unittest.TestCase):
                 self.assertEqual(normalized_trade_cogs, 6)
                 self.assertEqual(normalized_landed_anchors, 3)
                 self.assertEqual(normalized_landed_commands, 3)
+                self.assertEqual(normalized_landed_latches, 3)
                 self.assertEqual(normalized_landed_target_classes, 189)
             self.assertEqual(hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest(), fingerprint, name)
 
