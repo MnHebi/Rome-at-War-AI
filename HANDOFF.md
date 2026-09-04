@@ -1,6 +1,6 @@
 # Rome at War AI handoff
 
-## CURRENT - T36:484 BOUNDED ASSAULT/MIGRATION SHORELINE RESOLUTION, LOCAL ONLY, 2026-09-04
+## CURRENT - T36:484 BOUNDED ASSAULT/MIGRATION SHORELINE RESOLUTION, DEPLOYED, 2026-09-04
 
 - **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
   branch `fix/trade-cog-cap-dacian`; pre-change HEAD `a378710`. The active HEAD
@@ -75,20 +75,29 @@
   compiler fixture required its established Windows Temp permission. Fixtures
   model state/geometry and supplied path answers; they are not AoE2 engine
   pathfinding proof.
-- **Runtime/string/deployment:** marker is locally advanced to
+- **Runtime/string/deployment:** marker is
   `RAWAI-P3B44T36:484`. This patch allocates no new replay-chat strings beyond
   replacing the marker; the conservative project budget is 1,485/1,500 PER
-  literals. **Do not deploy:** the installed runtime remains T34:482; T35 and
-  T36 are local-only together.
-- **Fresh replay acceptance:** deploy only when explicitly requested, then use
-  an authoritative fresh replay. PASS requires old inland/cliff routes rejected
-  before dispatch, a materially different valid shore selected, at least one
-  successful loaded assault landing, migration reaching shoreline beyond its
-  former five local candidates where topology permits, no unsafe route admitted
-  to force success, and no T34/T35/manifest/ownership regression. Until then:
+  literals. On explicit user request, `tools/sync_test_ai.py --apply` deployed
+  T35+T36 from source commit `5b42491573277f163828e235194a8d836bf8876e` to
+  `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`.
+  Exactly seven pending files were copied: `rawai-assault-plan-defs.per`,
+  `rawai-assault-plans.per`, `rawai-customconstants.per`,
+  `rawai-init-goals.per`, `rawai-migration-shoreline.per`,
+  `rawai-military.per`, and T35's `rawai-sn-defines.per`. A post-apply read-only
+  check proves all 93 runtime files byte-identical, with no missing, different,
+  or unexpected files. Source/install aggregate SHA-256 is
+  `4E18B8AA59FBD5FD6468242E15DE207209A259C3F8BB08D8CB71EA29BEF87857`;
+  installed marker is T36:484 and installed `sn-disable-villager-garrison` is 2.
+- **Fresh replay acceptance:** use an authoritative fresh replay. PASS requires
+  old inland/cliff routes rejected before dispatch, a materially different valid
+  shore selected, at least one successful loaded assault landing, migration
+  reaching shoreline beyond its former five local candidates where topology
+  permits, no unsafe route admitted to force success, and no
+  T34/T35/manifest/ownership regression. Until then:
   **SHORELINE RESOLVER IMPLEMENTED — FIXED-PENDING-RUNTIME**.
 
-## CURRENT - T35:483 NATIVE VILLAGER WATCH-TOWER GARRISON SUPPRESSION, LOCAL ONLY, 2026-09-04
+## CURRENT - T35:483 NATIVE VILLAGER WATCH-TOWER GARRISON SUPPRESSION, DEPLOYED WITH T36, 2026-09-04
 
 - **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
   branch `fix/trade-cog-cap-dacian`; starting HEAD `a9d000c`. The pre-existing
@@ -123,9 +132,9 @@
   assault-rendezvous, and migration-rendezvous tests; full 457-test discovery
   suite. The writer-trace case required its established unsandboxed temporary
   directory permission and passed there. `git diff --check` passes.
-- **Deployment:** deliberately not deployed while the user's T34 match is in
-  progress. Installed runtime remains T34:482 with aggregate SHA-256
-  `55454FF4A19BC79EE4653366EE102CCE28ABD8BD577820491F009E324E97F70D`.
+- **Deployment:** now deployed with T36:484 on explicit user request. The
+  installed 93-file runtime and aggregate SHA-256 are recorded in the T36
+  section above.
 - **Strict runtime acceptance:** PASS requires no large 13-ms
   Villager-to-TC/Mill/Lumber Camp streams; no corresponding native Watch Tower
   garrison episodes; healthy ordinary gathering/deposit; working explicit TC
