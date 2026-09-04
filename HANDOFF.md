@@ -1,5 +1,50 @@
 # Rome at War AI handoff
 
+## CURRENT - T33:481 LANDED-COMMAND ISSUANCE TRACE, LOCAL ONLY, 2026-09-04
+
+- **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
+  branch `fix/trade-cog-cap-dacian`; T32 commit `a84360a` is the immediate
+  behavioral baseline. This T33 work is diagnostic-only and has not been
+  deployed.
+- **REPLAY RESULT:** in the 73:38 replay `SP Replay v101.103.48987.0
+  @2026.09.03 114314.aoe2record`, every terminal ORDER for object IDs 35259,
+  42698 and 59295 has `player_id: 3`, which is visible Green. IDs 35259 and
+  59295 are positively Villagers because the replay records them issuing BUILD
+  actions earlier (17:59/33:06 and 64:58 respectively). ID 42698's concrete
+  unit type is not serialized; it was explicitly ungarrisoned at 69:50.
+- The replay does **not** serialize current DUC group flags or controller/slot
+  ownership. Green emits no `RAW3`/landed-assault lifecycle chat anywhere in
+  this recording, so none of the three IDs can be proven to belong to assault
+  slot 1, 2 or 3. Preserve player ownership and controller ownership as
+  separate conclusions.
+- **Terminal pattern:** 42698 begins repeated orders against target 62438 at
+  73:36; 35259 joins at 73:37; 59295 joins at 73:38. Their terminal counts are
+  37, 21 and 7 respectively. The growing actor set is consistent with native
+  ORDER expansion/reacquisition but is not sufficient to prove it rather than
+  repeated PER issuance.
+- **DIAGNOSTIC ONLY:** immediately before each slot's actual landed
+  `up-target-objects` action, the generated controller now emits one
+  replay-visible triplet: assault slot, combat target ID, and the current
+  pre-increment combat-tries value. It adds no goals, searches, selections,
+  commands, timers, ownership changes or gameplay predicates. T32's existing
+  post-issue sample-10 latch bounds the triplet to one record per slot per
+  logical 16-second combat sample.
+- **Acceptance interpretation for the next replay:** one triplet followed by a
+  large/mutating packet burst supports native command expansion/reacquisition;
+  multiple triplets matching the packet cadence proves multiple PER
+  issuances. Correlate by player, slot, target, tries and replay sequence.
+- **PASS:** assault tests 108/108; landed-assault tests 11/11; validator tests
+  126/126; assault generator synchronization; PER structure; strategy
+  execution; naval doctrine; generated naval synchronization; full repository
+  suite 451/451 outside the sandbox. Project string budget is 1469/1500
+  literals (an allocation guard, not proof of engine compilation). The
+  sandboxed full run reached the known
+  Windows Temp permission-only writer-trace error after all other tests passed.
+- **Runtime identity:** source marker `RAWAI-P3B44T33:481`. Do not deploy until
+  the crash investigation permits it. The native first writer and
+  `STATUS_HEAP_CORRUPTION (0xc0000374)` remain INVESTIGATING; telemetry is not
+  resolution.
+
 ## CURRENT - T32:480 LANDED-COMBAT POST-ISSUE LATCH, LOCAL ONLY, 2026-09-04
 
 - **INVESTIGATION RESULT:** the proposed ordinary rule-reentry mechanism is

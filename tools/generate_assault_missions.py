@@ -75,7 +75,10 @@ def definitions():
             '(defconst str-assault-slot "RAW3 slot: %d")',
             '(defconst str-assault-hull "RAW3 hull: %d")',
             '(defconst str-assault-event "RAW3 event: %d")',
-            '(defconst str-assault-saved-enemy "RAW assault saved enemy: %d")']
+            '(defconst str-assault-saved-enemy "RAW assault saved enemy: %d")',
+            '(defconst str-landed-issue-slot "RAW landed issue slot: %d")',
+            '(defconst str-landed-issue-target "RAW landed issue target: %d")',
+            '(defconst str-landed-issue-tries "RAW landed issue tries: %d")']
     labels = {'stage': 'stage (1 load-ready, 2 bypass)', 'subcode': 'subcode',
               'hull': 'hull', 'global-target': 'global target', 'checked-enemy': 'checked enemy',
               'enemy-failure': 'checked enemy failure', 'live': 'live gate',
@@ -461,6 +464,11 @@ def missions():
             f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("target-zone")})',
             '(up-remove-objects search-local object-data-action == actionid-attack)',
             f'(up-add-object-by-id search-remote g: {v("combat-target")})',
+            # Diagnostic-only issuance triplet. The sample-10 latch bounds this
+            # to one record per slot per logical 16-second combat sample.
+            f'(up-chat-data-to-all str-landed-issue-slot c: {i})',
+            f'(up-chat-data-to-all str-landed-issue-target g: {v("combat-target")})',
+            f'(up-chat-data-to-all str-landed-issue-tries g: {v("combat-tries")})',
             '(up-target-objects 1 action-default -1 stance-aggressive)',
             copy('combat-last', v('combat-target')), setv('combat-misses', 0),
             f'(up-modify-goal {v("combat-tries")} c:+ 1)', setv('sample', 10)]))

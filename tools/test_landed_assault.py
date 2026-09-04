@@ -22,6 +22,10 @@ class LandedAssaultTests(unittest.TestCase):
     def attacks(self, m):
         return [c for c in m.commands if c[2] and c[2][0] == 'object']
 
+    def issuance_logs(self, m):
+        return [(text, value) for text, value in m.logs
+                if 'RAW landed issue' in text]
+
     def attack_rule(self, m, slot=1):
         token = '(up-target-objects 1 action-default -1 stance-aggressive)'
         rows = [row for row in m.rules
@@ -55,11 +59,17 @@ class LandedAssaultTests(unittest.TestCase):
         m = self.landed(); self.target(m)
         attack_rule = self.attack_rule(m)
         before = len(self.attacks(m))
+        logs_before = len(self.issuance_logs(m))
 
         # The fixture deliberately does not change object-data-action after a
         # command, modelling delayed engine visibility of actionid-attack.
         m.sweep(16)
         self.assertEqual(len(self.attacks(m)), before + 1)
+        self.assertEqual(self.issuance_logs(m)[logs_before:], [
+            ('"RAW landed issue slot: %d"', 1),
+            ('"RAW landed issue target: %d"', 99),
+            ('"RAW landed issue tries: %d"', 0),
+        ])
         self.assertEqual(m.g['gl-am1-sample'], 10)
         self.assertNotEqual(m.objects[1000].get('action'), m.val('actionid-attack'))
 
@@ -68,10 +78,16 @@ class LandedAssaultTests(unittest.TestCase):
         for _ in range(4):
             self.evaluate_rule(m, attack_rule)
         self.assertEqual(len(self.attacks(m)), before + 1)
+        self.assertEqual(len(self.issuance_logs(m)), logs_before + 3)
 
         # The ordinary 16-second gate can open a later legitimate sample.
         m.sweep(16)
         self.assertEqual(len(self.attacks(m)), before + 2)
+        self.assertEqual(self.issuance_logs(m)[-3:], [
+            ('"RAW landed issue slot: %d"', 1),
+            ('"RAW landed issue target: %d"', 99),
+            ('"RAW landed issue tries: %d"', 1),
+        ])
 
     def test_all_three_slots_have_post_issue_latch_and_failed_target_transition(self):
         m = Missions()
@@ -80,6 +96,18 @@ class LandedAssaultTests(unittest.TestCase):
             row = self.attack_rule(m, slot)
             self.assertEqual(row[4].count(command), 1)
             self.assertIn(f'(set-goal gl-am{slot}-sample 10)', row[4])
+            actions = expressions(row[4])
+            command_index = actions.index(['up-target-objects', '1', 'action-default',
+                                            '-1', 'stance-aggressive'])
+            self.assertEqual(actions[command_index - 3:command_index], [
+                ['up-chat-data-to-all', 'str-landed-issue-slot', 'c:', str(slot)],
+                ['up-chat-data-to-all', 'str-landed-issue-target', 'g:',
+                 f'gl-am{slot}-combat-target'],
+                ['up-chat-data-to-all', 'str-landed-issue-tries', 'g:',
+                 f'gl-am{slot}-combat-tries'],
+            ])
+            self.assertGreater(actions.index(['set-goal', f'gl-am{slot}-sample', '10']),
+                               command_index)
             failed = [candidate for candidate in m.rules
                       if f'(goal gl-am{slot}-sample 10)' in candidate[3]
                       and f'gl-am{slot}-combat-tries c:>= 3' in candidate[3]
