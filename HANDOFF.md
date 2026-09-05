@@ -1,6 +1,6 @@
 # Rome at War AI handoff
 
-## CURRENT — T48:496 SHIPYARD CANDIDATE RECOVERY SOURCE-ONLY, 2026-09-05
+## CURRENT — T48:496 SHIPYARD CANDIDATE RECOVERY DEPLOYED, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
   branch `fix/trade-cog-cap-dacian`; pre-change HEAD `69ec6bd`. No new
@@ -29,13 +29,13 @@
   strategy matchups; ownership audit 970 sites/zero failures; full Python 3.12
   discovery 514/514 on the authorized Temp-capable rerun; and
   `git diff --check`.
-- **Deployment:** none. Installed remains byte-verified T47:495 with 99 files at
-  SHA-256
-  `9800DEF42ED21A3A46729713DEA02B46849E898DE8C47D7FEA444D57C0F4061B`.
-  The T48 source runtime SHA-256 is
-  `84608D9C772671F6B34977A744B603544EE1CAAB29429CE12E58C88BA003E07C`;
-  read-only preflight finds exactly `rawai-init-goals.per` and
-  `rawai-specialplacement.per` different from the installation.
+- **Deployment:** explicitly authorized and deployed from canonical HEAD
+  `407a31f`. Preflight found exactly `rawai-init-goals.per` and
+  `rawai-specialplacement.per` different from the T47 installation. Both files
+  were copied. The post-apply read-only check reports all 99 runtime files
+  identical, no missing/different/unexpected files, marker
+  `RAWAI-P3B44T48:496`, and source/install aggregate SHA-256
+  `84608D9C772671F6B34977A744B603544EE1CAAB29429CE12E58C88BA003E07C`.
   Fresh T48 runtime must demonstrate prompt first yards, concrete completed
   foundations, later minimum capacity, retained closed-water/clearance
   rejection and no crevice regression. Full detail:

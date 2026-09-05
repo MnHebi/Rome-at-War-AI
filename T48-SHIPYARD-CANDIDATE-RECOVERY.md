@@ -2,9 +2,9 @@
 
 ## Status
 
-**ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME / SOURCE-ONLY**, 2026-09-05.
-Source marker `RAWAI-P3B44T48:496`; the installed test copy remains T47:495.
-The source runtime SHA-256 is
+**ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME / DEPLOYED**, 2026-09-05.
+Source and installed marker `RAWAI-P3B44T48:496`. The source/install runtime
+SHA-256 is
 `84608D9C772671F6B34977A744B603544EE1CAAB29429CE12E58C88BA003E07C`.
 
 ## Runtime evidence
@@ -68,6 +68,11 @@ Behavioral commit: `8e69ef2`.
 - `git diff --check`: **PASS**.
 
 ## Runtime acceptance
+
+Deployment was explicitly authorized from canonical HEAD `407a31f`. Preflight
+found only `rawai-init-goals.per` and `rawai-specialplacement.per` different;
+both were copied. The post-apply read-only check reports all 99 runtime files
+identical with no missing, different or unexpected files.
 
 In a fresh T48 replay:
 
