@@ -1,5 +1,39 @@
 # Rome at War AI handoff
 
+## CURRENT — T44:492 MERCHANT-YIELD OVERRIDE RECOVERY, SOURCE ONLY, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `5f9cd09`. No new
+  branch/worktree/clone was created.
+- **Merchant blockage clearing — ROOT-CAUSE-PROVEN /
+  FIXED-PENDING-RUNTIME.** The T41 replay proves the T40 observer activated and
+  issued yields, but the priority hulls did not clear. Player 1 yielded two
+  merchants for hull 53151; Player 6 exhausted three for hull 39350.
+- **First causal divergence:** at 68:08 sequence 4088229 ordered merchant 63142
+  alone to hold at `(10,125)`. Later in that same second, native sequence
+  4088262 included it in a 35-merchant fleet MOVE toward approximately
+  `(1.48,142.90)`. Source treated any `actionid-move` as a surviving yield and
+  could spend the next intervention before checking the overwritten hold.
+- **Bounded correction:** compare a moving merchant's live destination with its
+  recorded hold. Repair a mismatched hold after hull remeasurement and before
+  allocating another merchant. Exact-hold movement remains untouched. Preserve
+  all three-renewal/three-intervention, 32/120/180-second bounds, path/zone and
+  danger gates. No STOP, priority-hull command, ownership, or global trade-policy
+  change. Behavioral commit `d05c130`.
+- **Validation PASS:** right-of-way 13/13, trade topology 10/10, validators
+  128/128, full Python 3.12 discovery 512/512, generated sync, PER structure,
+  naval doctrine, strategy execution, ownership 960 sites/zero failures, and
+  `git diff --check`.
+- **Deployment:** none. Source marker `RAWAI-P3B44T44:492`; installed copy
+  remains exact T41:489, aggregate SHA-256
+  `AB2271FA659CC47F6471CA950006FF73F986918D71057C12DD90BED099A858F2`.
+  T42 Shipyard and T43 land-trade repairs remain source-only beneath T44.
+- **Next action:** deploy only when explicitly authorized. Fresh marker-492
+  acceptance requires overwritten yields to renew the same merchant before a
+  distinct intervention, sustained lateral clearance, priority-hull progress,
+  bounded cessation, and native trade resumption. Full detail:
+  `T44-MERCHANT-YIELD-OVERRIDE-RECOVERY.md`.
+
 ## CURRENT — T43:491 LAND-TRADE SHARED-SEARCH RECOVERY, SOURCE ONLY, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
@@ -120,7 +154,7 @@
   completion, with bounded failure memory. Native builder assignment and actual
   usable exits remain engine acceptance boundaries. Commits `f8df20d`, `ac8b606`,
   `2c46488`; 11 focused PER fixtures PASS. Diagnostic 410 is the blocker reason.
-- **Merchant right-of-way — FIXED-PENDING-RUNTIME.** Legacy berth/waypoint
+- **Merchant right-of-way — RUNTIME FAIL / SUPERSEDED BY T44.** Legacy berth/waypoint
   clearers excluded active traders and mid-route straits. The new observer
   requires two stationary eight-second samples with stable live movement intent
   before yielding one nearby free self-owned merchant. It observes Transports
@@ -130,8 +164,10 @@
   and hull cooldowns. No STOP or priority-hull order; native trade resumes at a
   still-valid allied Dock. Owned/distant traders are untouched. Commits `9c0b3fe`
   and `e4ad548`; 11 focused fixtures PASS, including a five-active-merchant choke.
-  Diagnostic 420 names merchant, 421 priority hull. Collision causality and
-  trade reacquisition between bounded samples remain runtime questions.
+  Diagnostic 420 names merchant, 421 priority hull. T41 runtime proved the
+  detector and initial command active, but native trade overwrote the hold in
+  the same second and the controller advanced to new merchants. T44 repairs
+  this source-proven persistence defect; fresh runtime acceptance remains open.
 - **Expedition surplus — FIXED-PENDING-RUNTIME.** Fresh admission was blocked by
   aggregate land superiority even for safe isolated homes; three slots already
   release preparation one second after dispatch. Add only a leased safety
