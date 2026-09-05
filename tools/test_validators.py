@@ -224,6 +224,39 @@ class PerDomainTests(unittest.TestCase):
             [issue["kind"] for issue in issues],
         )
 
+    def test_writable_goal_identifier_cannot_be_called_as_fact(self) -> None:
+        issues = self.validate_text(
+            """(defconst fixture-villagers 999)
+(defrule
+    (fixture-villagers >= 60)
+=>
+    (set-goal fixture-villagers 0)
+)
+"""
+        )
+        issue = next(
+            issue
+            for issue in issues
+            if issue["kind"] == "goal_identifier_used_as_fact"
+        )
+        self.assertEqual(issue["identifier"], "fixture-villagers")
+        self.assertEqual(issue["expected"], "up-compare-goal")
+
+    def test_writable_goal_identifier_is_valid_through_up_compare_goal(self) -> None:
+        issues = self.validate_text(
+            """(defconst fixture-villagers 999)
+(defrule
+    (up-compare-goal fixture-villagers c:>= 60)
+=>
+    (set-goal fixture-villagers 0)
+)
+"""
+        )
+        self.assertNotIn(
+            "goal_identifier_used_as_fact",
+            [issue["kind"] for issue in issues],
+        )
+
     def test_search_state_requires_four_goal_block_base(self) -> None:
         issues = self.validate_text(
             """(defrule
@@ -4726,7 +4759,7 @@ class FarmPolicyTests(unittest.TestCase):
         crowded_gate = matching_rules(
             self.military,
             facts=(
-                "(villager-count >= 60)",
+                "(up-compare-goal villager-count c:>= 60)",
                 "(unit-type-count transport-ship >= 1)",
             ),
             actions=(
@@ -4737,7 +4770,7 @@ class FarmPolicyTests(unittest.TestCase):
         crowded_manifest = matching_rules(
             self.military,
             facts=(
-                "(villager-count >= 60)",
+                "(up-compare-goal villager-count c:>= 60)",
                 "(goal resources-depleted NO)",
                 "(goal gl-home-resource-pressure NO)",
             ),
@@ -5692,7 +5725,7 @@ class FarmPolicyTests(unittest.TestCase):
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
         AssaultMissionTests().test_moving_hulls_do_not_receive_repeated_orders()
-        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T40: %d" c: 488)', self.init_goals)
+        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T41: %d" c: 489)', self.init_goals)
 
     def test_transport_departure_stalled_near_origin_activates_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
