@@ -2,8 +2,8 @@
 
 ## Status
 
-**INVESTIGATING / DIAGNOSTIC-ONLY / DEPLOYED**, 2026-09-05. Source and installed
-marker `RAWAI-P3B44T47:495`.
+**RUNTIME COMPLETE / DIAGNOSTIC-ONLY / SUPERSEDED BY T48**, 2026-09-05. Source
+and installed marker `RAWAI-P3B44T47:495`.
 
 ## Runtime regression evidence
 
@@ -80,7 +80,12 @@ runtime files byte-identical with no missing/different/unexpected files.
 Installed aggregate SHA-256:
 `9800DEF42ED21A3A46729713DEA02B46849E898DE8C47D7FEA444D57C0F4061B`.
 
-In a fresh T47 replay, collect per-player diagnostic 410 transitions. The
-dominant 61–67 code identifies the first causal correction. The Shipyard defect
-remains open until a later build demonstrates concrete foundations and
-completed yards; T47 alone cannot close it.
+The completed T47 replay runs 49:32 with zero parser errors. It contains only
+two Shipyard build orders. Diagnostic 410 records 43 reason-64 exact-site
+rejections, 30 reason-61 anchor rejections and six reason-62 map-bound
+rejections; reasons 63/65/66/67 are absent. Source inspection then proves that
+the ordered anchor cursor reports a false reason 61 at normal end-of-list and
+that T40's sparse exact-offset lattice replaced T36's runtime-working dense
+near-anchor domain. T48 repairs those two candidate-discovery divergences while
+retaining the safety gates. The gameplay defect remains open under T48 pending
+fresh runtime proof.

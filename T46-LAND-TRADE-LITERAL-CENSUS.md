@@ -1,6 +1,7 @@
 # T46 land-trade literal allied-Market census
 
-**ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** Deployed with T47:495.
+**CLOSED — RUNTIME PASS.** Deployed with T47:495 and accepted from the complete
+T47 replay.
 
 ## Runtime evidence
 
@@ -68,21 +69,23 @@ Behavioral commit: `6daa09c`.
 
 ## Runtime acceptance
 
-Fresh T47:495 runtime observation: **PASS for autonomous Trade Cart
-production**. The user directly observes Trade Carts in the first test after
-deployment, where T45 had produced Merchant Ships but no visible Carts. This is
-runtime support for the repaired literal-player candidate scan, but the replay
-is still required to verify the complete lifecycle below.
+The complete T47:495 replay
+`SP Replay v101.103.48987.0 @2026.09.05 153105.aoe2record` runs 49:32 with zero
+parser errors. The user directly observed the restored Trade Carts. Replay
+analysis confirms 124 autonomous Trade Cart (`128`) train orders across all
+eight players. Seven players exceed the three-Cart candidate ceiling; current
+source permits that growth only after observing live `actionid-trade`. Player 8
+remains at exactly three, demonstrating the unproven-route ceiling.
 
-A fresh marker-495 replay must show:
+Player 1's visible self-channel telemetry identifies Players 2, 3 and 4 as
+actual allied Market candidates, then records 134 live land-trade proofs for
+Player 4. It produces 26 Carts from two Markets. The other players' private
+self-channel proof messages are not replay-visible, but their growth beyond
+three is direct behavioral proof that the identical proof gate passed. The
+water fallback remains independent: Player 2 also issues two Trade Cog train
+orders.
 
-1. `trade land candidate ally` for an actual allied Market owner;
-2. one to three autonomous Trade Cart probes;
-3. live `merchant land proof ally` when the engine finds a usable route;
-4. normal bounded Cart growth only after that proof;
-5. water discovery/fallback still operating independently.
-
-Until then the gameplay defect remains **FIXED-PENDING-RUNTIME**. The installed
-test copy contains the 99-file T47:495 aggregate, byte-identical to source at
-SHA-256
+All acceptance criteria are satisfied. The previously absent land-trade
+behavior is **CLOSED**. The installed test copy remains the byte-verified
+T47:495 aggregate at SHA-256
 `9800DEF42ED21A3A46729713DEA02B46849E898DE8C47D7FEA444D57C0F4061B`.

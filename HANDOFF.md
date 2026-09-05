@@ -1,11 +1,52 @@
 # Rome at War AI handoff
 
+## CURRENT — T48:496 SHIPYARD CANDIDATE RECOVERY SOURCE-ONLY, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `69ec6bd`. No new
+  branch/worktree/clone was created.
+- **Replay evidence:** completed T47 replay
+  `SP Replay v101.103.48987.0 @2026.09.05 153105.aoe2record`, SHA-256
+  `8FE36339F72B3E2AD0A2073C6F27ED1B56FEE206D677858FAC25E352BBBC800C`,
+  duration 49:32, zero parser errors. Only Players 8 (24:16) and 6 (46:31)
+  issue Shipyard build orders. Diagnostic 410 records reason 64 x43, reason 61
+  x30 and reason 62 x6; reasons 63/65/66/67 are absent.
+- **Shipyard deficit — ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** T40's 24
+  fixed exact offsets at radii 12/24/40 replaced T36's runtime-working dense
+  +/-14 domain and mostly fail exact `up-can-build-line`. The anchor iterator
+  also mistakes normal cursor exhaustion for no anchor, consumes a failed-site
+  entry/candidate step and skips half the fixed candidates for a single Port.
+  The replay's dominant reason 64 and repeated 64 -> 61 sequences identify both
+  source paths.
+- **Correction:** rebuild/wrap the ready anchor list without rejection or
+  candidate consumption; only a genuinely empty rebuilt list emits 61. Restore
+  a bounded sample from the full 29x29 near-anchor domain. Preserve exact
+  buildability, own/allied clearance, four-point open-water checks, worker path
+  and ownership, admission, economy, memory and foundation verification.
+  Behavioral commit `8e69ef2`.
+- **Validation PASS:** 16 Shipyard fixtures; 10 trade-topology tests; 128
+  validators; generated sync; PER structure; naval doctrine; all 1,156
+  strategy matchups; ownership audit 970 sites/zero failures; full Python 3.12
+  discovery 514/514 on the authorized Temp-capable rerun; and
+  `git diff --check`.
+- **Deployment:** none. Installed remains byte-verified T47:495 with 99 files at
+  SHA-256
+  `9800DEF42ED21A3A46729713DEA02B46849E898DE8C47D7FEA444D57C0F4061B`.
+  The T48 source runtime SHA-256 is
+  `84608D9C772671F6B34977A744B603544EE1CAAB29429CE12E58C88BA003E07C`;
+  read-only preflight finds exactly `rawai-init-goals.per` and
+  `rawai-specialplacement.per` different from the installation.
+  Fresh T48 runtime must demonstrate prompt first yards, concrete completed
+  foundations, later minimum capacity, retained closed-water/clearance
+  rejection and no crevice regression. Full detail:
+  `T48-SHIPYARD-CANDIDATE-RECOVERY.md`.
+
 ## CURRENT — T47:495 SHIPYARD REJECTION DIAGNOSTICS DEPLOYED, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
   branch `fix/trade-cog-cap-dacian`; pre-change HEAD `bfac9e8`. No new
   branch/worktree/clone was created.
-- **Shipyard zero-build regression — INVESTIGATING / DIAGNOSTIC-ONLY.** The
+- **Shipyard zero-build regression — ROOT-CAUSE-PROVEN / SUPERSEDED BY T48.** The
   user directly reports no Shipyards in the current T45 Iberia match. A
   read-only 68:15 snapshot of the still-live replay
   `SP Replay v101.103.48987.0 @2026.09.05 141708.aoe2record` contains zero
@@ -42,12 +83,12 @@
   code determines the next causal Shipyard patch. Full detail:
   `T47-SHIPYARD-REJECTION-DIAGNOSTICS.md`.
 
-## CURRENT — T46:494 LAND-TRADE LITERAL CENSUS DEPLOYED WITH T47, 2026-09-05
+## CURRENT — T46:494 LAND-TRADE LITERAL CENSUS CLOSED, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
   branch `fix/trade-cog-cap-dacian`; pre-change HEAD `d9e0f3f`. No new
   branch/worktree/clone was created.
-- **Land trade — ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** In the current
+- **Land trade — CLOSED / RUNTIME PASS.** In the prior
   live T45 match, the user directly observes Blue producing Merchant Ships but
   no Trade Carts. This is a runtime FAIL for T43's acceptance. The live replay
   is still incomplete, so no exact event census has yet been attributed to it.
@@ -76,15 +117,12 @@
 - **Deployment:** deployed with T47 from canonical HEAD `a48d1e9`. The installed
   99-file aggregate and source are byte-identical at SHA-256
   `9800DEF42ED21A3A46729713DEA02B46849E898DE8C47D7FEA444D57C0F4061B`.
-- **Fresh runtime result:** PASS for autonomous Trade Cart production. The user
-  directly observes Trade Carts in the first T47:495 test after deployment;
-  T45 produced Merchant Ships but no visible Carts. This supports the repaired
-  literal-player candidate scan. Keep the defect FIXED-PENDING-RUNTIME until
-  the replay confirms the selected ally, one-to-three probe bound, live
-  `actionid-trade` proof, and normal growth only after proof.
-- **Next action:** fresh marker-495 acceptance requires an actual land
-  candidate, one to three Cart probes, live land proof on a usable route, and
-  normal growth only after proof. Full detail:
+- **Fresh runtime result: CLOSED / PASS.** The complete T47 replay has 124
+  autonomous Cart train orders across all eight players. Seven grow beyond the
+  three-probe ceiling, which requires live `actionid-trade`; Player 8 remains
+  capped at three. Player 1 identifies allied candidates 2/3/4 and logs 134
+  proofs for ally 4. Player 2 also trains two Trade Cogs, preserving independent
+  water fallback. Full evidence:
   `T46-LAND-TRADE-LITERAL-CENSUS.md`.
 
 ## CURRENT — T45:493 PENDING STACK DEPLOYED, 2026-09-05
