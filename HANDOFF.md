@@ -1,5 +1,45 @@
 # Rome at War AI handoff
 
+## CURRENT — T46:494 LAND-TRADE LITERAL CENSUS SOURCE-ONLY, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `d9e0f3f`. No new
+  branch/worktree/clone was created.
+- **Land trade — ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** In the current
+  live T45 match, the user directly observes Blue producing Merchant Ships but
+  no Trade Carts. This is a runtime FAIL for T43's acceptance. The live replay
+  is still incomplete, so no exact event census has yet been attributed to it.
+  The earlier complete T41 replay supplies the same lifecycle: completed own
+  and allied Markets, no land-candidate event, no Carts, and repeated
+  topology-no-candidate events.
+- **First remaining causal divergence:** after T43's repaired local Market
+  source gate, the land scan still called `up-find-player ally find-ordered`.
+  The cached DE AI reference records that `find-ordered` returns `-1`; that
+  invalid player was then used as the Market owner. Even with a valid player,
+  LAND-START created `search-remote` and LAND-CHECK consumed the shared list on
+  a later sweep, repeating the invalid list lifetime T43 had removed one state
+  earlier. T43's test missed and enshrined this second boundary.
+- **Bounded correction:** scan literal player slots 1–8. Only a non-self,
+  in-game ally performs a remote Market census; the census count is persisted
+  in the same rule before focus restoration. LAND-CHECK consumes the persistent
+  count, never the shared remote list. Empty/non-allied/self slots fall through
+  with zero, and the eighth slot proceeds into the unchanged water scan.
+  Preserve the three-Cart probe ceiling, live `actionid-trade` proof, economy,
+  training and producer-epoch gates, caps, retirement, and independent water
+  behavior. Behavioral commit `6daa09c`.
+- **Validation PASS:** trade topology 10/10; T13 gate recovery 7/7; validators
+  128/128; full Python 3.12 discovery 512/512; PER structure; naval doctrine;
+  strategy execution; generated sync; ownership audit 969 sites/zero failures;
+  and `git diff --check`.
+- **Deployment:** none. The active installed copy remains the verified T45:493
+  aggregate at source hash
+  `978C965969E9CDFE6F518A72C8ED8C131C47214EBAE6D386B8EED94527E4D3F7`.
+- **Next action:** after the current match/replay is retained, deploy only on
+  explicit authorization. Fresh marker-494 acceptance requires an actual land
+  candidate, one to three Cart probes, live land proof on a usable route, and
+  normal growth only after proof. Full detail:
+  `T46-LAND-TRADE-LITERAL-CENSUS.md`.
+
 ## CURRENT — T45:493 PENDING STACK DEPLOYED, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
@@ -31,10 +71,11 @@
   `978C965969E9CDFE6F518A72C8ED8C131C47214EBAE6D386B8EED94527E4D3F7`,
   and marker-file SHA-256
   `0317AC880EB0619189BA7C89C15E46EDE7B2408755F00328DB7DFF0492A42DE1`.
-- **Next action:** start a fresh T45 match. Runtime acceptance requires gate 2
-  at 40%, gate 3 at 75%, no gate 4, retained safeguards, and restored passage
-  on a water-intersecting perimeter. It must also test T42 Shipyard recovery,
-  T43 land-trade admission, and T44 persistent merchant yielding. Full detail:
+- **Next action:** retain the current T45 match/replay. Runtime acceptance still
+  requires gate 2 at 40%, gate 3 at 75%, no gate 4, retained safeguards, and
+  restored passage on a water-intersecting perimeter. It must also test T42
+  Shipyard recovery and T44 persistent merchant yielding. T43 land-trade
+  admission failed in this match and is superseded by source-only T46. Full detail:
   `T45-THREE-STAGE-PERIMETER-GATES.md`.
 
 ## T44:492 MERCHANT-YIELD OVERRIDE RECOVERY, DEPLOYED WITH T45, 2026-09-05
@@ -73,7 +114,7 @@
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
   branch `fix/trade-cog-cap-dacian`; pre-change HEAD `faa2cd0`. No new
   branch/worktree/clone was created.
-- **Land trade — ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** The fresh T41
+- **Land trade — RUNTIME FAIL / SUPERSEDED BY T46.** The fresh T41
   replay runs to 85:45 and has completed own/allied Market build orders, but no
   `trade land candidate ally`, no Trade Carts, and eight topology-no-candidate
   samples. Water candidate/proof remained live. This is a runtime FAIL for
@@ -94,9 +135,9 @@
   doctrine; strategy execution; ownership audit 960 sites with zero permission
   failures; naval-capability sync; and `git diff --check`.
 - **Deployment:** deployed in the verified T45:493 aggregate documented above.
-- **Next action:** a fresh T45
-  replay must show a land-candidate event and bounded Cart probes, then live
-  `merchant land proof ally` and normal growth on a viable route. Full detail:
+- **Latest result:** the current live T45 match again has Merchant Ships but no
+  visible Trade Carts. T46 repairs the next two source-visible candidate gates;
+  marker-494 runtime acceptance now owns this defect. Full historical detail:
   `T43-LAND-TRADE-SHARED-SEARCH-RECOVERY.md`.
 
 ## T42:490 SHIPYARD PROBE RECOVERY, DEPLOYED WITH T45, 2026-09-05

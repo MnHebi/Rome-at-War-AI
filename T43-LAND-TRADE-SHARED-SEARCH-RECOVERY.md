@@ -2,7 +2,12 @@
 
 ## Status
 
-**ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** Deployed with T45 on 2026-09-05.
+**RUNTIME FAIL / SUPERSEDED BY T46.** Deployed with T45 on 2026-09-05.
+
+The current live T45 match again produced Merchant Ships without visible Trade
+Carts. T43 repaired the local Market source boundary but did not repair the
+broken ordered ally iterator or the later remote-list boundary. Those next
+causal gates are addressed by `T46-LAND-TRADE-LITERAL-CENSUS.md`.
 
 ## Runtime evidence
 
