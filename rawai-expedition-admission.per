@@ -16,6 +16,9 @@
 	(up-modify-goal gl-exp-safe-after c:+ 180)
 	(set-goal gl-exp-reported -1)
 	(set-goal gl-exp-diag-next 0)
+	(set-goal gl-exp-life-left 24)
+	(set-goal gl-exp-life-next 0)
+	(set-goal gl-exp-life-budget-reported 0)
 	(disable-self)
 )
 
@@ -49,6 +52,7 @@
 	(up-modify-goal gl-exp-next c:+ 30)
 	(set-goal gl-exp-blocked YES)
 	(set-goal gl-exp-naval-pressure NO)
+	(set-goal gl-exp-worker -1)
 	(up-modify-goal gl-exp-focus s:= sn-focus-player-number)
 	(up-full-reset-search)
 	(up-set-target-point gl-home-anchor-x)
@@ -1762,6 +1766,123 @@
 =>
 	(up-modify-goal gl-exp-safe-after g:= gl-exp-clock)
 	(up-modify-goal gl-exp-safe-after c:+ 180)
+)
+
+(defrule
+	(up-compare-goal gl-exp-stage c:> 0)
+	(up-compare-goal gl-exp-life-left c:> 0)
+	(up-compare-goal gl-exp-clock g:>= gl-exp-life-next)
+=>
+	(set-goal gl-exp-life-blocker 0)
+	(up-get-fact soldier-count 0 gl-exp-life-total)
+)
+
+(defrule
+	(up-compare-goal gl-exp-stage c:> 0)
+	(up-compare-goal gl-exp-life-left c:> 0)
+	(up-compare-goal gl-exp-clock g:>= gl-exp-life-next)
+	(goal gl-exp-worker -1)
+=>
+	(set-goal gl-exp-life-blocker 1)
+)
+
+(defrule
+	(up-compare-goal gl-exp-stage c:> 0)
+	(up-compare-goal gl-exp-life-left c:> 0)
+	(up-compare-goal gl-exp-clock g:>= gl-exp-life-next)
+	(goal gl-exp-blocked YES)
+=>
+	(set-goal gl-exp-life-blocker 2)
+)
+
+(defrule
+	(up-compare-goal gl-exp-stage c:> 0)
+	(up-compare-goal gl-exp-life-left c:> 0)
+	(up-compare-goal gl-exp-clock g:>= gl-exp-life-next)
+	(goal gl-exp-naval-pressure YES)
+=>
+	(set-goal gl-exp-life-blocker 3)
+)
+
+(defrule
+	(up-compare-goal gl-exp-stage c:> 0)
+	(up-compare-goal gl-exp-life-left c:> 0)
+	(up-compare-goal gl-exp-clock g:>= gl-exp-life-next)
+	(up-compare-goal gl-exp-clock g:< gl-exp-safe-after)
+=>
+	(set-goal gl-exp-life-blocker 4)
+)
+
+(defrule
+	(up-compare-goal gl-exp-stage c:> 0)
+	(up-compare-goal gl-exp-life-left c:> 0)
+	(up-compare-goal gl-exp-clock g:>= gl-exp-life-next)
+	(up-compare-goal gl-ap-seed-enemy c:< 1)
+=>
+	(set-goal gl-exp-life-blocker 5)
+)
+
+(defrule
+	(up-compare-goal gl-exp-stage c:> 0)
+	(up-compare-goal gl-exp-life-left c:> 0)
+	(up-compare-goal gl-exp-clock g:>= gl-exp-life-next)
+	(up-compare-goal naval-superiority c:< TOLERABLE)
+=>
+	(set-goal gl-exp-life-blocker 6)
+)
+
+(defrule
+	(up-compare-goal gl-exp-stage c:> 0)
+	(up-compare-goal gl-exp-life-left c:> 0)
+	(up-compare-goal gl-exp-clock g:>= gl-exp-life-next)
+	(unit-type-count warship-class < 2)
+=>
+	(set-goal gl-exp-life-blocker 7)
+)
+
+(defrule
+	(up-compare-goal gl-exp-stage c:> 0)
+	(up-compare-goal gl-exp-life-left c:> 0)
+	(up-compare-goal gl-exp-clock g:>= gl-exp-life-next)
+	(unit-type-count transport-ship < 1)
+=>
+	(set-goal gl-exp-life-blocker 8)
+)
+
+(defrule
+	(up-compare-goal gl-exp-stage c:> 0)
+	(up-compare-goal gl-exp-life-left c:> 0)
+	(up-compare-goal gl-exp-clock g:>= gl-exp-life-next)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 600)
+	(up-chat-data-to-all str-t12-diag-value g: gl-exp-stage)
+	(up-chat-data-to-all str-t12-diag-id c: 601)
+	(up-chat-data-to-all str-t12-diag-value g: gl-exp-life-blocker)
+	(up-chat-data-to-all str-t12-diag-id c: 602)
+	(up-chat-data-to-all str-t12-diag-value g: gl-exp-life-total)
+	(up-chat-data-to-all str-t12-diag-id c: 603)
+	(up-chat-data-to-all str-t12-diag-value g: gl-exp-worker)
+	(up-chat-data-to-all str-t12-diag-id c: 604)
+	(up-chat-data-to-all str-t12-diag-value g: gl-exp-blocked)
+	(up-chat-data-to-all str-t12-diag-id c: 605)
+	(up-chat-data-to-all str-t12-diag-value g: gl-exp-naval-pressure)
+	(up-chat-data-to-all str-t12-diag-id c: 606)
+	(up-chat-data-to-all str-t12-diag-value g: gl-exp-safe-after)
+	(up-chat-data-to-all str-t12-diag-id c: 607)
+	(up-chat-data-to-all str-t12-diag-value g: gl-ap-seed-enemy)
+	(up-chat-data-to-all str-t12-diag-id c: 608)
+	(up-chat-data-to-all str-t12-diag-value g: naval-superiority)
+	(up-chat-data-to-all str-t12-diag-id c: 609)
+	(up-chat-data-to-all str-t12-diag-value g: gl-am1-state)
+	(up-chat-data-to-all str-t12-diag-id c: 610)
+	(up-chat-data-to-all str-t12-diag-value g: gl-am2-state)
+	(up-chat-data-to-all str-t12-diag-id c: 611)
+	(up-chat-data-to-all str-t12-diag-value g: gl-am3-state)
+	(up-chat-data-to-all str-t12-diag-id c: 612)
+	(up-chat-data-to-all str-t12-diag-value g: gl-transport-route-state)
+	(up-modify-goal gl-exp-life-next g:= gl-exp-clock)
+	(up-modify-goal gl-exp-life-next c:+ 60)
+	(up-modify-goal gl-exp-life-left c:- 1)
 )
 
 (defrule

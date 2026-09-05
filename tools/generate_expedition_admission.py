@@ -10,7 +10,9 @@ from generate_assault_missions import rule
 
 ROOT=Path(__file__).resolve().parents[1]
 FIELDS=('clock','next','until','safe-after','allowed','stage','worker','blocked','focus',
-        'target-x','target-y','free','reserve','manifest-limit','siege-keep','reported','diag-next','naval-pressure')
+        'target-x','target-y','free','reserve','manifest-limit','siege-keep','reported','diag-next','naval-pressure',
+        # T51 diagnostic-only, finite match-wide lifecycle samples.
+        'life-left','life-next','life-total','life-blocker','life-budget-reported')
 CLASSES=('scout-cavalry-class','cavalry-archer-class','cavalry-class','infantry-class','archery-class','siege-weapon-class')
 
 
@@ -24,16 +26,23 @@ def generate():
          ';No objective/mission/order mutations. Safety lease expires after 35s;',
          ';home/near-coast threats impose a fresh 180s quiet period.']
     def add(f,a):out.append(rule(f,a))
+    def diag(code,value,constant=False):
+        scope='c:' if constant else 'g:'
+        return [f'(up-chat-data-to-all str-t12-diag-id c: {code})',
+                f'(up-chat-data-to-all str-t12-diag-value {scope} {value})']
     add(['(true)'],['(up-get-fact game-time 0 gl-exp-clock)', '(set-goal gl-exp-next 0)',
         '(set-goal gl-exp-until 0)', '(set-goal gl-exp-allowed NO)', '(set-goal gl-exp-stage 0)',
         '(up-modify-goal gl-exp-safe-after g:= gl-exp-clock)', '(up-modify-goal gl-exp-safe-after c:+ 180)',
-        '(set-goal gl-exp-reported -1)', '(set-goal gl-exp-diag-next 0)', '(disable-self)'])
+        '(set-goal gl-exp-reported -1)', '(set-goal gl-exp-diag-next 0)',
+        '(set-goal gl-exp-life-left 24)', '(set-goal gl-exp-life-next 0)',
+        '(set-goal gl-exp-life-budget-reported 0)', '(disable-self)'])
     add(['(true)'],['(up-get-fact game-time 0 gl-exp-clock)', '(set-goal gl-exp-allowed NO)'])
     for f in ('(goal gl-home-defense-state YES)','(goal gl-self-attack-verified YES)'):
         add([f],['(up-modify-goal gl-exp-safe-after g:= gl-exp-clock)', '(up-modify-goal gl-exp-safe-after c:+ 180)'])
     add(['(up-compare-goal gl-exp-clock g:>= gl-exp-next)', '(current-age >= middle-antiquity-age)',
          '(up-compare-goal gl-home-zone c:>= 0)'],['(up-modify-goal gl-exp-next g:= gl-exp-clock)',
         '(up-modify-goal gl-exp-next c:+ 30)', '(set-goal gl-exp-blocked YES)', '(set-goal gl-exp-naval-pressure NO)',
+        '(set-goal gl-exp-worker -1)',
         '(up-modify-goal gl-exp-focus s:= sn-focus-player-number)', '(up-full-reset-search)',
         '(up-set-target-point gl-home-anchor-x)', '(up-find-local c: villager-class c: 40)',
         '(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)',
@@ -70,6 +79,27 @@ def generate():
                  '(up-path-distance gl-exp-target-x 0 != 65535)'],['(set-goal gl-exp-blocked YES)'])
     add(['(goal gl-exp-stage 2)','(goal gl-exp-naval-pressure YES)'],[
         '(up-modify-goal gl-exp-safe-after g:= gl-exp-clock)', '(up-modify-goal gl-exp-safe-after c:+ 180)'])
+    life=['(up-compare-goal gl-exp-stage c:> 0)', '(up-compare-goal gl-exp-life-left c:> 0)',
+          '(up-compare-goal gl-exp-clock g:>= gl-exp-life-next)']
+    add(life,['(set-goal gl-exp-life-blocker 0)', '(up-get-fact soldier-count 0 gl-exp-life-total)'])
+    add([*life,'(goal gl-exp-worker -1)'],['(set-goal gl-exp-life-blocker 1)'])
+    add([*life,'(goal gl-exp-blocked YES)'],['(set-goal gl-exp-life-blocker 2)'])
+    add([*life,'(goal gl-exp-naval-pressure YES)'],['(set-goal gl-exp-life-blocker 3)'])
+    add([*life,'(up-compare-goal gl-exp-clock g:< gl-exp-safe-after)'],['(set-goal gl-exp-life-blocker 4)'])
+    add([*life,'(up-compare-goal gl-ap-seed-enemy c:< 1)'],['(set-goal gl-exp-life-blocker 5)'])
+    add([*life,'(up-compare-goal naval-superiority c:< TOLERABLE)'],['(set-goal gl-exp-life-blocker 6)'])
+    add([*life,'(unit-type-count warship-class < 2)'],['(set-goal gl-exp-life-blocker 7)'])
+    add([*life,'(unit-type-count transport-ship < 1)'],['(set-goal gl-exp-life-blocker 8)'])
+    add(life,[*diag(600,'gl-exp-stage'), *diag(601,'gl-exp-life-blocker'),
+        *diag(602,'gl-exp-life-total'), *diag(603,'gl-exp-worker'),
+        *diag(604,'gl-exp-blocked'), *diag(605,'gl-exp-naval-pressure'),
+        *diag(606,'gl-exp-safe-after'), *diag(607,'gl-ap-seed-enemy'),
+        *diag(608,'naval-superiority'), *diag(609,'gl-am1-state'),
+        *diag(610,'gl-am2-state'), *diag(611,'gl-am3-state'),
+        *diag(612,'gl-transport-route-state'),
+        '(up-modify-goal gl-exp-life-next g:= gl-exp-clock)',
+        '(up-modify-goal gl-exp-life-next c:+ 60)',
+        '(up-modify-goal gl-exp-life-left c:- 1)'])
     add(['(up-compare-goal gl-exp-stage c:> 0)'],['(up-modify-sn sn-focus-player-number g:= gl-exp-focus)',
         '(up-modify-goal gl-exp-until g:= gl-exp-clock)', '(up-modify-goal gl-exp-until c:+ 35)', '(set-goal gl-exp-stage 0)'])
     add(['(up-compare-goal gl-exp-clock g:< gl-exp-until)', '(up-compare-goal gl-exp-clock g:>= gl-exp-safe-after)',
@@ -89,6 +119,10 @@ def budget():
     out=[';Generated same-pass census: all counts are FREE eligible idle HOME troops,',
          ';not global military, not garrisoned passengers, not already-owned soldiers.']
     def add(f,a):out.append(rule(f,a))
+    def diag(code,value):return [f'(up-chat-data-to-all str-t12-diag-id c: {code})',
+                                 f'(up-chat-data-to-all str-t12-diag-value g: {value})']
+    add(['(not (goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-FIND))'],[
+        '(set-goal gl-exp-life-budget-reported 0)'])
     add(f,['(set-goal gl-exp-free 0)'])
     for kind in CLASSES:
         # Census each class separately: a 40-result manifest search is not an
@@ -114,6 +148,10 @@ def budget():
         '(up-modify-goal gl-exp-reserve c:max 20)', '(set-goal gl-exp-manifest-limit 5)'])
     add(f,['(up-modify-goal gl-exp-free g:- gl-exp-reserve)', '(up-modify-goal gl-exp-free c:max 0)',
         '(up-modify-goal gl-exp-manifest-limit g:min gl-exp-free)'])
+    add([*f,'(goal gl-exp-life-budget-reported 0)', '(up-compare-goal gl-exp-life-left c:> 0)'],[
+        *diag(613,'gl-exp-life-total'), *diag(614,'gl-exp-free'),
+        *diag(615,'gl-exp-reserve'), *diag(616,'gl-exp-manifest-limit'),
+        '(set-goal gl-exp-life-budget-reported 1)', '(up-modify-goal gl-exp-life-left c:- 1)'])
     return '\n\n'.join(out)+'\n'
 
 

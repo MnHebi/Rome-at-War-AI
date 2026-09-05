@@ -44,6 +44,18 @@
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-RETIRE-SCOUT)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 writer fingerprint: Imperial-age scout retirement STOP.
+	(up-chat-data-to-all str-t12-diag-id c: 560)
+	(up-chat-data-to-all str-t12-diag-value c: 13)
+	(up-chat-data-to-all str-t12-diag-id c: 563)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RETIRE-SCOUT)
 =>
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)

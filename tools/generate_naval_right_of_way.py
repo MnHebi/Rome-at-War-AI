@@ -12,7 +12,10 @@ ROOT=Path(__file__).resolve().parents[1]
 FIELDS=('clock','next','stage','hull','cursor','stalls','tries','active','kind','zone',
         'distance','moved','turned','merchant','record','side','focus','safe','found',
         'x','y','last-x','last-y','dest-x','dest-y','old-dest-x','old-dest-y',
-        'hold-x','hold-y','bounded-x','bounded-y','merchant-x','merchant-y','count','until','issued')
+        'hold-x','hold-y','bounded-x','bounded-y','merchant-x','merchant-y','count','until','issued',
+        # T51 diagnostics: finite match-wide samples; never gate a command.
+        'diag-left','diag-hull','diag-action','diag-group','diag-candidates','diag-eligible',
+        'diag-merchants','diag-merchant-eligible','diag-reason')
 RECORD=('id','until','hold-until','next','renewals','target','x','y','zone')
 
 
@@ -34,9 +37,14 @@ def generate():
     def select(name): return ['(up-full-reset-search)',f'(up-add-object-by-id search-local g: {name})']
     def end(): return ['(up-modify-goal gl-row-cursor g:= gl-row-hull)', '(set-goal gl-row-hull -1)',
                       '(set-goal gl-row-active 0)', '(set-goal gl-row-stage 0)']
+    def diag(code,value,constant=False):
+        scope='c:' if constant else 'g:'
+        return [f'(up-chat-data-to-all str-t12-diag-id c: {code})',
+                f'(up-chat-data-to-all str-t12-diag-value {scope} {value})']
     transport_intent='(or (up-object-data object-data-action == actionid-move)\n\t(or (up-object-data object-data-action == actionid-transport) (up-object-data object-data-action == actionid-unload)))'
     init=['(set-goal gl-row-next 0)', '(set-goal gl-row-stage 0)', '(set-goal gl-row-hull -1)',
-          '(set-goal gl-row-cursor -1)', '(set-goal gl-row-active 0)']
+          '(set-goal gl-row-cursor -1)', '(set-goal gl-row-active 0)',
+          '(set-goal gl-row-diag-left 32)']
     for i in range(3): init += [f'(set-goal gl-row-m{i}-id -1)',f'(set-goal gl-row-m{i}-until 0)']
     for i in range(4): init += [f'(set-goal gl-row-ban{i}-id -1)',f'(set-goal gl-row-ban{i}-until 0)']
     add(['(true)'],[*init,'(disable-self)'])
@@ -94,19 +102,39 @@ def generate():
         '(set-goal gl-row-stage 1)'])
     add([*st(1),'(up-compare-goal gl-row-hull c:< 0)'],[
         '(up-full-reset-search)', '(up-find-local c: transport-ship c: 40)',
+        '(up-get-search-state local-total)', '(up-modify-goal gl-row-diag-candidates g:= local-total)',
         '(up-remove-objects search-local object-data-player != my-player-number)',
         '(up-remove-objects search-local object-data-move-x < 0)', '(up-remove-objects search-local object-data-move-y < 0)',
         '(up-remove-objects search-local object-data-id g:<= gl-row-cursor)',
         *[f'(up-remove-objects search-local object-data-id g:== gl-row-ban{i}-id)' for i in range(4)],
-        '(up-clean-search search-local object-data-id search-order-asc)', '(set-goal gl-row-kind 1)', '(set-goal gl-row-stage 2)'])
+        '(up-clean-search search-local object-data-id search-order-asc)',
+        '(up-get-search-state local-total)', '(up-modify-goal gl-row-diag-eligible g:= local-total)',
+        '(set-goal gl-row-kind 1)', '(set-goal gl-row-stage 2)'])
     add([*st(2),'(not (up-set-target-object search-local c: 0))'],[
         '(up-full-reset-search)', '(up-find-local c: warship-class c: 40)',
+        '(up-get-search-state local-total)', '(up-modify-goal gl-row-diag-candidates g:= local-total)',
         '(up-remove-objects search-local object-data-player != my-player-number)',
         '(up-remove-objects search-local object-data-group-flag < 0)',
         '(up-remove-objects search-local object-data-action != actionid-move)',
         '(up-remove-objects search-local object-data-id g:<= gl-row-cursor)',
         *[f'(up-remove-objects search-local object-data-id g:== gl-row-ban{i}-id)' for i in range(4)],
-        '(up-clean-search search-local object-data-id search-order-asc)', '(set-goal gl-row-kind 2)'])
+        '(up-clean-search search-local object-data-id search-order-asc)',
+        '(up-get-search-state local-total)', '(up-modify-goal gl-row-diag-eligible g:= local-total)',
+        '(set-goal gl-row-kind 2)'])
+    add([*st(2),'(up-compare-goal gl-row-diag-left c:> 0)',
+         '(up-set-target-object search-local c: 0)'],[
+        '(up-get-object-data object-data-id gl-row-diag-hull)',
+        '(up-get-object-data object-data-action gl-row-diag-action)',
+        '(up-get-object-data object-data-group-flag gl-row-diag-group)',
+        *diag(580,'gl-row-kind'), *diag(581,'gl-row-diag-hull'),
+        *diag(582,'gl-row-diag-action'), *diag(583,'gl-row-diag-group'),
+        *diag(584,'gl-row-diag-candidates'), *diag(585,'gl-row-diag-eligible'),
+        '(up-modify-goal gl-row-diag-left c:- 1)'])
+    add([*st(2),'(up-compare-goal gl-row-diag-left c:> 0)',
+         '(not (up-set-target-object search-local c: 0))'],[
+        *diag(580,'gl-row-kind'), *diag(581,-1,True),
+        *diag(584,'gl-row-diag-candidates'), *diag(585,'gl-row-diag-eligible'),
+        '(up-modify-goal gl-row-diag-left c:- 1)'])
     add([*st(2),'(goal gl-row-kind 1)', '(up-set-target-object search-local c: 0)',
          '(up-object-data object-data-garrison-count <= 0)', '(up-object-data object-data-group-flag < 0)'],[
         '(up-get-object-data object-data-id gl-row-cursor)', '(set-goal gl-row-stage 0)'])
@@ -135,6 +163,10 @@ def generate():
         '(up-get-point-distance gl-row-x gl-row-last-x gl-row-moved)',
         '(up-get-point-distance gl-row-dest-x gl-row-old-dest-x gl-row-turned)',
         '(up-get-point-distance gl-row-x gl-row-dest-x gl-row-distance)'])
+    add([*st(3),'(up-compare-goal gl-row-diag-left c:> 0)'],[
+        *diag(586,'gl-row-hull'), *diag(587,'gl-row-moved'),
+        *diag(588,'gl-row-turned'), *diag(589,'gl-row-distance'),
+        *diag(590,'gl-row-stalls'), '(up-modify-goal gl-row-diag-left c:- 1)'])
     for condition in ('(up-compare-goal gl-row-moved c:> 2)', '(up-compare-goal gl-row-turned c:> 2)',
                       '(up-compare-goal gl-row-distance c:< 6)', '(up-compare-goal gl-row-dest-x c:< 0)', '(up-compare-goal gl-row-dest-y c:< 0)'):
         add([*st(3),condition],end())
@@ -155,10 +187,17 @@ def generate():
         add([*st(4),'(goal gl-row-record -1)',f'(up-compare-goal gl-row-m{i}-id c:< 0)'],[f'(set-goal gl-row-record {i})'])
     add([*st(4),'(goal gl-row-record -1)'],['(set-goal gl-row-stage 0)'])
     add(st(4),['(up-full-reset-search)', '(up-set-target-point gl-row-x)', '(up-filter-distance c: -1 c: 6)',
-        '(up-find-local c: trade-cog-class c: 40)',*owner(), '(up-remove-objects search-local object-data-under-attack > 0)',
+        '(up-find-local c: trade-cog-class c: 40)', '(up-get-search-state local-total)',
+        '(up-modify-goal gl-row-diag-merchants g:= local-total)', *owner(),
+        '(up-remove-objects search-local object-data-under-attack > 0)',
         '(up-remove-objects search-local object-data-map-zone-id g:!= gl-row-zone)',
         *[f'(up-remove-objects search-local object-data-id g:== gl-row-m{i}-id)' for i in range(3)],
-        '(up-clean-search search-local object-data-distance search-order-asc)', '(set-goal gl-row-stage 5)'])
+        '(up-clean-search search-local object-data-distance search-order-asc)', '(up-get-search-state local-total)',
+        '(up-modify-goal gl-row-diag-merchant-eligible g:= local-total)', '(set-goal gl-row-stage 5)'])
+    add([*st(5),'(up-compare-goal gl-row-diag-left c:> 0)'],[
+        *diag(591,'gl-row-hull'), *diag(592,'gl-row-diag-merchants'),
+        *diag(593,'gl-row-diag-merchant-eligible'),
+        '(up-modify-goal gl-row-diag-left c:- 1)'])
     add([*st(5),'(up-set-target-object search-local c: 0)'],[
         '(up-get-object-data object-data-id gl-row-merchant)', '(up-get-point position-object gl-row-merchant-x)',
         '(up-copy-point gl-row-hold-x gl-row-merchant-x)', '(up-cross-tiles gl-row-hold-x gl-row-dest-x c: 12)',

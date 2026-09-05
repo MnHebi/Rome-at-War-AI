@@ -1516,6 +1516,77 @@
 ;The owner gate prevents migration from taking the shared placement channel
 ;while a colony Town Center is being placed or remains under construction.
 (defrule
+	(true)
+=>
+	(set-goal gl-mig-diag-left 40)
+	(set-goal gl-mig-diag-writer-left 24)
+	(set-goal gl-mig-diag-last-state -1)
+	(disable-self)
+)
+
+;One transition-latched lifecycle record per observed migration state.  This
+;has no search, group, timer, ownership, placement or command side effects.
+(defrule
+	(up-compare-goal gl-mig-diag-left c:> 0)
+	(up-compare-goal gl-island-migration-state g:!= gl-mig-diag-last-state)
+=>
+	(up-get-fact game-time 0 gl-mig-diag-clock)
+	(up-chat-data-to-all str-t12-diag-id c: 550)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-state)
+	(up-chat-data-to-all str-t12-diag-id c: 551)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-mission)
+	(up-chat-data-to-all str-t12-diag-id c: 552)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-chat-data-to-all str-t12-diag-id c: 553)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-load-target)
+	(up-chat-data-to-all str-t12-diag-id c: 554)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-load-observed)
+	(up-chat-data-to-all str-t12-diag-id c: 555)
+	(up-chat-data-to-all str-t12-diag-value g: gl-mig-diag-clock)
+	(up-modify-goal gl-mig-diag-last-state g:= gl-island-migration-state)
+	(up-modify-goal gl-mig-diag-left c:- 1)
+)
+
+;Admission fingerprint immediately before the existing gate acquisition.  The
+;original admission rule below remains independent of diagnostic exhaustion.
+(defrule
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)
+	(goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE)
+	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
+	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
+	(goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
+	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
+	(up-pending-objects c: town-center <= 0)
+	(not (up-pending-placement c: town-center))
+	(or
+		(up-timer-status t-transport-route != timer-triggered)
+		(or
+			(not (goal gl-assault-admission-open YES))
+			(or
+				(not (goal gl-home-defense-state NO))
+				(or
+					(unit-type-count transport-ship < 1)
+					(up-compare-goal gl-ap-seed-enemy c:< 1)
+				)
+			)
+		)
+	)
+	(up-compare-goal gl-mig-diag-left c:> 0)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 556)
+	(up-chat-data-to-all str-t12-diag-value c: 1)
+	(up-chat-data-to-all str-t12-diag-id c: 557)
+	(up-chat-data-to-all str-t12-diag-value g: gl-home-defense-state)
+	(up-chat-data-to-all str-t12-diag-id c: 558)
+	(up-chat-data-to-all str-t12-diag-value g: gl-transport-route-state)
+	(up-chat-data-to-all str-t12-diag-id c: 559)
+	(up-chat-data-to-all str-t12-diag-value g: gl-ap-seed-enemy)
+	(up-modify-goal gl-mig-diag-left c:- 1)
+)
+
+(defrule
 	(up-timer-status t-island-migration == timer-triggered)
 	(goal gl-island-migration-state MIGRATION-IDLE)
 	(goal gl-relic-ferry-state RELIC-FERRY-IDLE)
@@ -2314,6 +2385,20 @@
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-START)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 writer fingerprint: first hull/passenger rendezvous commands.
+	(up-chat-data-to-all str-t12-diag-id c: 560)
+	(up-chat-data-to-all str-t12-diag-value c: 20)
+	(up-chat-data-to-all str-t12-diag-id c: 563)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-chat-data-to-all str-t12-diag-id c: 562)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-load-target)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-START)
 =>
 	;The 120-second lease includes travel from both sides. It never replaces the
 	;existing 30-second local boarding deadline or the voyage watchdogs.
@@ -2465,6 +2550,22 @@
 	(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
 	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
 	(up-compare-goal gl-island-migration-load-target c:>= 2)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 writer fingerprint: accepted mining manifest board order.
+	(up-chat-data-to-all str-t12-diag-id c: 560)
+	(up-chat-data-to-all str-t12-diag-value c: 21)
+	(up-chat-data-to-all str-t12-diag-id c: 563)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-chat-data-to-all str-t12-diag-id c: 562)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-load-target)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
+	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+	(up-compare-goal gl-island-migration-load-target c:>= 2)
 =>
 	;OWNERSHIP command: migration-boarding-group.
 	(up-remove-objects search-local object-data-player != my-player-number)
@@ -2478,6 +2579,22 @@
 	(up-set-timer c: t-island-migration c: 30)
 	(up-set-timer c: t-island-migration-board-retry c: 3)
 	(set-goal gl-island-migration-state MIGRATION-LOADING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
+	(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
+	(up-compare-goal gl-island-migration-load-target c:>= 1)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 writer fingerprint: accepted scout manifest board order.
+	(up-chat-data-to-all str-t12-diag-id c: 560)
+	(up-chat-data-to-all str-t12-diag-value c: 22)
+	(up-chat-data-to-all str-t12-diag-id c: 563)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-chat-data-to-all str-t12-diag-id c: 562)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-load-target)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
 )
 
 (defrule
@@ -2694,6 +2811,21 @@
 (defrule
 	(goal gl-island-migration-state MIGRATION-LOAD-DIAG-APPLY)
 	(goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 writer fingerprint: bounded boarding renewal.
+	(up-chat-data-to-all str-t12-diag-id c: 560)
+	(up-chat-data-to-all str-t12-diag-value c: 23)
+	(up-chat-data-to-all str-t12-diag-id c: 561)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-load-candidate-id)
+	(up-chat-data-to-all str-t12-diag-id c: 563)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-LOAD-DIAG-APPLY)
+	(goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
 =>
 	;Continue the pre-existing three-second retry after the first bounded sample.
 	(up-full-reset-search)
@@ -2709,6 +2841,31 @@
 	(set-goal gl-island-migration-load-reported YES)
 	(up-set-timer c: t-island-migration-board-retry c: 3)
 	(set-goal gl-island-migration-state MIGRATION-LOADING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-LOAD-DIAG-APPLY)
+	(goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-PARTIAL)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 writer fingerprint: migration partial-load shore STOP.
+	(up-full-reset-search)
+	(fe-filter-garrisoned c: 1)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-mig-diag-count g:= local-total)
+	(up-chat-data-to-all str-t12-diag-id c: 560)
+	(up-chat-data-to-all str-t12-diag-value c: 5)
+	(up-chat-data-to-all str-t12-diag-id c: 561)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-load-candidate-id)
+	(up-chat-data-to-all str-t12-diag-id c: 562)
+	(up-chat-data-to-all str-t12-diag-value g: gl-mig-diag-count)
+	(up-chat-data-to-all str-t12-diag-id c: 563)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
 )
 
 (defrule
@@ -2739,6 +2896,24 @@
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-owner-worker-hold NO)
 	(set-goal gl-island-migration-state MIGRATION-SHORE-INIT)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-LOAD-DIAG-APPLY)
+	(goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-ABORT)
+	(up-compare-goal gl-island-migration-load-observed c:== 1)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 writer fingerprint: one-passenger abort shore STOP.
+	(up-chat-data-to-all str-t12-diag-id c: 560)
+	(up-chat-data-to-all str-t12-diag-value c: 6)
+	(up-chat-data-to-all str-t12-diag-id c: 561)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-load-candidate-id)
+	(up-chat-data-to-all str-t12-diag-id c: 562)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-load-remaining)
+	(up-chat-data-to-all str-t12-diag-id c: 563)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
 )
 
 (defrule
@@ -2777,6 +2952,24 @@
 	(goal gl-island-migration-state MIGRATION-LOAD-DIAG-APPLY)
 	(goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-ABORT)
 	(up-compare-goal gl-island-migration-load-observed c:<= 0)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 writer fingerprint: empty abort shore STOP.
+	(up-chat-data-to-all str-t12-diag-id c: 560)
+	(up-chat-data-to-all str-t12-diag-value c: 7)
+	(up-chat-data-to-all str-t12-diag-id c: 561)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-load-candidate-id)
+	(up-chat-data-to-all str-t12-diag-id c: 562)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-load-remaining)
+	(up-chat-data-to-all str-t12-diag-id c: 563)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-LOAD-DIAG-APPLY)
+	(goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-ABORT)
+	(up-compare-goal gl-island-migration-load-observed c:<= 0)
 =>
 	;Preserve the established empty abort and rejected-zone backoff.
 	(up-full-reset-search)
@@ -2798,6 +2991,21 @@
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 60)
 	(set-goal gl-island-migration-state MIGRATION-IDLE)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LOAD)
+	(not (up-set-target-object search-local c: 0))
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 writer fingerprint: transport-lost shore STOP.
+	(up-chat-data-to-all str-t12-diag-id c: 560)
+	(up-chat-data-to-all str-t12-diag-value c: 8)
+	(up-chat-data-to-all str-t12-diag-id c: 561)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-load-candidate-id)
+	(up-chat-data-to-all str-t12-diag-id c: 563)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
 )
 
 (defrule
@@ -3618,6 +3826,26 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
 	(goal gl-island-migration-load-reported YES)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 writer fingerprint: subsequent boarding renewal.
+	(up-get-object-data object-data-garrison-count gl-mig-diag-count)
+	(up-chat-data-to-all str-t12-diag-id c: 560)
+	(up-chat-data-to-all str-t12-diag-value c: 24)
+	(up-chat-data-to-all str-t12-diag-id c: 562)
+	(up-chat-data-to-all str-t12-diag-value g: gl-mig-diag-count)
+	(up-chat-data-to-all str-t12-diag-id c: 563)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LOAD)
+	(up-timer-status t-island-migration == timer-running)
+	(up-timer-status t-island-migration-board-retry == timer-triggered)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
+	(goal gl-island-migration-load-reported YES)
 =>
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
@@ -3681,6 +3909,26 @@
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(set-goal gl-island-migration-state MIGRATION-VERIFY-SCOUT-LANDING)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-VERIFY-SCOUT-LANDING)
+	(up-set-target-object search-local c: 0)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 writer fingerprint: landed scout stale-order STOP.
+	(up-get-object-data object-data-id gl-mig-diag-actor)
+	(up-get-object-data object-data-action gl-mig-diag-action)
+	(up-get-object-data object-data-target-id gl-mig-diag-order-target)
+	(up-chat-data-to-all str-t12-diag-id c: 560)
+	(up-chat-data-to-all str-t12-diag-value c: 9)
+	(up-chat-data-to-all str-t12-diag-id c: 561)
+	(up-chat-data-to-all str-t12-diag-value g: gl-mig-diag-actor)
+	(up-chat-data-to-all str-t12-diag-id c: 564)
+	(up-chat-data-to-all str-t12-diag-value g: gl-mig-diag-action)
+	(up-chat-data-to-all str-t12-diag-id c: 565)
+	(up-chat-data-to-all str-t12-diag-value g: gl-mig-diag-order-target)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
 )
 
 (defrule
@@ -4234,6 +4482,27 @@
 	(not (up-pending-placement c: mining-camp))
 	(up-can-build 0 c: mining-camp)
 	(up-can-build-line 0 gl-migration-build-x c: mining-camp)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 diagnostic-only: exact remote Mining Camp issuance site.
+	(up-chat-data-to-self str-t12-diag-id c: 560)
+	(up-chat-data-to-self str-t12-diag-value c: 30)
+	(up-chat-data-to-self str-t12-diag-value g: gl-island-migration-zone)
+	(up-chat-data-to-self str-t12-diag-value g: gl-island-migration-placement-attempts)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
+)
+
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+	(or
+		(goal gl-island-migration-anchor-class gold-mine-class)
+		(goal gl-island-migration-anchor-class stone-mine-class)
+	)
+	(up-pending-objects c: mining-camp <= 0)
+	(not (up-pending-placement c: mining-camp))
+	(up-can-build 0 c: mining-camp)
+	(up-can-build-line 0 gl-migration-build-x c: mining-camp)
 =>
 	;place-point queues an expanding search, not an exact foundation. T17's
 	;requests drifted 25-34 tiles from the resource and failed our 8-tile verifier.
@@ -4360,6 +4629,24 @@
 	(not (up-pending-placement c: lumber-camp))
 	(up-can-build 0 c: lumber-camp)
 	(up-can-build-line 0 gl-migration-build-x c: lumber-camp)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 diagnostic-only: exact remote Lumber Camp issuance site.
+	(up-chat-data-to-self str-t12-diag-id c: 560)
+	(up-chat-data-to-self str-t12-diag-value c: 31)
+	(up-chat-data-to-self str-t12-diag-value g: gl-island-migration-zone)
+	(up-chat-data-to-self str-t12-diag-value g: gl-island-migration-placement-attempts)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
+)
+
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+	(goal gl-island-migration-anchor-class tree-class)
+	(up-pending-objects c: lumber-camp <= 0)
+	(not (up-pending-placement c: lumber-camp))
+	(up-can-build 0 c: lumber-camp)
+	(up-can-build-line 0 gl-migration-build-x c: lumber-camp)
 =>
 	(up-copy-point gl-t12-drop-x gl-migration-build-x)
 	(up-build-line gl-migration-build-x gl-migration-build-x c: lumber-camp)
@@ -4368,6 +4655,27 @@
 	(up-chat-data-to-self "migration lumber camp attempt: %d" g: gl-island-migration-placement-attempts)
 	(up-set-timer c: t-island-migration c: 20)
 	(set-goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)
+)
+
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)
+	(or
+		(goal gl-island-migration-anchor-class forage-class)
+		(goal gl-island-migration-anchor-class prey-animal-class)
+	)
+	(up-pending-objects c: mill <= 0)
+	(not (up-pending-placement c: mill))
+	(up-can-build 0 c: mill)
+	(up-can-build-line 0 gl-migration-build-x c: mill)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 diagnostic-only: exact remote Mill issuance site.
+	(up-chat-data-to-self str-t12-diag-id c: 560)
+	(up-chat-data-to-self str-t12-diag-value c: 32)
+	(up-chat-data-to-self str-t12-diag-value g: gl-island-migration-zone)
+	(up-chat-data-to-self str-t12-diag-value g: gl-island-migration-placement-attempts)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
 )
 
 (defrule
@@ -4555,6 +4863,20 @@
 (defrule
 	(goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)
 	(up-set-target-object search-local c: 0)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 diagnostic-only: exact landed-builder assignment writer.
+	(up-chat-data-to-self str-t12-diag-id c: 560)
+	(up-chat-data-to-self str-t12-diag-value c: 26)
+	(up-get-object-data object-data-id gl-mig-diag-actor)
+	(up-chat-data-to-self str-t12-diag-value g: gl-mig-diag-actor)
+	(up-chat-data-to-self str-t12-diag-value g: gl-island-migration-dropsite-id)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)
+	(up-set-target-object search-local c: 0)
 =>
 	(up-get-object-data object-data-id gl-island-migration-dropsite-id)
 	(up-full-reset-search)
@@ -4708,6 +5030,18 @@
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-ASSIGN-RETASK-ANCHOR)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 diagnostic-only: exact post-foundation gather writer.
+	(up-chat-data-to-self str-t12-diag-id c: 560)
+	(up-chat-data-to-self str-t12-diag-value c: 27)
+	(up-chat-data-to-self str-t12-diag-value g: gl-island-migration-anchor-id)
+	(up-chat-data-to-self str-t12-diag-value g: gl-island-migration-zone)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-ASSIGN-RETASK-ANCHOR)
 =>
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
@@ -4726,6 +5060,18 @@
 	(up-chat-data-to-self "migration settlers retasked: %d" g: local-total)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-state MIGRATION-RELEASE-COLONY)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-RELEASE-COLONY)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 diagnostic-only: exact group release and hull-return writer.
+	(up-chat-data-to-self str-t12-diag-id c: 560)
+	(up-chat-data-to-self str-t12-diag-value c: 28)
+	(up-chat-data-to-self str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-chat-data-to-self str-t12-diag-value g: gl-island-migration-zone)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
 )
 
 (defrule
@@ -4820,6 +5166,19 @@
 =>
 	(up-chat-data-to-self "migration dropsite construction timeout: %d" g: gl-island-migration-dropsite-id)
 	(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 diagnostic-only: exact failed-drop-site recall/board writer.
+	(up-chat-data-to-self str-t12-diag-id c: 560)
+	(up-chat-data-to-self str-t12-diag-value c: 29)
+	(up-chat-data-to-self str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-chat-data-to-self str-t12-diag-value g: gl-island-migration-zone)
+	(up-chat-data-to-self str-t12-diag-value g: gl-island-migration-load-target)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
 )
 
 (defrule
@@ -5152,6 +5511,25 @@
 		(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT-FALLBACK)
 	)
 	(not (up-set-target-object search-local c: 0))
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 writer fingerprint: wrong-zone scout STOP.
+	(up-chat-data-to-all str-t12-diag-id c: 560)
+	(up-chat-data-to-all str-t12-diag-value c: 10)
+	(up-chat-data-to-all str-t12-diag-id c: 561)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-load-candidate-id)
+	(up-chat-data-to-all str-t12-diag-id c: 563)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
+)
+
+(defrule
+	(current-age < imperial-age)
+	(or
+		(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT)
+		(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT-FALLBACK)
+	)
+	(not (up-set-target-object search-local c: 0))
 =>
 	(up-chat-data-to-self "migration scout wrong zone: %d" g: gl-island-migration-zone)
 	(up-full-reset-search)
@@ -5217,6 +5595,23 @@
 	(up-compare-goal gl-island-migration-landing-zone g:== gl-island-migration-zone)
 	(up-set-target-object search-local c: 0)
 	(up-path-distance gl-island-migration-route-waypoint-x 0 != 65535)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 writer fingerprint: validated migration unload issuance.
+	(up-chat-data-to-all str-t12-diag-id c: 560)
+	(up-chat-data-to-all str-t12-diag-value c: 25)
+	(up-chat-data-to-all str-t12-diag-id c: 563)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-chat-data-to-all str-t12-diag-id c: 567)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-landing-attempts)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)
+	(up-compare-goal gl-island-migration-landing-zone g:== gl-island-migration-zone)
+	(up-set-target-object search-local c: 0)
+	(up-path-distance gl-island-migration-route-waypoint-x 0 != 65535)
 =>
 	;OWNERSHIP command: migration-transport-group.
 	(up-remove-objects search-local object-data-player != my-player-number)
@@ -5270,6 +5665,21 @@
 (defrule
 	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
 	(not (up-set-target-object search-local c: 0))
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 writer fingerprint: landing hull missing shore STOP.
+	(up-chat-data-to-all str-t12-diag-id c: 560)
+	(up-chat-data-to-all str-t12-diag-value c: 11)
+	(up-chat-data-to-all str-t12-diag-id c: 561)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-load-candidate-id)
+	(up-chat-data-to-all str-t12-diag-id c: 563)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
+)
+
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LANDING)
+	(not (up-set-target-object search-local c: 0))
 =>
 	(up-chat-data-to-self "migration transport missing: %d" g: gl-island-migration-transport-id)
 	(up-full-reset-search)
@@ -5291,6 +5701,23 @@
 ;Resolve every otherwise uncovered timeout against the exact reserved hull.
 ;Never publish IDLE merely because an asynchronous unload command was issued:
 ;the transport group remains owned until a later object check proves it empty.
+(defrule
+	(up-timer-status t-island-migration == timer-triggered)
+	(not (goal gl-island-migration-state MIGRATION-IDLE))
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 writer fingerprint: uncovered migration timeout STOP.
+	(up-chat-data-to-all str-t12-diag-id c: 560)
+	(up-chat-data-to-all str-t12-diag-value c: 12)
+	(up-chat-data-to-all str-t12-diag-id c: 561)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-load-candidate-id)
+	(up-chat-data-to-all str-t12-diag-id c: 563)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-chat-data-to-all str-t12-diag-id c: 566)
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-state)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
+)
+
 (defrule
 	(up-timer-status t-island-migration == timer-triggered)
 	(not (goal gl-island-migration-state MIGRATION-IDLE))
