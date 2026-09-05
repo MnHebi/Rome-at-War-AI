@@ -1,5 +1,51 @@
 # Rome at War AI handoff
 
+## CURRENT — T50 RUNTIME REPLAY ASSESSED, 2026-09-05
+
+- **Scope:** replay analysis and documentation only; no gameplay/generated PER
+  or deployment change. Canonical workspace remains
+  `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`, branch
+  `fix/trade-cog-cap-dacian`. Draft PR remains
+  `https://github.com/MnHebi/Rome-at-War-AI/pull/11`.
+- **Identity:** completed replay
+  `SP Replay v101.103.48987.0 @2026.09.05 173048.aoe2record`, SHA-256
+  `1B796446E790221433F14DBF1AA65AED2246933905267B667F466DD0E083CC1C`,
+  duration 69:18, Iberia, zero decoder failures. Marker
+  `RAWAI-P3B44T50:498` is replay-visible for Players 6-8; all players use
+  `AI RAW`, and the installed/source aggregate had already been verified at
+  `FEA37CD1D2ED54D49C1EB0D5A79608F25CD11A10CDE8C0EBFD774BC007A5B672`.
+- **T49 Shipyard admission retention — RUNTIME PASS.** Red progresses 64 -> 67
+  -> build -> reason 7 without returning through reason 1. Yellow also retains
+  geometric/foundation processing while issuing two builds.
+- **Shipyard throughput — PARTIAL PASS.** T50 issues 14 Shipyard build orders by
+  60:00 and 15 total across seven players, versus T48's nine across six. Six
+  players issue at least two by 60:00 and Red reaches two at 63:15. Green owns
+  two Ports but issues zero Shipyards, and first-yard latency is mixed.
+- **T50 near aperture — FIXED-PENDING-RUNTIME.** Reason 67 appears six times
+  across four players versus zero in T48, proving the water-exit rejection path
+  ran. The replay does not distinguish W5/W6 from the retained water checks or
+  prove every accepted site's aperture.
+- **Land trade — RUNTIME PASS.** All eight players exceed the three-Cart probe
+  ceiling; total production is 343 Carts. Green/Cyan/Gray also train 80 Merchant
+  Ships, preserving independent modalities. No right-of-way 420/421 pair fires,
+  so merchant-yield runtime acceptance remains pending.
+- **Landed combat continuation — RUNTIME FAIL / OPEN.** Blue reaches event 8
+  five times and Yellow three times, but no event 13, landed-combat target or
+  bounded issuance triplet occurs. Seven missions later terminate event 12;
+  the final mission starts at 68:42 and remains live at replay end. First
+  replay-visible divergence is post-landing target acquisition/issuance.
+- **Migration command flood — INVESTIGATING.** After Yellow hull 34890's second
+  path-clear landing at 44:05, the same settlers 32825/33303 receive 8,912
+  continuous STOP-706 packets from 44:15-46:15, plus two setup packets. Before
+  landing they receive 15,408 high-frequency ordinary orders toward object
+  32789. Blue settler 34149 separately receives 14,640 identical orders toward
+  33213 across two migration attempts. Actor/type/timing relationships are
+  exact; T50 lacks writer fingerprints, so producer attribution remains open.
+- **Detail:** `T50-RUNTIME-REPLAY-ASSESSMENT.md`. Raw replay/parser artifacts
+  remain outside the repository. Next work must start from these acceptance
+  statuses; do not call Shipyard aperture, merchant yielding, landed combat or
+  the command flood closed from this replay.
+
 ## CURRENT — T50:498 SHIPYARD THROUGHPUT/APERTURE DEPLOYED, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;

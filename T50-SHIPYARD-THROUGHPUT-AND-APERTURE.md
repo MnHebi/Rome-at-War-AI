@@ -155,3 +155,26 @@ A fresh marker-498 replay must demonstrate:
    worker ownership and foundation verification remain effective.
 
 Until that replay exists, T49 and T50 remain **FIXED-PENDING-RUNTIME**.
+
+## Completed T50 runtime assessment
+
+The fresh marker-498 replay now exists:
+`SP Replay v101.103.48987.0 @2026.09.05 173048.aoe2record`, SHA-256
+`1B796446E790221433F14DBF1AA65AED2246933905267B667F466DD0E083CC1C`.
+It runs 69:18 on Iberia and parses completely with zero decoder failures.
+
+T49 receives a runtime PASS: Red moves from reason 64 to reason 67, issues a
+different candidate and reaches reason 7 without returning through reason 1.
+Shipyard throughput is a partial pass: 14 orders across seven players by 60:00
+and 15 by replay end, versus T48's nine across six players. Six players issue at
+least two by 60:00 and Red reaches two at 63:15. Green owns two Ports but issues
+no Shipyard, so the no-zero-player criterion fails and first-yard latency remains
+mixed.
+
+T50 water-exit validation runs six times across four players, where T48 sampled
+none. That proves the rejection path is active but not that W5/W6 specifically
+rejected a throat or that every accepted site is open. T50 therefore remains
+**FIXED-PENDING-RUNTIME** for placement quality. The complete all-system replay
+assessment, including land trade, transport lifecycles, landed-combat failure
+and a newly isolated migration-settler command flood, is in
+`T50-RUNTIME-REPLAY-ASSESSMENT.md`.
