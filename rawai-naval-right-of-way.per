@@ -305,6 +305,691 @@
 )
 
 (defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-row-m0-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-class != trade-cog-class)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-row-m0-zone)
+	(up-set-target-point gl-row-m0-x)
+	(set-goal gl-row-found 0)
+	(set-goal gl-row-safe 0)
+)
+
+(defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
+	(up-set-target-object search-local c: 0)
+=>
+	(set-goal gl-row-found 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
+	(goal gl-row-found 0)
+=>
+	(set-goal gl-row-m0-hold-until 0)
+)
+
+(defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
+	(goal gl-row-found 1)
+	(goal gl-row-active 1)
+	(up-compare-goal gl-row-clock g:< gl-row-m0-hold-until)
+	(up-compare-goal gl-row-m0-renewals c:< 3)
+	(goal gl-row-issued 0)
+	(up-set-target-object search-local c: 0)
+	(or (up-object-data object-data-action == actionid-trade)
+	(or (and (up-object-data object-data-idling == 1) (up-object-data object-data-distance > 3))
+	(and (up-object-data object-data-action == actionid-move)
+		(or (up-object-data object-data-move-x g:!= gl-row-m0-x) (up-object-data object-data-move-y g:!= gl-row-m0-y)))))
+	(up-path-distance gl-row-m0-x 1 != 65535)
+=>
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-target-point gl-row-m0-x action-move -1 stance-no-attack)
+	(up-modify-goal gl-row-m0-renewals c:+ 1)
+	(set-goal gl-row-issued 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-action != actionid-trade)
+	(up-compare-goal gl-row-m0-target c:>= 0)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-row-m0-target)
+	(set-goal gl-row-safe 0)
+)
+
+(defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 1)
+	(or (stance-toward 1 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 2)
+	(or (stance-toward 2 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 3)
+	(or (stance-toward 3 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 4)
+	(or (stance-toward 4 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 5)
+	(or (stance-toward 5 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 6)
+	(or (stance-toward 6 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 7)
+	(or (stance-toward 7 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 8)
+	(or (stance-toward 8 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
+	(goal gl-row-found 1)
+	(goal gl-row-safe 1)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-reset-search 1 1 0 0)
+	(up-add-object-by-id search-local g: gl-row-m0-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-class != trade-cog-class)
+	(up-remove-objects search-local object-data-action == actionid-trade)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+)
+
+(defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
+=>
+	(set-goal gl-row-m0-hold-until 0)
+	(set-goal gl-row-m0-target -1)
+	(up-modify-goal gl-row-m0-next g:= gl-row-m0-until)
+)
+
+(defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
+	(goal gl-row-found 1)
+	(goal gl-row-active 1)
+	(up-compare-goal gl-row-clock g:< gl-row-m0-hold-until)
+	(up-compare-goal gl-row-m0-renewals c:< 3)
+=>
+	(up-modify-goal gl-row-m0-next g:= gl-row-clock)
+	(up-modify-goal gl-row-m0-next c:+ 8)
+)
+
+(defrule
+	(up-compare-goal gl-row-m0-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m0-until)
+=>
+	(set-goal gl-row-m0-id -1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-row-m1-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-class != trade-cog-class)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-row-m1-zone)
+	(up-set-target-point gl-row-m1-x)
+	(set-goal gl-row-found 0)
+	(set-goal gl-row-safe 0)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
+	(up-set-target-object search-local c: 0)
+=>
+	(set-goal gl-row-found 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
+	(goal gl-row-found 0)
+=>
+	(set-goal gl-row-m1-hold-until 0)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
+	(goal gl-row-found 1)
+	(goal gl-row-active 1)
+	(up-compare-goal gl-row-clock g:< gl-row-m1-hold-until)
+	(up-compare-goal gl-row-m1-renewals c:< 3)
+	(goal gl-row-issued 0)
+	(up-set-target-object search-local c: 0)
+	(or (up-object-data object-data-action == actionid-trade)
+	(or (and (up-object-data object-data-idling == 1) (up-object-data object-data-distance > 3))
+	(and (up-object-data object-data-action == actionid-move)
+		(or (up-object-data object-data-move-x g:!= gl-row-m1-x) (up-object-data object-data-move-y g:!= gl-row-m1-y)))))
+	(up-path-distance gl-row-m1-x 1 != 65535)
+=>
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-target-point gl-row-m1-x action-move -1 stance-no-attack)
+	(up-modify-goal gl-row-m1-renewals c:+ 1)
+	(set-goal gl-row-issued 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-action != actionid-trade)
+	(up-compare-goal gl-row-m1-target c:>= 0)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-row-m1-target)
+	(set-goal gl-row-safe 0)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 1)
+	(or (stance-toward 1 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 2)
+	(or (stance-toward 2 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 3)
+	(or (stance-toward 3 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 4)
+	(or (stance-toward 4 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 5)
+	(or (stance-toward 5 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 6)
+	(or (stance-toward 6 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 7)
+	(or (stance-toward 7 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 8)
+	(or (stance-toward 8 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
+	(goal gl-row-found 1)
+	(goal gl-row-safe 1)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-reset-search 1 1 0 0)
+	(up-add-object-by-id search-local g: gl-row-m1-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-class != trade-cog-class)
+	(up-remove-objects search-local object-data-action == actionid-trade)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
+=>
+	(set-goal gl-row-m1-hold-until 0)
+	(set-goal gl-row-m1-target -1)
+	(up-modify-goal gl-row-m1-next g:= gl-row-m1-until)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
+	(goal gl-row-found 1)
+	(goal gl-row-active 1)
+	(up-compare-goal gl-row-clock g:< gl-row-m1-hold-until)
+	(up-compare-goal gl-row-m1-renewals c:< 3)
+=>
+	(up-modify-goal gl-row-m1-next g:= gl-row-clock)
+	(up-modify-goal gl-row-m1-next c:+ 8)
+)
+
+(defrule
+	(up-compare-goal gl-row-m1-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m1-until)
+=>
+	(set-goal gl-row-m1-id -1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-row-m2-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-class != trade-cog-class)
+	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-row-m2-zone)
+	(up-set-target-point gl-row-m2-x)
+	(set-goal gl-row-found 0)
+	(set-goal gl-row-safe 0)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
+	(up-set-target-object search-local c: 0)
+=>
+	(set-goal gl-row-found 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
+	(goal gl-row-found 0)
+=>
+	(set-goal gl-row-m2-hold-until 0)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
+	(goal gl-row-found 1)
+	(goal gl-row-active 1)
+	(up-compare-goal gl-row-clock g:< gl-row-m2-hold-until)
+	(up-compare-goal gl-row-m2-renewals c:< 3)
+	(goal gl-row-issued 0)
+	(up-set-target-object search-local c: 0)
+	(or (up-object-data object-data-action == actionid-trade)
+	(or (and (up-object-data object-data-idling == 1) (up-object-data object-data-distance > 3))
+	(and (up-object-data object-data-action == actionid-move)
+		(or (up-object-data object-data-move-x g:!= gl-row-m2-x) (up-object-data object-data-move-y g:!= gl-row-m2-y)))))
+	(up-path-distance gl-row-m2-x 1 != 65535)
+=>
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-target-point gl-row-m2-x action-move -1 stance-no-attack)
+	(up-modify-goal gl-row-m2-renewals c:+ 1)
+	(set-goal gl-row-issued 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-action != actionid-trade)
+	(up-compare-goal gl-row-m2-target c:>= 0)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-row-m2-target)
+	(set-goal gl-row-safe 0)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 1)
+	(or (stance-toward 1 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 2)
+	(or (stance-toward 2 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 3)
+	(or (stance-toward 3 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 4)
+	(or (stance-toward 4 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 5)
+	(or (stance-toward 5 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 6)
+	(or (stance-toward 6 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 7)
+	(or (stance-toward 7 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
+	(goal gl-row-found 1)
+	(up-set-target-object search-remote c: 0)
+	(up-object-data object-data-type == dock)
+	(up-object-data object-data-status == status-ready)
+	(up-object-data object-data-player == 8)
+	(or (stance-toward 8 ally) (up-object-data object-data-player == my-player-number))
+=>
+	(set-goal gl-row-safe 1)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
+	(goal gl-row-found 1)
+	(goal gl-row-safe 1)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-reset-search 1 1 0 0)
+	(up-add-object-by-id search-local g: gl-row-m2-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-remove-objects search-local object-data-class != trade-cog-class)
+	(up-remove-objects search-local object-data-action == actionid-trade)
+	(up-target-objects 0 action-default -1 stance-no-attack)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
+	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
+=>
+	(set-goal gl-row-m2-hold-until 0)
+	(set-goal gl-row-m2-target -1)
+	(up-modify-goal gl-row-m2-next g:= gl-row-m2-until)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
+	(goal gl-row-found 1)
+	(goal gl-row-active 1)
+	(up-compare-goal gl-row-clock g:< gl-row-m2-hold-until)
+	(up-compare-goal gl-row-m2-renewals c:< 3)
+=>
+	(up-modify-goal gl-row-m2-next g:= gl-row-clock)
+	(up-modify-goal gl-row-m2-next c:+ 8)
+)
+
+(defrule
+	(up-compare-goal gl-row-m2-id c:>= 0)
+	(up-compare-goal gl-row-clock g:>= gl-row-m2-until)
+=>
+	(set-goal gl-row-m2-id -1)
+)
+
+(defrule
+	(goal gl-row-stage 4)
+	(goal gl-row-issued 1)
+=>
+	(set-goal gl-row-stage 0)
+)
+
+(defrule
 	(goal gl-row-stage 4)
 	(up-compare-goal gl-row-stalls c:< 2)
 =>
@@ -1242,676 +1927,4 @@
 	(goal gl-row-stage 8)
 =>
 	(set-goal gl-row-stage 0)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
-=>
-	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-row-m0-id)
-	(up-remove-objects search-local object-data-player != my-player-number)
-	(up-remove-objects search-local object-data-group-flag >= 0)
-	(up-remove-objects search-local object-data-class != trade-cog-class)
-	(up-remove-objects search-local object-data-under-attack > 0)
-	(up-remove-objects search-local object-data-map-zone-id g:!= gl-row-m0-zone)
-	(up-set-target-point gl-row-m0-x)
-	(set-goal gl-row-found 0)
-	(set-goal gl-row-safe 0)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
-	(up-set-target-object search-local c: 0)
-=>
-	(set-goal gl-row-found 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
-	(goal gl-row-found 0)
-=>
-	(set-goal gl-row-m0-hold-until 0)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
-	(goal gl-row-found 1)
-	(goal gl-row-active 1)
-	(up-compare-goal gl-row-clock g:< gl-row-m0-hold-until)
-	(up-compare-goal gl-row-m0-renewals c:< 3)
-	(goal gl-row-issued 0)
-	(up-set-target-object search-local c: 0)
-	(or (up-object-data object-data-action == actionid-trade)
-	(and (up-object-data object-data-idling == 1) (up-object-data object-data-distance > 3)))
-	(up-path-distance gl-row-m0-x 1 != 65535)
-=>
-	(up-remove-objects search-local object-data-player != my-player-number)
-	(up-remove-objects search-local object-data-group-flag >= 0)
-	(up-target-point gl-row-m0-x action-move -1 stance-no-attack)
-	(up-modify-goal gl-row-m0-renewals c:+ 1)
-	(set-goal gl-row-issued 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-action != actionid-trade)
-	(up-compare-goal gl-row-m0-target c:>= 0)
-=>
-	(up-full-reset-search)
-	(up-add-object-by-id search-remote g: gl-row-m0-target)
-	(set-goal gl-row-safe 0)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 1)
-	(or (stance-toward 1 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 2)
-	(or (stance-toward 2 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 3)
-	(or (stance-toward 3 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 4)
-	(or (stance-toward 4 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 5)
-	(or (stance-toward 5 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 6)
-	(or (stance-toward 6 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 7)
-	(or (stance-toward 7 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 8)
-	(or (stance-toward 8 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
-	(goal gl-row-found 1)
-	(goal gl-row-safe 1)
-	(up-set-target-object search-remote c: 0)
-=>
-	(up-reset-search 1 1 0 0)
-	(up-add-object-by-id search-local g: gl-row-m0-id)
-	(up-remove-objects search-local object-data-player != my-player-number)
-	(up-remove-objects search-local object-data-group-flag >= 0)
-	(up-remove-objects search-local object-data-class != trade-cog-class)
-	(up-remove-objects search-local object-data-action == actionid-trade)
-	(up-target-objects 0 action-default -1 stance-no-attack)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m0-hold-until))
-=>
-	(set-goal gl-row-m0-hold-until 0)
-	(set-goal gl-row-m0-target -1)
-	(up-modify-goal gl-row-m0-next g:= gl-row-m0-until)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
-	(goal gl-row-found 1)
-	(goal gl-row-active 1)
-	(up-compare-goal gl-row-clock g:< gl-row-m0-hold-until)
-	(up-compare-goal gl-row-m0-renewals c:< 3)
-=>
-	(up-modify-goal gl-row-m0-next g:= gl-row-clock)
-	(up-modify-goal gl-row-m0-next c:+ 8)
-)
-
-(defrule
-	(up-compare-goal gl-row-m0-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m0-until)
-=>
-	(set-goal gl-row-m0-id -1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
-=>
-	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-row-m1-id)
-	(up-remove-objects search-local object-data-player != my-player-number)
-	(up-remove-objects search-local object-data-group-flag >= 0)
-	(up-remove-objects search-local object-data-class != trade-cog-class)
-	(up-remove-objects search-local object-data-under-attack > 0)
-	(up-remove-objects search-local object-data-map-zone-id g:!= gl-row-m1-zone)
-	(up-set-target-point gl-row-m1-x)
-	(set-goal gl-row-found 0)
-	(set-goal gl-row-safe 0)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
-	(up-set-target-object search-local c: 0)
-=>
-	(set-goal gl-row-found 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
-	(goal gl-row-found 0)
-=>
-	(set-goal gl-row-m1-hold-until 0)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
-	(goal gl-row-found 1)
-	(goal gl-row-active 1)
-	(up-compare-goal gl-row-clock g:< gl-row-m1-hold-until)
-	(up-compare-goal gl-row-m1-renewals c:< 3)
-	(goal gl-row-issued 0)
-	(up-set-target-object search-local c: 0)
-	(or (up-object-data object-data-action == actionid-trade)
-	(and (up-object-data object-data-idling == 1) (up-object-data object-data-distance > 3)))
-	(up-path-distance gl-row-m1-x 1 != 65535)
-=>
-	(up-remove-objects search-local object-data-player != my-player-number)
-	(up-remove-objects search-local object-data-group-flag >= 0)
-	(up-target-point gl-row-m1-x action-move -1 stance-no-attack)
-	(up-modify-goal gl-row-m1-renewals c:+ 1)
-	(set-goal gl-row-issued 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-action != actionid-trade)
-	(up-compare-goal gl-row-m1-target c:>= 0)
-=>
-	(up-full-reset-search)
-	(up-add-object-by-id search-remote g: gl-row-m1-target)
-	(set-goal gl-row-safe 0)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 1)
-	(or (stance-toward 1 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 2)
-	(or (stance-toward 2 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 3)
-	(or (stance-toward 3 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 4)
-	(or (stance-toward 4 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 5)
-	(or (stance-toward 5 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 6)
-	(or (stance-toward 6 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 7)
-	(or (stance-toward 7 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 8)
-	(or (stance-toward 8 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
-	(goal gl-row-found 1)
-	(goal gl-row-safe 1)
-	(up-set-target-object search-remote c: 0)
-=>
-	(up-reset-search 1 1 0 0)
-	(up-add-object-by-id search-local g: gl-row-m1-id)
-	(up-remove-objects search-local object-data-player != my-player-number)
-	(up-remove-objects search-local object-data-group-flag >= 0)
-	(up-remove-objects search-local object-data-class != trade-cog-class)
-	(up-remove-objects search-local object-data-action == actionid-trade)
-	(up-target-objects 0 action-default -1 stance-no-attack)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m1-hold-until))
-=>
-	(set-goal gl-row-m1-hold-until 0)
-	(set-goal gl-row-m1-target -1)
-	(up-modify-goal gl-row-m1-next g:= gl-row-m1-until)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
-	(goal gl-row-found 1)
-	(goal gl-row-active 1)
-	(up-compare-goal gl-row-clock g:< gl-row-m1-hold-until)
-	(up-compare-goal gl-row-m1-renewals c:< 3)
-=>
-	(up-modify-goal gl-row-m1-next g:= gl-row-clock)
-	(up-modify-goal gl-row-m1-next c:+ 8)
-)
-
-(defrule
-	(up-compare-goal gl-row-m1-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m1-until)
-=>
-	(set-goal gl-row-m1-id -1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
-=>
-	(up-full-reset-search)
-	(up-add-object-by-id search-local g: gl-row-m2-id)
-	(up-remove-objects search-local object-data-player != my-player-number)
-	(up-remove-objects search-local object-data-group-flag >= 0)
-	(up-remove-objects search-local object-data-class != trade-cog-class)
-	(up-remove-objects search-local object-data-under-attack > 0)
-	(up-remove-objects search-local object-data-map-zone-id g:!= gl-row-m2-zone)
-	(up-set-target-point gl-row-m2-x)
-	(set-goal gl-row-found 0)
-	(set-goal gl-row-safe 0)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
-	(up-set-target-object search-local c: 0)
-=>
-	(set-goal gl-row-found 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
-	(goal gl-row-found 0)
-=>
-	(set-goal gl-row-m2-hold-until 0)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
-	(goal gl-row-found 1)
-	(goal gl-row-active 1)
-	(up-compare-goal gl-row-clock g:< gl-row-m2-hold-until)
-	(up-compare-goal gl-row-m2-renewals c:< 3)
-	(goal gl-row-issued 0)
-	(up-set-target-object search-local c: 0)
-	(or (up-object-data object-data-action == actionid-trade)
-	(and (up-object-data object-data-idling == 1) (up-object-data object-data-distance > 3)))
-	(up-path-distance gl-row-m2-x 1 != 65535)
-=>
-	(up-remove-objects search-local object-data-player != my-player-number)
-	(up-remove-objects search-local object-data-group-flag >= 0)
-	(up-target-point gl-row-m2-x action-move -1 stance-no-attack)
-	(up-modify-goal gl-row-m2-renewals c:+ 1)
-	(set-goal gl-row-issued 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-action != actionid-trade)
-	(up-compare-goal gl-row-m2-target c:>= 0)
-=>
-	(up-full-reset-search)
-	(up-add-object-by-id search-remote g: gl-row-m2-target)
-	(set-goal gl-row-safe 0)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 1)
-	(or (stance-toward 1 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 2)
-	(or (stance-toward 2 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 3)
-	(or (stance-toward 3 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 4)
-	(or (stance-toward 4 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 5)
-	(or (stance-toward 5 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 6)
-	(or (stance-toward 6 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 7)
-	(or (stance-toward 7 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
-	(goal gl-row-found 1)
-	(up-set-target-object search-remote c: 0)
-	(up-object-data object-data-type == dock)
-	(up-object-data object-data-status == status-ready)
-	(up-object-data object-data-player == 8)
-	(or (stance-toward 8 ally) (up-object-data object-data-player == my-player-number))
-=>
-	(set-goal gl-row-safe 1)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
-	(goal gl-row-found 1)
-	(goal gl-row-safe 1)
-	(up-set-target-object search-remote c: 0)
-=>
-	(up-reset-search 1 1 0 0)
-	(up-add-object-by-id search-local g: gl-row-m2-id)
-	(up-remove-objects search-local object-data-player != my-player-number)
-	(up-remove-objects search-local object-data-group-flag >= 0)
-	(up-remove-objects search-local object-data-class != trade-cog-class)
-	(up-remove-objects search-local object-data-action == actionid-trade)
-	(up-target-objects 0 action-default -1 stance-no-attack)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
-	(or (goal gl-row-active 0) (up-compare-goal gl-row-clock g:>= gl-row-m2-hold-until))
-=>
-	(set-goal gl-row-m2-hold-until 0)
-	(set-goal gl-row-m2-target -1)
-	(up-modify-goal gl-row-m2-next g:= gl-row-m2-until)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
-	(goal gl-row-found 1)
-	(goal gl-row-active 1)
-	(up-compare-goal gl-row-clock g:< gl-row-m2-hold-until)
-	(up-compare-goal gl-row-m2-renewals c:< 3)
-=>
-	(up-modify-goal gl-row-m2-next g:= gl-row-clock)
-	(up-modify-goal gl-row-m2-next c:+ 8)
-)
-
-(defrule
-	(up-compare-goal gl-row-m2-id c:>= 0)
-	(up-compare-goal gl-row-clock g:>= gl-row-m2-until)
-=>
-	(set-goal gl-row-m2-id -1)
 )

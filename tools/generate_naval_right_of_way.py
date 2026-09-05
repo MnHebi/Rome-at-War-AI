@@ -57,10 +57,12 @@ def generate():
         add([*live,'(goal gl-row-found 0)'],[f'(set-goal {m}-hold-until 0)'])
         holding=[*live,'(goal gl-row-found 1)', '(goal gl-row-active 1)',
                  f'(up-compare-goal gl-row-clock g:< {m}-hold-until)', f'(up-compare-goal {m}-renewals c:< 3)']
-        # Do not reissue to an already moving merchant. Only native reacquisition
-        # or idling short of the holding point requires a bounded renewal.
+        # Do not accept action-move by itself as proof that the yield survived.
+        # Native trade may replace our single-hull order with a fleet MOVE in the
+        # same second. Renew only when that MOVE no longer targets this record's
+        # holding point, or when native trade/idle reacquisition is visible.
         add([*holding,'(goal gl-row-issued 0)', '(up-set-target-object search-local c: 0)',
-             '(or (up-object-data object-data-action == actionid-trade)\n\t(and (up-object-data object-data-idling == 1) (up-object-data object-data-distance > 3)))',
+             f'(or (up-object-data object-data-action == actionid-trade)\n\t(or (and (up-object-data object-data-idling == 1) (up-object-data object-data-distance > 3))\n\t(and (up-object-data object-data-action == actionid-move)\n\t\t(or (up-object-data object-data-move-x g:!= {m}-x) (up-object-data object-data-move-y g:!= {m}-y)))))',
              f'(up-path-distance {m}-x 1 != 65535)'], [*owner(),
             f'(up-target-point {m}-x action-move -1 stance-no-attack)', f'(up-modify-goal {m}-renewals c:+ 1)', '(set-goal gl-row-issued 1)'])
         release=[*live, '(or (goal gl-row-active 0) '+f'(up-compare-goal gl-row-clock g:>= {m}-hold-until))']
@@ -138,6 +140,10 @@ def generate():
         add([*st(3),condition],end())
     add(st(3),['(up-modify-goal gl-row-stalls c:+ 1)', '(up-copy-point gl-row-last-x gl-row-x)',
         '(up-copy-point gl-row-old-dest-x gl-row-dest-x)', '(set-goal gl-row-stage 4)'])
+    # Hull progress/intent was remeasured above. Repair a due, overwritten hold
+    # before consuming another one-at-a-time clearance attempt on a new merchant.
+    out.extend(holds)
+    add([*st(4),'(goal gl-row-issued 1)'],['(set-goal gl-row-stage 0)'])
     add([*st(4),'(up-compare-goal gl-row-stalls c:< 2)'],['(set-goal gl-row-stage 0)'])
     add([*st(4),'(up-compare-goal gl-row-tries c:>= 3)'],end())
     add(st(4),['(set-goal gl-row-found 0)'])
@@ -211,8 +217,6 @@ def generate():
             f'(up-modify-goal gl-row-ban{i}-until c:+ 180)','(set-goal gl-row-found 1)'])
     add(st(9),['(set-goal gl-row-stage 0)'])
     add(st(8),['(set-goal gl-row-stage 0)'])
-    # The hull progress sample runs BEFORE any holding renewal/resume command.
-    out.extend(holds)
     return '\n\n'.join(out)+'\n'
 
 

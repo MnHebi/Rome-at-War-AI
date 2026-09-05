@@ -16,6 +16,12 @@ class Traffic(CoastalFixture):
     def movements(self):
         return [c for c in self.commands if c[0] and c[1]=='action-move']
 
+    def data(self,field,target=False):
+        if field in ('object-data-move-x','object-data-move-y'):
+            return self.objects[self.target].get(
+                {'object-data-move-x':'move_x','object-data-move-y':'move_y'}[field],-1)
+        return super().data(field,target)
+
 
 class RightOfWayTests(unittest.TestCase):
     def test_generated(self):
@@ -43,7 +49,8 @@ class RightOfWayTests(unittest.TestCase):
             # The engine accepted the move; don't count fixture immobility as
             # native reacquisition. Other active merchants keep blocking.
             command=f.movements()[-1]
-            for i in command[0]:f.objects[i].update(point=command[2],action='actionid-move')
+            for i in command[0]:f.objects[i].update(point=command[2],action='actionid-move',
+                move_x=command[2][0],move_y=command[2][1])
         self.assertEqual({c[0] for c in f.movements()},{(20,),(21,),(22,)})
         for _ in range(10):f.sweep(8)
         self.assertEqual(len(f.movements()),3)
@@ -62,6 +69,28 @@ class RightOfWayTests(unittest.TestCase):
         self.assertLessEqual(len(f.movements()),4) # one initial + three maximum renewals
         self.assertFalse(any('action-stop' in c for c in f.commands))
         self.assertEqual(f.g['gl-row-m0-target'],-1)
+
+    def test_native_fleet_move_override_repairs_same_merchant_before_advancing(self):
+        f=Traffic(count=3);f.sweep();f.sweep(8);f.sweep(8)
+        self.assertEqual([c[0] for c in f.movements()],[(20,)])
+        hold=(f.g['gl-row-m0-x'],f.g['gl-row-m0-y'])
+        # Runtime T41 issued the single-merchant hold, then native trade replaced
+        # it in the same second with a fleet MOVE to a different destination.
+        f.objects[20].update(action='actionid-move',move_x=1,move_y=143,idle=0)
+        f.sweep(8)
+        self.assertEqual([c[0] for c in f.movements()],[(20,),(20,)])
+        self.assertEqual(f.movements()[-1][2],hold)
+        self.assertEqual(f.g['gl-row-m0-renewals'],1)
+        self.assertEqual(f.g['gl-row-m1-id'],-1)
+
+    def test_correct_hold_destination_does_not_spam_renewal(self):
+        f=Traffic(count=3);f.sweep();f.sweep(8);f.sweep(8)
+        f.objects[20].update(action='actionid-move',
+            move_x=f.g['gl-row-m0-x'],move_y=f.g['gl-row-m0-y'],idle=0)
+        f.sweep(8)
+        self.assertEqual(sum(c[0]==(20,) for c in f.movements()),1)
+        self.assertEqual(f.g['gl-row-m0-renewals'],0)
+        self.assertTrue(any(c[0]==(21,) for c in f.movements()))
 
     def test_wrong_zone_hostile_holding_and_unreachable_point_rejected(self):
         for case in ('zone','path','castle','town-center','sea-tower'):
