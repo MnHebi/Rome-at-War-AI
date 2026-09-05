@@ -64,11 +64,11 @@ class RightOfWayTests(unittest.TestCase):
         self.assertEqual(f.g['gl-row-m0-target'],-1)
 
     def test_wrong_zone_hostile_holding_and_unreachable_point_rejected(self):
-        for case in ('zone','path','hostile'):
+        for case in ('zone','path','castle','town-center','sea-tower'):
             f=Traffic()
             if case=='zone':f.zone_at=lambda p:3
             if case=='path':f.pathable=lambda o,p,exact:False
-            if case=='hostile':f.add(100,'castle',(81,81),player=7)
+            if case in ('castle','town-center','sea-tower'):f.add(100,case,(81,81),player=7)
             f.sweep();f.sweep(8);f.sweep(8)
             self.assertEqual(f.movements(),[],case)
 

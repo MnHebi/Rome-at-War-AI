@@ -175,6 +175,7 @@ def generate():
                 f'(set-strategic-number sn-focus-player-number {p})', '(up-full-reset-search)',
                 '(up-set-target-point gl-row-hold-x)', '(up-filter-distance c: -1 c: 14)',
                 '(up-find-remote c: warship-class c: 40)', '(up-find-remote c: tower-class c: 40)',
+                '(up-find-remote c: sea-tower c: 40)', '(up-find-remote c: town-center c: 40)',
                 '(up-find-remote c: castle c: 40)', '(up-get-search-state local-total)'])
             add([*check,f'(stance-toward {p} enemy)', '(up-compare-goal remote-total c:> 0)'],['(set-goal gl-row-safe 0)'])
         add(check,['(up-modify-sn sn-focus-player-number g:= gl-row-focus)'])
