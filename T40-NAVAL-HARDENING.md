@@ -94,9 +94,59 @@ with no valid movement intent or within the six-tile near-endpoint margin.
 Native trade may reacquire between bounded samples; the fixture exercises that
 case but engine proof is still required. Owned merchants are never commandeered.
 
-## Expedition throughput
+## Expedition throughput — FIXED-PENDING-RUNTIME
 
-INVESTIGATING: three slots already release preparation one second after dispatch.
-Fresh manifest admission nevertheless requires aggregate land superiority >=
-TOLERABLE, even when an isolated home has a large free idle army. A narrow
-safety/reserve-gated exception is being implemented; no new slot/cadence/planner.
+**Source cause / boundary.** The three slots already release preparation one
+second after dispatch. Empty-slot admission separately protects migration,
+relic, recovery, repair, home defense, hull availability, target seed and timer
+ownership. Those guards remain. The first fresh-manifest rule nevertheless
+requires aggregate land superiority >= TOLERABLE, computed from team/enemy land
+strength, even when a safe island has surplus idle soldiers. Loaded intake does
+not have that additional gate. This is a source-visible utilization boundary,
+not proof that it explains every player in a replay. Type-wide native attack
+exclusions and the shared preparation lane remain separate potential blockers.
+
+**Change.** Only that fresh-admission condition gains a safety/reserve exception.
+A 30-second read-only census uses a real home worker for up to four cross-zone
+path queries per living enemy; all candidates returned in the bounded remote
+search are first checked for the conservative home-zone veto. A stale census
+expires after 35 seconds. Initial/home-attack/near-coast naval threat requires
+180 quiet game seconds. Existing verified-home-threat flags veto immediately.
+The exception also requires an existing viable enemy seed, a Transport, two
+warships and naval superiority >= TOLERABLE. No new target, beach or mission is
+invented and no dispatched hull is recalled by this module.
+
+Every actual manifest separately counts eligible free, idle, ungarrisoned,
+unthreatened home troops by class (up to the documented 240 local search results
+per class). It retains at least 12 or one quarter of that census at EQUAL or
+better sea control. At merely TOLERABLE sea control it retains at least 20 or
+half, and caps the lift at five. Existing useful-partial admission still applies;
+fewer than five surplus troops cannot produce an accepted assault. One eligible
+siege engine is retained; existing Palintonon exclusions also remain. Already
+owned, busy and overseas soldiers are not treated as free home reserves.
+Ordinary admission remains available when the exception is off. Thresholds are
+explicit requested policy tuning, not engine constants or replay-proven optima.
+
+**Reinforcement / preserved behavior.** Freed slots use the existing one-second
+preparation reuse, persistent preferred enemy, failure rotation and fresh
+shore/screen/danger validation. There is no cached successful beach that bypasses
+those checks, no fourth slot and no broadened commandeering of busy troops.
+Migration/relic sharing, useful partials and sealed mission records are unchanged.
+Diagnostic ID 430 reports rate-limited exception eligibility transitions only.
+
+**Focused validation PASS:** 11 executable-PER/integrated fixtures cover the
+inferior-land-strength admission difference, quiet dwell and immediate threat
+veto, reachable enemies across engine zones, the fifth home-zone candidate,
+expired census, missing workers/hulls, naval inferiority/pressure, large-army
+reserve accounting, mixed/siege manifests, protected passengers, three-slot
+independence/reuse and unchanged failed-shore planning.
+
+**Runtime acceptance / unresolved boundary.** Demonstrate repeated AI-owned
+surplus lifts from a safe isolated home, all three slots used/reused when demand
+and ships permit, useful reserves left home, no threatened-home drain, continued
+migration/relic participation and no dangerous-route bypass. Searches remain
+visibility-limited and bounded: remote lists hold at most 40 objects and four
+cross-zone probes do not establish complete map connectivity. A missing worker
+or no suitable known objective closes this exception. The source gate is fixed;
+three-slot productive saturation and the share of real idleness attributable to
+other ownership/preparation gates remain unproven until a fresh replay.

@@ -5944,6 +5944,7 @@
 ;destination is rebuilt from an observed enemy anchor (or the enemy start as a
 ;fallback), so an engine-generated waypoint on an unrelated islet is rejected.
 (load "rawai-assault-admission")
+(load "rawai-expedition-admission")
 ;Sparse assault-admission diagnostics.  T25 proves that Green and Purple can
 ;remain entirely upstream of the existing load/plan telemetry.  Sample the
 ;outer gate once per minute and publish only a mask/stage transition, using the
@@ -6232,7 +6233,7 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-FIND)
 	(not (up-set-target-object search-remote c: 0))
 	(up-compare-goal gl-home-zone c:>= 0)
-	(up-compare-goal military-superiority c:>= TOLERABLE)
+	(or (up-compare-goal military-superiority c:>= TOLERABLE) (goal gl-exp-allowed YES))
 	(soldier-count g:>= gl-ten-percent)
 	(goal gl-ally-help-state ALLY-HELP-IDLE)
 =>
@@ -6303,8 +6304,17 @@
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-FIND)
 =>
+	(set-goal gl-exp-manifest-limit 10)
+	(set-goal gl-exp-siege-keep -1)
+)
+(load "rawai-expedition-budget")
+
+(defrule
+	(goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-FIND)
+=>
 	(up-modify-goal gl-transport-route-load-target g:= gl-transport-capacity)
 	(up-modify-goal gl-transport-route-load-target c:min 10)
+	(up-modify-goal gl-transport-route-load-target g:min gl-exp-manifest-limit)
 	(up-modify-group-flag 0 c: attack-boarding-group)
 	(up-reset-group c: attack-boarding-group)
 	(up-full-reset-search)
@@ -6323,6 +6333,7 @@
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-order == orderid-enter)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-home-zone)
+	(up-remove-objects search-local object-data-id g:== gl-exp-siege-keep)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= gl-transport-route-load-target)
 	(up-remove-objects search-local object-data-player != my-player-number)
