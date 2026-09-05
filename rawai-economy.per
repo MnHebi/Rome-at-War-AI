@@ -1700,8 +1700,10 @@
 )
 
 ;Complete topology refresh. The two source rules differ only in which known
-;self land zone anchors the Market census. Published route flags are not used as
-;the iterator, so one modality cannot suppress the other.
+;self land anchor seeds the Market census. Persist that anchor and the producer
+;count: shared DUC search lists cannot be consumed by a later rule sweep.
+;Published route flags are not used as the iterator, so one modality cannot
+;suppress the other.
 (defrule
 	(current-age >= early-antiquity-age)
 	(goal team-game YES)
@@ -1712,6 +1714,8 @@
 =>
 	(up-modify-goal gl-trade-route-focus s:= sn-focus-player-number)
 	(up-modify-goal gl-trade-land-zone g:= gl-home-zone)
+	(up-modify-goal gl-trade-land-source-x g:= gl-home-anchor-x)
+	(up-modify-goal gl-trade-land-source-y g:= gl-home-anchor-y)
 	(set-goal gl-trade-land-mask 0)
 	(set-goal gl-trade-water-mask 0)
 	(set-goal gl-trade-scan-count 0)
@@ -1741,6 +1745,8 @@
 =>
 	(up-modify-goal gl-trade-route-focus s:= sn-focus-player-number)
 	(up-modify-goal gl-trade-land-zone g:= gl-island-colony-zone)
+	(up-modify-goal gl-trade-land-source-x g:= gl-island-colony-x)
+	(up-modify-goal gl-trade-land-source-y g:= gl-island-colony-y)
 	(set-goal gl-trade-land-mask 0)
 	(set-goal gl-trade-water-mask 0)
 	(set-goal gl-trade-scan-count 0)
@@ -1762,10 +1768,9 @@
 
 (defrule
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-SOURCE)
-	(up-set-target-object search-local c: 0)
+	(up-compare-goal gl-trade-land-producer-total c:> 0)
 	(up-compare-goal gl-trade-valid-producer-total g:== gl-trade-land-producer-total)
 =>
-	(up-get-point position-object gl-trade-land-source-x)
 	(up-find-player ally find-ordered gl-trade-route-player)
 	(up-modify-goal gl-trade-route-first g:= gl-trade-route-player)
 	(set-goal gl-trade-scan-count 0)
@@ -1775,7 +1780,7 @@
 (defrule
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-SOURCE)
 	(or
-		(not (up-set-target-object search-local c: 0))
+		(up-compare-goal gl-trade-land-producer-total c:<= 0)
 		(up-compare-goal gl-trade-valid-producer-total g:!= gl-trade-land-producer-total)
 	)
 =>

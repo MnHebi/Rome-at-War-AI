@@ -1,9 +1,44 @@
-"""Mechanical contract for the T38 per-ally trade topology state machine."""
+"""Executable and mechanical contracts for the land/water trade topology."""
+import operator
 import re
 import unittest
 
-from test_pre_backlog import source
+from test_pre_backlog import expressions, source
 from validate_naval_doctrine import rule_blocks
+
+
+CMP = {'==': operator.eq, '!=': operator.ne, '>': operator.gt,
+       '>=': operator.ge, '<': operator.lt, '<=': operator.le}
+CONSTANTS = {name: int(value) for name, value in re.findall(
+    r"\(defconst ([\w-]+) (-?\d+)\)", source("rawai-customconstants.per"))}
+
+
+class SourceGate:
+    """Small fixture which deliberately models a clobbered shared DUC list."""
+
+    def __init__(self, **goals):
+        self.goals = goals
+
+    def value(self, token):
+        if re.fullmatch(r"-?\d+", token):
+            return int(token)
+        return self.goals.get(token, CONSTANTS.get(token, token))
+
+    def fact(self, expr):
+        op, *args = expr
+        if op == "or":
+            return any(self.fact(item) for item in args)
+        if op == "goal":
+            return self.value(args[0]) == self.value(args[1])
+        if op == "up-compare-goal":
+            return CMP[args[1].split(":")[-1]](
+                self.value(args[0]), self.value(args[2]))
+        if op == "up-set-target-object":
+            return False
+        raise AssertionError("unmodelled land-source fact: " + repr(expr))
+
+    def accepts(self, facts):
+        return all(self.fact(expr) for expr in expressions(facts))
 
 
 def rules(name="rawai-economy.per"):
@@ -45,7 +80,33 @@ class TradeTopologyTests(unittest.TestCase):
         for name, value in expected.items():
             self.assertEqual(found.get(name), value, name)
             self.assertIn(f"(set-goal {name} ", self.init)
-        self.assertIn('RAWAI-P3B44T42: %d" c: 490', self.init)
+        self.assertIn('RAWAI-P3B44T43: %d" c: 491', self.init)
+
+    def test_clobbered_shared_search_cannot_block_land_scan_start(self):
+        rows = matching(
+            facts=("TRADE-ROUTE-LAND-SOURCE",),
+            actions=("up-find-player ally find-ordered gl-trade-route-player",
+                     "TRADE-ROUTE-LAND-START"))
+        self.assertEqual(len(rows), 1)
+        facts = rows[0][3]
+        gate = SourceGate(**{
+            "gl-trade-route-state": CONSTANTS["TRADE-ROUTE-LAND-SOURCE"],
+            "gl-trade-land-producer-total": 1,
+            "gl-trade-valid-producer-total": 1,
+        })
+        self.assertTrue(gate.accepts(facts))
+        self.assertNotIn("up-set-target-object search-local", facts)
+
+    def test_each_land_census_persists_a_safe_source_anchor(self):
+        for colony, x, y in (
+                ("NO", "gl-home-anchor-x", "gl-home-anchor-y"),
+                ("YES", "gl-island-colony-x", "gl-island-colony-y")):
+            rows = matching(
+                facts=(f"gl-island-colony-established {colony}",),
+                actions=(f"gl-trade-land-source-x g:= {x}",
+                         f"gl-trade-land-source-y g:= {y}",
+                         "TRADE-ROUTE-LAND-SOURCE"))
+            self.assertEqual(len(rows), 1, colony)
 
     def test_land_scan_admits_cross_zone_markets_to_bounded_cart_probe(self):
         bits = (1, 2, 4, 8, 16, 32, 64, 128)
