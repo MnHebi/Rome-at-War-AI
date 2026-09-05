@@ -2,7 +2,8 @@ import unittest
 from per_coastal_fixture import ShipyardFixture
 from generate_shipyard_placement import (
     outputs, CANDIDATE_RADIUS, CANDIDATE_SECTORS, CANDIDATE_SPAN,
-    MAX_CANDIDATE_ATTEMPTS,
+    MAX_CANDIDATE_ATTEMPTS, SUSTAINED_SHIPYARD_CAPACITY,
+    SUSTAINED_WOOD_RESERVE,
 )
 from test_pre_backlog import source
 
@@ -51,12 +52,25 @@ class ShipyardTests(unittest.TestCase):
         f.affordable=True; f.sweep(2); self.assertEqual(len(f.builds),1)
 
     def test_later_expansion_keeps_tech_hold_and_desired_limit(self):
-        f=ShipyardFixture(); f.counts['shipyard']=2; f.g['wait-techup-requirements']=1
+        f=ShipyardFixture(); f.counts['shipyard']=SUSTAINED_SHIPYARD_CAPACITY
+        f.g['wait-techup-requirements']=1
         f.sweep(); f.sweep(300); self.assertEqual(f.builds,[])
         f.g['wait-techup-requirements']=0; f.sweep(2); self.assertEqual(len(f.builds),1)
         for desired in (0,1,2):
             f=ShipyardFixture(); f.counts['shipyard']=max(desired,1); f.g['desired-number-shipyards']=desired
             f.sweep(); f.sweep(300); self.assertEqual(f.builds,[])
+
+    def test_sustained_capacity_has_bounded_priority_and_keeps_wood_reserve(self):
+        f=ShipyardFixture();f.counts['shipyard']=2;f.g['wait-techup-requirements']=1
+        f.sweep();f.sweep(179);self.assertEqual(f.builds,[])
+        f.wood=SUSTAINED_WOOD_RESERVE;f.sweep(2);self.assertEqual(f.builds,[])
+        f.wood=SUSTAINED_WOOD_RESERVE+1;f.sweep(2);self.assertEqual(len(f.builds),1)
+        self.assertEqual(f.g['gl-sy-sustained'],SUSTAINED_SHIPYARD_CAPACITY)
+
+    def test_sustained_capacity_never_exceeds_desired_count(self):
+        for desired,expected in ((1,1),(2,2),(3,3),(8,4)):
+            f=ShipyardFixture();f.g['desired-number-shipyards']=desired;f.sweep()
+            self.assertEqual(f.g['gl-sy-sustained'],expected)
 
     def test_missing_foundation_rotates_without_false_success(self):
         f=ShipyardFixture(); f.sweep(); first=f.builds[0][1]
