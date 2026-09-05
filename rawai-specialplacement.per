@@ -2,7 +2,9 @@
 
 ;1 unaffordable/unavailable, 2 pending, 3 missing/lost foundation,
 
-;4 worker hold/unreachable, 5 tech saving, 6 coast/exit rejected, 7 constructing.
+;4 worker hold/unreachable, 5 tech saving, 6 coast/exit rejected, 7 constructing,
+
+;8 no mobile water reference after minimum operational capacity.
 
 ;Native builder assignment remains authoritative; reaching a point is not completion.
 
@@ -14,6 +16,7 @@
 	(set-goal gl-sy-anchor -1)
 	(set-goal gl-sy-sector 0)
 	(set-goal gl-sy-deficit-since 0)
+	(set-goal gl-sy-ship -1)
 	(set-goal gl-sy-memory-index 0)
 	(set-goal gl-sy-diag-next 0)
 	(set-goal gl-sy-reported -1)
@@ -816,10 +819,11 @@
 =>
 	(up-full-reset-search)
 	(up-set-target-point gl-shipyard-x)
-	(up-filter-distance c: -1 c: 64)
+	(up-filter-distance c: -1 c: 255)
 	(up-find-local c: warship-class c: 40)
 	(up-find-local c: transport-ship c: 40)
 	(up-find-local c: fishing-ship-class c: 40)
+	(up-find-local c: trade-cog-class c: 40)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(set-goal gl-sy-stage 5)
 )
@@ -835,8 +839,18 @@
 
 (defrule
 	(goal gl-sy-stage 5)
+	(not (up-set-target-object search-local c: 0))
+	(building-type-count-total shipyard g:< gl-sy-minimum)
 =>
-	(set-goal gl-sy-reason 6)
+	(set-goal gl-sy-ship -1)
+	(set-goal gl-sy-direction 0)
+	(set-goal gl-sy-stage 6)
+)
+
+(defrule
+	(goal gl-sy-stage 5)
+=>
+	(set-goal gl-sy-reason 8)
 	(set-goal gl-sy-stage 90)
 )
 
@@ -910,11 +924,19 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 =>
 	(up-bound-point gl-sy-bounded-x gl-sy-w1-x)
 	(up-get-point-zone gl-sy-w1-x gl-sy-zone)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-sy-ship)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:< 0)
+=>
+	(up-bound-point gl-sy-bounded-x gl-sy-w1-x)
 )
 
 (defrule
@@ -926,6 +948,7 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 	(up-compare-goal gl-sy-zone g:!= gl-sy-water-zone)
 =>
 	(set-goal gl-sy-stage 8)
@@ -933,6 +956,7 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 	(not (up-set-target-object search-local c: 0))
 =>
 	(set-goal gl-sy-stage 8)
@@ -940,6 +964,7 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-player != my-player-number)
 =>
@@ -948,6 +973,7 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 	(up-set-target-object search-local c: 0)
 	(up-path-distance gl-sy-w1-x 1 == 65535)
 =>
@@ -956,11 +982,19 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 =>
 	(up-bound-point gl-sy-bounded-x gl-sy-w2-x)
 	(up-get-point-zone gl-sy-w2-x gl-sy-zone)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-sy-ship)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:< 0)
+=>
+	(up-bound-point gl-sy-bounded-x gl-sy-w2-x)
 )
 
 (defrule
@@ -972,6 +1006,7 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 	(up-compare-goal gl-sy-zone g:!= gl-sy-water-zone)
 =>
 	(set-goal gl-sy-stage 8)
@@ -979,6 +1014,7 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 	(not (up-set-target-object search-local c: 0))
 =>
 	(set-goal gl-sy-stage 8)
@@ -986,6 +1022,7 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-player != my-player-number)
 =>
@@ -994,6 +1031,7 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 	(up-set-target-object search-local c: 0)
 	(up-path-distance gl-sy-w2-x 1 == 65535)
 =>
@@ -1002,11 +1040,19 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 =>
 	(up-bound-point gl-sy-bounded-x gl-sy-w3-x)
 	(up-get-point-zone gl-sy-w3-x gl-sy-zone)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-sy-ship)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:< 0)
+=>
+	(up-bound-point gl-sy-bounded-x gl-sy-w3-x)
 )
 
 (defrule
@@ -1018,6 +1064,7 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 	(up-compare-goal gl-sy-zone g:!= gl-sy-water-zone)
 =>
 	(set-goal gl-sy-stage 8)
@@ -1025,6 +1072,7 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 	(not (up-set-target-object search-local c: 0))
 =>
 	(set-goal gl-sy-stage 8)
@@ -1032,6 +1080,7 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-player != my-player-number)
 =>
@@ -1040,6 +1089,7 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 	(up-set-target-object search-local c: 0)
 	(up-path-distance gl-sy-w3-x 1 == 65535)
 =>
@@ -1048,11 +1098,19 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 =>
 	(up-bound-point gl-sy-bounded-x gl-sy-w4-x)
 	(up-get-point-zone gl-sy-w4-x gl-sy-zone)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-sy-ship)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:< 0)
+=>
+	(up-bound-point gl-sy-bounded-x gl-sy-w4-x)
 )
 
 (defrule
@@ -1064,6 +1122,7 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 	(up-compare-goal gl-sy-zone g:!= gl-sy-water-zone)
 =>
 	(set-goal gl-sy-stage 8)
@@ -1071,6 +1130,7 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 	(not (up-set-target-object search-local c: 0))
 =>
 	(set-goal gl-sy-stage 8)
@@ -1078,6 +1138,7 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-player != my-player-number)
 =>
@@ -1086,6 +1147,7 @@
 
 (defrule
 	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
 	(up-set-target-object search-local c: 0)
 	(up-path-distance gl-sy-w4-x 1 == 65535)
 =>

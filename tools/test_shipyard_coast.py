@@ -19,6 +19,28 @@ class ShipyardTests(unittest.TestCase):
         f.objects[10]['status']='status-ready'; f.counts['shipyard']=1
         f.sweep(); self.assertEqual(f.g['gl-sy-stage'],0)
 
+    def test_minimum_capacity_does_not_require_a_preexisting_nearby_hull(self):
+        first=ShipyardFixture(); del first.objects[2]
+        first.sweep(); self.assertEqual(len(first.builds),1)
+        second=ShipyardFixture(); del second.objects[2]
+        second.counts['shipyard']=1; second.g['wait-techup-requirements']=1
+        second.sweep(); second.sweep(89); self.assertEqual(second.builds,[])
+        second.sweep(2); self.assertEqual(len(second.builds),1)
+
+    def test_distant_trade_cog_is_a_valid_exact_water_probe(self):
+        f=ShipyardFixture(); del f.objects[2]
+        f.add(4,'trade-cog-class',(180,50),zone=8)
+        f.sweep()
+        self.assertEqual(len(f.builds),1)
+        self.assertTrue(any(i==4 and exact for i,_,exact in f.path_queries))
+
+    def test_expansion_beyond_minimum_still_requires_mobile_water_proof(self):
+        f=ShipyardFixture(); del f.objects[2]
+        f.counts['shipyard']=2; f.g['wait-techup-requirements']=0
+        f.sweep()
+        self.assertEqual(f.builds,[])
+        self.assertEqual(f.g['gl-sy-reason'],8)
+
     def test_persistent_second_yard_bypasses_only_policy_not_affordability(self):
         f=ShipyardFixture(); f.counts['shipyard']=1; f.g['wait-techup-requirements']=1
         f.sweep(); f.sweep(89); self.assertEqual(f.builds,[])
