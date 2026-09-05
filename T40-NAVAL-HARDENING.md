@@ -1,8 +1,8 @@
-# T40 naval / overseas hardening — source only
+# T40 naval / overseas hardening — deployed, runtime validation pending
 
 Canonical checkout: `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
 branch `fix/trade-cog-cap-dacian`, baseline `4d9c519` (T39). Source marker
-`RAWAI-P3B44T40:488`. No deployment.
+`RAWAI-P3B44T40:488`. Deployed after explicit user authorization on 2026-09-05.
 The latest explicit user instruction supersedes the obsolete `.pr-work` path
 in the general project rules. No branch or worktree was created.
 Repository-local `AGENTS.md` now records that explicit canonical-workspace change.
@@ -218,12 +218,13 @@ String budget: 1,470 / 1,500 conservative all-file literals; no new timers or
 DUC groups. Installed runtime is independently unchanged: 93 files, **T36:484**,
 SHA-256 `4E18B8AA59FBD5FD6468242E15DE207209A259C3F8BB08D8CB71EA29BEF87857`.
 
-Do not deploy until explicitly instructed. Once authorized, deploy only this
-checkout and verify full installed hash plus replay marker. Preserve the Iberia
+Deployment used only this checkout and the read-only post-check verifies all 99
+installed runtime files match source at the aggregate hash above, with no
+missing, differing, or unexpected runtime files. Preserve the Iberia
 Huge/400/Extreme/RaW-data-fix lobby comparison and record any intentional change.
 Audit all players, not only a successful example. Each of the three sections
 above has independent runtime PASS criteria. Include path-query/late-match cost,
 productive repeated three-slot use, native trade resumption and the existing
 T37/T38/T39 siege/land-trade/migration/landed-group fixes in that acceptance.
-There is no T40 runtime replay yet; **all three gameplay items remain
+There is no fresh T40 runtime replay yet; **all three gameplay items remain
 FIXED-PENDING-RUNTIME**, not CLOSED.

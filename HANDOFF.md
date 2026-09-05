@@ -1,15 +1,15 @@
 # Rome at War AI handoff
 
-## CURRENT — T40:488 NAVAL HARDENING, SOURCE ONLY, 2026-09-05
+## CURRENT — T40:488 NAVAL HARDENING, DEPLOYED, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
   branch `fix/trade-cog-cap-dacian`. This is the explicit current user authority;
   repository `AGENTS.md` now agrees. No branch/worktree/clone was created and no
   obsolete extracted copy was synchronized. Start was clean `4d9c519`; latest
   behavioral HEAD `2c46488` (the documentation/marker commit follows it).
-- **Objective:** the requested three naval/overseas improvements are implemented
-  and statically validated; runtime acceptance remains open. **Do not deploy
-  without an explicit request.** Full causes, file/commit map, focused tests,
+- **Objective:** the requested three naval/overseas improvements are implemented,
+  statically validated, and deployed after the user's explicit authorization;
+  fresh-match acceptance remains open. Full causes, file/commit map, focused tests,
   adversarial findings and acceptance criteria: `T40-NAVAL-HARDENING.md`.
 - **Shipyards — FIXED-PENDING-RUNTIME.** Source allowed first-yard policy but its
   final desired-zero gate could suppress issuance; all later yards waited on
@@ -57,14 +57,19 @@
   conflicting with audited release repairs. No real `--write` was performed and
   those source/config files remain byte-identical to baseline. Repair that
   generator/data alignment separately; do not overwrite the verified choices.
-- **Identity:** source 99 runtime files, `RAWAI-P3B44T40:488`, SHA-256
+- **Identity/deployment:** source and installed test copy both contain 99 runtime
+  files, `RAWAI-P3B44T40:488`, SHA-256
   `C90F78EB90DBA119DA6DC0373B8D9B5A703B3161A0D31267A7F5504409CE22E2`.
-  Conservative literals 1470/1500; no new engine timers or DUC groups. Installed
-  test copy independently remains **T36:484**, 93 files, SHA-256
-  `4E18B8AA59FBD5FD6468242E15DE207209A259C3F8BB08D8CB71EA29BEF87857`.
-  T37/T38/T39 are preserved in source, still not injected into that match.
-- **Next actions:** await explicit deployment instruction; then verify marker
-  and full hash and test the same documented Iberia lobby. Audit every player's
+  Deployment copied 14 changed/new files from this checkout, including the six
+  new T40 modules, with no unexpected files and no remaining mismatch. A second
+  independent read-only synchronization check reports zero missing/different/
+  unexpected files. The installed marker file SHA-256 is
+  `FC2D287ECBFF242DB1EA88DE48CBC7D9A29247A1F8DF19B40E48DFB31FC4C281`.
+  Conservative literals 1470/1500; no new engine timers or DUC groups. This
+  deployment also advances the test copy from T36 through all pending committed
+  T37/T38/T39 fixes; it does not include data-mod or replay files.
+- **Next actions:** start a fresh match using the documented Iberia lobby and
+  confirm the replay-visible T40:488 marker. Audit every player's
   Shipyard lifecycle, congestion episodes and repeated slot use, including safe
   home reserve, native trade recovery and CPU/late-match lag. Recheck siege
   boarding, land trade, migration/relic and landed combat. Keep broader ordinary
