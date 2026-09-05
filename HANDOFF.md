@@ -1,6 +1,36 @@
 # Rome at War AI handoff
 
-## CURRENT — T40:488 NAVAL HARDENING, DEPLOYED, 2026-09-05
+## CURRENT — T41:489 PARSE RECOVERY, DEPLOYED, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`. Runtime commit `31d86f5`; this handoff-only
+  commit follows it. The worktree was clean before the reported regression and
+  no branch/worktree/clone was created.
+- **Release blocker — FIXED-PENDING-RUNTIME.** The first T40 launch emitted
+  `rawai-military.per`, line 1620, `ERR2005: Invalid Identifier`. The source
+  cause is four T39 predicates that called project goal `villager-count` as if
+  it were an engine fact. All four now use `up-compare-goal`; the first bad
+  expression was line 1620 and the other three would have failed after it.
+- **Regression prevention:** the PER domain validator now identifies writable
+  goal storage from `set-goal`, `up-modify-goal`, `up-get-fact`, and
+  `up-get-player-fact` destinations and rejects bare fact-call syntax for those
+  identifiers. It explicitly accepts the correct `up-compare-goal` form.
+- **Validation PASS:** empty PER report; 128 validator, 23 migration, 3
+  transport-lane, and 27 ownership tests; full Python 3.12 discovery 505/505;
+  `git diff --check`.
+- **Deployment identity:** 99 source/installed files, marker
+  `RAWAI-P3B44T41:489`, aggregate SHA-256
+  `AB2271FA659CC47F6471CA950006FF73F986918D71057C12DD90BED099A858F2`.
+  The repair copied only `rawai-init-goals.per` and `rawai-military.per`.
+  Independent postcheck reports zero missing/different/unexpected files; the
+  installed marker-file SHA-256 is
+  `926867FBC56C1312473934F906AAD251BAD2258E66F944AF97D3AB4359D9A5E8`.
+- **Next action:** start a fresh match and require visible `T41:489` with no
+  `ERR2005` before closing the parser regression. T40 gameplay objectives remain
+  FIXED-PENDING-RUNTIME and should then be tested normally. Full detail:
+  `T41-PARSE-RECOVERY.md`.
+
+## T40:488 NAVAL HARDENING — SUPERSEDED DEPLOYMENT, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
   branch `fix/trade-cog-cap-dacian`. This is the explicit current user authority;
