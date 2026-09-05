@@ -1,6 +1,6 @@
 # Rome at War AI handoff
 
-## CURRENT — T50:498 SHIPYARD THROUGHPUT/APERTURE SOURCE-ONLY, 2026-09-05
+## CURRENT — T50:498 SHIPYARD THROUGHPUT/APERTURE DEPLOYED, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
   branch `fix/trade-cog-cap-dacian`; behavioral HEAD `0bfce18`. No new
@@ -28,14 +28,15 @@
   strategy execution 1,156/1,156; naval doctrine; replay metadata 42/42;
   ownership audit 972 sites/zero failures; full Python 3.12 discovery 516/516;
   and `git diff --check`.
-- **Deployment:** none. Installed runtime remains verified T48:496, SHA-256
-  `84608D9C772671F6B34977A744B603544EE1CAAB29429CE12E58C88BA003E07C`.
-  Undeployed source marker is T50:498 and aggregate SHA-256
+- **Deployment:** explicitly authorized from canonical HEAD `312fac5`.
+  Preflight found exactly `rawai-init-goals.per`, `rawai-shipyard-defs.per` and
+  `rawai-specialplacement.per` different from installed T48; all three were
+  copied. A separate read-only check reports all 99 runtime files identical,
+  no missing/different/unexpected files, installed marker
+  `RAWAI-P3B44T50:498`, and source/install aggregate SHA-256
   `FEA37CD1D2ED54D49C1EB0D5A79608F25CD11A10CDE8C0EBFD774BC007A5B672`.
-  Exactly `rawai-init-goals.per`, `rawai-shipyard-defs.per` and
-  `rawai-specialplacement.per` differ from the installation.
-- **Next action:** only deploy on explicit request. Fresh marker-498 acceptance
-  must preserve T48's multi-player recovery, reduce first/minimum-yard latency,
+- **Next action:** fresh marker-498 acceptance must preserve T48's multi-player
+  recovery, reduce first/minimum-yard latency,
   keep viable Port owners from remaining permanently at zero, reject the
   Orange-style near throat, and retain all economy/cap/clearance/worker/
   foundation safeguards. Full detail:

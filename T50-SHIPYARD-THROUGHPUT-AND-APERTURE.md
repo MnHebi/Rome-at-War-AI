@@ -2,10 +2,9 @@
 
 ## Status
 
-**ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME / SOURCE-ONLY**, 2026-09-05.
-Current source marker `RAWAI-P3B44T50:498`; installed runtime remains the
-byte-verified T48 control at marker `RAWAI-P3B44T48:496` and aggregate SHA-256
-`84608D9C772671F6B34977A744B603544EE1CAAB29429CE12E58C88BA003E07C`.
+**ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME / DEPLOYED**, 2026-09-05.
+Source and installed marker `RAWAI-P3B44T50:498`; their aggregate SHA-256 is
+`FEA37CD1D2ED54D49C1EB0D5A79608F25CD11A10CDE8C0EBFD774BC007A5B672`.
 
 The two corrections are independent commits:
 
@@ -14,7 +13,12 @@ The two corrections are independent commits:
 - T50 `0bfce18`: reject a locally narrow approach throat even when the older
   far-water proof can route around it.
 
-No deployment was performed.
+Deployment was explicitly authorized from canonical HEAD `312fac5`. Preflight
+found exactly `rawai-init-goals.per`, `rawai-shipyard-defs.per` and
+`rawai-specialplacement.per` different from installed T48. All three were
+copied. A separate read-only check reports all 99 runtime files identical, with
+no missing, different or unexpected files, and independently finds the
+marker-498 line in the installed `rawai-init-goals.per`.
 
 ## Completed T48 replay
 
@@ -129,10 +133,9 @@ closed water, crowding, unaffordability and missing workers must remain vetoes.
   run passed.
 - `git diff --check`: **PASS**.
 
-The undeployed source aggregate SHA-256 is
+The deployed source/install aggregate SHA-256 is
 `FEA37CD1D2ED54D49C1EB0D5A79608F25CD11A10CDE8C0EBFD774BC007A5B672`.
-Relative to installed T48, exactly `rawai-init-goals.per`,
-`rawai-shipyard-defs.per` and `rawai-specialplacement.per` differ.
+All 99 runtime files are byte-identical after deployment.
 
 ## Fresh-runtime acceptance
 
