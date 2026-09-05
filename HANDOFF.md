@@ -1,6 +1,40 @@
 # Rome at War AI handoff
 
-## CURRENT — T41:489 PARSE RECOVERY, DEPLOYED, 2026-09-05
+## CURRENT — T42:490 SHIPYARD PROBE RECOVERY, SOURCE ONLY, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`. Runtime/source commit `280ae40`; this
+  handoff-only commit follows it. No branch/worktree/clone was created.
+- **Shipyard zero/one stagnation — ROOT-CAUSE-PROVEN /
+  FIXED-PENDING-RUNTIME.** The user observed most long-Imperial players at one
+  Shipyard and Green at zero despite ample wood. The T40 resolver made every
+  admitted candidate depend on a warship, Transport, or fishing ship within 64
+  tiles. This circularly blocked the first yard, blocked later yards after the
+  fleet sailed away, and excluded active Trade Cogs as valid mobile probes.
+- **Bounded correction:** mobile discovery now covers the supported 255-tile
+  standard-map radius and includes Trade Cogs. If no probe exists, only the
+  already-admitted first/second yard can continue, retaining buildability,
+  separation, worker path, affordability/escrow, pending-placement, foundation,
+  completion, and failed-site checks. Third/later yards still require four exact
+  mobile-water path probes. Diagnostic 410 reason 8 identifies no mobile probe
+  after minimum capacity.
+- **Validation PASS:** the pre-fix executable fixture reproduced all three
+  no-build cases. Fourteen post-fix Shipyard fixtures cover zero/one recovery,
+  distant Trade Cog validation, and the later-yard proof boundary. Generated
+  synchronization and PER validation pass; full Python 3.12 discovery is
+  508/508; `git diff --check` passes.
+- **Deployment:** not deployed. The installed test copy remains exact T41:489,
+  aggregate SHA-256
+  `AB2271FA659CC47F6471CA950006FF73F986918D71057C12DD90BED099A858F2`.
+  T42 marker `RAWAI-P3B44T42:490` is reserved in source. Full cause, boundary,
+  tests, and runtime acceptance: `T42-SHIPYARD-PROBE-RECOVERY.md`.
+- **Next action:** when authorized, deploy T42 from this checkout and verify the
+  marker/hash. A fresh replay must show first yards and persistent second-yard
+  deficits becoming concrete completed foundations, while later yards retain
+  coast quality. Current T40 naval right-of-way and expeditionary objectives
+  remain FIXED-PENDING-RUNTIME.
+
+## T41:489 PARSE RECOVERY — DEPLOYED, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
   branch `fix/trade-cog-cap-dacian`. Runtime commit `31d86f5`; this handoff-only
