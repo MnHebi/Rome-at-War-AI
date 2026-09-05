@@ -66,13 +66,24 @@ class T51DiagnosticTests(unittest.TestCase):
         text = source('rawai-military.per') + source('rawai-exploration-policy.per')
         # 5-13 are STOP/default terminal writers; 20-29 cover rendezvous,
         # boarding, unload, builder assignment, retask, release and recall;
-        # 30-32 are the three exact remote foundation issuance sites.
-        for code in (*range(5, 14), *range(20, 33)):
+        # 30-32 are the three exact remote foundation issuance sites; 33 is
+        # the separate preloaded-hull quarantine adoption boundary.
+        for code in (*range(5, 14), *range(20, 34)):
             self.assertRegex(text,
                 rf'\(up-chat-data-to-(?:all|self) str-t12-diag-id c: 560\)\s*'
                 rf'\(up-chat-data-to-(?:all|self) str-t12-diag-value c: {code}\)', code)
         for building in ('mining-camp', 'lumber-camp', 'mill'):
             self.assertIn(f'(up-build-line gl-migration-build-x gl-migration-build-x c: {building})', text)
+
+    def test_migration_admission_snapshot_is_latched_and_reports_every_outer_gate(self):
+        text = source('rawai-military.per')
+        self.assertEqual(text.count('(set-goal gl-mig-diag-admit-latch 0)'), 2)
+        self.assertEqual(text.count('(set-goal gl-mig-diag-admit-latch 1)'), 1)
+        for bit in (1, 2, 4, 8, 16, 32, 64, 128, 256):
+            self.assertIn(f'(up-modify-goal gl-mig-diag-terminal c:+ {bit})', text)
+        for code in range(568, 579):
+            self.assertIn(f'(up-chat-data-to-all str-t12-diag-id c: {code})', text, code)
+        self.assertIn(';T51 diagnostic-only: separate preloaded-hull quarantine adoption path.', text)
 
     def test_right_of_way_diagnostics_cover_rejection_geometry_and_issue_boundary(self):
         text = source('rawai-naval-right-of-way.per')

@@ -1521,6 +1521,7 @@
 	(set-goal gl-mig-diag-left 40)
 	(set-goal gl-mig-diag-writer-left 24)
 	(set-goal gl-mig-diag-last-state -1)
+	(set-goal gl-mig-diag-admit-latch 0)
 	(disable-self)
 )
 
@@ -1544,6 +1545,145 @@
 	(up-chat-data-to-all str-t12-diag-id c: 555)
 	(up-chat-data-to-all str-t12-diag-value g: gl-mig-diag-clock)
 	(up-modify-goal gl-mig-diag-last-state g:= gl-island-migration-state)
+	(up-modify-goal gl-mig-diag-left c:- 1)
+)
+
+;One bounded snapshot for every newly triggered migration admission window.
+;The rejection mask is diagnostic-only and cannot make the ordinary admission
+;rule below eligible or ineligible: 1 relic, 2 recovery, 4 repair, 8 route,
+;16 clearance, 32 colony-TC, 64 pending TC, 128 pending TC placement, and
+;256 the deliberate one-pass yield to a fully viable assault admission.
+(defrule
+	(up-timer-status t-island-migration != timer-triggered)
+	(goal gl-mig-diag-admit-latch 1)
+=>
+	(set-goal gl-mig-diag-admit-latch 0)
+)
+
+(defrule
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-mig-diag-admit-latch 0)
+	(up-compare-goal gl-mig-diag-left c:> 0)
+=>
+	(set-goal gl-mig-diag-terminal 0)
+	(up-get-fact unit-type-count transport-ship gl-mig-diag-count)
+	(set-goal gl-mig-diag-admit-latch 1)
+)
+
+(defrule
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-mig-diag-admit-latch 1)
+	(not (goal gl-relic-ferry-state RELIC-FERRY-IDLE))
+=>
+	(up-modify-goal gl-mig-diag-terminal c:+ 1)
+)
+
+(defrule
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-mig-diag-admit-latch 1)
+	(not (goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE))
+=>
+	(up-modify-goal gl-mig-diag-terminal c:+ 2)
+)
+
+(defrule
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-mig-diag-admit-latch 1)
+	(not (goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE))
+=>
+	(up-modify-goal gl-mig-diag-terminal c:+ 4)
+)
+
+(defrule
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-mig-diag-admit-latch 1)
+	(not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE))
+=>
+	(up-modify-goal gl-mig-diag-terminal c:+ 8)
+)
+
+(defrule
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-mig-diag-admit-latch 1)
+	(not (goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE))
+=>
+	(up-modify-goal gl-mig-diag-terminal c:+ 16)
+)
+
+(defrule
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-mig-diag-admit-latch 1)
+	(not (goal gl-colony-towncenter-state COLONY-TC-IDLE))
+=>
+	(up-modify-goal gl-mig-diag-terminal c:+ 32)
+)
+
+(defrule
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-mig-diag-admit-latch 1)
+	(up-pending-objects c: town-center > 0)
+=>
+	(up-modify-goal gl-mig-diag-terminal c:+ 64)
+)
+
+(defrule
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-mig-diag-admit-latch 1)
+	(up-pending-placement c: town-center)
+=>
+	(up-modify-goal gl-mig-diag-terminal c:+ 128)
+)
+
+(defrule
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-mig-diag-admit-latch 1)
+	(up-timer-status t-transport-route == timer-triggered)
+	(goal gl-assault-admission-open YES)
+	(goal gl-home-defense-state NO)
+	(unit-type-count transport-ship >= 1)
+	(up-compare-goal gl-ap-seed-enemy c:>= 1)
+=>
+	(up-modify-goal gl-mig-diag-terminal c:+ 256)
+)
+
+(defrule
+	(up-timer-status t-island-migration == timer-triggered)
+	(goal gl-island-migration-state MIGRATION-IDLE)
+	(goal gl-mig-diag-admit-latch 1)
+	(up-compare-goal gl-mig-diag-left c:> 0)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 568)
+	(up-chat-data-to-all str-t12-diag-value g: gl-mig-diag-terminal)
+	(up-chat-data-to-all str-t12-diag-id c: 569)
+	(up-chat-data-to-all str-t12-diag-value g: gl-relic-ferry-state)
+	(up-chat-data-to-all str-t12-diag-id c: 570)
+	(up-chat-data-to-all str-t12-diag-value g: gl-transport-recovery-state)
+	(up-chat-data-to-all str-t12-diag-id c: 571)
+	(up-chat-data-to-all str-t12-diag-value g: gl-transport-repair-state)
+	(up-chat-data-to-all str-t12-diag-id c: 572)
+	(up-chat-data-to-all str-t12-diag-value g: gl-transport-route-state)
+	(up-chat-data-to-all str-t12-diag-id c: 573)
+	(up-chat-data-to-all str-t12-diag-value g: gl-transport-clear-state)
+	(up-chat-data-to-all str-t12-diag-id c: 574)
+	(up-chat-data-to-all str-t12-diag-value g: gl-colony-towncenter-state)
+	(up-chat-data-to-all str-t12-diag-id c: 575)
+	(up-chat-data-to-all str-t12-diag-value g: gl-home-defense-state)
+	(up-chat-data-to-all str-t12-diag-id c: 576)
+	(up-chat-data-to-all str-t12-diag-value g: gl-mig-diag-count)
+	(up-chat-data-to-all str-t12-diag-id c: 577)
+	(up-chat-data-to-all str-t12-diag-value g: gl-ap-seed-enemy)
+	(up-chat-data-to-all str-t12-diag-id c: 578)
+	(up-chat-data-to-all str-t12-diag-value g: gl-assault-admission-open)
 	(up-modify-goal gl-mig-diag-left c:- 1)
 )
 
@@ -3773,6 +3913,25 @@
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(set-goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-SCAN)
+)
+
+(defrule
+	(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-SCAN)
+	(up-set-target-object search-local c: 0)
+	(up-compare-goal gl-mig-diag-writer-left c:> 0)
+=>
+	;T51 diagnostic-only: separate preloaded-hull quarantine adoption path.
+	(up-get-object-data object-data-id gl-mig-diag-actor)
+	(up-get-object-data object-data-garrison-count gl-mig-diag-count)
+	(up-chat-data-to-all str-t12-diag-id c: 560)
+	(up-chat-data-to-all str-t12-diag-value c: 33)
+	(up-chat-data-to-all str-t12-diag-id c: 561)
+	(up-chat-data-to-all str-t12-diag-value g: gl-mig-diag-actor)
+	(up-chat-data-to-all str-t12-diag-id c: 562)
+	(up-chat-data-to-all str-t12-diag-value g: gl-mig-diag-count)
+	(up-chat-data-to-all str-t12-diag-id c: 566)
+	(up-chat-data-to-all str-t12-diag-value g: gl-quarantine-transport-state)
+	(up-modify-goal gl-mig-diag-writer-left c:- 1)
 )
 
 (defrule
