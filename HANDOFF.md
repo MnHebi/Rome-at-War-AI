@@ -1,6 +1,6 @@
 # Rome at War AI handoff
 
-## CURRENT — T45:493 THREE-STAGE PERIMETER GATES, SOURCE ONLY, 2026-09-05
+## CURRENT — T45:493 PENDING STACK DEPLOYED, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
   branch `fix/trade-cog-cap-dacian`; pre-change HEAD `4d9d128`. No new
@@ -21,16 +21,23 @@
   polling; validators 128/128; full Python 3.12 discovery 512/512; PER
   structure; naval doctrine; strategy execution; ownership 962 sites/zero
   failures; and `git diff --check`.
-- **Deployment:** none. Source marker `RAWAI-P3B44T45:493`; installed copy
-  remains exact T41:489, aggregate SHA-256
-  `AB2271FA659CC47F6471CA950006FF73F986918D71057C12DD90BED099A858F2`.
-  T42–T44 remain source-only beneath T45.
-- **Next action:** deploy only when explicitly authorized. Runtime acceptance
-  requires gate 2 at 40%, gate 3 at 75%, no gate 4, retained safeguards, and
-  restored passage on a water-intersecting perimeter. Full detail:
+- **Deployment:** explicit user authorization deployed all pending T42–T45
+  changes from canonical HEAD `3d59349`. Preflight found exactly five differing
+  files and no missing/unexpected files. It copied `rawai-economy.per`,
+  `rawai-homebase.per`, `rawai-init-goals.per`,
+  `rawai-naval-right-of-way.per`, and `rawai-specialplacement.per`.
+  Independent read-only verification reports all 99 files identical, no
+  remaining mismatch, marker `RAWAI-P3B44T45:493`, aggregate SHA-256
+  `978C965969E9CDFE6F518A72C8ED8C131C47214EBAE6D386B8EED94527E4D3F7`,
+  and marker-file SHA-256
+  `0317AC880EB0619189BA7C89C15E46EDE7B2408755F00328DB7DFF0492A42DE1`.
+- **Next action:** start a fresh T45 match. Runtime acceptance requires gate 2
+  at 40%, gate 3 at 75%, no gate 4, retained safeguards, and restored passage
+  on a water-intersecting perimeter. It must also test T42 Shipyard recovery,
+  T43 land-trade admission, and T44 persistent merchant yielding. Full detail:
   `T45-THREE-STAGE-PERIMETER-GATES.md`.
 
-## CURRENT — T44:492 MERCHANT-YIELD OVERRIDE RECOVERY, SOURCE ONLY, 2026-09-05
+## T44:492 MERCHANT-YIELD OVERRIDE RECOVERY, DEPLOYED WITH T45, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
   branch `fix/trade-cog-cap-dacian`; pre-change HEAD `5f9cd09`. No new
@@ -54,17 +61,14 @@
   128/128, full Python 3.12 discovery 512/512, generated sync, PER structure,
   naval doctrine, strategy execution, ownership 960 sites/zero failures, and
   `git diff --check`.
-- **Deployment:** none. Source marker `RAWAI-P3B44T44:492`; installed copy
-  remains exact T41:489, aggregate SHA-256
-  `AB2271FA659CC47F6471CA950006FF73F986918D71057C12DD90BED099A858F2`.
-  T42 Shipyard and T43 land-trade repairs remain source-only beneath T44.
-- **Next action:** deploy only when explicitly authorized. Fresh marker-492
+- **Deployment:** deployed in the verified T45:493 aggregate documented above.
+- **Next action:** fresh marker-493
   acceptance requires overwritten yields to renew the same merchant before a
   distinct intervention, sustained lateral clearance, priority-hull progress,
   bounded cessation, and native trade resumption. Full detail:
   `T44-MERCHANT-YIELD-OVERRIDE-RECOVERY.md`.
 
-## CURRENT — T43:491 LAND-TRADE SHARED-SEARCH RECOVERY, SOURCE ONLY, 2026-09-05
+## T43:491 LAND-TRADE SHARED-SEARCH RECOVERY, DEPLOYED WITH T45, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
   branch `fix/trade-cog-cap-dacian`; pre-change HEAD `faa2cd0`. No new
@@ -89,16 +93,13 @@
   validators 128/128; full Python 3.12 discovery 510/510; PER structure; naval
   doctrine; strategy execution; ownership audit 960 sites with zero permission
   failures; naval-capability sync; and `git diff --check`.
-- **Deployment:** none. Source marker `RAWAI-P3B44T43:491`; installed test copy
-  remains exact T41:489, aggregate SHA-256
-  `AB2271FA659CC47F6471CA950006FF73F986918D71057C12DD90BED099A858F2`.
-  T42 Shipyard recovery remains source-only and is preserved beneath T43.
-- **Next action:** deploy T42+T43 only when explicitly authorized. A fresh T43
+- **Deployment:** deployed in the verified T45:493 aggregate documented above.
+- **Next action:** a fresh T45
   replay must show a land-candidate event and bounded Cart probes, then live
   `merchant land proof ally` and normal growth on a viable route. Full detail:
   `T43-LAND-TRADE-SHARED-SEARCH-RECOVERY.md`.
 
-## CURRENT — T42:490 SHIPYARD PROBE RECOVERY, SOURCE ONLY, 2026-09-05
+## T42:490 SHIPYARD PROBE RECOVERY, DEPLOYED WITH T45, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
   branch `fix/trade-cog-cap-dacian`. Runtime/source commit `280ae40`; this
@@ -121,13 +122,10 @@
   distant Trade Cog validation, and the later-yard proof boundary. Generated
   synchronization and PER validation pass; full Python 3.12 discovery is
   508/508; `git diff --check` passes.
-- **Deployment:** not deployed. The installed test copy remains exact T41:489,
-  aggregate SHA-256
-  `AB2271FA659CC47F6471CA950006FF73F986918D71057C12DD90BED099A858F2`.
-  T42 marker `RAWAI-P3B44T42:490` is reserved in source. Full cause, boundary,
-  tests, and runtime acceptance: `T42-SHIPYARD-PROBE-RECOVERY.md`.
-- **Next action:** when authorized, deploy T42 from this checkout and verify the
-  marker/hash. A fresh replay must show first yards and persistent second-yard
+- **Deployment:** deployed in the verified T45:493 aggregate documented above.
+  Full cause, boundary, tests, and runtime acceptance:
+  `T42-SHIPYARD-PROBE-RECOVERY.md`.
+- **Next action:** a fresh replay must show first yards and persistent second-yard
   deficits becoming concrete completed foundations, while later yards retain
   coast quality. Current T40 naval right-of-way and expeditionary objectives
   remain FIXED-PENDING-RUNTIME.

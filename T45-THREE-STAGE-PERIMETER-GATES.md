@@ -3,7 +3,7 @@
 ## Status
 
 **ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** This is an explicitly requested
-wall policy change. No deployment was performed.
+wall policy change. Deployed on 2026-09-05.
 
 ## Evidence and source boundary
 
@@ -85,6 +85,9 @@ Until fresh runtime evidence satisfies these conditions, T45 is not CLOSED.
 
 ## Identity
 
-Behavioral commit: `1978ac2`. Source marker: `RAWAI-P3B44T45:493`. The installed
-test copy remains exact T41:489 with aggregate SHA-256
-`AB2271FA659CC47F6471CA950006FF73F986918D71057C12DD90BED099A858F2`.
+Behavioral commit: `1978ac2`. Deployed from canonical HEAD `3d59349`. Source and
+installed test copy contain 99 runtime files with marker
+`RAWAI-P3B44T45:493` and aggregate SHA-256
+`978C965969E9CDFE6F518A72C8ED8C131C47214EBAE6D386B8EED94527E4D3F7`.
+The installed marker-file SHA-256 is
+`0317AC880EB0619189BA7C89C15E46EDE7B2408755F00328DB7DFF0492A42DE1`.

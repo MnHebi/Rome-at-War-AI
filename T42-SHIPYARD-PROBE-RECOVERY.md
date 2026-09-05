@@ -2,9 +2,9 @@
 
 ## Status
 
-**FIXED-PENDING-RUNTIME / SOURCE ONLY**, 2026-09-05. Runtime marker reserved as
-`RAWAI-P3B44T42:490`; the installed test copy remains T41 until the user
-explicitly authorizes another deployment.
+**FIXED-PENDING-RUNTIME / DEPLOYED WITH T45**, 2026-09-05. The source-only T42
+marker was `RAWAI-P3B44T42:490`; the installed test copy now carries the full
+pending stack as `RAWAI-P3B44T45:493`.
 
 ## Observation and first causal divergence
 
@@ -61,8 +61,7 @@ must establish actual foundation placement and usability.
 
 ## Runtime acceptance
 
-After a separately authorized T42 deployment, require a fresh match showing
-`T42:490` and verify per player:
+In a fresh match showing `T45:493`, verify per player:
 
 1. a player with a Port and desired naval capacity no longer remains at zero
    merely because no qualifying ship already exists;
@@ -73,3 +72,9 @@ After a separately authorized T42 deployment, require a fresh match showing
 5. diagnostics distinguish reason 8 from actual coast rejection reason 6.
 
 Do not call the runtime behavior closed from these static/fixture results.
+
+## Deployment identity
+
+Deployed with T43–T45 from canonical HEAD `3d59349`. The installed 99-file
+runtime is byte-identical to source with aggregate SHA-256
+`978C965969E9CDFE6F518A72C8ED8C131C47214EBAE6D386B8EED94527E4D3F7`.

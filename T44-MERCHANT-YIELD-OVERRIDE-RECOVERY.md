@@ -2,7 +2,7 @@
 
 ## Status
 
-**ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** No deployment was performed.
+**ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** Deployed with T45 on 2026-09-05.
 
 ## Runtime evidence
 
@@ -80,7 +80,7 @@ policy outside this overwrite recovery.
 
 ## Runtime acceptance
 
-A fresh replay carrying marker `RAWAI-P3B44T44:492` must show:
+A fresh replay carrying marker `RAWAI-P3B44T45:493` must show:
 
 1. a verified stalled Transport or mission warship still activates bounded
    right-of-way clearing;
@@ -97,6 +97,8 @@ Until a fresh replay demonstrates those conditions, this defect is not CLOSED.
 
 ## Identity
 
-Behavioral commit: `d05c130`. Source marker: `RAWAI-P3B44T44:492`. The installed
-test copy remains exact T41:489 with aggregate SHA-256
-`AB2271FA659CC47F6471CA950006FF73F986918D71057C12DD90BED099A858F2`.
+Behavioral commit: `d05c130`; historical source marker:
+`RAWAI-P3B44T44:492`. Deployed with T42, T43, and T45 from canonical HEAD
+`3d59349`. The installed 99-file runtime carries marker
+`RAWAI-P3B44T45:493` and is byte-identical to source with aggregate SHA-256
+`978C965969E9CDFE6F518A72C8ED8C131C47214EBAE6D386B8EED94527E4D3F7`.
