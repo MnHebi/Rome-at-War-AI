@@ -76,6 +76,12 @@
 - **Deployment:** deployed with T47 from canonical HEAD `a48d1e9`. The installed
   99-file aggregate and source are byte-identical at SHA-256
   `9800DEF42ED21A3A46729713DEA02B46849E898DE8C47D7FEA444D57C0F4061B`.
+- **Fresh runtime result:** PASS for autonomous Trade Cart production. The user
+  directly observes Trade Carts in the first T47:495 test after deployment;
+  T45 produced Merchant Ships but no visible Carts. This supports the repaired
+  literal-player candidate scan. Keep the defect FIXED-PENDING-RUNTIME until
+  the replay confirms the selected ally, one-to-three probe bound, live
+  `actionid-trade` proof, and normal growth only after proof.
 - **Next action:** fresh marker-495 acceptance requires an actual land
   candidate, one to three Cart probes, live land proof on a usable route, and
   normal growth only after proof. Full detail:

@@ -68,6 +68,12 @@ Behavioral commit: `6daa09c`.
 
 ## Runtime acceptance
 
+Fresh T47:495 runtime observation: **PASS for autonomous Trade Cart
+production**. The user directly observes Trade Carts in the first test after
+deployment, where T45 had produced Merchant Ships but no visible Carts. This is
+runtime support for the repaired literal-player candidate scan, but the replay
+is still required to verify the complete lifecycle below.
+
 A fresh marker-495 replay must show:
 
 1. `trade land candidate ally` for an actual allied Market owner;
