@@ -1353,7 +1353,10 @@ class FarmPolicyTests(unittest.TestCase):
         # controller. Candidate identities are accumulated in bounded masks.
         land_to_water = matching_rules(
             self.economy,
-            facts=("TRADE-ROUTE-LAND-NEXT",),
+            facts=(
+                "TRADE-ROUTE-LAND-ADVANCE",
+                "gl-trade-scan-count c:>= 8",
+            ),
             actions=("TRADE-ROUTE-WATER-SOURCE",),
         )
         self.assertGreaterEqual(len(land_to_water), 1)
@@ -5766,7 +5769,7 @@ class FarmPolicyTests(unittest.TestCase):
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
         AssaultMissionTests().test_moving_hulls_do_not_receive_repeated_orders()
-        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T45: %d" c: 493)', self.init_goals)
+        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T46: %d" c: 494)', self.init_goals)
 
     def test_transport_departure_stalled_near_origin_activates_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests

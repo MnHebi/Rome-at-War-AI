@@ -80,12 +80,12 @@ class TradeTopologyTests(unittest.TestCase):
         for name, value in expected.items():
             self.assertEqual(found.get(name), value, name)
             self.assertIn(f"(set-goal {name} ", self.init)
-        self.assertIn('RAWAI-P3B44T45: %d" c: 493', self.init)
+        self.assertIn('RAWAI-P3B44T46: %d" c: 494', self.init)
 
-    def test_clobbered_shared_search_cannot_block_land_scan_start(self):
+    def test_land_scan_uses_bounded_literal_player_slots(self):
         rows = matching(
             facts=("TRADE-ROUTE-LAND-SOURCE",),
-            actions=("up-find-player ally find-ordered gl-trade-route-player",
+            actions=("set-goal gl-trade-route-player 1",
                      "TRADE-ROUTE-LAND-START"))
         self.assertEqual(len(rows), 1)
         facts = rows[0][3]
@@ -95,7 +95,15 @@ class TradeTopologyTests(unittest.TestCase):
             "gl-trade-valid-producer-total": 1,
         })
         self.assertTrue(gate.accepts(facts))
-        self.assertNotIn("up-set-target-object search-local", facts)
+        land_region = self.economy[
+            self.economy.index("TRADE-ROUTE-LAND-SOURCE"):
+            self.economy.index(";Water scanning always follows")]
+        self.assertNotIn("up-find-player ally find-ordered", land_region)
+        self.assertNotIn("up-find-next-player ally find-ordered", land_region)
+        advance = matching(
+            facts=("TRADE-ROUTE-LAND-ADVANCE", "gl-trade-scan-count c:< 8"),
+            actions=("gl-trade-route-player c:+ 1", "TRADE-ROUTE-LAND-START"))
+        self.assertEqual(len(advance), 1)
 
     def test_each_land_census_persists_a_safe_source_anchor(self):
         for colony, x, y in (
@@ -110,11 +118,25 @@ class TradeTopologyTests(unittest.TestCase):
 
     def test_land_scan_admits_cross_zone_markets_to_bounded_cart_probe(self):
         bits = (1, 2, 4, 8, 16, 32, 64, 128)
+        scans = []
         for player, bit in enumerate(bits, 1):
+            player_scans = matching(
+                facts=("TRADE-ROUTE-LAND-START",
+                       f"gl-trade-route-player {player}",
+                       f"not (player-number {player})",
+                       f"player-in-game {player}",
+                       f"stance-toward {player} ally"),
+                actions=(f"sn-focus-player-number c:= {player}",
+                         "up-find-remote c: market c: 20",
+                         "up-get-search-state local-total",
+                         "gl-trade-valid-producer-total g:= remote-total",
+                         "TRADE-ROUTE-LAND-CHECK"))
+            self.assertEqual(len(player_scans), 1, ("scan", player))
+            scans.extend(player_scans)
             rows = matching(
                 facts=("TRADE-ROUTE-LAND-CHECK",
                        f"gl-trade-route-player c:== {player}",
-                       "up-set-target-object search-remote c: 0"),
+                       "gl-trade-valid-producer-total c:> 0"),
                 actions=(f"gl-trade-land-mask c:+ {bit}",
                          "gl-trade-scan-count c:+ 1",
                          "TRADE-ROUTE-LAND-ADVANCE"))
@@ -125,21 +147,28 @@ class TradeTopologyTests(unittest.TestCase):
             "object-data-map-zone-id g:!= gl-trade-land-zone", self.economy)
         missing = matching(
             facts=("TRADE-ROUTE-LAND-CHECK",
-                   "not (up-set-target-object search-remote c: 0)"),
+                   "gl-trade-valid-producer-total c:<= 0"),
             actions=("gl-trade-scan-count c:+ 1", "TRADE-ROUTE-LAND-ADVANCE"))
         self.assertEqual(len(missing), 1)
         self.assertNotIn("gl-trade-land-mask c:+", missing[0][4])
+        land_checks = [r for r in rules()
+                       if "TRADE-ROUTE-LAND-CHECK" in r[3]]
+        self.assertTrue(land_checks)
+        self.assertTrue(all("up-set-target-object search-remote" not in r[3]
+                            for r in land_checks))
+        skipped = matching(
+            facts=("TRADE-ROUTE-LAND-START",),
+            actions=("set-goal gl-trade-valid-producer-total 0",
+                     "TRADE-ROUTE-LAND-CHECK"))
+        self.assertEqual(len(skipped), 1)
+        self.assertTrue(all(scan[0] < skipped[0][0] for scan in scans))
 
     def test_land_completion_always_continues_into_water_scan(self):
-        by_cycle = matching(
-            facts=("TRADE-ROUTE-LAND-NEXT", "gl-trade-route-player g:== gl-trade-route-first"),
-            actions=("TRADE-ROUTE-WATER-SOURCE",))
         by_bound = matching(
             facts=("TRADE-ROUTE-LAND-ADVANCE", "gl-trade-scan-count c:>= 8"),
             actions=("TRADE-ROUTE-WATER-SOURCE",))
-        self.assertEqual(len(by_cycle), 1)
         self.assertEqual(len(by_bound), 1)
-        self.assertNotIn("TRADE-ROUTE-IDLE", by_cycle[0][4] + by_bound[0][4])
+        self.assertNotIn("TRADE-ROUTE-IDLE", by_bound[0][4])
 
     def test_water_scan_has_independent_player_mask_and_no_land_gate(self):
         bits = (1, 2, 4, 8, 16, 32, 64, 128)

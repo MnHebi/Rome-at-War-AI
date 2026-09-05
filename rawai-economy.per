@@ -1771,8 +1771,10 @@
 	(up-compare-goal gl-trade-land-producer-total c:> 0)
 	(up-compare-goal gl-trade-valid-producer-total g:== gl-trade-land-producer-total)
 =>
-	(up-find-player ally find-ordered gl-trade-route-player)
-	(up-modify-goal gl-trade-route-first g:= gl-trade-route-player)
+	;The engine find-ordered iterator can return -1 instead of an ally. Walk the
+	;eight literal player slots so a valid allied Market cannot disappear before
+	;the bounded Trade Cart probe is admitted.
+	(set-goal gl-trade-route-player 1)
 	(set-goal gl-trade-scan-count 0)
 	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-START)
 )
@@ -1787,23 +1789,157 @@
 	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-SOURCE)
 )
 
+;Each literal scan performs the focus change, allied Market census, and census
+;persistence in one rule. LAND-CHECK therefore consumes a goal, never the
+;shared remote DUC list on a later sweep.
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-START)
+	(goal gl-trade-route-player 1)
+	(not (player-number 1))
+	(player-in-game 1)
+	(stance-toward 1 ally)
+=>
+	(up-modify-sn sn-focus-player-number c:= 1)
+	(up-full-reset-search)
+	(up-set-target-point gl-trade-land-source-x)
+	(up-find-remote c: market c: 20)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-valid-producer-total g:= remote-total)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-START)
+	(goal gl-trade-route-player 2)
+	(not (player-number 2))
+	(player-in-game 2)
+	(stance-toward 2 ally)
+=>
+	(up-modify-sn sn-focus-player-number c:= 2)
+	(up-full-reset-search)
+	(up-set-target-point gl-trade-land-source-x)
+	(up-find-remote c: market c: 20)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-valid-producer-total g:= remote-total)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-START)
+	(goal gl-trade-route-player 3)
+	(not (player-number 3))
+	(player-in-game 3)
+	(stance-toward 3 ally)
+=>
+	(up-modify-sn sn-focus-player-number c:= 3)
+	(up-full-reset-search)
+	(up-set-target-point gl-trade-land-source-x)
+	(up-find-remote c: market c: 20)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-valid-producer-total g:= remote-total)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-START)
+	(goal gl-trade-route-player 4)
+	(not (player-number 4))
+	(player-in-game 4)
+	(stance-toward 4 ally)
+=>
+	(up-modify-sn sn-focus-player-number c:= 4)
+	(up-full-reset-search)
+	(up-set-target-point gl-trade-land-source-x)
+	(up-find-remote c: market c: 20)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-valid-producer-total g:= remote-total)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-START)
+	(goal gl-trade-route-player 5)
+	(not (player-number 5))
+	(player-in-game 5)
+	(stance-toward 5 ally)
+=>
+	(up-modify-sn sn-focus-player-number c:= 5)
+	(up-full-reset-search)
+	(up-set-target-point gl-trade-land-source-x)
+	(up-find-remote c: market c: 20)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-valid-producer-total g:= remote-total)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-START)
+	(goal gl-trade-route-player 6)
+	(not (player-number 6))
+	(player-in-game 6)
+	(stance-toward 6 ally)
+=>
+	(up-modify-sn sn-focus-player-number c:= 6)
+	(up-full-reset-search)
+	(up-set-target-point gl-trade-land-source-x)
+	(up-find-remote c: market c: 20)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-valid-producer-total g:= remote-total)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-START)
+	(goal gl-trade-route-player 7)
+	(not (player-number 7))
+	(player-in-game 7)
+	(stance-toward 7 ally)
+=>
+	(up-modify-sn sn-focus-player-number c:= 7)
+	(up-full-reset-search)
+	(up-set-target-point gl-trade-land-source-x)
+	(up-find-remote c: market c: 20)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-valid-producer-total g:= remote-total)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
+)
+
+(defrule
+	(goal gl-trade-route-state TRADE-ROUTE-LAND-START)
+	(goal gl-trade-route-player 8)
+	(not (player-number 8))
+	(player-in-game 8)
+	(stance-toward 8 ally)
+=>
+	(up-modify-sn sn-focus-player-number c:= 8)
+	(up-full-reset-search)
+	(up-set-target-point gl-trade-land-source-x)
+	(up-find-remote c: market c: 20)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-trade-valid-producer-total g:= remote-total)
+	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
+)
+
+;Non-allies, empty slots, and self fall through without running a remote search.
 (defrule
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-START)
 =>
-	(up-modify-sn sn-focus-player-number g:= gl-trade-route-player)
-	(up-full-reset-search)
-	(up-set-target-point gl-trade-land-source-x)
-	(up-filter-status c: status-ready c: list-active)
-	(up-find-remote c: market c: 20)
-	(up-clean-search search-remote object-data-distance search-order-asc)
-	(up-modify-sn sn-focus-player-number g:= gl-trade-route-focus)
+	(set-goal gl-trade-valid-producer-total 0)
 	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 )
 
 (defrule
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 	(up-compare-goal gl-trade-route-player c:== 1)
-	(up-set-target-object search-remote c: 0)
+	(up-compare-goal gl-trade-valid-producer-total c:> 0)
 =>
 	(up-modify-goal gl-trade-land-mask c:+ 1)
 	(up-modify-goal gl-trade-scan-count c:+ 1)
@@ -1814,7 +1950,7 @@
 (defrule
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 	(up-compare-goal gl-trade-route-player c:== 2)
-	(up-set-target-object search-remote c: 0)
+	(up-compare-goal gl-trade-valid-producer-total c:> 0)
 =>
 	(up-modify-goal gl-trade-land-mask c:+ 2)
 	(up-modify-goal gl-trade-scan-count c:+ 1)
@@ -1825,7 +1961,7 @@
 (defrule
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 	(up-compare-goal gl-trade-route-player c:== 3)
-	(up-set-target-object search-remote c: 0)
+	(up-compare-goal gl-trade-valid-producer-total c:> 0)
 =>
 	(up-modify-goal gl-trade-land-mask c:+ 4)
 	(up-modify-goal gl-trade-scan-count c:+ 1)
@@ -1836,7 +1972,7 @@
 (defrule
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 	(up-compare-goal gl-trade-route-player c:== 4)
-	(up-set-target-object search-remote c: 0)
+	(up-compare-goal gl-trade-valid-producer-total c:> 0)
 =>
 	(up-modify-goal gl-trade-land-mask c:+ 8)
 	(up-modify-goal gl-trade-scan-count c:+ 1)
@@ -1847,7 +1983,7 @@
 (defrule
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 	(up-compare-goal gl-trade-route-player c:== 5)
-	(up-set-target-object search-remote c: 0)
+	(up-compare-goal gl-trade-valid-producer-total c:> 0)
 =>
 	(up-modify-goal gl-trade-land-mask c:+ 16)
 	(up-modify-goal gl-trade-scan-count c:+ 1)
@@ -1858,7 +1994,7 @@
 (defrule
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 	(up-compare-goal gl-trade-route-player c:== 6)
-	(up-set-target-object search-remote c: 0)
+	(up-compare-goal gl-trade-valid-producer-total c:> 0)
 =>
 	(up-modify-goal gl-trade-land-mask c:+ 32)
 	(up-modify-goal gl-trade-scan-count c:+ 1)
@@ -1869,7 +2005,7 @@
 (defrule
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 	(up-compare-goal gl-trade-route-player c:== 7)
-	(up-set-target-object search-remote c: 0)
+	(up-compare-goal gl-trade-valid-producer-total c:> 0)
 =>
 	(up-modify-goal gl-trade-land-mask c:+ 64)
 	(up-modify-goal gl-trade-scan-count c:+ 1)
@@ -1880,7 +2016,7 @@
 (defrule
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
 	(up-compare-goal gl-trade-route-player c:== 8)
-	(up-set-target-object search-remote c: 0)
+	(up-compare-goal gl-trade-valid-producer-total c:> 0)
 =>
 	(up-modify-goal gl-trade-land-mask c:+ 128)
 	(up-modify-goal gl-trade-scan-count c:+ 1)
@@ -1890,7 +2026,7 @@
 
 (defrule
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-CHECK)
-	(not (up-set-target-object search-remote c: 0))
+	(up-compare-goal gl-trade-valid-producer-total c:<= 0)
 =>
 	(up-modify-goal gl-trade-scan-count c:+ 1)
 	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-ADVANCE)
@@ -1900,31 +2036,13 @@
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-ADVANCE)
 	(up-compare-goal gl-trade-scan-count c:< 8)
 =>
-	(up-find-next-player ally find-ordered gl-trade-route-player)
-	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-NEXT)
+	(up-modify-goal gl-trade-route-player c:+ 1)
+	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-START)
 )
 
 (defrule
 	(goal gl-trade-route-state TRADE-ROUTE-LAND-ADVANCE)
 	(up-compare-goal gl-trade-scan-count c:>= 8)
-=>
-	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-SOURCE)
-)
-
-(defrule
-	(goal gl-trade-route-state TRADE-ROUTE-LAND-NEXT)
-	(up-compare-goal gl-trade-route-player g:!= gl-trade-route-first)
-	(up-compare-goal gl-trade-scan-count c:< 8)
-=>
-	(set-goal gl-trade-route-state TRADE-ROUTE-LAND-START)
-)
-
-(defrule
-	(goal gl-trade-route-state TRADE-ROUTE-LAND-NEXT)
-	(or
-		(up-compare-goal gl-trade-route-player g:== gl-trade-route-first)
-		(up-compare-goal gl-trade-scan-count c:>= 8)
-	)
 =>
 	(set-goal gl-trade-route-state TRADE-ROUTE-WATER-SOURCE)
 )
