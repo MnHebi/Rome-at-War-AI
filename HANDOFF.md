@@ -1,5 +1,78 @@
 # Rome at War AI handoff
 
+## CURRENT — T51 SELF-DIAGNOSING T50 REPAIRS ADDED TO PR #11, 2026-09-05
+
+- **Canonical workspace:**
+  `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; runtime-source/marker HEAD `0a81ef7`.
+  This task's explicit workspace instruction supersedes the generic `.pr-work`
+  path for PR #11. No branch, worktree, clone or recovery line was created.
+- **Scope:** continue from T50 runtime evidence by instrumenting every open
+  lifecycle before behavior changes, then apply only source-supported causal
+  corrections. Full mapping and acceptance criteria:
+  `T51-T50-RUNTIME-REPAIR.md`.
+- **Instrumentation-first foundation:** `954c8dd` adds finite, transition/
+  cooldown-latched landed-combat, Shipyard, migration, right-of-way and
+  expedition observers. Budgets initialize once, never replenish and do not
+  gate command rules. `936dbf7` completes ROW rejection/hold/issuance detail;
+  `3701a5b` completes migration admission and preloaded-adoption detail.
+- **Landed combat — ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME:** T50 reaches
+  eight event-8 handoffs but never a target/issuance sample. The first target
+  gate incorrectly uses dynamic `focus-player`; literal live-hostile gates now
+  prefer each slot's sealed enemy and then rotate. Same-zone/dead/failed-target
+  filtering, transport formation, shoreline, voyage and landing are preserved.
+  Commit `f96da71`.
+- **Shipyard coast selection — ROOT-CAUSE-PROVEN /
+  FIXED-PENDING-RUNTIME:** blind anchor +/-XY sampling explains dominant reason
+  64 and repeated congested-sector candidates. Four deterministic sectors with
+  eight bounded candidates now rotate per anchor, retaining exact buildability,
+  W1-W6 aperture, water-zone, clearance, worker-path, memory and foundation
+  verification. Commit `d20386a`.
+- **Shipyard capacity — source-supported policy change /
+  FIXED-PENDING-RUNTIME:** 0→1 bootstrap and 1→minimum remain protected; a new
+  180-second, wood>600 tier can progress from minimum to
+  `min(desired, 4)`. Full desired capacity still obeys ordinary tech-up/economy
+  discipline. Commit `134b22f`.
+- **Migration STOP flood — INVESTIGATING:** no behavior changed. A separate
+  24-sample writer budget fingerprints every plausible explicit migration STOP,
+  boarding, unload, drop-site, retask, release and recovery writer. Fresh
+  replay correlation with settlers 32825/33303 will either name writer 5–13 or
+  exclude instrumented RAW writers at the 11–16 ms packet cadence.
+- **Automatic migration — INVESTIGATING:** no behavior changed. A 40-sample
+  transition/admission observer distinguishes admission, eligibility,
+  Transport/hull, manifest, rendezvous, boarding/load recognition, departure,
+  abort and separate preloaded/quarantine adoption (writer 33).
+- **Merchant right-of-way — INVESTIGATING:** no eligibility or movement policy
+  changed. Diagnostics now distinguish rejected priority action/group/
+  destination, movement/stall proof, merchant filtering, failed holding point,
+  exact pre-command state and actual existing 420/421 yield issuance.
+- **Expeditionary utilization — INVESTIGATING:** no tuning. Per-player bounded
+  snapshots expose reserve, surplus, threat/naval gates, three slot states,
+  Transport/route and manifest limit. Reassess only after the landed-combat fix
+  receives runtime evidence.
+- **Preserved:** T34 route/shoreline validation, T35 Villager-garrison mode,
+  T37 individual bounded siege boarding, three independent assault slots,
+  useful-partial manifests, ownership/safety, migration/relic separation,
+  naval cooperation and T50 **RUNTIME-PASS** land trade. Historical fingerprint
+  tests were made diagnostic-aware in `8471c1d`, not rebaselined.
+- **Source identity:** source marker is `RAWAI-P3B44T51:499`; installed runtime
+  remains `RAWAI-P3B44T50:498`. **No deployment was performed or authorized.**
+- **Validation PASS:** 261 focused controller tests passed before the final
+  migration diagnostic extension; 159 migration/validator tests passed
+  afterward; marker checks pass 10 trade-topology + 128 validator tests. Final
+  full Python 3.12 discovery passes 528/528. PER structure/operands, generated
+  synchronization, naval doctrine, all 1,156 strategy matchups, ownership audit
+  (1,028 sites/zero failures), 42 replay metadata records, workbook round trip
+  and `git diff --check` pass. `validate_good_units.py` retains one
+  known pre-existing frozen-provenance mismatch at
+  `source_provenance/AI RAW.per_sha256`; do not silently rebaseline it.
+- **Next action:** fresh marker-499 runtime replay. Accept landed combat only
+  after event 8 reaches literal target search, writer and persistent combat;
+  accept Shipyards only after timely zero/one recovery and open-coast concrete
+  completion; attribute the migration flood and automatic-migration boundary;
+  identify the ROW rejection/issuance boundary; then assess expeditionary
+  throughput. Static tests do not close any of those runtime-sensitive items.
+
 ## CURRENT — T50 RUNTIME REPLAY ASSESSED, 2026-09-05
 
 - **Scope:** replay analysis and documentation only; no gameplay/generated PER
