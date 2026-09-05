@@ -1,5 +1,42 @@
 # Rome at War AI handoff
 
+## CURRENT — T47:495 SHIPYARD REJECTION DIAGNOSTICS SOURCE-ONLY, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `bfac9e8`. No new
+  branch/worktree/clone was created.
+- **Shipyard zero-build regression — INVESTIGATING / DIAGNOSTIC-ONLY.** The
+  user directly reports no Shipyards in the current T45 Iberia match. A
+  read-only 68:15 snapshot of the still-live replay
+  `SP Replay v101.103.48987.0 @2026.09.05 141708.aoe2record` contains zero
+  Shipyard (`1251`) build packets. Every player emits diagnostic 410 reason 1
+  and/or generic reason 6, proving entry into the controller but no build
+  issuance. The live file was locked for hashing; retain it after the match.
+- **Known-good control:** the T36 replay
+  `SP Replay v101.103.48987.0 @2026.09.04 223434.aoe2record` uses the same map
+  ID 49, player civilizations and lobby settings and emitted 33 Shipyard build
+  packets across all eight players. Current source already maps
+  `REAL-WORLD-SPAIN-MAP` to `RIVERS`; missing Iberia classification is
+  disproved. The regression is localized to the T40/T42 resolver rewrite.
+- **Evidence boundary:** T40 collapsed no anchor, map clipping, failed-site
+  memory, exact-site buildability, own clearance, allied clearance and
+  four-direction water-exit failure into the same reason 6. The current replay
+  cannot decide among them, and each implies a different behavioral fix.
+- **Diagnostic-only correction:** the existing transition-latched/60-second
+  diagnostic now reports 61 no anchor, 62 bounds, 63 memory, 64 unbuildable
+  site, 65 own clearance, 66 allied clearance, or 67 water-exit failure. No
+  gameplay facts/actions, geometry, timing, admission, economy, worker,
+  foundation or memory policy changed. Commit `30d36b0`.
+- **Validation PASS:** 15 Shipyard fixtures including all seven new terminals;
+  213 focused tests; generated source sync; PER structure; naval doctrine;
+  strategy execution; ownership audit 969 sites/zero failures; full Python
+  3.12 discovery 513/513; and `git diff --check`.
+- **Deployment:** none. The active installed copy remains verified T45:493.
+  Source also still contains undeployed T46 land-trade repair. After the live
+  replay is retained, deploy only on explicit authorization; the dominant
+  61–67 runtime code determines the next causal Shipyard patch. Full detail:
+  `T47-SHIPYARD-REJECTION-DIAGNOSTICS.md`.
+
 ## CURRENT — T46:494 LAND-TRADE LITERAL CENSUS SOURCE-ONLY, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
@@ -140,13 +177,13 @@
   marker-494 runtime acceptance now owns this defect. Full historical detail:
   `T43-LAND-TRADE-SHARED-SEARCH-RECOVERY.md`.
 
-## T42:490 SHIPYARD PROBE RECOVERY, DEPLOYED WITH T45, 2026-09-05
+## T42:490 SHIPYARD PROBE RECOVERY, RUNTIME FAILED / SUPERSEDED BY T47, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
   branch `fix/trade-cog-cap-dacian`. Runtime/source commit `280ae40`; this
   handoff-only commit follows it. No branch/worktree/clone was created.
-- **Shipyard zero/one stagnation — ROOT-CAUSE-PROVEN /
-  FIXED-PENDING-RUNTIME.** The user observed most long-Imperial players at one
+- **Shipyard zero/one stagnation — RUNTIME FAIL / SUPERSEDED BY T47
+  DIAGNOSTICS.** The user observed most long-Imperial players at one
   Shipyard and Green at zero despite ample wood. The T40 resolver made every
   admitted candidate depend on a warship, Transport, or fishing ship within 64
   tiles. This circularly blocked the first yard, blocked later yards after the
@@ -166,10 +203,11 @@
 - **Deployment:** deployed in the verified T45:493 aggregate documented above.
   Full cause, boundary, tests, and runtime acceptance:
   `T42-SHIPYARD-PROBE-RECOVERY.md`.
-- **Next action:** a fresh replay must show first yards and persistent second-yard
-  deficits becoming concrete completed foundations, while later yards retain
-  coast quality. Current T40 naval right-of-way and expeditionary objectives
-  remain FIXED-PENDING-RUNTIME.
+- **Latest result/next action:** the fresh T45 Iberia match has zero Shipyard
+  build packets through 68:15. All eight players reach reason 1 and/or generic
+  reason 6. T47 splits the seven reason-6 exits without changing gameplay; use
+  its runtime result before changing resolver behavior. Current T40 naval
+  right-of-way and expeditionary objectives remain FIXED-PENDING-RUNTIME.
 
 ## T41:489 PARSE RECOVERY — DEPLOYED, 2026-09-05
 

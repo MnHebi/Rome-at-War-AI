@@ -2,9 +2,11 @@
 
 ## Status
 
-**FIXED-PENDING-RUNTIME / DEPLOYED WITH T45**, 2026-09-05. The source-only T42
-marker was `RAWAI-P3B44T42:490`; the installed test copy now carries the full
-pending stack as `RAWAI-P3B44T45:493`.
+**RUNTIME FAIL / SUPERSEDED BY T47 DIAGNOSTICS**, 2026-09-05. The source-only
+T42 marker was `RAWAI-P3B44T42:490`; the installed test copy carries the full
+pending stack as `RAWAI-P3B44T45:493`. The fresh T45 Iberia replay reached a
+68:15 read-only snapshot with zero Shipyard build packets. T42's no-mobile-probe
+repair therefore did not resolve the first remaining resolver failure.
 
 ## Observation and first causal divergence
 
@@ -72,6 +74,11 @@ In a fresh match showing `T45:493`, verify per player:
 5. diagnostics distinguish reason 8 from actual coast rejection reason 6.
 
 Do not call the runtime behavior closed from these static/fixture results.
+
+The T45 runtime result instead shows bounded diagnostic 410 alternating between
+reason 1 and generic reason 6 across all eight players. T47 splits reason 6 at
+its seven source exits without changing behavior; that marker now owns the next
+causal decision.
 
 ## Deployment identity
 

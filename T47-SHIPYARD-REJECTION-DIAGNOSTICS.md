@@ -1,0 +1,80 @@
+# T47 Shipyard rejection diagnostics
+
+## Status
+
+**INVESTIGATING / DIAGNOSTIC-ONLY / SOURCE-ONLY**, 2026-09-05. Source marker
+`RAWAI-P3B44T47:495`. The installed test copy remains T45:493.
+
+## Runtime regression evidence
+
+The user reported that the current T45 Iberia match had no Shipyards. A
+read-only snapshot of the still-live replay
+`SP Replay v101.103.48987.0 @2026.09.05 141708.aoe2record` reached 68:15 with
+zero Shipyard (`1251`) build packets. Every player entered the Shipyard
+controller: bounded diagnostic 410 alternated between reason 1
+(unaffordable/unavailable, including insufficient unescrowed resources) and
+generic reason 6 (coast/exit rejected). Once admission became possible, no
+candidate reached build issuance.
+
+This is a regression against the same authoritative lobby shape and map ID 49
+(Real World Iberia). The earlier T36 replay
+`SP Replay v101.103.48987.0 @2026.09.04 223434.aoe2record` emitted 33 Shipyard
+build packets across all eight players. Its replay settings and civilization
+slots match the current replay. The source already maps the engine's
+`REAL-WORLD-SPAIN-MAP` symbol to `RIVERS`, so missing Iberia classification is
+disproved.
+
+## Remaining evidence boundary
+
+T40 collapsed seven distinct resolver exits into reason 6:
+
+- no completed Port/Shipyard anchor;
+- candidate clipped by map bounds;
+- recent failed-site memory exclusion;
+- `up-can-build-line` rejecting the exact candidate;
+- own Port/Shipyard clearance;
+- allied Port/Shipyard clearance;
+- all four exact mobile-water exit directions failing.
+
+The current replay cannot distinguish these. Those causes require different
+behavioral corrections, so changing candidate density, clearance, or path
+policy now would be a guessed fix.
+
+## Diagnostic-only change
+
+The existing transition-latched, 60-second diagnostic 410 now reports the
+actual resolver exit:
+
+- 61: no anchor;
+- 62: candidate outside the map;
+- 63: recent-site memory;
+- 64: exact candidate is not buildable;
+- 65: own naval-building clearance;
+- 66: allied naval-building clearance;
+- 67: water-exit validation.
+
+Admission, timing, candidate offsets, clearance radii, exact path checks,
+economy gates, worker selection, build issuance, foundation verification, and
+failed-site memory are unchanged. This patch therefore does not resolve the
+runtime defect and must not be described as a gameplay fix.
+
+## Validation
+
+- Shipyard fixture: **PASS**, 15 tests, including executable coverage of every
+  new 61–67 terminal.
+- Focused placement/trade/transport/ownership set: **PASS**, 213 tests.
+- Generated Shipyard source synchronization: **PASS**.
+- PER structural validation: **PASS**, empty report.
+- Naval doctrine and strategy execution: **PASS**.
+- Ownership audit: **PASS**, 969 relevant sites, zero permission failures.
+- Full Python 3.12 discovery: **PASS**, 513 tests.
+- `git diff --check`: **PASS**.
+- Diagnostic commit: `30d36b0`.
+
+## Runtime acceptance and next action
+
+After the current match/replay is retained, deploy only on explicit user
+authorization. In a fresh T47 replay, collect per-player diagnostic 410
+transitions. The dominant 61–67 code identifies the first causal correction.
+The Shipyard defect remains open until a later build demonstrates concrete
+foundations and completed yards; T47 alone cannot close it.
