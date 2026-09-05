@@ -194,6 +194,7 @@
 	(goal gl-sy-stage 0)
 	(goal shipyard-placement-state SHIPYARD-ANCHOR)
 =>
+	(set-goal gl-sy-attempt 0)
 	(up-full-reset-search)
 	(up-filter-status c: status-ready c: list-active)
 	(up-find-local c: port c: 40)
@@ -262,7 +263,7 @@
 	(or (up-compare-goal gl-shipyard-x g:!= gl-sy-bounded-x) (up-compare-goal gl-shipyard-y g:!= gl-sy-bounded-y))
 =>
 	(set-goal gl-sy-reason 62)
-	(set-goal gl-sy-stage 90)
+	(set-goal gl-sy-stage 89)
 )
 
 (defrule
@@ -279,7 +280,7 @@
 	(up-compare-goal gl-sy-count c:< 10)
 =>
 	(set-goal gl-sy-reason 63)
-	(set-goal gl-sy-stage 90)
+	(set-goal gl-sy-stage 89)
 )
 
 (defrule
@@ -296,7 +297,7 @@
 	(up-compare-goal gl-sy-count c:< 10)
 =>
 	(set-goal gl-sy-reason 63)
-	(set-goal gl-sy-stage 90)
+	(set-goal gl-sy-stage 89)
 )
 
 (defrule
@@ -313,7 +314,7 @@
 	(up-compare-goal gl-sy-count c:< 10)
 =>
 	(set-goal gl-sy-reason 63)
-	(set-goal gl-sy-stage 90)
+	(set-goal gl-sy-stage 89)
 )
 
 (defrule
@@ -330,7 +331,7 @@
 	(up-compare-goal gl-sy-count c:< 10)
 =>
 	(set-goal gl-sy-reason 63)
-	(set-goal gl-sy-stage 90)
+	(set-goal gl-sy-stage 89)
 )
 
 (defrule
@@ -338,7 +339,7 @@
 	(not (up-can-build-line 0 gl-shipyard-x c: shipyard))
 =>
 	(set-goal gl-sy-reason 64)
-	(set-goal gl-sy-stage 90)
+	(set-goal gl-sy-stage 89)
 )
 
 (defrule
@@ -361,7 +362,7 @@
 	(up-compare-goal local-total c:> 0)
 =>
 	(set-goal gl-sy-reason 65)
-	(set-goal gl-sy-stage 90)
+	(set-goal gl-sy-stage 89)
 )
 
 (defrule
@@ -566,7 +567,7 @@
 	(goal gl-sy-zone 1)
 =>
 	(set-goal gl-sy-reason 66)
-	(set-goal gl-sy-stage 90)
+	(set-goal gl-sy-stage 89)
 )
 
 (defrule
@@ -921,6 +922,21 @@
 	(up-compare-goal gl-sy-direction c:>= 4)
 =>
 	(set-goal gl-sy-reason 67)
+	(set-goal gl-sy-stage 89)
+)
+
+(defrule
+	(goal gl-sy-stage 89)
+	(up-compare-goal gl-sy-attempt c:< 7)
+=>
+	(up-modify-goal gl-sy-attempt c:+ 1)
+	(set-goal gl-sy-stage 2)
+)
+
+(defrule
+	(goal gl-sy-stage 89)
+	(up-compare-goal gl-sy-attempt c:>= 7)
+=>
 	(set-goal gl-sy-stage 90)
 )
 

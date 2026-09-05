@@ -14,9 +14,10 @@ FIELDS = ('clock', 'next', 'deficit-since', 'minimum', 'reason', 'reported',
           'diag-next', 'anchor', 'sector', 'direction', 'stage', 'count', 'ship',
           'water-zone', 'zone', 'worker', 'until', 'foundation', 'memory-index',
           'anchor-x', 'anchor-y', 'w1-x', 'w1-y', 'w2-x', 'w2-y', 'w3-x', 'w3-y',
-          'w4-x', 'w4-y', 'bounded-x', 'bounded-y', 'sample', 'focus')
+          'w4-x', 'w4-y', 'bounded-x', 'bounded-y', 'sample', 'focus', 'attempt')
 CANDIDATE_SPAN = 29
 CANDIDATE_RADIUS = 14
+MAX_CANDIDATE_ATTEMPTS = 8
 DIRECTIONS = ((1,0), (0,1), (-1,0), (0,-1))
 
 
@@ -38,6 +39,7 @@ def generate():
     def add(f, a): out.append(rule(f, a))
     def stage(n): return [f'(goal gl-sy-stage {n})']
     def reset(reason): return [f'(set-goal gl-sy-reason {reason})', '(set-goal gl-sy-stage 90)']
+    def retry(reason): return [f'(set-goal gl-sy-reason {reason})', '(set-goal gl-sy-stage 89)']
     def deadline(seconds): return ['(up-modify-goal gl-sy-until g:= gl-sy-clock)', f'(up-modify-goal gl-sy-until c:+ {seconds})']
     def point(name, dx, dy):
         a = [f'(up-copy-point gl-sy-{name}-x gl-shipyard-x)']
@@ -86,6 +88,7 @@ def generate():
             (['(or (up-pending-objects c: shipyard >= 1) (up-pending-placement c: shipyard))'],2)):
         add([*common, '(building-type-count shipyard g:< gl-sy-minimum)', *facts], [f'(set-goal gl-sy-reason {reason})'])
     add([*stage(0), '(goal shipyard-placement-state SHIPYARD-ANCHOR)'], [
+        '(set-goal gl-sy-attempt 0)',
         '(up-full-reset-search)', '(up-filter-status c: status-ready c: list-active)',
         '(up-find-local c: port c: 40)', '(up-find-local c: shipyard c: 40)',
         '(up-remove-objects search-local object-data-id g:<= gl-sy-anchor)',
@@ -120,18 +123,18 @@ def generate():
         f'(up-modify-goal gl-shipyard-y c:- {CANDIDATE_RADIUS})',
         '(up-bound-point gl-sy-bounded-x gl-shipyard-x)',
         '(set-goal gl-sy-direction 0)', '(set-goal gl-sy-stage 3)'])
-    add([*stage(3), '(or (up-compare-goal gl-shipyard-x g:!= gl-sy-bounded-x) (up-compare-goal gl-shipyard-y g:!= gl-sy-bounded-y))'], reset(62))
+    add([*stage(3), '(or (up-compare-goal gl-shipyard-x g:!= gl-sy-bounded-x) (up-compare-goal gl-shipyard-y g:!= gl-sy-bounded-y))'], retry(62))
     for i in range(4):
         add([*stage(3), f'(up-compare-goal gl-sy-clock g:< gl-sy-memory{i}-until)'], [
             '(up-set-target-point gl-shipyard-x)', f'(up-get-point-distance gl-sy-memory{i}-x 0 gl-sy-count)'])
-        add([*stage(3), f'(up-compare-goal gl-sy-clock g:< gl-sy-memory{i}-until)', '(up-compare-goal gl-sy-count c:< 10)'], reset(63))
-    add([*stage(3), '(not (up-can-build-line 0 gl-shipyard-x c: shipyard))'], reset(64))
+        add([*stage(3), f'(up-compare-goal gl-sy-clock g:< gl-sy-memory{i}-until)', '(up-compare-goal gl-sy-count c:< 10)'], retry(63))
+    add([*stage(3), '(not (up-can-build-line 0 gl-shipyard-x c: shipyard))'], retry(64))
     add(stage(3), ['(up-full-reset-search)', '(up-set-target-point gl-shipyard-x)',
         '(up-filter-distance c: -1 c: 10)', '(up-find-local c: port c: 40)', '(up-find-local c: shipyard c: 40)',
         '(up-reset-search 1 0 0 0)',
         '(up-filter-status c: status-pending c: list-active)', '(up-find-status-local c: shipyard c: 40)',
         '(up-get-search-state local-total)', '(set-goal gl-sy-stage 4)'])
-    add([*stage(4), '(up-compare-goal local-total c:> 0)'], reset(65))
+    add([*stage(4), '(up-compare-goal local-total c:> 0)'], retry(65))
     add(stage(4), ['(up-modify-goal gl-sy-focus s:= sn-focus-player-number)', '(set-goal gl-sy-zone 0)'])
     for p in range(1,9):
         allied=[*stage(4),'(goal gl-sy-zone 0)',f'(stance-toward {p} ally)']
@@ -141,7 +144,7 @@ def generate():
             '(up-get-search-state local-total)'])
         add([*allied,'(up-compare-goal remote-total c:> 0)'],['(set-goal gl-sy-zone 1)'])
     add(stage(4), ['(up-modify-sn sn-focus-player-number g:= gl-sy-focus)'])
-    add([*stage(4),'(goal gl-sy-zone 1)'],reset(66))
+    add([*stage(4),'(goal gl-sy-zone 1)'],retry(66))
     # A fleet that has sailed more than 64 tiles from home remains a valid
     # reachability probe, as does a mobile Trade Cog produced by the Port. The
     # exact path checks below still require the chosen hull to reach every
@@ -184,7 +187,14 @@ def generate():
         add([*stage(7), '(up-compare-goal gl-sy-ship c:>= 0)', '(up-set-target-object search-local c: 0)', '(up-object-data object-data-player != my-player-number)'], ['(set-goal gl-sy-stage 8)'])
         add([*stage(7), '(up-compare-goal gl-sy-ship c:>= 0)', '(up-set-target-object search-local c: 0)', f'(up-path-distance {x} 1 == 65535)'], ['(set-goal gl-sy-stage 8)'])
     add(stage(8), ['(up-modify-goal gl-sy-direction c:+ 1)', '(set-goal gl-sy-stage 6)'])
-    add([*stage(6), '(up-compare-goal gl-sy-direction c:>= 4)'], reset(67))
+    add([*stage(6), '(up-compare-goal gl-sy-direction c:>= 4)'], retry(67))
+    # A geometric miss is not an admission failure. Keep the already-admitted
+    # placement lane and test a bounded batch around the same ready anchor.
+    # Only exhaustion releases the controller and records failed-site memory.
+    add([*stage(89), f'(up-compare-goal gl-sy-attempt c:< {MAX_CANDIDATE_ATTEMPTS - 1})'], [
+        '(up-modify-goal gl-sy-attempt c:+ 1)', '(set-goal gl-sy-stage 2)'])
+    add([*stage(89), f'(up-compare-goal gl-sy-attempt c:>= {MAX_CANDIDATE_ATTEMPTS - 1})'], [
+        '(set-goal gl-sy-stage 90)'])
     add(stage(7), ['(up-full-reset-search)', '(up-set-target-point gl-shipyard-x)',
         '(up-filter-distance c: -1 c: 40)', '(up-find-local c: villager-class c: 40)',
         '(up-remove-objects search-local object-data-player != my-player-number)',

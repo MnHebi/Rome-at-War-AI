@@ -1,6 +1,8 @@
 import unittest
 from per_coastal_fixture import ShipyardFixture
-from generate_shipyard_placement import outputs, CANDIDATE_RADIUS, CANDIDATE_SPAN
+from generate_shipyard_placement import (
+    outputs, CANDIDATE_RADIUS, CANDIDATE_SPAN, MAX_CANDIDATE_ATTEMPTS,
+)
 from test_pre_backlog import source
 
 
@@ -114,17 +116,30 @@ class ShipyardTests(unittest.TestCase):
         f.sweep()
         self.assertEqual(f.builds,[])
         self.assertEqual(f.g['gl-sy-reason'],64)
-        self.assertEqual(f.g['gl-sy-sector'],1)
-        # A single ready Port exhausts the ordered cursor here. The rebuilt
-        # anchor list must wrap without reporting 61 or consuming this sample.
-        f.sweep(2)
+        self.assertEqual(f.g['gl-sy-attempt'],1)
+        # One local miss must retain the admitted anchor and immediately sample
+        # again instead of returning through the intermittently closed gate.
+        f.sweep()
         self.assertEqual(f.builds,[('shipyard',(52,50))])
         self.assertNotEqual(f.g['gl-sy-reason'],61)
+
+    def test_candidate_batch_is_bounded_and_only_then_releases_the_lane(self):
+        f=ShipyardFixture(); f.can_site=lambda _point: False
+        for _ in range(MAX_CANDIDATE_ATTEMPTS - 1):
+            f.sweep()
+            self.assertEqual(f.g['shipyard-placement-state'],f.val('SHIPYARD-ANCHOR'))
+            self.assertEqual(f.g['gl-sy-stage'],2)
+        f.sweep()
+        self.assertEqual(f.g['shipyard-placement-state'],f.val('SHIPYARD-IDLE'))
+        self.assertEqual(f.g['gl-sy-stage'],0)
+        self.assertEqual(f.g['gl-sy-reason'],64)
+        self.assertEqual(f.g['gl-sy-memory-index'],1)
 
     def test_dense_candidate_domain_preserves_exact_safety_gates(self):
         generated=outputs()['rawai-specialplacement.per']
         self.assertEqual(CANDIDATE_SPAN,29)
         self.assertEqual(CANDIDATE_RADIUS,14)
+        self.assertEqual(MAX_CANDIDATE_ATTEMPTS,8)
         self.assertEqual(generated.count('(generate-random-number 29)'),2)
         self.assertIn('(up-can-build-line 0 gl-shipyard-x c: shipyard)',generated)
         self.assertIn('(up-filter-distance c: -1 c: 10)',generated)
