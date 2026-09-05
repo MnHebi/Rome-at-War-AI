@@ -74,6 +74,27 @@ class T51DiagnosticTests(unittest.TestCase):
         for building in ('mining-camp', 'lumber-camp', 'mill'):
             self.assertIn(f'(up-build-line gl-migration-build-x gl-migration-build-x c: {building})', text)
 
+    def test_right_of_way_diagnostics_cover_rejection_geometry_and_issue_boundary(self):
+        text = source('rawai-naval-right-of-way.per')
+        # 617-624 identify a sampled rejected priority hull and its exact
+        # action/group/destination/reason. 625-630 identify failed holding
+        # geometry. 631-637 fingerprint the selected hold immediately before
+        # the separate command-bearing rule. Merchant counts expose every
+        # operational filter stage (raw, owned/free, safe, same-zone, eligible).
+        for code in range(617, 638):
+            self.assertIn(f'(up-chat-data-to-all str-t12-diag-id c: {code})', text, code)
+        for goal in ('gl-row-diag-merchants', 'gl-row-diag-merchant-owned',
+                     'gl-row-diag-merchant-safe', 'gl-row-diag-merchant-zone',
+                     'gl-row-diag-merchant-eligible'):
+            self.assertIn(f'g: {goal}', text, goal)
+        self.assertIn('(set-goal gl-row-diag-hold-reason 1)', text)
+        self.assertIn('(set-goal gl-row-diag-hold-reason 5)', text)
+        # The pre-issue sample is its own observer rule; exhausting the budget
+        # cannot suppress or alter the following merchant move.
+        pre_issue = text.index('(up-chat-data-to-all str-t12-diag-id c: 631)')
+        command = text.index('(up-target-point gl-row-hold-x action-move -1 stance-no-attack)', pre_issue)
+        self.assertLess(pre_issue, command)
+
     def test_changed_sources_pass_per_validation(self):
         for name in ('rawai-assault-missions.per', 'rawai-assault-admission.per',
                      'rawai-assault-mission-defs.per', 'rawai-specialplacement.per',

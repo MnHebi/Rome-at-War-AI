@@ -15,6 +15,7 @@
 	(set-goal gl-row-cursor -1)
 	(set-goal gl-row-active 0)
 	(set-goal gl-row-diag-left 32)
+	(set-goal gl-row-diag-phase 0)
 	(set-goal gl-row-m0-id -1)
 	(set-goal gl-row-m0-until 0)
 	(set-goal gl-row-m1-id -1)
@@ -98,6 +99,109 @@
 (defrule
 	(goal gl-row-stage 2)
 	(not (up-set-target-object search-local c: 0))
+	(up-compare-goal gl-row-diag-left c:> 0)
+	(goal gl-row-diag-phase 0)
+=>
+	(up-full-reset-search)
+	(up-find-local c: warship-class c: 40)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-id g:<= gl-row-cursor)
+	(up-remove-objects search-local object-data-id g:== gl-row-ban0-id)
+	(up-remove-objects search-local object-data-id g:== gl-row-ban1-id)
+	(up-remove-objects search-local object-data-id g:== gl-row-ban2-id)
+	(up-remove-objects search-local object-data-id g:== gl-row-ban3-id)
+	(up-clean-search search-local object-data-id search-order-asc)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-row-diag-reject-count g:= local-total)
+	(set-goal gl-row-diag-phase 1)
+)
+
+(defrule
+	(goal gl-row-stage 2)
+	(goal gl-row-diag-phase 1)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 617)
+	(up-chat-data-to-all str-t12-diag-value c: 2)
+	(up-chat-data-to-all str-t12-diag-id c: 618)
+	(up-chat-data-to-all str-t12-diag-value c: -1)
+	(up-chat-data-to-all str-t12-diag-id c: 624)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-count)
+	(up-modify-goal gl-row-diag-left c:- 1)
+	(up-full-reset-search)
+	(set-goal gl-row-diag-phase 0)
+)
+
+(defrule
+	(goal gl-row-stage 2)
+	(goal gl-row-diag-phase 1)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-row-diag-reject-hull)
+	(up-get-object-data object-data-action gl-row-diag-reject-action)
+	(up-get-object-data object-data-group-flag gl-row-diag-reject-group)
+	(up-get-object-data object-data-move-x gl-row-diag-reject-dest-x)
+	(up-get-object-data object-data-move-y gl-row-diag-reject-dest-y)
+	(set-goal gl-row-diag-reason 0)
+	(set-goal gl-row-diag-phase 2)
+)
+
+(defrule
+	(goal gl-row-stage 2)
+	(goal gl-row-diag-phase 2)
+	(up-set-target-object search-local c: 0)
+	(or (up-object-data object-data-move-x < 0) (up-object-data object-data-move-y < 0))
+=>
+	(up-modify-goal gl-row-diag-reason c:+ 1)
+)
+
+(defrule
+	(goal gl-row-stage 2)
+	(goal gl-row-diag-phase 2)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-group-flag < 0)
+=>
+	(up-modify-goal gl-row-diag-reason c:+ 2)
+)
+
+(defrule
+	(goal gl-row-stage 2)
+	(goal gl-row-diag-phase 2)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-action != actionid-move)
+=>
+	(up-modify-goal gl-row-diag-reason c:+ 4)
+)
+
+(defrule
+	(goal gl-row-stage 2)
+	(goal gl-row-diag-phase 2)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 617)
+	(up-chat-data-to-all str-t12-diag-value c: 2)
+	(up-chat-data-to-all str-t12-diag-id c: 618)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-hull)
+	(up-chat-data-to-all str-t12-diag-id c: 619)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-action)
+	(up-chat-data-to-all str-t12-diag-id c: 620)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-group)
+	(up-chat-data-to-all str-t12-diag-id c: 621)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-dest-x)
+	(up-chat-data-to-all str-t12-diag-id c: 622)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-dest-y)
+	(up-chat-data-to-all str-t12-diag-id c: 623)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reason)
+	(up-chat-data-to-all str-t12-diag-id c: 624)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-count)
+	(up-modify-goal gl-row-diag-left c:- 1)
+	(up-full-reset-search)
+	(set-goal gl-row-diag-phase 0)
+)
+
+(defrule
+	(goal gl-row-stage 2)
+	(not (up-set-target-object search-local c: 0))
 =>
 	(up-full-reset-search)
 	(up-find-local c: warship-class c: 40)
@@ -160,11 +264,71 @@
 	(goal gl-row-stage 2)
 	(goal gl-row-kind 1)
 	(up-set-target-object search-local c: 0)
+	(up-compare-goal gl-row-diag-left c:> 0)
+	(up-object-data object-data-garrison-count <= 0)
+	(up-object-data object-data-group-flag < 0)
+=>
+	(up-get-object-data object-data-id gl-row-diag-reject-hull)
+	(up-get-object-data object-data-action gl-row-diag-reject-action)
+	(up-get-object-data object-data-group-flag gl-row-diag-reject-group)
+	(up-get-object-data object-data-move-x gl-row-diag-reject-dest-x)
+	(up-get-object-data object-data-move-y gl-row-diag-reject-dest-y)
+	(up-chat-data-to-all str-t12-diag-id c: 617)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-kind)
+	(up-chat-data-to-all str-t12-diag-id c: 618)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-hull)
+	(up-chat-data-to-all str-t12-diag-id c: 619)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-action)
+	(up-chat-data-to-all str-t12-diag-id c: 620)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-group)
+	(up-chat-data-to-all str-t12-diag-id c: 621)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-dest-x)
+	(up-chat-data-to-all str-t12-diag-id c: 622)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-dest-y)
+	(up-chat-data-to-all str-t12-diag-id c: 623)
+	(up-chat-data-to-all str-t12-diag-value c: 8)
+	(up-modify-goal gl-row-diag-left c:- 1)
+)
+
+(defrule
+	(goal gl-row-stage 2)
+	(goal gl-row-kind 1)
+	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count <= 0)
 	(up-object-data object-data-group-flag < 0)
 =>
 	(up-get-object-data object-data-id gl-row-cursor)
 	(set-goal gl-row-stage 0)
+)
+
+(defrule
+	(goal gl-row-stage 2)
+	(goal gl-row-kind 1)
+	(up-set-target-object search-local c: 0)
+	(up-compare-goal gl-row-diag-left c:> 0)
+	(not (or (up-object-data object-data-action == actionid-move)
+	(or (up-object-data object-data-action == actionid-transport) (up-object-data object-data-action == actionid-unload))))
+=>
+	(up-get-object-data object-data-id gl-row-diag-reject-hull)
+	(up-get-object-data object-data-action gl-row-diag-reject-action)
+	(up-get-object-data object-data-group-flag gl-row-diag-reject-group)
+	(up-get-object-data object-data-move-x gl-row-diag-reject-dest-x)
+	(up-get-object-data object-data-move-y gl-row-diag-reject-dest-y)
+	(up-chat-data-to-all str-t12-diag-id c: 617)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-kind)
+	(up-chat-data-to-all str-t12-diag-id c: 618)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-hull)
+	(up-chat-data-to-all str-t12-diag-id c: 619)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-action)
+	(up-chat-data-to-all str-t12-diag-id c: 620)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-group)
+	(up-chat-data-to-all str-t12-diag-id c: 621)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-dest-x)
+	(up-chat-data-to-all str-t12-diag-id c: 622)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-reject-dest-y)
+	(up-chat-data-to-all str-t12-diag-id c: 623)
+	(up-chat-data-to-all str-t12-diag-value c: 4)
+	(up-modify-goal gl-row-diag-left c:- 1)
 )
 
 (defrule
@@ -1163,8 +1327,14 @@
 	(up-modify-goal gl-row-diag-merchants g:= local-total)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-row-diag-merchant-owned g:= local-total)
 	(up-remove-objects search-local object-data-under-attack > 0)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-row-diag-merchant-safe g:= local-total)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-row-zone)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-row-diag-merchant-zone g:= local-total)
 	(up-remove-objects search-local object-data-id g:== gl-row-m0-id)
 	(up-remove-objects search-local object-data-id g:== gl-row-m1-id)
 	(up-remove-objects search-local object-data-id g:== gl-row-m2-id)
@@ -1184,6 +1354,12 @@
 	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-merchants)
 	(up-chat-data-to-all str-t12-diag-id c: 593)
 	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-merchant-eligible)
+	(up-chat-data-to-all str-t12-diag-id c: 594)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-merchant-owned)
+	(up-chat-data-to-all str-t12-diag-id c: 595)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-merchant-safe)
+	(up-chat-data-to-all str-t12-diag-id c: 596)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-merchant-zone)
 	(up-modify-goal gl-row-diag-left c:- 1)
 )
 
@@ -1216,6 +1392,7 @@
 	(up-get-point-zone gl-row-hold-x gl-row-count)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-row-merchant)
+	(set-goal gl-row-diag-hold-reason 0)
 )
 
 (defrule
@@ -1223,22 +1400,16 @@
 	(goal gl-row-side 0)
 	(up-compare-goal gl-row-count g:!= gl-row-zone)
 =>
+	(set-goal gl-row-diag-hold-reason 1)
 	(set-goal gl-row-stage 7)
 )
 
 (defrule
 	(goal gl-row-stage 6)
 	(goal gl-row-side 0)
-	(up-compare-goal gl-row-hold-x g:!= gl-row-bounded-x)
+	(or (up-compare-goal gl-row-hold-x g:!= gl-row-bounded-x) (up-compare-goal gl-row-hold-y g:!= gl-row-bounded-y))
 =>
-	(set-goal gl-row-stage 7)
-)
-
-(defrule
-	(goal gl-row-stage 6)
-	(goal gl-row-side 0)
-	(up-compare-goal gl-row-hold-y g:!= gl-row-bounded-y)
-=>
+	(set-goal gl-row-diag-hold-reason 2)
 	(set-goal gl-row-stage 7)
 )
 
@@ -1247,6 +1418,7 @@
 	(goal gl-row-side 0)
 	(not (up-set-target-object search-local c: 0))
 =>
+	(set-goal gl-row-diag-hold-reason 3)
 	(set-goal gl-row-stage 7)
 )
 
@@ -1256,6 +1428,7 @@
 	(up-set-target-object search-local c: 0)
 	(up-path-distance gl-row-hold-x 1 >= 32)
 =>
+	(set-goal gl-row-diag-hold-reason 4)
 	(set-goal gl-row-stage 7)
 )
 
@@ -1487,7 +1660,28 @@
 	(goal gl-row-side 0)
 	(goal gl-row-safe 0)
 =>
+	(set-goal gl-row-diag-hold-reason 5)
 	(set-goal gl-row-stage 7)
+)
+
+(defrule
+	(goal gl-row-stage 7)
+	(goal gl-row-side 0)
+	(up-compare-goal gl-row-diag-left c:> 0)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 625)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-hull)
+	(up-chat-data-to-all str-t12-diag-id c: 626)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-merchant)
+	(up-chat-data-to-all str-t12-diag-id c: 627)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-side)
+	(up-chat-data-to-all str-t12-diag-id c: 628)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-hold-x)
+	(up-chat-data-to-all str-t12-diag-id c: 629)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-hold-y)
+	(up-chat-data-to-all str-t12-diag-id c: 630)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-hold-reason)
+	(up-modify-goal gl-row-diag-left c:- 1)
 )
 
 (defrule
@@ -1508,6 +1702,7 @@
 	(up-get-point-zone gl-row-hold-x gl-row-count)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-row-merchant)
+	(set-goal gl-row-diag-hold-reason 0)
 )
 
 (defrule
@@ -1515,22 +1710,16 @@
 	(goal gl-row-side 1)
 	(up-compare-goal gl-row-count g:!= gl-row-zone)
 =>
+	(set-goal gl-row-diag-hold-reason 1)
 	(set-goal gl-row-stage 7)
 )
 
 (defrule
 	(goal gl-row-stage 6)
 	(goal gl-row-side 1)
-	(up-compare-goal gl-row-hold-x g:!= gl-row-bounded-x)
+	(or (up-compare-goal gl-row-hold-x g:!= gl-row-bounded-x) (up-compare-goal gl-row-hold-y g:!= gl-row-bounded-y))
 =>
-	(set-goal gl-row-stage 7)
-)
-
-(defrule
-	(goal gl-row-stage 6)
-	(goal gl-row-side 1)
-	(up-compare-goal gl-row-hold-y g:!= gl-row-bounded-y)
-=>
+	(set-goal gl-row-diag-hold-reason 2)
 	(set-goal gl-row-stage 7)
 )
 
@@ -1539,6 +1728,7 @@
 	(goal gl-row-side 1)
 	(not (up-set-target-object search-local c: 0))
 =>
+	(set-goal gl-row-diag-hold-reason 3)
 	(set-goal gl-row-stage 7)
 )
 
@@ -1548,6 +1738,7 @@
 	(up-set-target-object search-local c: 0)
 	(up-path-distance gl-row-hold-x 1 >= 32)
 =>
+	(set-goal gl-row-diag-hold-reason 4)
 	(set-goal gl-row-stage 7)
 )
 
@@ -1779,7 +1970,28 @@
 	(goal gl-row-side 1)
 	(goal gl-row-safe 0)
 =>
+	(set-goal gl-row-diag-hold-reason 5)
 	(set-goal gl-row-stage 7)
+)
+
+(defrule
+	(goal gl-row-stage 7)
+	(goal gl-row-side 1)
+	(up-compare-goal gl-row-diag-left c:> 0)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 625)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-hull)
+	(up-chat-data-to-all str-t12-diag-id c: 626)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-merchant)
+	(up-chat-data-to-all str-t12-diag-id c: 627)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-side)
+	(up-chat-data-to-all str-t12-diag-id c: 628)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-hold-x)
+	(up-chat-data-to-all str-t12-diag-id c: 629)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-hold-y)
+	(up-chat-data-to-all str-t12-diag-id c: 630)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-diag-hold-reason)
+	(up-modify-goal gl-row-diag-left c:- 1)
 )
 
 (defrule
@@ -1804,6 +2016,29 @@
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-row-zone)
 	(set-goal gl-row-stage 8)
+)
+
+(defrule
+	(goal gl-row-stage 8)
+	(goal gl-row-record 0)
+	(up-compare-goal gl-row-diag-left c:> 0)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 631)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-hull)
+	(up-chat-data-to-all str-t12-diag-id c: 632)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-merchant)
+	(up-chat-data-to-all str-t12-diag-id c: 633)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-record)
+	(up-chat-data-to-all str-t12-diag-id c: 634)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-hold-x)
+	(up-chat-data-to-all str-t12-diag-id c: 635)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-hold-y)
+	(up-chat-data-to-all str-t12-diag-id c: 636)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-stalls)
+	(up-chat-data-to-all str-t12-diag-id c: 637)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-tries)
+	(up-modify-goal gl-row-diag-left c:- 1)
 )
 
 (defrule
@@ -1852,6 +2087,29 @@
 (defrule
 	(goal gl-row-stage 8)
 	(goal gl-row-record 1)
+	(up-compare-goal gl-row-diag-left c:> 0)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 631)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-hull)
+	(up-chat-data-to-all str-t12-diag-id c: 632)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-merchant)
+	(up-chat-data-to-all str-t12-diag-id c: 633)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-record)
+	(up-chat-data-to-all str-t12-diag-id c: 634)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-hold-x)
+	(up-chat-data-to-all str-t12-diag-id c: 635)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-hold-y)
+	(up-chat-data-to-all str-t12-diag-id c: 636)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-stalls)
+	(up-chat-data-to-all str-t12-diag-id c: 637)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-tries)
+	(up-modify-goal gl-row-diag-left c:- 1)
+)
+
+(defrule
+	(goal gl-row-stage 8)
+	(goal gl-row-record 1)
 	(up-set-target-object search-local c: 0)
 =>
 	(up-get-object-data object-data-target-id gl-row-m1-target)
@@ -1890,6 +2148,29 @@
 	(up-remove-objects search-local object-data-under-attack > 0)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-row-zone)
 	(set-goal gl-row-stage 8)
+)
+
+(defrule
+	(goal gl-row-stage 8)
+	(goal gl-row-record 2)
+	(up-compare-goal gl-row-diag-left c:> 0)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 631)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-hull)
+	(up-chat-data-to-all str-t12-diag-id c: 632)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-merchant)
+	(up-chat-data-to-all str-t12-diag-id c: 633)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-record)
+	(up-chat-data-to-all str-t12-diag-id c: 634)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-hold-x)
+	(up-chat-data-to-all str-t12-diag-id c: 635)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-hold-y)
+	(up-chat-data-to-all str-t12-diag-id c: 636)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-stalls)
+	(up-chat-data-to-all str-t12-diag-id c: 637)
+	(up-chat-data-to-all str-t12-diag-value g: gl-row-tries)
+	(up-modify-goal gl-row-diag-left c:- 1)
 )
 
 (defrule
