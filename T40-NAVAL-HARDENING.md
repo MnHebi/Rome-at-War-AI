@@ -55,7 +55,48 @@ transport/fishing/Port traffic. Four sampled open points are a bounded quality
 heuristic, not a proof of a wide corridor everywhere. Rejected candidates/no
 nearby probing ship may still delay placement; the reason remains observable.
 
-## Merchant right-of-way and expedition throughput
+## Merchant right-of-way — FIXED-PENDING-RUNTIME
 
-INVESTIGATING in this turn. Neither implementation nor runtime acceptance has
-yet been claimed for these items.
+**Source boundary.** Legacy berth clearing requires idle ships around a producer;
+the three-slot clearance also requires idle blockers, a waypoint leg and a hull
+within 20 tiles of origin. Active traders blocking a mid-route strait cannot
+qualify. This is a demonstrated coverage gap, not a claim that every abort is
+caused by merchant congestion.
+
+**Change.** Independent observer, no mission redesign: loaded/reserved moving
+Transports before moving mission-owned warships. Intent, endpoint and physical
+position are sampled every eight seconds. Two stationary samples, stable intent
+and at least six tiles still to travel are required. One nearby self-owned,
+ungrouped merchant (active trading included) is sent to a lateral point only
+after its exact path, water zone, bounds and nearby enemy defense are checked.
+The priority hull is never ordered. Three merchant records hold for at most
+32 seconds with up to three bounded renewals against native reacquisition;
+one sideways command per sweep, 120-second per-merchant cooldown. Up to three
+different merchants can clear a saturated choke, with a fresh hull measurement
+between them. Four non-evicting hull cooldown records prevent immediate repeats
+for 180 seconds. Progress/intent change releases early; original valid allied
+Dock targets resume once, and already-trading merchants are left alone. No STOP,
+native economy SN change, permanent group ownership or timer extension exists.
+Legacy clearance writers pause while this temporary clearance lease is active.
+
+**Validation.** PASS: 11 executable-PER fixtures, including five active merchants
+in a choke, three sequential interventions, no-progress/intent gates, moving
+warship vs firing ship, native reacquisition bound, ownership loss, hostile Dock,
+same-zone/exact path/danger checks and restored trade. Existing assault history
+fingerprints normalize only the three added legacy-clearance interlocks, not
+the rest of the immutable voyage baseline.
+
+**Runtime acceptance / uncertainty.** Fresh replay must show stalled priority
+hulls resume through Gibraltar, active merchants remain aside long enough,
+trade resumes, and unrelated merchants remain untouched. This observer cannot
+prove physical causality from proximity, and intentionally does not move units
+with no valid movement intent or within the six-tile near-endpoint margin.
+Native trade may reacquire between bounded samples; the fixture exercises that
+case but engine proof is still required. Owned merchants are never commandeered.
+
+## Expedition throughput
+
+INVESTIGATING: three slots already release preparation one second after dispatch.
+Fresh manifest admission nevertheless requires aggregate land superiority >=
+TOLERABLE, even when an isolated home has a large free idle army. A narrow
+safety/reserve-gated exception is being implemented; no new slot/cadence/planner.

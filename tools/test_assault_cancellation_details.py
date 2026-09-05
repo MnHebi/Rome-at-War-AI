@@ -147,6 +147,7 @@ class CancellationDetailsTests(unittest.TestCase):
         for name, fingerprint in expected.items():
             rows = []
             normalized_trade_cogs = 0
+            normalized_row_yield_guards = 0
             normalized_landed_anchors = 0
             normalized_landed_commands = 0
             normalized_landed_latches = 0
@@ -241,6 +242,15 @@ class CancellationDetailsTests(unittest.TestCase):
                             normalized_landed_anchors += 1
                             normalized_landed_cross_zone_members += 1
 
+                    # T40 serializes only the legacy idle-ship clearance writer
+                    # against an active merchant-yield lease. Do not rebaseline
+                    # any other voyage rule or alter the immutable fingerprint.
+                    if slot is not None and sample == '3':
+                        guard = ['goal', 'gl-row-active', '0']
+                        self.assertIn(guard, facts)
+                        facts.remove(guard)
+                        normalized_row_yield_guards += 1
+
                     if slot is not None and sample == '7':
                         # Remove only the newly supported hostile land-combat
                         # classes from target-search rules. Buildings/villagers
@@ -333,6 +343,7 @@ class CancellationDetailsTests(unittest.TestCase):
                 if actions: rows.append([facts, actions])
             if name == 'rawai-assault-missions.per':
                 self.assertEqual(normalized_trade_cogs, 6)
+                self.assertEqual(normalized_row_yield_guards, 3)
                 self.assertEqual(normalized_landed_anchors, 3)
                 self.assertEqual(normalized_landed_commands, 3)
                 self.assertEqual(normalized_landed_latches, 3)

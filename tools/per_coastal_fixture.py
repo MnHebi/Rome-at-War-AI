@@ -31,6 +31,9 @@ class CoastalFixture(Missions):
 
     def fact(self,e):
         op,*a=e
+        if op=='stance-toward':
+            p=self.players.get(int(a[0]),{})
+            return p.get('enemy',False) if a[1]=='enemy' else not p.get('enemy',True)
         if op in ('building-type-count','building-type-count-total','unit-type-count','unit-type-count-total'):
             return self.compare(self.counts.get(a[0],0),a[1],a[2])
         if op=='current-age': return self.compare(self.age,a[0],a[1])
@@ -98,4 +101,3 @@ class ShipyardFixture(CoastalFixture):
             'shipyard-placement-state':self.val('SHIPYARD-IDLE'),'gl-boar-lurer-id':-1})
         self.counts={'port':1,'shipyard':0}
         self.add(1,'port',(40,50)); self.add(2,'warship-class',(75,50)); self.add(3,'villager-class',(45,50),zone=3)
-

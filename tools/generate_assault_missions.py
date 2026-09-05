@@ -394,7 +394,7 @@ def missions():
             f'(up-remove-objects search-local object-data-map-zone-id g:!= {v("water-zone")})',
             '(up-clean-search search-local object-data-distance search-order-asc)',
             '(up-remove-objects search-local object-data-index > 0)', setv('sample', 3)]))
-        out.append(rule([f'(goal {v("sample")} 3)', '(up-set-target-object search-local c: 0)'], [
+        out.append(rule([f'(goal {v("sample")} 3)', '(goal gl-row-active 0)', '(up-set-target-object search-local c: 0)'], [
             '(up-remove-objects search-local object-data-player != my-player-number)',
             '(up-remove-objects search-local object-data-group-flag >= 0)',
             f'(up-target-point {v("clear-x")} action-move -1 stance-no-attack)',
