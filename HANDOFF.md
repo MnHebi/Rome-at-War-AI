@@ -1,5 +1,46 @@
 # Rome at War AI handoff
 
+## CURRENT — T50:498 SHIPYARD THROUGHPUT/APERTURE SOURCE-ONLY, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; behavioral HEAD `0bfce18`. No new
+  branch/worktree/clone was created.
+- **T48 runtime result — PARTIAL PASS / SUPERSEDED.** Completed replay
+  `SP Replay v101.103.48987.0 @2026.09.05 162415.aoe2record`, SHA-256
+  `E09783EF66D897DB7AF5ED6B3B486916FFD547D36A6A858F55F0EDBC151560E6`,
+  runs 60:00 on Iberia with zero parser errors. T48 issues nine Shipyard build
+  orders across six players versus T47's two across two, proving candidate
+  recovery. First yards still range 14:44-54:15; Red and Gray issue none.
+  Diagnostic 410 remains dominated by 64 exact-candidate-unbuildable samples.
+- **T49 throughput — ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** Every local
+  geometric miss discarded the already-admitted placement lane and returned to
+  idle. Preserve admission for up to eight exact candidates around the same
+  ready anchor; real affordability/availability/worker failures and bounded
+  exhaustion still release normally. Commit `9ca1a6a`.
+- **T50 placement quality — ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** At
+  Orange's observed narrow-strait site `(49.5,174.5)`, all old far-water samples
+  pass, but a near lateral sample is beach. The old proof skipped the local
+  aperture. Add two same-zone/path-connected points at W1 +/-6 lateral while
+  retaining W1-W4. Commit `0bfce18`.
+- **Validation PASS:** Shipyard 18/18; trade topology 10/10; migration 23/23;
+  ownership contract 27/27; task ownership 13/13; naval right-of-way 13/13;
+  transport fairness 3/3; validators 128/128; PER structure; generated sync;
+  strategy execution 1,156/1,156; naval doctrine; replay metadata 42/42;
+  ownership audit 972 sites/zero failures; full Python 3.12 discovery 516/516;
+  and `git diff --check`.
+- **Deployment:** none. Installed runtime remains verified T48:496, SHA-256
+  `84608D9C772671F6B34977A744B603544EE1CAAB29429CE12E58C88BA003E07C`.
+  Undeployed source marker is T50:498 and aggregate SHA-256
+  `FEA37CD1D2ED54D49C1EB0D5A79608F25CD11A10CDE8C0EBFD774BC007A5B672`.
+  Exactly `rawai-init-goals.per`, `rawai-shipyard-defs.per` and
+  `rawai-specialplacement.per` differ from the installation.
+- **Next action:** only deploy on explicit request. Fresh marker-498 acceptance
+  must preserve T48's multi-player recovery, reduce first/minimum-yard latency,
+  keep viable Port owners from remaining permanently at zero, reject the
+  Orange-style near throat, and retain all economy/cap/clearance/worker/
+  foundation safeguards. Full detail:
+  `T50-SHIPYARD-THROUGHPUT-AND-APERTURE.md`.
+
 ## CURRENT — T48:496 SHIPYARD CANDIDATE RECOVERY DEPLOYED, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;

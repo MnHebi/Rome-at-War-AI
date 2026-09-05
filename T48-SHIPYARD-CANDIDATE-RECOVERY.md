@@ -2,10 +2,11 @@
 
 ## Status
 
-**ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME / DEPLOYED**, 2026-09-05.
-Source and installed marker `RAWAI-P3B44T48:496`. The source/install runtime
+**RUNTIME PARTIAL PASS / SUPERSEDED BY SOURCE-ONLY T49/T50**, 2026-09-05.
+The installed marker remains `RAWAI-P3B44T48:496`. Its verified runtime
 SHA-256 is
 `84608D9C772671F6B34977A744B603544EE1CAAB29429CE12E58C88BA003E07C`.
+Current source has advanced to T50; it has not been deployed.
 
 ## Runtime evidence
 
@@ -52,6 +53,25 @@ players.
 
 Behavioral commit: `8e69ef2`.
 
+## Fresh T48 runtime result
+
+The completed T48 replay is
+`SP Replay v101.103.48987.0 @2026.09.05 162415.aoe2record`, SHA-256
+`E09783EF66D897DB7AF5ED6B3B486916FFD547D36A6A858F55F0EDBC151560E6`.
+It runs 60:00 on Iberia with zero parser errors and emits nine Shipyard build
+orders across six players, versus T47's two orders across two players. This is
+a **PASS** for recovering usable candidates and proves that T48 is a material
+functional improvement.
+
+It is not a full acceptance. First Shipyards range from 14:44 to 54:15; Red and
+Gray never issue one. Diagnostic 410 is still dominated by 64 sampled exact
+candidate-unbuildable transitions. Orange's second Shipyard is visibly in a
+narrow strait. The completed replay and map tiles expose two narrower source
+faults: each geometric miss discards its admitted placement lane, and the
+four-point water proof omits the near lateral aperture. T49/T50 correct those
+boundaries in independent commits. Full evidence is in
+`T50-SHIPYARD-THROUGHPUT-AND-APERTURE.md`.
+
 ## Validation
 
 - Shipyard lifecycle/geometry fixture: **PASS**, 16 tests, including a first
@@ -67,22 +87,14 @@ Behavioral commit: `8e69ef2`.
   known Windows Temp permission error only; the authorized rerun passed.
 - `git diff --check`: **PASS**.
 
-## Runtime acceptance
+## Runtime disposition
 
 Deployment was explicitly authorized from canonical HEAD `407a31f`. Preflight
 found only `rawai-init-goals.per` and `rawai-specialplacement.per` different;
 both were copied. The post-apply read-only check reports all 99 runtime files
 identical with no missing, different or unexpected files.
 
-In a fresh T48 replay:
-
-1. first Shipyard build orders must occur across the players that possess a
-   completed Port and can afford/build the yard;
-2. reason 64 and false alternating reason 61 must fall materially;
-3. concrete foundations must appear and complete;
-4. later minimum-capacity yards must continue to progress;
-5. reasons 65/66/67 must continue rejecting crowded or closed-water sites;
-6. no narrow-crevice congestion regression may appear.
-
-Until those engine outcomes are demonstrated, this remains
-**FIXED-PENDING-RUNTIME**.
+T48 remains the installed control and has a **partial runtime PASS**: candidate
+recovery works, but latency, two zero-build players and narrow-throat placement
+fail the complete acceptance criteria. T48 is therefore superseded by
+source-only T49/T50 rather than marked closed.
