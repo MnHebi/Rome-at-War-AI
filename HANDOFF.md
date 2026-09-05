@@ -1,5 +1,35 @@
 # Rome at War AI handoff
 
+## CURRENT — T45:493 THREE-STAGE PERIMETER GATES, SOURCE ONLY, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `4d9d128`. No new
+  branch/worktree/clone was created.
+- **Wall circulation — ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** The user
+  directly observed Yellow choked behind a visibly complete wall with one gate;
+  part of its wall line entered water. Source allowed only two perimeter-owned
+  gates and required 75% engine wall completion before gate 2, so any line
+  stranded below that fact could never request another opening. The source
+  threshold was 75%, not 70%.
+- **Explicit policy correction:** preserve gate 1 at the first replaceable span;
+  request gate 2 at 40%; request the new gate 3 at the old 75% milestone. Both
+  stone and palisade paths retain Town Center/Villager, home-safety, danger,
+  escrow, availability, 60-second polling, three-attempt and 180-second backoff
+  safeguards. No fourth owned gate, geometry change, or unproven foundation
+  lifecycle change. Behavioral commit `1978ac2`.
+- **Validation PASS:** focused six-rule/three-stage gate assertions and bounded
+  polling; validators 128/128; full Python 3.12 discovery 512/512; PER
+  structure; naval doctrine; strategy execution; ownership 962 sites/zero
+  failures; and `git diff --check`.
+- **Deployment:** none. Source marker `RAWAI-P3B44T45:493`; installed copy
+  remains exact T41:489, aggregate SHA-256
+  `AB2271FA659CC47F6471CA950006FF73F986918D71057C12DD90BED099A858F2`.
+  T42–T44 remain source-only beneath T45.
+- **Next action:** deploy only when explicitly authorized. Runtime acceptance
+  requires gate 2 at 40%, gate 3 at 75%, no gate 4, retained safeguards, and
+  restored passage on a water-intersecting perimeter. Full detail:
+  `T45-THREE-STAGE-PERIMETER-GATES.md`.
+
 ## CURRENT — T44:492 MERCHANT-YIELD OVERRIDE RECOVERY, SOURCE ONLY, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
@@ -263,10 +293,11 @@
   sequencing change.** Both first-gate rules and their availability poll were
   gated on 25% wall completion, allowing a perimeter to close before a gate was
   requested. The first stone or palisade gate is now requested as soon as
-  `can-build-gate-with-escrow 2` reports a replaceable wall span. The second
-  gate remains at 75%; all danger, worker, escrow, availability and retry bounds
-  remain unchanged. Runtime PASS requires the first viable gate to precede a
-  closed perimeter without preventing wall completion.
+  `can-build-gate-with-escrow 2` reports a replaceable wall span. T45 supersedes
+  the former two-gate/75% continuation with gate 2 at 40% and gate 3 at 75%; all
+  danger, worker, escrow, availability and retry bounds remain unchanged.
+  Runtime PASS requires the first viable gate to precede a closed perimeter and
+  T45's later openings to remain bounded.
 - **Broader army idleness remains INVESTIGATING.** T39 fixes both source-visible
   landed-group first divergences; it does not claim that every ordinary army
   idle episode shares those causes. Native attack protection is type-wide and
