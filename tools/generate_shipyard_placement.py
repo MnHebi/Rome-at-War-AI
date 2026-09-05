@@ -104,6 +104,7 @@ def generate():
     add([*stage(3), '(not (up-can-build-line 0 gl-shipyard-x c: shipyard))'], reset(6))
     add(stage(3), ['(up-full-reset-search)', '(up-set-target-point gl-shipyard-x)',
         '(up-filter-distance c: -1 c: 10)', '(up-find-local c: port c: 40)', '(up-find-local c: shipyard c: 40)',
+        '(up-reset-search 1 0 0 0)',
         '(up-filter-status c: status-pending c: list-active)', '(up-find-status-local c: shipyard c: 40)',
         '(up-get-search-state local-total)', '(set-goal gl-sy-stage 4)'])
     add([*stage(4), '(up-compare-goal local-total c:> 0)'], reset(6))
@@ -156,7 +157,8 @@ def generate():
     # Pending count anywhere is not proof: verify the actual own object at issue.
     add(stage(20), ['(up-full-reset-search)', '(up-set-target-point gl-shipyard-x)',
         '(up-filter-distance c: -1 c: 2)', '(up-filter-status c: status-pending c: list-active)',
-        '(up-find-status-local c: shipyard c: 40)', '(up-filter-status c: status-ready c: list-active)',
+        '(up-find-status-local c: shipyard c: 40)', '(up-reset-search 1 0 0 0)',
+        '(up-filter-status c: status-ready c: list-active)',
         '(up-find-status-local c: shipyard c: 40)', '(set-goal gl-sy-stage 21)'])
     add([*stage(21), '(up-set-target-object search-local c: 0)', '(up-object-data object-data-player == my-player-number)'], [
         '(up-get-object-data object-data-id gl-sy-foundation)', '(set-goal gl-sy-reason 7)', *deadline(180), '(set-goal gl-sy-stage 22)'])

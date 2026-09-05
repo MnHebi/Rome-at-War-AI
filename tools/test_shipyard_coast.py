@@ -41,6 +41,15 @@ class ShipyardTests(unittest.TestCase):
         self.assertEqual((f.g['gl-sy-memory0-x'],f.g['gl-sy-memory0-y']),first)
         self.assertEqual(f.g['gl-sy-foundation'],-1)
 
+    def test_status_change_resets_same_type_search_index(self):
+        f=ShipyardFixture(); f.sweep()
+        f.add(10,'shipyard',f.builds[0][1],status='status-ready')
+        f.sweep(8)
+        self.assertEqual(f.g['gl-sy-foundation'],10)
+        self.assertEqual(f.g['gl-sy-stage'],0)
+        f=ShipyardFixture();f.add(10,'shipyard',(54,50),status='status-pending')
+        f.sweep();self.assertEqual(f.builds,[])
+
     def test_crevice_exit_fails_but_open_front_passes(self):
         # Four probes must pass for ONE direction. Different directions cannot
         # combine their individually good tiles into a fabricated open exit.
@@ -74,4 +83,3 @@ class ShipyardTests(unittest.TestCase):
         self.assertEqual(len(OFFSETS),24)
         self.assertEqual(len(set(OFFSETS)),24)
         self.assertIn((40,0),OFFSETS)
-

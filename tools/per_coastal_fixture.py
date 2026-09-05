@@ -18,6 +18,7 @@ class CoastalFixture(Missions):
         self.pathable=lambda obj,p,exact: True
         self.can_site=lambda p: True
         self.path_queries=[]; self.builds=[]; self.status=None; self.point=(0,0)
+        self.local_kind=None; self.local_cursor=0
 
     def pair(self,name):
         return self.point if name=='0' else (self.g.get(name,0), self.g.get(name[:-1]+'y',0))
@@ -73,14 +74,34 @@ class CoastalFixture(Missions):
             self.g[a[0]],self.g[a[0][:-1]+'y']=x,y
         elif op=='up-full-reset-search':
             self.status=None
+            self.local_kind=None; self.local_cursor=0
             return super().action(e,pc)
+        elif op=='up-reset-search':
+            assert len(a)==4 and all(v in ('0','1') for v in a)
+            if a[0]=='1':self.local_kind=None; self.local_cursor=0
+            if a[1]=='1':self.local=[]
+            if a[3]=='1':self.remote=[]
         elif op=='up-filter-status': self.status=self.val(a[1])
         elif op in ('up-find-local','up-find-status-local'):
-            items=[i for i,o in self.objects.items() if o['player']==2
+            status=self.val('status-ready') if op=='up-find-local' else self.status
+            items=[i for i,o in self.objects.items() if o['player']==2 and a[1] in (o.get('type'),o.get('cls'))]
+            if self.local_kind!=a[1]:self.local_kind=a[1];self.local_cursor=0
+            found=[]
+            for index in range(self.local_cursor,len(items)):
+                self.local_cursor=index+1;i=items[index];o=self.objects[i]
+                if (self.minradius<=math.dist(o['point'],self.point)<=self.radius
+                    and (status is None or self.val(str(o.get('status','status-ready')))==status)):
+                    found.append(i)
+                    if len(found)>=self.val(a[-1]):break
+            self.local += [i for i in found if i not in self.local][:240-len(self.local)]
+        elif op=='up-find-remote':
+            # Cached AIRef: remote capacity is 40, not local's 240. Search
+            # classes find ready objects; concrete IDs may find pending ones.
+            items=[i for i,o in self.objects.items() if o['player']==self.sn.get('sn-focus-player-number')
                 and a[1] in (o.get('type'),o.get('cls'))
                 and self.minradius<=math.dist(o['point'],self.point)<=self.radius
-                and (self.status is None or self.val(str(o.get('status','status-ready')))==self.status)]
-            self.local += [i for i in items[:self.val(a[-1])] if i not in self.local]
+                and (not a[1].endswith('-class') or o.get('status','status-ready')=='status-ready')]
+            self.remote += [i for i in items[:self.val(a[-1])] if i not in self.remote][:40-len(self.remote)]
         elif op=='up-build-line':
             assert a[0]==a[1]
             self.builds.append((a[-1],self.pair(a[0])))
