@@ -336,7 +336,13 @@ architecture.
 
 The single canonical development workspace is:
 
-`G:\Projects\Codex\Rome at War AI\.pr-work\Rome-at-War-AI`
+`G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`
+
+Current continuously advancing branch: `fix/trade-cog-cap-dacian`. The explicit
+2026-09-05 user instruction supersedes the old `.pr-work` location. Integrate
+incremental fixes here with separable commits; do not create another branch,
+worktree, clone or recovery branch unless the user explicitly changes this
+instruction. Do not deploy without an explicit deployment request.
 
 Before editing, determine and report:
 

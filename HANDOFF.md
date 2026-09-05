@@ -1,5 +1,77 @@
 # Rome at War AI handoff
 
+## CURRENT — T40:488 NAVAL HARDENING, SOURCE ONLY, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`. This is the explicit current user authority;
+  repository `AGENTS.md` now agrees. No branch/worktree/clone was created and no
+  obsolete extracted copy was synchronized. Start was clean `4d9c519`; latest
+  behavioral HEAD `2c46488` (the documentation/marker commit follows it).
+- **Objective:** the requested three naval/overseas improvements are implemented
+  and statically validated; runtime acceptance remains open. **Do not deploy
+  without an explicit request.** Full causes, file/commit map, focused tests,
+  adversarial findings and acceptance criteria: `T40-NAVAL-HARDENING.md`.
+- **Shipyards — FIXED-PENDING-RUNTIME.** Source allowed first-yard policy but its
+  final desired-zero gate could suppress issuance; all later yards waited on
+  tech saving. Random newest-building offsets had no open-water quality or
+  concrete-foundation confirmation. Preserve first-yard priority, add a 90s
+  deficit exception only below minimum operational count two (bounded by desired),
+  and retain actual affordability/escrow and ordinary later expansion. A finite
+  multi-sector/four-water-point search uses real mobile path queries, own/allied
+  naval-building separation and a compatible worker path. Verify foundation then
+  completion, with bounded failure memory. Native builder assignment and actual
+  usable exits remain engine acceptance boundaries. Commits `f8df20d`, `ac8b606`,
+  `2c46488`; 11 focused PER fixtures PASS. Diagnostic 410 is the blocker reason.
+- **Merchant right-of-way — FIXED-PENDING-RUNTIME.** Legacy berth/waypoint
+  clearers excluded active traders and mid-route straits. The new observer
+  requires two stationary eight-second samples with stable live movement intent
+  before yielding one nearby free self-owned merchant. It observes Transports
+  before mission warships, checks same-zone/exact-path/lateral safety and known
+  sea/town defenses, permits at most three sequential fresh interventions with
+  remeasurement, holds each at most 32s and three renewals, and applies merchant
+  and hull cooldowns. No STOP or priority-hull order; native trade resumes at a
+  still-valid allied Dock. Owned/distant traders are untouched. Commits `9c0b3fe`
+  and `e4ad548`; 11 focused fixtures PASS, including a five-active-merchant choke.
+  Diagnostic 420 names merchant, 421 priority hull. Collision causality and
+  trade reacquisition between bounded samples remain runtime questions.
+- **Expedition surplus — FIXED-PENDING-RUNTIME.** Fresh admission was blocked by
+  aggregate land superiority even for safe isolated homes; three slots already
+  release preparation one second after dispatch. Add only a leased safety
+  exception plus a same-pass eligible-home-army reserve. Require quiet home,
+  known overseas seed, real worker reachability checks, useful navy and hulls.
+  Keep minimum 12/one-quarter at EQUAL sea control, minimum 20/half and five-unit
+  lift cap at TOLERABLE; retain one free siege specialist and existing Palintonon
+  protection. No new planner/slot/cadence/recall. All migration/relic/ownership,
+  screening, failed-shore and independent mission gates remain. Commit `3110251`;
+  11 focused fixtures PASS. Diagnostic 430 reports exception availability.
+  Bounded/visibility-limited search is not complete map-connectivity proof.
+- **Validation PASS:** 503/503 Python 3.12 discovery tests, including the
+  compiler fixture in its required permitted temporary environment; PER operands
+  and structure; ownership 960 sites / zero permission failures; generated
+  ownership/mission/plan/migration/coastal/ROW/expedition/naval synchronization;
+  strategy execution, naval doctrine, 42 existing replay benchmark definitions
+  and diff whitespace. No new replay can yet validate T40.
+- **Existing synchronization conflict — DEFERRED, not passed:** civ generator
+  still proposes six baseline file updates. In-memory inspection finds four
+  newline-only changes and semantic Dacian Bowman / Syracusan Spearman reversions
+  conflicting with audited release repairs. No real `--write` was performed and
+  those source/config files remain byte-identical to baseline. Repair that
+  generator/data alignment separately; do not overwrite the verified choices.
+- **Identity:** source 99 runtime files, `RAWAI-P3B44T40:488`, SHA-256
+  `C90F78EB90DBA119DA6DC0373B8D9B5A703B3161A0D31267A7F5504409CE22E2`.
+  Conservative literals 1470/1500; no new engine timers or DUC groups. Installed
+  test copy independently remains **T36:484**, 93 files, SHA-256
+  `4E18B8AA59FBD5FD6468242E15DE207209A259C3F8BB08D8CB71EA29BEF87857`.
+  T37/T38/T39 are preserved in source, still not injected into that match.
+- **Next actions:** await explicit deployment instruction; then verify marker
+  and full hash and test the same documented Iberia lobby. Audit every player's
+  Shipyard lifecycle, congestion episodes and repeated slot use, including safe
+  home reserve, native trade recovery and CPU/late-match lag. Recheck siege
+  boarding, land trade, migration/relic and landed combat. Keep broader ordinary
+  military inactivity/type-wide native exclusions and shared preparation-lane
+  starvation explicit if they remain; do not attribute them all to the repaired
+  aggregate-strength gate. Mark CLOSED only after the item-specific runtime PASS.
+
 ## CURRENT - T39:487 MIGRATION ADMISSION, LANDED ASSAULT CONTINUATION, AND EARLY GATES, SOURCE ONLY, 2026-09-05
 
 - **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,

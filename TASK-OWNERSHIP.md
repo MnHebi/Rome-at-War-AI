@@ -1,5 +1,35 @@
 # Task ownership / threat preemption recovery
 
+## T40 additions — source only, FIXED-PENDING-RUNTIME
+
+Canonical checkout/branch and deployment identity are in `HANDOFF.md`; the T11
+matrix below is historical, not authority to reuse its old workspace or groups.
+The current assault mission groups remain 0, 18 and 19.
+
+- **Coastal admission:** read-only mobile ship/worker path queries do not claim
+  either object. The existing native Shipyard builder assignment remains the
+  execution boundary. Worker hold, affordability and exact foundation identity
+  are checked; pending and completed searches use independent cursors. Own and
+  allied naval buildings reserve local clearance. Native selection/completion
+  still needs an engine test.
+- **Merchant clearance:** three exact-ID temporary leases, no new group flag.
+  Only self-owned, free, nearby merchants qualify; moving/trading is deliberately
+  allowed for this narrowly bounded congestion intervention. Priority hulls are
+  observed, never ordered. Every lateral/resume writer reacquires the exact
+  merchant and checks ownership; conversion/group acquisition prevents commands.
+  Legacy berth/mission clearance pauses while the clearance lease is active.
+  A 32-second hold / three renewals / 120-second merchant cooldown and three
+  interventions per hull bound the exception to native-trade non-interference.
+- **Expedition admission:** no object commands or group mutations in the new
+  census/budget modules. Only free idle home troops count toward surplus; the
+  existing passenger-first selector still creates the preparation owner. The
+  three independent mission records, protected siege/transport groups, migration
+  and relic gates, screening and terminal release paths are unchanged.
+
+The regenerated source inventory covers 960 relevant sites with zero direct
+permission failures. This is a source check, not proof of engine ownership or
+pathfinding. See `T40-NAVAL-HARDENING.md` for the runtime acceptance criteria.
+
 ## T11 source-first implementation — current status
 
 **OWNERSHIP IMPLEMENTED FOR SOURCE-PROVEN PATHS — NATIVE BOUNDARY REQUIRES ONE DISCRIMINATING TEST.**

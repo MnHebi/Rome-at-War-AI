@@ -1,9 +1,11 @@
 # T40 naval / overseas hardening — source only
 
 Canonical checkout: `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
-branch `fix/trade-cog-cap-dacian`, baseline `4d9c519` (T39). No deployment.
+branch `fix/trade-cog-cap-dacian`, baseline `4d9c519` (T39). Source marker
+`RAWAI-P3B44T40:488`. No deployment.
 The latest explicit user instruction supersedes the obsolete `.pr-work` path
 in the general project rules. No branch or worktree was created.
+Repository-local `AGENTS.md` now records that explicit canonical-workspace change.
 
 ## Shipyards — FIXED-PENDING-RUNTIME
 
@@ -25,7 +27,7 @@ and all civilization phase targets remain unchanged. No escrow is released.
 Twenty-four deterministic coastal offsets extend to 40 tiles, with rotating
 naval anchors and four exit orientations. Each accepted orientation requires
 four open exact-path water points in the real nearby ship's water zone, ten
-tiles from existing naval buildings, plus a free nearby worker with a bounded
+tiles from existing own/allied naval buildings, plus a free nearby worker with a bounded
 vicinity path. Queries use mobile ships/workers, never buildings. Four failed
 sectors expire after 180 seconds. A build remains pending for 24 seconds until
 the actual own Shipyard object appears within two tiles, then is watched for
@@ -41,8 +43,7 @@ is preserved; the eligible worker path is admission evidence, not a promise
 that the native engine assigns that particular worker. No worker is stolen
 from a protected DUC group and no global task/reset/percentage is changed.
 
-**Validation.** PASS: 9 executable-PER fixtures, 126 general validator tests,
-PER structural validation, ownership audit (849 sites, zero permission failures).
+**Validation.** PASS: 11 executable-PER fixtures and the full validation below.
 Tests cover high-priority first yard, persistent second yard, later saving/caps,
 no false foundation success, four-probe crevices, building separation, missing
 or owned/unreachable worker, and finite distributed candidate enumeration.
@@ -54,6 +55,9 @@ native worker assignment/completion, pending-queue behavior and no regression in
 transport/fishing/Port traffic. Four sampled open points are a bounded quality
 heuristic, not a proof of a wide corridor everywhere. Rejected candidates/no
 nearby probing ship may still delay placement; the reason remains observable.
+Pending/ready queries explicitly reset the same-type search cursor while
+preserving accumulated results, so changing the status filter cannot reuse an
+exhausted Shipyard index and miss the other status.
 
 ## Merchant right-of-way — FIXED-PENDING-RUNTIME
 
@@ -93,6 +97,12 @@ prove physical causality from proximity, and intentionally does not move units
 with no valid movement intent or within the six-tile near-endpoint margin.
 Native trade may reacquire between bounded samples; the fixture exercises that
 case but engine proof is still required. Owned merchants are never commandeered.
+
+**Adversarial follow-up.** The holding-point check initially omitted the
+Town Center and concrete Sea Tower checks used by the existing assault danger
+validator. Those are now included, with hostile-point fixtures for both. The
+coastal fixture now enforces the documented 240-local/40-remote list limits and
+ready-vs-pending search semantics instead of allowing unlimited synthetic lists.
 
 ## Expedition throughput — FIXED-PENDING-RUNTIME
 
@@ -150,3 +160,70 @@ cross-zone probes do not establish complete map connectivity. A missing worker
 or no suitable known objective closes this exception. The source gate is fixed;
 three-slot productive saturation and the share of real idleness attributable to
 other ownership/preparation gates remain unproven until a fresh replay.
+
+## Files and independent commits
+
+| Item | Runtime/generator files | Focused tests | Commits |
+|---|---|---|---|
+| Shipyard capacity/coast/foundation | `rawai-specialplacement.per`, `rawai-shipyard-defs.per`, `tools/generate_shipyard_placement.py` | `tools/test_shipyard_coast.py` (11) | `f8df20d`, cursor correction `ac8b606`, allied clearance `2c46488` |
+| Merchant right-of-way | `rawai-naval-right-of-way.per`, `rawai-naval-row-defs.per`, `tools/generate_naval_right_of_way.py`; legacy interlocks in `rawai-military.per`, `rawai-assault-missions.per`, `tools/generate_assault_missions.py` | `tools/test_naval_right_of_way.py` (11), historical assault fingerprints in `tools/test_assault_cancellation_details.py` | `9c0b3fe`, defense coverage `e4ad548` |
+| Expedition exception/reserve | `rawai-expedition-admission.per`, `rawai-expedition-budget.per`, `rawai-expedition-defs.per`, `tools/generate_expedition_admission.py`, admission/manifest integration in `rawai-military.per` | `tools/test_expedition_admission.py` (11) | `3110251` |
+
+Shared infrastructure: `AI RAW.per` loads the modules, `rawai-init-goals.per`
+labels the source, `tools/per_coastal_fixture.py` executes actual generated PER
+with supplied geometry, and `tools/audit_ownership_source.py --write` regenerates
+the large mechanical inventory while refusing permission failures. Runtime marker
+assertions in `tools/test_trade_topology.py` and `tools/test_validators.py` were
+updated only for T40. No civilization composition or data-mod payload changed.
+
+## Final validation and review
+
+- **PASS:** 503/503 full Python 3.12 repository tests, including 33 new focused
+  tests, migration/relic coverage, siege boarding, trade topology, ownership,
+  shoreline, landed combat and historical three-slot fingerprints. The sandbox
+  first denied the compiler fixture's temporary directory; the permissioned
+  rerun passed. Latest complete run: 44.201 seconds.
+- **PASS:** PER structural/operand validation; ownership audit (960 relevant
+  sites / zero direct permission failures); generated ownership, assault mission,
+  assault plan, migration shoreline, coastal, ROW, expedition and naval-source
+  synchronization; strategy execution (1,156 matchups), naval doctrine (34 civs),
+  all 42 existing replay benchmark definitions and `git diff --check`.
+- **NOT PASS / pre-existing:** `sync_civ_strategies.py` still proposes six
+  existing-file updates. A write-intercepted in-memory preview proves that four
+  are line-ending-only, while Dacian quaternary Bowmen and Syracusan Spearman
+  choices/training would be removed or replaced. None of these files, their
+  strategy JSONs or the generator changed from `4d9c519`. The prior handoff
+  already records the conflict with audited release-aligned production. Do not
+  run `--write` against real files until that source-data alignment is repaired
+  in its own scoped change; do not silently undo those working choices.
+- **Adversarial review, ACCEPTED and tested:** same-type foundation status cursor;
+  allied naval-building clearance; Town Center/Sea Tower holding danger; native
+  search-list capacities; large-army census truncation; fifth home-zone enemy
+  omitted by a four-path-query limit. All accepted findings were implemented.
+- **REJECTED for this patch:** more than three slots, broad cadence/watchdog
+  increases, busy/owned troop acquisition and unsafe-route relaxation. Existing
+  one-second preparation reuse and independently owned missions already provide
+  the intended pipeline; no evidence establishes slot count as its limit.
+- **DEFERRED / explicit boundaries:** actual engine site acceptance/worker choice,
+  sufficient width beyond sampled water points, collision causality, native trade
+  reacquisition between hold samples, complete unknown/cross-zone connectivity,
+  type-wide native military exclusions and shared-lane throughput. Record their
+  exact events in the next replay instead of treating static fixtures as closure.
+
+## Identity and next runtime acceptance
+
+Source: 99 runtime files, marker **T40:488**, aggregate SHA-256
+`C90F78EB90DBA119DA6DC0373B8D9B5A703B3161A0D31267A7F5504409CE22E2`.
+String budget: 1,470 / 1,500 conservative all-file literals; no new timers or
+DUC groups. Installed runtime is independently unchanged: 93 files, **T36:484**,
+SHA-256 `4E18B8AA59FBD5FD6468242E15DE207209A259C3F8BB08D8CB71EA29BEF87857`.
+
+Do not deploy until explicitly instructed. Once authorized, deploy only this
+checkout and verify full installed hash plus replay marker. Preserve the Iberia
+Huge/400/Extreme/RaW-data-fix lobby comparison and record any intentional change.
+Audit all players, not only a successful example. Each of the three sections
+above has independent runtime PASS criteria. Include path-query/late-match cost,
+productive repeated three-slot use, native trade resumption and the existing
+T37/T38/T39 siege/land-trade/migration/landed-group fixes in that acceptance.
+There is no T40 runtime replay yet; **all three gameplay items remain
+FIXED-PENDING-RUNTIME**, not CLOSED.
