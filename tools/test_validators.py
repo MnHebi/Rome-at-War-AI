@@ -5769,7 +5769,7 @@ class FarmPolicyTests(unittest.TestCase):
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
         AssaultMissionTests().test_moving_hulls_do_not_receive_repeated_orders()
-        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T49: %d" c: 497)', self.init_goals)
+        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T50: %d" c: 498)', self.init_goals)
 
     def test_transport_departure_stalled_near_origin_activates_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests

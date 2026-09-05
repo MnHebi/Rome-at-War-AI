@@ -624,6 +624,12 @@
 	(up-copy-point gl-sy-w4-x gl-shipyard-x)
 	(up-modify-goal gl-sy-w4-x c:+ 12)
 	(up-modify-goal gl-sy-w4-y c:- 4)
+	(up-copy-point gl-sy-w5-x gl-shipyard-x)
+	(up-modify-goal gl-sy-w5-x c:+ 6)
+	(up-modify-goal gl-sy-w5-y c:+ 6)
+	(up-copy-point gl-sy-w6-x gl-shipyard-x)
+	(up-modify-goal gl-sy-w6-x c:+ 6)
+	(up-modify-goal gl-sy-w6-y c:- 6)
 	(set-goal gl-sy-stage 7)
 )
 
@@ -641,6 +647,12 @@
 	(up-copy-point gl-sy-w4-x gl-shipyard-x)
 	(up-modify-goal gl-sy-w4-x c:+ 4)
 	(up-modify-goal gl-sy-w4-y c:+ 12)
+	(up-copy-point gl-sy-w5-x gl-shipyard-x)
+	(up-modify-goal gl-sy-w5-x c:- 6)
+	(up-modify-goal gl-sy-w5-y c:+ 6)
+	(up-copy-point gl-sy-w6-x gl-shipyard-x)
+	(up-modify-goal gl-sy-w6-x c:+ 6)
+	(up-modify-goal gl-sy-w6-y c:+ 6)
 	(set-goal gl-sy-stage 7)
 )
 
@@ -658,6 +670,12 @@
 	(up-copy-point gl-sy-w4-x gl-shipyard-x)
 	(up-modify-goal gl-sy-w4-x c:- 12)
 	(up-modify-goal gl-sy-w4-y c:+ 4)
+	(up-copy-point gl-sy-w5-x gl-shipyard-x)
+	(up-modify-goal gl-sy-w5-x c:- 6)
+	(up-modify-goal gl-sy-w5-y c:- 6)
+	(up-copy-point gl-sy-w6-x gl-shipyard-x)
+	(up-modify-goal gl-sy-w6-x c:- 6)
+	(up-modify-goal gl-sy-w6-y c:+ 6)
 	(set-goal gl-sy-stage 7)
 )
 
@@ -675,6 +693,12 @@
 	(up-copy-point gl-sy-w4-x gl-shipyard-x)
 	(up-modify-goal gl-sy-w4-x c:- 4)
 	(up-modify-goal gl-sy-w4-y c:- 12)
+	(up-copy-point gl-sy-w5-x gl-shipyard-x)
+	(up-modify-goal gl-sy-w5-x c:+ 6)
+	(up-modify-goal gl-sy-w5-y c:- 6)
+	(up-copy-point gl-sy-w6-x gl-shipyard-x)
+	(up-modify-goal gl-sy-w6-x c:- 6)
+	(up-modify-goal gl-sy-w6-y c:- 6)
 	(set-goal gl-sy-stage 7)
 )
 
@@ -906,6 +930,122 @@
 	(up-compare-goal gl-sy-ship c:>= 0)
 	(up-set-target-object search-local c: 0)
 	(up-path-distance gl-sy-w4-x 1 == 65535)
+=>
+	(set-goal gl-sy-stage 8)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
+=>
+	(up-bound-point gl-sy-bounded-x gl-sy-w5-x)
+	(up-get-point-zone gl-sy-w5-x gl-sy-zone)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-sy-ship)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:< 0)
+=>
+	(up-bound-point gl-sy-bounded-x gl-sy-w5-x)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(or (up-compare-goal gl-sy-w5-x g:!= gl-sy-bounded-x) (up-compare-goal gl-sy-w5-y g:!= gl-sy-bounded-y))
+=>
+	(set-goal gl-sy-stage 8)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
+	(up-compare-goal gl-sy-zone g:!= gl-sy-water-zone)
+=>
+	(set-goal gl-sy-stage 8)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(set-goal gl-sy-stage 8)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-player != my-player-number)
+=>
+	(set-goal gl-sy-stage 8)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
+	(up-set-target-object search-local c: 0)
+	(up-path-distance gl-sy-w5-x 1 == 65535)
+=>
+	(set-goal gl-sy-stage 8)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
+=>
+	(up-bound-point gl-sy-bounded-x gl-sy-w6-x)
+	(up-get-point-zone gl-sy-w6-x gl-sy-zone)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-sy-ship)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:< 0)
+=>
+	(up-bound-point gl-sy-bounded-x gl-sy-w6-x)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(or (up-compare-goal gl-sy-w6-x g:!= gl-sy-bounded-x) (up-compare-goal gl-sy-w6-y g:!= gl-sy-bounded-y))
+=>
+	(set-goal gl-sy-stage 8)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
+	(up-compare-goal gl-sy-zone g:!= gl-sy-water-zone)
+=>
+	(set-goal gl-sy-stage 8)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(set-goal gl-sy-stage 8)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-player != my-player-number)
+=>
+	(set-goal gl-sy-stage 8)
+)
+
+(defrule
+	(goal gl-sy-stage 7)
+	(up-compare-goal gl-sy-ship c:>= 0)
+	(up-set-target-object search-local c: 0)
+	(up-path-distance gl-sy-w6-x 1 == 65535)
 =>
 	(set-goal gl-sy-stage 8)
 )

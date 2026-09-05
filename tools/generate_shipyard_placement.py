@@ -14,7 +14,8 @@ FIELDS = ('clock', 'next', 'deficit-since', 'minimum', 'reason', 'reported',
           'diag-next', 'anchor', 'sector', 'direction', 'stage', 'count', 'ship',
           'water-zone', 'zone', 'worker', 'until', 'foundation', 'memory-index',
           'anchor-x', 'anchor-y', 'w1-x', 'w1-y', 'w2-x', 'w2-y', 'w3-x', 'w3-y',
-          'w4-x', 'w4-y', 'bounded-x', 'bounded-y', 'sample', 'focus', 'attempt')
+          'w4-x', 'w4-y', 'w5-x', 'w5-y', 'w6-x', 'w6-y',
+          'bounded-x', 'bounded-y', 'sample', 'focus', 'attempt')
 CANDIDATE_SPAN = 29
 CANDIDATE_RADIUS = 14
 MAX_CANDIDATE_ATTEMPTS = 8
@@ -173,8 +174,12 @@ def generate():
         add([*stage(6), f'(goal gl-sy-direction {i})'], [
             *point('w1',dx*6,dy*6), *point('w2',dx*12,dy*12),
             *point('w3',dx*12-dy*4,dy*12+dx*4), *point('w4',dx*12+dy*4,dy*12-dx*4),
+            *point('w5',dx*6-dy*6,dy*6+dx*6), *point('w6',dx*6+dy*6,dy*6-dx*6),
             '(set-goal gl-sy-stage 7)'])
-    for point_name in ('w1','w2','w3','w4'):
+    # Far-end reachability alone can route around a local throat. The two W1
+    # lateral probes require a twelve-tile aperture immediately in front of the
+    # foundation before that orientation can qualify as open water.
+    for point_name in ('w1','w2','w3','w4','w5','w6'):
         x=f'gl-sy-{point_name}-x'
         add([*stage(7), '(up-compare-goal gl-sy-ship c:>= 0)'],
             [f'(up-bound-point gl-sy-bounded-x {x})', f'(up-get-point-zone {x} gl-sy-zone)',

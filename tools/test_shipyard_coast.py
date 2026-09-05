@@ -75,7 +75,7 @@ class ShipyardTests(unittest.TestCase):
         f.sweep();self.assertEqual(f.builds,[])
 
     def test_crevice_exit_fails_but_open_front_passes(self):
-        # Four probes must pass for ONE direction. Different directions cannot
+        # Six probes must pass for ONE direction. Different directions cannot
         # combine their individually good tiles into a fabricated open exit.
         for failed in ((64,50),(64,54),(64,46)):
             f=ShipyardFixture()
@@ -84,8 +84,18 @@ class ShipyardTests(unittest.TestCase):
             self.assertEqual(f.builds,[],failed)
         f=ShipyardFixture(); f.sweep()
         queried={p for i,p,exact in f.path_queries if i==2 and exact}
-        self.assertTrue({(58,50),(64,50),(64,54),(64,46)}<=queried)
+        self.assertTrue({(58,50),(64,50),(64,54),(64,46),(58,56),(58,44)}<=queried)
         self.assertEqual(len(f.builds),1)
+
+    def test_near_aperture_rejects_a_far_reachable_narrow_throat(self):
+        f=ShipyardFixture()
+        # The old four probes all pass to the east. Only the new near-side W5
+        # point exposes the blocking shoreline beside the approach throat.
+        f.pathable=lambda _o,p,exact: not exact or (p[0]>52 and p!=(58,56))
+        for _ in range(4): f.sweep()
+        self.assertEqual(f.builds,[])
+        self.assertEqual(f.g['gl-sy-reason'],67)
+        self.assertEqual(f.g['gl-sy-attempt'],1)
 
     def test_worker_reachability_and_global_hold(self):
         for mode in ('blocked','owned','hold'):
@@ -144,6 +154,8 @@ class ShipyardTests(unittest.TestCase):
         self.assertIn('(up-can-build-line 0 gl-shipyard-x c: shipyard)',generated)
         self.assertIn('(up-filter-distance c: -1 c: 10)',generated)
         self.assertIn('(up-path-distance gl-sy-w1-x 1 == 65535)',generated)
+        self.assertIn('(up-path-distance gl-sy-w5-x 1 == 65535)',generated)
+        self.assertIn('(up-path-distance gl-sy-w6-x 1 == 65535)',generated)
         self.assertIn('(up-path-distance gl-shipyard-x 0 < 64)',generated)
 
     def test_coast_rejection_diagnostics_identify_the_actual_gate(self):
