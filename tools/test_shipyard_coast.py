@@ -1,6 +1,6 @@
 import unittest
 from per_coastal_fixture import ShipyardFixture
-from generate_shipyard_placement import outputs, OFFSETS
+from generate_shipyard_placement import outputs, CANDIDATE_RADIUS, CANDIDATE_SPAN
 from test_pre_backlog import source
 
 
@@ -108,10 +108,28 @@ class ShipyardTests(unittest.TestCase):
             f.sweep(); self.assertEqual(f.builds,[])
             self.assertEqual(f.sn['sn-focus-player-number'],7)
 
-    def test_finite_coastal_distribution(self):
-        self.assertEqual(len(OFFSETS),24)
-        self.assertEqual(len(set(OFFSETS)),24)
-        self.assertIn((40,0),OFFSETS)
+    def test_dense_near_anchor_sampling_and_cursor_wrap(self):
+        f=ShipyardFixture(); f.random_values=[0,0,26,14]
+        f.can_site=lambda point: point==(52,50)
+        f.sweep()
+        self.assertEqual(f.builds,[])
+        self.assertEqual(f.g['gl-sy-reason'],64)
+        self.assertEqual(f.g['gl-sy-sector'],1)
+        # A single ready Port exhausts the ordered cursor here. The rebuilt
+        # anchor list must wrap without reporting 61 or consuming this sample.
+        f.sweep(2)
+        self.assertEqual(f.builds,[('shipyard',(52,50))])
+        self.assertNotEqual(f.g['gl-sy-reason'],61)
+
+    def test_dense_candidate_domain_preserves_exact_safety_gates(self):
+        generated=outputs()['rawai-specialplacement.per']
+        self.assertEqual(CANDIDATE_SPAN,29)
+        self.assertEqual(CANDIDATE_RADIUS,14)
+        self.assertEqual(generated.count('(generate-random-number 29)'),2)
+        self.assertIn('(up-can-build-line 0 gl-shipyard-x c: shipyard)',generated)
+        self.assertIn('(up-filter-distance c: -1 c: 10)',generated)
+        self.assertIn('(up-path-distance gl-sy-w1-x 1 == 65535)',generated)
+        self.assertIn('(up-path-distance gl-shipyard-x 0 < 64)',generated)
 
     def test_coast_rejection_diagnostics_identify_the_actual_gate(self):
         cases = []

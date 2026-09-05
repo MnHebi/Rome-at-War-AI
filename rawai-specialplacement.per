@@ -215,6 +215,26 @@
 (defrule
 	(goal gl-sy-stage 1)
 =>
+	(up-full-reset-search)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-local c: port c: 40)
+	(up-find-local c: shipyard c: 40)
+	(up-clean-search search-local object-data-id search-order-asc)
+	(set-goal gl-sy-stage 11)
+)
+
+(defrule
+	(goal gl-sy-stage 11)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-id gl-sy-anchor)
+	(up-get-point position-object gl-sy-anchor-x)
+	(set-goal gl-sy-stage 2)
+)
+
+(defrule
+	(goal gl-sy-stage 11)
+=>
 	(set-goal gl-sy-anchor -1)
 	(set-goal gl-sy-reason 61)
 	(set-goal gl-sy-stage 90)
@@ -222,287 +242,16 @@
 
 (defrule
 	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 0)
 =>
+	(generate-random-number 29)
+	(up-get-fact random-number 0 gl-sy-count)
+	(generate-random-number 29)
+	(up-get-fact random-number 0 gl-sy-zone)
 	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ 12)
-	(up-modify-goal gl-shipyard-y c:+ 0)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 1)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ 0)
-	(up-modify-goal gl-shipyard-y c:+ 12)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 2)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ -12)
-	(up-modify-goal gl-shipyard-y c:+ 0)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 3)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ 0)
-	(up-modify-goal gl-shipyard-y c:+ -12)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 4)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ 12)
-	(up-modify-goal gl-shipyard-y c:+ 12)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 5)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ -12)
-	(up-modify-goal gl-shipyard-y c:+ 12)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 6)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ -12)
-	(up-modify-goal gl-shipyard-y c:+ -12)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 7)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ 12)
-	(up-modify-goal gl-shipyard-y c:+ -12)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 8)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ 24)
-	(up-modify-goal gl-shipyard-y c:+ 0)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 9)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ 0)
-	(up-modify-goal gl-shipyard-y c:+ 24)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 10)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ -24)
-	(up-modify-goal gl-shipyard-y c:+ 0)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 11)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ 0)
-	(up-modify-goal gl-shipyard-y c:+ -24)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 12)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ 24)
-	(up-modify-goal gl-shipyard-y c:+ 24)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 13)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ -24)
-	(up-modify-goal gl-shipyard-y c:+ 24)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 14)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ -24)
-	(up-modify-goal gl-shipyard-y c:+ -24)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 15)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ 24)
-	(up-modify-goal gl-shipyard-y c:+ -24)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 16)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ 40)
-	(up-modify-goal gl-shipyard-y c:+ 0)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 17)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ 0)
-	(up-modify-goal gl-shipyard-y c:+ 40)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 18)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ -40)
-	(up-modify-goal gl-shipyard-y c:+ 0)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 19)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ 0)
-	(up-modify-goal gl-shipyard-y c:+ -40)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 20)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ 40)
-	(up-modify-goal gl-shipyard-y c:+ 40)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 21)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ -40)
-	(up-modify-goal gl-shipyard-y c:+ 40)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 22)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ -40)
-	(up-modify-goal gl-shipyard-y c:+ -40)
-	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
-	(set-goal gl-sy-direction 0)
-	(set-goal gl-sy-stage 3)
-)
-
-(defrule
-	(goal gl-sy-stage 2)
-	(goal gl-sy-sector 23)
-=>
-	(up-copy-point gl-shipyard-x gl-sy-anchor-x)
-	(up-modify-goal gl-shipyard-x c:+ 40)
-	(up-modify-goal gl-shipyard-y c:+ -40)
+	(up-modify-goal gl-shipyard-x g:+ gl-sy-count)
+	(up-modify-goal gl-shipyard-y g:+ gl-sy-zone)
+	(up-modify-goal gl-shipyard-x c:- 14)
+	(up-modify-goal gl-shipyard-y c:- 14)
 	(up-bound-point gl-sy-bounded-x gl-shipyard-x)
 	(set-goal gl-sy-direction 0)
 	(set-goal gl-sy-stage 3)
@@ -1354,7 +1103,7 @@
 	(up-modify-goal gl-sy-memory-index c:+ 1)
 	(up-modify-goal gl-sy-memory-index c:mod 4)
 	(up-modify-goal gl-sy-sector c:+ 1)
-	(up-modify-goal gl-sy-sector c:mod 24)
+	(up-modify-goal gl-sy-sector c:mod 29)
 	(set-goal shipyard-placement-state SHIPYARD-IDLE)
 	(set-goal gl-sy-stage 0)
 )

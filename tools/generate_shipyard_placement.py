@@ -15,8 +15,8 @@ FIELDS = ('clock', 'next', 'deficit-since', 'minimum', 'reason', 'reported',
           'water-zone', 'zone', 'worker', 'until', 'foundation', 'memory-index',
           'anchor-x', 'anchor-y', 'w1-x', 'w1-y', 'w2-x', 'w2-y', 'w3-x', 'w3-y',
           'w4-x', 'w4-y', 'bounded-x', 'bounded-y', 'sample', 'focus')
-OFFSETS = tuple((dx*r, dy*r) for r in (12, 24, 40)
-                for dx, dy in ((1,0), (0,1), (-1,0), (0,-1), (1,1), (-1,1), (-1,-1), (1,-1)))
+CANDIDATE_SPAN = 29
+CANDIDATE_RADIUS = 14
 DIRECTIONS = ((1,0), (0,1), (-1,0), (0,-1))
 
 
@@ -93,14 +93,33 @@ def generate():
     add([*stage(1), '(up-set-target-object search-local c: 0)'], [
         '(up-get-object-data object-data-id gl-sy-anchor)', '(up-get-point position-object gl-sy-anchor-x)',
         '(set-goal gl-sy-stage 2)'])
-    add(stage(1), ['(set-goal gl-sy-anchor -1)', *reset(61)])
-    # Exactly one candidate per sweep; rotate sectors AND anchors on rejection.
-    for index,(dx,dy) in enumerate(OFFSETS):
-        add([*stage(2), f'(goal gl-sy-sector {index})'], [
-            '(up-copy-point gl-shipyard-x gl-sy-anchor-x)',
-            f'(up-modify-goal gl-shipyard-x c:+ {dx})', f'(up-modify-goal gl-shipyard-y c:+ {dy})',
-            '(up-bound-point gl-sy-bounded-x gl-shipyard-x)',
-            '(set-goal gl-sy-direction 0)', '(set-goal gl-sy-stage 3)'])
+    # Cursor exhaustion is not absence. Rebuild once without the cursor and
+    # wrap to the first ready anchor without consuming a candidate or failed
+    # site-memory entry. Only an empty rebuilt list is a real reason 61.
+    add(stage(1), ['(up-full-reset-search)', '(up-filter-status c: status-ready c: list-active)',
+        '(up-find-local c: port c: 40)', '(up-find-local c: shipyard c: 40)',
+        '(up-clean-search search-local object-data-id search-order-asc)', '(set-goal gl-sy-stage 11)'])
+    add([*stage(11), '(up-set-target-object search-local c: 0)'], [
+        '(up-get-object-data object-data-id gl-sy-anchor)', '(up-get-point position-object gl-sy-anchor-x)',
+        '(set-goal gl-sy-stage 2)'])
+    add(stage(11), ['(set-goal gl-sy-anchor -1)', *reset(61)])
+    # T47 proved the sparse 24-point, 12/24/40-tile lattice usually selected
+    # exact points where the engine could not place a Shipyard. Restore T36's
+    # runtime-proven dense near-anchor domain: one bounded integer sample from
+    # the full 29x29 coordinate domain around the anchor. The downstream exact
+    # buildability, separation, open-water, worker-path and foundation checks
+    # remain intact.
+    add(stage(2), [f'(generate-random-number {CANDIDATE_SPAN})',
+        '(up-get-fact random-number 0 gl-sy-count)',
+        f'(generate-random-number {CANDIDATE_SPAN})',
+        '(up-get-fact random-number 0 gl-sy-zone)',
+        '(up-copy-point gl-shipyard-x gl-sy-anchor-x)',
+        '(up-modify-goal gl-shipyard-x g:+ gl-sy-count)',
+        '(up-modify-goal gl-shipyard-y g:+ gl-sy-zone)',
+        f'(up-modify-goal gl-shipyard-x c:- {CANDIDATE_RADIUS})',
+        f'(up-modify-goal gl-shipyard-y c:- {CANDIDATE_RADIUS})',
+        '(up-bound-point gl-sy-bounded-x gl-shipyard-x)',
+        '(set-goal gl-sy-direction 0)', '(set-goal gl-sy-stage 3)'])
     add([*stage(3), '(or (up-compare-goal gl-shipyard-x g:!= gl-sy-bounded-x) (up-compare-goal gl-shipyard-y g:!= gl-sy-bounded-y))'], reset(62))
     for i in range(4):
         add([*stage(3), f'(up-compare-goal gl-sy-clock g:< gl-sy-memory{i}-until)'], [
@@ -207,7 +226,7 @@ def generate():
             f'(up-copy-point gl-sy-memory{i}-x gl-shipyard-x)', f'(up-modify-goal gl-sy-memory{i}-until g:= gl-sy-clock)',
             f'(up-modify-goal gl-sy-memory{i}-until c:+ 180)', '(set-goal gl-sy-stage 91)'])
     add(stage(91), ['(up-modify-goal gl-sy-memory-index c:+ 1)', '(up-modify-goal gl-sy-memory-index c:mod 4)',
-        '(up-modify-goal gl-sy-sector c:+ 1)', f'(up-modify-goal gl-sy-sector c:mod {len(OFFSETS)})',
+        '(up-modify-goal gl-sy-sector c:+ 1)', f'(up-modify-goal gl-sy-sector c:mod {CANDIDATE_SPAN})',
         '(set-goal shipyard-placement-state SHIPYARD-IDLE)', '(set-goal gl-sy-stage 0)'])
     add(['(up-compare-goal gl-sy-clock g:>= gl-sy-diag-next)', '(up-compare-goal gl-sy-reason g:!= gl-sy-reported)'], [
         '(up-chat-data-to-all str-t12-diag-id c: 410)', '(up-chat-data-to-all str-t12-diag-value g: gl-sy-reason)',

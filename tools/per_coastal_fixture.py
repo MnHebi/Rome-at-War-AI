@@ -19,6 +19,7 @@ class CoastalFixture(Missions):
         self.can_site=lambda p: True
         self.path_queries=[]; self.builds=[]; self.status=None; self.point=(0,0)
         self.local_kind=None; self.local_cursor=0
+        self.random_values=[]; self.random_defaults=(26,14); self.random_calls=0
 
     def pair(self,name):
         return self.point if name=='0' else (self.g.get(name,0), self.g.get(name[:-1]+'y',0))
@@ -54,7 +55,14 @@ class CoastalFixture(Missions):
 
     def action(self,e,pc=0):
         op,*a=e
-        if op=='up-get-fact' and a[0]!='game-time':
+        if op=='generate-random-number':
+            limit=self.val(a[0])
+            if self.random_values: value=self.random_values.pop(0)
+            else: value=self.random_defaults[self.random_calls%len(self.random_defaults)]
+            self.random_calls+=1; self.random=value%limit
+        elif op=='up-get-fact' and a[0]=='random-number':
+            self.g[a[-1]]=self.random
+        elif op=='up-get-fact' and a[0]!='game-time':
             self.g[a[-1]]=self.counts.get(a[0],0)
         elif op=='up-modify-goal':
             v=self.sn.get(a[2],0) if a[1].startswith('s:') else self.operand(a[1],a[2])
