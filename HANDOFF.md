@@ -1,5 +1,39 @@
 # Rome at War AI handoff
 
+## CURRENT — T43:491 LAND-TRADE SHARED-SEARCH RECOVERY, SOURCE ONLY, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `faa2cd0`. No new
+  branch/worktree/clone was created.
+- **Land trade — ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** The fresh T41
+  replay runs to 85:45 and has completed own/allied Market build orders, but no
+  `trade land candidate ally`, no Trade Carts, and eight topology-no-candidate
+  samples. Water candidate/proof remained live. This is a runtime FAIL for
+  T38's acceptance; its zone-veto repair did not reach the earliest remaining
+  divergence.
+- **First causal divergence:** topology start built `search-local`, then the
+  next-sweep land-source rule required an object from that shared list. Other
+  controllers can overwrite a DUC list across that state boundary, so the
+  per-ally land scan never began. This is a source-established invalid lifetime
+  dependency already prohibited elsewhere in the project.
+- **Bounded correction:** persist the home/colony source anchor with the
+  completed Market census and enter the per-ally scan from those persistent
+  values. Preserve exact producer epochs, the three-Cart probe ceiling, economy
+  and `can-train` gates, live `actionid-trade` proof, caps, and independent water
+  trade. No new runtime telemetry was needed.
+- **Validation PASS:** focused trade topology 10/10; T13 gate recovery 7/7;
+  validators 128/128; full Python 3.12 discovery 510/510; PER structure; naval
+  doctrine; strategy execution; ownership audit 960 sites with zero permission
+  failures; naval-capability sync; and `git diff --check`.
+- **Deployment:** none. Source marker `RAWAI-P3B44T43:491`; installed test copy
+  remains exact T41:489, aggregate SHA-256
+  `AB2271FA659CC47F6471CA950006FF73F986918D71057C12DD90BED099A858F2`.
+  T42 Shipyard recovery remains source-only and is preserved beneath T43.
+- **Next action:** deploy T42+T43 only when explicitly authorized. A fresh T43
+  replay must show a land-candidate event and bounded Cart probes, then live
+  `merchant land proof ally` and normal growth on a viable route. Full detail:
+  `T43-LAND-TRADE-SHARED-SEARCH-RECOVERY.md`.
+
 ## CURRENT — T42:490 SHIPYARD PROBE RECOVERY, SOURCE ONLY, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
@@ -215,13 +249,13 @@
   replay strings beyond replacing the marker. No deployment has occurred;
   installed runtime remains verified T36:484.
 
-## CURRENT - T38:486 LAND TRADE ZONE-VETO REPAIR, SOURCE ONLY, 2026-09-05
+## T38:486 LAND TRADE ZONE-VETO REPAIR — RUNTIME FAILED / SUPERSEDED BY T43
 
 - **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
   branch `fix/trade-cog-cap-dacian`; pre-change HEAD `84429f5`. T36:484 remains
   installed while its live test is running. T37 and T38 are source-only and
   must not be silently deployed into that match.
-- **Status: ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** The user directly
+- **Status: RUNTIME FAIL / SUPERSEDED BY T43.** The user directly
   observed that multiple allied players had viable land routes but no land
   trade. A read-only 125:00 snapshot of live T36 replay
   `SP Replay v101.103.48987.0 @2026.09.04 223434.aoe2record` has zero parse
@@ -264,6 +298,11 @@
   unlock growth or villager retirement. Water trade must remain independent.
 - **Deployment:** none. Source marker is `RAWAI-P3B44T38:486`; installed runtime
   remains verified T36:484.
+- **Later result:** T41 runtime still produced zero land candidates and zero
+  Trade Carts despite completed own/allied Markets. T43 identifies the earlier
+  remaining cause: the land-source rule consumed a shared DUC list from the
+  preceding rule sweep. T38 therefore remains useful as a removed invalid veto,
+  but did not resolve the reported behavior by itself.
 
 ## CURRENT - T37:485 INDEPENDENT SIEGE-PASSENGER BOARDING, SOURCE ONLY, 2026-09-04
 
