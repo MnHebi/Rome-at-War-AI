@@ -21,10 +21,21 @@ FIELDS = ('clock', 'next', 'deficit-since', 'minimum', 'reason', 'reported',
           'life-left', 'life-next', 'life-age', 'life-actual', 'life-total',
           'life-pending', 'life-ports', 'life-afford', 'life-can-build',
           'life-phase')
-CANDIDATE_SPAN = 29
 CANDIDATE_RADIUS = 14
 MAX_CANDIDATE_ATTEMPTS = 8
 DIRECTIONS = ((1,0), (0,1), (-1,0), (0,-1))
+# Four independently rotated coastline sectors, each with eight dense sites.
+# The sector cursor survives a completed/failed placement; a later yard starts
+# on another side of its selected Port/Shipyard anchor rather than repeatedly
+# filling one inlet.  All points remain inside T36's runtime-proven +/-14
+# near-anchor domain and still pass the exact build/water/clearance gates below.
+CANDIDATE_SECTORS = (
+    ((12, 0), (10, 4), (10, -4), (14, 4), (14, -4), (8, 7), (8, -7), (14, 0)),
+    ((0, 12), (4, 10), (-4, 10), (4, 14), (-4, 14), (7, 8), (-7, 8), (0, 14)),
+    ((-12, 0), (-10, 4), (-10, -4), (-14, 4), (-14, -4), (-8, 7), (-8, -7), (-14, 0)),
+    ((0, -12), (4, -10), (-4, -10), (4, -14), (-4, -14), (7, -8), (-7, -8), (0, -14)),
+)
+CANDIDATE_SPAN = len(CANDIDATE_SECTORS)
 
 
 def definitions():
@@ -150,23 +161,21 @@ def generate():
         '(up-get-object-data object-data-id gl-sy-anchor)', '(up-get-point position-object gl-sy-anchor-x)',
         '(set-goal gl-sy-stage 2)'])
     add(stage(11), ['(set-goal gl-sy-anchor -1)', *reset(61)])
-    # T47 proved the sparse 24-point, 12/24/40-tile lattice usually selected
-    # exact points where the engine could not place a Shipyard. Restore T36's
-    # runtime-proven dense near-anchor domain: one bounded integer sample from
-    # the full 29x29 coordinate domain around the anchor. The downstream exact
-    # buildability, separation, open-water, worker-path and foundation checks
-    # remain intact.
-    add(stage(2), [f'(generate-random-number {CANDIDATE_SPAN})',
-        '(up-get-fact random-number 0 gl-sy-count)',
-        f'(generate-random-number {CANDIDATE_SPAN})',
-        '(up-get-fact random-number 0 gl-sy-zone)',
-        '(up-copy-point gl-shipyard-x gl-sy-anchor-x)',
-        '(up-modify-goal gl-shipyard-x g:+ gl-sy-count)',
-        '(up-modify-goal gl-shipyard-y g:+ gl-sy-zone)',
-        f'(up-modify-goal gl-shipyard-x c:- {CANDIDATE_RADIUS})',
-        f'(up-modify-goal gl-shipyard-y c:- {CANDIDATE_RADIUS})',
-        '(up-bound-point gl-sy-bounded-x gl-shipyard-x)',
-        '(set-goal gl-sy-direction 0)', '(set-goal gl-sy-stage 3)'])
+    # T50 showed that random +/-14 sampling makes valid coast discovery slow
+    # and can repeatedly rediscover a narrow local inlet.  Enumerate a finite
+    # dense sector instead.  The eight-attempt lane remains the hard bound;
+    # success or exhaustion rotates the next admission to another sector.
+    for sector, offsets in enumerate(CANDIDATE_SECTORS):
+        for attempt, (dx, dy) in enumerate(offsets):
+            actions = ['(up-copy-point gl-shipyard-x gl-sy-anchor-x)']
+            if dx:
+                actions.append(f'(up-modify-goal gl-shipyard-x c:{"+" if dx > 0 else "-"} {abs(dx)})')
+            if dy:
+                actions.append(f'(up-modify-goal gl-shipyard-y c:{"+" if dy > 0 else "-"} {abs(dy)})')
+            actions += ['(up-bound-point gl-sy-bounded-x gl-shipyard-x)',
+                        '(set-goal gl-sy-direction 0)', '(set-goal gl-sy-stage 3)']
+            add([*stage(2), f'(goal gl-sy-sector {sector})',
+                 f'(goal gl-sy-attempt {attempt})'], actions)
     add([*stage(3), '(or (up-compare-goal gl-shipyard-x g:!= gl-sy-bounded-x) (up-compare-goal gl-shipyard-y g:!= gl-sy-bounded-y))'], retry(62))
     for i in range(4):
         add([*stage(3), f'(up-compare-goal gl-sy-clock g:< gl-sy-memory{i}-until)'], [
