@@ -5,6 +5,8 @@
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
   branch `fix/trade-cog-cap-dacian`; behavioral HEAD `0bfce18`. No new
   branch/worktree/clone was created.
+- **Review:** cumulative T29-T50 assessment is published as draft PR
+  `https://github.com/MnHebi/Rome-at-War-AI/pull/11` against `main`.
 - **T48 runtime result — PARTIAL PASS / SUPERSEDED.** Completed replay
   `SP Replay v101.103.48987.0 @2026.09.05 162415.aoe2record`, SHA-256
   `E09783EF66D897DB7AF5ED6B3B486916FFD547D36A6A858F55F0EDBC151560E6`,

@@ -20,6 +20,9 @@ copied. A separate read-only check reports all 99 runtime files identical, with
 no missing, different or unexpected files, and independently finds the
 marker-498 line in the installed `rawai-init-goals.per`.
 
+The cumulative T29-T50 branch is published for further assessment as draft PR
+`https://github.com/MnHebi/Rome-at-War-AI/pull/11`.
+
 ## Completed T48 replay
 
 Replay:
