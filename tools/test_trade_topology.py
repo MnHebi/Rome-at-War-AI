@@ -80,7 +80,7 @@ class TradeTopologyTests(unittest.TestCase):
         for name, value in expected.items():
             self.assertEqual(found.get(name), value, name)
             self.assertIn(f"(set-goal {name} ", self.init)
-        self.assertIn('RAWAI-P3B44T44: %d" c: 492', self.init)
+        self.assertIn('RAWAI-P3B44T45: %d" c: 493', self.init)
 
     def test_clobbered_shared_search_cannot_block_land_scan_start(self):
         rows = matching(

@@ -1618,7 +1618,7 @@ class FarmPolicyTests(unittest.TestCase):
             facts=("can-build-gate-with-escrow 2",),
             actions=("(build-gate 2)",),
         )
-        self.assertEqual(len(gate_builders), 4)
+        self.assertEqual(len(gate_builders), 6)
         first_gate_builders = [
             rule for rule in gate_builders if "gl-wall-gates-issued 0" in rule[3]
         ]
@@ -1627,7 +1627,27 @@ class FarmPolicyTests(unittest.TestCase):
             "wall-completed-percentage 2 >= 25" not in rule[3]
             for rule in first_gate_builders
         ))
-        self.assertTrue(any("wall-completed-percentage 2 >= 75" in rule[3] for rule in gate_builders))
+        second_gate_builders = [
+            rule for rule in gate_builders if "gl-wall-gates-issued 1" in rule[3]
+        ]
+        self.assertEqual(len(second_gate_builders), 2)
+        self.assertTrue(all(
+            "wall-completed-percentage 2 >= 40" in rule[3]
+            for rule in second_gate_builders
+        ))
+        self.assertTrue(all(
+            "wall-completed-percentage 2 >= 75" not in rule[3]
+            for rule in second_gate_builders
+        ))
+        third_gate_builders = [
+            rule for rule in gate_builders if "gl-wall-gates-issued 2" in rule[3]
+        ]
+        self.assertEqual(len(third_gate_builders), 2)
+        self.assertTrue(all(
+            "wall-completed-percentage 2 >= 75" in rule[3]
+            for rule in third_gate_builders
+        ))
+        self.assertTrue(all("gl-wall-gates-issued 3" in rule[4] for rule in third_gate_builders))
         for _, _, _, facts, actions in gate_builders:
             self.assertIn("gl-wall-gate-next", facts)
             self.assertIn("gl-wall-danger-until", facts)
@@ -1660,6 +1680,27 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertEqual(len(first_gate_wait), 1)
         self.assertNotIn("wall-completed-percentage 2 >= 25", first_gate_wait[0][3])
+        second_gate_wait = matching_rules(
+            self.homebase,
+            facts=(
+                "gl-wall-gates-issued 1",
+                "wall-completed-percentage 2 >= 40",
+                "not (can-build-gate-with-escrow 2)",
+            ),
+            actions=("gl-wall-gate-attempts c:+ 1",),
+        )
+        self.assertEqual(len(second_gate_wait), 1)
+        third_gate_wait = matching_rules(
+            self.homebase,
+            facts=(
+                "gl-wall-gates-issued 2",
+                "wall-completed-percentage 2 >= 75",
+                "not (can-build-gate-with-escrow 2)",
+            ),
+            actions=("gl-wall-gate-attempts c:+ 1",),
+        )
+        self.assertEqual(len(third_gate_wait), 1)
+        self.assertIn("gl-wall-gates-issued c:< 3", self.homebase)
 
     def test_dejbjerg_moves_persistent_form_without_unpacking(self) -> None:
         self.assertIn("c: dejbjerg-wagon-stationary c: 10", self.germani)
@@ -5725,7 +5766,7 @@ class FarmPolicyTests(unittest.TestCase):
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
         AssaultMissionTests().test_moving_hulls_do_not_receive_repeated_orders()
-        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T44: %d" c: 492)', self.init_goals)
+        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T45: %d" c: 493)', self.init_goals)
 
     def test_transport_departure_stalled_near_origin_activates_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
