@@ -147,13 +147,26 @@ class CancellationDetailsTests(unittest.TestCase):
         for name, fingerprint in expected.items():
             rows = []
             normalized_trade_cogs = 0
+            normalized_row_yield_guards = 0
             normalized_landed_anchors = 0
             normalized_landed_commands = 0
+            normalized_landed_latches = 0
             normalized_landed_target_classes = 0
+            normalized_landed_settle_waits = 0
+            normalized_landed_combat_delays = 0
+            normalized_landed_cross_zone_members = 0
             for r in rule_blocks(source(name)):
                 facts = expressions(r[3])
                 actions = [e for e in expressions(r[4]) if not e[0].startswith('up-chat') and not
-                           (e[0] in ('set-goal', 'up-modify-goal') and e[1].startswith('gl-assault-diag-'))]
+                           (e[0] in ('set-goal', 'up-modify-goal') and
+                            (e[1].startswith('gl-assault-diag-') or
+                             re.fullmatch(r'gl-am[123]-combat-diag-.*', e[1])))]
+                # T51 observer rules are separately bounded and contain no
+                # gameplay command. Omit them from the immutable T16A1
+                # executable fingerprint instead of rebaselining that guard.
+                if any('combat-diag' in token for expression in facts + actions
+                       for token in expression):
+                    continue
                 # T19 appends separately tested admission/rotation policy. The
                 # original admission predicates/actions must still be identical.
                 if name == 'rawai-assault-admission.per' and 'gl-ap-' in r[3]+r[4]: continue
@@ -171,6 +184,33 @@ class CancellationDetailsTests(unittest.TestCase):
                 # resets. Keep the historical fingerprint for every OTHER write,
                 # predicate and action order rather than replacing the baseline.
                 if name == 'rawai-assault-missions.per':
+                    # T39 gives newly unloaded passengers one engine sample to
+                    # become visible before rebuilding the landed group, then
+                    # starts the first combat sample from that handoff. Its
+                    # dedicated fixture protects the timing. Strip only those
+                    # private deadlines to retain the older gameplay fingerprint.
+                    for mission_slot in (1, 2, 3):
+                        next_goal = f'gl-am{mission_slot}-next'
+                        if ['set-goal', f'gl-am{mission_slot}-state', '14'] in actions:
+                            for deadline in (
+                                    ['up-modify-goal', next_goal, 'g:=',
+                                     'gl-assault-mission-clock'],
+                                    ['up-modify-goal', next_goal, 'c:+', '8']):
+                                self.assertIn(deadline, actions)
+                                actions.remove(deadline)
+                            normalized_landed_settle_waits += 1
+                        if ['goal', f'gl-am{mission_slot}-state', '14'] in facts:
+                            wait = ['up-compare-goal', 'gl-assault-mission-clock',
+                                    'g:>=', next_goal]
+                            self.assertIn(wait, facts)
+                            facts.remove(wait)
+                            for deadline in (
+                                    ['up-modify-goal', next_goal, 'g:=',
+                                     'gl-assault-mission-clock'],
+                                    ['up-modify-goal', next_goal, 'c:+', '16']):
+                                self.assertIn(deadline, actions)
+                                actions.remove(deadline)
+                            normalized_landed_combat_delays += 1
                     # T26's independently tested congestion fix adds the idle
                     # Trade Cog class to exactly two blocker searches per slot.
                     # Remove only those six added selectors before comparing
@@ -199,17 +239,71 @@ class CancellationDetailsTests(unittest.TestCase):
                             zone = ['up-remove-objects', 'search-local',
                                     'object-data-map-zone-id', 'g:!=',
                                     f'gl-am{slot}-target-zone']
-                            self.assertIn(zone, actions)
-                            pos = actions.index(zone) + 1
-                            actions[pos:pos] = [
+                            self.assertNotIn(zone, actions)
+                            pos = actions.index(reset)
+                            actions[pos:pos] = [zone,
                                 ['up-remove-objects', 'search-local',
                                  'object-data-idling', '!=', '1'],
                                 ['up-remove-objects', 'search-local',
                                  'object-data-under-attack', '>', '0'],
                             ]
                             normalized_landed_anchors += 1
+                            normalized_landed_cross_zone_members += 1
+
+                    # T40 serializes only the legacy idle-ship clearance writer
+                    # against an active merchant-yield lease. Do not rebaseline
+                    # any other voyage rule or alter the immutable fingerprint.
+                    if slot is not None and sample == '3':
+                        guard = ['goal', 'gl-row-active', '0']
+                        self.assertIn(guard, facts)
+                        facts.remove(guard)
+                        normalized_row_yield_guards += 1
 
                     if slot is not None and sample == '7':
+                        # T51 replaces the dynamic focus-player gate with
+                        # literal-player rules because the former never
+                        # acquired a landed target in T50. Reconstruct the old
+                        # one sealed-enemy pass plus eight fallback passes for
+                        # this historical *unrelated gameplay* fingerprint;
+                        # dedicated landed-assault tests protect the new gate.
+                        literal = next((e[1] for e in facts
+                                        if e[0] == 'player-in-game' and
+                                        len(e) == 2 and e[1].isdigit()), None)
+                        if literal is not None:
+                            preferred = ['goal', f'gl-am{slot}-enemy', literal] in facts
+                            selector = any(e[0] == 'up-find-remote' for e in actions)
+                            capture = any(e[0] == 'up-set-target-object' and
+                                          e[1:3] == ['search-remote', 'c:'] for e in facts)
+                            if selector or capture:
+                                # Eight source-visible preferred branches are
+                                # one runtime branch. Retain one representative
+                                # when reconstructing the former generic rule.
+                                if preferred and literal != '1':
+                                    continue
+                                if preferred:
+                                    facts.remove(['goal', f'gl-am{slot}-enemy', literal])
+                                for expression in facts:
+                                    if expression[:2] == ['player-in-game', literal]:
+                                        expression[1] = 'focus-player'
+                                    if expression[:2] == ['stance-toward', literal]:
+                                        expression[1] = 'focus-player'
+                                for expression in actions:
+                                    if (expression[:4] == ['up-remove-objects', 'search-remote',
+                                                           'object-data-player', '!='] and
+                                            expression[4] == literal):
+                                        expression[4] = 'focus-player'
+                                if selector:
+                                    assignment = ['set-strategic-number',
+                                                  'sn-focus-player-number', literal]
+                                    self.assertIn(assignment, actions)
+                                    actions.remove(assignment)
+                                    base_facts = [e[:] for e in facts if e[0] not in
+                                                  ('player-in-game', 'stance-toward')]
+                                    mode = 'g:=' if preferred else 'c:='
+                                    player = f'gl-am{slot}-enemy' if preferred else literal
+                                    rows.append([base_facts, [['up-modify-sn',
+                                        'sn-focus-player-number', mode, player]]])
+
                         # Remove only the newly supported hostile land-combat
                         # classes from target-search rules. Buildings/villagers
                         # remain and therefore reconstruct the older search.
@@ -242,11 +336,36 @@ class CancellationDetailsTests(unittest.TestCase):
                             pos = actions.index(attack_guard)
                             actions[pos:pos + 1] = [
                                 ['up-remove-objects', 'search-local',
+                                 'object-data-map-zone-id', 'g:!=',
+                                 f'gl-am{slot}-target-zone'],
+                                ['up-remove-objects', 'search-local',
                                  'object-data-idling', '!=', '1'],
                                 ['up-remove-objects', 'search-local',
                                  'object-data-under-attack', '>', '0'],
                             ]
                             normalized_landed_commands += 1
+                            normalized_landed_cross_zone_members += 1
+
+                        # T32 closes a landed object-command sample immediately
+                        # in PER state. Remove only that post-issue latch while
+                        # reconstructing the immutable T16A1 payload.
+                        latch = ['set-goal', f'gl-am{slot}-sample', '10']
+                        if latch in actions:
+                            actions.remove(latch)
+                            normalized_landed_latches += 1
+
+                    if slot is not None and sample == '10':
+                        # T32 moves the existing third-try failed-target update
+                        # behind the post-issue latch. Restore its old sample-7
+                        # predicate for historical fingerprinting.
+                        failed = ['up-modify-goal', f'gl-am{slot}-combat-failed',
+                                  'g:=', f'gl-am{slot}-combat-target']
+                        if failed in actions:
+                            for e in facts:
+                                if (e[0] == 'goal' and
+                                        e[1] == f'gl-am{slot}-sample'):
+                                    e[2] = '7'
+                                    break
 
                     # T25 deliberately replaces the old four-miss release with
                     # a separately tested twelve-point continuation probe. Strip
@@ -276,9 +395,14 @@ class CancellationDetailsTests(unittest.TestCase):
                 if actions: rows.append([facts, actions])
             if name == 'rawai-assault-missions.per':
                 self.assertEqual(normalized_trade_cogs, 6)
+                self.assertEqual(normalized_row_yield_guards, 3)
                 self.assertEqual(normalized_landed_anchors, 3)
                 self.assertEqual(normalized_landed_commands, 3)
+                self.assertEqual(normalized_landed_latches, 3)
                 self.assertEqual(normalized_landed_target_classes, 189)
+                self.assertEqual(normalized_landed_settle_waits, 3)
+                self.assertEqual(normalized_landed_combat_delays, 3)
+                self.assertEqual(normalized_landed_cross_zone_members, 6)
             self.assertEqual(hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest(), fingerprint, name)
 
     def test_diagnostic_goals_have_no_aliases_and_never_control_gameplay(self):

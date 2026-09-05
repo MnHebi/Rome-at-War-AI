@@ -4253,10 +4253,13 @@
 	(up-chat-data-to-self "Wall placement no-progress backoff: %d" g: gl-wall-last-percent)
 )
 
-;Insert one usable opening as soon as a quarter of the perimeter exists and a
-;second after three quarters. The owner count is perimeter-specific; a scenario
-;or unrelated gate elsewhere must not suppress these requests. Gate timing is
-;independent of the wall command/backoff deadline.
+;Insert the first usable opening as soon as the engine reports a replaceable
+;span, a second at 40 percent, and a third after three quarters. A perimeter
+;which runs into water may never report 75 percent complete, so circulation
+;cannot depend on that late milestone alone. The owner count is
+;perimeter-specific; a scenario or unrelated gate elsewhere must not suppress
+;these requests. Gate timing is independent of the wall command/backoff
+;deadline.
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-wall-needed YES)
@@ -4266,7 +4269,6 @@
 	(building-type-count town-center >= 1)
 	(up-object-type-count-total c: villager-class >= 20)
 	(goal gl-home-defense-state NO)
-	(wall-completed-percentage 2 >= 25)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
 	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(can-build-gate-with-escrow 2)
@@ -4289,7 +4291,6 @@
 	(building-type-count town-center >= 1)
 	(up-object-type-count-total c: villager-class >= 20)
 	(goal gl-home-defense-state NO)
-	(wall-completed-percentage 2 >= 25)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
 	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(can-build-gate-with-escrow 2)
@@ -4312,7 +4313,7 @@
 	(building-type-count town-center >= 1)
 	(up-object-type-count-total c: villager-class >= 20)
 	(goal gl-home-defense-state NO)
-	(wall-completed-percentage 2 >= 75)
+	(wall-completed-percentage 2 >= 40)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
 	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(can-build-gate-with-escrow 2)
@@ -4335,7 +4336,7 @@
 	(building-type-count town-center >= 1)
 	(up-object-type-count-total c: villager-class >= 20)
 	(goal gl-home-defense-state NO)
-	(wall-completed-percentage 2 >= 75)
+	(wall-completed-percentage 2 >= 40)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
 	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(can-build-gate-with-escrow 2)
@@ -4349,13 +4350,58 @@
 	(chat-local-to-self "Wall owner issued palisade gate 2")
 )
 
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-wall-needed YES)
+	(goal gl-wall-enabled YES)
+	(goal gl-wall-material WALL-MATERIAL-STONE)
+	(goal gl-wall-gates-issued 2)
+	(building-type-count town-center >= 1)
+	(up-object-type-count-total c: villager-class >= 20)
+	(goal gl-home-defense-state NO)
+	(wall-completed-percentage 2 >= 75)
+	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
+	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
+	(can-build-gate-with-escrow 2)
+=>
+	(release-escrow stone)
+	(build-gate 2)
+	(set-goal gl-wall-gates-issued 3)
+	(set-goal gl-wall-gate-attempts 0)
+	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
+	(up-modify-goal gl-wall-gate-next c:+ 60)
+	(chat-local-to-self "Wall owner issued stone gate 3")
+)
+
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-wall-needed YES)
+	(goal gl-wall-enabled YES)
+	(goal gl-wall-material WALL-MATERIAL-PALISADE)
+	(goal gl-wall-gates-issued 2)
+	(building-type-count town-center >= 1)
+	(up-object-type-count-total c: villager-class >= 20)
+	(goal gl-home-defense-state NO)
+	(wall-completed-percentage 2 >= 75)
+	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
+	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
+	(can-build-gate-with-escrow 2)
+=>
+	(release-escrow wood)
+	(build-gate 2)
+	(set-goal gl-wall-gates-issued 3)
+	(set-goal gl-wall-gate-attempts 0)
+	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
+	(up-modify-goal gl-wall-gate-next c:+ 60)
+	(chat-local-to-self "Wall owner issued palisade gate 3")
+)
+
 ;A partially built line may not yet contain a replaceable gate span. Poll that
 ;engine fact on a separate bounded cadence without consuming a gate request.
 (defrule
 	(goal gl-wall-needed YES)
 	(goal gl-wall-enabled YES)
 	(goal gl-wall-gates-issued 0)
-	(wall-completed-percentage 2 >= 25)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
 	(up-compare-goal gl-wall-gate-attempts c:< 3)
 	(not (can-build-gate-with-escrow 2))
@@ -4369,6 +4415,20 @@
 	(goal gl-wall-needed YES)
 	(goal gl-wall-enabled YES)
 	(goal gl-wall-gates-issued 1)
+	(wall-completed-percentage 2 >= 40)
+	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
+	(up-compare-goal gl-wall-gate-attempts c:< 3)
+	(not (can-build-gate-with-escrow 2))
+=>
+	(up-modify-goal gl-wall-gate-attempts c:+ 1)
+	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
+	(up-modify-goal gl-wall-gate-next c:+ 60)
+)
+
+(defrule
+	(goal gl-wall-needed YES)
+	(goal gl-wall-enabled YES)
+	(goal gl-wall-gates-issued 2)
 	(wall-completed-percentage 2 >= 75)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
 	(up-compare-goal gl-wall-gate-attempts c:< 3)
@@ -4381,7 +4441,7 @@
 
 (defrule
 	(goal gl-wall-needed YES)
-	(up-compare-goal gl-wall-gates-issued c:< 2)
+	(up-compare-goal gl-wall-gates-issued c:< 3)
 	(up-compare-goal gl-wall-gate-attempts c:>= 3)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
 =>

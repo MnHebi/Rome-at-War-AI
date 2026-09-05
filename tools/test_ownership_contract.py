@@ -79,7 +79,8 @@ def unit(i, flag=-2, player=1, idle=1, zone=4):
     return {'object-data-id': i, 'object-data-group-flag': flag,
             'object-data-player': player, 'object-data-idling': idle,
             'object-data-map-zone-id': zone, 'object-data-garrisoned': 0,
-            'object-data-type': 74, 'object-data-under-attack': 0,
+            'object-data-type': 74, 'object-data-class': 906,
+            'object-data-under-attack': 0,
             'object-data-action': -1, 'object-data-language-id': 0,
             'object-data-target': -1, 'object-data-distance': 10}
 

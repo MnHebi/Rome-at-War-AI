@@ -89,6 +89,33 @@ class AssaultRendezvousTests(unittest.TestCase):
         self.assertEqual(m.g['gl-transport-route-load-deadline'], m.now + 30)
         self.assertTrue(any(value == 24 for _, value in m.logs))
 
+    def test_siege_boarding_orders_are_independent_and_bounded(self):
+        m = Rendezvous()
+        for i in (108, 109):
+            m.objects[i]['cls'] = 'siege-weapon-class'
+            m.objects[i]['type'] = 'pummel'
+        m.finish_preparation_step()
+        independent = [c for c in m.commands
+                       if c[1] == 'action-garrison' and len(c[0]) == 1
+                       and c[0][0] in (108, 109)]
+        self.assertEqual(independent, [((108,), 'action-garrison', ('object', 11))])
+        self.assertFalse(any(c[1] == 'action-garrison' and len(c[0]) > 1
+                             and ({108, 109} & set(c[0])) for c in m.commands))
+        m.sweep(1)
+        independent = [c for c in m.commands
+                       if c[1] == 'action-garrison' and len(c[0]) == 1
+                       and c[0][0] in (108, 109)]
+        self.assertEqual(independent, [
+            ((108,), 'action-garrison', ('object', 11)),
+            ((109,), 'action-garrison', ('object', 11)),
+        ])
+        before = len(independent)
+        m.sweep(0)
+        independent = [c for c in m.commands
+                       if c[1] == 'action-garrison' and len(c[0]) == 1
+                       and c[0][0] in (108, 109)]
+        self.assertEqual(len(independent), before)
+
     def test_rendezvous_timeout_is_distinct_and_enters_bounded_recovery(self):
         m = Rendezvous(); m.finish_preparation_step()
         m.sweep(121)

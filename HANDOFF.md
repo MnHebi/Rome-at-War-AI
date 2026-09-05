@@ -1,5 +1,1160 @@
 # Rome at War AI handoff
 
+## CURRENT — T51 SELF-DIAGNOSING T50 REPAIRS ADDED TO PR #11, 2026-09-05
+
+- **Canonical workspace:**
+  `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; runtime-source/marker HEAD `0a81ef7`.
+  This task's explicit workspace instruction supersedes the generic `.pr-work`
+  path for PR #11. No branch, worktree, clone or recovery line was created.
+- **Scope:** continue from T50 runtime evidence by instrumenting every open
+  lifecycle before behavior changes, then apply only source-supported causal
+  corrections. Full mapping and acceptance criteria:
+  `T51-T50-RUNTIME-REPAIR.md`.
+- **Instrumentation-first foundation:** `954c8dd` adds finite, transition/
+  cooldown-latched landed-combat, Shipyard, migration, right-of-way and
+  expedition observers. Budgets initialize once, never replenish and do not
+  gate command rules. `936dbf7` completes ROW rejection/hold/issuance detail;
+  `3701a5b` completes migration admission and preloaded-adoption detail.
+- **Landed combat — ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME:** T50 reaches
+  eight event-8 handoffs but never a target/issuance sample. The first target
+  gate incorrectly uses dynamic `focus-player`; literal live-hostile gates now
+  prefer each slot's sealed enemy and then rotate. Same-zone/dead/failed-target
+  filtering, transport formation, shoreline, voyage and landing are preserved.
+  Commit `f96da71`.
+- **Shipyard coast selection — ROOT-CAUSE-PROVEN /
+  FIXED-PENDING-RUNTIME:** blind anchor +/-XY sampling explains dominant reason
+  64 and repeated congested-sector candidates. Four deterministic sectors with
+  eight bounded candidates now rotate per anchor, retaining exact buildability,
+  W1-W6 aperture, water-zone, clearance, worker-path, memory and foundation
+  verification. Commit `d20386a`.
+- **Shipyard capacity — source-supported policy change /
+  FIXED-PENDING-RUNTIME:** 0→1 bootstrap and 1→minimum remain protected; a new
+  180-second, wood>600 tier can progress from minimum to
+  `min(desired, 4)`. Full desired capacity still obeys ordinary tech-up/economy
+  discipline. Commit `134b22f`.
+- **Migration STOP flood — INVESTIGATING:** no behavior changed. A separate
+  24-sample writer budget fingerprints every plausible explicit migration STOP,
+  boarding, unload, drop-site, retask, release and recovery writer. Fresh
+  replay correlation with settlers 32825/33303 will either name writer 5–13 or
+  exclude instrumented RAW writers at the 11–16 ms packet cadence.
+- **Automatic migration — INVESTIGATING:** no behavior changed. A 40-sample
+  transition/admission observer distinguishes admission, eligibility,
+  Transport/hull, manifest, rendezvous, boarding/load recognition, departure,
+  abort and separate preloaded/quarantine adoption (writer 33).
+- **Merchant right-of-way — INVESTIGATING:** no eligibility or movement policy
+  changed. Diagnostics now distinguish rejected priority action/group/
+  destination, movement/stall proof, merchant filtering, failed holding point,
+  exact pre-command state and actual existing 420/421 yield issuance.
+- **Expeditionary utilization — INVESTIGATING:** no tuning. Per-player bounded
+  snapshots expose reserve, surplus, threat/naval gates, three slot states,
+  Transport/route and manifest limit. Reassess only after the landed-combat fix
+  receives runtime evidence.
+- **Preserved:** T34 route/shoreline validation, T35 Villager-garrison mode,
+  T37 individual bounded siege boarding, three independent assault slots,
+  useful-partial manifests, ownership/safety, migration/relic separation,
+  naval cooperation and T50 **RUNTIME-PASS** land trade. Historical fingerprint
+  tests were made diagnostic-aware in `8471c1d`, not rebaselined.
+- **Source identity:** source marker is `RAWAI-P3B44T51:499`; installed runtime
+  remains `RAWAI-P3B44T50:498`. **No deployment was performed or authorized.**
+- **Validation PASS:** 261 focused controller tests passed before the final
+  migration diagnostic extension; 159 migration/validator tests passed
+  afterward; marker checks pass 10 trade-topology + 128 validator tests. Final
+  full Python 3.12 discovery passes 528/528. PER structure/operands, generated
+  synchronization, naval doctrine, all 1,156 strategy matchups, ownership audit
+  (1,028 sites/zero failures), 42 replay metadata records, workbook round trip
+  and `git diff --check` pass. `validate_good_units.py` retains one
+  known pre-existing frozen-provenance mismatch at
+  `source_provenance/AI RAW.per_sha256`; do not silently rebaseline it.
+- **Next action:** fresh marker-499 runtime replay. Accept landed combat only
+  after event 8 reaches literal target search, writer and persistent combat;
+  accept Shipyards only after timely zero/one recovery and open-coast concrete
+  completion; attribute the migration flood and automatic-migration boundary;
+  identify the ROW rejection/issuance boundary; then assess expeditionary
+  throughput. Static tests do not close any of those runtime-sensitive items.
+
+## CURRENT — T50 RUNTIME REPLAY ASSESSED, 2026-09-05
+
+- **Scope:** replay analysis and documentation only; no gameplay/generated PER
+  or deployment change. Canonical workspace remains
+  `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`, branch
+  `fix/trade-cog-cap-dacian`. Draft PR remains
+  `https://github.com/MnHebi/Rome-at-War-AI/pull/11`.
+- **Identity:** completed replay
+  `SP Replay v101.103.48987.0 @2026.09.05 173048.aoe2record`, SHA-256
+  `1B796446E790221433F14DBF1AA65AED2246933905267B667F466DD0E083CC1C`,
+  duration 69:18, Iberia, zero decoder failures. Marker
+  `RAWAI-P3B44T50:498` is replay-visible for Players 6-8; all players use
+  `AI RAW`, and the installed/source aggregate had already been verified at
+  `FEA37CD1D2ED54D49C1EB0D5A79608F25CD11A10CDE8C0EBFD774BC007A5B672`.
+- **T49 Shipyard admission retention — RUNTIME PASS.** Red progresses 64 -> 67
+  -> build -> reason 7 without returning through reason 1. Yellow also retains
+  geometric/foundation processing while issuing two builds.
+- **Shipyard throughput — PARTIAL PASS.** T50 issues 14 Shipyard build orders by
+  60:00 and 15 total across seven players, versus T48's nine across six. Six
+  players issue at least two by 60:00 and Red reaches two at 63:15. Green owns
+  two Ports but issues zero Shipyards, and first-yard latency is mixed.
+- **T50 near aperture — FIXED-PENDING-RUNTIME.** Reason 67 appears six times
+  across four players versus zero in T48, proving the water-exit rejection path
+  ran. The replay does not distinguish W5/W6 from the retained water checks or
+  prove every accepted site's aperture.
+- **Land trade — RUNTIME PASS.** All eight players exceed the three-Cart probe
+  ceiling; total production is 343 Carts. Green/Cyan/Gray also train 80 Merchant
+  Ships, preserving independent modalities. No right-of-way 420/421 pair fires,
+  so merchant-yield runtime acceptance remains pending.
+- **Landed combat continuation — RUNTIME FAIL / OPEN.** Blue reaches event 8
+  five times and Yellow three times, but no event 13, landed-combat target or
+  bounded issuance triplet occurs. Seven missions later terminate event 12;
+  the final mission starts at 68:42 and remains live at replay end. First
+  replay-visible divergence is post-landing target acquisition/issuance.
+- **Migration command flood — INVESTIGATING.** After Yellow hull 34890's second
+  path-clear landing at 44:05, the same settlers 32825/33303 receive 8,912
+  continuous STOP-706 packets from 44:15-46:15, plus two setup packets. Before
+  landing they receive 15,408 high-frequency ordinary orders toward object
+  32789. Blue settler 34149 separately receives 14,640 identical orders toward
+  33213 across two migration attempts. Actor/type/timing relationships are
+  exact; T50 lacks writer fingerprints, so producer attribution remains open.
+- **Detail:** `T50-RUNTIME-REPLAY-ASSESSMENT.md`. Raw replay/parser artifacts
+  remain outside the repository. Next work must start from these acceptance
+  statuses; do not call Shipyard aperture, merchant yielding, landed combat or
+  the command flood closed from this replay.
+
+## CURRENT — T50:498 SHIPYARD THROUGHPUT/APERTURE DEPLOYED, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; behavioral HEAD `0bfce18`. No new
+  branch/worktree/clone was created.
+- **Review:** cumulative T29-T50 assessment is published as draft PR
+  `https://github.com/MnHebi/Rome-at-War-AI/pull/11` against `main`.
+- **T48 runtime result — PARTIAL PASS / SUPERSEDED.** Completed replay
+  `SP Replay v101.103.48987.0 @2026.09.05 162415.aoe2record`, SHA-256
+  `E09783EF66D897DB7AF5ED6B3B486916FFD547D36A6A858F55F0EDBC151560E6`,
+  runs 60:00 on Iberia with zero parser errors. T48 issues nine Shipyard build
+  orders across six players versus T47's two across two, proving candidate
+  recovery. First yards still range 14:44-54:15; Red and Gray issue none.
+  Diagnostic 410 remains dominated by 64 exact-candidate-unbuildable samples.
+- **T49 throughput — ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** Every local
+  geometric miss discarded the already-admitted placement lane and returned to
+  idle. Preserve admission for up to eight exact candidates around the same
+  ready anchor; real affordability/availability/worker failures and bounded
+  exhaustion still release normally. Commit `9ca1a6a`.
+- **T50 placement quality — ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** At
+  Orange's observed narrow-strait site `(49.5,174.5)`, all old far-water samples
+  pass, but a near lateral sample is beach. The old proof skipped the local
+  aperture. Add two same-zone/path-connected points at W1 +/-6 lateral while
+  retaining W1-W4. Commit `0bfce18`.
+- **Validation PASS:** Shipyard 18/18; trade topology 10/10; migration 23/23;
+  ownership contract 27/27; task ownership 13/13; naval right-of-way 13/13;
+  transport fairness 3/3; validators 128/128; PER structure; generated sync;
+  strategy execution 1,156/1,156; naval doctrine; replay metadata 42/42;
+  ownership audit 972 sites/zero failures; full Python 3.12 discovery 516/516;
+  and `git diff --check`.
+- **Deployment:** explicitly authorized from canonical HEAD `312fac5`.
+  Preflight found exactly `rawai-init-goals.per`, `rawai-shipyard-defs.per` and
+  `rawai-specialplacement.per` different from installed T48; all three were
+  copied. A separate read-only check reports all 99 runtime files identical,
+  no missing/different/unexpected files, installed marker
+  `RAWAI-P3B44T50:498`, and source/install aggregate SHA-256
+  `FEA37CD1D2ED54D49C1EB0D5A79608F25CD11A10CDE8C0EBFD774BC007A5B672`.
+- **Next action:** fresh marker-498 acceptance must preserve T48's multi-player
+  recovery, reduce first/minimum-yard latency,
+  keep viable Port owners from remaining permanently at zero, reject the
+  Orange-style near throat, and retain all economy/cap/clearance/worker/
+  foundation safeguards. Full detail:
+  `T50-SHIPYARD-THROUGHPUT-AND-APERTURE.md`.
+
+## CURRENT — T48:496 SHIPYARD CANDIDATE RECOVERY DEPLOYED, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `69ec6bd`. No new
+  branch/worktree/clone was created.
+- **Replay evidence:** completed T47 replay
+  `SP Replay v101.103.48987.0 @2026.09.05 153105.aoe2record`, SHA-256
+  `8FE36339F72B3E2AD0A2073C6F27ED1B56FEE206D677858FAC25E352BBBC800C`,
+  duration 49:32, zero parser errors. Only Players 8 (24:16) and 6 (46:31)
+  issue Shipyard build orders. Diagnostic 410 records reason 64 x43, reason 61
+  x30 and reason 62 x6; reasons 63/65/66/67 are absent.
+- **Shipyard deficit — ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** T40's 24
+  fixed exact offsets at radii 12/24/40 replaced T36's runtime-working dense
+  +/-14 domain and mostly fail exact `up-can-build-line`. The anchor iterator
+  also mistakes normal cursor exhaustion for no anchor, consumes a failed-site
+  entry/candidate step and skips half the fixed candidates for a single Port.
+  The replay's dominant reason 64 and repeated 64 -> 61 sequences identify both
+  source paths.
+- **Correction:** rebuild/wrap the ready anchor list without rejection or
+  candidate consumption; only a genuinely empty rebuilt list emits 61. Restore
+  a bounded sample from the full 29x29 near-anchor domain. Preserve exact
+  buildability, own/allied clearance, four-point open-water checks, worker path
+  and ownership, admission, economy, memory and foundation verification.
+  Behavioral commit `8e69ef2`.
+- **Validation PASS:** 16 Shipyard fixtures; 10 trade-topology tests; 128
+  validators; generated sync; PER structure; naval doctrine; all 1,156
+  strategy matchups; ownership audit 970 sites/zero failures; full Python 3.12
+  discovery 514/514 on the authorized Temp-capable rerun; and
+  `git diff --check`.
+- **Deployment:** explicitly authorized and deployed from canonical HEAD
+  `407a31f`. Preflight found exactly `rawai-init-goals.per` and
+  `rawai-specialplacement.per` different from the T47 installation. Both files
+  were copied. The post-apply read-only check reports all 99 runtime files
+  identical, no missing/different/unexpected files, marker
+  `RAWAI-P3B44T48:496`, and source/install aggregate SHA-256
+  `84608D9C772671F6B34977A744B603544EE1CAAB29429CE12E58C88BA003E07C`.
+  Fresh T48 runtime must demonstrate prompt first yards, concrete completed
+  foundations, later minimum capacity, retained closed-water/clearance
+  rejection and no crevice regression. Full detail:
+  `T48-SHIPYARD-CANDIDATE-RECOVERY.md`.
+
+## CURRENT — T47:495 SHIPYARD REJECTION DIAGNOSTICS DEPLOYED, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `bfac9e8`. No new
+  branch/worktree/clone was created.
+- **Shipyard zero-build regression — ROOT-CAUSE-PROVEN / SUPERSEDED BY T48.** The
+  user directly reports no Shipyards in the current T45 Iberia match. A
+  read-only 68:15 snapshot of the still-live replay
+  `SP Replay v101.103.48987.0 @2026.09.05 141708.aoe2record` contains zero
+  Shipyard (`1251`) build packets. Every player emits diagnostic 410 reason 1
+  and/or generic reason 6, proving entry into the controller but no build
+  issuance. The live file was locked for hashing; retain it after the match.
+- **Known-good control:** the T36 replay
+  `SP Replay v101.103.48987.0 @2026.09.04 223434.aoe2record` uses the same map
+  ID 49, player civilizations and lobby settings and emitted 33 Shipyard build
+  packets across all eight players. Current source already maps
+  `REAL-WORLD-SPAIN-MAP` to `RIVERS`; missing Iberia classification is
+  disproved. The regression is localized to the T40/T42 resolver rewrite.
+- **Evidence boundary:** T40 collapsed no anchor, map clipping, failed-site
+  memory, exact-site buildability, own clearance, allied clearance and
+  four-direction water-exit failure into the same reason 6. The current replay
+  cannot decide among them, and each implies a different behavioral fix.
+- **Diagnostic-only correction:** the existing transition-latched/60-second
+  diagnostic now reports 61 no anchor, 62 bounds, 63 memory, 64 unbuildable
+  site, 65 own clearance, 66 allied clearance, or 67 water-exit failure. No
+  gameplay facts/actions, geometry, timing, admission, economy, worker,
+  foundation or memory policy changed. Commit `30d36b0`.
+- **Validation PASS:** 15 Shipyard fixtures including all seven new terminals;
+  213 focused tests; generated source sync; PER structure; naval doctrine;
+  strategy execution; ownership audit 969 sites/zero failures; full Python
+  3.12 discovery 513/513; and `git diff --check`.
+- **Deployment:** explicitly authorized and deployed from canonical HEAD
+  `a48d1e9`. Preflight found exactly three differing files:
+  `rawai-economy.per`, `rawai-init-goals.per`, and
+  `rawai-specialplacement.per`. The post-apply read-only check reports all 99
+  runtime files identical, no missing/different/unexpected files, marker
+  `RAWAI-P3B44T47:495`, and aggregate SHA-256
+  `9800DEF42ED21A3A46729713DEA02B46849E898DE8C47D7FEA444D57C0F4061B`.
+  This deployment includes T46's land-trade repair. The dominant 61–67 runtime
+  code determines the next causal Shipyard patch. Full detail:
+  `T47-SHIPYARD-REJECTION-DIAGNOSTICS.md`.
+
+## CURRENT — T46:494 LAND-TRADE LITERAL CENSUS CLOSED, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `d9e0f3f`. No new
+  branch/worktree/clone was created.
+- **Land trade — CLOSED / RUNTIME PASS.** In the prior
+  live T45 match, the user directly observes Blue producing Merchant Ships but
+  no Trade Carts. This is a runtime FAIL for T43's acceptance. The live replay
+  is still incomplete, so no exact event census has yet been attributed to it.
+  The earlier complete T41 replay supplies the same lifecycle: completed own
+  and allied Markets, no land-candidate event, no Carts, and repeated
+  topology-no-candidate events.
+- **First remaining causal divergence:** after T43's repaired local Market
+  source gate, the land scan still called `up-find-player ally find-ordered`.
+  The cached DE AI reference records that `find-ordered` returns `-1`; that
+  invalid player was then used as the Market owner. Even with a valid player,
+  LAND-START created `search-remote` and LAND-CHECK consumed the shared list on
+  a later sweep, repeating the invalid list lifetime T43 had removed one state
+  earlier. T43's test missed and enshrined this second boundary.
+- **Bounded correction:** scan literal player slots 1–8. Only a non-self,
+  in-game ally performs a remote Market census; the census count is persisted
+  in the same rule before focus restoration. LAND-CHECK consumes the persistent
+  count, never the shared remote list. Empty/non-allied/self slots fall through
+  with zero, and the eighth slot proceeds into the unchanged water scan.
+  Preserve the three-Cart probe ceiling, live `actionid-trade` proof, economy,
+  training and producer-epoch gates, caps, retirement, and independent water
+  behavior. Behavioral commit `6daa09c`.
+- **Validation PASS:** trade topology 10/10; T13 gate recovery 7/7; validators
+  128/128; full Python 3.12 discovery 512/512; PER structure; naval doctrine;
+  strategy execution; generated sync; ownership audit 969 sites/zero failures;
+  and `git diff --check`.
+- **Deployment:** deployed with T47 from canonical HEAD `a48d1e9`. The installed
+  99-file aggregate and source are byte-identical at SHA-256
+  `9800DEF42ED21A3A46729713DEA02B46849E898DE8C47D7FEA444D57C0F4061B`.
+- **Fresh runtime result: CLOSED / PASS.** The complete T47 replay has 124
+  autonomous Cart train orders across all eight players. Seven grow beyond the
+  three-probe ceiling, which requires live `actionid-trade`; Player 8 remains
+  capped at three. Player 1 identifies allied candidates 2/3/4 and logs 134
+  proofs for ally 4. Player 2 also trains two Trade Cogs, preserving independent
+  water fallback. Full evidence:
+  `T46-LAND-TRADE-LITERAL-CENSUS.md`.
+
+## CURRENT — T45:493 PENDING STACK DEPLOYED, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `4d9d128`. No new
+  branch/worktree/clone was created.
+- **Wall circulation — ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** The user
+  directly observed Yellow choked behind a visibly complete wall with one gate;
+  part of its wall line entered water. Source allowed only two perimeter-owned
+  gates and required 75% engine wall completion before gate 2, so any line
+  stranded below that fact could never request another opening. The source
+  threshold was 75%, not 70%.
+- **Explicit policy correction:** preserve gate 1 at the first replaceable span;
+  request gate 2 at 40%; request the new gate 3 at the old 75% milestone. Both
+  stone and palisade paths retain Town Center/Villager, home-safety, danger,
+  escrow, availability, 60-second polling, three-attempt and 180-second backoff
+  safeguards. No fourth owned gate, geometry change, or unproven foundation
+  lifecycle change. Behavioral commit `1978ac2`.
+- **Validation PASS:** focused six-rule/three-stage gate assertions and bounded
+  polling; validators 128/128; full Python 3.12 discovery 512/512; PER
+  structure; naval doctrine; strategy execution; ownership 962 sites/zero
+  failures; and `git diff --check`.
+- **Deployment:** explicit user authorization deployed all pending T42–T45
+  changes from canonical HEAD `3d59349`. Preflight found exactly five differing
+  files and no missing/unexpected files. It copied `rawai-economy.per`,
+  `rawai-homebase.per`, `rawai-init-goals.per`,
+  `rawai-naval-right-of-way.per`, and `rawai-specialplacement.per`.
+  Independent read-only verification reports all 99 files identical, no
+  remaining mismatch, marker `RAWAI-P3B44T45:493`, aggregate SHA-256
+  `978C965969E9CDFE6F518A72C8ED8C131C47214EBAE6D386B8EED94527E4D3F7`,
+  and marker-file SHA-256
+  `0317AC880EB0619189BA7C89C15E46EDE7B2408755F00328DB7DFF0492A42DE1`.
+- **Next action:** retain the current T45 match/replay. Runtime acceptance still
+  requires gate 2 at 40%, gate 3 at 75%, no gate 4, retained safeguards, and
+  restored passage on a water-intersecting perimeter. It must also test T42
+  Shipyard recovery and T44 persistent merchant yielding. T43 land-trade
+  admission failed in this match and is superseded by source-only T46. Full detail:
+  `T45-THREE-STAGE-PERIMETER-GATES.md`.
+
+## T44:492 MERCHANT-YIELD OVERRIDE RECOVERY, DEPLOYED WITH T45, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `5f9cd09`. No new
+  branch/worktree/clone was created.
+- **Merchant blockage clearing — ROOT-CAUSE-PROVEN /
+  FIXED-PENDING-RUNTIME.** The T41 replay proves the T40 observer activated and
+  issued yields, but the priority hulls did not clear. Player 1 yielded two
+  merchants for hull 53151; Player 6 exhausted three for hull 39350.
+- **First causal divergence:** at 68:08 sequence 4088229 ordered merchant 63142
+  alone to hold at `(10,125)`. Later in that same second, native sequence
+  4088262 included it in a 35-merchant fleet MOVE toward approximately
+  `(1.48,142.90)`. Source treated any `actionid-move` as a surviving yield and
+  could spend the next intervention before checking the overwritten hold.
+- **Bounded correction:** compare a moving merchant's live destination with its
+  recorded hold. Repair a mismatched hold after hull remeasurement and before
+  allocating another merchant. Exact-hold movement remains untouched. Preserve
+  all three-renewal/three-intervention, 32/120/180-second bounds, path/zone and
+  danger gates. No STOP, priority-hull command, ownership, or global trade-policy
+  change. Behavioral commit `d05c130`.
+- **Validation PASS:** right-of-way 13/13, trade topology 10/10, validators
+  128/128, full Python 3.12 discovery 512/512, generated sync, PER structure,
+  naval doctrine, strategy execution, ownership 960 sites/zero failures, and
+  `git diff --check`.
+- **Deployment:** deployed in the verified T45:493 aggregate documented above.
+- **Next action:** fresh marker-493
+  acceptance requires overwritten yields to renew the same merchant before a
+  distinct intervention, sustained lateral clearance, priority-hull progress,
+  bounded cessation, and native trade resumption. Full detail:
+  `T44-MERCHANT-YIELD-OVERRIDE-RECOVERY.md`.
+
+## T43:491 LAND-TRADE SHARED-SEARCH RECOVERY, DEPLOYED WITH T45, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `faa2cd0`. No new
+  branch/worktree/clone was created.
+- **Land trade — RUNTIME FAIL / SUPERSEDED BY T46.** The fresh T41
+  replay runs to 85:45 and has completed own/allied Market build orders, but no
+  `trade land candidate ally`, no Trade Carts, and eight topology-no-candidate
+  samples. Water candidate/proof remained live. This is a runtime FAIL for
+  T38's acceptance; its zone-veto repair did not reach the earliest remaining
+  divergence.
+- **First causal divergence:** topology start built `search-local`, then the
+  next-sweep land-source rule required an object from that shared list. Other
+  controllers can overwrite a DUC list across that state boundary, so the
+  per-ally land scan never began. This is a source-established invalid lifetime
+  dependency already prohibited elsewhere in the project.
+- **Bounded correction:** persist the home/colony source anchor with the
+  completed Market census and enter the per-ally scan from those persistent
+  values. Preserve exact producer epochs, the three-Cart probe ceiling, economy
+  and `can-train` gates, live `actionid-trade` proof, caps, and independent water
+  trade. No new runtime telemetry was needed.
+- **Validation PASS:** focused trade topology 10/10; T13 gate recovery 7/7;
+  validators 128/128; full Python 3.12 discovery 510/510; PER structure; naval
+  doctrine; strategy execution; ownership audit 960 sites with zero permission
+  failures; naval-capability sync; and `git diff --check`.
+- **Deployment:** deployed in the verified T45:493 aggregate documented above.
+- **Latest result:** the current live T45 match again has Merchant Ships but no
+  visible Trade Carts. T46 repairs the next two source-visible candidate gates;
+  marker-494 runtime acceptance now owns this defect. Full historical detail:
+  `T43-LAND-TRADE-SHARED-SEARCH-RECOVERY.md`.
+
+## T42:490 SHIPYARD PROBE RECOVERY, RUNTIME FAILED / SUPERSEDED BY T47, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`. Runtime/source commit `280ae40`; this
+  handoff-only commit follows it. No branch/worktree/clone was created.
+- **Shipyard zero/one stagnation — RUNTIME FAIL / SUPERSEDED BY T47
+  DIAGNOSTICS.** The user observed most long-Imperial players at one
+  Shipyard and Green at zero despite ample wood. The T40 resolver made every
+  admitted candidate depend on a warship, Transport, or fishing ship within 64
+  tiles. This circularly blocked the first yard, blocked later yards after the
+  fleet sailed away, and excluded active Trade Cogs as valid mobile probes.
+- **Bounded correction:** mobile discovery now covers the supported 255-tile
+  standard-map radius and includes Trade Cogs. If no probe exists, only the
+  already-admitted first/second yard can continue, retaining buildability,
+  separation, worker path, affordability/escrow, pending-placement, foundation,
+  completion, and failed-site checks. Third/later yards still require four exact
+  mobile-water path probes. Diagnostic 410 reason 8 identifies no mobile probe
+  after minimum capacity.
+- **Validation PASS:** the pre-fix executable fixture reproduced all three
+  no-build cases. Fourteen post-fix Shipyard fixtures cover zero/one recovery,
+  distant Trade Cog validation, and the later-yard proof boundary. Generated
+  synchronization and PER validation pass; full Python 3.12 discovery is
+  508/508; `git diff --check` passes.
+- **Deployment:** deployed in the verified T45:493 aggregate documented above.
+  Full cause, boundary, tests, and runtime acceptance:
+  `T42-SHIPYARD-PROBE-RECOVERY.md`.
+- **Latest result/next action:** the fresh T45 Iberia match has zero Shipyard
+  build packets through 68:15. All eight players reach reason 1 and/or generic
+  reason 6. T47 splits the seven reason-6 exits without changing gameplay; use
+  its runtime result before changing resolver behavior. Current T40 naval
+  right-of-way and expeditionary objectives remain FIXED-PENDING-RUNTIME.
+
+## T41:489 PARSE RECOVERY — DEPLOYED, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`. Runtime commit `31d86f5`; this handoff-only
+  commit follows it. The worktree was clean before the reported regression and
+  no branch/worktree/clone was created.
+- **Release blocker — FIXED-PENDING-RUNTIME.** The first T40 launch emitted
+  `rawai-military.per`, line 1620, `ERR2005: Invalid Identifier`. The source
+  cause is four T39 predicates that called project goal `villager-count` as if
+  it were an engine fact. All four now use `up-compare-goal`; the first bad
+  expression was line 1620 and the other three would have failed after it.
+- **Regression prevention:** the PER domain validator now identifies writable
+  goal storage from `set-goal`, `up-modify-goal`, `up-get-fact`, and
+  `up-get-player-fact` destinations and rejects bare fact-call syntax for those
+  identifiers. It explicitly accepts the correct `up-compare-goal` form.
+- **Validation PASS:** empty PER report; 128 validator, 23 migration, 3
+  transport-lane, and 27 ownership tests; full Python 3.12 discovery 505/505;
+  `git diff --check`.
+- **Deployment identity:** 99 source/installed files, marker
+  `RAWAI-P3B44T41:489`, aggregate SHA-256
+  `AB2271FA659CC47F6471CA950006FF73F986918D71057C12DD90BED099A858F2`.
+  The repair copied only `rawai-init-goals.per` and `rawai-military.per`.
+  Independent postcheck reports zero missing/different/unexpected files; the
+  installed marker-file SHA-256 is
+  `926867FBC56C1312473934F906AAD251BAD2258E66F944AF97D3AB4359D9A5E8`.
+- **Next action:** start a fresh match and require visible `T41:489` with no
+  `ERR2005` before closing the parser regression. T40 gameplay objectives remain
+  FIXED-PENDING-RUNTIME and should then be tested normally. Full detail:
+  `T41-PARSE-RECOVERY.md`.
+
+## T40:488 NAVAL HARDENING — SUPERSEDED DEPLOYMENT, 2026-09-05
+
+- **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`. This is the explicit current user authority;
+  repository `AGENTS.md` now agrees. No branch/worktree/clone was created and no
+  obsolete extracted copy was synchronized. Start was clean `4d9c519`; latest
+  behavioral HEAD `2c46488` (the documentation/marker commit follows it).
+- **Objective:** the requested three naval/overseas improvements are implemented,
+  statically validated, and deployed after the user's explicit authorization;
+  fresh-match acceptance remains open. Full causes, file/commit map, focused tests,
+  adversarial findings and acceptance criteria: `T40-NAVAL-HARDENING.md`.
+- **Shipyards — FIXED-PENDING-RUNTIME.** Source allowed first-yard policy but its
+  final desired-zero gate could suppress issuance; all later yards waited on
+  tech saving. Random newest-building offsets had no open-water quality or
+  concrete-foundation confirmation. Preserve first-yard priority, add a 90s
+  deficit exception only below minimum operational count two (bounded by desired),
+  and retain actual affordability/escrow and ordinary later expansion. A finite
+  multi-sector/four-water-point search uses real mobile path queries, own/allied
+  naval-building separation and a compatible worker path. Verify foundation then
+  completion, with bounded failure memory. Native builder assignment and actual
+  usable exits remain engine acceptance boundaries. Commits `f8df20d`, `ac8b606`,
+  `2c46488`; 11 focused PER fixtures PASS. Diagnostic 410 is the blocker reason.
+- **Merchant right-of-way — RUNTIME FAIL / SUPERSEDED BY T44.** Legacy berth/waypoint
+  clearers excluded active traders and mid-route straits. The new observer
+  requires two stationary eight-second samples with stable live movement intent
+  before yielding one nearby free self-owned merchant. It observes Transports
+  before mission warships, checks same-zone/exact-path/lateral safety and known
+  sea/town defenses, permits at most three sequential fresh interventions with
+  remeasurement, holds each at most 32s and three renewals, and applies merchant
+  and hull cooldowns. No STOP or priority-hull order; native trade resumes at a
+  still-valid allied Dock. Owned/distant traders are untouched. Commits `9c0b3fe`
+  and `e4ad548`; 11 focused fixtures PASS, including a five-active-merchant choke.
+  Diagnostic 420 names merchant, 421 priority hull. T41 runtime proved the
+  detector and initial command active, but native trade overwrote the hold in
+  the same second and the controller advanced to new merchants. T44 repairs
+  this source-proven persistence defect; fresh runtime acceptance remains open.
+- **Expedition surplus — FIXED-PENDING-RUNTIME.** Fresh admission was blocked by
+  aggregate land superiority even for safe isolated homes; three slots already
+  release preparation one second after dispatch. Add only a leased safety
+  exception plus a same-pass eligible-home-army reserve. Require quiet home,
+  known overseas seed, real worker reachability checks, useful navy and hulls.
+  Keep minimum 12/one-quarter at EQUAL sea control, minimum 20/half and five-unit
+  lift cap at TOLERABLE; retain one free siege specialist and existing Palintonon
+  protection. No new planner/slot/cadence/recall. All migration/relic/ownership,
+  screening, failed-shore and independent mission gates remain. Commit `3110251`;
+  11 focused fixtures PASS. Diagnostic 430 reports exception availability.
+  Bounded/visibility-limited search is not complete map-connectivity proof.
+- **Validation PASS:** 503/503 Python 3.12 discovery tests, including the
+  compiler fixture in its required permitted temporary environment; PER operands
+  and structure; ownership 960 sites / zero permission failures; generated
+  ownership/mission/plan/migration/coastal/ROW/expedition/naval synchronization;
+  strategy execution, naval doctrine, 42 existing replay benchmark definitions
+  and diff whitespace. No new replay can yet validate T40.
+- **Existing synchronization conflict — DEFERRED, not passed:** civ generator
+  still proposes six baseline file updates. In-memory inspection finds four
+  newline-only changes and semantic Dacian Bowman / Syracusan Spearman reversions
+  conflicting with audited release repairs. No real `--write` was performed and
+  those source/config files remain byte-identical to baseline. Repair that
+  generator/data alignment separately; do not overwrite the verified choices.
+- **Identity/deployment:** source and installed test copy both contain 99 runtime
+  files, `RAWAI-P3B44T40:488`, SHA-256
+  `C90F78EB90DBA119DA6DC0373B8D9B5A703B3161A0D31267A7F5504409CE22E2`.
+  Deployment copied 14 changed/new files from this checkout, including the six
+  new T40 modules, with no unexpected files and no remaining mismatch. A second
+  independent read-only synchronization check reports zero missing/different/
+  unexpected files. The installed marker file SHA-256 is
+  `FC2D287ECBFF242DB1EA88DE48CBC7D9A29247A1F8DF19B40E48DFB31FC4C281`.
+  Conservative literals 1470/1500; no new engine timers or DUC groups. This
+  deployment also advances the test copy from T36 through all pending committed
+  T37/T38/T39 fixes; it does not include data-mod or replay files.
+- **Next actions:** start a fresh match using the documented Iberia lobby and
+  confirm the replay-visible T40:488 marker. Audit every player's
+  Shipyard lifecycle, congestion episodes and repeated slot use, including safe
+  home reserve, native trade recovery and CPU/late-match lag. Recheck siege
+  boarding, land trade, migration/relic and landed combat. Keep broader ordinary
+  military inactivity/type-wide native exclusions and shared preparation-lane
+  starvation explicit if they remain; do not attribute them all to the repaired
+  aggregate-strength gate. Mark CLOSED only after the item-specific runtime PASS.
+
+## CURRENT - T39:487 MIGRATION ADMISSION, LANDED ASSAULT CONTINUATION, AND EARLY GATES, SOURCE ONLY, 2026-09-05
+
+- **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `982e496`. The working
+  changes are deliberately separated into independently revertible commits:
+  `e9053a7` landed visibility handoff, `058991d` crowded-island migration
+  admission, `ba2ef5b` first-gate sequencing, and `f1bba96` landed cross-zone
+  ownership. T36:484 remains installed while its live test is running; T37,
+  T38, and T39 are source-only and must not be injected into that match.
+- **Migration admission — FIXED-PENDING-RUNTIME / bounded behavior change.** The
+  user directly observed hundreds of villagers waiting on beaches while
+  manually loaded Transports still executed migration voyages. The current T36
+  replay independently proves the upstream gate failure: Blue had four
+  Transports but repeatedly reported `migration gate idle bucket: 0` from
+  32:06 through 34:07. At those early samples it had 44–49 villagers, so the new
+  high-population policy deliberately does not rewrite that opening behavior.
+  At 60 villagers, the migration gate can now admit one bounded manifest even
+  when native economy assignments keep the idle fact at zero. Its selector
+  protects builders, repairers, grouped/garrisoned units, the boar lurer,
+  prey/livestock workers, and all established food roles; it remains capped by
+  the exact Transport capacity. The threshold is policy tuning, not a claimed
+  engine constant. Runtime PASS requires a high-population/idle-zero island to
+  emit an AI-owned passenger candidate and board/depart without manual loading,
+  while protected workers remain untouched.
+- **Empty landed handoff — ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** T36
+  repeatedly serialized `RAW3 event 8 -> event 12` only eight displayed seconds
+  apart for Blue slots. Eight seconds cannot exhaust the 300-game-second combat
+  lease; it is the first combat sample finding an empty group. Source rebuilt
+  the mission group in the same sweep that the hull first reported zero cargo,
+  when newly unloaded passengers can still be engine-visible as garrisoned.
+  The voyage now retains its sealed group for one eight-second sample before
+  the landed rebuild, and starts combat on the following bounded sample. The
+  executable fixture reproduces cargo-zero-before-passenger-visibility and
+  proves all passengers survive the handoff.
+- **Landed members crossing engine zones — ROOT-CAUSE-PROVEN /
+  FIXED-PENDING-RUNTIME.** Yellow missions reached event 8, survived until the
+  full combat lease expired, but emitted zero landed target/issuance records.
+  Enemy 7 objective 47510 remained alive and trained units from 49:31 through
+  at least 62:42, covering Yellow's first 56:23 handoff and 59:27 release. Thus
+  the controller had a nonempty owned group and a live sealed-target-zone
+  building, but never passed its local-member selection. That selection removed
+  exact mission members as soon as their inland movement crossed away from the
+  landing zone. T38 separately proved Iberia's engine zone labels do not denote
+  traversable-land boundaries. T39 removes only the zone veto from the exact
+  sealed landed manifest; foreign/free troops remain excluded, garrisoned units
+  remain excluded, and hostile targets still must be in the sealed target zone.
+  Runtime PASS requires Yellow-style landed groups to emit target/issuance and
+  continue fighting after crossing a local engine zone boundary.
+- **First gate before wall closure — FIXED-PENDING-RUNTIME / requested
+  sequencing change.** Both first-gate rules and their availability poll were
+  gated on 25% wall completion, allowing a perimeter to close before a gate was
+  requested. The first stone or palisade gate is now requested as soon as
+  `can-build-gate-with-escrow 2` reports a replaceable wall span. T45 supersedes
+  the former two-gate/75% continuation with gate 2 at 40% and gate 3 at 75%; all
+  danger, worker, escrow, availability and retry bounds remain unchanged.
+  Runtime PASS requires the first viable gate to precede a closed perimeter and
+  T45's later openings to remain bounded.
+- **Broader army idleness remains INVESTIGATING.** T39 fixes both source-visible
+  landed-group first divergences; it does not claim that every ordinary army
+  idle episode shares those causes. Native attack protection is type-wide and
+  the T36 replay has substantial writer-91 exclusion activity, so free soldiers
+  sharing a type with a protected mission can wait. Removing that shield would
+  let native attack ownership steal active mission members and is not supported
+  without a discriminating replay. If ordinary unlanded armies remain idle in
+  T39, correlate their exact types with live owner groups and attack dispatch
+  gates before changing that protection.
+- **Validation PASS:** assault generation synchronization; 44 focused landed /
+  mission / historical-fingerprint tests; migration and wall focused tests;
+  PER validation; ownership audit 842 sites with zero permission failures; and
+  `git diff --check`. Full discovery passes all 470 tests, including the
+  compiler fixture in its required permitted temporary environment.
+- **Runtime identity/deployment:** source marker `RAWAI-P3B44T39:487`; no new
+  replay strings beyond replacing the marker. No deployment has occurred;
+  installed runtime remains verified T36:484.
+
+## T38:486 LAND TRADE ZONE-VETO REPAIR — RUNTIME FAILED / SUPERSEDED BY T43
+
+- **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `84429f5`. T36:484 remains
+  installed while its live test is running. T37 and T38 are source-only and
+  must not be silently deployed into that match.
+- **Status: RUNTIME FAIL / SUPERSEDED BY T43.** The user directly
+  observed that multiple allied players had viable land routes but no land
+  trade. A read-only 125:00 snapshot of live T36 replay
+  `SP Replay v101.103.48987.0 @2026.09.04 223434.aoe2record` has zero parse
+  errors. Blue/P1 built Markets at 14:00 and 39:12; its allied P2, P3 and P4
+  had built Markets by 11:45, 13:07 and 14:19 respectively. Despite that, Blue
+  emitted no `trade land candidate ally` event and all eight players produced
+  zero Trade Carts (engine `trade-cart` ID 128) through 125:00. Water discovery
+  and proof remained live, repeatedly identifying allied Dock targets.
+- **First causal divergence:** after finding the local and allied Markets, the
+  land topology scan removed every Market whose `object-data-map-zone-id` did
+  not equal the chosen home/colony zone. That is the only remote-Market veto
+  before the land-candidate event. The runtime result proves this zone equality
+  did not represent the user-visible traversable Cart routes on Iberia, so the
+  bounded reachability probe was never admitted. T31 removed the invalid path
+  query against an immobile Market but retained this second invalid pre-proof
+  gate.
+- **Implementation:** remove only the local and remote land Market map-zone
+  filters. A completed own Market and a living ally's completed Market now
+  create a candidate irrespective of their engine zone labels. The existing
+  limit of at most three candidate-only Trade Carts remains the actual bounded
+  path experiment. Normal Cart growth, the larger growth limit and villager
+  retirement still require a live Cart with `actionid-trade`; an unreachable
+  candidate therefore cannot unlock full trade. Water candidate filtering,
+  proof and growth are unchanged.
+- **Preserved contracts:** per-ally masks; independent land/water discovery;
+  completed producer census and producer-epoch invalidation; three-Cart probe
+  ceiling; live target-player proof; `wait-techup-requirements`; `can-train`;
+  desired/growth caps; water same-zone candidacy; and all transport, economy,
+  military and naval controllers.
+- **Validation PASS:** focused trade topology 8/8; general validators 126/126;
+  full Python discovery 468/468 (the first sandboxed compiler-fixture run hit
+  the established temporary-directory permission boundary; the approved full
+  rerun passed); PER validation; naval doctrine; ownership audit 841 sites with
+  zero permission failures; and `git diff --check`.
+- **Runtime acceptance:** in a fresh T38 replay, each AI with its own completed
+  Market and at least one allied Market must produce no more than three Cart
+  probes until a Cart begins `actionid-trade`; a real traversable route must
+  then produce `merchant land proof ally` and unlock bounded normal Cart growth.
+  An unreachable cross-zone candidate must stop at three Carts and must not
+  unlock growth or villager retirement. Water trade must remain independent.
+- **Deployment:** none. Source marker is `RAWAI-P3B44T38:486`; installed runtime
+  remains verified T36:484.
+- **Later result:** T41 runtime still produced zero land candidates and zero
+  Trade Carts despite completed own/allied Markets. T43 identifies the earlier
+  remaining cause: the land-source rule consumed a shared DUC list from the
+  preceding rule sweep. T38 therefore remains useful as a removed invalid veto,
+  but did not resolve the reported behavior by itself.
+
+## CURRENT - T37:485 INDEPENDENT SIEGE-PASSENGER BOARDING, SOURCE ONLY, 2026-09-04
+
+- **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `f72e541`. T36:484 remains
+  installed and must not be silently replaced while its live test is running.
+- **Status: ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** During the T36 test the
+  user directly observed a Yellow Pummel stop en route to its assault Transport,
+  and repeatedly observed all other siege engines stop when one engine in the
+  boarding group was obstructed. The current replay snapshot is
+  `SP Replay v101.103.48987.0 @2026.09.04 223434.aoe2record`, duration 62:31,
+  with zero parse errors and T36 marker 484.
+- **Replay evidence:** Yellow completed two earlier assault landings. Its next
+  preparation terminated at 59:22 with only 4/10 aboard while the sampled
+  reserved passenger still had action 617/order 717, exact hull target 35963,
+  group flag 4, and distance 9. The following preparation sealed 7/10 at 62:30
+  while its sampled reserved passenger still had that same valid boarding state
+  only distance 2 from hull 35963. No reservation, target, or ownership loss
+  explains those simultaneous stops.
+- **First causal divergence:** every assault boarding and retry site issued one
+  multi-object `action-garrison` command to the entire mixed manifest. Siege
+  engines therefore shared a formation-coupled command; one obstructed engine
+  could halt its siege peers even though each still retained the right hull
+  target and mission group.
+- **Implementation:** the six assault boarding/retry sites retain the existing
+  group command for non-siege passengers but exclude `siege-weapon-class`.
+  During rendezvous/load wait, a bounded ID-sorted round-robin gives exactly one
+  reserved, ungarrisoned siege engine its own `action-garrison` command per game
+  second. At most ten accepted passengers exist, so every surviving siege
+  member is renewed within ten seconds without sharing a formation command.
+- **Preserved contracts:** passenger-first manifest selection, nearest eligible
+  hull, exact hull and group ownership, 120-second rendezvous lease, 30-second
+  local boarding deadline, 5-unit useful-partial threshold, partial/abort
+  diagnostics, three dispatched mission slots, all non-siege boarding, and all
+  migration behavior are unchanged. No new chat strings were allocated.
+- **Validation PASS:** focused rendezvous fixture including two Pummels
+  proves independent one-member commands, one-second cadence, and no multi-unit
+  siege command; 49 assault preparation/acquisition/ownership tests; 134 marker,
+  topology and validator tests; 19 physical-line/task-ownership tests; PER
+  validation; ownership audit 841 sites with zero permission failures; and
+  `git diff --check`; and full Python 3 discovery, 468/468 tests. The first
+  sandboxed discovery exposed one deliberately strict ownership fixture that
+  lacked `object-data-class`; the fixture now models the existing infantry
+  class field. Its only other error was the established Windows Temp permission
+  boundary for the compiler fixture; the permitted full rerun passed.
+- **Runtime acceptance:** in a fresh T37 replay, obstruct one reserved siege
+  passenger and verify another reserved siege passenger continues and boards;
+  there must be no more than one scripted siege boarding renewal per player per
+  game-second, no loss of the exact hull/group target, normal non-siege boarding,
+  and no regression in departure/landing. Until then this defect is not CLOSED.
+- **Deployment:** none. Source marker is `RAWAI-P3B44T37:485`; installed runtime
+  remains the verified T36:484 payload.
+
+## CURRENT - T36:484 BOUNDED ASSAULT/MIGRATION SHORELINE RESOLUTION, DEPLOYED, 2026-09-04
+
+- **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
+  branch `fix/trade-cog-cap-dacian`; pre-change HEAD `a378710`. The active HEAD
+  is the T36 commit containing this entry. Do not create a parallel worktree or
+  deploy from another checkout.
+- **Status: ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** T33 replay
+  `SP Replay v101.103.48987.0 @2026.09.04 151001.aoe2record` proved that assault
+  hulls repeatedly received inland corridor `(155,108)` and unload `(86,61)`
+  geometry before dispatch. Three completed missions followed event
+  `0 -> 4 -> 9`, a fourth was still repeating that route at replay end, and no
+  assault landed. The six migration voyages likewise rejected all 30 resource
+  anchor/plus-or-minus-two candidates. No native hull overwrite or global
+  target change preceded these failures.
+- **First causal divergence:** assault offset the inland enemy-objective point,
+  while migration tested the inland resource anchor and four adjacent points.
+  Neither planner searched for the land/water boundary. T34's exact-hull
+  reasons 36/37 could reject the resulting geometry, but could not generate a
+  usable coast.
+- **Implementation:** the shared generator model marches from the inland anchor
+  toward the exact reserved Transport in at most 24 sixteen-tile steps, detects
+  the first departure from the target map zone with `up-get-point-zone`, and
+  refines the bracket in at most four four-tile steps. It then probes a five
+  sector fan (`0`, `+/-8`, `+/-16`) with `up-cross-tiles`. A sector is eligible
+  only when its land point remains in the objective/resource zone, its water
+  point is a different valid zone, the sector is not in bounded failure memory,
+  and both stored exact-hull path queries are finite. No terrain IDs or map
+  coordinates are hardcoded.
+- **PER primitives:** `up-get-point`, `up-bound-point`, `up-lerp-tiles`,
+  `up-get-point-zone`, `up-cross-tiles`, `up-set-target-object`,
+  `up-get-path-distance`, and the existing final `up-path-distance` gates.
+  Cached AIRef semantics were checked before implementation: interpolation
+  mutates its first point toward the second; point-zone writes the queried map
+  zone; exact-hull path distance returns `65535` when unavailable, with option
+  1 requiring the exact water point and option 0 accepting the legal nearby
+  unload vicinity.
+- **Sharing/ownership:** `tools/shoreline_resolver.py` supplies the common
+  mechanical geometry and constants. Assault remains generated in
+  `rawai-assault-plans.per`; migration has its own generated
+  `rawai-migration-shoreline.per`. Their goals/state are intentionally separate
+  (`gl-ap-*` versus `gl-msr-*`), so migration cannot corrupt preparation or any
+  of the three dispatched assault slots.
+- **Hard budget:** per objective/anchor, at most 24 coarse zone samples, four
+  refinement samples, five candidate zone-pair checks, and ten resolver path
+  queries (two per eligible sector). Failure-memory skips occur before path
+  queries. A successful assault candidate can then consume the unchanged T34
+  final path gate; migration likewise retains its final exact-hull landing
+  gate. Exhaustion is terminal for that bounded objective/zone attempt and
+  retains cargo for existing replan/recovery behavior.
+- **Corridors:** assault and migration lateral corridors now derive from the
+  selected water-side shoreline point, not the inland objective. The direct
+  midpoint remains a danger sample. If an arbitrary lateral midpoint is
+  unreachable, the exact validated water approach is rechecked and may be used
+  only when that direct danger sample is clear. T34 reasons 36/37 and final
+  exact-hull validation remain mandatory; danger screening is not weakened.
+- **Failure memory:** failed assault sectors use the existing enemy/objective
+  memory and rotation. Migration now has a separate four-entry, 300-second
+  shoreline-sector ring. Wrong-zone, final path rejection, and post-arrival
+  failure remember the sector and advance the fan instead of regenerating the
+  old inland candidates.
+- **Preserved contracts:** full and accepted-partial manifests, three private
+  assault slots, hull/passenger ownership, same-landmass checks, opponent and
+  objective rotation, Scout screening/fallback, positive-danger vetoes,
+  voyage/congestion watchdogs, migration resource-anchor meaning and final
+  dropsite flow, relic ferrying, trade, ordinary military/naval behavior, T34
+  reasons 36/37, and T35 mode-2 native Watch-Tower garrison suppression.
+- **Validation PASS:** 45 focused shoreline/planner tests; 165 current
+  assault/transport/migration tests; generated assault/migration synchronization;
+  PER structural/operand validation; 840-site ownership source audit with zero
+  permission failures plus 40 ownership tests; all 1,156 strategy matchups;
+  naval doctrine and generated naval sync; 42 replay benchmarks;
+  `git diff --check`; and full Python 3 discovery, 467/467 tests. The full run's
+  compiler fixture required its established Windows Temp permission. Fixtures
+  model state/geometry and supplied path answers; they are not AoE2 engine
+  pathfinding proof.
+- **Runtime/string/deployment:** marker is
+  `RAWAI-P3B44T36:484`. This patch allocates no new replay-chat strings beyond
+  replacing the marker; the conservative project budget is 1,485/1,500 PER
+  literals. On explicit user request, `tools/sync_test_ai.py --apply` deployed
+  T35+T36 from source commit `5b42491573277f163828e235194a8d836bf8876e` to
+  `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`.
+  Exactly seven pending files were copied: `rawai-assault-plan-defs.per`,
+  `rawai-assault-plans.per`, `rawai-customconstants.per`,
+  `rawai-init-goals.per`, `rawai-migration-shoreline.per`,
+  `rawai-military.per`, and T35's `rawai-sn-defines.per`. A post-apply read-only
+  check proves all 93 runtime files byte-identical, with no missing, different,
+  or unexpected files. Source/install aggregate SHA-256 is
+  `4E18B8AA59FBD5FD6468242E15DE207209A259C3F8BB08D8CB71EA29BEF87857`;
+  installed marker is T36:484 and installed `sn-disable-villager-garrison` is 2.
+- **Fresh replay acceptance:** use an authoritative fresh replay. PASS requires
+  old inland/cliff routes rejected before dispatch, a materially different valid
+  shore selected, at least one successful loaded assault landing, migration
+  reaching shoreline beyond its former five local candidates where topology
+  permits, no unsafe route admitted to force success, and no
+  T34/T35/manifest/ownership regression. Until then:
+  **SHORELINE RESOLVER IMPLEMENTED — FIXED-PENDING-RUNTIME**.
+
+## CURRENT - T35:483 NATIVE VILLAGER WATCH-TOWER GARRISON SUPPRESSION, DEPLOYED WITH T36, 2026-09-04
+
+- **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
+  branch `fix/trade-cog-cap-dacian`; starting HEAD `a9d000c`. The pre-existing
+  uncommitted `HANDOFF.md` update records the completed T34 deployment and T33
+  replay flood audit below.
+- **ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME:** T33 replay classification
+  proves that the dominant 13-ms Villager-to-drop-site `ORDER` flood is exactly
+  bracketed by engine-native Watch Tower garrison/ungarrison episodes. No PER
+  garrison writer targets a Watch Tower, and the explicit economic-building
+  writers cannot emit that relationship at simulation-frame cadence.
+- **Mode semantics:** cached AIRef
+  `.analysis\airef-reference-20260830.js` documents strategic number 291 as a
+  four-mode value: 0 normal; 1 ignores Gaia but permits any enemy-triggered
+  garrison; 2 ignores Gaia and permits enemy-triggered garrison only when a
+  Town Center can be entered; 3 disables all native Villager auto-garrison.
+  Mode 2 is the narrow causal boundary: it excludes native Watch Tower refuge
+  while retaining native TC assistance and therefore has less worker-survival
+  risk than mode 3.
+- **Implementation:** `rawai-sn-defines.per` sets
+  `sn-disable-villager-garrison` to 2 once in the existing global one-shot
+  initialization rule. No economy percentage, worker tasking, defense
+  threshold, tower, Transport, or explicit `action-garrison` rule changed.
+  T35's behavior is retained unchanged under the superseding local T36:484
+  marker recorded above.
+- **Non-regression contracts:** new
+  `tools/test_villager_garrison_mode.py` proves mode 2 is the only writer and is
+  one-shot, and proves that boar-rescue TC garrison, wall/gate-builder TC
+  evacuation, migration Transport boarding, and assault Transport boarding
+  remain in source. Existing executable migration and assault rendezvous tests
+  still prove their exact `action-garrison` commands.
+- **Validation PASS:** `tools/validate_per.py`; 13 focused native-garrison,
+  assault-rendezvous, and migration-rendezvous tests; full 457-test discovery
+  suite. The writer-trace case required its established unsandboxed temporary
+  directory permission and passed there. `git diff --check` passes.
+- **Deployment:** now deployed with T36:484 on explicit user request. The
+  installed 93-file runtime and aggregate SHA-256 are recorded in the T36
+  section above.
+- **Strict runtime acceptance:** PASS requires no large 13-ms
+  Villager-to-TC/Mill/Lumber Camp streams; no corresponding native Watch Tower
+  garrison episodes; healthy ordinary gathering/deposit; working explicit TC
+  safety garrison, boar rescue, wall/gate-builder evacuation, assault boarding,
+  and migration boarding; and no new worker death/passivity regression under
+  attack. Until a fresh deployed replay proves every item, status remains
+  FIXED-PENDING-RUNTIME.
+
+## CURRENT - T34:482 ASSAULT SHIP-PATH GEOMETRY GATE, DEPLOYED, 2026-09-04
+
+- **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
+  branch `fix/trade-cog-cap-dacian`; current HEAD `a9d000c` was clean before and
+  after deployment. T33 commit `1460d58` remains the runtime represented by the
+  replay audited below; T34 commit `a9d000c` is the current installed runtime.
+- **ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME:** replay `SP Replay
+  v101.103.48987.0 @2026.09.04 151001.aoe2record` (SHA-256
+  `E96FCBDEBF84E000054F0A47E6A954AE27AA3D1DBBF7F717C92997DCF8150DE0`)
+  records Blue hulls 37482 and 35604 following the same private assault route,
+  failing the outbound progress watchdog and then emptying only during recovery.
+  Hull 37482 was commanded to corridor `(155,108)` at 41:01, unload `(86,61)`
+  at 41:57, recovery `(184,186)` at 43:41, and terminated event 9 at 45:25.
+  Hull 35604 repeated those points at 44:01, 44:57, 46:41 and 48:41. There is
+  no native `AI_ORDER` overwrite for either Blue hull in those intervals.
+- **Replay-wide lifecycle sweep:** all three admitted assaults with enough
+  remaining replay time to terminate failed identically: Green hull 36678
+  (enemy 8) emitted event 0 at 39:51, event 4 at 42:07 and event 9 at 42:39;
+  Blue hull 37482 (enemy 7) emitted 0/4/9 at 41:01/43:41/45:25; Blue hull
+  35604 (enemy 7) emitted 0/4/9 at 44:01/46:41/48:41. Blue hull 36264 was
+  admitted at 46:54 and was still attempting the same `(155,108)` -> `(86,61)`
+  route when the replay ended at 49:15. Thus the recording contains zero
+  successful assault landings and three reproducible outbound-progress aborts;
+  it is not merely the two user-observed Blue episodes.
+- **First causal divergence:** the planner derived landing candidates from the
+  enemy objective's land coordinate and perpendicular offsets; the corridor
+  controller derived another geometric point, but neither proved that the
+  selected Transport could path to those points. The decoded map proves Blue's
+  corridor center is terrain 0 (land/grass) and its unload center is terrain 3
+  (land; no water in the 7x7 sample). Green's only admitted mission likewise
+  used a terrain-12 unload point and ended event 4 -> event 9. Native ship
+  projection toward a nearby shore therefore occurred only after mission
+  admission and could select a cliff-side dead end instead of the observed
+  clear beach.
+- **Implementation:** new state `AP-PATH` rebuilds the exact selected, owned,
+  `attack-transport-group` hull after corridor construction. It requires a
+  finite `up-path-distance` to the unload vicinity with option 0 and to the
+  exact corridor waypoint with option 1 before screening or dispatch. Failure
+  reason 36 means unload vicinity unreachable; 37 means exact corridor
+  unreachable. Either records the failed approach and returns to the existing
+  bounded approach -> objective -> enemy search with the accepted cargo still
+  aboard. Existing logs expose the reason without allocating new strings.
+- **Preserved behavior / non-regression criterion:** safe full and accepted
+  partial manifests, same-island zone validation, defense vetoes, Scout
+  screening and fallback, three private mission slots, positive-danger policy,
+  and the event-4 voyage watchdog are unchanged. A reachable candidate must
+  still depart; an unreachable point must choose another bounded candidate
+  without unloading or changing the accepted manifest.
+- **PASS:** generated planner/source synchronization; 32 planner/landing tests;
+  132 assault/transport/landed-combat tests; PER structure; strategy execution;
+  naval doctrine; generated naval synchronization; `git diff --check`.
+  Repository run passed 453/454 in the sandbox; the sole Windows Temp
+  writer-trace permission case passed separately with Temp access, covering all
+  454 tests. Current project string allocation is 1489/1500 literals; this
+  patch adds no runtime strings.
+- **Runtime deployment:** explicitly deployed from commit `a9d000c` with
+  `tools/sync_test_ai.py --apply`. Exactly four installed files changed:
+  `rawai-assault-plan-defs.per`, `rawai-assault-plans.per`,
+  `rawai-init-goals.per`, and `rawai-military.per`. An independent read-only
+  check proves all 92 runtime files byte-identical with zero missing, different,
+  or unexpected files. Source/installed aggregate SHA-256 is
+  `55454FF4A19BC79EE4653366EE102CCE28ABD8BD577820491F009E324E97F70D`;
+  installed marker is `RAWAI-P3B44T34:482`.
+- **Runtime acceptance:** run a fresh Huge Iberia match under the recorded T33
+  lobby settings. PASS requires reasons 36/37 to reject land/cliff geometry
+  before hull dispatch, another approach/objective/enemy to be tried while
+  cargo remains loaded, and at least one finite-path route to preserve normal
+  dispatch. Runtime acceptance is pending in the user's fresh T34 match. The
+  attached replay marker is T33:481, so this recording cannot establish whether
+  deployed T34:482 rejects these routes or still admits them.
+- **Diagnostics:** decoded replay products and route rendering are outside the
+  repository under `G:\Projects\Codex\Rome at War AI\.analysis\T33-iberia-*`.
+  The native first-writer/heap-corruption investigation remains open and is not
+  claimed fixed by this independent transport patch.
+
+## CURRENT - T33 REPLAY ECONOMIC ORDER FLOOD CLASSIFICATION, 2026-09-04
+
+- **ROOT-CAUSE-PROVEN / FIX NOT IMPLEMENTED:** the dominant flood is not STOP
+  and not landed-assault combat. It is an engine-native conflict involving
+  garrisoned Villagers and their economic return-to-drop-site task. The five
+  named targets account for 37,150 of 43,130 replay `ORDER` packets (86.1%).
+- **Actor classification:** initial objects 7774 (Green/player 3) and 7784
+  (Purple/player 6) are replay-header object type 293, class 70: Villagers.
+  Dynamic objects 34920 and 34717 (Gray/player 7) and 34713 (Green/player 3)
+  repeatedly issue `BUILD` and `WORK`, positively identifying the Villager
+  class; the action stream cannot recover their runtime male/female variant.
+- **Target classification:** 34898 is Gray's Mill at `(117,39)`, created by the
+  type-68 build at 05:07; 7712 is Green's starting type-109 Town Center at
+  `(166,77)`; 7739 is Purple's starting type-109 Town Center at `(28,120)`;
+  35056 is Purple's type-562 Lumber Camp at `(39,118)`, created by the 07:44
+  build; and 34725 is Gray's type-562 Lumber Camp at `(124,36)`, created by the
+  00:32 build. Every actor and target in these tuples has the same owner.
+- **Exact packet classification:** all repeated packets are enum `ORDER`, action
+  opcode 0, with one selected Villager, the friendly building instance as
+  `target_id`, and the building's exact center coordinate. The hidden six-byte
+  field is identically `00000100ffff`. Unlike `SPECIAL` and `AI_ORDER`, this
+  packet format serializes no finer `order_id`; the exact replay-level subtype
+  is therefore generic object interaction. The Villager/drop-site relationship
+  and interleaved `WORK` packets identify economic return/deposit behavior, not
+  STOP, WORK, repair, guard, attack, or transport boarding.
+- **Causal lifecycle:** the main 34920 -> 34898 and 34717 -> 34898 bursts contain
+  5,161 and 4,934 byte-identical packets, median interval 13 ms, while Gray's
+  Villagers are under `SPECIAL` order 5 (garrison) to type-79 Watch Tower 35099;
+  both runs end exactly at the 39:19.485 `UNGARRISON`. Purple's equivalent runs
+  use Watch Tower 35098 and end at the 33:17.062/34:19.311 ungarrisons. Green's
+  runs use Watch Tower 35111 and end at 41:35.822/42:40.705/46:37.543
+  ungarrisons. Order-5 is the replay's explicit garrison subtype.
+- **Source-first writer audit:** no PER garrison writer targets a Watch Tower.
+  Existing explicit garrison writers target a Transport Ship or a bounded Town
+  Center (boar rescue and perimeter wall/gate-builder evacuation). The only
+  `action-default` Villager writers capable of targeting an economic building
+  are bounded pending-foundation/colony/migration taskers: colony Town Center
+  assignment exits to a 180-second timer, Lumber Camp assignment targets the
+  new pending foundation and exits to a 90-second timer, and migration drop-site
+  assignment is restricted to `migration-boarding-group`. Purple and Gray emit
+  no migration telemetry; Green's large flood episodes occur after its observed
+  migration attempt has terminated. Farm staffing targets Farms/resources, not
+  drop sites. These rules cannot produce the ready-drop-site relation at 13 ms.
+- **Source-visible native boundary:** `sn-disable-villager-garrison` is mapped
+  as strategic number 291 in `rawai-constants.per` but is never set by this AI.
+  Native Villager garrison therefore remains the only source-visible owner
+  compatible with the Watch Tower commands and exact garrison/ungarrison flood
+  bracket. Writer IDs 90/91 in the replay are unrelated native attack-group
+  exclusion maintenance; positive counts there do not attribute an `ORDER`.
+- **Next causal patch:** test the smallest native-garrison suppression at that
+  boundary as its own revertible change. Before deployment, preserve explicit
+  boar-rescue, wall/gate evacuation, migration and assault boarding as
+  non-regression criteria; runtime acceptance requires eliminating the
+  garrison-bracketed 13-ms drop-site floods without preventing commanded
+  Transport/Town Center garrison. Do not mix this with transport-route changes.
+- **Diagnostics:** the replay and parsed products remain outside Git under
+  `G:\Projects\Codex\Rome at War AI\.analysis\T33-iberia-*`. This audit changed
+  no gameplay source and did not redeploy after the user's T34 match began.
+
+## CURRENT - T33:481 LANDED-COMMAND ISSUANCE TRACE DEPLOYED, 2026-09-04
+
+- **Workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`,
+  branch `fix/trade-cog-cap-dacian`; T32 commit `a84360a` is the immediate
+  behavioral baseline. T33 source commit `1460d58` is diagnostic-only.
+- **REPLAY RESULT:** in the 73:38 replay `SP Replay v101.103.48987.0
+  @2026.09.03 114314.aoe2record`, every terminal ORDER for object IDs 35259,
+  42698 and 59295 has `player_id: 3`, which is visible Green. IDs 35259 and
+  59295 are positively Villagers because the replay records them issuing BUILD
+  actions earlier (17:59/33:06 and 64:58 respectively). ID 42698's concrete
+  unit type is not serialized; it was explicitly ungarrisoned at 69:50.
+- The replay does **not** serialize current DUC group flags or controller/slot
+  ownership. Green emits no `RAW3`/landed-assault lifecycle chat anywhere in
+  this recording, so none of the three IDs can be proven to belong to assault
+  slot 1, 2 or 3. Preserve player ownership and controller ownership as
+  separate conclusions.
+- **Terminal pattern:** 42698 begins repeated orders against target 62438 at
+  73:36; 35259 joins at 73:37; 59295 joins at 73:38. Their terminal counts are
+  37, 21 and 7 respectively. The growing actor set is consistent with native
+  ORDER expansion/reacquisition but is not sufficient to prove it rather than
+  repeated PER issuance.
+- **DIAGNOSTIC ONLY:** immediately before each slot's actual landed
+  `up-target-objects` action, the generated controller now emits one
+  replay-visible triplet: assault slot, combat target ID, and the current
+  pre-increment combat-tries value. It adds no goals, searches, selections,
+  commands, timers, ownership changes or gameplay predicates. T32's existing
+  post-issue sample-10 latch bounds the triplet to one record per slot per
+  logical 16-second combat sample.
+- **Acceptance interpretation for the next replay:** one triplet followed by a
+  large/mutating packet burst supports native command expansion/reacquisition;
+  multiple triplets matching the packet cadence proves multiple PER
+  issuances. Correlate by player, slot, target, tries and replay sequence.
+- **PASS:** assault tests 108/108; landed-assault tests 11/11; validator tests
+  126/126; assault generator synchronization; PER structure; strategy
+  execution; naval doctrine; generated naval synchronization; full repository
+  suite 451/451 outside the sandbox. Project string budget is 1469/1500
+  literals (an allocation guard, not proof of engine compilation). The
+  sandboxed full run reached the known
+  Windows Temp permission-only writer-trace error after all other tests passed.
+- **Runtime deployment:** explicitly deployed from commit `1460d58` with
+  `tools/sync_test_ai.py --apply`. Five installed files changed:
+  `rawai-assault-mission-defs.per`, `rawai-assault-missions.per`,
+  `rawai-economy.per`, `rawai-init-goals.per`, and
+  `rawai-unitconstants.per`. An independent post-apply check proves all 92
+  runtime files byte-identical with zero missing, different, or unexpected
+  files. Source/installed aggregate SHA-256 is
+  `E4B6281AEA133A5C56A90CAABB4BDF8F3DD2351B5DAB2DB89635F15EA087E79B`;
+  installed marker is `RAWAI-P3B44T33:481`.
+- **Fresh T33 test setup (direct user screenshot evidence; replay pending):**
+  `RaW data fix`, Chronicles civilization set, Random Map / Iberia, Huge (240),
+  Extreme, Standard resources, population 400, Normal speed/reveal, Standard
+  starting and ending ages, no treaty, Standard victory. Lock Teams, Team
+  Together, Shared Exploration and Record Game are enabled; Team Positions,
+  Handicap and all shown advanced variants are disabled. Team 1 is Blue
+  Dacians, Red Pontus, Green Seleucids and Yellow Syracusans; Team 2 is Cyan
+  Nubians, Purple Numidians, Gray Carthaginians and Orange Egyptians. At 00:01,
+  Team 1's shared-exploration minimap shows Green north, Red west/southwest,
+  Yellow south and Blue east/southeast. The live chat visibly confirms
+  `RAWAI-P3B44T33:481` for players 2-8 with no startup script-error dialog;
+  player 1's marker is not visible in the supplied frame and is therefore not
+  claimed from screenshot evidence.
+- The native first writer and
+  `STATUS_HEAP_CORRUPTION (0xc0000374)` remain INVESTIGATING; telemetry is not
+  resolution.
+
+## CURRENT - T32:480 LANDED-COMBAT POST-ISSUE LATCH, LOCAL ONLY, 2026-09-04
+
+- **INVESTIGATION RESULT:** the proposed ordinary rule-reentry mechanism is
+  not reproduced by the generated state machine. Each slot has one object
+  attack-command rule; the next complete rule pass resets its sample to zero,
+  and only the 16-second clock gate can reopen combat sampling. No later rule
+  re-enters sample 7. `combat-tries >= 3` is not an intra-sample guard: it marks
+  the target failed after the third separately sampled command. The observed P3
+  subsecond object-order burst could also involve multiple independent assault
+  slots converging on one target; source evidence cannot map the reported
+  object IDs to mission slots.
+- **CANDIDATE MITIGATION / FIXED-PENDING-RUNTIME:** despite that unresolved
+  native first writer, the object-command rule no longer leaves itself eligible
+  in persistent PER state. Immediately after its one command it changes sample
+  7 to post-issue sample 10. The existing third-try `combat-failed` update now
+  consumes sample 10, preserving failed-target exclusion. The next full rule
+  pass resets the sample normally, and the existing clock deadline still
+  permits another command only at the next legitimate 16-second sample.
+- The authoritative change is in `tools/generate_assault_missions.py`; all three
+  copies in `rawai-assault-missions.per` were regenerated. No transport,
+  landing, lease, target-selection, ownership, zone, cadence, or telemetry
+  policy changed. A delayed `object-data-action == actionid-attack` is no longer
+  relevant to same-sample command eligibility.
+- **Regression coverage:** the actual-PER fixture leaves unit action state
+  unchanged after issuance, directly reevaluates the command rule four times,
+  and proves only one object command. It then proves a later 16-second sample
+  can command again. Structural checks require equivalent sample-10 latches and
+  third-try transitions for slots 1-3. Existing retarget and failed-target
+  fixtures remain green.
+- **PASS:** all assault tests 108/108; landed assault 11/11; validator tests
+  126/126; PER structure; strategy execution; naval doctrine; generated naval
+  synchronization; generator synchronization; full repository suite 451/451
+  outside the sandbox. The sandboxed full run passed 450 tests and hit only a
+  Windows Temp permission error in the writer-trace fixture.
+- **Runtime identity:** source marker `RAWAI-P3B44T32:480`. No deployment was
+  performed. Do not claim that this fixes AoE2DE
+  `STATUS_HEAP_CORRUPTION (0xc0000374)` without a fresh runtime test/replay;
+  rapid duplicate orders correlate with the crash, but the native first writer
+  remains unresolved.
+
+## CURRENT - SEA TOWER PHYSICAL IDENTIFIER CORRECTION, LOCAL ONLY, 2026-09-04
+
+- The user-authorized pending `rawai-unitconstants.per` correction changes
+  semantic `sea-tower` from 1921 to 1919. Direct inspection of the authoritative
+  `empires2_x2_p1.dat` confirms unit 1919 is `STWR` (class 52, type 80), while
+  unit 1921 is `PLACEHOLDER2 (WATER)` (class 30, type 20). The generated
+  CivTechTrees files expose a stale UI/building alias naming 1921 "Sea Tower";
+  runtime searches must use the physical DAT object.
+- Every runtime consumer already uses the semantic `sea-tower` constant, so the
+  correction applies consistently without editing the assault, screening,
+  military or generated landing-plan rules. A regression test now requires
+  1919 and rejects 1921. `unique-unit-production.json` records the re-audited
+  constants hash and the DAT/export distinction.
+- No runtime deployment was performed. The correction was authored under
+  `RAWAI-P3B44T31:479`; current source is superseded by T32:480. Runtime
+  confirmation of Sea Tower detection remains pending alongside land-trade
+  validation.
+
+## CURRENT - T31:479 LAND TRADE CANDIDATE REPAIR, LOCAL ONLY, 2026-09-04
+
+- **Workspace identity:** development was explicitly moved to
+  `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix` on
+  branch `fix/trade-cog-cap-dacian`, starting from
+  `dc81448571bc4c49d97a3c5574b26c321de209e0`. The pre-existing uncommitted
+  `rawai-unitconstants.per` sea-tower identifier change is user-owned and was
+  preserved outside this patch.
+- **ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME - land candidate rejection:**
+  T29 selected the allied remote Market and then used `up-path-distance` to
+  test that selected object against the local Market coordinates. A Market is
+  immobile, so this was not a valid Trade Cart reachability test. Runtime
+  observation found allied land Markets but produced no Cart probes, while the
+  independent water branch continued to qualify Docks and produce Merchant
+  Ships.
+- **Implementation:** all eight land-player candidate rules now accept a
+  same-map-zone allied Market without the invalid Market path predicate. The
+  matching `65535` rejection rule was removed. The bounded three-Cart probe,
+  live `actionid-trade` proof requirement, modality-specific masks/epochs and
+  independent water scan are unchanged. This supersedes T29's statement below
+  that a finite Market path check was useful candidate evidence.
+- **Regression protection:** `tools/test_trade_topology.py` requires eight
+  same-zone land candidate rules, rejects reintroduction of the Market path
+  test/rejection message, and preserves the no-target advance. The general
+  validator enforces the same contract. It also scans source/data inputs for
+  the invalid plural `ETHIOPIANS-CIV` symbol and requires the singular
+  `ETHIOPIAN-CIV` preprocessor gates. The Ethiopian correction itself was
+  already committed in the starting T30 revision `dc81448`.
+- **PASS:** trade topology 8/8; validator tests 126/126; release regression
+  8/8; release backlog 8/8; pre-backlog 7/7; PER structure; naval doctrine;
+  `git diff --check`. The broad mechanical run passed 447 tests and reached one
+  environment-only error when the sandbox denied the writer-trace fixture
+  access to the Windows user Temp directory. Strategy-execution validation
+  reaches the existing manifest provenance guard and fails only because the
+  user-owned dirty `rawai-unitconstants.per` no longer matches
+  `unique-unit-production.json`; this patch deliberately does not absorb or
+  revert that separate change.
+- **Runtime identity:** T31 source marker `RAWAI-P3B44T31:479`, now superseded
+  locally by T32:480. No test-copy or runtime deployment was performed, per
+  explicit instruction. Acceptance
+  requires a fresh replay showing same-zone allied Markets create no more than
+  three Cart probes until actual `actionid-trade`, after which normal land
+  growth may begin; water trade must remain independent.
+
 ## CURRENT - T29:477 INDEPENDENT TEAM TRADE TOPOLOGY, 2026-09-02
 
 - **FIXED-PENDING-RUNTIME - land discovery suppressing water trade:** the team

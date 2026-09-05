@@ -224,6 +224,39 @@ class PerDomainTests(unittest.TestCase):
             [issue["kind"] for issue in issues],
         )
 
+    def test_writable_goal_identifier_cannot_be_called_as_fact(self) -> None:
+        issues = self.validate_text(
+            """(defconst fixture-villagers 999)
+(defrule
+    (fixture-villagers >= 60)
+=>
+    (set-goal fixture-villagers 0)
+)
+"""
+        )
+        issue = next(
+            issue
+            for issue in issues
+            if issue["kind"] == "goal_identifier_used_as_fact"
+        )
+        self.assertEqual(issue["identifier"], "fixture-villagers")
+        self.assertEqual(issue["expected"], "up-compare-goal")
+
+    def test_writable_goal_identifier_is_valid_through_up_compare_goal(self) -> None:
+        issues = self.validate_text(
+            """(defconst fixture-villagers 999)
+(defrule
+    (up-compare-goal fixture-villagers c:>= 60)
+=>
+    (set-goal fixture-villagers 0)
+)
+"""
+        )
+        self.assertNotIn(
+            "goal_identifier_used_as_fact",
+            [issue["kind"] for issue in issues],
+        )
+
     def test_search_state_requires_four_goal_block_base(self) -> None:
         issues = self.validate_text(
             """(defrule
@@ -605,6 +638,9 @@ class FarmPolicyTests(unittest.TestCase):
         cls.hunt = (root / "rawai-hunt.per").read_text(encoding="utf-8-sig")
         cls.init_goals = (root / "rawai-init-goals.per").read_text(encoding="utf-8-sig")
         cls.military = (root / "rawai-military.per").read_text(encoding="utf-8-sig")
+        cls.migration_shoreline = (root / "rawai-migration-shoreline.per").read_text(
+            encoding="utf-8-sig"
+        )
         cls.pop = (root / "rawai-pop.per").read_text(encoding="utf-8-sig")
         cls.military_common = (root / "rawai-military-units-common.per").read_text(
             encoding="utf-8-sig"
@@ -639,6 +675,26 @@ class FarmPolicyTests(unittest.TestCase):
         cls.germani = (root / "rawai-civ-germani.per").read_text(
             encoding="utf-8-sig"
         )
+
+    def test_ethiopian_civ_preprocessor_symbol_is_singular_everywhere(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        audited = [
+            *root.glob("*.per"),
+            root / "tools" / "evaluate_good_units.py",
+            root / "tools" / "sync_civ_strategies.py",
+            root / "good-unit-evaluations.json",
+            root / "naval-capability-scores.json",
+        ]
+        for path in audited:
+            self.assertNotIn(
+                "ETHIOPIANS-CIV",
+                path.read_text(encoding="utf-8-sig"),
+                str(path.relative_to(root)),
+            )
+        self.assertIn("#load-if-defined ETHIOPIAN-CIV", self.main)
+        for common in (self.military_common, self.military_common_hard):
+            self.assertIn("#load-if-not-defined ETHIOPIAN-CIV", common)
+            self.assertIn("#load-if-defined ETHIOPIAN-CIV", common)
 
     def test_dependent_farm_demand_bounds_fisherman_substitution(self) -> None:
         rules = matching_rules(
@@ -1279,14 +1335,11 @@ class FarmPolicyTests(unittest.TestCase):
             cog[0][3],
         )
 
-        # Same-zone is candidate evidence. Land additionally requires a real
-        # finite path, while both modalities still require actionid-trade before
-        # normal growth or retirement can occur.
-        self.assertIn(
-            "(up-path-distance gl-trade-land-source-x 0 != 65535)",
-            self.economy,
-        )
-        self.assertIn(
+        # A land map-zone match is not a Cart path test. Bounded Cart probes
+        # admit cross-zone Markets, while both modalities still require
+        # actionid-trade before normal growth or retirement can occur.
+        self.assertNotIn("(up-path-distance gl-trade-land-source-x", self.economy)
+        self.assertNotIn(
             "object-data-map-zone-id g:!= gl-trade-land-zone", self.economy
         )
         self.assertIn(
@@ -1300,7 +1353,10 @@ class FarmPolicyTests(unittest.TestCase):
         # controller. Candidate identities are accumulated in bounded masks.
         land_to_water = matching_rules(
             self.economy,
-            facts=("TRADE-ROUTE-LAND-NEXT",),
+            facts=(
+                "TRADE-ROUTE-LAND-ADVANCE",
+                "gl-trade-scan-count c:>= 8",
+            ),
             actions=("TRADE-ROUTE-WATER-SOURCE",),
         )
         self.assertGreaterEqual(len(land_to_water), 1)
@@ -1565,9 +1621,36 @@ class FarmPolicyTests(unittest.TestCase):
             facts=("can-build-gate-with-escrow 2",),
             actions=("(build-gate 2)",),
         )
-        self.assertEqual(len(gate_builders), 4)
-        self.assertTrue(any("wall-completed-percentage 2 >= 25" in rule[3] for rule in gate_builders))
-        self.assertTrue(any("wall-completed-percentage 2 >= 75" in rule[3] for rule in gate_builders))
+        self.assertEqual(len(gate_builders), 6)
+        first_gate_builders = [
+            rule for rule in gate_builders if "gl-wall-gates-issued 0" in rule[3]
+        ]
+        self.assertEqual(len(first_gate_builders), 2)
+        self.assertTrue(all(
+            "wall-completed-percentage 2 >= 25" not in rule[3]
+            for rule in first_gate_builders
+        ))
+        second_gate_builders = [
+            rule for rule in gate_builders if "gl-wall-gates-issued 1" in rule[3]
+        ]
+        self.assertEqual(len(second_gate_builders), 2)
+        self.assertTrue(all(
+            "wall-completed-percentage 2 >= 40" in rule[3]
+            for rule in second_gate_builders
+        ))
+        self.assertTrue(all(
+            "wall-completed-percentage 2 >= 75" not in rule[3]
+            for rule in second_gate_builders
+        ))
+        third_gate_builders = [
+            rule for rule in gate_builders if "gl-wall-gates-issued 2" in rule[3]
+        ]
+        self.assertEqual(len(third_gate_builders), 2)
+        self.assertTrue(all(
+            "wall-completed-percentage 2 >= 75" in rule[3]
+            for rule in third_gate_builders
+        ))
+        self.assertTrue(all("gl-wall-gates-issued 3" in rule[4] for rule in third_gate_builders))
         for _, _, _, facts, actions in gate_builders:
             self.assertIn("gl-wall-gate-next", facts)
             self.assertIn("gl-wall-danger-until", facts)
@@ -1590,6 +1673,37 @@ class FarmPolicyTests(unittest.TestCase):
             self.homebase,
         )
         self.assertIn("Wall gate availability backoff", self.homebase)
+        first_gate_wait = matching_rules(
+            self.homebase,
+            facts=(
+                "gl-wall-gates-issued 0",
+                "not (can-build-gate-with-escrow 2)",
+            ),
+            actions=("gl-wall-gate-attempts c:+ 1",),
+        )
+        self.assertEqual(len(first_gate_wait), 1)
+        self.assertNotIn("wall-completed-percentage 2 >= 25", first_gate_wait[0][3])
+        second_gate_wait = matching_rules(
+            self.homebase,
+            facts=(
+                "gl-wall-gates-issued 1",
+                "wall-completed-percentage 2 >= 40",
+                "not (can-build-gate-with-escrow 2)",
+            ),
+            actions=("gl-wall-gate-attempts c:+ 1",),
+        )
+        self.assertEqual(len(second_gate_wait), 1)
+        third_gate_wait = matching_rules(
+            self.homebase,
+            facts=(
+                "gl-wall-gates-issued 2",
+                "wall-completed-percentage 2 >= 75",
+                "not (can-build-gate-with-escrow 2)",
+            ),
+            actions=("gl-wall-gate-attempts c:+ 1",),
+        )
+        self.assertEqual(len(third_gate_wait), 1)
+        self.assertIn("gl-wall-gates-issued c:< 3", self.homebase)
 
     def test_dejbjerg_moves_persistent_form_without_unpacking(self) -> None:
         self.assertIn("c: dejbjerg-wagon-stationary c: 10", self.germani)
@@ -3434,7 +3548,7 @@ class FarmPolicyTests(unittest.TestCase):
             actions=(
                 "RAW44B migration full hull: %d",
                 "RAW44B migration load target: %d",
-                "MIGRATION-ROUTE-PREPARE",
+                "MIGRATION-SHORE-INIT",
             ),
         )
         self.assertEqual(len(scout_departure), 1)
@@ -3542,7 +3656,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "MIGRATION-LOAD-DIAG-APPLY",
                 "TRANSPORT-LOAD-TERMINAL-PARTIAL",
             ),
-            actions=("position-self-x action-stop", "MIGRATION-ROUTE-PREPARE"),
+            actions=("position-self-x action-stop", "MIGRATION-SHORE-INIT"),
         )
         loaded_abort_apply = matching_rules(
             self.military,
@@ -4669,6 +4783,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "(up-timer-status t-island-migration == timer-triggered)",
                 "(not (goal gl-island-migration-state MIGRATION-IDLE))",
             ),
+            actions=("(up-target-point position-self-x action-stop -1 stance-no-attack)",),
         )
         self.assertEqual(len(watchdog), 1)
         self.assertNotIn("gl-island-migration-route-waits 0", watchdog[0][4])
@@ -4681,32 +4796,74 @@ class FarmPolicyTests(unittest.TestCase):
                 "object-data-distance <= 8",
             ),
             actions=(
-                "gl-island-migration-route-waypoint-x gl-island-migration-target-x",
+                "gl-island-migration-route-waypoint-x gl-msr-selected-land-x",
                 "(set-goal gl-island-migration-landing-attempts 0)",
                 "MIGRATION-CHECK-LANDING-PATH",
             ),
         )
-        self.assertEqual(len(first_candidate), 1)
-        self.assertNotIn("action-unload", first_candidate[0][4])
-        alternates = matching_rules(
+        crowded_gate = matching_rules(
             self.military,
             facts=(
-                "(goal gl-island-migration-state MIGRATION-CHECK-LANDING)",
-                "object-data-garrison-count > 0",
-                "(up-timer-status t-island-migration == timer-triggered)",
-                "(goal gl-island-migration-landing-attempts",
+                "(up-compare-goal villager-count c:>= 60)",
+                "(unit-type-count transport-ship >= 1)",
             ),
             actions=(
-                "migration alternate landing: %d",
-                "gl-island-migration-route-waypoint-x",
-                "MIGRATION-CHECK-LANDING-PATH",
+                "(set-goal gl-island-migration-mission MIGRATION-MISSION-MINING)",
             ),
         )
-        self.assertEqual(len(alternates), 4)
-        for alternate in alternates:
-            self.assertNotIn("action-unload", alternate[4])
-            self.assertNotIn("c:+ 8", alternate[4])
-            self.assertNotIn("c:- 8", alternate[4])
+        self.assertEqual(len(crowded_gate), 2)
+        crowded_manifest = matching_rules(
+            self.military,
+            facts=(
+                "(up-compare-goal villager-count c:>= 60)",
+                "(goal resources-depleted NO)",
+                "(goal gl-home-resource-pressure NO)",
+            ),
+            actions=(
+                "(up-find-local c: villager-class c: 40)",
+                "(set-goal gl-island-migration-state MIGRATION-OWNERSHIP-CLAIM)",
+            ),
+        )
+        self.assertEqual(len(crowded_manifest), 1)
+        crowded_actions = crowded_manifest[0][4]
+        self.assertNotIn("object-data-idling", crowded_actions)
+        for protected in (
+            "object-data-action == actionid-build",
+            "object-data-action == actionid-repair",
+            "lid-villager-farmer",
+            "lid-villager-fisherman",
+            "lid-villager-shepherd",
+            "lid-villager-forager",
+            "lid-villager-hunter",
+            "object-data-target == prey-animal-class",
+            "object-data-target == livestock-class",
+        ):
+            self.assertIn(protected, crowded_actions)
+        self.assertEqual(len(first_candidate), 1)
+        self.assertNotIn("action-unload", first_candidate[0][4])
+        shoreline_candidates = matching_rules(
+            self.migration_shoreline,
+            facts=(
+                "(goal gl-island-migration-state MIGRATION-SHORE-CANDIDATE)",
+                "(goal gl-msr-candidate",
+            ),
+            actions=(
+                "gl-island-migration-route-waypoint-x gl-msr-land-x",
+                "gl-msr-candidate-water-x gl-msr-water-x",
+                "MIGRATION-SHORE-CACHE",
+            ),
+        )
+        self.assertEqual(len(shoreline_candidates), 5)
+        for candidate in shoreline_candidates:
+            self.assertNotIn("action-unload", candidate[4])
+        self.assertNotIn(
+            "gl-island-migration-route-waypoint-x c:+ 2",
+            self.military,
+        )
+        self.assertNotIn(
+            "gl-island-migration-route-waypoint-x c:- 2",
+            self.military,
+        )
         path_setup = matching_rules(
             self.military,
             facts=("(goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)",),
@@ -4744,8 +4901,8 @@ class FarmPolicyTests(unittest.TestCase):
                 "RAW44M landing path rejected hull: %d",
                 "RAW44M rejected x: %d",
                 "RAW44M rejected y: %d",
-                "(up-set-timer c: t-island-migration c: 1)",
-                "MIGRATION-SAILING",
+                "(up-set-timer c: t-island-migration c: 120)",
+                "MIGRATION-SHORE-REMEMBER",
             ),
         )
         wrong_zone = matching_rules(
@@ -4759,8 +4916,8 @@ class FarmPolicyTests(unittest.TestCase):
                 "RAW44M landing wrong zone hull: %d",
                 "RAW44M wrong-zone actual: %d",
                 "RAW44M wrong-zone expected: %d",
-                "(up-set-timer c: t-island-migration c: 1)",
-                "MIGRATION-SAILING",
+                "(up-set-timer c: t-island-migration c: 120)",
+                "MIGRATION-SHORE-REMEMBER",
             ),
         )
         self.assertEqual(len(reachable), 1)
@@ -4768,7 +4925,7 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertEqual(len(wrong_zone), 1)
         self.assertNotIn("action-unload", rejected[0][4])
         self.assertNotIn("action-unload", wrong_zone[0][4])
-        self.assertIn("migration landing rejected zone: %d", self.military)
+        self.assertIn("MIGRATION-SHORE-EXHAUSTED", self.migration_shoreline)
         scout_release = matching_rules(
             self.military,
             facts=(
@@ -5613,7 +5770,7 @@ class FarmPolicyTests(unittest.TestCase):
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
         AssaultMissionTests().test_moving_hulls_do_not_receive_repeated_orders()
-        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T29: %d" c: 477)', self.init_goals)
+        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T51: %d" c: 499)', self.init_goals)
 
     def test_transport_departure_stalled_near_origin_activates_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests

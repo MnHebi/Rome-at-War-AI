@@ -5,6 +5,7 @@ import unittest
 from copy import deepcopy
 
 from generate_assault_plans import APPROACHES, FIELDS, MEMORY, outputs
+from shoreline_resolver import shoreline_candidates
 from test_assault_missions import Missions
 from test_pre_backlog import source, expressions
 from validate_naval_doctrine import rule_blocks
@@ -19,6 +20,11 @@ class Planner(Missions):
         self.players = {p: dict(active=p in enemies, enemy=p in enemies, buildings=10) for p in range(1, 9)}
         self.starts = {6: (100, 100), 7: (220, 220), 8: (220, 20)}
         self.timers, self.zones = {}, {}
+        self.zone_function = lambda point: 3 if point[0] + point[1] >= 100 else 8
+        # Exact points listed here model engine path rejection for the selected
+        # Transport.  The fixture deliberately does not simulate pathfinding.
+        self.blocked_paths = set()
+        self.path_queries = []
         self.disabled = set()
         s = source('rawai-military.per')
         s = s[s.index('(load "rawai-assault-plans")'):s.index(';The preparation owner hands')]
@@ -34,6 +40,11 @@ class Planner(Missions):
 
     def fact(self, e):
         if e[0] == 'up-timer-status': return self.now >= self.timers.get(self.val(e[1]), 0)
+        if e[0] == 'up-path-distance':
+            point = self.point_value(e[1])
+            distance = 65535 if point in self.blocked_paths else math.dist(
+                self.objects[self.target]['point'], point)
+            return self.compare(distance, e[3], e[4])
         return super().fact(e)
 
     def action(self, e, pc=0):
@@ -45,7 +56,20 @@ class Planner(Missions):
         elif op == 'up-set-timer': self.timers[self.val(a[1])] = self.now + self.val(a[3])
         elif op == 'up-get-point-zone':
             point = self.point_value(a[0])
-            self.g[a[1]] = next((z for p,z in self.zones.items() if math.dist(p,point) < 0.001),3)
+            self.g[a[1]] = next((z for p,z in self.zones.items()
+                                 if math.dist(p,point) < 0.001), self.zone_function(point))
+        elif op == 'up-lerp-tiles':
+            point, target = self.point_value(a[0]), self.point_value(a[1])
+            distance = self.val(a[3])
+            dx, dy = target[0]-point[0], target[1]-point[1]
+            length = math.hypot(dx, dy)
+            scale = min(distance, length)/length if length else 0
+            self.g[a[0]], self.g[a[0][:-1]+'y'] = point[0]+dx*scale, point[1]+dy*scale
+        elif op == 'up-get-path-distance':
+            point = self.point_value(a[0])
+            self.path_queries.append((point, self.val(a[1])))
+            self.g[a[2]] = 65535 if point in self.blocked_paths else math.dist(
+                self.objects[self.target]['point'], point)
         elif op == 'up-cross-tiles':
             # Deterministic perpendicular geometry only, NOT terrain/path reachability.
             x, y = self.point_value(a[0]); ox, oy = self.point_value(a[1])
@@ -107,9 +131,9 @@ class Planner(Missions):
 
     def defend_objective(self, oid):
         p = self.objects[oid]['point']; origin = (10,10)
-        dx,dy = p[0]-origin[0],p[1]-origin[1]; length = math.hypot(dx,dy)
-        for n, offset in enumerate(APPROACHES):
-            point = (p[0]-dy/length*offset,p[1]+dx/length*offset)
+        candidates = shoreline_candidates(p, origin, self.objects[oid]['zone'],
+                                          self.zone_function)
+        for n, (_, point, _) in enumerate(candidates):
             i = 100000+oid*10+n
             self.objects[i] = dict(id=i, player=self.objects[oid]['player'], hp=1000,
                                   point=point, zone=3, cls='tower-class', type='test-tower')
@@ -158,8 +182,37 @@ class AssaultPlanTests(unittest.TestCase):
             self.assertEqual((p.g['gl-assault-manifest-hull'],p.g['gl-assault-manifest-count']), (10,cargo))
             self.assertFalse(any(10 in ids and a=='action-unload' for ids,a,point in p.commands))
 
+    def test_unreachable_unload_is_remembered_then_another_approach_departs(self):
+        p=Planner();p.begin()
+        p.until('AP-PATH')
+        first=p.point_value('gl-transport-route-landing-x')
+        p.blocked_paths.add(first)
+        state=p.until('TRANSPORT-ROUTE-DEPARTURE-START','TRANSPORT-ROUTE-RECOVERY-WAIT')
+        self.assertEqual(state,p.val('TRANSPORT-ROUTE-DEPARTURE-START'))
+        self.assertTrue(any(m['reason']==36 and (m['x'],m['y'])==first for m in p.memories()))
+        self.assertNotEqual(p.point_value('gl-transport-route-landing-x'),first)
+        self.assertEqual(p.objects[10]['cargo'],9)
+        self.assertFalse(any(10 in ids and action=='action-unload'
+                             for ids,action,_ in p.commands))
+
+    def test_unreachable_exact_corridor_is_remembered_then_another_approach_departs(self):
+        p=Planner();p.begin()
+        p.until('AP-PATH')
+        first_landing=p.point_value('gl-transport-route-landing-x')
+        first_waypoint=p.point_value('gl-transport-route-waypoint-x')
+        p.blocked_paths.add(first_waypoint)
+        state=p.until('TRANSPORT-ROUTE-DEPARTURE-START','TRANSPORT-ROUTE-RECOVERY-WAIT')
+        self.assertEqual(state,p.val('TRANSPORT-ROUTE-DEPARTURE-START'))
+        self.assertFalse(any(m['reason']==37 for m in p.memories()))
+        self.assertEqual(p.point_value('gl-transport-route-landing-x'),first_landing)
+        self.assertEqual(p.point_value('gl-transport-route-waypoint-x'),
+                         p.point_value('gl-ap-shore-selected-water-x'))
+        self.assertEqual(p.objects[10]['cargo'],9)
+        self.assertFalse(any(10 in ids and action=='action-unload'
+                             for ids,action,_ in p.commands))
+
     def test_failure_remembers_candidate_without_unloading_or_resetting_budget(self):
-        p=Planner(); p.begin(); p.step()
+        p=Planner(); p.begin(); p.until('AP-PATH')
         point=p.point_value('gl-transport-route-landing-x'); until=p.g['gl-ap-until']
         p.failed(8)
         self.assertEqual(p.memories()[0], dict(enemy=6,objective=100,x=point[0],y=point[1],reason=8,until=p.now+300))
@@ -171,15 +224,17 @@ class AssaultPlanTests(unittest.TestCase):
         self.assertFalse(any(10 in ids for ids,a,point in p.commands))
 
     def test_memory_survives_new_mission_then_expires(self):
-        p=Planner(); p.begin(); p.step(); p.failed()
-        p.g['gl-transport-route-state']=p.val('TRANSPORT-ROUTE-IDLE'); p.step()
-        p.begin(); p.step(); p.step()
-        self.assertNotEqual(p.point_value('gl-transport-route-landing-x'),(100,100))
+        p=Planner(); p.begin(); p.until('AP-PATH'); p.failed()
+        original=(p.memories()[0]['x'],p.memories()[0]['y'])
         expiry=p.memories()[0]['until']
+        p.g['gl-transport-route-state']=p.val('TRANSPORT-ROUTE-IDLE'); p.step()
+        p.begin(); p.until('AP-PATH')
+        first=p.point_value('gl-transport-route-landing-x')
+        self.assertNotEqual(first,original)
         p.now=expiry
         p.g['gl-transport-route-state']=p.val('TRANSPORT-ROUTE-IDLE');p.step()
-        p.begin();p.step()
-        self.assertEqual(p.point_value('gl-transport-route-landing-x'),(100,100))
+        p.begin();p.until('AP-PATH')
+        self.assertEqual(p.point_value('gl-transport-route-landing-x'),original)
 
     def test_all_screen_failures_enter_replan_not_unload(self):
         rows=list(rule_blocks(source('rawai-military.per')))
@@ -190,7 +245,7 @@ class AssaultPlanTests(unittest.TestCase):
             self.assertNotIn('UNSCREENED',r[4])
 
     def test_lost_scout_uses_different_beach_before_unscreened_fallback(self):
-        p=Planner();p.begin();p.step();first=p.point_value('gl-transport-route-landing-x')
+        p=Planner();p.begin();p.until('AP-PATH');first=p.point_value('gl-transport-route-landing-x')
         p.failed(10)
         self.assertEqual(p.until('TRANSPORT-ROUTE-DEPARTURE-START','TRANSPORT-ROUTE-RECOVERY-WAIT'),
                          p.val('TRANSPORT-ROUTE-DEPARTURE-START'))
@@ -198,21 +253,22 @@ class AssaultPlanTests(unittest.TestCase):
         self.assertEqual(p.g['gl-assault-fallback-reason'],3)
 
     def test_known_other_enemy_defense_vetoes_candidate(self):
-        p=Planner();p.begin()
-        p.objects[900]=dict(id=900,player=7,hp=1000,point=(100,100),type='castle')
+        p=Planner();candidate=shoreline_candidates((100,100),(10,10),3,p.zone_function)[0][1]
+        p.begin()
+        p.objects[900]=dict(id=900,player=7,hp=1000,point=candidate,type='castle')
         p.until('TRANSPORT-ROUTE-DEPARTURE-START','TRANSPORT-ROUTE-RECOVERY-WAIT')
-        self.assertTrue(any(m['reason']==11 and (m['x'],m['y'])==(100,100) for m in p.memories()))
-        self.assertNotEqual(p.point_value('gl-transport-route-landing-x'),(100,100))
+        self.assertTrue(any(m['reason']==11 and (m['x'],m['y'])==candidate for m in p.memories()))
+        self.assertNotEqual(p.point_value('gl-transport-route-landing-x'),candidate)
 
     def test_wrong_island_candidate_is_recorded_and_skipped(self):
-        p=Planner();p.begin();p.step();p.failed()
-        target=(100,100);s=28/math.sqrt(2)
-        p.zones[(target[0]-s,target[1]+s)]=9
-        p.step()
+        p=Planner();p.begin();p.until('AP-PATH');p.failed()
+        candidates=shoreline_candidates((100,100),(10,10),3,p.zone_function)
+        p.zones[candidates[3][1]]=9
+        for _ in range(5): p.step()
         self.assertTrue(any(m['reason']==21 for m in p.memories()))
 
     def test_exhausted_objective_searches_same_landmass_before_enemy(self):
-        p=Planner();p.objective();p.objective(200,6,(160,100));p.defend_objective(100);p.begin()
+        p=Planner();p.objective();p.objective(200,6,(10,230));p.defend_objective(100);p.begin()
         p.until('TRANSPORT-ROUTE-DEPARTURE-START','TRANSPORT-ROUTE-RECOVERY-WAIT')
         self.assertEqual(p.g['gl-assault-manifest-player'],6)
         self.assertEqual(p.g['gl-ap-objective'],200)
@@ -220,11 +276,13 @@ class AssaultPlanTests(unittest.TestCase):
 
     def test_three_exhausted_objectives_rotate_persistently_without_touching_slots(self):
         p=Planner()
-        for oid,point in ((100,(70,70)),(200,(130,70)),(300,(190,70))):
+        for oid,point in ((100,(100,100)),(200,(10,230)),(300,(230,10))):
             p.objective(oid,6,point);p.defend_objective(oid)
-        p.objective(400,7,(220,220));p.begin()
+        p.begin()
         saved={f'gl-am{i}-{f}':p.g.get(f'gl-am{i}-{f}',0) for i in (1,2,3) for f in ('state','hull','enemy','cargo')}
-        p.until('TRANSPORT-ROUTE-DEPARTURE-START','TRANSPORT-ROUTE-RECOVERY-WAIT')
+        for _ in range(500):
+            p.step(1)
+            if p.g['gl-assault-manifest-player']==7: break
         self.assertEqual(p.g['gl-assault-manifest-player'],7)
         self.assertEqual(p.g['gl-ap-enemy6-failures'],3)
         self.assertGreater(p.g['gl-ap-enemy6-until'],p.now)
@@ -238,8 +296,8 @@ class AssaultPlanTests(unittest.TestCase):
         # three-opponent cap recovered the load before player 7 was inspected.
         p=Planner(enemies=(5,6,7,8))
         p.objective(100,8,(100,100));p.defend_objective(100)
-        p.objective(400,7,(220,220));p.begin(enemy=8,objective=100)
-        p.until('TRANSPORT-ROUTE-DEPARTURE-START','TRANSPORT-ROUTE-RECOVERY-WAIT',bound=300)
+        p.objective(400,7,(10,230));p.begin(enemy=8,objective=100)
+        p.until('TRANSPORT-ROUTE-DEPARTURE-START','TRANSPORT-ROUTE-RECOVERY-WAIT',bound=600)
         self.assertEqual(p.g['gl-transport-route-state'],p.val('TRANSPORT-ROUTE-DEPARTURE-START'))
         self.assertEqual(p.g['gl-assault-manifest-player'],7)
         self.assertEqual(p.g['gl-ap-enemies-tried'],4)
@@ -265,7 +323,7 @@ class AssaultPlanTests(unittest.TestCase):
         self.assertFalse(any(10 in ids for ids,a,point in p.commands))
 
     def test_no_alternative_enemy_is_bounded_recovery(self):
-        p=Planner(enemies=(6,));p.begin();p.step();p.step(180)
+        p=Planner(enemies=(6,));p.begin();p.until('AP-PATH');p.step(180)
         self.assertEqual(p.g['gl-transport-route-state'],p.val('TRANSPORT-ROUTE-RECOVERY-WAIT'))
         self.assertTrue(p.memories())
 
@@ -323,7 +381,7 @@ class AssaultPlanTests(unittest.TestCase):
         m=Missions()
         for hull,enemy in ((20,6),(30,7)): m.prepare(hull,enemy);m.sweep()
         p=Planner();p.g.update(m.g);p.objects=deepcopy(m.objects);p.groups=deepcopy(m.groups)
-        p.begin();p.step();p.failed(8)
+        p.begin();p.until('AP-PATH');p.failed(8)
         saved={k:v for k,v in p.g.items() if k.startswith(('gl-am1-','gl-am2-'))}
         p.sn['sn-target-player-number']=8
         p.until('TRANSPORT-ROUTE-DEPARTURE-START')
@@ -343,7 +401,7 @@ class AssaultPlanTests(unittest.TestCase):
         self.assertFalse(p.commands)
 
     def test_memory_skips_do_not_multiply_failure_counts_and_cooldown_expires(self):
-        p=Planner();p.begin();p.step();p.failed(8)
+        p=Planner();p.begin();p.until('AP-PATH');p.failed(8)
         p.g['gl-transport-route-state']=p.val('AP-CANDIDATE');p.g['gl-ap-candidate']=0
         count=len(p.logs);p.step()
         self.assertEqual(len(p.logs),count)

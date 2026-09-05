@@ -1,0 +1,87 @@
+# T42 Shipyard probe recovery
+
+## Status
+
+**RUNTIME FAIL / SUPERSEDED BY T47 DIAGNOSTICS**, 2026-09-05. The source-only
+T42 marker was `RAWAI-P3B44T42:490`; the installed test copy carries the full
+pending stack as `RAWAI-P3B44T45:493`. The fresh T45 Iberia replay reached a
+68:15 read-only snapshot with zero Shipyard build packets. T42's no-mobile-probe
+repair therefore did not resolve the first remaining resolver failure.
+
+## Observation and first causal divergence
+
+The user observed that most long-Imperial players still had one Shipyard and
+Green had none despite ample wood. T40's admission policy can request the first
+yard immediately and the second after a persistent minimum-capacity deficit,
+but every admitted candidate then entered a new mobile-water validation gate.
+
+That gate searched only 64 tiles around the candidate for a warship, Transport,
+or fishing ship. It rejected the candidate when none was found. Consequently:
+
+- a first Shipyard was circularly dependent on already owning one of the naval
+  units it was intended to produce;
+- a player with one Shipyard lost all later placement capability when its fleet
+  sailed more than 64 tiles away;
+- an active Trade Cog, although a real mobile water-path probe, was ignored.
+
+The executable pre-fix fixture reproduced all three cases with zero build
+issuances and blocker reason 6.
+
+## Bounded correction
+
+- Search the full supported 255-tile standard-map radius for a mobile probe.
+- Include Trade Cogs alongside warships, Transports, and fishing ships.
+- When no probe exists, only an already-admitted first or second Shipyard may
+  continue. It retains candidate buildability, own/allied naval-building
+  separation, worker availability/pathing, affordability, escrow, pending
+  placement, foundation verification, completion verification, and failed-site
+  memory.
+- Expansion after the minimum operational count of two still requires the
+  four-point exact mobile-water path proof.
+- Diagnostic 410 reason 8 now distinguishes "no mobile water reference after
+  minimum capacity" from reason 6 coastline/exit rejection.
+
+This deliberately prioritizes obtaining minimum operational capacity when no
+mobile proof object exists; it does not claim the engine has demonstrated the
+fallback site's open-water quality. `up-can-build-line` and the retained site,
+separation, and worker checks remain the static/source boundary. Fresh runtime
+must establish actual foundation placement and usability.
+
+## Validation
+
+- Shipyard fixture: **PASS**, 14 tests.
+- Pre-fix reproducer: zero-yard/no-hull, one-yard/no-hull, and distant-Trade-Cog
+  cases all produced zero builds with reason 6.
+- Post-fix fixtures: first and delayed second yard issue without a probe;
+  distant Trade Cog receives exact path queries; third/later yard remains
+  blocked without mobile proof and reports reason 8.
+- Generated source synchronization: **PASS**.
+- PER validation: **PASS**, empty report.
+- Full Python 3.12 discovery: **PASS**, 508 tests.
+- `git diff --check`: **PASS**.
+- Causal commit: `280ae40`.
+
+## Runtime acceptance
+
+In a fresh match showing `T45:493`, verify per player:
+
+1. a player with a Port and desired naval capacity no longer remains at zero
+   merely because no qualifying ship already exists;
+2. a persistent one-yard deficit reaches two when affordable, including after
+   its fleet has departed;
+3. foundations appear, complete, and do not repeatedly occupy narrow crevices;
+4. later expansion retains exact-path coast validation;
+5. diagnostics distinguish reason 8 from actual coast rejection reason 6.
+
+Do not call the runtime behavior closed from these static/fixture results.
+
+The T45 runtime result instead shows bounded diagnostic 410 alternating between
+reason 1 and generic reason 6 across all eight players. T47 splits reason 6 at
+its seven source exits without changing behavior; that marker now owns the next
+causal decision.
+
+## Deployment identity
+
+Deployed with T43–T45 from canonical HEAD `3d59349`. The installed 99-file
+runtime is byte-identical to source with aggregate SHA-256
+`978C965969E9CDFE6F518A72C8ED8C131C47214EBAE6D386B8EED94527E4D3F7`.

@@ -159,6 +159,31 @@ def project_defconst_values() -> dict[str, int]:
     return values
 
 
+def project_goal_identifiers() -> frozenset[str]:
+    """Collect names demonstrably used as writable goal-storage operands."""
+    text = "\n".join(
+        code_without_comments_or_strings(line)
+        for path in ROOT.glob("*.per")
+        for line in path.read_text(encoding="utf-8-sig").splitlines()
+    )
+    names = {
+        name.casefold()
+        for name in re.findall(
+            r"\((?:set-goal|up-modify-goal)\s+([^\s()]+)", text,
+            re.IGNORECASE,
+        )
+    }
+    names.update(
+        name.casefold()
+        for name in re.findall(
+            r"\(up-get-(?:fact|player-fact)\s+[^()]*?\s([^\s()]+)\s*\)",
+            text,
+            re.IGNORECASE,
+        )
+    )
+    return frozenset(names)
+
+
 def validate_timer_sources(
     sources: dict[str, str],
 ) -> dict[str, list[dict[str, object]]]:
@@ -225,6 +250,7 @@ ACTION_ID_CONSTANTS = constants_with_prefix("actionid-")
 ORDER_ID_CONSTANTS = constants_with_prefix("orderid-")
 PROJECT_DEFCONSTS = project_defconsts()
 PROJECT_DEFCONST_VALUES = project_defconst_values()
+PROJECT_GOAL_IDENTIFIERS = project_goal_identifiers()
 
 
 def defrule_blocks(lines: list[str]) -> list[tuple[int, str]]:
@@ -268,6 +294,39 @@ def validate_command_domains(lines: list[str]) -> list[dict[str, object]]:
             )
         }
     )
+    goal_identifiers = set(PROJECT_GOAL_IDENTIFIERS)
+    goal_identifiers.update(
+        name.casefold()
+        for name in re.findall(
+            r"\((?:set-goal|up-modify-goal)\s+([^\s()]+)", code,
+            re.IGNORECASE,
+        )
+    )
+    goal_identifiers.update(
+        name.casefold()
+        for name in re.findall(
+            r"\(up-get-(?:fact|player-fact)\s+[^()]*?\s([^\s()]+)\s*\)",
+            code,
+            re.IGNORECASE,
+        )
+    )
+    bare_goal_fact = re.compile(
+        r"(?m)^\s*\((?P<identifier>[a-z0-9-]+)\s+"
+        r"(?P<operator><=|>=|==|!=|<|>)\s+",
+        re.IGNORECASE,
+    )
+    for match in bare_goal_fact.finditer(code):
+        identifier = match.group("identifier")
+        if identifier.casefold() in goal_identifiers:
+            issues.append(
+                {
+                    "kind": "goal_identifier_used_as_fact",
+                    "identifier": identifier,
+                    "operator": match.group("operator"),
+                    "expected": "up-compare-goal",
+                    "line": code.count("\n", 0, match.start("identifier")) + 1,
+                }
+            )
     group_operand_patterns = (
         re.compile(
             r"\(up-create-group\s+\S+\s+\S+\s+c:\s*(?P<group>[^\s)]+)",
