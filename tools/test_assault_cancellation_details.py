@@ -158,7 +158,15 @@ class CancellationDetailsTests(unittest.TestCase):
             for r in rule_blocks(source(name)):
                 facts = expressions(r[3])
                 actions = [e for e in expressions(r[4]) if not e[0].startswith('up-chat') and not
-                           (e[0] in ('set-goal', 'up-modify-goal') and e[1].startswith('gl-assault-diag-'))]
+                           (e[0] in ('set-goal', 'up-modify-goal') and
+                            (e[1].startswith('gl-assault-diag-') or
+                             re.fullmatch(r'gl-am[123]-combat-diag-.*', e[1])))]
+                # T51 observer rules are separately bounded and contain no
+                # gameplay command. Omit them from the immutable T16A1
+                # executable fingerprint instead of rebaselining that guard.
+                if any('combat-diag' in token for expression in facts + actions
+                       for token in expression):
+                    continue
                 # T19 appends separately tested admission/rotation policy. The
                 # original admission predicates/actions must still be identical.
                 if name == 'rawai-assault-admission.per' and 'gl-ap-' in r[3]+r[4]: continue
@@ -252,6 +260,50 @@ class CancellationDetailsTests(unittest.TestCase):
                         normalized_row_yield_guards += 1
 
                     if slot is not None and sample == '7':
+                        # T51 replaces the dynamic focus-player gate with
+                        # literal-player rules because the former never
+                        # acquired a landed target in T50. Reconstruct the old
+                        # one sealed-enemy pass plus eight fallback passes for
+                        # this historical *unrelated gameplay* fingerprint;
+                        # dedicated landed-assault tests protect the new gate.
+                        literal = next((e[1] for e in facts
+                                        if e[0] == 'player-in-game' and
+                                        len(e) == 2 and e[1].isdigit()), None)
+                        if literal is not None:
+                            preferred = ['goal', f'gl-am{slot}-enemy', literal] in facts
+                            selector = any(e[0] == 'up-find-remote' for e in actions)
+                            capture = any(e[0] == 'up-set-target-object' and
+                                          e[1:3] == ['search-remote', 'c:'] for e in facts)
+                            if selector or capture:
+                                # Eight source-visible preferred branches are
+                                # one runtime branch. Retain one representative
+                                # when reconstructing the former generic rule.
+                                if preferred and literal != '1':
+                                    continue
+                                if preferred:
+                                    facts.remove(['goal', f'gl-am{slot}-enemy', literal])
+                                for expression in facts:
+                                    if expression[:2] == ['player-in-game', literal]:
+                                        expression[1] = 'focus-player'
+                                    if expression[:2] == ['stance-toward', literal]:
+                                        expression[1] = 'focus-player'
+                                for expression in actions:
+                                    if (expression[:4] == ['up-remove-objects', 'search-remote',
+                                                           'object-data-player', '!='] and
+                                            expression[4] == literal):
+                                        expression[4] = 'focus-player'
+                                if selector:
+                                    assignment = ['set-strategic-number',
+                                                  'sn-focus-player-number', literal]
+                                    self.assertIn(assignment, actions)
+                                    actions.remove(assignment)
+                                    base_facts = [e[:] for e in facts if e[0] not in
+                                                  ('player-in-game', 'stance-toward')]
+                                    mode = 'g:=' if preferred else 'c:='
+                                    player = f'gl-am{slot}-enemy' if preferred else literal
+                                    rows.append([base_facts, [['up-modify-sn',
+                                        'sn-focus-player-number', mode, player]]])
+
                         # Remove only the newly supported hostile land-combat
                         # classes from target-search rules. Buildings/villagers
                         # remain and therefore reconstruct the older search.

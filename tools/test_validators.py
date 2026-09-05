@@ -4783,6 +4783,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "(up-timer-status t-island-migration == timer-triggered)",
                 "(not (goal gl-island-migration-state MIGRATION-IDLE))",
             ),
+            actions=("(up-target-point position-self-x action-stop -1 stance-no-attack)",),
         )
         self.assertEqual(len(watchdog), 1)
         self.assertNotIn("gl-island-migration-route-waits 0", watchdog[0][4])
