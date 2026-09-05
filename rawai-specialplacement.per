@@ -2,9 +2,15 @@
 
 ;1 unaffordable/unavailable, 2 pending, 3 missing/lost foundation,
 
-;4 worker hold/unreachable, 5 tech saving, 6 coast/exit rejected, 7 constructing,
+;4 worker hold/unreachable, 5 tech saving, 7 constructing,
 
-;8 no mobile water reference after minimum operational capacity.
+;8 no mobile water reference after minimum operational capacity,
+
+;61 no anchor, 62 candidate outside map, 63 recent-site memory,
+
+;64 candidate not buildable, 65 own-building clearance,
+
+;66 allied-building clearance, 67 water-exit validation.
 
 ;Native builder assignment remains authoritative; reaching a point is not completion.
 
@@ -210,7 +216,7 @@
 	(goal gl-sy-stage 1)
 =>
 	(set-goal gl-sy-anchor -1)
-	(set-goal gl-sy-reason 6)
+	(set-goal gl-sy-reason 61)
 	(set-goal gl-sy-stage 90)
 )
 
@@ -506,7 +512,7 @@
 	(goal gl-sy-stage 3)
 	(or (up-compare-goal gl-shipyard-x g:!= gl-sy-bounded-x) (up-compare-goal gl-shipyard-y g:!= gl-sy-bounded-y))
 =>
-	(set-goal gl-sy-reason 6)
+	(set-goal gl-sy-reason 62)
 	(set-goal gl-sy-stage 90)
 )
 
@@ -523,7 +529,7 @@
 	(up-compare-goal gl-sy-clock g:< gl-sy-memory0-until)
 	(up-compare-goal gl-sy-count c:< 10)
 =>
-	(set-goal gl-sy-reason 6)
+	(set-goal gl-sy-reason 63)
 	(set-goal gl-sy-stage 90)
 )
 
@@ -540,7 +546,7 @@
 	(up-compare-goal gl-sy-clock g:< gl-sy-memory1-until)
 	(up-compare-goal gl-sy-count c:< 10)
 =>
-	(set-goal gl-sy-reason 6)
+	(set-goal gl-sy-reason 63)
 	(set-goal gl-sy-stage 90)
 )
 
@@ -557,7 +563,7 @@
 	(up-compare-goal gl-sy-clock g:< gl-sy-memory2-until)
 	(up-compare-goal gl-sy-count c:< 10)
 =>
-	(set-goal gl-sy-reason 6)
+	(set-goal gl-sy-reason 63)
 	(set-goal gl-sy-stage 90)
 )
 
@@ -574,7 +580,7 @@
 	(up-compare-goal gl-sy-clock g:< gl-sy-memory3-until)
 	(up-compare-goal gl-sy-count c:< 10)
 =>
-	(set-goal gl-sy-reason 6)
+	(set-goal gl-sy-reason 63)
 	(set-goal gl-sy-stage 90)
 )
 
@@ -582,7 +588,7 @@
 	(goal gl-sy-stage 3)
 	(not (up-can-build-line 0 gl-shipyard-x c: shipyard))
 =>
-	(set-goal gl-sy-reason 6)
+	(set-goal gl-sy-reason 64)
 	(set-goal gl-sy-stage 90)
 )
 
@@ -605,7 +611,7 @@
 	(goal gl-sy-stage 4)
 	(up-compare-goal local-total c:> 0)
 =>
-	(set-goal gl-sy-reason 6)
+	(set-goal gl-sy-reason 65)
 	(set-goal gl-sy-stage 90)
 )
 
@@ -810,7 +816,7 @@
 	(goal gl-sy-stage 4)
 	(goal gl-sy-zone 1)
 =>
-	(set-goal gl-sy-reason 6)
+	(set-goal gl-sy-reason 66)
 	(set-goal gl-sy-stage 90)
 )
 
@@ -1165,7 +1171,7 @@
 	(goal gl-sy-stage 6)
 	(up-compare-goal gl-sy-direction c:>= 4)
 =>
-	(set-goal gl-sy-reason 6)
+	(set-goal gl-sy-reason 67)
 	(set-goal gl-sy-stage 90)
 )
 

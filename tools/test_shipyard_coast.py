@@ -112,3 +112,44 @@ class ShipyardTests(unittest.TestCase):
         self.assertEqual(len(OFFSETS),24)
         self.assertEqual(len(set(OFFSETS)),24)
         self.assertIn((40,0),OFFSETS)
+
+    def test_coast_rejection_diagnostics_identify_the_actual_gate(self):
+        cases = []
+
+        no_anchor = ShipyardFixture(); del no_anchor.objects[1]
+        no_anchor.disabled.add(0)
+        no_anchor.g.update({'gl-sy-stage': 1,
+                            'shipyard-placement-state': no_anchor.val('SHIPYARD-ANCHOR'),
+                            'gl-shipyard-x': 0, 'gl-shipyard-y': 0})
+        cases.append((no_anchor, 61))
+
+        bounds = ShipyardFixture(); bounds.objects[1]['point'] = (235, 50)
+        cases.append((bounds, 62))
+
+        memory = ShipyardFixture()
+        memory.disabled.add(0)
+        memory.g.update({'gl-sy-memory0-x': 52, 'gl-sy-memory0-y': 50,
+                         'gl-sy-memory0-until': 1000})
+        cases.append((memory, 63))
+
+        unbuildable = ShipyardFixture(); unbuildable.can_site = lambda _point: False
+        cases.append((unbuildable, 64))
+
+        own_clearance = ShipyardFixture(); own_clearance.add(4, 'shipyard', (52, 50))
+        cases.append((own_clearance, 65))
+
+        allied_clearance = ShipyardFixture(); allied_clearance.add(
+            4, 'shipyard', (52, 50), player=3)
+        cases.append((allied_clearance, 66))
+
+        water_exit = ShipyardFixture()
+        water_exit.pathable = lambda obj, _point, exact: obj['id'] != 2 or not exact
+        cases.append((water_exit, 67))
+
+        for fixture, expected in cases:
+            with self.subTest(reason=expected):
+                sweeps = 4 if expected == 67 else 1
+                for _ in range(sweeps):
+                    fixture.sweep()
+                self.assertEqual(fixture.builds, [])
+                self.assertEqual(fixture.g['gl-sy-reason'], expected)
