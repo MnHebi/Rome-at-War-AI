@@ -1,6 +1,6 @@
 # T46 land-trade literal allied-Market census
 
-**ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** Source-only; not deployed.
+**ROOT-CAUSE-PROVEN / FIXED-PENDING-RUNTIME.** Deployed with T47:495.
 
 ## Runtime evidence
 
@@ -68,7 +68,7 @@ Behavioral commit: `6daa09c`.
 
 ## Runtime acceptance
 
-A fresh marker-494 replay must show:
+A fresh marker-495 replay must show:
 
 1. `trade land candidate ally` for an actual allied Market owner;
 2. one to three autonomous Trade Cart probes;
@@ -77,5 +77,6 @@ A fresh marker-494 replay must show:
 5. water discovery/fallback still operating independently.
 
 Until then the gameplay defect remains **FIXED-PENDING-RUNTIME**. The installed
-test copy remains the T45:493 aggregate and was deliberately not changed during
-the active match.
+test copy contains the 99-file T47:495 aggregate, byte-identical to source at
+SHA-256
+`9800DEF42ED21A3A46729713DEA02B46849E898DE8C47D7FEA444D57C0F4061B`.

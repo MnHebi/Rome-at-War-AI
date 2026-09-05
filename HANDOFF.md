@@ -1,6 +1,6 @@
 # Rome at War AI handoff
 
-## CURRENT — T47:495 SHIPYARD REJECTION DIAGNOSTICS SOURCE-ONLY, 2026-09-05
+## CURRENT — T47:495 SHIPYARD REJECTION DIAGNOSTICS DEPLOYED, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
   branch `fix/trade-cog-cap-dacian`; pre-change HEAD `bfac9e8`. No new
@@ -31,13 +31,18 @@
   213 focused tests; generated source sync; PER structure; naval doctrine;
   strategy execution; ownership audit 969 sites/zero failures; full Python
   3.12 discovery 513/513; and `git diff --check`.
-- **Deployment:** none. The active installed copy remains verified T45:493.
-  Source also still contains undeployed T46 land-trade repair. After the live
-  replay is retained, deploy only on explicit authorization; the dominant
-  61–67 runtime code determines the next causal Shipyard patch. Full detail:
+- **Deployment:** explicitly authorized and deployed from canonical HEAD
+  `a48d1e9`. Preflight found exactly three differing files:
+  `rawai-economy.per`, `rawai-init-goals.per`, and
+  `rawai-specialplacement.per`. The post-apply read-only check reports all 99
+  runtime files identical, no missing/different/unexpected files, marker
+  `RAWAI-P3B44T47:495`, and aggregate SHA-256
+  `9800DEF42ED21A3A46729713DEA02B46849E898DE8C47D7FEA444D57C0F4061B`.
+  This deployment includes T46's land-trade repair. The dominant 61–67 runtime
+  code determines the next causal Shipyard patch. Full detail:
   `T47-SHIPYARD-REJECTION-DIAGNOSTICS.md`.
 
-## CURRENT — T46:494 LAND-TRADE LITERAL CENSUS SOURCE-ONLY, 2026-09-05
+## CURRENT — T46:494 LAND-TRADE LITERAL CENSUS DEPLOYED WITH T47, 2026-09-05
 
 - **Canonical workspace:** `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
   branch `fix/trade-cog-cap-dacian`; pre-change HEAD `d9e0f3f`. No new
@@ -68,11 +73,10 @@
   128/128; full Python 3.12 discovery 512/512; PER structure; naval doctrine;
   strategy execution; generated sync; ownership audit 969 sites/zero failures;
   and `git diff --check`.
-- **Deployment:** none. The active installed copy remains the verified T45:493
-  aggregate at source hash
-  `978C965969E9CDFE6F518A72C8ED8C131C47214EBAE6D386B8EED94527E4D3F7`.
-- **Next action:** after the current match/replay is retained, deploy only on
-  explicit authorization. Fresh marker-494 acceptance requires an actual land
+- **Deployment:** deployed with T47 from canonical HEAD `a48d1e9`. The installed
+  99-file aggregate and source are byte-identical at SHA-256
+  `9800DEF42ED21A3A46729713DEA02B46849E898DE8C47D7FEA444D57C0F4061B`.
+- **Next action:** fresh marker-495 acceptance requires an actual land
   candidate, one to three Cart probes, live land proof on a usable route, and
   normal growth only after proof. Full detail:
   `T46-LAND-TRADE-LITERAL-CENSUS.md`.

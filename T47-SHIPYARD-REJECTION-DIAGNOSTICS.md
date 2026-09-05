@@ -2,8 +2,8 @@
 
 ## Status
 
-**INVESTIGATING / DIAGNOSTIC-ONLY / SOURCE-ONLY**, 2026-09-05. Source marker
-`RAWAI-P3B44T47:495`. The installed test copy remains T45:493.
+**INVESTIGATING / DIAGNOSTIC-ONLY / DEPLOYED**, 2026-09-05. Source and installed
+marker `RAWAI-P3B44T47:495`.
 
 ## Runtime regression evidence
 
@@ -73,8 +73,14 @@ runtime defect and must not be described as a gameplay fix.
 
 ## Runtime acceptance and next action
 
-After the current match/replay is retained, deploy only on explicit user
-authorization. In a fresh T47 replay, collect per-player diagnostic 410
-transitions. The dominant 61–67 code identifies the first causal correction.
-The Shipyard defect remains open until a later build demonstrates concrete
-foundations and completed yards; T47 alone cannot close it.
+The user explicitly authorized deployment. Preflight found exactly three
+differences (`rawai-economy.per`, `rawai-init-goals.per`, and
+`rawai-specialplacement.per`), and the post-apply read-only check reports all 99
+runtime files byte-identical with no missing/different/unexpected files.
+Installed aggregate SHA-256:
+`9800DEF42ED21A3A46729713DEA02B46849E898DE8C47D7FEA444D57C0F4061B`.
+
+In a fresh T47 replay, collect per-player diagnostic 410 transitions. The
+dominant 61–67 code identifies the first causal correction. The Shipyard defect
+remains open until a later build demonstrates concrete foundations and
+completed yards; T47 alone cannot close it.
