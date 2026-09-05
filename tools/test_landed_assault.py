@@ -2,7 +2,7 @@
 import unittest
 
 from test_assault_missions import Missions, GROUPS
-from test_pre_backlog import expressions
+from test_pre_backlog import expressions, source
 
 
 class LandedAssaultTests(unittest.TestCase):
@@ -202,6 +202,17 @@ class LandedAssaultTests(unittest.TestCase):
         m = self.landed(); m.players[6]['active'] = False
         self.target(m, player=7); m.sweep(16)
         self.assertEqual(self.attacks(m)[-1][2], ('object', 99))
+
+    def test_target_admission_does_not_use_dynamic_focus_player_alias(self):
+        text = source('rawai-assault-missions.per')
+        self.assertNotIn('(player-in-game focus-player)', text)
+        self.assertNotIn('(stance-toward focus-player enemy)', text)
+        self.assertNotIn('object-data-player != focus-player', text)
+        for player in range(1, 9):
+            self.assertIn(f'(player-in-game {player})', text)
+            self.assertIn(f'(stance-toward {player} enemy)', text)
+            self.assertIn(
+                f'(up-remove-objects search-remote object-data-player != {player})', text)
 
     def test_friendly_wrong_island_and_failed_target_are_not_selected(self):
         m = self.landed(); self.target(m, player=3); self.target(m, i=100, zone=4)

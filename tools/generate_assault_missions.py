@@ -535,12 +535,20 @@ def missions():
                 *diag(516, v('combat-diag-target-zone')),
                 f'(up-modify-goal {v("combat-diag-left")} c:- 1)',
                 setv('combat-diag-player', 0)]))
-        # Prefer the sealed opponent, then another living hostile on this landmass.
-        for mode, player in [('g:=', v('enemy')), *[('c:=', str(p)) for p in range(1, 9)]]:
-            search = [*seeking, f'(goal {v("combat-target")} -1)']
-            out.append(rule(search, [f'(up-modify-sn sn-focus-player-number {mode} {player})']))
-            hostile = [*search, '(player-in-game focus-player)', '(stance-toward focus-player enemy)']
-            out.append(rule(hostile, ['(up-full-reset-search)',
+        # Prefer the sealed opponent, then another living hostile on this
+        # landmass.  Runtime T50 reached landed state 8 for eight missions but
+        # never reached target/issuance event 13.  The first source divergence
+        # was this gate's use of the dynamic focus-player alias in facts and an
+        # owner filter.  Use literal-player gates; the strategic number remains
+        # only the engine focus selected immediately before the remote search.
+        candidates = [
+            (p, [f'(goal {v("enemy")} {p})']) for p in range(1, 9)
+        ] + [(p, []) for p in range(1, 9)]
+        for p, preference in candidates:
+            search = [*seeking, f'(goal {v("combat-target")} -1)', *preference]
+            hostile = [*search, f'(player-in-game {p})', f'(stance-toward {p} enemy)']
+            out.append(rule(hostile, [f'(set-strategic-number sn-focus-player-number {p})',
+                '(up-full-reset-search)',
                 f'(up-set-target-point {v("x")})', '(up-filter-distance c: -1 c: 255)',
                 '(up-find-remote c: scout-cavalry-class c: 40)',
                 '(up-find-remote c: cavalry-archer-class c: 40)',
@@ -551,7 +559,7 @@ def missions():
                 '(up-find-remote c: tower-class c: 40)',
                 '(up-find-remote c: building-class c: 40)',
                 '(up-find-remote c: villager-class c: 40)',
-                '(up-remove-objects search-remote object-data-player != focus-player)',
+                f'(up-remove-objects search-remote object-data-player != {p})',
                 '(up-remove-objects search-remote object-data-hitpoints <= 0)',
                 f'(up-remove-objects search-remote object-data-map-zone-id g:!= {v("target-zone")})',
                 f'(up-remove-objects search-remote object-data-id g:== {v("combat-failed")})',
