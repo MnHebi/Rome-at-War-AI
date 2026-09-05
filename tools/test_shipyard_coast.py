@@ -79,6 +79,13 @@ class ShipyardTests(unittest.TestCase):
         for pending,placement in ((1,False),(0,True)):
             f=ShipyardFixture(); f.pending=pending; f.placement=placement; f.sweep(); self.assertEqual(f.builds,[])
 
+    def test_allied_naval_buildings_also_reserve_clearance(self):
+        for kind,status in (('port','status-ready'),('shipyard','status-pending')):
+            f=ShipyardFixture(); f.sn['sn-focus-player-number']=7
+            f.add(10,kind,(54,50),player=3,status=status)
+            f.sweep(); self.assertEqual(f.builds,[])
+            self.assertEqual(f.sn['sn-focus-player-number'],7)
+
     def test_finite_coastal_distribution(self):
         self.assertEqual(len(OFFSETS),24)
         self.assertEqual(len(set(OFFSETS)),24)

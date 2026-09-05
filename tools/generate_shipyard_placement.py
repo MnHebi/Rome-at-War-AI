@@ -14,7 +14,7 @@ FIELDS = ('clock', 'next', 'deficit-since', 'minimum', 'reason', 'reported',
           'diag-next', 'anchor', 'sector', 'direction', 'stage', 'count', 'ship',
           'water-zone', 'zone', 'worker', 'until', 'foundation', 'memory-index',
           'anchor-x', 'anchor-y', 'w1-x', 'w1-y', 'w2-x', 'w2-y', 'w3-x', 'w3-y',
-          'w4-x', 'w4-y', 'bounded-x', 'bounded-y', 'sample')
+          'w4-x', 'w4-y', 'bounded-x', 'bounded-y', 'sample', 'focus')
 OFFSETS = tuple((dx*r, dy*r) for r in (12, 24, 40)
                 for dx, dy in ((1,0), (0,1), (-1,0), (0,-1), (1,1), (-1,1), (-1,-1), (1,-1)))
 DIRECTIONS = ((1,0), (0,1), (-1,0), (0,-1))
@@ -108,6 +108,16 @@ def generate():
         '(up-filter-status c: status-pending c: list-active)', '(up-find-status-local c: shipyard c: 40)',
         '(up-get-search-state local-total)', '(set-goal gl-sy-stage 4)'])
     add([*stage(4), '(up-compare-goal local-total c:> 0)'], reset(6))
+    add(stage(4), ['(up-modify-goal gl-sy-focus s:= sn-focus-player-number)', '(set-goal gl-sy-zone 0)'])
+    for p in range(1,9):
+        allied=[*stage(4),'(goal gl-sy-zone 0)',f'(stance-toward {p} ally)']
+        add(allied,[f'(set-strategic-number sn-focus-player-number {p})', '(up-full-reset-search)',
+            '(up-set-target-point gl-shipyard-x)', '(up-filter-distance c: -1 c: 10)',
+            '(up-find-remote c: port c: 40)', '(up-find-remote c: shipyard c: 40)',
+            '(up-get-search-state local-total)'])
+        add([*allied,'(up-compare-goal remote-total c:> 0)'],['(set-goal gl-sy-zone 1)'])
+    add(stage(4), ['(up-modify-sn sn-focus-player-number g:= gl-sy-focus)'])
+    add([*stage(4),'(goal gl-sy-zone 1)'],reset(6))
     add(stage(4), ['(up-full-reset-search)', '(up-set-target-point gl-shipyard-x)',
         '(up-filter-distance c: -1 c: 64)', '(up-find-local c: warship-class c: 40)',
         '(up-find-local c: transport-ship c: 40)', '(up-find-local c: fishing-ship-class c: 40)',
