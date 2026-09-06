@@ -24,6 +24,7 @@ class Planner(Missions):
         # Exact points listed here model engine path rejection for the selected
         # Transport.  The fixture deliberately does not simulate pathfinding.
         self.blocked_paths = set()
+        self.blocked_path_pairs = set()
         self.path_queries = []
         self.disabled = set()
         s = source('rawai-military.per')
@@ -42,7 +43,8 @@ class Planner(Missions):
         if e[0] == 'up-timer-status': return self.now >= self.timers.get(self.val(e[1]), 0)
         if e[0] == 'up-path-distance':
             point = self.point_value(e[1])
-            distance = 65535 if point in self.blocked_paths else math.dist(
+            distance = 65535 if (point in self.blocked_paths or
+                                 (self.target, point) in self.blocked_path_pairs) else math.dist(
                 self.objects[self.target]['point'], point)
             return self.compare(distance, e[3], e[4])
         return super().fact(e)
@@ -68,7 +70,8 @@ class Planner(Missions):
         elif op == 'up-get-path-distance':
             point = self.point_value(a[0])
             self.path_queries.append((point, self.val(a[1])))
-            self.g[a[2]] = 65535 if point in self.blocked_paths else math.dist(
+            self.g[a[2]] = 65535 if (point in self.blocked_paths or
+                                     (self.target, point) in self.blocked_path_pairs) else math.dist(
                 self.objects[self.target]['point'], point)
         elif op == 'up-cross-tiles':
             # Deterministic perpendicular geometry only, NOT terrain/path reachability.
@@ -104,6 +107,11 @@ class Planner(Missions):
     def scout(self, oid=11):
         self.objects[oid]=dict(id=oid,player=2,hp=100,under_attack=0,flag=-2,
                               type='scout-galley-line',point=(10,10),zone=8,order=0)
+
+    def witness(self, oid=101, player=6, point=(98, 98), zone=3):
+        self.objects[oid] = dict(id=oid, player=player, hp=100, point=point,
+                                 zone=zone, cls='infantry-class', type='test-infantry',
+                                 garrisoned=0, under_attack=0, flag=-2, idle=0)
 
     def begin(self, enemy=6, cargo=9, objective=100):
         self.prepare(10, enemy=enemy, cargo=cargo)
@@ -194,6 +202,37 @@ class AssaultPlanTests(unittest.TestCase):
         self.assertEqual(p.objects[10]['cargo'],9)
         self.assertFalse(any(10 in ids and action=='action-unload'
                              for ids,action,_ in p.commands))
+
+    def test_enemy_land_witness_must_reach_landing_before_departure(self):
+        p = Planner()
+        candidates = shoreline_candidates((100, 100), (10, 10), 3, p.zone_function)
+        direct_land = candidates[0][1]
+        p.witness()
+        p.blocked_path_pairs.add((101, direct_land))
+        p.begin()
+        p.until('AP-PATH')
+        self.assertNotEqual(p.point_value('gl-transport-route-landing-x'), direct_land)
+        self.assertTrue(any(m['reason'] == 41 and (m['x'], m['y']) == direct_land
+                            for m in p.memories()))
+
+    def test_second_land_witness_can_prove_same_candidate_egress(self):
+        p = Planner()
+        direct_land = shoreline_candidates((100, 100), (10, 10), 3,
+                                           p.zone_function)[0][1]
+        p.witness(101, point=(99, 99))
+        p.witness(102, point=(97, 97))
+        p.blocked_path_pairs.add((101, direct_land))
+        p.begin()
+        p.until('AP-PATH')
+        self.assertEqual(p.point_value('gl-transport-route-landing-x'), direct_land)
+        self.assertFalse(any(m['reason'] == 41 for m in p.memories()))
+
+    def test_structure_only_objective_retains_bounded_shoreline_fallback(self):
+        p = Planner()
+        p.begin()
+        p.until('AP-PATH')
+        self.assertEqual(p.g['gl-ap-egress-count'], 0)
+        self.assertFalse(any(m['reason'] == 41 for m in p.memories()))
 
     def test_unreachable_exact_corridor_is_remembered_then_another_approach_departs(self):
         p=Planner();p.begin()

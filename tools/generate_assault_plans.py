@@ -13,13 +13,15 @@ FIELDS = ('active', 'clock', 'hull', 'until', 'enemy-until', 'objective',
           'shore-water-x', 'shore-water-y', 'shore-refine-x', 'shore-refine-y',
           'shore-selected-water-x', 'shore-selected-water-y', 'shore-steps',
           'shore-refines', 'water-zone', 'direct-threats',
-          'shore-water-distance', 'shore-land-distance')
+          'shore-water-distance', 'shore-land-distance', 'egress-count')
 STATES = ('BEGIN', 'OBJECTIVE', 'CANDIDATE', 'CACHE', 'SAFETY', 'SAFE-CHECK',
           'FAIL', 'ADVANCE', 'NEXT-OBJECTIVE', 'OBJECTIVE-FAILED',
           'ENEMY-FAILED', 'NEXT-ENEMY', 'ENEMY-SEARCH', 'TERMINAL', 'FINAL-SAFETY',
           'PATH', 'SHORE-INIT', 'SHORE-HULL', 'SHORE-COARSE',
           'SHORE-COARSE-CHECK', 'SHORE-REFINE', 'SHORE-REFINE-CHECK',
-          'CANDIDATE-PATH', 'CANDIDATE-PATH-RESULT', 'DIRECT-PATH')
+          'CANDIDATE-PATH', 'CANDIDATE-PATH-RESULT',
+          'EGRESS-SEARCH', 'EGRESS-0', 'EGRESS-1', 'EGRESS-2',
+          'EGRESS-ACCEPT', 'DIRECT-PATH')
 MEMORY = 16
 # Compatibility name retained for older focused tests and downstream imports.
 APPROACHES = SHORE_OFFSETS
@@ -73,6 +75,7 @@ def plans():
            ';32 fallback danger;33 fallback topology;35 fallback Scout invalid;',
            ';36 unload vicinity unreachable;37 corridor waypoint unreachable;',
            ';38 shoreline water unreachable;39 shoreline land vicinity unreachable.',
+           ';41 no land egress toward objective.',
            ';after-failure:0 next approach,2 next enemy,3 terminal recovery.',
            ';A failed beach is excluded. Different beaches require fresh checks.']
     def emit(f, a): out.append(rule(f, a))
@@ -278,9 +281,62 @@ def plans():
           '(up-compare-goal gl-ap-shore-land-distance c:>= 0)',
           '(up-compare-goal gl-ap-shore-land-distance c:!= 65535)'], [
         '(up-bound-point gl-ap-shore-selected-water-x gl-ap-shore-scan-x)',
+        go('AP-EGRESS-SEARCH')])
+    # A Transport reaching the water point and an unload vicinity proves only
+    # hull geometry.  It does not prove that landed troops can leave a pocket
+    # below cliffs and reach the selected enemy objective. Ask up to three
+    # visible mobile enemy witnesses near the objective whether the landing is
+    # connected to that objective region.
+    emit([state('AP-EGRESS-SEARCH')], [
+        '(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)',
+        '(up-full-reset-search)',
+        '(up-set-target-point gl-transport-route-target-x)',
+        '(up-filter-distance c: -1 c: 80)',
+        '(up-find-remote c: scout-cavalry-class c: 40)',
+        '(up-find-remote c: cavalry-archer-class c: 40)',
+        '(up-find-remote c: cavalry-class c: 40)',
+        '(up-find-remote c: infantry-class c: 40)',
+        '(up-find-remote c: archery-class c: 40)',
+        '(up-find-remote c: siege-weapon-class c: 40)',
+        '(up-find-remote c: villager-class c: 40)',
+        '(up-find-remote c: priest c: 10)',
+        '(up-remove-objects search-remote object-data-player g:!= gl-assault-manifest-player)',
+        '(up-remove-objects search-remote object-data-hitpoints <= 0)',
+        '(up-remove-objects search-remote object-data-garrisoned == 1)',
+        '(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)',
+        '(up-set-target-point gl-transport-route-landing-x)',
+        '(up-clean-search search-remote object-data-distance search-order-asc)',
+        '(up-get-search-state local-total)',
+        '(up-modify-goal gl-ap-egress-count g:= remote-total)', go('AP-EGRESS-0')])
+    # Structure-only cleanup can have no mobile witness.  Retain the existing
+    # bounded zone/hull proof for that case rather than eliminating
+    # all end-game assaults.  When witnesses exist, one of the nearest three
+    # must have a real land path to the candidate.
+    emit([state('AP-EGRESS-0'), '(goal gl-ap-egress-count 0)'], [go('AP-EGRESS-ACCEPT')])
+    for index, current, following in ((0, 'AP-EGRESS-0', 'AP-EGRESS-1'),
+                                      (1, 'AP-EGRESS-1', 'AP-EGRESS-2')):
+        emit([state(current), f'(up-compare-goal gl-ap-egress-count c:> {index})',
+              f'(up-set-target-object search-remote c: {index})',
+              '(up-path-distance gl-transport-route-landing-x 0 != 65535)'],
+             [go('AP-EGRESS-ACCEPT')])
+        emit([state(current), f'(up-compare-goal gl-ap-egress-count c:> {index})',
+              f'(up-set-target-object search-remote c: {index})',
+              '(up-path-distance gl-transport-route-landing-x 0 == 65535)'],
+             [go(following)])
+        emit([state(following), f'(up-compare-goal gl-ap-egress-count c:<= {index + 1})'],
+             ['(set-goal gl-ap-failure 41)', go('AP-FAIL')])
+    emit([state('AP-EGRESS-2'), '(up-compare-goal gl-ap-egress-count c:> 2)',
+          '(up-set-target-object search-remote c: 2)',
+          '(up-path-distance gl-transport-route-landing-x 0 != 65535)'],
+         [go('AP-EGRESS-ACCEPT')])
+    emit([state('AP-EGRESS-2'), '(up-compare-goal gl-ap-egress-count c:> 2)',
+          '(up-set-target-object search-remote c: 2)',
+          '(up-path-distance gl-transport-route-landing-x 0 == 65535)'],
+         ['(set-goal gl-ap-failure 41)', go('AP-FAIL')])
+    emit([state('AP-EGRESS-ACCEPT')], [
         '(set-goal gl-ap-screen-validated NO)',
         '(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)',
-         go('TRANSPORT-ROUTE-CORRIDOR-PREPARE')])
+        go('TRANSPORT-ROUTE-CORRIDOR-PREPARE')])
     # A same-land-zone objective is not proof of a usable coast, and the
     # perpendicular corridor geometry can itself land on terrain. Rebuild the
     # exact loaded hull before asking whether it can reach an open unload

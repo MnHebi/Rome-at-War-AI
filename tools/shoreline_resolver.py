@@ -1,8 +1,8 @@
 """Shared bounded shoreline-search geometry for generated PER and fixtures.
 
 The Python resolver is a mechanical model of the emitted state machines.  It
-does not model AoE2 pathfinding; callers provide the zone and exact-hull path
-predicates used by their test topology.
+does not model AoE2 pathfinding; callers provide the zone, exact-hull path, and
+optional land-egress evidence used by their test topology.
 """
 from dataclasses import dataclass
 from math import hypot
@@ -25,6 +25,7 @@ class ShorelineResult:
     water: tuple[float, float]
     candidate: int
     path_queries: int
+    egress_queries: int = 0
 
 
 def _toward(point, target, distance):
@@ -74,12 +75,15 @@ def shoreline_candidates(anchor, hull, target_zone, zone_at):
 
 
 def resolve_shoreline(anchor, hull, target_zone, zone_at, pathable,
-                      failed_sectors=()):
+                      failed_sectors=(), egress_paths=None):
     """Return the first bounded LAND/WATER pair accepted by supplied facts.
 
     ``pathable(point, exact)`` represents the exact selected Transport's
     option-0 land-vicinity or option-1 exact-water query.  Recently failed
     sectors are (x, y) points and are skipped before either path query.
+    ``egress_paths(land)`` may return up to three path answers from visible
+    mobile enemy witnesses near the objective, or ``None`` when no witness is
+    visible and the structure-only fallback must be retained.
     """
     path_queries = 0
     for index, land, water in shoreline_candidates(
@@ -97,5 +101,13 @@ def resolve_shoreline(anchor, hull, target_zone, zone_at, pathable,
         path_queries += 2
         if not water_pathable or not land_pathable:
             continue
-        return ShorelineResult(land, water, index, path_queries)
+        egress_queries = 0
+        if egress_paths is not None:
+            answers = egress_paths(land)
+            if answers is not None:
+                answers = list(answers)[:3]
+                egress_queries = len(answers)
+                if not answers or not any(answers):
+                    continue
+        return ShorelineResult(land, water, index, path_queries, egress_queries)
     return None

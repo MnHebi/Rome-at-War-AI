@@ -12,6 +12,8 @@
 
 ;38 shoreline water unreachable;39 shoreline land vicinity unreachable.
 
+;41 no land egress toward objective.
+
 ;after-failure:0 next approach,2 next enemy,3 terminal recovery.
 
 ;A failed beach is excluded. Different beaches require fresh checks.
@@ -951,6 +953,116 @@
 	(up-compare-goal gl-ap-shore-land-distance c:!= 65535)
 =>
 	(up-bound-point gl-ap-shore-selected-water-x gl-ap-shore-scan-x)
+	(set-goal gl-transport-route-state AP-EGRESS-SEARCH)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-EGRESS-SEARCH)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-target-x)
+	(up-filter-distance c: -1 c: 80)
+	(up-find-remote c: scout-cavalry-class c: 40)
+	(up-find-remote c: cavalry-archer-class c: 40)
+	(up-find-remote c: cavalry-class c: 40)
+	(up-find-remote c: infantry-class c: 40)
+	(up-find-remote c: archery-class c: 40)
+	(up-find-remote c: siege-weapon-class c: 40)
+	(up-find-remote c: villager-class c: 40)
+	(up-find-remote c: priest c: 10)
+	(up-remove-objects search-remote object-data-player g:!= gl-assault-manifest-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-garrisoned == 1)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(up-set-target-point gl-transport-route-landing-x)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-ap-egress-count g:= remote-total)
+	(set-goal gl-transport-route-state AP-EGRESS-0)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-EGRESS-0)
+	(goal gl-ap-egress-count 0)
+=>
+	(set-goal gl-transport-route-state AP-EGRESS-ACCEPT)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-EGRESS-0)
+	(up-compare-goal gl-ap-egress-count c:> 0)
+	(up-set-target-object search-remote c: 0)
+	(up-path-distance gl-transport-route-landing-x 0 != 65535)
+=>
+	(set-goal gl-transport-route-state AP-EGRESS-ACCEPT)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-EGRESS-0)
+	(up-compare-goal gl-ap-egress-count c:> 0)
+	(up-set-target-object search-remote c: 0)
+	(up-path-distance gl-transport-route-landing-x 0 == 65535)
+=>
+	(set-goal gl-transport-route-state AP-EGRESS-1)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-EGRESS-1)
+	(up-compare-goal gl-ap-egress-count c:<= 1)
+=>
+	(set-goal gl-ap-failure 41)
+	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-EGRESS-1)
+	(up-compare-goal gl-ap-egress-count c:> 1)
+	(up-set-target-object search-remote c: 1)
+	(up-path-distance gl-transport-route-landing-x 0 != 65535)
+=>
+	(set-goal gl-transport-route-state AP-EGRESS-ACCEPT)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-EGRESS-1)
+	(up-compare-goal gl-ap-egress-count c:> 1)
+	(up-set-target-object search-remote c: 1)
+	(up-path-distance gl-transport-route-landing-x 0 == 65535)
+=>
+	(set-goal gl-transport-route-state AP-EGRESS-2)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-EGRESS-2)
+	(up-compare-goal gl-ap-egress-count c:<= 2)
+=>
+	(set-goal gl-ap-failure 41)
+	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-EGRESS-2)
+	(up-compare-goal gl-ap-egress-count c:> 2)
+	(up-set-target-object search-remote c: 2)
+	(up-path-distance gl-transport-route-landing-x 0 != 65535)
+=>
+	(set-goal gl-transport-route-state AP-EGRESS-ACCEPT)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-EGRESS-2)
+	(up-compare-goal gl-ap-egress-count c:> 2)
+	(up-set-target-object search-remote c: 2)
+	(up-path-distance gl-transport-route-landing-x 0 == 65535)
+=>
+	(set-goal gl-ap-failure 41)
+	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-EGRESS-ACCEPT)
+=>
 	(set-goal gl-ap-screen-validated NO)
 	(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-CORRIDOR-PREPARE)

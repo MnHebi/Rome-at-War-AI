@@ -48,6 +48,27 @@ class ShorelineGeometryTests(unittest.TestCase):
         self.assertEqual(result.candidate, 1)
         self.assertEqual(result.path_queries, 4)
 
+    def test_mobile_witness_rejects_pocket_without_objective_egress(self):
+        calls = []
+
+        def egress(land):
+            calls.append(land)
+            return (False, False, False) if len(calls) == 1 else (True,)
+
+        result = resolve_shoreline((100, 100), (10, 10), 3,
+                                   diagonal_zone, lambda point, exact: True,
+                                   egress_paths=egress)
+        self.assertEqual(result.candidate, 1)
+        self.assertEqual(result.egress_queries, 1)
+        self.assertEqual(len(calls), 2)
+
+    def test_no_mobile_witness_retains_structure_only_cleanup_fallback(self):
+        result = resolve_shoreline((100, 100), (10, 10), 3,
+                                   diagonal_zone, lambda point, exact: True,
+                                   egress_paths=lambda land: None)
+        self.assertEqual(result.candidate, 0)
+        self.assertEqual(result.egress_queries, 0)
+
     def test_all_candidates_invalid_stops_at_ten_path_queries(self):
         calls = []
 
@@ -107,6 +128,8 @@ class ShorelineEmissionTests(unittest.TestCase):
             self.assertEqual(text.count('(up-cross-tiles '), 8)
         self.assertIn('(up-get-path-distance gl-ap-shore-scan-x 1 gl-ap-shore-water-distance)', assault)
         self.assertIn('(up-get-path-distance gl-transport-route-landing-x 0 gl-ap-shore-land-distance)', assault)
+        self.assertIn('(up-path-distance gl-transport-route-landing-x 0 != 65535)', assault)
+        self.assertIn('(set-goal gl-ap-failure 41)', assault)
         self.assertIn('(up-get-path-distance gl-msr-candidate-water-x 1 gl-msr-water-distance)', migration)
         self.assertIn('(up-get-path-distance gl-island-migration-route-waypoint-x 0 gl-msr-land-distance)', migration)
         self.assertNotIn('gl-msr-', assault)
