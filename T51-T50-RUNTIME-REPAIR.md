@@ -6,6 +6,28 @@ PR: <https://github.com/MnHebi/Rome-at-War-AI/pull/11>
 Source marker: `RAWAI-P3B44T51:499`  
 Installed marker: `RAWAI-P3B44T51:499` (deployed 2026-09-06)
 
+## T51 runtime result — 2026-09-06
+
+The 71:33 marker-499 replay assessment is recorded in
+`T51-RUNTIME-REPLAY-ASSESSMENT.md`.
+
+- Landed target acquisition/issuance is a runtime PASS: Cyan and Gray select
+  literal hostile owners, issue the actual command, exercise all three slots
+  and continue until group disappearance rather than lease expiry.
+- Shipyard placement is a runtime FAIL/regression: one order in the entire
+  replay versus 15 across seven players in T50. Repair the deterministic
+  one-sector/eight-offset sampler introduced by `d20386a` before attempting to
+  tune sustained capacity or expeditionary utilization.
+- Automatic migration launch/landing is runtime-supported by twelve autonomous
+  path-clear, same-second-unload missions; remote drop-site completion remains
+  open.
+- Land trade remains a runtime PASS. Right-of-way, migration-writer and several
+  lifecycle observers fail diagnostic acceptance because their budgets expire
+  before the behavior of interest.
+- The order-706 flood remains open. Exact replay evidence separates the five
+  explicit shore-leftover STOP actors at 36:56 from twelve different flooded
+  manifest Villagers; the bounded writer observer does not identify the latter.
+
 ## Scope and evidence order
 
 T50 is the completed 69:18 Iberia replay

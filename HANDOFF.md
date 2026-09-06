@@ -1,5 +1,61 @@
 # Rome at War AI handoff
 
+## CURRENT — T51 RUNTIME REPLAY ASSESSED, 2026-09-06
+
+- **Canonical workspace:**
+  `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; replay-analysis baseline `d76094f`.
+  This task changed documentation only and did not alter/deploy runtime code.
+- **Replay:** `SP Replay v101.103.48987.0 @2026.09.06
+  131504.aoe2record`, SHA-256
+  `5AB54B6F92B686842BABBE454049B278A1FA709FF631EC66AF4C0C425927A7EC`,
+  71:33 Iberia, build `101.103.48987.0`. Exact decode completes with zero
+  failures. Full evidence and disposition are in
+  `T51-RUNTIME-REPLAY-ASSESSMENT.md`.
+- **Runtime identity:** startup marker is absent from the captured chat stream,
+  but T51-only diagnostic ids 500+ are present and source/install identity was
+  already verified at marker `RAWAI-P3B44T51:499`, 99 identical runtime files,
+  aggregate SHA-256
+  `DB736F6EED6D526A4B9907A82D152C9977235BD9A1844B4479336EDBC7DA2B65`.
+- **Landed combat — RUNTIME PASS:** Cyan and Gray reach event 8, select only
+  literal hostile owners, emit actual writer 517 from all three assault slots,
+  rotate targets and terminate when groups disappear. No reconstructable group
+  merely expires at its combat lease. Close the target-acquisition/issuance
+  defect; strategic damage/effectiveness is a separate quality boundary.
+- **Shipyards — RUNTIME FAIL / REGRESSION OPEN:** only Yellow issues a single
+  Shipyard order at 21:04. Seven players issue none, versus 15 orders across
+  seven players in T50. Source/runtime localize the first regression boundary
+  to `d20386a`: one global-cardinal sector of eight fixed 8-14-tile offsets is
+  materially narrower than T50's full near-anchor domain. Repair that sampler
+  before expedition tuning; preserve admission retention, aperture, clearance,
+  worker path and foundation verification.
+- **Land trade — RUNTIME PASS preserved:** Blue/Red/Green/Yellow/Cyan/Purple/
+  Gray produce 81/76/60/35/61/11/65 Trade Carts respectively; Orange produces
+  one Cart and four Merchant Ships.
+- **Migration — RUNTIME-SUPPORTED PASS for launch/landing:** twelve autonomous
+  path-clear landings (Purple 5, Gray 4, Red 3), all with same-second unloads,
+  no wrong-zone/path-rejected candidate, and no writer-33 preloaded adoption.
+  Productive remote drop-site completion remains OPEN.
+- **Assault preparation — OPEN:** Cyan lands four and Gray three missions, but
+  Gray also records eight abort/partial loading cycles. Yellow readies one hull
+  without committing before replay end. The post-landing fix passes; the
+  preparation lane remains inefficient.
+- **STOP/order-706 flood — OPEN/INVESTIGATING:** 21,431 packets / 60,977 actor
+  incidences, dominated by Gray Villagers. At 36:56 the explicit partial-load
+  STOP targets five shore leftovers while order 706 floods twelve different
+  manifest Villagers, several active long before migration reservation. The
+  writer budget is exhausted on routine boarding renewal and does not attribute
+  the flood. Split future trace budgets by writer class/transition before any
+  behavioral change.
+- **Diagnostic failures:** Shipyard/migration/expedition budgets expire before
+  late-game behavior. ROW consumes all 32 samples in empty startup warship
+  scans, before Merchant Ships exist. Re-arm these on real state transitions;
+  absence of later samples is not acceptance evidence.
+- **Next action:** causal Shipyard sampler repair first; then fresh runtime
+  validation. Preserve the now-passing landed-combat path. After Shipyards
+  recover, reassess the expedition two-warship gate, Gray load aborts, bounded
+  ROW diagnostics and the order-706 source.
+
 ## CURRENT — T51 SELF-DIAGNOSING T50 REPAIRS ADDED TO PR #11, 2026-09-05
 
 - **Canonical workspace:**
