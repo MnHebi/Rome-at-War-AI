@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import tomllib
 from collections import deque
 from pathlib import Path
 from typing import Any, Iterable
@@ -20,6 +21,8 @@ CONTEXT = ROOT / "context"
 STATE_FILE = CONTEXT / "project-state.json"
 NODES_FILE = CONTEXT / "nodes.json"
 ROLES_FILE = CONTEXT / "roles.json"
+ROUTING_FILE = CONTEXT / "agent-routing.json"
+CAPSULE_TEMPLATE_FILE = CONTEXT / "task-capsule-template.json"
 VALID_FINDING_STATUSES = {
     "OPEN",
     "INVESTIGATING",
@@ -48,6 +51,10 @@ def load_metadata() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     return load_json(STATE_FILE), load_json(NODES_FILE), load_json(ROLES_FILE)
 
 
+def load_routing() -> dict[str, Any]:
+    return load_json(ROUTING_FILE)
+
+
 def _text(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
@@ -66,6 +73,149 @@ def _check_paths(owner: str, field: str, values: Any, errors: list[str]) -> None
             errors.append(f"{owner}: {field} path must be repository-relative: {value}")
         elif not (ROOT / path).exists():
             errors.append(f"{owner}: missing {field} path: {value}")
+
+
+def _validate_agent_routing(
+    routing: dict[str, Any], role_ids: set[str], errors: list[str]
+) -> None:
+    if routing.get("schema_version") != 1:
+        errors.append("agent-routing.json: schema_version must be 1")
+    if not _text(routing.get("optimization_target")):
+        errors.append("agent-routing.json: optimization_target is required")
+
+    modes = routing.get("modes")
+    if not isinstance(modes, list) or not modes:
+        errors.append("agent-routing.json: modes must be a non-empty list")
+        modes = []
+    mode_ids = {
+        mode.get("id") for mode in modes
+        if isinstance(mode, dict) and _text(mode.get("id")) and _text(mode.get("policy"))
+    }
+    if routing.get("default_mode") not in mode_ids:
+        errors.append("agent-routing.json: default_mode must name a valid mode")
+    if mode_ids != {"economy", "normal", "high-assurance"}:
+        errors.append("agent-routing.json: expected economy, normal and high-assurance modes")
+
+    tiers = routing.get("tiers")
+    if not isinstance(tiers, list) or {
+        tier.get("id") for tier in tiers if isinstance(tier, dict)
+    } != set(range(5)):
+        errors.append("agent-routing.json: tiers must be exactly 0 through 4")
+
+    worker = routing.get("general_worker")
+    if not isinstance(worker, dict) or worker.get("default") is not True:
+        errors.append("agent-routing.json: general_worker must be the default")
+
+    capabilities = routing.get("capabilities")
+    if not isinstance(capabilities, list) or not capabilities:
+        errors.append("agent-routing.json: capabilities must be a non-empty list")
+        capabilities = []
+    capability_ids: set[str] = set()
+    for index, capability in enumerate(capabilities):
+        if not isinstance(capability, dict) or not _text(capability.get("id")):
+            errors.append(f"agent-routing capabilities[{index}] requires an id")
+            continue
+        capability_id = capability["id"]
+        if capability_id in capability_ids:
+            errors.append(f"duplicate agent capability: {capability_id}")
+        capability_ids.add(capability_id)
+        if capability.get("context_role") not in role_ids:
+            errors.append(f"{capability_id}: unknown context_role")
+        for field in ("invoke_when", "do_not_invoke_when"):
+            if not _text_list(capability.get(field)) or not capability[field]:
+                errors.append(f"{capability_id}: {field} must be a non-empty text list")
+        config = capability.get("config")
+        if not _text(config):
+            errors.append(f"{capability_id}: config is required")
+        _check_paths(capability_id, "config", [config] if _text(config) else [], errors)
+        if not _text(config) or not (ROOT / config).exists():
+            continue
+        try:
+            agent = tomllib.loads((ROOT / config).read_text(encoding="utf-8"))
+        except (OSError, tomllib.TOMLDecodeError) as exc:
+            errors.append(f"{config}: invalid TOML: {exc}")
+            continue
+        for field in ("name", "description", "developer_instructions"):
+            if not _text(agent.get(field)):
+                errors.append(f"{config}: {field} is required")
+        if agent.get("name") != capability_id:
+            errors.append(f"{config}: name must match capability id {capability_id}")
+        if agent.get("sandbox_mode") != "read-only":
+            errors.append(f"{config}: optional capabilities must be read-only")
+        instructions = agent.get("developer_instructions", "")
+        for marker in ("RESULT:", "EVIDENCE:", "ACTION:", "UNCERTAINTY:"):
+            if marker not in instructions:
+                errors.append(f"{config}: output contract omits {marker}")
+        if "spawn another agent" not in instructions:
+            errors.append(f"{config}: nested delegation is not explicitly forbidden")
+        if (ROOT / config).stat().st_size >= 2_000:
+            errors.append(f"{config}: recurring agent prompt exceeds 2 KB")
+
+    expected_capabilities = {
+        "economy_scout", "economy_analyst", "economy_planner", "economy_verifier"
+    }
+    if capability_ids != expected_capabilities:
+        errors.append("agent-routing.json: expected exactly four optional capabilities")
+
+    task_classes = routing.get("task_classes")
+    if not isinstance(task_classes, list) or not task_classes:
+        errors.append("agent-routing.json: task_classes must be a non-empty list")
+        task_classes = []
+    expected_classes = {
+        "trivial-edit", "localized-bug-fix", "unfamiliar-code-investigation",
+        "feature-implementation", "test-failure-diagnosis", "refactor",
+        "documentation", "research-analysis", "architectural-change",
+        "high-assurance-review", "project-planning", "repository-maintenance",
+    }
+    class_ids: set[str] = set()
+    allowed_topology = capability_ids | {"worker", "tools"}
+    for task_class in task_classes:
+        if not isinstance(task_class, dict) or not _text(task_class.get("id")):
+            errors.append("agent-routing.json: every task class requires an id")
+            continue
+        class_id = task_class["id"]
+        class_ids.add(class_id)
+        if task_class.get("default_tier") not in range(5):
+            errors.append(f"{class_id}: default_tier must be 0 through 4")
+        if not _text_list(task_class.get("topology")) or not task_class["topology"]:
+            errors.append(f"{class_id}: topology must be non-empty")
+        elif not set(task_class["topology"]).issubset(allowed_topology):
+            errors.append(f"{class_id}: topology names an unknown capability")
+        if not _text_list(task_class.get("conditional")):
+            errors.append(f"{class_id}: conditional must be a text list")
+    if class_ids != expected_classes:
+        errors.append("agent-routing.json: representative task classes are incomplete")
+    by_class = {
+        task_class["id"]: task_class for task_class in task_classes
+        if isinstance(task_class, dict) and _text(task_class.get("id"))
+    }
+    for class_id in ("trivial-edit", "localized-bug-fix", "documentation"):
+        task_class = by_class.get(class_id, {})
+        if task_class.get("topology") != ["worker"] or task_class.get("conditional") != []:
+            errors.append(f"{class_id}: must remain worker-only")
+
+    if routing.get("output_contract") != ["RESULT", "EVIDENCE", "ACTION", "UNCERTAINTY"]:
+        errors.append("agent-routing.json: compact output contract changed")
+    expected_capsule = [
+        "objective", "scope", "relevant_context", "known_facts", "constraints",
+        "files", "expected_output", "validation", "stop_when",
+    ]
+    if routing.get("task_capsule_fields") != expected_capsule:
+        errors.append("agent-routing.json: task capsule fields changed")
+    nesting = routing.get("nested_delegation")
+    if not isinstance(nesting, dict) or nesting.get("default") != "forbidden" or nesting.get("maximum_depth") != 1:
+        errors.append("agent-routing.json: nested delegation must default to depth one")
+
+    try:
+        template = load_json(CAPSULE_TEMPLATE_FILE)
+    except ContextError as exc:
+        errors.append(str(exc))
+        return
+    if list(template) != expected_capsule:
+        errors.append("task-capsule-template.json: fields/order must match routing metadata")
+    for field, value in template.items():
+        if not (_text(value) or (_text_list(value) and value)):
+            errors.append(f"task-capsule-template.json: {field} must be non-empty")
 
 
 def validate_metadata() -> list[str]:
@@ -201,6 +351,13 @@ def validate_metadata() -> list[str]:
         for field in ("include", "exclude"):
             if not _text_list(role.get(field)):
                 errors.append(f"role {role_id}: {field} must be a text list")
+
+    try:
+        routing = load_routing()
+    except ContextError as exc:
+        errors.append(str(exc))
+    else:
+        _validate_agent_routing(routing, role_ids, errors)
 
     for node_id, node in node_by_id.items():
         capsule_path = node.get("capsule")
@@ -366,12 +523,53 @@ def render_context(node_id: str, role_id: str | None = None, depth: int = 1) -> 
 
 def render_listing() -> str:
     state, graph, roles_doc = load_metadata()
+    routing = load_routing()
     lines = [f"Current task: {state['current_task']}", "", "Nodes:"]
     for node in graph["nodes"]:
         lines.append(f"  {node['id']:<34} {node['kind']:<10} {node['status']}")
     lines.extend(["", "Roles:"])
     for role in roles_doc["roles"]:
         lines.append(f"  {role['id']:<18} {role['summary']}")
+    lines.extend(["", f"Default agent mode: {routing['default_mode']}", "Task classes:"])
+    for task_class in routing["task_classes"]:
+        lines.append(
+            f"  {task_class['id']:<34} tier {task_class['default_tier']}  "
+            f"{' -> '.join(task_class['topology'])}"
+        )
+    return "\n".join(lines)
+
+
+def render_route(task_class_id: str, mode_id: str | None = None) -> str:
+    routing = load_routing()
+    modes = {mode["id"]: mode for mode in routing["modes"]}
+    task_classes = {task_class["id"]: task_class for task_class in routing["task_classes"]}
+    selected_mode = mode_id or routing["default_mode"]
+    if selected_mode not in modes:
+        raise ContextError(f"unknown agent mode: {selected_mode}")
+    if task_class_id not in task_classes:
+        raise ContextError(f"unknown task class: {task_class_id}")
+    task_class = task_classes[task_class_id]
+    lines = [
+        f"# Economy route: {task_class_id}", "",
+        f"- Mode: `{selected_mode}` - {modes[selected_mode]['policy']}",
+        f"- Default tier: `{task_class['default_tier']}`",
+        f"- Default topology: `{' -> '.join(task_class['topology'])}`", "",
+        "## Conditional capabilities", "",
+    ]
+    if task_class["conditional"]:
+        lines.extend(f"- {condition}" for condition in task_class["conditional"])
+    else:
+        lines.append("- None. Complete with the worker and stop.")
+    if selected_mode == "high-assurance" and "economy_verifier" not in task_class["topology"]:
+        lines.append("- High-assurance mode may add one verifier after mechanical checks when it can test a material risk.")
+    lines.extend([
+        "", "## Decision gate", "",
+        f"- Default: {routing['delegation_gate']['default']}.",
+        "- Use the first operation in the escalation order capable of resolving the next uncertainty.",
+        "- A conditional capability is permitted only when expected saved context/reasoning or correctness value exceeds its full spawn-and-integration cost.",
+        "- Optional capabilities receive a task delta plus one role-filtered context packet and return RESULT / EVIDENCE / ACTION / UNCERTAINTY.",
+        "- Nested delegation is forbidden by default; replan only after a listed material trigger.", "",
+    ])
     return "\n".join(lines)
 
 
@@ -382,6 +580,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--depth", type=int, default=1, help="dependency depth, 0-3 (default: 1)")
     parser.add_argument("--list", action="store_true", help="list available nodes and roles")
     parser.add_argument("--check", action="store_true", help="validate context metadata and references")
+    parser.add_argument("--route", help="show economy route for a representative task class")
+    parser.add_argument("--mode", help="economy, normal or high-assurance (with --route)")
     args = parser.parse_args(argv)
 
     errors = validate_metadata()
@@ -391,15 +591,28 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     if args.check:
         state, graph, roles_doc = load_metadata()
+        routing = load_routing()
         print(
             "context metadata valid: "
             f"{len(graph['nodes'])} nodes, {len(roles_doc['roles'])} roles, "
-            f"{len(state['findings'])} findings"
+            f"{len(state['findings'])} findings, "
+            f"{len(routing['capabilities'])} optional agents, "
+            f"{len(routing['task_classes'])} task classes"
         )
         return 0
     if args.list:
         print(render_listing())
         return 0
+    if args.route:
+        try:
+            print(render_route(args.route, args.mode))
+        except ContextError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 2
+        return 0
+    if args.mode:
+        print("ERROR: --mode requires --route", file=sys.stderr)
+        return 2
 
     state, _, _ = load_metadata()
     node_id = args.node or state["current_task"]

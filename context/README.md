@@ -49,6 +49,24 @@ hypothesis or action. Validate metadata with:
 py -3.12 tools/context_pack.py --check
 ```
 
+## Economy-first agent routing
+
+The current agent or built-in `worker` owns ordinary tasks. Project-scoped
+agents under `.codex/agents/` are optional read-only capabilities, not stages.
+Inspect the deterministic route for a representative task class with:
+
+```powershell
+py -3.12 tools/context_pack.py --route trivial-edit
+py -3.12 tools/context_pack.py --route architectural-change --mode high-assurance
+```
+
+`context/agent-routing.json` defines the delegation gate, modes, task classes,
+capabilities, escalation order and compact result contract. It deliberately
+does not auto-spawn anything. A parent that decides one capability is justified
+passes only a task delta plus one role-filtered context packet. Use
+`context/task-capsule-template.json` for ad-hoc delegation; existing active task
+capsules may retain richer project-specific fields.
+
 Repository `.ignore` keeps the archive, replay reports and largest generated
 evidence artifacts out of ordinary broad ripgrep discovery. They remain tracked
 and can be searched by explicit path or with `rg --no-ignore` when a packet
@@ -65,9 +83,9 @@ identifies them as relevant.
   conditions concise. Archive or supersede completed capsules explicitly.
 - Add graph edges only when they affect context selection (`depends_on`,
   `related_to`, `validates`, `evidence`, `supersedes`); do not model every file.
-- A subagent receives the selected packet for its role plus the exact patch or
-  evidence it must inspect—not the full repository history. The parent remains
-  responsible for reading global instructions and maintaining current state.
+- An optional agent receives the selected packet for its role plus the exact
+  patch or evidence it must inspect—not the full repository history. The parent
+  remains responsible for routing, global instructions and current state.
 - Convert stable mechanical invariants into tests. Keep explanations linked,
   but do not make future agents reread the historical proof for each run.
 
@@ -84,6 +102,7 @@ those ceilings. The expected routine reduction is roughly 85-95%, depending on
 the selected task. Detailed evidence remains on demand, so this is reduced
 rereading rather than discarded knowledge.
 
-Deliberately not implemented: a database, vector store, service, repository-wide
-dependency graph, automatic source summarization, or a new agent orchestrator.
-The current scale does not justify their maintenance cost.
+Deliberately not implemented: a database, vector store, service,
+repository-wide dependency graph, automatic source summarization, agent queue,
+or auto-spawning orchestrator. The current scale does not justify their
+maintenance or recurring context cost.

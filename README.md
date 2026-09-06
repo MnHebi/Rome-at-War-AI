@@ -68,6 +68,11 @@ relevant task/subsystem packet. Detailed investigations and generated evidence
 remain available on demand; `context/README.md` defines the hot/warm/cold
 hierarchy and maintenance rules.
 
+Agent use is economy-first. The current or built-in worker completes ordinary
+tasks without delegation. `py -3.12 tools/context_pack.py --route <task-class>`
+shows the default topology and strictly conditional capability gates; the four
+small project agents in `.codex/agents/` never form an automatic pipeline.
+
 Special thanks: Leif Ericson from the AI Scripters Discord; Promiskuitiv and
 Archon for shipyard placement code derived from the Definitive Edition AI; and
 Promiskuitiv for help with taunt commands.

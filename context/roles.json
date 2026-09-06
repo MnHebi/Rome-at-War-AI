@@ -2,6 +2,36 @@
   "schema_version": 1,
   "roles": [
     {
+      "id": "scout",
+      "summary": "Answer one bounded discovery question after targeted worker search proves insufficient.",
+      "include": [
+        "exact question and stop condition",
+        "selected node and direct source references",
+        "known search results that must not be repeated"
+      ],
+      "exclude": [
+        "full project history",
+        "unrelated subsystem context",
+        "implementation or speculative redesign"
+      ],
+      "stopping_condition": "Return the requested fact/files/first causal boundary or a scoped no-result using RESULT/EVIDENCE/ACTION/UNCERTAINTY."
+    },
+    {
+      "id": "analyst",
+      "summary": "Resolve one genuinely difficult bounded reasoning question after deterministic evidence collection.",
+      "include": [
+        "one precise uncertainty",
+        "accepted facts and relevant artifacts",
+        "constraints that decide the analysis"
+      ],
+      "exclude": [
+        "routine implementation context",
+        "broad reconnaissance",
+        "unrelated hypotheses or narrative"
+      ],
+      "stopping_condition": "Return an actionable evidence-backed conclusion or exact blocker using RESULT/EVIDENCE/ACTION/UNCERTAINTY."
+    },
+    {
       "id": "architect",
       "summary": "Define the narrow causal boundary and dependency-aware design before implementation.",
       "include": [

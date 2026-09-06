@@ -17,6 +17,53 @@ context model and maintenance rules are in `context/README.md`. The former
 global rules and append-only handoff are retained as cold history under
 `context/archive/`; they are not current authority.
 
+## Economy-first agent routing
+
+Optimize total expected model usage until correct completion; wall-clock speed
+is secondary. The default topology is the current agent (or built-in `worker`)
+completing the task and stopping. Optional agents are capabilities, never a
+mandatory pipeline. `context/agent-routing.json` is the machine-checkable
+policy; inspect routes with `py -3.12 tools/context_pack.py --route <task-class>`.
+
+Before delegation, ask whether saved reasoning/context or material correctness
+value plausibly exceeds spawn, capsule, specialist, return and integration
+costs. If not, do not delegate. Apply this order to the next uncertainty:
+
+1. existing artifact or narrow search;
+2. deterministic command/parser/test/static check;
+3. targeted read and local reasoning;
+4. one optional agent with a bounded capsule, only if the gate now passes.
+
+Use `economy_scout` only when targeted worker search is insufficient or noisy
+bounded exploration is cheaper outside the primary context. Use
+`economy_analyst` for one genuinely difficult bounded reasoning question after
+evidence collection. Use `economy_planner` only for cross-boundary/high-rework
+design or an explicit planning request. Use `economy_verifier` only after
+mechanical checks for high-risk, broad, poorly tested, irreversible,
+security-sensitive or explicitly requested independent review. Never invoke
+these for reassurance, trivial work, duplicate reconnaissance or review.
+
+Default to sequential escalation and at most one optional agent at a time.
+Parallel/competing solutions require an explicit user request or a concrete
+correctness case that outweighs duplicate cost. Optional agents must not spawn
+other agents; unusual nested delegation requires explicit user authorization
+and a stated justification. Explicit user requests for planning, independent
+or adversarial review, exhaustive investigation, multiple approaches or higher
+assurance override the economy default.
+
+Delegated work receives only a task delta plus the relevant context packet:
+objective, scope, accepted facts, constraints, files/artifact IDs, expected
+output, validation and stop condition. Do not pass complete history or parent
+reasoning; use a no-history spawn such as `fork_turns="none"` when supported.
+Require `RESULT / EVIDENCE / ACTION / UNCERTAINTY`; integrate that distillation,
+not a transcript. Persist only accepted reusable findings.
+
+Modes are conceptual: `economy` (default), `normal`, and `high-assurance`.
+Validation always starts with the cheapest relevant check, then targeted tests;
+broader tests and one model verifier are added only when risk requires them.
+Replan only when architecture, scope, a core hypothesis, contradictory evidence
+or validation materially invalidates the current approach.
+
 ## Global operating invariants
 
 ### Own reported defects through evidence and validation
@@ -90,9 +137,10 @@ global rules and append-only handoff are retained as cold history under
   ownership, placement, training, combat or transport behavior.
 - For replay work, reconstruct all reasonably relevant episodes across players,
   distinguishing successes, bounded failures, unresolved cases and classes.
-- Adversarial review must converge: findings are accepted, rejected with
-  evidence, or deferred in current state. Insufficient evidence calls for one
-  discriminating next step, not repeated broad review.
+- When risk or an explicit request justifies adversarial model review, it must
+  converge: findings are accepted, rejected with evidence, or deferred in
+  current state. Insufficient evidence calls for one discriminating next step,
+  not repeated broad review.
 - Ask the user only for deciding facts unavailable in the repository, data mod,
   replays, artifacts or tooling.
 - A task is complete only when objective, evidence, change, protected behavior,

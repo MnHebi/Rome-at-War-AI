@@ -219,6 +219,26 @@
       "acceptance": "Context metadata validates, narrow packets remain below 12 KB, hot entry points remain below 30 KB, and cold evidence stays explicitly retrievable without routine ingestion.",
       "next_action": "Maintain current IDs/capsules and replace the hot handoff instead of appending history.",
       "reopen_when": "A size/selectivity test fails, authoritative state contradicts the handoff, or a representative narrow task again requires broad unrelated reconstruction."
+    },
+    {
+      "id": "agents.economy-router.v1",
+      "claim": "Repository agent routing is an optional capability graph: deterministic tools and the current/built-in worker are the default, while scout, analyst, planner and verifier are conditional, receive bounded packets, return a four-field result, and cannot recursively delegate by default.",
+      "status": "CLOSED",
+      "related_to": [
+        "workflow.agent-routing",
+        "workflow.context-maintenance"
+      ],
+      "depends_on": [
+        "context.architecture.v1"
+      ],
+      "evidence": [
+        "context/agent-routing.json",
+        "tools/test_agent_routing.py"
+      ],
+      "implementation": [],
+      "acceptance": "All project agent TOML validates; representative trivial, maintenance and documentation tasks remain worker-only; optional capabilities have explicit positive and negative gates, bounded capsule roles, compact results and no nested delegation.",
+      "next_action": "Use economy mode by default and revise a capability only after recurring evidence shows that its maintenance and invocation cost is justified.",
+      "reopen_when": "Routine tasks begin spawning optional agents, agent prompts drift beyond their bounded contracts, or measured completion cost shows the router increasing total usage."
     }
   ]
 }

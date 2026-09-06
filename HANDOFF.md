@@ -17,6 +17,21 @@ at `context/archive/HANDOFF-through-T52.md`.
 - Do not create another branch, worktree, clone or recovery line unless the user
   explicitly changes this instruction.
 
+## Agent usage controls
+
+- Default mode is `economy`: the current agent or built-in `worker` owns an
+  ordinary task end to end and stops.
+- Optional project capabilities are `economy_scout`, `economy_analyst`,
+  `economy_planner` and `economy_verifier`. They are read-only, non-recursive,
+  conditional leaves—not a pipeline or automatic fan-out.
+- `context/agent-routing.json` defines 12 representative task routes, the
+  delegation-cost gate, modes and compact handoff contract. Inspect one with
+  `py -3.12 tools/context_pack.py --route <task-class>`.
+- Delegation uses a task delta plus one role-filtered context packet and returns
+  `RESULT / EVIDENCE / ACTION / UNCERTAINTY`; do not pass full task history.
+- No game-runtime source or installed test runtime changed for this agent-suite
+  work.
+
 ## Active task
 
 - Node: `task.t52-runtime`
@@ -63,7 +78,9 @@ danger validation, migration/relic separation and bounded naval cooperation.
 ## Validation baseline
 
 - Focused T52 controller tests: 192 PASS.
-- Full Python 3.12 discovery: 529/529 PASS.
+- Agent routing/context tests: 18/18 PASS.
+- Full Python 3.12 discovery: 547/547 PASS (the sandboxed run hit the known
+  Windows Temp permission boundary; the approved unrestricted rerun passed).
 - PER structure/operand validation: PASS.
 - Strategy execution: 1,156 matchups, zero errors.
 - Naval doctrine, generated synchronization, ownership contract (27), replay
