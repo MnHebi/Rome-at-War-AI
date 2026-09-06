@@ -12,12 +12,20 @@
     "runtime_sha256": "387913EFC902E0DF796532F16F31A4B05F7F265962B8AE43C39C7033433C28B5",
     "writer_trace_overlay": false
   },
-  "current_task": "task.t52-runtime",
+  "current_task": "task.t53-villager-keystates",
   "known_baseline_failures": [
     {
       "id": "validation.good-units.frozen-provenance",
       "claim": "validate_good_units.py reports the pre-existing frozen source_provenance/AI RAW.per_sha256 mismatch.",
       "action": "Do not silently rebaseline it; it is unrelated to T52 runtime work.",
+      "evidence": [
+        "HANDOFF.md"
+      ]
+    },
+    {
+      "id": "validation.civ-strategy-generated-drift",
+      "claim": "The read-only strategy synchronizer reports six pre-existing generated civilization PER outputs it would update; T53 changed none of the strategy source, generator, or generated civilization files.",
+      "action": "Keep this unrelated baseline explicit and do not silently regenerate it during the order-706 experiment.",
       "evidence": [
         "HANDOFF.md"
       ]
@@ -97,7 +105,7 @@
     },
     {
       "id": "villager.order706",
-      "claim": "Large repeated Villager order-706 streams remain unattributed; T51's shared diagnostic budget expired before it could identify or exclude all explicit writers.",
+      "claim": "Large repeated Villager order-706 streams remain unattributed. T53 audited every source-visible Villager-capable DUC writer and now tests only four explicitly owned ordinary home-economy action-default writers with Ctrl persistence and exact actor correlation.",
       "status": "INVESTIGATING",
       "related_to": [
         "subsystem.villager-commands",
@@ -108,14 +116,39 @@
       "evidence": [
         "T51-RUNTIME-REPLAY-ASSESSMENT.md",
         "TASK-OWNERSHIP.md",
-        "OWNERSHIP-SOURCE-INVENTORY.md"
+        "OWNERSHIP-SOURCE-INVENTORY.md",
+        "T53-VILLAGER-KEYSTATES-AUDIT.md"
       ],
       "implementation": [
-        "e7031f9"
+        "e7031f9",
+        "e359ea5",
+        "5ece337"
       ],
-      "acceptance": "The first repeated 706 tuple is correlated to an exact source writer, or a known-available class-reserved trace and command counters exclude the mapped RAW writers without overclaiming a native cause.",
-      "next_action": "Start at first onset and correlate exact actor/target/action/order/cadence with migration STOP codes 5-13 and other mapped writers.",
+      "acceptance": "A fresh verified runtime correlates each sampled actor's pre/post/later exact order-706 rate to codes 640-657. The flood materially falls or disappears after a persistent Ctrl retask without protected-behavior regression, or unchanged/worse evidence rejects the experiment without overclaiming a native cause.",
+      "next_action": "Do not deploy without authorization. On a future T53 replay, run tools/analyze_economic_retasks.py, classify every sample and major unsampled actor, then retain or independently revert 5ece337 from runtime evidence.",
       "reopen_when": "Not applicable while open."
+    },
+    {
+      "id": "villager.keystates.t53",
+      "claim": "T53 is an experimental behavioral probe: four explicitly owned home-economy action-default writers issue with Ctrl persistence, immediately restore the modifier, and exclude carrying workers at selection and command time.",
+      "status": "FIXED-PENDING-RUNTIME",
+      "classification": "EXPERIMENTAL",
+      "related_to": [
+        "subsystem.villager-commands",
+        "task.t53-villager-keystates"
+      ],
+      "depends_on": [],
+      "evidence": [
+        "T53-VILLAGER-KEYSTATES-AUDIT.md",
+        "tools/test_villager_economic_retask.py",
+        "tools/validate_villager_keystates.py"
+      ],
+      "implementation": [
+        "5ece337"
+      ],
+      "acceptance": "In a verified fresh runtime, sampled assignments persist and the same actor's order-706 rate materially falls or disappears, without carried-resource loss or regression in ordinary economy, explicit safety garrison, migration/assault boarding, construction, repair or combat.",
+      "next_action": "Await explicit deployment authority; retain only on runtime PASS and otherwise revert 5ece337 independently while preserving e359ea5 diagnostics.",
+      "reopen_when": "The actor-level order-706 rate is unchanged/worse, the assignment does not persist, or any protected behavior regresses."
     },
     {
       "id": "assault.preparation.close-boarders",

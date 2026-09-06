@@ -11,8 +11,8 @@ at `context/archive/HANDOFF-through-T52.md`.
 - Canonical workspace:
   `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`
 - Branch: `fix/trade-cog-cap-dacian`
-- Current documentation/context HEAD at last update: inspect with
-  `git rev-parse HEAD`; runtime source commit remains `e7031f9`.
+- Current behavioral HEAD: `5ece337`; inspect `git rev-parse HEAD` for the
+  following documentation commit. Runtime source commit remains `e7031f9`.
 - Existing PR: `https://github.com/MnHebi/Rome-at-War-AI/pull/11`
 - Do not create another branch, worktree, clone or recovery line unless the user
   explicitly changes this instruction.
@@ -34,20 +34,17 @@ at `context/archive/HANDOFF-through-T52.md`.
 
 ## Active task
 
-- Node: `task.t52-runtime`
-- Capsule: `context/tasks/t52-runtime.json`
-- Detailed acceptance: `T52-RUNTIME-ACCEPTANCE.md`
+- Node: `task.t53-villager-keystates`
+- Capsule: `context/tasks/t53-villager-keystates.json`
+- Source audit: `T53-VILLAGER-KEYSTATES-AUDIT.md`
 - Load compact task context with:
-  `py -3.12 tools/context_pack.py task.t52-runtime --role runtime-analyst`
+  `py -3.12 tools/context_pack.py task.t53-villager-keystates --role runtime-analyst`
 
-Ordered runtime gates:
-
-1. prove multi-player Shipyard recovery from T51's one-order regression;
-2. attribute the first Villager order-706 onset using class-reserved writers;
-3. resolve close active assault passengers that still fail to board;
-4. prove autonomous migration foundation, gather and deposit productivity;
-5. exercise Merchant right-of-way in a real late-game choke;
-6. only then reassess expeditionary commitment.
+T53 is a controlled order-706 experiment, not a root-cause claim. Commit
+`e359ea5` adds separately rearmed actor diagnostics and offline correlation.
+Commit `5ece337` wraps only four owned home-economy `action-default` commands in
+Ctrl with immediate reset and excludes carrying workers at selection and
+command time. It is independently revertible. No T53 source is installed.
 
 ## Installed runtime
 
@@ -64,7 +61,8 @@ Ordered runtime gates:
 | ID | Status | Immediate boundary / next action |
 |---|---|---|
 | `shipyard.sampler.t51` | FIXED-PENDING-RUNTIME | `ec3ee78` restored the T50 full X/Y candidate domain while retaining all safety/capacity gates. Fresh replay must show multi-player concrete foundations. |
-| `villager.order706` | INVESTIGATING | Start at first 706 tuple; correlate exact actors with separately re-armed migration STOP writers and command counters before changing behavior. |
+| `villager.order706` | INVESTIGATING | T53 tests four ordinary home-economy writers with Ctrl persistence; exact cause remains unproven. Correlate codes 640-657 to the same actor's pre/post/later 706 stream. |
+| `villager.keystates.t53` | EXPERIMENTAL / FIXED-PENDING-RUNTIME | Retain only if verified runtime shows a material actor-level 706 reduction with persistent assignments and no worker/transport/garrison regression; otherwise revert `5ece337` only. |
 | `assault.preparation.close-boarders` | INVESTIGATING | T51 passengers were 2-7 tiles away with exact hull/group/enter intent yet eight Gray cycles terminated. Reconstruct physical blockage/reissue/ownership at each abort. |
 | `migration.productive-dropsite` | OPEN | Launch/landing works. Require autonomous exact foundation -> ready -> retask -> gather -> deposit, without manual intervention. |
 | `merchant.row.real-choke` | INVESTIGATING | T52 diagnostics arm only on an actual priority-hull episode. Require one-at-a-time yield, hull progress, then native trade resumption. |
@@ -77,23 +75,24 @@ danger validation, migration/relic separation and bounded naval cooperation.
 
 ## Validation baseline
 
-- Focused T52 controller tests: 192 PASS.
-- Agent routing/context tests: 18/18 PASS.
-- Full Python 3.12 discovery: 547/547 PASS (the sandboxed run hit the known
+- T53 focused tests: 9/9 PASS; key-state validator: PASS (exactly four bounded
+  Ctrl wrappers); ownership inventory: 1,028 sites, zero direct failures.
+- Full Python 3.12 discovery: 556/556 PASS (the sandboxed run hit the known
   Windows Temp permission boundary; the approved unrestricted rerun passed).
 - PER structure/operand validation: PASS.
 - Strategy execution: 1,156 matchups, zero errors.
-- Naval doctrine, generated synchronization, ownership contract (27), replay
-  benchmark metadata (42), and `git diff --check`: PASS. Line-ending warnings
-  are expected for legacy PER files.
+- Naval doctrine, ownership, replay benchmark metadata (42), context metadata,
+  and `git diff --check`: PASS. The read-only strategy synchronizer reports six
+  pre-existing generated civ files it would update; T53 changed none of them.
 - `validate_good_units.py` has a known frozen-provenance mismatch at
   `source_provenance/AI RAW.per_sha256`; do not silently rebaseline it.
 
 ## Exact next action
 
-Analyze the next marker-500 replay against `T52-RUNTIME-ACCEPTANCE.md`, beginning
-with Shipyard episode reconstruction. Do not call any runtime-sensitive defect
-closed from static tests or from the presence of telemetry alone. Persist new
-accepted findings in `context/project-state.json`, update the T52 capsule, and
-replace this handoff's active/result sections rather than restoring append-only
-history.
+Do not deploy T53 unless explicitly authorized. Once a future runtime is
+installed and verified, analyze each 640-657 episode with
+`tools/analyze_economic_retasks.py`: compare the exact actor's 30-second pre/post
+706 rate, assignment/role/target persistence and later recurrence; enumerate
+major unsampled actors. Accept or revert `5ece337` from runtime evidence, keep
+`villager.order706` INVESTIGATING until causality is established, then resume
+the remaining ordered T52 runtime gates.
