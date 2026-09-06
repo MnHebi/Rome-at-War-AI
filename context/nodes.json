@@ -1,0 +1,298 @@
+{
+  "schema_version": 1,
+  "nodes": [
+    {
+      "id": "task.t52-runtime",
+      "kind": "task",
+      "status": "awaiting-runtime",
+      "summary": "Validate the T52 Shipyard sampler repair first, then use episode-reserved diagnostics to resolve order-706, assault preparation, migration productivity and real-choke ROW before expedition tuning.",
+      "depends_on": [
+        "subsystem.shipyard",
+        "subsystem.villager-commands",
+        "subsystem.assault-transport",
+        "subsystem.migration",
+        "subsystem.naval-row",
+        "subsystem.expedition"
+      ],
+      "related_to": [
+        "workflow.replay-analysis",
+        "workflow.runtime-deployment"
+      ],
+      "authoritative_files": [
+        "context/tasks/t52-runtime.json",
+        "T52-RUNTIME-ACCEPTANCE.md"
+      ],
+      "evidence": [
+        "T51-RUNTIME-REPLAY-ASSESSMENT.md"
+      ],
+      "capsule": "context/tasks/t52-runtime.json"
+    },
+    {
+      "id": "subsystem.shipyard",
+      "kind": "subsystem",
+      "status": "fixed-pending-runtime",
+      "summary": "Shipyard deficit admission, coast candidate selection, water aperture, builder reachability and exact foundation verification. T52 restored the full near-anchor candidate domain after T51's sparse-sampler regression.",
+      "depends_on": [
+        "workflow.runtime-deployment"
+      ],
+      "related_to": [
+        "workflow.replay-analysis",
+        "subsystem.expedition"
+      ],
+      "authoritative_files": [
+        "tools/generate_shipyard_placement.py",
+        "rawai-specialplacement.per",
+        "rawai-shipyard-defs.per",
+        "tools/test_shipyard_coast.py"
+      ],
+      "evidence": [
+        "T48-SHIPYARD-CANDIDATE-RECOVERY.md",
+        "T50-SHIPYARD-THROUGHPUT-AND-APERTURE.md",
+        "T51-RUNTIME-REPLAY-ASSESSMENT.md",
+        "T52-RUNTIME-ACCEPTANCE.md"
+      ]
+    },
+    {
+      "id": "subsystem.villager-commands",
+      "kind": "subsystem",
+      "status": "investigating",
+      "summary": "Attribution of repeated Villager command/order streams across explicit PER writers and native managers, using command-boundary and writer ownership evidence.",
+      "depends_on": [
+        "subsystem.ownership"
+      ],
+      "related_to": [
+        "subsystem.migration",
+        "workflow.replay-analysis"
+      ],
+      "authoritative_files": [
+        "rawai-command-counters.per",
+        "rawai-command-counter-defs.per",
+        "tools/audit_task_ownership.py",
+        "tools/writer_trace.py"
+      ],
+      "evidence": [
+        "TASK-OWNERSHIP.md",
+        "OWNERSHIP-SOURCE-INVENTORY.md",
+        "writer-trace-sites.json",
+        "T51-RUNTIME-REPLAY-ASSESSMENT.md"
+      ]
+    },
+    {
+      "id": "subsystem.assault-transport",
+      "kind": "subsystem",
+      "status": "mixed-runtime-state",
+      "summary": "Three independent assault slots from manifest selection through rendezvous, boarding, planning, voyage, landing and persistent landed combat. Landed combat passes; close-passenger preparation aborts remain open.",
+      "depends_on": [
+        "subsystem.ownership"
+      ],
+      "related_to": [
+        "subsystem.naval-row",
+        "workflow.replay-analysis"
+      ],
+      "authoritative_files": [
+        "rawai-assault-admission.per",
+        "rawai-assault-missions.per",
+        "rawai-assault-plans.per",
+        "rawai-transport-preparation-ownership.per",
+        "tools/test_assault_preparation.py",
+        "tools/test_landed_assault.py"
+      ],
+      "evidence": [
+        "T51-RUNTIME-REPLAY-ASSESSMENT.md",
+        "T52-RUNTIME-ACCEPTANCE.md"
+      ]
+    },
+    {
+      "id": "subsystem.migration",
+      "kind": "subsystem",
+      "status": "mixed-runtime-state",
+      "summary": "Automatic settler migration admission, boarding, same-zone shoreline resolution, unload, remote drop-site construction and productive retasking. Launch/landing passes; productive gathering remains open.",
+      "depends_on": [
+        "subsystem.ownership"
+      ],
+      "related_to": [
+        "subsystem.villager-commands",
+        "workflow.replay-analysis"
+      ],
+      "authoritative_files": [
+        "rawai-military.per",
+        "rawai-migration-shoreline.per",
+        "rawai-customconstants.per",
+        "tools/test_migration_foundation.py",
+        "tools/test_migration_rendezvous.py"
+      ],
+      "evidence": [
+        "T24-MIGRATION-RENDEZVOUS.md",
+        "T51-RUNTIME-REPLAY-ASSESSMENT.md",
+        "T52-RUNTIME-ACCEPTANCE.md"
+      ]
+    },
+    {
+      "id": "subsystem.naval-row",
+      "kind": "subsystem",
+      "status": "investigating",
+      "summary": "Bounded right-of-way for a locally stalled mission Transport/warship by moving one plausible self-owned merchant to a safe holding point and allowing native trade to resume.",
+      "depends_on": [
+        "workflow.runtime-deployment"
+      ],
+      "related_to": [
+        "subsystem.assault-transport",
+        "workflow.replay-analysis"
+      ],
+      "authoritative_files": [
+        "tools/generate_naval_right_of_way.py",
+        "rawai-naval-right-of-way.per",
+        "rawai-naval-row-defs.per",
+        "tools/test_naval_right_of_way.py"
+      ],
+      "evidence": [
+        "T44-MERCHANT-YIELD-OVERRIDE-RECOVERY.md",
+        "T51-RUNTIME-REPLAY-ASSESSMENT.md",
+        "T52-RUNTIME-ACCEPTANCE.md"
+      ]
+    },
+    {
+      "id": "subsystem.expedition",
+      "kind": "subsystem",
+      "status": "blocked-by-upstream-runtime",
+      "summary": "Adaptive overseas use of true military surplus through the existing three assault slots. Observe only until Shipyard, preparation, migration and ROW runtime gates are resolved.",
+      "depends_on": [
+        "subsystem.shipyard",
+        "subsystem.assault-transport",
+        "subsystem.naval-row"
+      ],
+      "related_to": [
+        "subsystem.migration"
+      ],
+      "authoritative_files": [
+        "tools/generate_expedition_admission.py",
+        "rawai-expedition-admission.per",
+        "rawai-expedition-budget.per",
+        "tools/test_expedition_admission.py"
+      ],
+      "evidence": [
+        "T40-NAVAL-HARDENING.md",
+        "T51-T50-RUNTIME-REPAIR.md",
+        "T52-RUNTIME-ACCEPTANCE.md"
+      ]
+    },
+    {
+      "id": "subsystem.land-trade",
+      "kind": "subsystem",
+      "status": "runtime-confirmed",
+      "summary": "Independent same-zone Market candidacy, bounded Trade Cart probes and live-action verification. Runtime-passing and normally needed only as a non-regression dependency.",
+      "depends_on": [],
+      "related_to": [
+        "workflow.replay-analysis"
+      ],
+      "authoritative_files": [
+        "rawai-trade.per",
+        "tools/test_trade_topology.py"
+      ],
+      "evidence": [
+        "T43-LAND-TRADE-SHARED-SEARCH-RECOVERY.md",
+        "T46-LAND-TRADE-LITERAL-CENSUS.md",
+        "T50-RUNTIME-REPLAY-ASSESSMENT.md"
+      ]
+    },
+    {
+      "id": "subsystem.ownership",
+      "kind": "subsystem",
+      "status": "mechanically-guarded",
+      "summary": "Controller, group and command-writer ownership contracts. Use the compact task inventory first; open the full source inventory only for an attribution challenge.",
+      "depends_on": [],
+      "related_to": [
+        "workflow.replay-analysis"
+      ],
+      "authoritative_files": [
+        "rawai-ownership.per",
+        "rawai-owner-release.per",
+        "tools/test_ownership_contract.py",
+        "tools/audit_task_ownership.py"
+      ],
+      "evidence": [
+        "TASK-OWNERSHIP.md",
+        "OWNERSHIP-SOURCE-INVENTORY.md",
+        "writer-trace-sites.json"
+      ]
+    },
+    {
+      "id": "subsystem.strategy-data",
+      "kind": "subsystem",
+      "status": "mechanically-guarded",
+      "summary": "Civilization strategy sources, generated PER, unique-unit manifest and workbook constraints. Load only for production/composition/history changes.",
+      "depends_on": [],
+      "related_to": [],
+      "authoritative_files": [
+        "civ-strategy-data.json",
+        "civ-strategy-historical-overrides.json",
+        "unique-unit-production.json",
+        "RAW AI unit focus spreadsheet.ods",
+        "tools/sync_civ_strategies.py",
+        "tools/validate_strategy_execution.py"
+      ],
+      "evidence": [
+        "HISTORICAL_STRATEGY.md",
+        "good-unit-evaluations.json"
+      ]
+    },
+    {
+      "id": "workflow.replay-analysis",
+      "kind": "workflow",
+      "status": "active",
+      "summary": "Verify runtime identity, decode the entire relevant subsystem lifecycle across players, separate observation from causal inference, update benchmark metadata and persist accepted conclusions.",
+      "depends_on": [],
+      "related_to": [
+        "workflow.runtime-deployment"
+      ],
+      "authoritative_files": [
+        "tools/analyze_replay.py",
+        "tools/audit_task_ownership.py",
+        "replay-benchmarks.json",
+        "tools/validate_replay_benchmarks.py"
+      ],
+      "evidence": [
+        "T52-RUNTIME-ACCEPTANCE.md"
+      ]
+    },
+    {
+      "id": "workflow.runtime-deployment",
+      "kind": "workflow",
+      "status": "active",
+      "summary": "Deploy only when authorized from the canonical checkout; preflight and post-check the explicit test-mod target, marker, file set and aggregate hash without mixing overlays.",
+      "depends_on": [],
+      "related_to": [
+        "workflow.replay-analysis"
+      ],
+      "authoritative_files": [
+        "tools/sync_test_ai.py",
+        "HANDOFF.md"
+      ],
+      "evidence": [
+        "context/archive/HANDOFF-through-T52.md"
+      ]
+    },
+    {
+      "id": "workflow.context-maintenance",
+      "kind": "workflow",
+      "status": "active",
+      "summary": "Keep global context bounded, update stable finding IDs and task capsules, add only high-value dependency edges, and route cold evidence by reference rather than concatenation.",
+      "depends_on": [],
+      "related_to": [],
+      "authoritative_files": [
+        "AGENTS.md",
+        "HANDOFF.md",
+        "context/README.md",
+        "context/project-state.json",
+        "context/nodes.json",
+        "context/roles.json",
+        "tools/context_pack.py",
+        "tools/test_context_pack.py"
+      ],
+      "evidence": [
+        "context/archive/AGENTS-through-T52.md",
+        "context/archive/HANDOFF-through-T52.md"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,224 @@
+{
+  "schema_version": 1,
+  "updated": "2026-09-06",
+  "authority": "Current accepted findings and defect status. Git remains authoritative for source and current HEAD.",
+  "repository": {
+    "canonical_workspace": "G:\\Projects\\Codex\\Rome at War AI\\.trade-work\\T30-trade-cap-civ-fix",
+    "branch": "fix/trade-cog-cap-dacian",
+    "pull_request": "https://github.com/MnHebi/Rome-at-War-AI/pull/11",
+    "runtime_source_commit": "e7031f9",
+    "runtime_marker": "RAWAI-P3B44T52:500",
+    "runtime_files": 99,
+    "runtime_sha256": "387913EFC902E0DF796532F16F31A4B05F7F265962B8AE43C39C7033433C28B5",
+    "writer_trace_overlay": false
+  },
+  "current_task": "task.t52-runtime",
+  "known_baseline_failures": [
+    {
+      "id": "validation.good-units.frozen-provenance",
+      "claim": "validate_good_units.py reports the pre-existing frozen source_provenance/AI RAW.per_sha256 mismatch.",
+      "action": "Do not silently rebaseline it; it is unrelated to T52 runtime work.",
+      "evidence": [
+        "HANDOFF.md"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "shipyard.sampler.t51",
+      "claim": "T51's sparse four-cardinal-sector sampler was the first source/runtime boundary for the one-order Shipyard regression; T52 restores the T50 full independent X/Y candidate domain while preserving placement safety and capacity policy.",
+      "status": "FIXED-PENDING-RUNTIME",
+      "related_to": [
+        "subsystem.shipyard",
+        "task.t52-runtime"
+      ],
+      "depends_on": [],
+      "evidence": [
+        "T51-RUNTIME-REPLAY-ASSESSMENT.md",
+        "T52-RUNTIME-ACCEPTANCE.md"
+      ],
+      "implementation": [
+        "ec3ee78"
+      ],
+      "acceptance": "A fresh marker-500 replay shows multiple eligible players progressing to concrete Shipyard foundations without recurring narrow-inlet placement; T51's one-player collapse does not recur.",
+      "next_action": "Reconstruct codes 524-545 for every eligible deficit before examining later gates.",
+      "reopen_when": "A fresh replay shows equivalent or worse multi-player admission/placement failure, or source/runtime identity is disproven."
+    },
+    {
+      "id": "assault.landed-combat.t51",
+      "claim": "Landed assault slots acquire literal hostile targets, issue the landed writer, rotate targets, and terminate when their groups disappear.",
+      "status": "CLOSED",
+      "related_to": [
+        "subsystem.assault-transport"
+      ],
+      "depends_on": [],
+      "evidence": [
+        "T51-RUNTIME-REPLAY-ASSESSMENT.md"
+      ],
+      "implementation": [
+        "f96da71"
+      ],
+      "acceptance": "T51 runtime reconstructed target acquisition and issuance for all three slots without lease-only expiry.",
+      "next_action": "Preserve as a non-regression invariant.",
+      "reopen_when": "New direct replay evidence shows a landed group again lacks target acquisition/issuance under the verified runtime."
+    },
+    {
+      "id": "trade.land.t50",
+      "claim": "Independent land trade topology and bounded Trade Cart probes produce live land trade for eligible players.",
+      "status": "CLOSED",
+      "related_to": [
+        "subsystem.land-trade"
+      ],
+      "depends_on": [],
+      "evidence": [
+        "T50-RUNTIME-REPLAY-ASSESSMENT.md",
+        "T51-RUNTIME-REPLAY-ASSESSMENT.md"
+      ],
+      "implementation": [],
+      "acceptance": "T50 runtime passed and T51 produced Trade Carts for all eight players.",
+      "next_action": "Preserve; investigate only if new contradictory runtime evidence appears.",
+      "reopen_when": "A verified runtime with eligible same-zone Markets again produces no live Cart trade."
+    },
+    {
+      "id": "migration.launch-landing.t51",
+      "claim": "Automatic migration can admit, board, sail and unload on path-clear same-zone landings without preloaded adoption or manual input.",
+      "status": "CLOSED",
+      "related_to": [
+        "subsystem.migration"
+      ],
+      "depends_on": [],
+      "evidence": [
+        "T51-RUNTIME-REPLAY-ASSESSMENT.md"
+      ],
+      "implementation": [],
+      "acceptance": "T51 contained twelve autonomous same-second path-clear unloads and no wrong-zone/path-rejected unload.",
+      "next_action": "Preserve launch/landing while proving productive drop-site behavior separately.",
+      "reopen_when": "New verified runtime evidence contradicts automatic launch/landing."
+    },
+    {
+      "id": "villager.order706",
+      "claim": "Large repeated Villager order-706 streams remain unattributed; T51's shared diagnostic budget expired before it could identify or exclude all explicit writers.",
+      "status": "INVESTIGATING",
+      "related_to": [
+        "subsystem.villager-commands",
+        "subsystem.migration",
+        "task.t52-runtime"
+      ],
+      "depends_on": [],
+      "evidence": [
+        "T51-RUNTIME-REPLAY-ASSESSMENT.md",
+        "TASK-OWNERSHIP.md",
+        "OWNERSHIP-SOURCE-INVENTORY.md"
+      ],
+      "implementation": [
+        "e7031f9"
+      ],
+      "acceptance": "The first repeated 706 tuple is correlated to an exact source writer, or a known-available class-reserved trace and command counters exclude the mapped RAW writers without overclaiming a native cause.",
+      "next_action": "Start at first onset and correlate exact actor/target/action/order/cadence with migration STOP codes 5-13 and other mapped writers.",
+      "reopen_when": "Not applicable while open."
+    },
+    {
+      "id": "assault.preparation.close-boarders",
+      "claim": "Some close, reserved assault passengers keep exact Transport/group/enter intent but fail to complete boarding before bounded preparation terminates.",
+      "status": "INVESTIGATING",
+      "related_to": [
+        "subsystem.assault-transport",
+        "task.t52-runtime"
+      ],
+      "depends_on": [],
+      "evidence": [
+        "T51-RUNTIME-REPLAY-ASSESSMENT.md",
+        "T52-RUNTIME-ACCEPTANCE.md"
+      ],
+      "implementation": [],
+      "acceptance": "A complete abort episode distinguishes physical blockage, oscillation, reissuance, ownership displacement or genuine inability to enter; the resulting narrow fix preserves successful useful-partial and three-slot dispatch.",
+      "next_action": "Reconstruct each marker-500 abort rather than increasing timers broadly.",
+      "reopen_when": "Not applicable while open."
+    },
+    {
+      "id": "migration.productive-dropsite",
+      "claim": "Migration launch and unload are demonstrated, but an autonomous remote drop-site reaching ready state followed by gather and deposit is not yet runtime-proven.",
+      "status": "OPEN",
+      "related_to": [
+        "subsystem.migration",
+        "task.t52-runtime"
+      ],
+      "depends_on": [
+        "migration.launch-landing.t51"
+      ],
+      "evidence": [
+        "T51-RUNTIME-REPLAY-ASSESSMENT.md",
+        "T52-RUNTIME-ACCEPTANCE.md"
+      ],
+      "implementation": [
+        "e7031f9"
+      ],
+      "acceptance": "Without manual input: exact foundation selection/issue, concrete foundation, code 579 value 2 ready, post-foundation gather writer, and visible intended-resource gather/deposit.",
+      "next_action": "Trace the first complete marker-500 migration productivity lifecycle; code 579 value 3 is a failed episode.",
+      "reopen_when": "Not applicable while open."
+    },
+    {
+      "id": "merchant.row.real-choke",
+      "claim": "Merchant right-of-way behavior has not been proven in a natural late-game choke; T51 diagnostics exhausted during empty startup scans.",
+      "status": "INVESTIGATING",
+      "related_to": [
+        "subsystem.naval-row",
+        "task.t52-runtime"
+      ],
+      "depends_on": [],
+      "evidence": [
+        "T51-RUNTIME-REPLAY-ASSESSMENT.md",
+        "T52-RUNTIME-ACCEPTANCE.md",
+        "T44-MERCHANT-YIELD-OVERRIDE-RECOVERY.md"
+      ],
+      "implementation": [
+        "e7031f9"
+      ],
+      "acceptance": "An actual stalled priority hull causes one safe active merchant yield, the hull resumes progress before another clearance, and native trade later resumes.",
+      "next_action": "Exercise and reconstruct codes 586-637 plus existing yield writers 420/421 in a real choke.",
+      "reopen_when": "Not applicable while open."
+    },
+    {
+      "id": "expedition.commitment",
+      "claim": "Safe isolated allies may undercommit surplus armies overseas, but upstream Shipyard, preparation, migration and ROW boundaries currently prevent clean policy attribution.",
+      "status": "INVESTIGATING",
+      "related_to": [
+        "subsystem.expedition",
+        "task.t52-runtime"
+      ],
+      "depends_on": [
+        "shipyard.sampler.t51",
+        "assault.preparation.close-boarders",
+        "migration.productive-dropsite",
+        "merchant.row.real-choke"
+      ],
+      "evidence": [
+        "T51-T50-RUNTIME-REPAIR.md",
+        "T52-RUNTIME-ACCEPTANCE.md"
+      ],
+      "implementation": [
+        "e7031f9"
+      ],
+      "acceptance": "After upstream gates pass, a safe isolated player productively fills and reuses the existing three slots from true surplus while retaining an adaptive home reserve.",
+      "next_action": "Collect blocker-transition/manifest observations only; do not tune until dependencies are judged.",
+      "reopen_when": "Not applicable while open."
+    },
+    {
+      "id": "context.architecture.v1",
+      "claim": "Agent context is separated into bounded hot current state, selectively assembled warm task/subsystem/role metadata, and indexed cold history/evidence; the assembler never concatenates referenced evidence.",
+      "status": "CLOSED",
+      "related_to": [
+        "workflow.context-maintenance"
+      ],
+      "depends_on": [],
+      "evidence": [
+        "context/README.md",
+        "tools/test_context_pack.py"
+      ],
+      "implementation": [],
+      "acceptance": "Context metadata validates, narrow packets remain below 12 KB, hot entry points remain below 30 KB, and cold evidence stays explicitly retrievable without routine ingestion.",
+      "next_action": "Maintain current IDs/capsules and replace the hot handoff instead of appending history.",
+      "reopen_when": "A size/selectivity test fails, authoritative state contradicts the handoff, or a representative narrow task again requires broad unrelated reconstruction."
+    }
+  ]
+}

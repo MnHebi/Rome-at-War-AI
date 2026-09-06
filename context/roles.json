@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "roles": [
+    {
+      "id": "architect",
+      "summary": "Define the narrow causal boundary and dependency-aware design before implementation.",
+      "include": [
+        "selected node and direct dependencies",
+        "current accepted findings",
+        "relevant architecture/source references",
+        "constraints and acceptance criteria"
+      ],
+      "exclude": [
+        "full historical handoff",
+        "unrelated subsystem reports",
+        "raw generated output"
+      ],
+      "stopping_condition": "Return a bounded design with explicit preserved behavior, unresolved evidence and validation gates; do not implement unless assigned."
+    },
+    {
+      "id": "implementer",
+      "summary": "Apply an accepted narrow change in the canonical workspace and validate it proportionally.",
+      "include": [
+        "accepted design or current task capsule",
+        "target source/generator files",
+        "direct invariants and focused tests",
+        "runtime acceptance boundary"
+      ],
+      "exclude": [
+        "complete replay history",
+        "unrelated strategy/economy context",
+        "evidence already distilled into an unchallenged accepted finding"
+      ],
+      "stopping_condition": "Focused checks pass, relevant broader gates pass, current state is updated, and runtime-sensitive status remains FIXED-PENDING-RUNTIME until replay proof."
+    },
+    {
+      "id": "tester",
+      "summary": "Falsify the patch against task acceptance and protected behavior with the cheapest sufficient tests first.",
+      "include": [
+        "task acceptance criteria",
+        "patch/diff",
+        "focused test files",
+        "known baseline failures"
+      ],
+      "exclude": [
+        "implementation history not needed to form a failing case",
+        "unrelated evidence reports"
+      ],
+      "stopping_condition": "Report exact PASS/FAIL commands and failures; distinguish structural coverage from runtime proof."
+    },
+    {
+      "id": "reviewer",
+      "summary": "Adversarially inspect a proposed patch against the stated causal claim, ownership/state invariants and regression boundary.",
+      "include": [
+        "task requirements",
+        "patch/diff",
+        "directly relevant findings/evidence",
+        "protected behavior and acceptance criteria"
+      ],
+      "exclude": [
+        "all prior project narrative",
+        "unrelated generated data"
+      ],
+      "stopping_condition": "Triage every finding as ACCEPTED, REJECTED with evidence, or DEFERRED; do not repeat review without changed evidence/design."
+    },
+    {
+      "id": "runtime-analyst",
+      "summary": "Reconstruct verified replay lifecycles without changing behavior or confusing telemetry with closure.",
+      "include": [
+        "runtime marker/hash",
+        "task acceptance criteria",
+        "decoder/audit tooling",
+        "relevant diagnostic code map and prior accepted findings"
+      ],
+      "exclude": [
+        "unrelated source archaeology",
+        "superseded hypotheses unless new evidence challenges the accepted finding"
+      ],
+      "stopping_condition": "Account for reconstructable successes, failures and unresolved cases; identify the first causal boundary and persist evidence/status before proposing a fix."
+    }
+  ]
+}
