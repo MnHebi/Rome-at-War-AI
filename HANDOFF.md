@@ -11,8 +11,8 @@ at `context/archive/HANDOFF-through-T52.md`.
 - Canonical workspace:
   `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`
 - Branch: `fix/trade-cog-cap-dacian`
-- Current behavioral HEAD: `5ece337`; inspect `git rev-parse HEAD` for the
-  following documentation commit. Runtime source commit remains `e7031f9`.
+- Current source/deployed behavioral HEAD: `ea3e146`; inspect
+  `git rev-parse HEAD` for the following deployment-record commit.
 - Existing PR: `https://github.com/MnHebi/Rome-at-War-AI/pull/11`
 - Do not create another branch, worktree, clone or recovery line unless the user
   explicitly changes this instruction.
@@ -44,15 +44,16 @@ T53 is a controlled order-706 experiment, not a root-cause claim. Commit
 `e359ea5` adds separately rearmed actor diagnostics and offline correlation.
 Commit `5ece337` wraps only four owned home-economy `action-default` commands in
 Ctrl with immediate reset and excludes carrying workers at selection and
-command time. It is independently revertible. No T53 source is installed.
+command time. It is independently revertible. T53 is now installed for fresh
+runtime testing.
 
 ## Installed runtime
 
-- Marker: `RAWAI-P3B44T52:500`
-- Runtime source commit: `e7031f9`
+- Marker: `RAWAI-P3B44T53:501`
+- Runtime source commit: `ea3e146`
 - Installed/source files: 99/99 byte-identical; no overlay or unexpected files.
 - Aggregate SHA-256:
-  `387913EFC902E0DF796532F16F31A4B05F7F265962B8AE43C39C7033433C28B5`
+  `F2674593C563590092BA1ACEF977D88B5BD148E1186604B7491FF886D87CA3CE`
 - Target:
   `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`
 
@@ -89,8 +90,7 @@ danger validation, migration/relic separation and bounded naval cooperation.
 
 ## Exact next action
 
-Do not deploy T53 unless explicitly authorized. Once a future runtime is
-installed and verified, analyze each 640-657 episode with
+Analyze the next verified marker-501 replay. Reconstruct each 640-657 episode with
 `tools/analyze_economic_retasks.py`: compare the exact actor's 30-second pre/post
 706 rate, assignment/role/target persistence and later recurrence; enumerate
 major unsampled actors. Accept or revert `5ece337` from runtime evidence, keep
