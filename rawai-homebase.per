@@ -2141,6 +2141,73 @@
 ;abandoned Farm must be reclaimed even when the building target is already met.
 ;The tasker handles one worker per bounded pass and only targets a Farm in the
 ;worker's land zone, so it never issues an impossible across-water gather order.
+;A sampled T53 retask is observed on the next farm timer episode.  Keeping this
+;observer on the controller's own idle boundary prevents its diagnostic search
+;from disturbing a live farm candidate list.
+(defrule
+	(goal gl-econ-retask-diag-state 2)
+	(up-compare-goal gl-game-time g:>= gl-econ-retask-diag-due)
+	(up-timer-status t-farm-staffing == timer-triggered)
+	(goal gl-farm-staffing-state FARM-STAFFING-IDLE)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-econ-retask-diag-actor)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(set-goal gl-econ-retask-diag-state 3)
+)
+
+(defrule
+	(goal gl-econ-retask-diag-state 3)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-action gl-econ-retask-diag-action)
+	(up-get-object-data object-data-target-id gl-econ-retask-diag-target)
+	(up-get-object-data object-data-language-id gl-econ-retask-diag-language)
+	(up-get-object-data object-data-gather-type gl-econ-retask-diag-gather)
+	(up-get-fact game-time 0 gl-econ-retask-diag-time)
+	(up-chat-data-to-self str-t12-diag-id c: 651)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-actor)
+	(up-chat-data-to-self str-t12-diag-id c: 652)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-action)
+	(up-chat-data-to-self str-t12-diag-id c: 653)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target)
+	(up-chat-data-to-self str-t12-diag-id c: 654)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-language)
+	(up-chat-data-to-self str-t12-diag-id c: 655)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-gather)
+	(up-chat-data-to-self str-t12-diag-id c: 656)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-time)
+	(up-chat-data-to-self str-t12-diag-id c: 657)
+	(up-chat-data-to-self str-t12-diag-value c: 1)
+	(up-modify-goal gl-econ-retask-diag-next g:= gl-econ-retask-diag-time)
+	(up-modify-goal gl-econ-retask-diag-next c:+ 300)
+	(set-goal gl-econ-retask-diag-state 0)
+)
+
+(defrule
+	(goal gl-econ-retask-diag-state 3)
+	(not (up-set-target-object search-local c: 0))
+=>
+	(up-get-fact game-time 0 gl-econ-retask-diag-time)
+	(up-chat-data-to-self str-t12-diag-id c: 651)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-actor)
+	(up-chat-data-to-self str-t12-diag-id c: 656)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-time)
+	(up-chat-data-to-self str-t12-diag-id c: 657)
+	(up-chat-data-to-self str-t12-diag-value c: 0)
+	(up-modify-goal gl-econ-retask-diag-next g:= gl-econ-retask-diag-time)
+	(up-modify-goal gl-econ-retask-diag-next c:+ 300)
+	(set-goal gl-econ-retask-diag-state 0)
+)
+
+(defrule
+	(goal gl-econ-retask-diag-state 0)
+	(goal gl-econ-retask-diag-armed NO)
+	(up-compare-goal gl-game-time g:>= gl-econ-retask-diag-next)
+=>
+	(set-goal gl-econ-retask-diag-armed YES)
+)
+
 (defrule
 	(up-timer-status t-farm-staffing == timer-triggered)
 	(goal gl-farm-staffing-state FARM-STAFFING-IDLE)
@@ -2169,6 +2236,9 @@
 =>
 	(up-get-object-data object-data-id gl-farm-staffing-id)
 	(up-get-object-data object-data-map-zone-id gl-farm-staffing-zone)
+	(up-modify-goal gl-econ-retask-diag-target-id g:= gl-farm-staffing-id)
+	(up-get-object-data object-data-type gl-econ-retask-diag-target-type)
+	(up-get-object-data object-data-class gl-econ-retask-diag-target-class)
 	(up-get-point position-object point2-x)
 	;Keep the remaining Farm candidates in search-remote. If this Farm's zone has
 	;lost every eligible worker, the failure path can reject it and advance.
@@ -2182,6 +2252,55 @@
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index >= 1)
 	(set-goal gl-farm-staffing-state FARM-STAFFING-CHECK-FISHERMAN)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-FISHERMAN)
+	(goal gl-econ-retask-diag-armed YES)
+	(goal gl-econ-retask-diag-state 0)
+	(up-set-target-object search-local c: 0)
+=>
+	(set-goal gl-econ-retask-diag-writer 1)
+	(up-get-object-data object-data-id gl-econ-retask-diag-actor)
+	(up-get-object-data object-data-action gl-econ-retask-diag-action)
+	(up-get-object-data object-data-target-id gl-econ-retask-diag-target)
+	(up-get-object-data object-data-language-id gl-econ-retask-diag-language)
+	(up-get-object-data object-data-gather-type gl-econ-retask-diag-gather)
+	(up-get-object-data object-data-carry gl-econ-retask-diag-carry)
+	(up-get-fact game-time 0 gl-econ-retask-diag-time)
+	(up-chat-data-to-self str-t12-diag-id c: 640)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-writer)
+	(up-chat-data-to-self str-t12-diag-id c: 641)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-actor)
+	(up-chat-data-to-self str-t12-diag-id c: 642)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-action)
+	(up-chat-data-to-self str-t12-diag-id c: 643)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target)
+	(up-chat-data-to-self str-t12-diag-id c: 644)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-language)
+	(up-chat-data-to-self str-t12-diag-id c: 645)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-gather)
+	(up-chat-data-to-self str-t12-diag-id c: 646)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-carry)
+	(set-goal gl-econ-retask-diag-state 1)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-FISHERMAN)
+	(goal gl-econ-retask-diag-state 1)
+=>
+	(up-chat-data-to-self str-t12-diag-id c: 647)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target-id)
+	(up-chat-data-to-self str-t12-diag-id c: 648)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target-type)
+	(up-chat-data-to-self str-t12-diag-id c: 649)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target-class)
+	(up-chat-data-to-self str-t12-diag-id c: 650)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-time)
+	(up-modify-goal gl-econ-retask-diag-due g:= gl-econ-retask-diag-time)
+	(up-modify-goal gl-econ-retask-diag-due c:+ 2)
+	(set-goal gl-econ-retask-diag-armed NO)
+	(set-goal gl-econ-retask-diag-state 2)
 )
 
 (defrule
@@ -2214,6 +2333,55 @@
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index >= 1)
 	(set-goal gl-farm-staffing-state FARM-STAFFING-CHECK-IDLE)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-IDLE)
+	(goal gl-econ-retask-diag-armed YES)
+	(goal gl-econ-retask-diag-state 0)
+	(up-set-target-object search-local c: 0)
+=>
+	(set-goal gl-econ-retask-diag-writer 2)
+	(up-get-object-data object-data-id gl-econ-retask-diag-actor)
+	(up-get-object-data object-data-action gl-econ-retask-diag-action)
+	(up-get-object-data object-data-target-id gl-econ-retask-diag-target)
+	(up-get-object-data object-data-language-id gl-econ-retask-diag-language)
+	(up-get-object-data object-data-gather-type gl-econ-retask-diag-gather)
+	(up-get-object-data object-data-carry gl-econ-retask-diag-carry)
+	(up-get-fact game-time 0 gl-econ-retask-diag-time)
+	(up-chat-data-to-self str-t12-diag-id c: 640)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-writer)
+	(up-chat-data-to-self str-t12-diag-id c: 641)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-actor)
+	(up-chat-data-to-self str-t12-diag-id c: 642)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-action)
+	(up-chat-data-to-self str-t12-diag-id c: 643)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target)
+	(up-chat-data-to-self str-t12-diag-id c: 644)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-language)
+	(up-chat-data-to-self str-t12-diag-id c: 645)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-gather)
+	(up-chat-data-to-self str-t12-diag-id c: 646)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-carry)
+	(set-goal gl-econ-retask-diag-state 1)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-IDLE)
+	(goal gl-econ-retask-diag-state 1)
+=>
+	(up-chat-data-to-self str-t12-diag-id c: 647)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target-id)
+	(up-chat-data-to-self str-t12-diag-id c: 648)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target-type)
+	(up-chat-data-to-self str-t12-diag-id c: 649)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target-class)
+	(up-chat-data-to-self str-t12-diag-id c: 650)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-time)
+	(up-modify-goal gl-econ-retask-diag-due g:= gl-econ-retask-diag-time)
+	(up-modify-goal gl-econ-retask-diag-due c:+ 2)
+	(set-goal gl-econ-retask-diag-armed NO)
+	(set-goal gl-econ-retask-diag-state 2)
 )
 
 (defrule
@@ -2256,6 +2424,55 @@
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index >= 1)
 	(set-goal gl-farm-staffing-state FARM-STAFFING-ASSIGN)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-ASSIGN)
+	(goal gl-econ-retask-diag-armed YES)
+	(goal gl-econ-retask-diag-state 0)
+	(up-set-target-object search-local c: 0)
+=>
+	(set-goal gl-econ-retask-diag-writer 3)
+	(up-get-object-data object-data-id gl-econ-retask-diag-actor)
+	(up-get-object-data object-data-action gl-econ-retask-diag-action)
+	(up-get-object-data object-data-target-id gl-econ-retask-diag-target)
+	(up-get-object-data object-data-language-id gl-econ-retask-diag-language)
+	(up-get-object-data object-data-gather-type gl-econ-retask-diag-gather)
+	(up-get-object-data object-data-carry gl-econ-retask-diag-carry)
+	(up-get-fact game-time 0 gl-econ-retask-diag-time)
+	(up-chat-data-to-self str-t12-diag-id c: 640)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-writer)
+	(up-chat-data-to-self str-t12-diag-id c: 641)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-actor)
+	(up-chat-data-to-self str-t12-diag-id c: 642)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-action)
+	(up-chat-data-to-self str-t12-diag-id c: 643)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target)
+	(up-chat-data-to-self str-t12-diag-id c: 644)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-language)
+	(up-chat-data-to-self str-t12-diag-id c: 645)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-gather)
+	(up-chat-data-to-self str-t12-diag-id c: 646)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-carry)
+	(set-goal gl-econ-retask-diag-state 1)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-ASSIGN)
+	(goal gl-econ-retask-diag-state 1)
+=>
+	(up-chat-data-to-self str-t12-diag-id c: 647)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target-id)
+	(up-chat-data-to-self str-t12-diag-id c: 648)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target-type)
+	(up-chat-data-to-self str-t12-diag-id c: 649)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target-class)
+	(up-chat-data-to-self str-t12-diag-id c: 650)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-time)
+	(up-modify-goal gl-econ-retask-diag-due g:= gl-econ-retask-diag-time)
+	(up-modify-goal gl-econ-retask-diag-due c:+ 2)
+	(set-goal gl-econ-retask-diag-armed NO)
+	(set-goal gl-econ-retask-diag-state 2)
 )
 
 (defrule
@@ -2308,6 +2525,23 @@
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-EXCESS-FISHERMAN)
 	(up-set-target-object search-local c: 0)
+	(goal gl-econ-retask-diag-armed YES)
+	(goal gl-econ-retask-diag-state 0)
+=>
+	(set-goal gl-econ-retask-diag-writer 4)
+	(up-get-object-data object-data-id gl-econ-retask-diag-actor)
+	(up-get-object-data object-data-action gl-econ-retask-diag-action)
+	(up-get-object-data object-data-target-id gl-econ-retask-diag-target)
+	(up-get-object-data object-data-language-id gl-econ-retask-diag-language)
+	(up-get-object-data object-data-gather-type gl-econ-retask-diag-gather)
+	(up-get-object-data object-data-carry gl-econ-retask-diag-carry)
+	(up-get-fact game-time 0 gl-econ-retask-diag-time)
+	(set-goal gl-econ-retask-diag-state 1)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-EXCESS-FISHERMAN)
+	(up-set-target-object search-local c: 0)
 =>
 	(up-get-object-data object-data-id gl-farm-staffing-worker-id)
 	(up-get-object-data object-data-map-zone-id gl-farm-staffing-zone)
@@ -2322,6 +2556,42 @@
 	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-farm-staffing-zone)
 	(up-clean-search search-remote object-data-distance search-order-asc)
 	(set-goal gl-farm-staffing-state FARM-STAFFING-FIND-RESOURCE)
+)
+
+(defrule
+	(goal gl-farm-staffing-state FARM-STAFFING-FIND-RESOURCE)
+	(up-set-target-object search-remote c: 0)
+	(goal gl-econ-retask-diag-state 1)
+=>
+	(up-get-object-data object-data-id gl-econ-retask-diag-target-id)
+	(up-get-object-data object-data-type gl-econ-retask-diag-target-type)
+	(up-get-object-data object-data-class gl-econ-retask-diag-target-class)
+	(up-chat-data-to-self str-t12-diag-id c: 640)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-writer)
+	(up-chat-data-to-self str-t12-diag-id c: 641)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-actor)
+	(up-chat-data-to-self str-t12-diag-id c: 642)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-action)
+	(up-chat-data-to-self str-t12-diag-id c: 643)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target)
+	(up-chat-data-to-self str-t12-diag-id c: 644)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-language)
+	(up-chat-data-to-self str-t12-diag-id c: 645)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-gather)
+	(up-chat-data-to-self str-t12-diag-id c: 646)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-carry)
+	(up-chat-data-to-self str-t12-diag-id c: 647)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target-id)
+	(up-chat-data-to-self str-t12-diag-id c: 648)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target-type)
+	(up-chat-data-to-self str-t12-diag-id c: 649)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-target-class)
+	(up-chat-data-to-self str-t12-diag-id c: 650)
+	(up-chat-data-to-self str-t12-diag-value g: gl-econ-retask-diag-time)
+	(up-modify-goal gl-econ-retask-diag-due g:= gl-econ-retask-diag-time)
+	(up-modify-goal gl-econ-retask-diag-due c:+ 2)
+	(set-goal gl-econ-retask-diag-armed NO)
+	(set-goal gl-econ-retask-diag-state 2)
 )
 
 (defrule
@@ -2349,6 +2619,9 @@
 	(goal gl-farm-staffing-state FARM-STAFFING-FIND-RESOURCE)
 	(not (up-set-target-object search-remote c: 0))
 =>
+	;No Ctrl-retask episode occurred, so return the dedicated diagnostic latch
+	;to its idle state without consuming the still-armed late-game sample.
+	(set-goal gl-econ-retask-diag-state 0)
 	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
 	(up-set-timer c: t-farm-staffing c: 20)
 	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)

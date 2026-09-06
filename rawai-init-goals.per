@@ -662,6 +662,30 @@
 	(disable-self)
 )
 
+;T53 diagnostics use an independent episode latch instead of a finite lifetime
+;budget.  A real sampled economic retask consumes the latch; its delayed
+;observation schedules the next sample five minutes later.
+(defrule
+	(true)
+=>
+	(set-goal gl-econ-retask-diag-armed YES)
+	(set-goal gl-econ-retask-diag-state 0)
+	(set-goal gl-econ-retask-diag-due 0)
+	(set-goal gl-econ-retask-diag-next 0)
+	(set-goal gl-econ-retask-diag-writer 0)
+	(set-goal gl-econ-retask-diag-actor -1)
+	(set-goal gl-econ-retask-diag-action -1)
+	(set-goal gl-econ-retask-diag-target -1)
+	(set-goal gl-econ-retask-diag-language -1)
+	(set-goal gl-econ-retask-diag-gather -1)
+	(set-goal gl-econ-retask-diag-carry 0)
+	(set-goal gl-econ-retask-diag-target-id -1)
+	(set-goal gl-econ-retask-diag-target-type -1)
+	(set-goal gl-econ-retask-diag-target-class -1)
+	(set-goal gl-econ-retask-diag-time 0)
+	(disable-self)
+)
+
 ;Home-island resource pressure and migration routing remain separate from the
 ;farm initializer so the replay marker and startup rules stay below ERR6002.
 (defrule

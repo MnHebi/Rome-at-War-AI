@@ -150,6 +150,180 @@ def read_stream(source: Path, parser_root: Path):
                                  for (k, e), n in failures.items()]
 
 
+def paired_diagnostics(events: list[dict]) -> list[dict]:
+    """Pair replay-visible RAW12 diagnostic IDs with their following values."""
+    pending: dict[int, dict] = {}
+    pairs = []
+    for event in events:
+        if event.get("action") != "CHAT":
+            continue
+        player = event.get("player")
+        message = str(event.get("message", ""))
+        match = re.fullmatch(r"RAW12 diag id: (-?\d+)", message)
+        if match and isinstance(player, int):
+            pending[player] = dict(event, diag_id=int(match.group(1)))
+            continue
+        match = re.fullmatch(r"RAW12 diag value: (-?\d+)", message)
+        if match and isinstance(player, int) and player in pending:
+            prior = pending.pop(player)
+            pairs.append({
+                "player": player,
+                "diag_id": prior["diag_id"],
+                "value": int(match.group(1)),
+                "sequence": prior["sequence"],
+                "milliseconds": prior["milliseconds"],
+                "value_sequence": event["sequence"],
+            })
+    return pairs
+
+
+def economic_retask_correlation(events: list[dict], window_ms: int = 30000) -> dict:
+    """Correlate T53 Ctrl-retask samples with exact per-actor order-706 rates.
+
+    This reconstructs command/diagnostic timing only. AI_ORDER packets are not
+    proof that a simulated command executed, and a rate change is correlation,
+    not by itself proof of the native assignment mechanism.
+    """
+    pre_names = {
+        640: "writer", 641: "actor", 642: "old_action",
+        643: "old_target", 644: "old_language_id", 645: "old_gather_type",
+        646: "carry", 647: "new_target", 648: "new_target_type",
+        649: "new_target_class", 650: "retask_game_time",
+    }
+    post_names = {
+        651: "actor", 652: "new_action", 653: "observed_target",
+        654: "new_language_id", 655: "new_gather_type",
+        656: "observation_game_time", 657: "actor_observed",
+    }
+    episodes: list[dict] = []
+    open_pre: dict[int, dict] = {}
+    open_post: dict[int, dict] = {}
+    for pair in paired_diagnostics(events):
+        player, diag_id = pair["player"], pair["diag_id"]
+        if diag_id == 640:
+            episode = {
+                "player": player,
+                "pre_sequence": pair["sequence"],
+                "retask_milliseconds": pair["milliseconds"],
+                "writer": pair["value"],
+                "post": None,
+            }
+            episodes.append(episode)
+            open_pre[player] = episode
+            continue
+        if diag_id in pre_names and player in open_pre:
+            episode = open_pre[player]
+            episode[pre_names[diag_id]] = pair["value"]
+            episode["pre_end_sequence"] = pair["value_sequence"]
+            if diag_id == 650:
+                open_pre.pop(player, None)
+            continue
+        if diag_id == 651:
+            actor = pair["value"]
+            episode = next((row for row in episodes
+                            if row["player"] == player and row.get("actor") == actor
+                            and row.get("post") is None), None)
+            if episode is not None:
+                episode["post"] = {
+                    "actor": actor,
+                    "observation_milliseconds": pair["milliseconds"],
+                    "sequence": pair["sequence"],
+                }
+                open_post[player] = episode
+            continue
+        if diag_id in post_names and player in open_post:
+            post = open_post[player]["post"]
+            post[post_names[diag_id]] = pair["value"]
+            post["end_sequence"] = pair["value_sequence"]
+            if diag_id == 657:
+                open_post.pop(player, None)
+
+    order706: dict[tuple[int, int], list[dict]] = defaultdict(list)
+    for event in events:
+        if event.get("action") != "AI_ORDER" or event.get("order_id") != 706:
+            continue
+        player = event.get("player_id")
+        if not isinstance(player, int):
+            continue
+        for actor in event.get("object_ids", []):
+            order706[player, actor].append(event)
+
+    replay_end = max((row.get("milliseconds", 0) for row in events), default=0)
+    instrumented = set()
+    for episode in episodes:
+        actor = episode.get("actor")
+        player = episode["player"]
+        if not isinstance(actor, int):
+            continue
+        instrumented.add((player, actor))
+        at = episode["retask_milliseconds"]
+        start = max(0, at - window_ms)
+        end = min(replay_end, at + window_ms)
+        rows = order706.get((player, actor), [])
+        pre = [row for row in rows if start <= row["milliseconds"] < at]
+        post = [row for row in rows if at <= row["milliseconds"] <= end]
+        later = [row for row in rows if row["milliseconds"] > end]
+        pre_seconds = max((at - start) / 1000, 0.001)
+        post_seconds = max((end - at) / 1000, 0.001)
+        episode["order706"] = {
+            "first_onset_milliseconds": rows[0]["milliseconds"] if rows else None,
+            "total": len(rows),
+            "pre_window_ms": [start, at],
+            "pre_count": len(pre),
+            "pre_rate_hz": round(len(pre) / pre_seconds, 4),
+            "post_window_ms": [at, end],
+            "post_count": len(post),
+            "post_rate_hz": round(len(post) / post_seconds, 4),
+            "later_recurrence_count": len(later),
+            "first_later_recurrence_milliseconds": (
+                later[0]["milliseconds"] if later else None
+            ),
+        }
+        post_data = episode.get("post") or {}
+        observed = post_data.get("actor_observed") == 1
+        episode["role_transition_observed"] = (
+            post_data.get("new_language_id") != episode.get("old_language_id")
+            if observed and "new_language_id" in post_data
+            and "old_language_id" in episode else None
+        )
+        episode["target_transition_observed"] = (
+            post_data.get("observed_target") == episode.get("new_target")
+            if observed and "observed_target" in post_data
+            and "new_target" in episode else None
+        )
+
+    actor_rows = []
+    for (player, actor), rows in order706.items():
+        actor_rows.append({
+            "player": player,
+            "actor": actor,
+            "count": len(rows),
+            "first_milliseconds": rows[0]["milliseconds"],
+            "last_milliseconds": rows[-1]["milliseconds"],
+            "instrumented": (player, actor) in instrumented,
+        })
+    actor_rows.sort(key=lambda row: (-row["count"], row["player"], row["actor"]))
+    return {
+        "window_ms": window_ms,
+        "writer_codes": {
+            "1": "fisherman-to-farm",
+            "2": "idle-villager-to-farm",
+            "3": "free-economic-villager-to-farm",
+            "4": "fisherman-to-gold-stone-or-tree",
+        },
+        "episodes": episodes,
+        "order706_actors": actor_rows,
+        "major_order706_actors_without_sample": [
+            row for row in actor_rows if row["count"] >= 100 and not row["instrumented"]
+        ],
+        "limitations": [
+            "Packet timing and telemetry are correlation, not simulation acknowledgement.",
+            "A persistent Ctrl retask does not prove the internal assignment-conflict hypothesis.",
+            "Major unsampled 706 actors remain outside the tested writer population.",
+        ],
+    }
+
+
 def compact(event: dict) -> dict:
     return {key: event[key] for key in ("sequence", "milliseconds", "offset", "action",
             "target_id", "order_id", "x", "y", "message", "raw_hex") if key in event}
@@ -383,6 +557,7 @@ def main() -> None:
     colors = {row["player"]: row["color"] for row in prior["hull_phases"]}
     events, counts, failures = read_stream(args.replay, args.parser_root)
     report = analyze(events, hulls, colors, tuple(prior.get("attack_terminals", [])))
+    report["economic_retask_correlation"] = economic_retask_correlation(events)
     if args.writer_manifest:
         from audit_writer_trace import analyze_writer_trace
         manifest = json.loads(args.writer_manifest.read_text(encoding='utf-8'))
