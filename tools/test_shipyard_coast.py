@@ -1,7 +1,7 @@
 import unittest
 from per_coastal_fixture import ShipyardFixture
 from generate_shipyard_placement import (
-    outputs, CANDIDATE_RADIUS, CANDIDATE_SECTORS, CANDIDATE_SPAN,
+    outputs, CANDIDATE_RADIUS, CANDIDATE_SPAN,
     MAX_CANDIDATE_ATTEMPTS, SUSTAINED_SHIPYARD_CAPACITY,
     SUSTAINED_WOOD_RESERVE,
 )
@@ -136,10 +136,8 @@ class ShipyardTests(unittest.TestCase):
             self.assertEqual(f.sn['sn-focus-player-number'],7)
 
     def test_dense_near_anchor_sampling_and_cursor_wrap(self):
-        f=ShipyardFixture()
-        second=CANDIDATE_SECTORS[0][1]
-        accepted=(40+second[0],50+second[1])
-        f.can_site=lambda point: point==accepted
+        f=ShipyardFixture(); f.random_values=[0,0,26,14]
+        f.can_site=lambda point: point==(52,50)
         f.sweep()
         self.assertEqual(f.builds,[])
         self.assertEqual(f.g['gl-sy-reason'],64)
@@ -147,7 +145,7 @@ class ShipyardTests(unittest.TestCase):
         # One local miss must retain the admitted anchor and immediately sample
         # again instead of returning through the intermittently closed gate.
         f.sweep()
-        self.assertEqual(f.builds,[('shipyard',accepted)])
+        self.assertEqual(f.builds,[('shipyard',(52,50))])
         self.assertNotEqual(f.g['gl-sy-reason'],61)
 
     def test_candidate_batch_is_bounded_and_only_then_releases_the_lane(self):
@@ -164,18 +162,10 @@ class ShipyardTests(unittest.TestCase):
 
     def test_dense_candidate_domain_preserves_exact_safety_gates(self):
         generated=outputs()['rawai-specialplacement.per']
-        self.assertEqual(CANDIDATE_SPAN,4)
+        self.assertEqual(CANDIDATE_SPAN,29)
         self.assertEqual(CANDIDATE_RADIUS,14)
         self.assertEqual(MAX_CANDIDATE_ATTEMPTS,8)
-        self.assertEqual(len(CANDIDATE_SECTORS),4)
-        self.assertTrue(all(len(sector)==MAX_CANDIDATE_ATTEMPTS
-                            for sector in CANDIDATE_SECTORS))
-        self.assertNotIn('(generate-random-number ',generated)
-        for sector, offsets in enumerate(CANDIDATE_SECTORS):
-            for attempt, (dx,dy) in enumerate(offsets):
-                self.assertLessEqual(max(abs(dx),abs(dy)),CANDIDATE_RADIUS)
-                self.assertIn(f'(goal gl-sy-sector {sector})',generated)
-                self.assertIn(f'(goal gl-sy-attempt {attempt})',generated)
+        self.assertEqual(generated.count('(generate-random-number 29)'),2)
         self.assertIn('(up-can-build-line 0 gl-shipyard-x c: shipyard)',generated)
         self.assertIn('(up-filter-distance c: -1 c: 10)',generated)
         self.assertIn('(up-path-distance gl-sy-w1-x 1 == 65535)',generated)
@@ -183,22 +173,14 @@ class ShipyardTests(unittest.TestCase):
         self.assertIn('(up-path-distance gl-sy-w6-x 1 == 65535)',generated)
         self.assertIn('(up-path-distance gl-shipyard-x 0 < 64)',generated)
 
-    def test_sector_rotation_distributes_successive_yards_around_anchor(self):
-        points=[]
-        for sector in range(CANDIDATE_SPAN):
-            f=ShipyardFixture();f.sweep()
-            # The one-shot initializer deliberately owns the initial cursor.
-            # Reopen the fixture after it has disabled itself to exercise each
-            # persistent sector independently.
-            f.builds.clear();f.g.update({'gl-sy-stage':0,
-                'shipyard-placement-state':f.val('SHIPYARD-IDLE'),
-                'gl-sy-sector':sector,'gl-sy-next':f.now})
-            f.zone_at=lambda _point:8
+    def test_full_domain_can_reach_near_and_arbitrary_direction_sites(self):
+        for random_values,expected in (([26,14],(52,50)),
+                                       ([26,19],(52,55)),
+                                       ([27,7],(53,43))):
+            f=ShipyardFixture();f.random_values=random_values
+            f.can_site=lambda point,expected=expected: point==expected
             f.sweep()
-            self.assertEqual(len(f.builds),1)
-            points.append(f.builds[0][1])
-            self.assertEqual(f.g['gl-sy-sector'],sector)
-        self.assertEqual(points,[(52,50),(40,62),(28,50),(40,38)])
+            self.assertEqual(f.builds,[('shipyard',expected)])
 
     def test_coast_rejection_diagnostics_identify_the_actual_gate(self):
         cases = []
