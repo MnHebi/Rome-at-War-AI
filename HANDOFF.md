@@ -1,5 +1,46 @@
 # Rome at War AI handoff
 
+## CURRENT — T52 SHIPYARD REPAIR + EPISODE DIAGNOSTICS DEPLOYED, 2026-09-06
+
+- **Canonical workspace:**
+  `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`;
+  branch `fix/trade-cog-cap-dacian`; runtime source HEAD `e7031f9`.
+  No branch, worktree, clone, recovery line or writer-trace overlay was created.
+- **Causal Shipyard repair:** commit `ec3ee78` reverts only the defective T51
+  sparse-cardinal sampling concept and restores the T50-proven independent
+  X/Y `[-14,+14]` candidate domain. Eight-attempt admission, buildability,
+  separation, same-water and W1-W6 aperture safety, worker path, failed-sector
+  memory, exact foundation verification and capacity tiers are unchanged.
+- **Episode-reserved diagnostics:** commit `e7031f9` replaces lifetime pools
+  with bounded pools armed by real controller episodes. Shipyard admission,
+  placement and foundation; migration admission, STOP, boarding, landing,
+  drop-site, recovery and lifecycle; ROW selection/stall/merchant/holding/
+  issuance; and expedition blocker/manifest diagnostics can no longer all be
+  consumed during startup. This commit changes no controller policy and no
+  command rule is diagnostic-gated.
+- **Runtime deployment:** preflight found exactly 11 differing T52 files and no
+  missing/unexpected files. All 11 were copied from this checkout to
+  `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`.
+  Independent read-only verification reports 99/99 identical runtime files,
+  zero mismatches, installed marker `RAWAI-P3B44T52:500`, and source/install
+  aggregate SHA-256
+  `387913EFC902E0DF796532F16F31A4B05F7F265962B8AE43C39C7033433C28B5`.
+- **Validation PASS:** focused controller suites 192; full Python 3.12 discovery
+  529/529; PER structure/operands; generated-source synchronization; strategy
+  execution 1,156/zero errors; naval doctrine; ownership contract 27; replay
+  benchmark metadata 42; and `git diff --check` (line-ending warnings only).
+- **Runtime gates:** `T52-RUNTIME-ACCEPTANCE.md` is authoritative. First prove
+  multi-player Shipyard recovery from T51's one-order collapse. Then attribute
+  the first Villager order-706 onset using the class-reserved STOP evidence;
+  resolve close active Gray assault passengers that still fail to enter; prove
+  the complete migration drop-site gather/deposit chain; exercise ROW in a
+  real late-game choke; and only then reassess expeditionary commitment.
+- **Defect state:** Shipyard sampler is **FIXED-PENDING-RUNTIME**. Landed combat
+  and T50 land trade remain runtime-passing. Order-706 attribution, assault
+  preparation efficiency, productive migration drop sites, real-choke ROW and
+  expeditionary utilization remain **INVESTIGATING**. Do not close them from
+  the static validation or from telemetry presence alone.
+
 ## CURRENT — T51 RUNTIME REPLAY ASSESSED, 2026-09-06
 
 - **Canonical workspace:**
