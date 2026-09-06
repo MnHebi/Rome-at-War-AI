@@ -24,12 +24,12 @@ class Foundation(Verifier):
         elif op == 'up-filter-distance': self.radius = self.val(a[-1])
         elif op == 'up-filter-status': self.status = self.val(a[1])
         elif op == 'up-find-status-local':
-            self.remote = []
+            self.local = []
             for i, o in self.objects.items():
                 self.target = i
                 if (o['player'] == 2 and o['type'] == a[1] and o['status'] == self.status
                         and self.data('object-data-distance') <= self.radius):
-                    self.remote.append(i)
+                    self.local.append(i)
         elif op == 'up-clean-search': pass
         else: return super().action(e, pc)
         return 0

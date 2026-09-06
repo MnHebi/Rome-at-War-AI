@@ -67,7 +67,8 @@ class Verifier:
         if op == 'up-compare-goal': return self.compare(self.g.get(a[0], 0), a[1], a[2])
         if op == 'up-set-target-object':
             index = self.operand(a[1], a[2])
-            self.target = self.remote[index] if 0 <= index < len(self.remote) else None
+            items = self.local if a[0] == 'search-local' else self.remote
+            self.target = items[index] if 0 <= index < len(items) else None
             return self.target is not None
         if op in ('up-object-data', 'up-object-target-data'):
             return self.compare(self.data(a[0], op == 'up-object-target-data'), a[1], a[2])

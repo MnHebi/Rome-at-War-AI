@@ -11,8 +11,8 @@ at `context/archive/HANDOFF-through-T52.md`.
 - Canonical workspace:
   `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`
 - Branch: `fix/trade-cog-cap-dacian`
-- Current source/deployed behavioral HEAD: `ea3e146`; inspect
-  `git rev-parse HEAD` for the following deployment-record commit.
+- Source behavior: `64d7e02`; documentation commit follows this update.
+- Deployed behavior remains `ea3e146`; the new repairs are not installed.
 - Existing PR: `https://github.com/MnHebi/Rome-at-War-AI/pull/11`
 - Do not create another branch, worktree, clone or recovery line unless the user
   explicitly changes this instruction.
@@ -34,18 +34,15 @@ at `context/archive/HANDOFF-through-T52.md`.
 
 ## Active task
 
-- Node: `task.t53-villager-keystates`
-- Capsule: `context/tasks/t53-villager-keystates.json`
-- Source audit: `T53-VILLAGER-KEYSTATES-AUDIT.md`
+- Node: `task.t53-replay-repair`
+- Capsule: `context/tasks/t53-replay-repair.json`
+- Replay assessment: `T53-RUNTIME-REPLAY-ASSESSMENT.md`
 - Load compact task context with:
-  `py -3.12 tools/context_pack.py task.t53-villager-keystates --role runtime-analyst`
+  `py -3.12 tools/context_pack.py task.t53-replay-repair --role runtime-analyst`
 
-T53 is a controlled order-706 experiment, not a root-cause claim. Commit
-`e359ea5` adds separately rearmed actor diagnostics and offline correlation.
-Commit `5ece337` wraps only four owned home-economy `action-default` commands in
-Ctrl with immediate reset and excludes carrying workers at selection and
-command time. It is independently revertible. T53 is now installed for fresh
-runtime testing.
+T53 corroborates help silence and a bad assault route. `0e1a83b` repairs
+exact-attack lifetime/local balance; `64d7e02` requires land egress before
+shore admission. Both await runtime. Ctrl sampling remains inconclusive.
 
 ## Installed runtime
 
@@ -63,7 +60,9 @@ runtime testing.
 |---|---|---|
 | `shipyard.sampler.t51` | FIXED-PENDING-RUNTIME | `ec3ee78` restored the T50 full X/Y candidate domain while retaining all safety/capacity gates. Fresh replay must show multi-player concrete foundations. |
 | `villager.order706` | INVESTIGATING | T53 tests four ordinary home-economy writers with Ctrl persistence; exact cause remains unproven. Correlate codes 640-657 to the same actor's pre/post/later 706 stream. |
-| `villager.keystates.t53` | EXPERIMENTAL / FIXED-PENDING-RUNTIME | Retain only if verified runtime shows a material actor-level 706 reduction with persistent assignments and no worker/transport/garrison regression; otherwise revert `5ece337` only. |
+| `villager.keystates.t53` | EXPERIMENTAL / INCONCLUSIVE | Nine samples missed the active floods; no accept/revert result. |
+| `help.exact-episode.t53` | FIXED-PENDING-RUNTIME | `0e1a83b`: persistent exact episode plus fresh local balance. Require 312-317 and correct help/silence. |
+| `assault.shore-egress.t53` | FIXED-PENDING-RUNTIME | `64d7e02`: up to three mobile objective witnesses must path to the landing; reason 41 rotates alternatives. |
 | `assault.preparation.close-boarders` | INVESTIGATING | T51 passengers were 2-7 tiles away with exact hull/group/enter intent yet eight Gray cycles terminated. Reconstruct physical blockage/reissue/ownership at each abort. |
 | `migration.productive-dropsite` | OPEN | Launch/landing works. Require autonomous exact foundation -> ready -> retask -> gather -> deposit, without manual intervention. |
 | `merchant.row.real-choke` | INVESTIGATING | T52 diagnostics arm only on an actual priority-hull episode. Require one-at-a-time yield, hull progress, then native trade resumption. |
@@ -76,10 +75,11 @@ danger validation, migration/relic separation and bounded naval cooperation.
 
 ## Validation baseline
 
-- T53 focused tests: 9/9 PASS; key-state validator: PASS (exactly four bounded
-  Ctrl wrappers); ownership inventory: 1,028 sites, zero direct failures.
-- Full Python 3.12 discovery: 556/556 PASS (the sandboxed run hit the known
-  Windows Temp permission boundary; the approved unrestricted rerun passed).
+- T53 help tests: 10/10 PASS; assault planner: 29/29 PASS; shoreline resolver:
+  12/12 PASS; validator suite: 128/128 PASS.
+- Key-state validator: PASS (exactly four bounded Ctrl wrappers); ownership
+  inventory: 1,031 sites, zero direct failures.
+- Full Python 3.12 discovery: 563/563 PASS (unrestricted Windows Temp run).
 - PER structure/operand validation: PASS.
 - Strategy execution: 1,156 matchups, zero errors.
 - Naval doctrine, ownership, replay benchmark metadata (42), context metadata,
@@ -90,9 +90,7 @@ danger validation, migration/relic separation and bounded naval cooperation.
 
 ## Exact next action
 
-Analyze the next verified marker-501 replay. Reconstruct each 640-657 episode with
-`tools/analyze_economic_retasks.py`: compare the exact actor's 30-second pre/post
-706 rate, assignment/role/target persistence and later recurrence; enumerate
-major unsampled actors. Accept or revert `5ece337` from runtime evidence, keep
-`villager.order706` INVESTIGATING until causality is established, then resume
-the remaining ordered T52 runtime gates.
+Do not attribute these patches to marker 501. After explicit deployment with a
+new verified marker, require 312-317 and help under local overwhelm; require
+reason 41 to rotate an unconnected shore to usable land egress. Continue 706
+attribution only when a sampled actor overlaps the flood.
