@@ -24,10 +24,12 @@ class Verifier:
             self.constants.update({k: int(v) for k, v in re.findall(r'\(defconst ([\w-]+) (-?\d+)\)', source(name))})
         self.g = {'gl-self-player-number': 2, 'gl-ally-help-player': victim,
                   'gl-ally-help-state': 1 if relief else 0, 'gl-home-defense-state': 0}
-        self.sn, self.remote, self.target, self.point, self.include = {}, [], None, (0, 0), None
+        self.sn, self.local, self.remote = {}, [], []
+        self.target, self.point, self.include, self.radius = None, (0, 0), None, 32767
         self.disabled = set()
 
     def val(self, token):
+        if token == 'my-player-number': return 2
         return int(token) if re.fullmatch(r'-?\d+', token) else self.constants.get(token, token)
 
     def operand(self, mode, token):
@@ -42,7 +44,8 @@ class Verifier:
         key = {'object-data-id': 'id', 'object-data-player': 'player',
                'object-data-action': 'action', 'object-data-target-id': 'target',
                'object-data-hitpoints': 'hp', 'object-data-class': 'cls',
-               'object-data-map-zone-id': 'zone'}[field]
+               'object-data-map-zone-id': 'zone',
+               'object-data-garrisoned': 'garrisoned'}[field]
         return self.val(str(o.get(key, -1)))
 
     def compare(self, lhs, mode, token):
@@ -79,22 +82,41 @@ class Verifier:
             rhs = self.sn.get(a[2], 0) if a[1] == 's:=' else self.operand(a[1], a[2])
             self.g[a[0]] = self.g.get(a[0], 0) + rhs if a[1].endswith('+') else rhs
         elif op == 'up-modify-sn': self.sn[a[0]] = self.g.get(a[2], 0)
+        elif op == 'set-strategic-number': self.sn[a[0]] = self.val(a[1])
         elif op == 'up-find-player': self.g[a[-1]] = self.enemies[0] if self.enemies else -1
         elif op == 'up-find-next-player':
             old = self.g[a[-1]]
             self.g[a[-1]] = self.enemies[(self.enemies.index(old)+1) % len(self.enemies)] if self.enemies else -1
-        elif op == 'up-full-reset-search': self.remote, self.target, self.include = [], None, None
+        elif op == 'up-full-reset-search':
+            self.local, self.remote, self.target, self.include, self.radius = [], [], None, None, 32767
         elif op == 'up-filter-include': self.include = self.val(a[1])
+        elif op == 'up-filter-status': pass
+        elif op == 'up-filter-distance': self.radius = self.val(a[3])
         elif op == 'up-find-remote':
-            self.remote = [i for i, o in self.objects.items()
-                           if o['player'] == self.sn.get('sn-focus-player-number')
-                           and (self.include is None or o['action'] == self.include)][:self.val(a[-1])]
+            kind = self.val(a[1])
+            found = [i for i, o in self.objects.items()
+                     if o['player'] == self.sn.get('sn-focus-player-number')
+                     and (kind == self.val('all-units-class') or kind == self.val(str(o.get('cls'))))
+                     and (self.include is None or o['action'] == self.include)
+                     and math.dist(o.get('point', (9999, 9999)), self.point) <= self.radius]
+            self.remote += [i for i in found[:self.val(a[-1])] if i not in self.remote]
+        elif op == 'up-find-local':
+            kind = self.val(a[1])
+            found = [i for i, o in self.objects.items()
+                     if o['player'] == 2
+                     and (kind == self.val('all-units-class') or kind == self.val(str(o.get('cls'))))
+                     and math.dist(o.get('point', (9999, 9999)), self.point) <= self.radius]
+            self.local += [i for i in found[:self.val(a[-1])] if i not in self.local]
         elif op == 'up-remove-objects':
+            items = self.local if a[0] == 'search-local' else self.remote
             kept = []
-            for i in self.remote:
+            for i in items:
                 self.target = i
                 if not self.compare(self.data(a[1]), a[2], a[3]): kept.append(i)
-            self.remote = kept
+            if a[0] == 'search-local': self.local = kept
+            else: self.remote = kept
+        elif op == 'up-get-search-state':
+            self.g.update({'local-total': len(self.local), 'remote-total': len(self.remote)})
         elif op == 'up-get-object-data': self.g[a[1]] = self.data(a[0])
         elif op == 'up-get-point':
             self.g[a[1]], self.g[a[1][:-1]+'y'] = self.objects[self.target]['point']
@@ -104,6 +126,7 @@ class Verifier:
         elif op == 'up-add-object-by-id':
             i = self.operand(a[1], a[2])
             if i in self.objects: self.remote.append(i)
+        elif op in ('up-chat-data-to-all',): pass
         elif op == 'up-jump-rule': return int(a[0])
         else: raise AssertionError(e)
         return 0
@@ -157,8 +180,33 @@ class AttackIdentityTests(unittest.TestCase):
     def test_warning_requires_verified_pulse_not_proximity(self):
         for row in rule_blocks(source('rawai-diplomacy.per')):
             if '(chat-to-allies "48 ' in row[4]:
-                self.assertIn('(goal gl-self-attack-verified YES)', row[3])
+                self.assertIn('(goal gl-help-request-pending YES)', row[3])
+                self.assertIn('(goal gl-help-assessment-ready YES)', row[3])
+                self.assertIn('gl-help-threats g:> gl-help-responders', row[3])
         self.assertIn('gl-verify-players-seen c:< 8', source('rawai-attack-verification.per'))
+
+    def test_verified_attack_is_latched_and_locally_assessed(self):
+        verifier = source('rawai-attack-verification.per')
+        self.assertIn('(set-goal gl-help-request-pending YES)', verifier)
+        self.assertIn('(up-modify-goal gl-help-request-until c:+ 24)', verifier)
+        self.assertIn('(goal gl-verify-state VERIFY-SELF-THREATS)', verifier)
+        self.assertIn('(up-modify-goal gl-help-threats g:= remote-total)', verifier)
+        self.assertIn('(up-modify-goal gl-help-responders g:= local-total)', verifier)
+        self.assertIn('(goal gl-help-episode-reported NO)', verifier)
+        self.assertEqual(verifier.count('str-t12-diag-id c: 316'), 1)
+        self.assertEqual(verifier.count('str-t12-diag-id c: 317'), 1)
+
+    def test_verified_local_response_does_not_require_timer_coincidence(self):
+        military = source('rawai-military.per')
+        rules = [row for row in rule_blocks(military)
+                 if '(goal gl-self-attack-verified YES)' in row[3]
+                 and '(goal gl-local-response-state LOCAL-RESPONSE-IDLE)' in row[3]]
+        self.assertEqual(len(rules), 1)
+        self.assertNotIn('t-defense-leash', rules[0][3])
+        rebuild = next(row for row in rule_blocks(military)
+                       if '(goal gl-local-response-state LOCAL-RESPONSE-COMMAND)' in row[3]
+                       and '(set-goal gl-local-response-state LOCAL-RESPONSE-REBUILD)' in row[4])
+        self.assertIn('(up-modify-goal gl-local-response-threats g:= remote-total)', rebuild[4])
 
 
 if __name__ == '__main__':

@@ -5078,8 +5078,9 @@ class FarmPolicyTests(unittest.TestCase):
         help_request = matching_rules(
             self.diplomacy,
             facts=(
-                "(goal gl-self-attack-verified YES)",
-                "gl-local-response-responders c:<= 0",
+                "(goal gl-help-request-pending YES)",
+                "(goal gl-help-assessment-ready YES)",
+                "gl-help-threats g:> gl-help-responders",
             ),
             actions=("My settlement is under attack",),
         )
@@ -5770,7 +5771,7 @@ class FarmPolicyTests(unittest.TestCase):
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
         AssaultMissionTests().test_moving_hulls_do_not_receive_repeated_orders()
-        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T52: %d" c: 500)', self.init_goals)
+        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T53: %d" c: 501)', self.init_goals)
 
     def test_transport_departure_stalled_near_origin_activates_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
