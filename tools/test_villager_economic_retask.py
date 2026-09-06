@@ -9,6 +9,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 
 from audit_task_ownership import economic_retask_correlation  # noqa: E402
+from validate_naval_doctrine import matching_rules  # noqa: E402
+from validate_villager_keystates import (  # noqa: E402
+    CARRY_RECHECK,
+    RESET_KEYS,
+    RETASK,
+    SET_CTRL,
+    validate_repository,
+)
 
 
 def diag_pair(player: int, code: int, value: int, sequence: int, milliseconds: int):
@@ -67,6 +75,58 @@ class EconomicRetaskDiagnosticsTests(unittest.TestCase):
         self.assertIn("object-data-class gl-econ-retask-diag-target-class", self.home)
         self.assertIn("object-data-language-id gl-econ-retask-diag-language", self.home)
         self.assertIn("object-data-gather-type gl-econ-retask-diag-gather", self.home)
+
+    def test_only_four_owned_economic_commands_receive_ctrl(self) -> None:
+        self.assertEqual(validate_repository(ROOT), [])
+        self.assertEqual(self.home.count(SET_CTRL), 4)
+        self.assertEqual(self.home.count(f"{SET_CTRL}\n\t{RETASK}\n\t{RESET_KEYS}"), 4)
+        self.assertNotIn("action-gather", self.home)
+
+    def test_each_phase_a_selection_and_command_rejects_carrying_workers(self) -> None:
+        selections = (
+            matching_rules(
+                self.home,
+                facts=("FARM-STAFFING-FIND-FARM", "up-set-target-object search-remote"),
+                actions=("lid-villager-fisherman", "FARM-STAFFING-CHECK-FISHERMAN"),
+            )
+            + matching_rules(
+                self.home,
+                facts=("FARM-STAFFING-CHECK-FISHERMAN", "not (up-set-target-object"),
+                actions=("object-data-idling != 1", "FARM-STAFFING-CHECK-IDLE"),
+            )
+            + matching_rules(
+                self.home,
+                facts=("FARM-STAFFING-CHECK-IDLE", "not (up-set-target-object"),
+                actions=("lid-villager-builder", "FARM-STAFFING-ASSIGN"),
+            )
+            + matching_rules(
+                self.home,
+                facts=("FARM-STAFFING-FIND-FARM", "not (up-set-target-object"),
+                actions=("lid-villager-fisherman", "FARM-STAFFING-CHECK-EXCESS-FISHERMAN"),
+            )
+        )
+        self.assertEqual(len(selections), 4)
+        for block in selections:
+            self.assertIn(CARRY_RECHECK, block[4])
+
+        command_rules = matching_rules(
+            self.home,
+            actions=(SET_CTRL, RETASK, RESET_KEYS, CARRY_RECHECK),
+        )
+        self.assertEqual(len(command_rules), 4)
+
+    def test_transport_garrison_stop_build_repair_and_combat_files_stay_unmodified(self) -> None:
+        for name in (
+            "rawai-military.per", "rawai-hunt.per", "rawai-general.per",
+            "rawai-economy.per", "rawai-exploration-policy.per",
+        ):
+            source = (ROOT / name).read_text(encoding="utf-8-sig")
+            self.assertNotIn("sn-keystates", source, name)
+        military = (ROOT / "rawai-military.per").read_text(encoding="utf-8-sig")
+        self.assertIn("migration-boarding-group", military)
+        self.assertIn("action-garrison", military)
+        hunt = (ROOT / "rawai-hunt.per").read_text(encoding="utf-8-sig")
+        self.assertIn("BOAR-COMMIT-RESCUE-GARRISON-SEND", hunt)
 
 
 class EconomicRetaskCorrelationTests(unittest.TestCase):
