@@ -17,11 +17,12 @@ FIELDS = ('clock', 'next', 'deficit-since', 'minimum', 'sustained',
           'anchor-x', 'anchor-y', 'w1-x', 'w1-y', 'w2-x', 'w2-y', 'w3-x', 'w3-y',
           'w4-x', 'w4-y', 'w5-x', 'w5-y', 'w6-x', 'w6-y',
           'bounded-x', 'bounded-y', 'sample', 'focus', 'attempt',
-          # T51 diagnostic-only lifecycle storage.  This is a finite match-wide
-          # budget; candidate retries never replenish it.
-          'life-left', 'life-next', 'life-age', 'life-actual', 'life-total',
-          'life-pending', 'life-ports', 'life-afford', 'life-can-build',
-          'life-sustained', 'life-phase')
+          # T52 diagnostic-only episode storage. Admission, placement and
+          # foundation evidence have independent bounded reserves.
+          'diag-admission-left', 'diag-placement-left', 'diag-foundation-left',
+          'diag-admission-next', 'diag-age', 'diag-actual', 'diag-total',
+          'diag-pending', 'diag-ports', 'diag-afford', 'diag-can-build',
+          'diag-sustained', 'diag-phase')
 CANDIDATE_RADIUS = 14
 MAX_CANDIDATE_ATTEMPTS = 8
 SUSTAINED_SHIPYARD_CAPACITY = 4
@@ -69,8 +70,9 @@ def generate():
         '(set-goal gl-sy-deficit-since 0)', '(set-goal gl-sy-sustained-since 0)',
         '(set-goal gl-sy-ship -1)',
         '(set-goal gl-sy-memory-index 0)', '(set-goal gl-sy-diag-next 0)',
-        '(set-goal gl-sy-reported -1)', '(set-goal gl-sy-life-left 24)',
-        '(set-goal gl-sy-life-next 0)', '(set-goal gl-sy-life-phase 0)',
+        '(set-goal gl-sy-reported -1)', '(set-goal gl-sy-diag-admission-left 0)',
+        '(set-goal gl-sy-diag-placement-left 0)', '(set-goal gl-sy-diag-foundation-left 0)',
+        '(set-goal gl-sy-diag-admission-next 0)', '(set-goal gl-sy-diag-phase 0)',
         *[f'(set-goal gl-sy-memory{i}-until 0)' for i in range(4)], '(disable-self)'])
     add(['(true)'], ['(up-get-fact game-time 0 gl-sy-clock)',
         '(up-modify-goal gl-sy-minimum g:= desired-number-shipyards)', '(up-modify-goal gl-sy-minimum c:min 2)',
@@ -101,50 +103,64 @@ def generate():
     # A sixty-second, match-capped admission snapshot distinguishes absent
     # demand from resource, tech, pending and availability holds.  Searches are
     # reconstructed here and no placement/worker state is mutated.
-    life=[*stage(0), '(goal gl-sy-sample 1)', '(up-compare-goal gl-sy-life-left c:> 0)',
-          '(up-compare-goal gl-sy-clock g:>= gl-sy-life-next)',
-          '(goal gl-sy-life-phase 0)']
-    add(life,['(set-goal gl-sy-life-age 0)', '(set-goal gl-sy-life-afford 0)',
-        '(set-goal gl-sy-life-can-build 0)',
-        '(up-modify-goal gl-sy-life-sustained g:= gl-sy-sustained)'])
+    # Arm one admission snapshot only while a real Shipyard deficit exists.
+    # A blocked deficit may open a fresh one-sample episode after 60 seconds;
+    # placement/foundation reserves are armed only by actual admission.
+    deficit=[*stage(0), '(goal gl-sy-sample 1)', water,
+             '(current-age >= early-antiquity-age)', '(building-type-count port > 0)',
+             '(building-type-count-total shipyard g:< desired-number-shipyards)',
+             '(goal shipyard-placement-state SHIPYARD-IDLE)',
+             '(up-compare-goal gl-sy-diag-admission-left c:<= 0)',
+             '(up-compare-goal gl-sy-clock g:>= gl-sy-diag-admission-next)']
+    add(deficit,['(set-goal gl-sy-diag-admission-left 1)'])
+    life=[*stage(0), '(goal gl-sy-sample 1)',
+          '(up-compare-goal gl-sy-diag-admission-left c:> 0)',
+          '(goal gl-sy-diag-phase 0)']
+    add(life,['(set-goal gl-sy-diag-age 0)', '(set-goal gl-sy-diag-afford 0)',
+        '(set-goal gl-sy-diag-can-build 0)',
+        '(up-modify-goal gl-sy-diag-sustained g:= gl-sy-sustained)'])
     for age, name in enumerate(('iron-age','early-antiquity-age','middle-antiquity-age','imperial-age')):
-        add([*life,f'(current-age == {name})'],[f'(set-goal gl-sy-life-age {age})'])
-    add([*life,'(can-afford-building shipyard)'],['(set-goal gl-sy-life-afford 1)'])
-    add([*life,'(can-build shipyard)'],['(set-goal gl-sy-life-can-build 1)'])
-    add(life,['(up-get-fact unit-type-count shipyard gl-sy-life-actual)',
-        '(up-get-fact unit-type-count-total shipyard gl-sy-life-total)',
-        '(up-get-fact unit-type-count port gl-sy-life-ports)',
+        add([*life,f'(current-age == {name})'],[f'(set-goal gl-sy-diag-age {age})'])
+    add([*life,'(can-afford-building shipyard)'],['(set-goal gl-sy-diag-afford 1)'])
+    add([*life,'(can-build shipyard)'],['(set-goal gl-sy-diag-can-build 1)'])
+    add(life,['(up-get-fact unit-type-count shipyard gl-sy-diag-actual)',
+        '(up-get-fact unit-type-count-total shipyard gl-sy-diag-total)',
+        '(up-get-fact unit-type-count port gl-sy-diag-ports)',
         '(up-full-reset-search)', '(up-filter-status c: status-pending c: list-active)',
         '(up-find-status-local c: shipyard c: 40)', '(up-get-search-state local-total)',
-        '(up-modify-goal gl-sy-life-pending g:= local-total)',
-        '(set-goal gl-sy-life-phase 1)'])
-    add([*stage(0), '(goal gl-sy-life-phase 1)'], [
-        *diag(524,'gl-sy-life-age'), *diag(525,'desired-number-shipyards'),
-        *diag(526,'gl-sy-minimum'), *diag(527,'gl-sy-life-actual'),
-        *diag(528,'gl-sy-life-total'), *diag(529,'gl-sy-life-pending'),
-        *diag(543,'gl-sy-life-sustained'),
-        '(set-goal gl-sy-life-phase 2)'])
-    add([*stage(0), '(goal gl-sy-life-phase 2)'], [
-        *diag(530,'gl-sy-life-ports'), *diag(531,'wait-techup-requirements'),
-        *diag(532,'gl-owner-worker-hold'), *diag(533,'gl-sy-life-afford'),
-        *diag(534,'gl-sy-life-can-build'), *diag(535,'gl-sy-reason'),
+        '(up-modify-goal gl-sy-diag-pending g:= local-total)',
+        '(set-goal gl-sy-diag-phase 1)'])
+    add([*stage(0), '(goal gl-sy-diag-phase 1)'], [
+        *diag(524,'gl-sy-diag-age'), *diag(525,'desired-number-shipyards'),
+        *diag(526,'gl-sy-minimum'), *diag(527,'gl-sy-diag-actual'),
+        *diag(528,'gl-sy-diag-total'), *diag(529,'gl-sy-diag-pending'),
+        *diag(543,'gl-sy-diag-sustained'),
+        '(set-goal gl-sy-diag-phase 2)'])
+    add([*stage(0), '(goal gl-sy-diag-phase 2)'], [
+        *diag(530,'gl-sy-diag-ports'), *diag(531,'wait-techup-requirements'),
+        *diag(532,'gl-owner-worker-hold'), *diag(533,'gl-sy-diag-afford'),
+        *diag(534,'gl-sy-diag-can-build'), *diag(535,'gl-sy-reason'),
         *diag(544,'gl-sy-sustained-since'),
-        '(up-modify-goal gl-sy-life-next g:= gl-sy-clock)',
-        '(up-modify-goal gl-sy-life-next c:+ 60)',
-        '(up-modify-goal gl-sy-life-left c:- 1)',
-        '(set-goal gl-sy-life-phase 0)'])
+        '(up-modify-goal gl-sy-diag-admission-next g:= gl-sy-clock)',
+        '(up-modify-goal gl-sy-diag-admission-next c:+ 60)',
+        '(up-modify-goal gl-sy-diag-admission-left c:- 1)',
+        '(set-goal gl-sy-diag-phase 0)'])
     common = [*stage(0), '(goal gl-sy-sample 1)', water, '(current-age >= early-antiquity-age)',
               '(building-type-count port > 0)', '(goal shipyard-placement-state SHIPYARD-IDLE)']
     # Preserve the high-priority first-yard opening, including its wood reserve.
     add([*common, '(building-type-count-total shipyard == 0)', '(wood-amount > 250)',
          '(up-pending-objects c: shipyard <= 0)', '(not (up-pending-placement c: shipyard))',
          '(can-build shipyard)'], ['(set-goal gl-sy-admission-tier 1)',
-                                  '(set-goal shipyard-placement-state SHIPYARD-ANCHOR)'])
+                                  '(set-goal gl-sy-diag-placement-left 8)',
+                                  '(set-goal gl-sy-diag-foundation-left 2)',
+                                   '(set-goal shipyard-placement-state SHIPYARD-ANCHOR)'])
     add([*common, '(goal wait-techup-requirements NO)', '(can-afford-building shipyard)',
          '(building-type-count-total shipyard g:< desired-number-shipyards)',
          '(up-pending-objects c: shipyard <= 0)', '(not (up-pending-placement c: shipyard))',
          '(can-build shipyard)'], ['(set-goal gl-sy-admission-tier 4)',
-                                  '(set-goal shipyard-placement-state SHIPYARD-ANCHOR)'])
+                                  '(set-goal gl-sy-diag-placement-left 8)',
+                                  '(set-goal gl-sy-diag-foundation-left 2)',
+                                   '(set-goal shipyard-placement-state SHIPYARD-ANCHOR)'])
     # Only a persistent deficit BELOW min(desired,2) bypasses the policy hold.
     # No escrow release: available resources must still pay the actual cost.
     add([*common, '(goal wait-techup-requirements YES)', '(building-type-count-total shipyard >= 1)',
@@ -153,6 +169,8 @@ def generate():
          '(can-afford-building shipyard)', '(can-build shipyard)',
          '(up-pending-objects c: shipyard <= 0)', '(not (up-pending-placement c: shipyard))'],
         ['(set-goal gl-sy-admission-tier 2)',
+         '(set-goal gl-sy-diag-placement-left 8)',
+         '(set-goal gl-sy-diag-foundation-left 2)',
          '(set-goal shipyard-placement-state SHIPYARD-ANCHOR)'])
     # The source-visible post-minimum gate previously left every yard above two
     # behind an indefinitely renewable tech-up hold.  Protect a bounded
@@ -170,6 +188,8 @@ def generate():
          '(up-pending-objects c: shipyard <= 0)',
          '(not (up-pending-placement c: shipyard))'],
         ['(set-goal gl-sy-admission-tier 3)',
+         '(set-goal gl-sy-diag-placement-left 8)',
+         '(set-goal gl-sy-diag-foundation-left 2)',
          '(set-goal shipyard-placement-state SHIPYARD-ANCHOR)'])
     for facts, reason in ((['(goal wait-techup-requirements YES)'],5),
             (['(not (can-build shipyard))'],1), (['(goal gl-owner-worker-hold YES)'],4),
@@ -280,6 +300,11 @@ def generate():
     # A geometric miss is not an admission failure. Keep the already-admitted
     # placement lane and test a bounded batch around the same ready anchor.
     # Only exhaustion releases the controller and records failed-site memory.
+    add([*stage(89), '(up-compare-goal gl-sy-diag-placement-left c:> 0)'], [
+        *diag(545,'gl-sy-reason'), *diag(536,'gl-shipyard-x'),
+        *diag(537,'gl-shipyard-y'), *diag(538,'gl-sy-anchor'),
+        *diag(540,'gl-sy-attempt'),
+        '(up-modify-goal gl-sy-diag-placement-left c:- 1)'])
     add([*stage(89), f'(up-compare-goal gl-sy-attempt c:< {MAX_CANDIDATE_ATTEMPTS - 1})'], [
         '(up-modify-goal gl-sy-attempt c:+ 1)', '(set-goal gl-sy-stage 2)'])
     add([*stage(89), f'(up-compare-goal gl-sy-attempt c:>= {MAX_CANDIDATE_ATTEMPTS - 1})'], [
@@ -302,11 +327,11 @@ def generate():
          '(or (building-type-count-total shipyard == 0) (building-type-count-total shipyard g:< desired-number-shipyards))',
          '(up-pending-objects c: shipyard <= 0)', '(not (up-pending-placement c: shipyard))',
          '(up-can-build-line 0 gl-shipyard-x c: shipyard)',
-         '(up-compare-goal gl-sy-life-left c:> 0)'], [
+         '(up-compare-goal gl-sy-diag-placement-left c:> 0)'], [
         # Writer fingerprint at the exact build-line issuance boundary.
         *diag(536,'gl-shipyard-x'), *diag(537,'gl-shipyard-y'),
         *diag(538,'gl-sy-anchor'), *diag(539,'gl-sy-worker'),
-        *diag(540,'gl-sy-attempt'), '(up-modify-goal gl-sy-life-left c:- 1)'])
+        *diag(540,'gl-sy-attempt'), '(up-modify-goal gl-sy-diag-placement-left c:- 1)'])
     add([*stage(10), '(goal gl-owner-worker-hold NO)', '(can-build shipyard)', '(can-afford-building shipyard)',
          '(up-compare-goal gl-sy-admission-tier c:> 0)',
          '(or (building-type-count-total shipyard == 0) (building-type-count-total shipyard g:< desired-number-shipyards))',
@@ -323,10 +348,10 @@ def generate():
         '(up-find-status-local c: shipyard c: 40)', '(set-goal gl-sy-stage 21)'])
     add([*stage(21), '(up-set-target-object search-local c: 0)',
          '(up-object-data object-data-player == my-player-number)',
-         '(up-compare-goal gl-sy-life-left c:> 0)'], [
+         '(up-compare-goal gl-sy-diag-foundation-left c:> 0)'], [
         '(up-get-object-data object-data-id gl-sy-foundation)',
         *diag(541,'gl-sy-foundation'), *diag(542,1,True),
-        '(up-modify-goal gl-sy-life-left c:- 1)'])
+        '(up-modify-goal gl-sy-diag-foundation-left c:- 1)'])
     add([*stage(21), '(up-set-target-object search-local c: 0)', '(up-object-data object-data-player == my-player-number)'], [
         '(up-get-object-data object-data-id gl-sy-foundation)', '(set-goal gl-sy-reason 7)', *deadline(180), '(set-goal gl-sy-stage 22)'])
     add([*stage(21), '(up-compare-goal gl-sy-clock g:>= gl-sy-until)'], reset(3))
@@ -335,9 +360,9 @@ def generate():
     add([*stage(22), '(up-set-target-object search-local c: 0)',
          '(up-object-data object-data-player == my-player-number)',
          '(up-object-data object-data-status == status-ready)',
-         '(up-compare-goal gl-sy-life-left c:> 0)'], [
+         '(up-compare-goal gl-sy-diag-foundation-left c:> 0)'], [
         *diag(541,'gl-sy-foundation'), *diag(542,2,True),
-        '(up-modify-goal gl-sy-life-left c:- 1)'])
+        '(up-modify-goal gl-sy-diag-foundation-left c:- 1)'])
     add([*stage(22), '(up-set-target-object search-local c: 0)', '(up-object-data object-data-player == my-player-number)',
          '(up-object-data object-data-status == status-ready)'], ['(set-goal gl-sy-reason 0)', '(set-goal gl-sy-stage 91)'])
     add([*stage(22), '(not (up-set-target-object search-local c: 0))'], reset(3))
@@ -350,11 +375,10 @@ def generate():
         '(up-modify-goal gl-sy-sector c:+ 1)', f'(up-modify-goal gl-sy-sector c:mod {CANDIDATE_SPAN})',
         '(set-goal gl-sy-admission-tier 0)',
         '(set-goal shipyard-placement-state SHIPYARD-IDLE)', '(set-goal gl-sy-stage 0)'])
-    add(['(up-compare-goal gl-sy-clock g:>= gl-sy-diag-next)', '(up-compare-goal gl-sy-reason g:!= gl-sy-reported)',
-         '(up-compare-goal gl-sy-life-left c:> 0)'], [
+    add(['(up-compare-goal gl-sy-clock g:>= gl-sy-diag-next)', '(up-compare-goal gl-sy-reason g:!= gl-sy-reported)'], [
         '(up-chat-data-to-all str-t12-diag-id c: 410)', '(up-chat-data-to-all str-t12-diag-value g: gl-sy-reason)',
         '(up-modify-goal gl-sy-reported g:= gl-sy-reason)', '(up-modify-goal gl-sy-diag-next g:= gl-sy-clock)',
-        '(up-modify-goal gl-sy-diag-next c:+ 60)', '(up-modify-goal gl-sy-life-left c:- 1)'])
+        '(up-modify-goal gl-sy-diag-next c:+ 60)'])
     return '\n\n'.join(out)+'\n'
 
 

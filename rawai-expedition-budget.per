@@ -5,7 +5,7 @@
 (defrule
 	(not (goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-FIND))
 =>
-	(set-goal gl-exp-life-budget-reported 0)
+	(set-goal gl-exp-diag-budget-reported 0)
 )
 
 (defrule
@@ -175,17 +175,15 @@
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-FIND)
 	(goal gl-exp-allowed YES)
-	(goal gl-exp-life-budget-reported 0)
-	(up-compare-goal gl-exp-life-left c:> 0)
+	(goal gl-exp-diag-budget-reported 0)
 =>
 	(up-chat-data-to-all str-t12-diag-id c: 613)
-	(up-chat-data-to-all str-t12-diag-value g: gl-exp-life-total)
+	(up-chat-data-to-all str-t12-diag-value g: gl-exp-diag-total)
 	(up-chat-data-to-all str-t12-diag-id c: 614)
 	(up-chat-data-to-all str-t12-diag-value g: gl-exp-free)
 	(up-chat-data-to-all str-t12-diag-id c: 615)
 	(up-chat-data-to-all str-t12-diag-value g: gl-exp-reserve)
 	(up-chat-data-to-all str-t12-diag-id c: 616)
 	(up-chat-data-to-all str-t12-diag-value g: gl-exp-manifest-limit)
-	(set-goal gl-exp-life-budget-reported 1)
-	(up-modify-goal gl-exp-life-left c:- 1)
+	(set-goal gl-exp-diag-budget-reported 1)
 )

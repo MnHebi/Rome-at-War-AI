@@ -27,9 +27,11 @@
 	(set-goal gl-sy-memory-index 0)
 	(set-goal gl-sy-diag-next 0)
 	(set-goal gl-sy-reported -1)
-	(set-goal gl-sy-life-left 24)
-	(set-goal gl-sy-life-next 0)
-	(set-goal gl-sy-life-phase 0)
+	(set-goal gl-sy-diag-admission-left 0)
+	(set-goal gl-sy-diag-placement-left 0)
+	(set-goal gl-sy-diag-foundation-left 0)
+	(set-goal gl-sy-diag-admission-next 0)
+	(set-goal gl-sy-diag-phase 0)
 	(set-goal gl-sy-memory0-until 0)
 	(set-goal gl-sy-memory1-until 0)
 	(set-goal gl-sy-memory2-until 0)
@@ -113,143 +115,149 @@
 (defrule
 	(goal gl-sy-stage 0)
 	(goal gl-sy-sample 1)
-	(up-compare-goal gl-sy-life-left c:> 0)
-	(up-compare-goal gl-sy-clock g:>= gl-sy-life-next)
-	(goal gl-sy-life-phase 0)
+	(or (goal map-type LAKE) (or (goal map-type RIVERS) (or (goal map-type ISLANDS) (goal map-type TEAM-ISLANDS))))
+	(current-age >= early-antiquity-age)
+	(building-type-count port > 0)
+	(building-type-count-total shipyard g:< desired-number-shipyards)
+	(goal shipyard-placement-state SHIPYARD-IDLE)
+	(up-compare-goal gl-sy-diag-admission-left c:<= 0)
+	(up-compare-goal gl-sy-clock g:>= gl-sy-diag-admission-next)
 =>
-	(set-goal gl-sy-life-age 0)
-	(set-goal gl-sy-life-afford 0)
-	(set-goal gl-sy-life-can-build 0)
-	(up-modify-goal gl-sy-life-sustained g:= gl-sy-sustained)
+	(set-goal gl-sy-diag-admission-left 1)
 )
 
 (defrule
 	(goal gl-sy-stage 0)
 	(goal gl-sy-sample 1)
-	(up-compare-goal gl-sy-life-left c:> 0)
-	(up-compare-goal gl-sy-clock g:>= gl-sy-life-next)
-	(goal gl-sy-life-phase 0)
+	(up-compare-goal gl-sy-diag-admission-left c:> 0)
+	(goal gl-sy-diag-phase 0)
+=>
+	(set-goal gl-sy-diag-age 0)
+	(set-goal gl-sy-diag-afford 0)
+	(set-goal gl-sy-diag-can-build 0)
+	(up-modify-goal gl-sy-diag-sustained g:= gl-sy-sustained)
+)
+
+(defrule
+	(goal gl-sy-stage 0)
+	(goal gl-sy-sample 1)
+	(up-compare-goal gl-sy-diag-admission-left c:> 0)
+	(goal gl-sy-diag-phase 0)
 	(current-age == iron-age)
 =>
-	(set-goal gl-sy-life-age 0)
+	(set-goal gl-sy-diag-age 0)
 )
 
 (defrule
 	(goal gl-sy-stage 0)
 	(goal gl-sy-sample 1)
-	(up-compare-goal gl-sy-life-left c:> 0)
-	(up-compare-goal gl-sy-clock g:>= gl-sy-life-next)
-	(goal gl-sy-life-phase 0)
+	(up-compare-goal gl-sy-diag-admission-left c:> 0)
+	(goal gl-sy-diag-phase 0)
 	(current-age == early-antiquity-age)
 =>
-	(set-goal gl-sy-life-age 1)
+	(set-goal gl-sy-diag-age 1)
 )
 
 (defrule
 	(goal gl-sy-stage 0)
 	(goal gl-sy-sample 1)
-	(up-compare-goal gl-sy-life-left c:> 0)
-	(up-compare-goal gl-sy-clock g:>= gl-sy-life-next)
-	(goal gl-sy-life-phase 0)
+	(up-compare-goal gl-sy-diag-admission-left c:> 0)
+	(goal gl-sy-diag-phase 0)
 	(current-age == middle-antiquity-age)
 =>
-	(set-goal gl-sy-life-age 2)
+	(set-goal gl-sy-diag-age 2)
 )
 
 (defrule
 	(goal gl-sy-stage 0)
 	(goal gl-sy-sample 1)
-	(up-compare-goal gl-sy-life-left c:> 0)
-	(up-compare-goal gl-sy-clock g:>= gl-sy-life-next)
-	(goal gl-sy-life-phase 0)
+	(up-compare-goal gl-sy-diag-admission-left c:> 0)
+	(goal gl-sy-diag-phase 0)
 	(current-age == imperial-age)
 =>
-	(set-goal gl-sy-life-age 3)
+	(set-goal gl-sy-diag-age 3)
 )
 
 (defrule
 	(goal gl-sy-stage 0)
 	(goal gl-sy-sample 1)
-	(up-compare-goal gl-sy-life-left c:> 0)
-	(up-compare-goal gl-sy-clock g:>= gl-sy-life-next)
-	(goal gl-sy-life-phase 0)
+	(up-compare-goal gl-sy-diag-admission-left c:> 0)
+	(goal gl-sy-diag-phase 0)
 	(can-afford-building shipyard)
 =>
-	(set-goal gl-sy-life-afford 1)
+	(set-goal gl-sy-diag-afford 1)
 )
 
 (defrule
 	(goal gl-sy-stage 0)
 	(goal gl-sy-sample 1)
-	(up-compare-goal gl-sy-life-left c:> 0)
-	(up-compare-goal gl-sy-clock g:>= gl-sy-life-next)
-	(goal gl-sy-life-phase 0)
+	(up-compare-goal gl-sy-diag-admission-left c:> 0)
+	(goal gl-sy-diag-phase 0)
 	(can-build shipyard)
 =>
-	(set-goal gl-sy-life-can-build 1)
+	(set-goal gl-sy-diag-can-build 1)
 )
 
 (defrule
 	(goal gl-sy-stage 0)
 	(goal gl-sy-sample 1)
-	(up-compare-goal gl-sy-life-left c:> 0)
-	(up-compare-goal gl-sy-clock g:>= gl-sy-life-next)
-	(goal gl-sy-life-phase 0)
+	(up-compare-goal gl-sy-diag-admission-left c:> 0)
+	(goal gl-sy-diag-phase 0)
 =>
-	(up-get-fact unit-type-count shipyard gl-sy-life-actual)
-	(up-get-fact unit-type-count-total shipyard gl-sy-life-total)
-	(up-get-fact unit-type-count port gl-sy-life-ports)
+	(up-get-fact unit-type-count shipyard gl-sy-diag-actual)
+	(up-get-fact unit-type-count-total shipyard gl-sy-diag-total)
+	(up-get-fact unit-type-count port gl-sy-diag-ports)
 	(up-full-reset-search)
 	(up-filter-status c: status-pending c: list-active)
 	(up-find-status-local c: shipyard c: 40)
 	(up-get-search-state local-total)
-	(up-modify-goal gl-sy-life-pending g:= local-total)
-	(set-goal gl-sy-life-phase 1)
+	(up-modify-goal gl-sy-diag-pending g:= local-total)
+	(set-goal gl-sy-diag-phase 1)
 )
 
 (defrule
 	(goal gl-sy-stage 0)
-	(goal gl-sy-life-phase 1)
+	(goal gl-sy-diag-phase 1)
 =>
 	(up-chat-data-to-all str-t12-diag-id c: 524)
-	(up-chat-data-to-all str-t12-diag-value g: gl-sy-life-age)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-diag-age)
 	(up-chat-data-to-all str-t12-diag-id c: 525)
 	(up-chat-data-to-all str-t12-diag-value g: desired-number-shipyards)
 	(up-chat-data-to-all str-t12-diag-id c: 526)
 	(up-chat-data-to-all str-t12-diag-value g: gl-sy-minimum)
 	(up-chat-data-to-all str-t12-diag-id c: 527)
-	(up-chat-data-to-all str-t12-diag-value g: gl-sy-life-actual)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-diag-actual)
 	(up-chat-data-to-all str-t12-diag-id c: 528)
-	(up-chat-data-to-all str-t12-diag-value g: gl-sy-life-total)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-diag-total)
 	(up-chat-data-to-all str-t12-diag-id c: 529)
-	(up-chat-data-to-all str-t12-diag-value g: gl-sy-life-pending)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-diag-pending)
 	(up-chat-data-to-all str-t12-diag-id c: 543)
-	(up-chat-data-to-all str-t12-diag-value g: gl-sy-life-sustained)
-	(set-goal gl-sy-life-phase 2)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-diag-sustained)
+	(set-goal gl-sy-diag-phase 2)
 )
 
 (defrule
 	(goal gl-sy-stage 0)
-	(goal gl-sy-life-phase 2)
+	(goal gl-sy-diag-phase 2)
 =>
 	(up-chat-data-to-all str-t12-diag-id c: 530)
-	(up-chat-data-to-all str-t12-diag-value g: gl-sy-life-ports)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-diag-ports)
 	(up-chat-data-to-all str-t12-diag-id c: 531)
 	(up-chat-data-to-all str-t12-diag-value g: wait-techup-requirements)
 	(up-chat-data-to-all str-t12-diag-id c: 532)
 	(up-chat-data-to-all str-t12-diag-value g: gl-owner-worker-hold)
 	(up-chat-data-to-all str-t12-diag-id c: 533)
-	(up-chat-data-to-all str-t12-diag-value g: gl-sy-life-afford)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-diag-afford)
 	(up-chat-data-to-all str-t12-diag-id c: 534)
-	(up-chat-data-to-all str-t12-diag-value g: gl-sy-life-can-build)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-diag-can-build)
 	(up-chat-data-to-all str-t12-diag-id c: 535)
 	(up-chat-data-to-all str-t12-diag-value g: gl-sy-reason)
 	(up-chat-data-to-all str-t12-diag-id c: 544)
 	(up-chat-data-to-all str-t12-diag-value g: gl-sy-sustained-since)
-	(up-modify-goal gl-sy-life-next g:= gl-sy-clock)
-	(up-modify-goal gl-sy-life-next c:+ 60)
-	(up-modify-goal gl-sy-life-left c:- 1)
-	(set-goal gl-sy-life-phase 0)
+	(up-modify-goal gl-sy-diag-admission-next g:= gl-sy-clock)
+	(up-modify-goal gl-sy-diag-admission-next c:+ 60)
+	(up-modify-goal gl-sy-diag-admission-left c:- 1)
+	(set-goal gl-sy-diag-phase 0)
 )
 
 (defrule
@@ -266,6 +274,8 @@
 	(can-build shipyard)
 =>
 	(set-goal gl-sy-admission-tier 1)
+	(set-goal gl-sy-diag-placement-left 8)
+	(set-goal gl-sy-diag-foundation-left 2)
 	(set-goal shipyard-placement-state SHIPYARD-ANCHOR)
 )
 
@@ -284,6 +294,8 @@
 	(can-build shipyard)
 =>
 	(set-goal gl-sy-admission-tier 4)
+	(set-goal gl-sy-diag-placement-left 8)
+	(set-goal gl-sy-diag-foundation-left 2)
 	(set-goal shipyard-placement-state SHIPYARD-ANCHOR)
 )
 
@@ -306,6 +318,8 @@
 	(not (up-pending-placement c: shipyard))
 =>
 	(set-goal gl-sy-admission-tier 2)
+	(set-goal gl-sy-diag-placement-left 8)
+	(set-goal gl-sy-diag-foundation-left 2)
 	(set-goal shipyard-placement-state SHIPYARD-ANCHOR)
 )
 
@@ -329,6 +343,8 @@
 	(not (up-pending-placement c: shipyard))
 =>
 	(set-goal gl-sy-admission-tier 3)
+	(set-goal gl-sy-diag-placement-left 8)
+	(set-goal gl-sy-diag-foundation-left 2)
 	(set-goal shipyard-placement-state SHIPYARD-ANCHOR)
 )
 
@@ -1261,6 +1277,23 @@
 
 (defrule
 	(goal gl-sy-stage 89)
+	(up-compare-goal gl-sy-diag-placement-left c:> 0)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 545)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-reason)
+	(up-chat-data-to-all str-t12-diag-id c: 536)
+	(up-chat-data-to-all str-t12-diag-value g: gl-shipyard-x)
+	(up-chat-data-to-all str-t12-diag-id c: 537)
+	(up-chat-data-to-all str-t12-diag-value g: gl-shipyard-y)
+	(up-chat-data-to-all str-t12-diag-id c: 538)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-anchor)
+	(up-chat-data-to-all str-t12-diag-id c: 540)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-attempt)
+	(up-modify-goal gl-sy-diag-placement-left c:- 1)
+)
+
+(defrule
+	(goal gl-sy-stage 89)
 	(up-compare-goal gl-sy-attempt c:< 7)
 =>
 	(up-modify-goal gl-sy-attempt c:+ 1)
@@ -1318,7 +1351,7 @@
 	(up-pending-objects c: shipyard <= 0)
 	(not (up-pending-placement c: shipyard))
 	(up-can-build-line 0 gl-shipyard-x c: shipyard)
-	(up-compare-goal gl-sy-life-left c:> 0)
+	(up-compare-goal gl-sy-diag-placement-left c:> 0)
 =>
 	(up-chat-data-to-all str-t12-diag-id c: 536)
 	(up-chat-data-to-all str-t12-diag-value g: gl-shipyard-x)
@@ -1330,7 +1363,7 @@
 	(up-chat-data-to-all str-t12-diag-value g: gl-sy-worker)
 	(up-chat-data-to-all str-t12-diag-id c: 540)
 	(up-chat-data-to-all str-t12-diag-value g: gl-sy-attempt)
-	(up-modify-goal gl-sy-life-left c:- 1)
+	(up-modify-goal gl-sy-diag-placement-left c:- 1)
 )
 
 (defrule
@@ -1376,14 +1409,14 @@
 	(goal gl-sy-stage 21)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-player == my-player-number)
-	(up-compare-goal gl-sy-life-left c:> 0)
+	(up-compare-goal gl-sy-diag-foundation-left c:> 0)
 =>
 	(up-get-object-data object-data-id gl-sy-foundation)
 	(up-chat-data-to-all str-t12-diag-id c: 541)
 	(up-chat-data-to-all str-t12-diag-value g: gl-sy-foundation)
 	(up-chat-data-to-all str-t12-diag-id c: 542)
 	(up-chat-data-to-all str-t12-diag-value c: 1)
-	(up-modify-goal gl-sy-life-left c:- 1)
+	(up-modify-goal gl-sy-diag-foundation-left c:- 1)
 )
 
 (defrule
@@ -1424,13 +1457,13 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-player == my-player-number)
 	(up-object-data object-data-status == status-ready)
-	(up-compare-goal gl-sy-life-left c:> 0)
+	(up-compare-goal gl-sy-diag-foundation-left c:> 0)
 =>
 	(up-chat-data-to-all str-t12-diag-id c: 541)
 	(up-chat-data-to-all str-t12-diag-value g: gl-sy-foundation)
 	(up-chat-data-to-all str-t12-diag-id c: 542)
 	(up-chat-data-to-all str-t12-diag-value c: 2)
-	(up-modify-goal gl-sy-life-left c:- 1)
+	(up-modify-goal gl-sy-diag-foundation-left c:- 1)
 )
 
 (defrule
@@ -1514,12 +1547,10 @@
 (defrule
 	(up-compare-goal gl-sy-clock g:>= gl-sy-diag-next)
 	(up-compare-goal gl-sy-reason g:!= gl-sy-reported)
-	(up-compare-goal gl-sy-life-left c:> 0)
 =>
 	(up-chat-data-to-all str-t12-diag-id c: 410)
 	(up-chat-data-to-all str-t12-diag-value g: gl-sy-reason)
 	(up-modify-goal gl-sy-reported g:= gl-sy-reason)
 	(up-modify-goal gl-sy-diag-next g:= gl-sy-clock)
 	(up-modify-goal gl-sy-diag-next c:+ 60)
-	(up-modify-goal gl-sy-life-left c:- 1)
 )
