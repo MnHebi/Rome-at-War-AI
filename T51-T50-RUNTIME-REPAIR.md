@@ -4,7 +4,7 @@ Date: 2026-09-05
 Branch: `fix/trade-cog-cap-dacian`  
 PR: <https://github.com/MnHebi/Rome-at-War-AI/pull/11>  
 Source marker: `RAWAI-P3B44T51:499`  
-Installed marker: `RAWAI-P3B44T50:498` (unchanged; this work was not deployed)
+Installed marker: `RAWAI-P3B44T51:499` (deployed 2026-09-06)
 
 ## Scope and evidence order
 
@@ -302,8 +302,11 @@ not silently rebaselined by this runtime-controller task.
 
 ## Remaining evidence boundary
 
-No runtime-sensitive behavior in this report is called closed. Marker 499 needs
-a fresh replay to accept landed combat, Shipyard placement/timeliness/capacity,
-migration STOP attribution, automatic migration, merchant yielding and
-expeditionary utilization. The installed test environment remains at marker
-498 because deployment was expressly withheld.
+No runtime-sensitive behavior in this report is called closed. Marker 499 was
+deployed on 2026-09-06 from canonical HEAD `a44425b` without writer-trace. A
+separate read-only check proves all 99 runtime files byte-identical to source,
+with no missing, different or unexpected files and aggregate SHA-256
+`DB736F6EED6D526A4B9907A82D152C9977235BD9A1844B4479336EDBC7DA2B65`.
+A fresh replay is still required to accept landed combat, Shipyard placement/
+timeliness/capacity, migration STOP attribution, automatic migration, merchant
+yielding and expeditionary utilization.

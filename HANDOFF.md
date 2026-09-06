@@ -55,8 +55,16 @@
   useful-partial manifests, ownership/safety, migration/relic separation,
   naval cooperation and T50 **RUNTIME-PASS** land trade. Historical fingerprint
   tests were made diagnostic-aware in `8471c1d`, not rebaselined.
-- **Source identity:** source marker is `RAWAI-P3B44T51:499`; installed runtime
-  remains `RAWAI-P3B44T50:498`. **No deployment was performed or authorized.**
+- **Source/deployment identity:** source and installed test runtime are now
+  `RAWAI-P3B44T51:499`. Deployment was explicitly authorized on 2026-09-06
+  from canonical HEAD `a44425b`, without the optional writer-trace overlay.
+  Preflight found exactly 14 differing files and no missing/unexpected files:
+  assault admission/defs/missions, custom constants, expedition admission/
+  budget/defs, exploration policy, init goals, military, naval ROW/defs, and
+  Shipyard defs/placement. All 14 were copied. A separate read-only check proves
+  all 99 runtime files byte-identical, no remaining mismatch, installed marker
+  `RAWAI-P3B44T51:499`, and source/install aggregate SHA-256
+  `DB736F6EED6D526A4B9907A82D152C9977235BD9A1844B4479336EDBC7DA2B65`.
 - **Validation PASS:** 261 focused controller tests passed before the final
   migration diagnostic extension; 159 migration/validator tests passed
   afterward; marker checks pass 10 trade-topology + 128 validator tests. Final
@@ -66,7 +74,7 @@
   and `git diff --check` pass. `validate_good_units.py` retains one
   known pre-existing frozen-provenance mismatch at
   `source_provenance/AI RAW.per_sha256`; do not silently rebaseline it.
-- **Next action:** fresh marker-499 runtime replay. Accept landed combat only
+- **Next action:** fresh deployed marker-499 runtime replay. Accept landed combat only
   after event 8 reaches literal target search, writer and persistent combat;
   accept Shipyards only after timely zero/one recovery and open-coast concrete
   completion; attribute the migration flood and automatic-migration boundary;
