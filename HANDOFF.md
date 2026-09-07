@@ -11,7 +11,7 @@ at `context/archive/HANDOFF-through-T52.md`.
 - Canonical workspace:
   `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`
 - Branch: `fix/trade-cog-cap-dacian`
-- Deployed: `5dd9c63`; behavioral HEAD `fc71f0e` (followed by audit docs) includes undeployed landing and Shipyard repairs.
+- Deployed: `1f87ef0` (T55 marker commit, followed by deployment documentation).
 - Existing PR: `https://github.com/MnHebi/Rome-at-War-AI/pull/11`
 - Do not create another branch, worktree, clone or recovery line unless the user
   explicitly changes this instruction.
@@ -39,15 +39,15 @@ at `context/archive/HANDOFF-through-T52.md`.
 
 T54 Shipyards: 84.4% of 2,497 buildability-rejected samples missed plausible
 coastline. Four-draw bounded shoreline preference is implemented; full gates
-and unfiltered fallback remain. Landing correction also awaits deployment.
+and unfiltered fallback remain. Both repairs are installed as T55:503.
 
 ## Installed runtime
 
-- Marker: `RAWAI-P3B44T54:502`
-- Runtime source commit: `5dd9c63` (deployed 2026-09-07)
+- Marker: `RAWAI-P3B44T55:503`
+- Runtime source commit: `1f87ef0` (deployed 2026-09-07)
 - Installed/source files: 99/99 byte-identical; no overlay or unexpected files.
 - Aggregate SHA-256:
-  `572BAEC05AEEE6C71E1E434EF2CB3ACA953E1157D227A8EB9CC424651EE5365A`
+  `6EE2AC23972B252500C62F9961D51E6C0C42956F4DA52125C5B487F87229D86C`
 - Target:
   `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`
 
@@ -78,6 +78,7 @@ danger validation, migration/relic separation and bounded naval cooperation.
   inventory: 1,031 sites, zero direct failures.
 - Full Python 3.12 discovery: 572/572 PASS (unrestricted Windows Temp run).
 - Shipyard tests: 25 PASS; spatial analysis: 3 PASS; episode diagnostics: 9 PASS.
+- T55 marker: topology 10/10 and validators 128/128 PASS; deployment 99/99 PASS.
 - PER structure/operand validation: PASS.
 - Strategy execution: 1,156 matchups, zero errors.
 - Naval doctrine, ownership, replay benchmark metadata (42), context metadata,
@@ -88,6 +89,6 @@ danger validation, migration/relic separation and bounded naval cooperation.
 
 ## Exact next action
 
-Deploy only when requested. Compare eligible Shipyard foundation timing/counts
+In fresh T55, compare eligible Shipyard foundation timing/counts
 and coast quality; preserve safety. Then correlate landing witness records with
 actual unloads. Help and 706 acceptance remain pending.
