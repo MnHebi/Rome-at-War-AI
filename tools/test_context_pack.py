@@ -74,7 +74,9 @@ class ContextMetadataTests(unittest.TestCase):
         ]
         self.assertEqual(positions, sorted(positions))
         self.assertIn("Telemetry presence alone does not close", packet)
-        self.assertIn("RAWAI-P3B44T52:500", packet)
+        state=json.loads((ROOT / "context" / "project-state.json").read_text(encoding="utf-8"))
+        self.assertIn(state['repository']['runtime_marker'], packet)
+        self.assertIn("Never attribute undeployed repairs", packet)
 
     def test_role_packet_excludes_full_history_by_policy(self) -> None:
         packet = context_pack.render_context("subsystem.assault-transport", "reviewer")

@@ -11,7 +11,7 @@ at `context/archive/HANDOFF-through-T52.md`.
 - Canonical workspace:
   `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`
 - Branch: `fix/trade-cog-cap-dacian`
-- Deployed: `5dd9c63`; behavioral HEAD `628e82c` is an undeployed exact-witness correction (followed by assessment documentation).
+- Deployed: `5dd9c63`; behavioral HEAD `fc71f0e` (followed by audit docs) includes undeployed landing and Shipyard repairs.
 - Existing PR: `https://github.com/MnHebi/Rome-at-War-AI/pull/11`
 - Do not create another branch, worktree, clone or recovery line unless the user
   explicitly changes this instruction.
@@ -28,20 +28,18 @@ at `context/archive/HANDOFF-through-T52.md`.
   `py -3.12 tools/context_pack.py --route <task-class>`.
 - Delegation uses a task delta plus one role-filtered context packet and returns
   `RESULT / EVIDENCE / ACTION / UNCERTAINTY`; do not pass full task history.
-- No game-runtime source or installed test runtime changed for this agent-suite
-  work.
 
 ## Active task
 
-- Node: `task.t53-replay-repair`
-- Capsule: `context/tasks/t53-replay-repair.json`
-- Replay assessment: `T54-RUNTIME-REPLAY-ASSESSMENT.md`
+- Node: `task.t52-runtime`
+- Capsule: `context/tasks/t52-runtime.json`
+- Replay assessment: `T54-SHIPYARD-SPATIAL-AUDIT.md`
 - Load compact task context with:
-  `py -3.12 tools/context_pack.py task.t53-replay-repair --role runtime-analyst`
+  `py -3.12 tools/context_pack.py task.t52-runtime --role runtime-analyst`
 
-T54 landing acceptance FAILED: two squads required rescue. Land witnesses now
-require exact option-1 paths; bounded records expose the no-witness fallback.
-Actual unload and objective connectivity remain unproven. Help awaits evidence.
+T54 Shipyards: 84.4% of 2,497 buildability-rejected samples missed plausible
+coastline. Four-draw bounded shoreline preference is implemented; full gates
+and unfiltered fallback remain. Landing correction also awaits deployment.
 
 ## Installed runtime
 
@@ -57,7 +55,7 @@ Actual unload and objective connectivity remain unproven. Help awaits evidence.
 
 | ID | Status | Immediate boundary / next action |
 |---|---|---|
-| `shipyard.sampler.t51` | FIXED-PENDING-RUNTIME | `ec3ee78` restored the T50 full X/Y candidate domain while retaining all safety/capacity gates. Fresh replay must show multi-player concrete foundations. |
+| `shipyard.sampler.t51` | FIXED-PENDING-RUNTIME | T54: only three yards. Spatial audit supports bounded shoreline preference; affordability/coastal rejections remain unresolved. |
 | `villager.order706` | INVESTIGATING | T53 tests four ordinary home-economy writers with Ctrl persistence; exact cause remains unproven. Correlate codes 640-657 to the same actor's pre/post/later 706 stream. |
 | `villager.keystates.t53` | EXPERIMENTAL / INCONCLUSIVE | Nine samples missed the active floods; no accept/revert result. |
 | `help.exact-episode.t53` | FIXED-PENDING-RUNTIME | `0e1a83b`: persistent exact episode plus fresh local balance. Require 312-317 and correct help/silence. |
@@ -78,7 +76,8 @@ danger validation, migration/relic separation and bounded naval cooperation.
   12/12 PASS; validator suite: 128/128 PASS.
 - Key-state validator: PASS (exactly four bounded Ctrl wrappers); ownership
   inventory: 1,031 sites, zero direct failures.
-- Full Python 3.12 discovery: 565/565 PASS (unrestricted Windows Temp run).
+- Full Python 3.12 discovery: 572/572 PASS (unrestricted Windows Temp run).
+- Shipyard tests: 25 PASS; spatial analysis: 3 PASS; episode diagnostics: 9 PASS.
 - PER structure/operand validation: PASS.
 - Strategy execution: 1,156 matchups, zero errors.
 - Naval doctrine, ownership, replay benchmark metadata (42), context metadata,
@@ -89,6 +88,6 @@ danger validation, migration/relic separation and bounded naval cooperation.
 
 ## Exact next action
 
-Deploy only when requested. Match new witness records to actual unload tiles
-and autonomous land movement; investigate fallback/misplaced unloads separately.
-Help needs 312-317 evidence; 706 attribution needs a sampled active flood.
+Deploy only when requested. Compare eligible Shipyard foundation timing/counts
+and coast quality; preserve safety. Then correlate landing witness records with
+actual unloads. Help and 706 acceptance remain pending.
