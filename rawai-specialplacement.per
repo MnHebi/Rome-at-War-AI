@@ -32,6 +32,8 @@
 	(set-goal gl-sy-diag-foundation-left 0)
 	(set-goal gl-sy-diag-admission-next 0)
 	(set-goal gl-sy-diag-phase 0)
+	(set-goal gl-sy-diag-site-next 0)
+	(set-goal gl-sy-diag-site-wood 0)
 	(set-goal gl-sy-memory0-until 0)
 	(set-goal gl-sy-memory1-until 0)
 	(set-goal gl-sy-memory2-until 0)
@@ -1579,6 +1581,65 @@
 =>
 	(set-goal gl-sy-reason 67)
 	(set-goal gl-sy-stage 89)
+)
+
+(defrule
+	(goal gl-sy-stage 89)
+	(goal gl-sy-reason 64)
+	(up-compare-goal gl-sy-clock g:>= gl-sy-diag-site-next)
+=>
+	(set-goal gl-sy-diag-afford 0)
+	(set-goal gl-sy-diag-can-build 0)
+	(up-get-fact wood-amount 0 gl-sy-diag-site-wood)
+)
+
+(defrule
+	(goal gl-sy-stage 89)
+	(goal gl-sy-reason 64)
+	(up-compare-goal gl-sy-clock g:>= gl-sy-diag-site-next)
+	(can-afford-building shipyard)
+=>
+	(set-goal gl-sy-diag-afford 1)
+)
+
+(defrule
+	(goal gl-sy-stage 89)
+	(goal gl-sy-reason 64)
+	(up-compare-goal gl-sy-clock g:>= gl-sy-diag-site-next)
+	(can-build shipyard)
+=>
+	(set-goal gl-sy-diag-can-build 1)
+)
+
+(defrule
+	(goal gl-sy-stage 89)
+	(goal gl-sy-reason 64)
+	(up-compare-goal gl-sy-clock g:>= gl-sy-diag-site-next)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 666)
+	(up-chat-data-to-all str-t12-diag-value c: 64)
+	(up-chat-data-to-all str-t12-diag-id c: 667)
+	(up-chat-data-to-all str-t12-diag-value g: gl-shipyard-x)
+	(up-chat-data-to-all str-t12-diag-id c: 668)
+	(up-chat-data-to-all str-t12-diag-value g: gl-shipyard-y)
+	(up-chat-data-to-all str-t12-diag-id c: 669)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-anchor)
+	(up-chat-data-to-all str-t12-diag-id c: 670)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-anchor-x)
+	(up-chat-data-to-all str-t12-diag-id c: 671)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-anchor-y)
+	(up-chat-data-to-all str-t12-diag-id c: 672)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-admission-tier)
+	(up-chat-data-to-all str-t12-diag-id c: 673)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-diag-afford)
+	(up-chat-data-to-all str-t12-diag-id c: 674)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-diag-can-build)
+	(up-chat-data-to-all str-t12-diag-id c: 675)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-diag-site-wood)
+	(up-chat-data-to-all str-t12-diag-id c: 676)
+	(up-chat-data-to-all str-t12-diag-value g: gl-sy-clock)
+	(up-modify-goal gl-sy-diag-site-next g:= gl-sy-clock)
+	(up-modify-goal gl-sy-diag-site-next c:+ 60)
 )
 
 (defrule

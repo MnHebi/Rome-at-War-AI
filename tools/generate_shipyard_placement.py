@@ -41,7 +41,7 @@ SHORE_DRAWS = 4
 
 
 def definitions():
-    names = list(FIELDS) + [f'memory{i}-{f}' for i in range(4) for f in ('x','y','until')] + ['probe-x', 'probe-y']
+    names = list(FIELDS) + [f'memory{i}-{f}' for i in range(4) for f in ('x','y','until')] + ['probe-x', 'probe-y', 'diag-site-next', 'diag-site-wood']
     return ';Generated coastal construction storage, no timer/group allocation.\n' + '\n'.join(
         f'(defconst gl-sy-{name} {15600+i})' for i, name in enumerate(names)) + '\n'
 
@@ -78,6 +78,7 @@ def generate():
         '(set-goal gl-sy-reported -1)', '(set-goal gl-sy-diag-admission-left 0)',
         '(set-goal gl-sy-diag-placement-left 0)', '(set-goal gl-sy-diag-foundation-left 0)',
         '(set-goal gl-sy-diag-admission-next 0)', '(set-goal gl-sy-diag-phase 0)',
+        '(set-goal gl-sy-diag-site-next 0)', '(set-goal gl-sy-diag-site-wood 0)',
         *[f'(set-goal gl-sy-memory{i}-until 0)' for i in range(4)], '(disable-self)'])
     add(['(true)'], ['(up-get-fact game-time 0 gl-sy-clock)',
         '(up-modify-goal gl-sy-minimum g:= desired-number-shipyards)', '(up-modify-goal gl-sy-minimum c:min 2)',
@@ -330,6 +331,24 @@ def generate():
     # A geometric miss is not an admission failure. Keep the already-admitted
     # placement lane and test a bounded batch around the same ready anchor.
     # Only exhaustion releases the controller and records failed-site memory.
+    # Reason64 includes affordability, not just terrain. Capture the current
+    # available-resource predicates next to one rejected candidate per minute.
+    # No search/object/point or gameplay state changes; the query is unchanged.
+    site_sample=[*stage(89), '(goal gl-sy-reason 64)',
+                 '(up-compare-goal gl-sy-clock g:>= gl-sy-diag-site-next)']
+    add(site_sample, ['(set-goal gl-sy-diag-afford 0)',
+                      '(set-goal gl-sy-diag-can-build 0)',
+                      '(up-get-fact wood-amount 0 gl-sy-diag-site-wood)'])
+    add([*site_sample, '(can-afford-building shipyard)'], ['(set-goal gl-sy-diag-afford 1)'])
+    add([*site_sample, '(can-build shipyard)'], ['(set-goal gl-sy-diag-can-build 1)'])
+    add(site_sample, [*diag(666,64,True), *diag(667,'gl-shipyard-x'),
+        *diag(668,'gl-shipyard-y'), *diag(669,'gl-sy-anchor'),
+        *diag(670,'gl-sy-anchor-x'), *diag(671,'gl-sy-anchor-y'),
+        *diag(672,'gl-sy-admission-tier'), *diag(673,'gl-sy-diag-afford'),
+        *diag(674,'gl-sy-diag-can-build'), *diag(675,'gl-sy-diag-site-wood'),
+        *diag(676,'gl-sy-clock'),
+        '(up-modify-goal gl-sy-diag-site-next g:= gl-sy-clock)',
+        '(up-modify-goal gl-sy-diag-site-next c:+ 60)'])
     add([*stage(89), '(up-compare-goal gl-sy-diag-placement-left c:> 0)'], [
         *diag(545,'gl-sy-reason'), *diag(536,'gl-shipyard-x'),
         *diag(537,'gl-shipyard-y'), *diag(538,'gl-sy-anchor'),
