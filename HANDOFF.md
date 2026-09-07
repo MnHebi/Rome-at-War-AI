@@ -11,8 +11,7 @@ at `context/archive/HANDOFF-through-T52.md`.
 - Canonical workspace:
   `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`
 - Branch: `fix/trade-cog-cap-dacian`
-- Source behavior: `64d7e02`; documentation commit follows this update.
-- Deployed behavior remains `ea3e146`; the new repairs are not installed.
+- Source/deployed runtime: `5dd9c63`; deployment record commit follows.
 - Existing PR: `https://github.com/MnHebi/Rome-at-War-AI/pull/11`
 - Do not create another branch, worktree, clone or recovery line unless the user
   explicitly changes this instruction.
@@ -46,11 +45,11 @@ shore admission. Both await runtime. Ctrl sampling remains inconclusive.
 
 ## Installed runtime
 
-- Marker: `RAWAI-P3B44T53:501`
-- Runtime source commit: `ea3e146`
+- Marker: `RAWAI-P3B44T54:502`
+- Runtime source commit: `5dd9c63` (deployed 2026-09-07)
 - Installed/source files: 99/99 byte-identical; no overlay or unexpected files.
 - Aggregate SHA-256:
-  `F2674593C563590092BA1ACEF977D88B5BD148E1186604B7491FF886D87CA3CE`
+  `572BAEC05AEEE6C71E1E434EF2CB3ACA953E1157D227A8EB9CC424651EE5365A`
 - Target:
   `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`
 
@@ -90,7 +89,7 @@ danger validation, migration/relic separation and bounded naval cooperation.
 
 ## Exact next action
 
-Do not attribute these patches to marker 501. After explicit deployment with a
-new verified marker, require 312-317 and help under local overwhelm; require
+In the next marker-502 replay, require 312-317 and help under local overwhelm;
+require
 reason 41 to rotate an unconnected shore to usable land egress. Continue 706
 attribution only when a sampled actor overlaps the flood.
