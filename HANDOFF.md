@@ -1,10 +1,7 @@
 # Rome at War AI current handoff
 
-This is the bounded **hot operational state**. Replace it when current work
-changes; do not append historical chapters. Stable findings and defects live in
-`context/project-state.json`. Task routing lives in `context/nodes.json` and
-`context/tasks/`. The former 5,615-line handoff is preserved as cold provenance
-at `context/archive/HANDOFF-through-T52.md`.
+Bounded hot state; replace rather than append. Findings: `context/project-state.json`.
+Cold history: `context/archive/HANDOFF-through-T52.md`.
 
 ## Workspace identity
 
@@ -12,34 +9,31 @@ at `context/archive/HANDOFF-through-T52.md`.
   `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`
 - Branch: `fix/trade-cog-cap-dacian`
 - Deployed: `1f87ef0` (T55 marker commit, followed by deployment documentation).
+- Source: `b4a230b` plus the following evidence/test commit (Git HEAD authoritative).
+- Undeployed observations: `66531c5`, `dd592c7`, `b4a230b`; no gameplay-policy edits.
 - Existing PR: `https://github.com/MnHebi/Rome-at-War-AI/pull/11`
 - Do not create another branch, worktree, clone or recovery line unless the user
   explicitly changes this instruction.
 
 ## Agent usage controls
 
-- Default mode is `economy`: the current agent or built-in `worker` owns an
-  ordinary task end to end and stops.
-- Optional project capabilities are `economy_scout`, `economy_analyst`,
-  `economy_planner` and `economy_verifier`. They are read-only, non-recursive,
-  conditional leaves—not a pipeline or automatic fan-out.
-- `context/agent-routing.json` defines 12 representative task routes, the
-  delegation-cost gate, modes and compact handoff contract. Inspect one with
-  `py -3.12 tools/context_pack.py --route <task-class>`.
-- Delegation uses a task delta plus one role-filtered context packet and returns
-  `RESULT / EVIDENCE / ACTION / UNCERTAINTY`; do not pass full task history.
+Economy mode: one owner. Optional read-only specialists only when a specific
+question saves work; no automatic pipeline. Routing/contracts live in
+`context/agent-routing.json`; use a bounded task delta, not full history.
 
 ## Active task
 
 - Node: `task.t52-runtime`
 - Capsule: `context/tasks/t52-runtime.json`
-- Replay assessment: `T54-SHIPYARD-SPATIAL-AUDIT.md`
+- Causal assessment: `T55B-CAUSAL-INVESTIGATION.md`
 - Load compact task context with:
   `py -3.12 tools/context_pack.py task.t52-runtime --role runtime-analyst`
 
-T54 Shipyards: 84.4% of 2,497 buildability-rejected samples missed plausible
-coastline. Four-draw bounded shoreline preference is implemented; full gates
-and unfiltered fallback remain. Both repairs are installed as T55:503.
+T55B causal audit: yard batches are active; reason64 is not terrain-only.
+Blue49162 completion corroborated by52:50 count, despite missing ready event.
+Cyan gets correct-hull waypoint orders; physical progress remains unobserved.
+43834's706 flood follows boarding39461 and ends after home-unload attempts.
+Undeployed diagnostic corrections only; no speculative gameplay repair.
 
 ## Installed runtime
 
@@ -55,11 +49,12 @@ and unfiltered fallback remain. Both repairs are installed as T55:503.
 
 | ID | Status | Immediate boundary / next action |
 |---|---|---|
-| `shipyard.sampler.t51` | FIXED-PENDING-RUNTIME | T54: only three yards. Spatial audit supports bounded shoreline preference; affordability/coastal rejections remain unresolved. |
-| `villager.order706` | INVESTIGATING | T53 tests four ordinary home-economy writers with Ctrl persistence; exact cause remains unproven. Correlate codes 640-657 to the same actor's pre/post/later 706 stream. |
-| `villager.keystates.t53` | EXPERIMENTAL / INCONCLUSIVE | Nine samples missed the active floods; no accept/revert result. |
+| `shipyard.sampler.t51` | FIXED-PENDING-RUNTIME | Expansion survives; inspected Red/Cyan sites leave exact buildability input gap. New per-minute rejection inputs pending runtime. |
+| `villager.order706` | INVESTIGATING | 43834: boarding ->706 ->TC orders; producer unknown. Broadcast640–658 and coverage659–665 prepared, Ctrl unchanged. |
+| `villager.keystates.t53` | EXPERIMENTAL / INCONCLUSIVE | T55B: 15 Blue samples missed active Cyan/Gray floods. |
 | `help.exact-episode.t53` | FIXED-PENDING-RUNTIME | `0e1a83b`: persistent exact episode plus fresh local balance. Require 312-317 and correct help/silence. |
 | `assault.shore-egress.t53` | INVESTIGATING | T54 failed. Exact witness query corrected; no-witness and actual-unload gaps remain. |
+| `assault.voyage.t55b` | INVESTIGATING | Correct-hull orders precede96sec stalls; physical positions/accounting absent. Private680–690 observations prepared; no timeout change. |
 | `assault.preparation.close-boarders` | INVESTIGATING | T51 passengers were 2-7 tiles away with exact hull/group/enter intent yet eight Gray cycles terminated. Reconstruct physical blockage/reissue/ownership at each abort. |
 | `migration.productive-dropsite` | OPEN | Launch/landing works. Require autonomous exact foundation -> ready -> retask -> gather -> deposit, without manual intervention. |
 | `merchant.row.real-choke` | INVESTIGATING | T52 diagnostics arm only on an actual priority-hull episode. Require one-at-a-time yield, hull progress, then native trade resumption. |
@@ -72,23 +67,17 @@ danger validation, migration/relic separation and bounded naval cooperation.
 
 ## Validation baseline
 
-- Help tests: 10/10 PASS; assault planner: 31/31 PASS; shoreline resolver:
-  12/12 PASS; validator suite: 128/128 PASS.
-- Key-state validator: PASS (exactly four bounded Ctrl wrappers); ownership
-  inventory: 1,031 sites, zero direct failures.
-- Full Python 3.12 discovery: 572/572 PASS (unrestricted Windows Temp run).
-- Shipyard tests: 25 PASS; spatial analysis: 3 PASS; episode diagnostics: 9 PASS.
-- T55 marker: topology 10/10 and validators 128/128 PASS; deployment 99/99 PASS.
-- PER structure/operand validation: PASS.
-- Strategy execution: 1,156 matchups, zero errors.
-- Naval doctrine, ownership, replay benchmark metadata (42), context metadata,
-  and `git diff --check`: PASS. The read-only strategy synchronizer reports six
-  pre-existing generated civ files it would update; T53 changed none of them.
-- `validate_good_units.py` has a known frozen-provenance mismatch at
-  `source_provenance/AI RAW.per_sha256`; do not silently rebaseline it.
+579/579 Python3.12 tests PASS (normal Windows Temp access); PER operands,
+strategy1156 matchups, naval doctrine, four Ctrl wrappers, ownership1031 sites,
+42 replay benchmarks and source synchronization PASS. Detailed results in the
+causal report. Six pre-existing generated-civ differences and the good-units
+frozen `AI RAW.per_sha256` mismatch remain; do not regenerate/rebaseline them.
 
 ## Exact next action
 
-In fresh T55, compare eligible Shipyard foundation timing/counts
-and coast quality; preserve safety. Then correlate landing witness records with
-actual unloads. Help and 706 acceptance remain pending.
+Do not deploy without authorization. Review T55B-CAUSAL-INVESTIGATION.md.
+Pending observers: Shipyard666–676, voyage680–690, economic640–665.
+Next ordinary match must distinguish actual movement from watchdog accounting,
+candidate resource holds from geometry, and actor-level worker writer coverage.
+579/579 tests PASS; baseline six-civ drift/frozen hash unchanged. No gameplay
+closure inferred; help, colony productivity, land egress and ROW remain open.
