@@ -219,6 +219,14 @@ def missions():
         def recover(reason):
             return [setv('state', 3), setv('issue', 1), setv('reason', reason),
                     *deadline('travel-until', 180), *log(reason)]
+        def voyage_snapshot(event):
+            # Read only already-sampled private goals. No search/point/object
+            # mutations, no rule-budget gate on the command or watchdog.
+            return [*diag(680, i, True), *diag(681, v('hull')),
+                    *diag(682, event, True), *diag(683, 'gl-assault-mission-clock'),
+                    *diag(684, v('state')), *diag(685, v('x')), *diag(686, v('y')),
+                    *diag(687, v('distance')), *diag(688, v('best')),
+                    *diag(689, v('progress-until')), *diag(690, v('cargo'))]
         active = [f'(up-compare-goal {v("state")} c:>= 1)', f'(up-compare-goal {v("state")} c:<= 4)']
         sample = [f'(goal {v("sample")} YES)']
 
@@ -295,6 +303,11 @@ def missions():
             out.append(rule([*sample, f'(goal {v("state")} {state})'], [*select(), f'(up-set-target-point {v(point)})']))
         out.append(rule([*sample, *active, '(up-set-target-object search-local c: 0)'], [
             f'(up-get-object-data object-data-distance {v("distance")})']))
+        # Once per new leg: best is replaced by the ordinary progress rule.
+        # The observer itself writes no state and cannot reset that sentinel.
+        out.append(rule([*sample, f'(or (goal {v("state")} 1) (goal {v("state")} 2))',
+                         f'(goal {v("best")} 99999)'],
+                        voyage_snapshot(0)))
         # Completion is physical cargo-empty near the accepted same-island beach.
         out.append(rule([*sample, f'(goal {v("state")} 2)', f'(up-compare-goal {v("cargo")} c:<= 0)',
                          f'(up-compare-goal {v("distance")} c:<= 12)'], [
@@ -361,6 +374,8 @@ def missions():
                         [f'(up-modify-goal {v("stalls")} c:+ 1)']))
         out.append(rule([*sample, f'(goal {v("state")} 1)', f'(up-compare-goal {v("cargo")} c:<= 0)'],
                         [setv('state', 5), setv('reason', 7), *log(7)]))
+        out.append(rule([*sample, *outbound, f'(up-compare-goal gl-assault-mission-clock g:>= {v("progress-until")})'],
+                        voyage_snapshot(4)))
         out.append(rule([*sample, *outbound, f'(up-compare-goal gl-assault-mission-clock g:>= {v("progress-until")})'], recover(4)))
         out.append(rule([*sample, f'(goal {v("state")} 1)', f'(up-compare-goal {v("distance")} c:<= 8)'], [
             f'(up-get-point-zone {v("landing-x")} {v("zone")})', setv('state', 13)]))
