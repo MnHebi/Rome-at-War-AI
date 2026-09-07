@@ -3,12 +3,51 @@ from per_coastal_fixture import ShipyardFixture
 from generate_shipyard_placement import (
     outputs, CANDIDATE_RADIUS, CANDIDATE_SPAN,
     MAX_CANDIDATE_ATTEMPTS, SUSTAINED_SHIPYARD_CAPACITY,
-    SUSTAINED_WOOD_RESERVE,
+    SUSTAINED_WOOD_RESERVE, SHORE_DRAWS,
 )
 from test_pre_backlog import source
 
 
 class ShipyardTests(unittest.TestCase):
+    def test_shore_bias_skips_land_and_open_water_before_full_gates(self):
+        f=ShipyardFixture()
+        f.random_values=[14,14, 14,26, 26,14]
+        # (40,50) land, (40,62) open water, (52,50) water by beach.
+        f.terrain_at=lambda p: 2 if p==(54,50) else (0 if p==(40,50) else 1)
+        checked=[]
+        f.can_site=lambda p: checked.append(p) or p==(52,50)
+        f.sweep()
+        self.assertEqual(f.builds,[('shipyard',(52,50))])
+        self.assertNotIn((40,50),checked)
+        self.assertNotIn((40,62),checked)
+        self.assertEqual(f.random_calls,6)
+        self.assertEqual(f.g['gl-sy-attempt'],0)
+
+    def test_terrain_variant_retains_unfiltered_final_draw(self):
+        f=ShipyardFixture(); f.terrain_at=lambda p: 99
+        f.sweep()
+        self.assertEqual(f.builds,[('shipyard',(52,50))])
+        self.assertEqual(f.random_calls,SHORE_DRAWS*2)
+
+    def test_unusable_terrain_search_is_still_bounded(self):
+        f=ShipyardFixture(); f.terrain_at=lambda p: 0; f.can_site=lambda p: False
+        for _ in range(MAX_CANDIDATE_ATTEMPTS): f.sweep()
+        self.assertEqual(f.random_calls,SHORE_DRAWS*2*MAX_CANDIDATE_ATTEMPTS)
+        self.assertEqual(f.g['shipyard-placement-state'],f.val('SHIPYARD-IDLE'))
+        self.assertEqual(f.builds,[])
+
+    def test_t54_successful_sites_remain_preferred(self):
+        for point, beach in [((175,94),(173,94)), ((153,11),(155,11)), ((43,179),(43,181))]:
+            f=ShipyardFixture()
+            f.objects[1]['point']=(point[0]-12,point[1])
+            f.objects[2]['point']=(point[0]+2,point[1])
+            f.objects[3]['point']=(point[0]-1,point[1])
+            f.zone_at=lambda p: 8
+            f.terrain_at=lambda p,b=beach: 2 if p==b else 1
+            f.sweep()
+            self.assertEqual(f.builds,[('shipyard',point)])
+            self.assertEqual(f.random_calls,2)
+
     def test_generated_source(self):
         for name,text in outputs().items(): self.assertEqual(source(name),text)
 
@@ -165,7 +204,7 @@ class ShipyardTests(unittest.TestCase):
         self.assertEqual(CANDIDATE_SPAN,29)
         self.assertEqual(CANDIDATE_RADIUS,14)
         self.assertEqual(MAX_CANDIDATE_ATTEMPTS,8)
-        self.assertEqual(generated.count('(generate-random-number 29)'),2)
+        self.assertEqual(generated.count('(generate-random-number 29)'),2*SHORE_DRAWS)
         self.assertIn('(up-can-build-line 0 gl-shipyard-x c: shipyard)',generated)
         self.assertIn('(up-filter-distance c: -1 c: 10)',generated)
         self.assertIn('(up-path-distance gl-sy-w1-x 1 == 65535)',generated)

@@ -17,6 +17,7 @@ class CoastalFixture(Missions):
         self.zone_at=lambda p: 8 if p[0]>=52 else 3
         self.pathable=lambda obj,p,exact: True
         self.can_site=lambda p: True
+        self.terrain_at=lambda p: 2
         self.path_queries=[]; self.builds=[]; self.status=None; self.point=(0,0)
         self.local_kind=None; self.local_cursor=0
         self.random_values=[]; self.random_defaults=(26,14); self.random_calls=0
@@ -46,6 +47,8 @@ class CoastalFixture(Missions):
         if op=='up-can-build-line':
             assert a[0]=='0'
             return self.can_site(self.pair(a[1]))
+        if op=='up-point-terrain':
+            return self.compare(self.terrain_at(self.pair(a[0])), a[1], a[2])
         if op=='up-path-distance':
             p=self.pair(a[0]); exact=a[1]=='1'; o=self.objects[self.target]
             self.path_queries.append((self.target,p,exact))

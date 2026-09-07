@@ -1,7 +1,8 @@
 """Bounded coastal construction, using real mobile objects for path queries.
 
 Geometry reuses the shoreline resolver's finite candidates / exact-water
-validation concept. No terrain IDs, building path queries or global retasking.
+validation concept. Terrain is a bounded preference, never build/path proof.
+No building path queries or global retasking.
 AIRef cache 2026-08-30: up-path-distance option 1 requires an open exact tile;
 option 0 allows vicinity. up-build-line is an issuance, NOT foundation proof.
 """
@@ -33,10 +34,14 @@ DIRECTIONS = ((1,0), (0,1), (-1,0), (0,-1))
 # near-anchor domain. Restore T50's runtime-proven discovery breadth while
 # retaining the bounded eight-attempt lane and every downstream safety gate.
 CANDIDATE_SPAN = CANDIDATE_RADIUS * 2 + 1
+# T54 spatial audit: 84.4% of reason-64 samples have a land center or
+# open-water neighborhood. Prefer shoreline samples, never make this terrain
+# heuristic an eligibility gate: the final draw is an unfiltered fallback.
+SHORE_DRAWS = 4
 
 
 def definitions():
-    names = list(FIELDS) + [f'memory{i}-{f}' for i in range(4) for f in ('x','y','until')]
+    names = list(FIELDS) + [f'memory{i}-{f}' for i in range(4) for f in ('x','y','until')] + ['probe-x', 'probe-y']
     return ';Generated coastal construction storage, no timer/group allocation.\n' + '\n'.join(
         f'(defconst gl-sy-{name} {15600+i})' for i, name in enumerate(names)) + '\n'
 
@@ -217,17 +222,42 @@ def generate():
     # Candidate discovery must cover the complete runtime-proven +/-14 domain.
     # Admission retention below still tries at most eight candidates before
     # releasing the lane, and every point still passes all exact safety gates.
-    add(stage(2), [f'(generate-random-number {CANDIDATE_SPAN})',
-        '(up-get-fact random-number 0 gl-sy-count)',
-        f'(generate-random-number {CANDIDATE_SPAN})',
-        '(up-get-fact random-number 0 gl-sy-zone)',
-        '(up-copy-point gl-shipyard-x gl-sy-anchor-x)',
-        '(up-modify-goal gl-shipyard-x g:+ gl-sy-count)',
-        '(up-modify-goal gl-shipyard-y g:+ gl-sy-zone)',
-        f'(up-modify-goal gl-shipyard-x c:- {CANDIDATE_RADIUS})',
-        f'(up-modify-goal gl-shipyard-y c:- {CANDIDATE_RADIUS})',
-        '(up-bound-point gl-sy-bounded-x gl-shipyard-x)',
-        '(set-goal gl-sy-direction 0)', '(set-goal gl-sy-stage 3)'])
+    # AIRef up-point-terrain reads a point's terrain. Current RaW DOCK2 uses
+    # placement (1,4), side (2,35). Prefer water near beach / beach candidates.
+    # Four bounded cheap draws replace one blind draw; only ONE selected
+    # candidate enters the unchanged expensive checks in this pass. Preserve
+    # the entire old random domain and fallback for terrain variants and
+    # diagonal coasts. Never treat the heuristic as placement/path proof.
+    for draw in range(SHORE_DRAWS):
+        add(stage(2), [f'(generate-random-number {CANDIDATE_SPAN})',
+            '(up-get-fact random-number 0 gl-sy-count)',
+            f'(generate-random-number {CANDIDATE_SPAN})',
+            '(up-get-fact random-number 0 gl-sy-zone)',
+            '(up-copy-point gl-shipyard-x gl-sy-anchor-x)',
+            '(up-modify-goal gl-shipyard-x g:+ gl-sy-count)',
+            '(up-modify-goal gl-shipyard-y g:+ gl-sy-zone)',
+            f'(up-modify-goal gl-shipyard-x c:- {CANDIDATE_RADIUS})',
+            f'(up-modify-goal gl-shipyard-y c:- {CANDIDATE_RADIUS})',
+            '(up-bound-point gl-sy-bounded-x gl-shipyard-x)',
+            '(set-goal gl-sy-direction 0)'])
+        add([*stage(2), '(or (up-compare-goal gl-shipyard-x g:!= gl-sy-bounded-x) (up-compare-goal gl-shipyard-y g:!= gl-sy-bounded-y))'],
+            ['(set-goal gl-sy-stage 3)'])
+        if draw == SHORE_DRAWS - 1:
+            add(stage(2), ['(set-goal gl-sy-stage 3)'])
+            continue
+        add([*stage(2), '(or (up-point-terrain gl-shipyard-x == 2) (up-point-terrain gl-shipyard-x == 35))'],
+            ['(set-goal gl-sy-stage 3)'])
+        water_center = '(or (up-point-terrain gl-shipyard-x == 1) (up-point-terrain gl-shipyard-x == 4))'
+        for dx, dy in DIRECTIONS:
+            actions = ['(up-copy-point gl-sy-probe-x gl-shipyard-x)']
+            for axis, offset in (('x', dx*2), ('y', dy*2)):
+                if offset:
+                    actions.append(f'(up-modify-goal gl-sy-probe-{axis} c:{"+" if offset > 0 else "-"} {abs(offset)})')
+            actions.append('(up-bound-point gl-sy-probe-x gl-sy-probe-x)')
+            add([*stage(2), water_center], actions)
+            add([*stage(2), water_center,
+                 '(or (up-point-terrain gl-sy-probe-x == 2) (up-point-terrain gl-sy-probe-x == 35))'],
+                ['(set-goal gl-sy-stage 3)'])
     add([*stage(3), '(or (up-compare-goal gl-shipyard-x g:!= gl-sy-bounded-x) (up-compare-goal gl-shipyard-y g:!= gl-sy-bounded-y))'], retry(62))
     for i in range(4):
         add([*stage(3), f'(up-compare-goal gl-sy-clock g:< gl-sy-memory{i}-until)'], [
