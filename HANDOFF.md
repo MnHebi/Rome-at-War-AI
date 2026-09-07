@@ -11,7 +11,7 @@ at `context/archive/HANDOFF-through-T52.md`.
 - Canonical workspace:
   `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`
 - Branch: `fix/trade-cog-cap-dacian`
-- Source/deployed runtime: `5dd9c63`; deployment record commit follows.
+- Deployed: `5dd9c63`; behavioral HEAD `628e82c` is an undeployed exact-witness correction (followed by assessment documentation).
 - Existing PR: `https://github.com/MnHebi/Rome-at-War-AI/pull/11`
 - Do not create another branch, worktree, clone or recovery line unless the user
   explicitly changes this instruction.
@@ -35,13 +35,13 @@ at `context/archive/HANDOFF-through-T52.md`.
 
 - Node: `task.t53-replay-repair`
 - Capsule: `context/tasks/t53-replay-repair.json`
-- Replay assessment: `T53-RUNTIME-REPLAY-ASSESSMENT.md`
+- Replay assessment: `T54-RUNTIME-REPLAY-ASSESSMENT.md`
 - Load compact task context with:
   `py -3.12 tools/context_pack.py task.t53-replay-repair --role runtime-analyst`
 
-T53 corroborates help silence and a bad assault route. `0e1a83b` repairs
-exact-attack lifetime/local balance; `64d7e02` requires land egress before
-shore admission. Both await runtime. Ctrl sampling remains inconclusive.
+T54 landing acceptance FAILED: two squads required rescue. Land witnesses now
+require exact option-1 paths; bounded records expose the no-witness fallback.
+Actual unload and objective connectivity remain unproven. Help awaits evidence.
 
 ## Installed runtime
 
@@ -61,7 +61,7 @@ shore admission. Both await runtime. Ctrl sampling remains inconclusive.
 | `villager.order706` | INVESTIGATING | T53 tests four ordinary home-economy writers with Ctrl persistence; exact cause remains unproven. Correlate codes 640-657 to the same actor's pre/post/later 706 stream. |
 | `villager.keystates.t53` | EXPERIMENTAL / INCONCLUSIVE | Nine samples missed the active floods; no accept/revert result. |
 | `help.exact-episode.t53` | FIXED-PENDING-RUNTIME | `0e1a83b`: persistent exact episode plus fresh local balance. Require 312-317 and correct help/silence. |
-| `assault.shore-egress.t53` | FIXED-PENDING-RUNTIME | `64d7e02`: up to three mobile objective witnesses must path to the landing; reason 41 rotates alternatives. |
+| `assault.shore-egress.t53` | INVESTIGATING | T54 failed. Exact witness query corrected; no-witness and actual-unload gaps remain. |
 | `assault.preparation.close-boarders` | INVESTIGATING | T51 passengers were 2-7 tiles away with exact hull/group/enter intent yet eight Gray cycles terminated. Reconstruct physical blockage/reissue/ownership at each abort. |
 | `migration.productive-dropsite` | OPEN | Launch/landing works. Require autonomous exact foundation -> ready -> retask -> gather -> deposit, without manual intervention. |
 | `merchant.row.real-choke` | INVESTIGATING | T52 diagnostics arm only on an actual priority-hull episode. Require one-at-a-time yield, hull progress, then native trade resumption. |
@@ -74,11 +74,11 @@ danger validation, migration/relic separation and bounded naval cooperation.
 
 ## Validation baseline
 
-- T53 help tests: 10/10 PASS; assault planner: 29/29 PASS; shoreline resolver:
+- Help tests: 10/10 PASS; assault planner: 31/31 PASS; shoreline resolver:
   12/12 PASS; validator suite: 128/128 PASS.
 - Key-state validator: PASS (exactly four bounded Ctrl wrappers); ownership
   inventory: 1,031 sites, zero direct failures.
-- Full Python 3.12 discovery: 563/563 PASS (unrestricted Windows Temp run).
+- Full Python 3.12 discovery: 565/565 PASS (unrestricted Windows Temp run).
 - PER structure/operand validation: PASS.
 - Strategy execution: 1,156 matchups, zero errors.
 - Naval doctrine, ownership, replay benchmark metadata (42), context metadata,
@@ -89,7 +89,6 @@ danger validation, migration/relic separation and bounded naval cooperation.
 
 ## Exact next action
 
-In the next marker-502 replay, require 312-317 and help under local overwhelm;
-require
-reason 41 to rotate an unconnected shore to usable land egress. Continue 706
-attribution only when a sampled actor overlaps the flood.
+Deploy only when requested. Match new witness records to actual unload tiles
+and autonomous land movement; investigate fallback/misplaced unloads separately.
+Help needs 312-317 evidence; 706 attribution needs a sampled active flood.
