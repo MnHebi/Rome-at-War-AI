@@ -90,6 +90,7 @@
 =>
 	(set-goal gl-ap-active YES)
 	(up-modify-goal gl-ap-hull g:= gl-transport-route-id)
+	(set-goal gl-ap-egress-diag-left 3)
 	(up-modify-goal gl-ap-until g:= gl-ap-clock)
 	(up-modify-goal gl-ap-until c:+ AP-MISSION-SECONDS)
 	(up-modify-goal gl-ap-enemy-until g:= gl-ap-clock)
@@ -986,6 +987,7 @@
 	(goal gl-transport-route-state AP-EGRESS-0)
 	(goal gl-ap-egress-count 0)
 =>
+	(set-goal gl-ap-egress-witness -1)
 	(set-goal gl-transport-route-state AP-EGRESS-ACCEPT)
 )
 
@@ -993,8 +995,9 @@
 	(goal gl-transport-route-state AP-EGRESS-0)
 	(up-compare-goal gl-ap-egress-count c:> 0)
 	(up-set-target-object search-remote c: 0)
-	(up-path-distance gl-transport-route-landing-x 0 != 65535)
+	(up-path-distance gl-transport-route-landing-x 1 != 65535)
 =>
+	(up-get-object-data object-data-id gl-ap-egress-witness)
 	(set-goal gl-transport-route-state AP-EGRESS-ACCEPT)
 )
 
@@ -1002,7 +1005,7 @@
 	(goal gl-transport-route-state AP-EGRESS-0)
 	(up-compare-goal gl-ap-egress-count c:> 0)
 	(up-set-target-object search-remote c: 0)
-	(up-path-distance gl-transport-route-landing-x 0 == 65535)
+	(up-path-distance gl-transport-route-landing-x 1 == 65535)
 =>
 	(set-goal gl-transport-route-state AP-EGRESS-1)
 )
@@ -1019,8 +1022,9 @@
 	(goal gl-transport-route-state AP-EGRESS-1)
 	(up-compare-goal gl-ap-egress-count c:> 1)
 	(up-set-target-object search-remote c: 1)
-	(up-path-distance gl-transport-route-landing-x 0 != 65535)
+	(up-path-distance gl-transport-route-landing-x 1 != 65535)
 =>
+	(up-get-object-data object-data-id gl-ap-egress-witness)
 	(set-goal gl-transport-route-state AP-EGRESS-ACCEPT)
 )
 
@@ -1028,7 +1032,7 @@
 	(goal gl-transport-route-state AP-EGRESS-1)
 	(up-compare-goal gl-ap-egress-count c:> 1)
 	(up-set-target-object search-remote c: 1)
-	(up-path-distance gl-transport-route-landing-x 0 == 65535)
+	(up-path-distance gl-transport-route-landing-x 1 == 65535)
 =>
 	(set-goal gl-transport-route-state AP-EGRESS-2)
 )
@@ -1045,8 +1049,9 @@
 	(goal gl-transport-route-state AP-EGRESS-2)
 	(up-compare-goal gl-ap-egress-count c:> 2)
 	(up-set-target-object search-remote c: 2)
-	(up-path-distance gl-transport-route-landing-x 0 != 65535)
+	(up-path-distance gl-transport-route-landing-x 1 != 65535)
 =>
+	(up-get-object-data object-data-id gl-ap-egress-witness)
 	(set-goal gl-transport-route-state AP-EGRESS-ACCEPT)
 )
 
@@ -1054,10 +1059,23 @@
 	(goal gl-transport-route-state AP-EGRESS-2)
 	(up-compare-goal gl-ap-egress-count c:> 2)
 	(up-set-target-object search-remote c: 2)
-	(up-path-distance gl-transport-route-landing-x 0 == 65535)
+	(up-path-distance gl-transport-route-landing-x 1 == 65535)
 =>
 	(set-goal gl-ap-failure 41)
 	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-EGRESS-ACCEPT)
+	(up-compare-goal gl-ap-egress-diag-left c:> 0)
+=>
+	(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)
+	(up-chat-data-to-all str-ap-objective g: gl-ap-objective)
+	(up-chat-data-to-all str-ap-x g: gl-transport-route-landing-x)
+	(up-chat-data-to-all str-ap-y g: gl-transport-route-landing-y)
+	(up-chat-data-to-all str-ap-egress-count g: gl-ap-egress-count)
+	(up-chat-data-to-all str-ap-egress-witness g: gl-ap-egress-witness)
+	(up-modify-goal gl-ap-egress-diag-left c:- 1)
 )
 
 (defrule

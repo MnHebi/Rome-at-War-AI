@@ -25,6 +25,7 @@ class Planner(Missions):
         # Transport.  The fixture deliberately does not simulate pathfinding.
         self.blocked_paths = set()
         self.blocked_path_pairs = set()
+        self.exact_only_blocked_pairs = set()
         self.path_queries = []
         self.disabled = set()
         s = source('rawai-military.per')
@@ -44,7 +45,9 @@ class Planner(Missions):
         if e[0] == 'up-path-distance':
             point = self.point_value(e[1])
             distance = 65535 if (point in self.blocked_paths or
-                                 (self.target, point) in self.blocked_path_pairs) else math.dist(
+                                 (self.target, point) in self.blocked_path_pairs or
+                                 (self.val(e[2]) == 1 and
+                                  (self.target, point) in self.exact_only_blocked_pairs)) else math.dist(
                 self.objects[self.target]['point'], point)
             return self.compare(distance, e[3], e[4])
         return super().fact(e)
@@ -226,6 +229,30 @@ class AssaultPlanTests(unittest.TestCase):
         p.until('AP-PATH')
         self.assertEqual(p.point_value('gl-transport-route-landing-x'), direct_land)
         self.assertFalse(any(m['reason'] == 41 for m in p.memories()))
+
+    def test_cliff_separation_is_not_exact_land_egress(self):
+        p = Planner()
+        direct = shoreline_candidates((100, 100), (10, 10), 3, p.zone_function)[0][1]
+        p.witness()
+        # Native option 0 can reach a nearby tile; option 1 cannot reach this
+        # landing. This distinction was absent from the original fixture.
+        p.exact_only_blocked_pairs.add((101, direct))
+        p.begin()
+        p.until('AP-PATH')
+        self.assertNotEqual(p.point_value('gl-transport-route-landing-x'), direct)
+        self.assertTrue(any(m['reason'] == 41 for m in p.memories()))
+        self.assertEqual(p.objects[10]['cargo'], 9)
+
+    def test_egress_diagnostics_are_bounded_and_identify_missing_witness(self):
+        p = Planner(); p.begin(); p.until('AP-PATH')
+        self.assertTrue(any('egress-witness:' in text and value == -1
+                            for text, value in p.logs))
+        for _ in range(8):
+            p.g['gl-transport-route-state'] = p.val('AP-EGRESS-ACCEPT')
+            p.step()
+        samples = [v for text, v in p.logs if 'egress-witness:' in text]
+        self.assertEqual(len(samples), 3)
+        self.assertEqual(p.g['gl-ap-egress-diag-left'], 0)
 
     def test_structure_only_objective_retains_bounded_shoreline_fallback(self):
         p = Planner()

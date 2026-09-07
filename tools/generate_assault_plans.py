@@ -13,7 +13,8 @@ FIELDS = ('active', 'clock', 'hull', 'until', 'enemy-until', 'objective',
           'shore-water-x', 'shore-water-y', 'shore-refine-x', 'shore-refine-y',
           'shore-selected-water-x', 'shore-selected-water-y', 'shore-steps',
           'shore-refines', 'water-zone', 'direct-threats',
-          'shore-water-distance', 'shore-land-distance', 'egress-count')
+          'shore-water-distance', 'shore-land-distance', 'egress-count',
+          'egress-diag-left', 'egress-witness')
 STATES = ('BEGIN', 'OBJECTIVE', 'CANDIDATE', 'CACHE', 'SAFETY', 'SAFE-CHECK',
           'FAIL', 'ADVANCE', 'NEXT-OBJECTIVE', 'OBJECTIVE-FAILED',
           'ENEMY-FAILED', 'NEXT-ENEMY', 'ENEMY-SEARCH', 'TERMINAL', 'FINAL-SAFETY',
@@ -43,7 +44,8 @@ def definitions():
     out += [f'(defconst AP-{key} {120+i})' for i, key in enumerate(STATES)]
     out += ['(defconst AP-RETRY-SECONDS 300)', '(defconst AP-ENEMY-SECONDS 180)',
             '(defconst AP-MISSION-SECONDS 360)']
-    for key in ('hull', 'enemy', 'objective', 'x', 'y', 'reason', 'retry', 'next-enemy'):
+    for key in ('hull', 'enemy', 'objective', 'x', 'y', 'reason', 'retry', 'next-enemy',
+                'egress-count', 'egress-witness'):
         out.append(f'(defconst str-ap-{key} "RAW plan {key}: %d")')
     return '\n'.join(out) + '\n'
 
@@ -130,6 +132,7 @@ def plans():
         '(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)'])
     emit([state('TRANSPORT-ROUTE-TARGET')], [
         '(set-goal gl-ap-active YES)', cp('gl-ap-hull', 'gl-transport-route-id'),
+        '(set-goal gl-ap-egress-diag-left 3)',
         *deadline('gl-ap-until', 'AP-MISSION-SECONDS'), *deadline('gl-ap-enemy-until', 'AP-ENEMY-SECONDS'),
         '(set-goal gl-ap-enemies-tried 1)', '(set-goal gl-ap-objective-count 0)',
         '(set-goal gl-ap-seen1 -1)', '(set-goal gl-ap-seen2 -1)', '(set-goal gl-ap-seen3 -1)',
@@ -312,27 +315,41 @@ def plans():
     # bounded zone/hull proof for that case rather than eliminating
     # all end-game assaults.  When witnesses exist, one of the nearest three
     # must have a real land path to the candidate.
-    emit([state('AP-EGRESS-0'), '(goal gl-ap-egress-count 0)'], [go('AP-EGRESS-ACCEPT')])
+    emit([state('AP-EGRESS-0'), '(goal gl-ap-egress-count 0)'], [
+        '(set-goal gl-ap-egress-witness -1)', go('AP-EGRESS-ACCEPT')])
     for index, current, following in ((0, 'AP-EGRESS-0', 'AP-EGRESS-1'),
                                       (1, 'AP-EGRESS-1', 'AP-EGRESS-2')):
         emit([state(current), f'(up-compare-goal gl-ap-egress-count c:> {index})',
               f'(up-set-target-object search-remote c: {index})',
-              '(up-path-distance gl-transport-route-landing-x 0 != 65535)'],
-             [go('AP-EGRESS-ACCEPT')])
+              '(up-path-distance gl-transport-route-landing-x 1 != 65535)'],
+             ['(up-get-object-data object-data-id gl-ap-egress-witness)', go('AP-EGRESS-ACCEPT')])
         emit([state(current), f'(up-compare-goal gl-ap-egress-count c:> {index})',
               f'(up-set-target-object search-remote c: {index})',
-              '(up-path-distance gl-transport-route-landing-x 0 == 65535)'],
+              '(up-path-distance gl-transport-route-landing-x 1 == 65535)'],
              [go(following)])
         emit([state(following), f'(up-compare-goal gl-ap-egress-count c:<= {index + 1})'],
              ['(set-goal gl-ap-failure 41)', go('AP-FAIL')])
     emit([state('AP-EGRESS-2'), '(up-compare-goal gl-ap-egress-count c:> 2)',
           '(up-set-target-object search-remote c: 2)',
-          '(up-path-distance gl-transport-route-landing-x 0 != 65535)'],
-         [go('AP-EGRESS-ACCEPT')])
+          '(up-path-distance gl-transport-route-landing-x 1 != 65535)'],
+         ['(up-get-object-data object-data-id gl-ap-egress-witness)', go('AP-EGRESS-ACCEPT')])
     emit([state('AP-EGRESS-2'), '(up-compare-goal gl-ap-egress-count c:> 2)',
           '(up-set-target-object search-remote c: 2)',
-          '(up-path-distance gl-transport-route-landing-x 0 == 65535)'],
+          '(up-path-distance gl-transport-route-landing-x 1 == 65535)'],
          ['(set-goal gl-ap-failure 41)', go('AP-FAIL')])
+    # Option 0 allows separation: a reachable tile above a cliff does not
+    # establish a route to the requested landing below it. Land witnesses use
+    # option 1; the Transport's deliberately tolerant unload query stays 0.
+    # Three accepted-candidate records per new mission distinguish an exact
+    # witness from the unresolved no-visible-witness fallback in the next replay.
+    emit([state('AP-EGRESS-ACCEPT'), '(up-compare-goal gl-ap-egress-diag-left c:> 0)'], [
+        '(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)',
+        '(up-chat-data-to-all str-ap-objective g: gl-ap-objective)',
+        '(up-chat-data-to-all str-ap-x g: gl-transport-route-landing-x)',
+        '(up-chat-data-to-all str-ap-y g: gl-transport-route-landing-y)',
+        '(up-chat-data-to-all str-ap-egress-count g: gl-ap-egress-count)',
+        '(up-chat-data-to-all str-ap-egress-witness g: gl-ap-egress-witness)',
+        '(up-modify-goal gl-ap-egress-diag-left c:- 1)'])
     emit([state('AP-EGRESS-ACCEPT')], [
         '(set-goal gl-ap-screen-validated NO)',
         '(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)',
