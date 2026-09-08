@@ -570,15 +570,14 @@ def validate_focus_exemptions(
             all(
                 token in block
                 for token in (
-                    "(players-unit-type-count any-enemy archery-class >= 3)",
-                    "(players-unit-type-count any-enemy cavalry-archer-class >= 3)",
+                    "(goal gl-reactive-ranged-threat YES)",
                     "(unit-type-count-total skirmisher-line g:< gl-five-percent)",
                     "(up-can-train gl-unitescrow-state c: skirmisher-line)",
                     "(up-train gl-unitescrow-state c: skirmisher-line)",
                 )
             )
             and not ROLE_FACT.search(block)
-            and len(re.findall(r"\(or\b", block)) == 1
+            and 'players-unit-type-count any-enemy' not in block
             for block in blocks
         )
         if not reactive_skirmisher:
