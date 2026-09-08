@@ -1044,10 +1044,12 @@
 	(set-goal gl-colony-towncenter-state COLONY-TC-ASSIGN)
 )
 
+;CB BEGIN 106
 (defrule
 	(goal gl-colony-towncenter-state COLONY-TC-ASSIGN)
 	(up-set-target-object search-local c: 0)
 =>
+	(set-goal gl-cb-cont 106)
 	(up-get-object-data object-data-id gl-colony-towncenter-id)
 	(up-get-point position-object gl-colony-towncenter-target-x)
 	(up-full-reset-search)
@@ -1062,16 +1064,34 @@
 	(up-remove-objects search-local object-data-language-id == lid-villager-fisherman)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-add-object-by-id search-remote g: gl-colony-towncenter-id)
-	;OWNERSHIP command: FREE worker (recheck, not just selection).
 	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+)
+(defrule
+	(goal gl-cb-cont 106)
+=>
+	(set-goal gl-cb-site 106)
+	(set-goal gl-cb-family 2)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 106)
+=>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-chat-data-to-self "colony TC accepted in zone: %d" g: gl-island-colony-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
 	(up-set-timer c: t-colony-towncenter c: 180)
 	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
 )
+(defrule
+	(goal gl-cb-cont 106)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 106
 
 (defrule
 	(goal gl-colony-towncenter-state COLONY-TC-ASSIGN)
@@ -1900,16 +1920,15 @@
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 )
 
+;CB BEGIN 107
 (defrule
 	(goal gl-lumbercamp-placement-state PLACEMENT-VALIDATE-FOUNDATION-RESOURCE)
 	(up-set-target-object search-remote c: 0)
 	(up-object-data object-data-class == tree-class)
 	(up-object-data object-data-map-zone-id g:== gl-lumbercamp-resource-zone)
 =>
+	(set-goal gl-cb-cont 107)
 	(up-chat-data-to-self "lumber camp accepted live resource: %d" g: gl-lumbercamp-resource-id)
-	;Assign only nearby wood workers to the exact validated foundation. This
-	;finishes the camp without exposing shepherds or hunters to global builder
-	;assistance.
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-remote g: gl-lumbercamp-foundation-id)
@@ -1923,10 +1942,22 @@
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index g:>= 2)
 	(up-get-search-state local-total)
-	;OWNERSHIP command: FREE worker (recheck, not just selection).
 	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+)
+(defrule
+	(goal gl-cb-cont 107)
+=>
+	(set-goal gl-cb-site 107)
+	(set-goal gl-cb-family 2)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 107)
+=>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-chat-data-to-self "lumber camp builders assigned: %d" g: local-total)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
@@ -1935,6 +1966,12 @@
 	(up-set-timer c: t-lumbercamp-placement c: 90)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 )
+(defrule
+	(goal gl-cb-cont 107)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 107
 
 (defrule
 	(goal gl-lumbercamp-placement-state PLACEMENT-VALIDATE-FOUNDATION-RESOURCE)
@@ -2142,6 +2179,7 @@
 ;The tasker handles one worker per bounded pass and only targets a Farm in the
 ;worker's land zone, so it never issues an impossible across-water gather order.
 ;A sampled T53 retask is observed on the next farm timer episode.  Keeping this
+(load "rawai-boarding-ctrl-post")
 ;observer on the controller's own idle boundary prevents its diagnostic search
 ;from disturbing a live farm candidate list.
 (defrule
@@ -2347,18 +2385,32 @@
 	(set-goal gl-econ-retask-diag-state 2)
 )
 
+;CB BEGIN 108
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-FISHERMAN)
 	(up-set-target-object search-local c: 0)
 =>
+	(set-goal gl-cb-cont 108)
 	(up-add-object-by-id search-remote g: gl-farm-staffing-id)
-	;OWNERSHIP command: FREE worker (recheck, not just selection).
 	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-carry > 0)
 	(up-modify-goal gl-econ-retask-count1 c:+ 1)
 	(set-strategic-number sn-keystates 2)
+)
+(defrule
+	(goal gl-cb-cont 108)
+=>
+	(set-goal gl-cb-site 108)
+	(set-goal gl-cb-family 2)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 108)
+=>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(set-strategic-number sn-keystates 0)
 	(up-chat-data-to-self "farm staffing fisherman: %d" g: gl-farm-staffing-id)
@@ -2366,6 +2418,12 @@
 	(up-set-timer c: t-farm-staffing c: 5)
 	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
 )
+(defrule
+	(goal gl-cb-cont 108)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 108
 
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-FISHERMAN)
@@ -2433,18 +2491,32 @@
 	(set-goal gl-econ-retask-diag-state 2)
 )
 
+;CB BEGIN 109
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-IDLE)
 	(up-set-target-object search-local c: 0)
 =>
+	(set-goal gl-cb-cont 109)
 	(up-add-object-by-id search-remote g: gl-farm-staffing-id)
-	;OWNERSHIP command: FREE worker (recheck, not just selection).
 	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-carry > 0)
 	(up-modify-goal gl-econ-retask-count2 c:+ 1)
 	(set-strategic-number sn-keystates 2)
+)
+(defrule
+	(goal gl-cb-cont 109)
+=>
+	(set-goal gl-cb-site 109)
+	(set-goal gl-cb-family 2)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 109)
+=>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(set-strategic-number sn-keystates 0)
 	(up-chat-data-to-self "farm staffing idle: %d" g: gl-farm-staffing-id)
@@ -2452,6 +2524,12 @@
 	(up-set-timer c: t-farm-staffing c: 5)
 	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
 )
+(defrule
+	(goal gl-cb-cont 109)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 109
 
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-IDLE)
@@ -2529,18 +2607,32 @@
 	(set-goal gl-econ-retask-diag-state 2)
 )
 
+;CB BEGIN 110
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-ASSIGN)
 	(up-set-target-object search-local c: 0)
 =>
+	(set-goal gl-cb-cont 110)
 	(up-add-object-by-id search-remote g: gl-farm-staffing-id)
-	;OWNERSHIP command: FREE worker (recheck, not just selection).
 	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-carry > 0)
 	(up-modify-goal gl-econ-retask-count3 c:+ 1)
 	(set-strategic-number sn-keystates 2)
+)
+(defrule
+	(goal gl-cb-cont 110)
+=>
+	(set-goal gl-cb-site 110)
+	(set-goal gl-cb-family 2)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 110)
+=>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(set-strategic-number sn-keystates 0)
 	(up-chat-data-to-self "farm staffing worker: %d" g: gl-farm-staffing-id)
@@ -2548,6 +2640,12 @@
 	(up-set-timer c: t-farm-staffing c: 5)
 	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
 )
+(defrule
+	(goal gl-cb-cont 110)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 110
 
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-ASSIGN)
@@ -2653,23 +2751,37 @@
 	(set-goal gl-econ-retask-diag-state 2)
 )
 
+;CB BEGIN 111
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-FIND-RESOURCE)
 	(up-set-target-object search-remote c: 0)
 =>
+	(set-goal gl-cb-cont 111)
 	(up-get-object-data object-data-id gl-farm-staffing-id)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-farm-staffing-worker-id)
 	(set-strategic-number sn-focus-player-number 0)
 	(up-add-object-by-id search-remote g: gl-farm-staffing-id)
-	;OWNERSHIP command: FREE worker (recheck, not just selection).
 	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-carry > 0)
 	(up-modify-goal gl-econ-retask-count4 c:+ 1)
 	(set-strategic-number sn-keystates 2)
+)
+(defrule
+	(goal gl-cb-cont 111)
+=>
+	(set-goal gl-cb-site 111)
+	(set-goal gl-cb-family 2)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 111)
+=>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(set-strategic-number sn-keystates 0)
 	(up-chat-data-to-self "fisherman redirected to resource: %d" g: gl-farm-staffing-zone)
@@ -2677,6 +2789,12 @@
 	(up-set-timer c: t-farm-staffing c: 5)
 	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
 )
+(defrule
+	(goal gl-cb-cont 111)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 111
 
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-FIND-RESOURCE)

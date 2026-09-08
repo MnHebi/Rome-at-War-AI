@@ -1,0 +1,55 @@
+;Generated. Runs AFTER issuance; never changes search lists or gameplay goals.
+(defrule
+	(goal gl-board-diag-issued 20)
+=>
+	(up-chat-data-to-all "RAW44C migration terminal phase: %d" c: 3)
+)
+(defrule
+	(up-compare-goal gl-board-diag-issued c:> 0)
+	(up-compare-goal gl-game-time g:>= gl-board-diag-next)
+=>
+	(set-goal gl-board-diag-left 8)
+	(up-modify-goal gl-board-diag-next g:= gl-game-time)
+	(up-modify-goal gl-board-diag-next c:+ 300)
+)
+(defrule
+	(up-compare-goal gl-board-diag-issued c:> 0)
+	(up-compare-goal gl-board-diag-left c:> 0)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 700) ; boarding writer
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-issued)
+	(up-chat-data-to-all str-t12-diag-id c: 701) ; boarding modifier
+	(up-chat-data-to-all str-t12-diag-value c: 2)
+	(up-chat-data-to-all str-t12-diag-id c: 702) ; boarding hull
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-transport-id)
+	(up-chat-data-to-all str-t12-diag-id c: 703) ; boarding local-count
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-local)
+	(up-chat-data-to-all str-t12-diag-id c: 719) ; boarding remote-count
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-remote)
+	(up-chat-data-to-all str-t12-diag-id c: 704) ; boarding actor-candidate
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-issued-actor)
+	(up-chat-data-to-all str-t12-diag-id c: 705) ; boarding time
+	(up-chat-data-to-all str-t12-diag-value g: gl-game-time)
+	(up-modify-goal gl-board-diag-left c:- 1)
+)
+(defrule
+	(up-compare-goal gl-board-diag-issued c:> 0)
+	(up-compare-goal gl-board-diag-local c:> 0)
+	(up-compare-goal gl-board-diag-remote c:> 0)
+	(up-compare-goal gl-board-diag-left c:> 0)
+	(goal gl-board-diag-state 0)
+=>
+	(up-modify-goal gl-board-diag-actor g:= gl-board-diag-issued-actor)
+	(up-modify-goal gl-board-diag-hull g:= gl-island-migration-transport-id)
+	(up-modify-goal gl-board-diag-writer g:= gl-board-diag-issued)
+	(up-modify-goal gl-board-diag-due g:= gl-game-time)
+	(up-modify-goal gl-board-diag-due c:+ 2)
+	(up-modify-goal gl-board-diag-expires g:= gl-game-time)
+	(up-modify-goal gl-board-diag-expires c:+ 60)
+	(set-goal gl-board-diag-state 1)
+)
+(defrule
+	(up-compare-goal gl-board-diag-issued c:> 0)
+=>
+	(set-goal gl-board-diag-issued 0)
+)

@@ -41,8 +41,10 @@ def validate_repository(root: Path = ROOT) -> list[str]:
         for raw in text.splitlines():
             line = raw.split(";", 1)[0].strip()
             if "sn-keystates" in line:
+                if path.name == 'rawai-command-boundary.per' and line == '(up-modify-goal gl-cb-modifier s:= sn-keystates)':
+                    continue  # exact read-only observation, not a modifier writer
                 modifier_lines.append((path.name, line))
-                if path.name != "rawai-homebase.per" or line not in {
+                if path.name not in {"rawai-homebase.per", "rawai-military.per"} or line not in {
                     SET_CTRL, RESET_KEYS
                 }:
                     issues.append(
@@ -54,6 +56,10 @@ def validate_repository(root: Path = ROOT) -> list[str]:
                 r"\(goal gl-farm-staffing-state ([^)]+)\)", facts
             )
             state = state_match.group(1) if state_match else "<no-farm-state>"
+            boarding = path.name == 'rawai-military.per'
+            if boarding:
+                state_match = re.search(r'\(goal gl-island-migration-state ([^)]+)\)', facts)
+                state = state_match.group(1) if state_match else '<no-migration-state>'
             for index, action in enumerate(semantic):
                 match = re.fullmatch(
                     r"\(set-strategic-number sn-keystates (-?\d+)\)", action
@@ -67,12 +73,15 @@ def validate_repository(root: Path = ROOT) -> list[str]:
                     continue
                 wrappers.append((path.name, state))
                 expected = semantic[index:index + 3]
-                if expected != [SET_CTRL, RETASK, RESET_KEYS]:
+                command = '(up-target-objects 0 action-garrison -1 stance-no-attack)' if boarding else RETASK
+                if expected != [SET_CTRL, command, RESET_KEYS]:
                     issues.append(
                         f"{path.name}:{state}: Ctrl must immediately wrap exactly "
                         "one unchanged economic action-default command and reset"
                     )
-                if CARRY_RECHECK not in semantic[:index]:
+                if boarding and '(goal gl-island-migration-mission MIGRATION-MISSION-MINING)' not in facts:
+                    issues.append(f'{path.name}:{state}: mining-only boundary missing')
+                if not boarding and CARRY_RECHECK not in semantic[:index]:
                     issues.append(
                         f"{path.name}:{state}: missing zero-carry command recheck"
                     )
@@ -80,18 +89,20 @@ def validate_repository(root: Path = ROOT) -> list[str]:
     expected_wrappers = {
         ("rawai-homebase.per", state) for state in EXPECTED_STATES
     }
+    expected_wrappers |= {('rawai-military.per', state) for state in (
+        'MIGRATION-RENDEZVOUS-START', 'MIGRATION-RENDEZVOUS-PASSENGER',
+        'MIGRATION-ISSUE-BOARD', 'MIGRATION-LOAD-DIAG-APPLY', 'MIGRATION-CHECK-LOAD')}
     actual_wrappers = set(wrappers)
-    if len(wrappers) != 4:
-        issues.append(f"expected exactly 4 Ctrl wrappers, found {len(wrappers)}")
+    if len(wrappers) != 9:
+        issues.append(f"expected exactly 9 Ctrl wrappers, found {len(wrappers)}")
     if actual_wrappers != expected_wrappers:
         missing = sorted(expected_wrappers - actual_wrappers)
         extra = sorted(actual_wrappers - expected_wrappers)
         issues.append(f"Ctrl wrapper boundary mismatch; missing={missing}, extra={extra}")
-    if sum(line == RESET_KEYS for _path, line in modifier_lines) != 4:
-        issues.append("each of the 4 Ctrl wrappers must have exactly one reset")
+    if sum(line == RESET_KEYS for _path, line in modifier_lines) != 9:
+        issues.append("each of the 9 Ctrl wrappers must have exactly one reset")
 
     for forbidden in (
-        "rawai-military.per",
         "rawai-hunt.per",
         "rawai-general.per",
         "rawai-economy.per",
@@ -109,7 +120,7 @@ def main() -> None:
         for issue in issues:
             print(issue)
         raise SystemExit(1)
-    print("villager keystates validation: PASS (4 bounded Ctrl wrappers)")
+    print("villager keystates validation: PASS (4 economic + 5 mining boarding Ctrl wrappers)")
 
 
 if __name__ == "__main__":

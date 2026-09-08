@@ -1,83 +1,61 @@
 # Rome at War AI current handoff
 
-Bounded hot state; replace rather than append. Findings: `context/project-state.json`.
+Bounded hot state. Detail: `MATCHED-BOARDING-COMMAND-OBSERVATIONS.md`, `BOARDING-SAMPLING-COVERAGE.md`.
 Cold history: `context/archive/HANDOFF-through-T52.md`.
 
-## Workspace identity
+## Workspace
 
-- Canonical workspace:
-  `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`
-- Branch: `fix/trade-cog-cap-dacian`
-- Deployed: `1f87ef0` (T55 marker commit, followed by deployment documentation).
-- Source: `b4a230b` plus the following evidence/test commit (Git HEAD authoritative).
-- Undeployed observations: `66531c5`, `dd592c7`, `b4a230b`; no gameplay-policy edits.
-- Existing PR: `https://github.com/MnHebi/Rome-at-War-AI/pull/11`
-- Do not create another branch, worktree, clone or recovery line unless the user
-  explicitly changes this instruction.
+- Canonical: `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`
+- Branch: `fix/trade-cog-cap-dacian`; instrumentation HEAD is the commit containing this handoff (`git rev-parse HEAD`). Prior counter commit: `ab25736954b80f0a722cbcaec8ba7e49acdb4018`; original base `f6f1b5b`.
+- PR: https://github.com/MnHebi/Rome-at-War-AI/pull/11
+- Analysis/validation posted: https://github.com/MnHebi/Rome-at-War-AI/pull/11#issuecomment-5583165441
+- All pending boarding/marker/observation work included for PR11; counter repair separate. Commit/push authorized; deployment forbidden.
+- One owner; no new branch/worktree/overlay. Do not edit obsolete .pr-work.
 
-## Agent usage controls
+## Three identities
 
-Economy mode: one owner. Optional read-only specialists only when a specific
-question saves work; no automatic pipeline. Routing/contracts live in
-`context/agent-routing.json`; use a bounded task delta, not full history.
+A. Historical deployment: `f6f1b5b + uncommitted experiment/marker`, `RAWAI-P3B44T56:504`.
+103-file SHA-256: `FB515FA0A52859BCC677353D7B06B38792DC6DAF4C03604AA793EBF30D707730`.
+
+B. Installed user experiment, verified unchanged once on 2026-09-08:
+`60E05CFF142D948134C0693674CD37F8B851EE297CD40351D9DAB27B8576895C`.
+Intentional customconstants de-game/wk-game definitions; general removes counter1 STOP and DE-guards counter2. Counter1 is NOT proof of STOP. Preserve these files; do not copy the experiment into canonical as a proven repair.
+Target: `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`.
+
+C. Canonical:108 files, SHA-256 `0d14e9ff7eb639abc415134753ebea9d11358e6ecf891b93197ed2876f5d0bc2`; manifest in focused report. Marker504 does not identify C. Deployment needs B reconciliation, fresh identity and authorization.
 
 ## Active task
 
-- Node: `task.t52-runtime`
-- Capsule: `context/tasks/t52-runtime.json`
-- Causal assessment: `T55B-CAUSAL-INVESTIGATION.md`
-- Load compact task context with:
-  `py -3.12 tools/context_pack.py task.t52-runtime --role runtime-analyst`
+- Node `task.t52-runtime`; capsule `context/tasks/t52-runtime.json`.
+- Entry: `py -3.12 tools/context_pack.py task.t52-runtime --role runtime-analyst`.
+- **INSTRUMENTATION READY — PENDING RUNTIME EVIDENCE**.
+- **VILLAGER ORDER706 — INVESTIGATING**.
+- Prior audit:34 sustained actor bursts; no explicit actor STOP within prior30s/during. Renewal contact does not prove causality.
+- Matched30s windows: T56 same-hull658 no706 /51 sustained onset /1 isolated /14 censored. T55B82 /53. Overlapping windows are not independent trials or boarding successes.
+- Five boarding/13 default sites observed. Two actors; four reports/180s: early +loading12/20/28, quiet pairs between. No gameplay change. Historical timing is conditional; actor lists, carry-in and Green gap remain unresolved. See coverage report.
+- Need paired movement for actual flooded actors, actual resource-writer/packet attribution and subsequent boarding/gather/deposit outcomes. Missing samples never establish native origin.
 
-T55B causal audit: yard batches are active; reason64 is not terrain-only.
-Blue49162 completion corroborated by52:50 count, despite missing ready event.
-Cyan gets correct-hull waypoint orders; physical progress remains unobserved.
-43834's706 flood follows boarding39461 and ends after home-unload attempts.
-Undeployed diagnostic corrections only; no speculative gameplay repair.
+## Defects retained
 
-## Installed runtime
-
-- Marker: `RAWAI-P3B44T55:503`
-- Runtime source commit: `1f87ef0` (deployed 2026-09-07)
-- Installed/source files: 99/99 byte-identical; no overlay or unexpected files.
-- Aggregate SHA-256:
-  `6EE2AC23972B252500C62F9961D51E6C0C42956F4DA52125C5B487F87229D86C`
-- Target:
-  `C:\Users\LostSoul\Games\Age of Empires 2 DE\76561198053747760\mods\local\Rome at War AI\resources\_common\ai`
-
-## Current defect ledger
-
-| ID | Status | Immediate boundary / next action |
+| ID | Status | Next boundary |
 |---|---|---|
-| `shipyard.sampler.t51` | FIXED-PENDING-RUNTIME | Expansion survives; inspected Red/Cyan sites leave exact buildability input gap. New per-minute rejection inputs pending runtime. |
-| `villager.order706` | INVESTIGATING | 43834: boarding ->706 ->TC orders; producer unknown. Broadcast640–658 and coverage659–665 prepared, Ctrl unchanged. |
-| `villager.keystates.t53` | EXPERIMENTAL / INCONCLUSIVE | T55B: 15 Blue samples missed active Cyan/Gray floods. |
-| `help.exact-episode.t53` | FIXED-PENDING-RUNTIME | `0e1a83b`: persistent exact episode plus fresh local balance. Require 312-317 and correct help/silence. |
-| `assault.shore-egress.t53` | INVESTIGATING | T54 failed. Exact witness query corrected; no-witness and actual-unload gaps remain. |
-| `assault.voyage.t55b` | INVESTIGATING | Correct-hull orders precede96sec stalls; physical positions/accounting absent. Private680–690 observations prepared; no timeout change. |
-| `assault.preparation.close-boarders` | INVESTIGATING | T51 passengers were 2-7 tiles away with exact hull/group/enter intent yet eight Gray cycles terminated. Reconstruct physical blockage/reissue/ownership at each abort. |
-| `migration.productive-dropsite` | OPEN | Launch/landing works. Require autonomous exact foundation -> ready -> retask -> gather -> deposit, without manual intervention. |
-| `merchant.row.real-choke` | INVESTIGATING | T52 diagnostics arm only on an actual priority-hull episode. Require one-at-a-time yield, hull progress, then native trade resumption. |
-| `expedition.commitment` | INVESTIGATING | Observation only until all earlier gates are judged; do not tune yet. |
+| villager.order706 | INVESTIGATING | Ordinary-match paired command/onset attribution. |
+| villager.keystates.t53 | INVESTIGATING | Existing Ctrl experiment inconclusive; policy constant. |
+| shipyard.sampler.t51 | FIXED-PENDING-RUNTIME | Exact failed-site buildability inputs. |
+| help.exact-episode.t53 | FIXED-PENDING-RUNTIME | Exact312–317 request/silence outcome. |
+| assault.shore-egress.t53 | INVESTIGATING | Actual unload path; no-witness gap. |
+| assault.voyage.t55b | INVESTIGATING | Commands vs positions, private680–690. |
+| assault.preparation.close-boarders | INVESTIGATING | Blockage/reissue/ownership at abort. |
+| migration.productive-dropsite | OPEN | Foundation → ready → gather → deposit. |
+| merchant.row.real-choke | INVESTIGATING | Yield → hull progress → native trade. |
+| expedition.commitment | INVESTIGATING | No tuning before upstream acceptance. |
+| production.reactive-skirmisher.t56 | FIXED-PENDING-RUNTIME | Prior repair retained undeployed. |
 
-Runtime-confirmed behavior to preserve: landed-assault target acquisition and
-combat continuation; T50 land trade; T51 autonomous migration launch/landing;
-three independent assault slots, useful-partial manifests, shoreline/path and
-danger validation, migration/relic separation and bounded naval cooperation.
+Preserve land trade, migration launch/landing, landed combat, three independent assault slots, partial loads, shoreline/danger gates, ownership and relic separation. No native gathering replacement.
 
-## Validation baseline
+## Validation / next action
 
-579/579 Python3.12 tests PASS (normal Windows Temp access); PER operands,
-strategy1156 matchups, naval doctrine, four Ctrl wrappers, ownership1031 sites,
-42 replay benchmarks and source synchronization PASS. Detailed results in the
-causal report. Six pre-existing generated-civ differences and the good-units
-frozen `AI RAW.per_sha256` mismatch remain; do not regenerate/rebaseline them.
+Fresh final discovery:625/625 PASS (57.038s), normal Windows Temp access. PER, ownership1052, generators, keystates, strategy/naval and context checks PASS. Six reserved-sampling tests execute the generated PER; existing15 observer fixtures pass. Strings1489/1500: four new load paths, no new diagnostic text.
+Known pre-existing gaps: six generated-civ differences and frozen good-units provenance mismatch. Do not regenerate/rebaseline.
 
-## Exact next action
-
-Do not deploy without authorization. Review T55B-CAUSAL-INVESTIGATION.md.
-Pending observers: Shipyard666–676, voyage680–690, economic640–665.
-Next ordinary match must distinguish actual movement from watchdog accounting,
-candidate resource holds from geometry, and actor-level worker writer coverage.
-579/579 tests PASS; baseline six-civ drift/frozen hash unchanged. No gameplay
-closure inferred; help, colony productivity, land egress and ROW remain open.
+Next ordinary match: capture720–772 for actual actors, join corrected outgoing arrays and first706, judge boarding and gathering/deposit separately. No arranged scenario substitutes for acceptance. Conditional suppression is specified, NOT enabled; it must use functional state independent of diagnostic sampling.

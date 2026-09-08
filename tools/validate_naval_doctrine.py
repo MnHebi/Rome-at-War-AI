@@ -19,8 +19,30 @@ from sync_naval_capabilities import (
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def rule_blocks(text: str) -> list[tuple[int, int, str, str, str]]:
-    """Return balanced defrules with their facts/actions and source offsets."""
+def rule_blocks(text: str, *, diagnostic_view: bool = True) -> list[tuple[int, int, str, str, str]]:
+    """Balanced rules; verified command-observer bridges expose their contract.
+
+    Semantic ownership/strategy validators inspect the original atomic rule.
+    Offsets span its entire canonical bridge. Every bridge must byte-match the
+    generator and stored original hash; unknown edits fail, never disappear.
+    Raw structural/observer checks use diagnostic_view=False (validate_per uses
+    its own physical-rule parser and always checks the actual emitted source).
+    """
+    if diagnostic_view and ';CB BEGIN ' in text:
+        from generate_command_boundary import MARKER, REG, strip_source
+        registry=json.loads(REG.read_text())
+        result=[];previous=0
+        for match in MARKER.finditer(text):
+            for a,b,body,facts,actions in rule_blocks(text[previous:match.start()]):
+                result.append((previous+a,previous+b,body,facts,actions))
+            original=strip_source(match.group(),registry)
+            blocks=rule_blocks(original,diagnostic_view=False)
+            if len(blocks)!=1:raise ValueError('observer must wrap exactly one rule')
+            _,_,body,facts,actions=blocks[0]
+            result.append((match.start(),match.end(),body,facts,actions));previous=match.end()
+        for a,b,body,facts,actions in rule_blocks(text[previous:]):
+            result.append((previous+a,previous+b,body,facts,actions))
+        return result
     def uncommented(line: str) -> str:
         quoted = False
         escaped = False

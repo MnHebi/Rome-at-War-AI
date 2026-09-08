@@ -3524,7 +3524,10 @@ class FarmPolicyTests(unittest.TestCase):
                 "(up-set-timer c: t-island-migration-board-retry c: 3)",
             ),
         )
-        self.assertEqual(len(retry), 1)
+        self.assertEqual(len(retry), 2)
+        mining = '(goal gl-island-migration-mission MIGRATION-MISSION-MINING)'
+        self.assertEqual(sum('(not ' + mining + ')' in r[3] for r in retry), 1)
+        self.assertEqual(sum('(set-strategic-number sn-keystates 2)' in r[4] for r in retry), 1)
         exact_hull_refresh = matching_rules(
             self.military,
             facts=("(goal gl-island-migration-state MIGRATION-LOADING)",),
@@ -3681,7 +3684,9 @@ class FarmPolicyTests(unittest.TestCase):
         )
         self.assertEqual(len(early_sample), 1)
         self.assertEqual(len(diagnose), 1)
-        self.assertEqual(len(diagnostic_retry), 1)
+        self.assertEqual(len(diagnostic_retry), 2)
+        self.assertEqual(sum('(not ' + mining + ')' in r[3] for r in diagnostic_retry), 1)
+        self.assertEqual(sum('(set-strategic-number sn-keystates 2)' in r[4] for r in diagnostic_retry), 1)
         self.assertEqual(len(partial_apply), 1)
         self.assertEqual(len(loaded_abort_apply), 1)
         self.assertEqual(len(empty_abort_apply), 1)
@@ -5771,7 +5776,7 @@ class FarmPolicyTests(unittest.TestCase):
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
         AssaultMissionTests().test_moving_hulls_do_not_receive_repeated_orders()
-        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T55: %d" c: 503)', self.init_goals)
+        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T56: %d" c: 504)', self.init_goals)
 
     def test_transport_departure_stalled_near_origin_activates_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests

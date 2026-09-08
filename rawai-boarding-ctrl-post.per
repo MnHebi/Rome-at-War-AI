@@ -1,0 +1,92 @@
+;Generated. Farm IDLE timer boundary, before its existing reset/search.
+(defrule
+	(goal gl-board-diag-state 2)
+	(up-compare-goal gl-game-time g:>= gl-board-diag-next)
+=>
+	(set-goal gl-board-diag-state 0)
+)
+(defrule
+	(goal gl-board-diag-state 1)
+	(up-compare-goal gl-game-time g:>= gl-board-diag-due)
+	(up-timer-status t-farm-staffing == timer-triggered)
+	(goal gl-farm-staffing-state FARM-STAFFING-IDLE)
+=>
+	(up-full-reset-search)
+	(fe-filter-garrisoned c: 1)
+	(up-add-object-by-id search-local g: gl-board-diag-actor)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(set-goal gl-board-diag-observed 0)
+	(set-goal gl-board-diag-state 3)
+)
+(defrule
+	(goal gl-board-diag-state 3)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-object-data object-data-action gl-board-diag-action)
+	(up-get-object-data object-data-target-id gl-board-diag-target)
+	(up-get-object-data object-data-order gl-board-diag-order)
+	(up-get-object-data object-data-garrisoned gl-board-diag-garrisoned)
+	(up-get-object-data object-data-carry gl-board-diag-carry)
+	(up-get-object-data object-data-group-flag gl-board-diag-group)
+	(set-goal gl-board-diag-observed 1)
+)
+(defrule
+	(goal gl-board-diag-state 3)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 706) ; boarding post-actor
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-actor)
+	(up-chat-data-to-all str-t12-diag-id c: 707) ; boarding post-hull
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-hull)
+	(up-chat-data-to-all str-t12-diag-id c: 708) ; boarding post-writer
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-writer)
+	(up-chat-data-to-all str-t12-diag-id c: 709) ; boarding post-modifier
+	(up-chat-data-to-all str-t12-diag-value c: 2)
+	(up-chat-data-to-all str-t12-diag-id c: 710) ; boarding post-observed
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-observed)
+	(up-chat-data-to-all str-t12-diag-id c: 711) ; boarding post-time
+	(up-chat-data-to-all str-t12-diag-value g: gl-game-time)
+	(up-chat-data-to-all str-t12-diag-id c: 712) ; boarding post-mission-state
+	(up-chat-data-to-all str-t12-diag-value g: gl-island-migration-state)
+	(set-goal gl-board-diag-state 4)
+)
+(defrule
+	(goal gl-board-diag-state 4)
+	(goal gl-board-diag-observed 1)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 713) ; boarding post-action
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-action)
+	(up-chat-data-to-all str-t12-diag-id c: 714) ; boarding post-target
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-target)
+	(up-chat-data-to-all str-t12-diag-id c: 715) ; boarding post-order
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-order)
+	(up-chat-data-to-all str-t12-diag-id c: 716) ; boarding post-garrisoned
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-garrisoned)
+	(up-chat-data-to-all str-t12-diag-id c: 717) ; boarding post-carry
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-carry)
+	(up-chat-data-to-all str-t12-diag-id c: 718) ; boarding post-group
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-group)
+)
+(defrule
+	(goal gl-board-diag-state 4)
+=>
+	(up-full-reset-search)
+	(set-goal gl-board-diag-state 2)
+)
+(defrule
+	(goal gl-board-diag-state 1)
+	(up-compare-goal gl-game-time g:>= gl-board-diag-expires)
+=>
+	(up-chat-data-to-all str-t12-diag-id c: 706) ; boarding post-actor
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-actor)
+	(up-chat-data-to-all str-t12-diag-id c: 707) ; boarding post-hull
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-hull)
+	(up-chat-data-to-all str-t12-diag-id c: 708) ; boarding post-writer
+	(up-chat-data-to-all str-t12-diag-value g: gl-board-diag-writer)
+	(up-chat-data-to-all str-t12-diag-id c: 709) ; boarding post-modifier
+	(up-chat-data-to-all str-t12-diag-value c: 2)
+	(up-chat-data-to-all str-t12-diag-id c: 710) ; boarding post-observed
+	(up-chat-data-to-all str-t12-diag-value c: -1)
+	(up-chat-data-to-all str-t12-diag-id c: 711) ; boarding post-time
+	(up-chat-data-to-all str-t12-diag-value g: gl-game-time)
+	(set-goal gl-board-diag-state 2)
+)

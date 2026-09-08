@@ -357,14 +357,28 @@
 	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-SEND-SEVEN)
 )
 
+;CB BEGIN 112
 (defrule
 	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-SEND-SIX)
 	(up-compare-goal local-total c:>= 5)
 =>
+	(set-goal gl-cb-cont 112)
 	(up-add-object-by-id search-remote g: gl-boar-target-id)
-	;OWNERSHIP command: FREE worker (recheck, not just selection).
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+)
+(defrule
+	(goal gl-cb-cont 112)
+=>
+	(set-goal gl-cb-site 112)
+	(set-goal gl-cb-family 2)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 112)
+=>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(set-strategic-number sn-minimum-boar-lure-group-size 300)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
@@ -376,15 +390,35 @@
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
 	(up-chat-data-to-self "boar rescue non-shepherds: %d" g: local-total)
 )
+(defrule
+	(goal gl-cb-cont 112)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 112
 
+;CB BEGIN 113
 (defrule
 	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-SEND-SEVEN)
 	(up-compare-goal local-total c:>= 6)
 =>
+	(set-goal gl-cb-cont 113)
 	(up-add-object-by-id search-remote g: gl-boar-target-id)
-	;OWNERSHIP command: FREE worker (recheck, not just selection).
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+)
+(defrule
+	(goal gl-cb-cont 113)
+=>
+	(set-goal gl-cb-site 113)
+	(set-goal gl-cb-family 2)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 113)
+=>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(set-strategic-number sn-minimum-boar-lure-group-size 300)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
@@ -396,6 +430,12 @@
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
 	(up-chat-data-to-self "boar rescue non-shepherds: %d" g: local-total)
 )
+(defrule
+	(goal gl-cb-cont 113)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 113
 
 (defrule
 	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-SEND-SIX)

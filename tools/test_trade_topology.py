@@ -80,7 +80,7 @@ class TradeTopologyTests(unittest.TestCase):
         for name, value in expected.items():
             self.assertEqual(found.get(name), value, name)
             self.assertIn(f"(set-goal {name} ", self.init)
-        self.assertIn('RAWAI-P3B44T55: %d" c: 503', self.init)
+        self.assertIn('RAWAI-P3B44T56: %d" c: 504', self.init)
 
     def test_land_scan_uses_bounded_literal_player_slots(self):
         rows = matching(

@@ -2558,6 +2558,7 @@
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-START)
+	(not (goal gl-island-migration-mission MIGRATION-MISSION-MINING))
 =>
 	;The 120-second lease includes travel from both sides. It never replaces the
 	;existing 30-second local boarding deadline or the voyage watchdogs.
@@ -2589,6 +2590,64 @@
 	(up-chat-data-to-all "RAW44C migration terminal phase: %d" c: 3)
 	(set-goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)
 )
+;CB BEGIN 20
+(defrule
+	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-START)
+	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+=>
+	(set-goal gl-cb-cont 20)
+	(up-modify-goal gl-migration-rendezvous-until g:= gl-transport-load-clock)
+	(up-modify-goal gl-migration-rendezvous-until c:+ 120)
+	(up-modify-goal gl-migration-rendezvous-next g:= gl-transport-load-clock)
+	(up-modify-goal gl-migration-rendezvous-next c:+ 4)
+	(set-goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
+	(set-goal gl-island-migration-load-reported NO)
+	(set-goal gl-island-migration-load-candidate-id -1)
+	(up-full-reset-search)
+	(up-set-group search-local c: migration-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
+	(up-target-point gl-migration-rendezvous-x action-move -1 stance-no-attack)
+	(up-full-reset-search)
+	(fe-filter-garrisoned c: 1)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != migration-transport-group)
+	(set-strategic-number sn-keystates 2)
+)
+(defrule
+	(goal gl-cb-cont 20)
+=>
+	(set-goal gl-cb-site 20)
+	(set-goal gl-cb-family 1)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 20)
+=>
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(set-strategic-number sn-keystates 0)
+	(up-get-search-state gl-board-diag-local)
+	(up-set-target-object search-local c: 0)
+	(up-get-object-data object-data-id gl-board-diag-issued-actor)
+	(set-goal gl-board-diag-issued 20)
+	(up-chat-data-to-all "RAW44C migration terminal hull: %d" g: gl-island-migration-transport-id)
+	(set-goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)
+)
+(defrule
+	(goal gl-cb-cont 20)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 20
+
+(load "rawai-boarding-ctrl-capture")
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)
@@ -2671,6 +2730,7 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-distance > 12)
 	(up-compare-goal gl-transport-load-clock g:< gl-migration-rendezvous-until)
+	(not (goal gl-island-migration-mission MIGRATION-MISSION-MINING))
 =>
 	;Renew the exact passenger/hull contract every eight seconds. This is bounded
 	;and cannot become the old per-sweep garrison command loop.
@@ -2691,6 +2751,57 @@
 	(up-modify-goal gl-migration-rendezvous-next c:+ 8)
 	(set-goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)
 )
+;CB BEGIN 25
+(defrule
+	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-PASSENGER)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-distance > 12)
+	(up-compare-goal gl-transport-load-clock g:< gl-migration-rendezvous-until)
+	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+=>
+	(set-goal gl-cb-cont 25)
+	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
+	(up-remove-objects search-remote object-data-player != my-player-number)
+	(up-remove-objects search-remote object-data-group-flag != migration-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(set-strategic-number sn-keystates 2)
+)
+(defrule
+	(goal gl-cb-cont 25)
+=>
+	(set-goal gl-cb-site 25)
+	(set-goal gl-cb-family 1)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 25)
+=>
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(set-strategic-number sn-keystates 0)
+	(up-get-search-state gl-board-diag-local)
+	(up-set-target-object search-local c: 0)
+	(up-get-object-data object-data-id gl-board-diag-issued-actor)
+	(set-goal gl-board-diag-issued 25)
+	(up-full-reset-search)
+	(up-set-group search-local c: migration-transport-group)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
+	(up-target-point gl-migration-rendezvous-x action-move -1 stance-no-attack)
+	(up-modify-goal gl-migration-rendezvous-next g:= gl-transport-load-clock)
+	(up-modify-goal gl-migration-rendezvous-next c:+ 8)
+	(set-goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)
+)
+(defrule
+	(goal gl-cb-cont 25)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 25
+
+(load "rawai-boarding-ctrl-capture")
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-RENDEZVOUS-PASSENGER)
@@ -2721,15 +2832,35 @@
 	(up-modify-goal gl-mig-diag-boarding-left c:- 1)
 )
 
+;CB BEGIN 21
 (defrule
 	(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
 	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
 	(up-compare-goal gl-island-migration-load-target c:>= 2)
 =>
-	;OWNERSHIP command: migration-boarding-group.
+	(set-goal gl-cb-cont 21)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(set-strategic-number sn-keystates 2)
+)
+(defrule
+	(goal gl-cb-cont 21)
+=>
+	(set-goal gl-cb-site 21)
+	(set-goal gl-cb-family 1)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 21)
+=>
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(set-strategic-number sn-keystates 0)
+	(up-get-search-state gl-board-diag-local)
+	(up-set-target-object search-local c: 0)
+	(up-get-object-data object-data-id gl-board-diag-issued-actor)
+	(set-goal gl-board-diag-issued 21)
 	(up-chat-data-to-self "migration board target: %d" g: gl-island-migration-load-target)
 	(set-goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
 	(set-goal gl-island-migration-load-reported NO)
@@ -2739,6 +2870,14 @@
 	(up-set-timer c: t-island-migration-board-retry c: 3)
 	(set-goal gl-island-migration-state MIGRATION-LOADING)
 )
+(defrule
+	(goal gl-cb-cont 21)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 21
+
+(load "rawai-boarding-ctrl-capture")
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)
@@ -2985,6 +3124,7 @@
 (defrule
 	(goal gl-island-migration-state MIGRATION-LOAD-DIAG-APPLY)
 	(goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
+	(not (goal gl-island-migration-mission MIGRATION-MISSION-MINING))
 =>
 	;Continue the pre-existing three-second retry after the first bounded sample.
 	(up-full-reset-search)
@@ -3001,6 +3141,53 @@
 	(up-set-timer c: t-island-migration-board-retry c: 3)
 	(set-goal gl-island-migration-state MIGRATION-LOADING)
 )
+;CB BEGIN 23
+(defrule
+	(goal gl-island-migration-state MIGRATION-LOAD-DIAG-APPLY)
+	(goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)
+	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+=>
+	(set-goal gl-cb-cont 23)
+	(up-full-reset-search)
+	(fe-filter-garrisoned c: 1)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-find-remote c: transport-ship c: 40)
+	(up-remove-objects search-remote object-data-id g:!= gl-island-migration-transport-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(set-strategic-number sn-keystates 2)
+)
+(defrule
+	(goal gl-cb-cont 23)
+=>
+	(set-goal gl-cb-site 23)
+	(set-goal gl-cb-family 1)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 23)
+=>
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(set-strategic-number sn-keystates 0)
+	(up-get-search-state gl-board-diag-local)
+	(up-set-target-object search-local c: 0)
+	(up-get-object-data object-data-id gl-board-diag-issued-actor)
+	(set-goal gl-board-diag-issued 23)
+	(set-goal gl-island-migration-load-reported YES)
+	(up-set-timer c: t-island-migration-board-retry c: 3)
+	(set-goal gl-island-migration-state MIGRATION-LOADING)
+)
+(defrule
+	(goal gl-cb-cont 23)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 23
+
+(load "rawai-boarding-ctrl-capture")
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-LOAD-DIAG-APPLY)
@@ -3594,19 +3781,39 @@
 	(set-goal gl-island-migration-state MIGRATION-RETURN-DEPOSIT)
 )
 
+;CB BEGIN 101
 (defrule
 	(goal gl-island-migration-state MIGRATION-RETURN-DEPOSIT)
 	(up-set-target-object search-remote c: 0)
 =>
-	;OWNERSHIP command: migration-boarding-group.
+	(set-goal gl-cb-cont 101)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+)
+(defrule
+	(goal gl-cb-cont 101)
+=>
+	(set-goal gl-cb-site 101)
+	(set-goal gl-cb-family 2)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 101)
+=>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-chat-data-to-self "migration cargo deposit target: %d" c: 1)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 60)
 	(set-goal gl-island-migration-state MIGRATION-IDLE)
 )
+(defrule
+	(goal gl-cb-cont 101)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 101
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-RETURN-DEPOSIT)
@@ -4024,6 +4231,7 @@
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
 	(goal gl-island-migration-load-reported YES)
+	(not (goal gl-island-migration-mission MIGRATION-MISSION-MINING))
 =>
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
@@ -4037,6 +4245,55 @@
 	(up-set-timer c: t-island-migration-board-retry c: 3)
 	(set-goal gl-island-migration-state MIGRATION-LOADING)
 )
+;CB BEGIN 24
+(defrule
+	(goal gl-island-migration-state MIGRATION-CHECK-LOAD)
+	(up-timer-status t-island-migration == timer-running)
+	(up-timer-status t-island-migration-board-retry == timer-triggered)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
+	(goal gl-island-migration-load-reported YES)
+	(goal gl-island-migration-mission MIGRATION-MISSION-MINING)
+=>
+	(set-goal gl-cb-cont 24)
+	(up-full-reset-search)
+	(up-set-group search-local c: migration-boarding-group)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-find-remote c: transport-ship c: 40)
+	(up-remove-objects search-remote object-data-id g:!= gl-island-migration-transport-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(set-strategic-number sn-keystates 2)
+)
+(defrule
+	(goal gl-cb-cont 24)
+=>
+	(set-goal gl-cb-site 24)
+	(set-goal gl-cb-family 1)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 24)
+=>
+	(up-target-objects 0 action-garrison -1 stance-no-attack)
+	(set-strategic-number sn-keystates 0)
+	(up-get-search-state gl-board-diag-local)
+	(up-set-target-object search-local c: 0)
+	(up-get-object-data object-data-id gl-board-diag-issued-actor)
+	(set-goal gl-board-diag-issued 24)
+	(up-set-timer c: t-island-migration-board-retry c: 3)
+	(set-goal gl-island-migration-state MIGRATION-LOADING)
+)
+(defrule
+	(goal gl-cb-cont 24)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 24
+
+(load "rawai-boarding-ctrl-capture")
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-CHECK-LOAD)
@@ -4262,6 +4519,7 @@
 	(set-goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-CLEAR)
 )
 
+;CB BEGIN 102
 (defrule
 	(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-CLEAR)
 	(up-pending-objects c: house <= 0)
@@ -4269,17 +4527,28 @@
 	(not (up-pending-placement c: house))
 	(not (up-pending-placement c: market))
 =>
+	(set-goal gl-cb-cont 102)
 	(up-full-reset-search)
 	(up-set-target-point gl-island-migration-target-x)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
 	(set-strategic-number sn-focus-player-number 0)
 	(up-add-object-by-id search-remote g: gl-island-migration-anchor-id)
-	;Let the reserved settlers begin harvesting while placement is negotiated,
-	;but retain the group until they own and finish the remote foundation.
-	;OWNERSHIP command: migration-boarding-group.
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+)
+(defrule
+	(goal gl-cb-cont 102)
+=>
+	(set-goal gl-cb-site 102)
+	(set-goal gl-cb-family 2)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 102)
+=>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-placement-attempts 0)
@@ -4287,6 +4556,12 @@
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)
 )
+(defrule
+	(goal gl-cb-cont 102)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 102
 
 ;Try four bounded diagonals around the colony resource. The migration system
 ;keeps ownership until a foundation appears or every placement expires.
@@ -5060,10 +5335,12 @@
 	(up-modify-goal gl-mig-diag-dropsite-left c:- 1)
 )
 
+;CB BEGIN 103
 (defrule
 	(goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)
 	(up-set-target-object search-local c: 0)
 =>
+	(set-goal gl-cb-cont 103)
 	(up-get-object-data object-data-id gl-island-migration-dropsite-id)
 	(up-full-reset-search)
 	(up-set-target-point gl-island-migration-target-x)
@@ -5072,14 +5349,32 @@
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-add-object-by-id search-remote g: gl-island-migration-dropsite-id)
-	;OWNERSHIP command: migration-boarding-group.
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+)
+(defrule
+	(goal gl-cb-cont 103)
+=>
+	(set-goal gl-cb-site 103)
+	(set-goal gl-cb-family 2)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 103)
+=>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-chat-data-to-self "migration dropsite builders assigned: %d" g: gl-island-migration-dropsite-id)
 	(up-set-timer c: t-island-migration c: 120)
 	(set-goal gl-island-migration-state MIGRATION-CONFIRM-DROPSITE)
 )
+(defrule
+	(goal gl-cb-cont 103)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 103
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)
@@ -5246,9 +5541,11 @@
 	(up-modify-goal gl-mig-diag-dropsite-left c:- 1)
 )
 
+;CB BEGIN 104
 (defrule
 	(goal gl-island-migration-state MIGRATION-ASSIGN-RETASK-ANCHOR)
 =>
+	(set-goal gl-cb-cont 104)
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
 	(up-set-target-point gl-island-migration-target-x)
@@ -5259,14 +5556,32 @@
 	(up-get-search-state local-total)
 	(set-strategic-number sn-focus-player-number 0)
 	(up-add-object-by-id search-remote g: gl-island-migration-anchor-id)
-	;OWNERSHIP command: migration-boarding-group.
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+)
+(defrule
+	(goal gl-cb-cont 104)
+=>
+	(set-goal gl-cb-site 104)
+	(set-goal gl-cb-family 2)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 104)
+=>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-chat-data-to-self "migration settlers retasked: %d" g: local-total)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(set-goal gl-island-migration-state MIGRATION-RELEASE-COLONY)
 )
+(defrule
+	(goal gl-cb-cont 104)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 104
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-RELEASE-COLONY)
@@ -6080,9 +6395,11 @@
 	(set-goal gl-transport-repair-state TRANSPORT-REPAIR-TASK)
 )
 
+;CB BEGIN 105
 (defrule
 	(goal gl-transport-repair-state TRANSPORT-REPAIR-TASK)
 =>
+	(set-goal gl-cb-cont 105)
 	(up-full-reset-search)
 	(up-set-target-point point3-x)
 	(up-filter-distance c: -1 c: 12)
@@ -6093,13 +6410,31 @@
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-remove-objects search-local object-data-index >= 2)
 	(up-add-object-by-id search-remote g: gl-transport-repair-id)
-	;OWNERSHIP command: FREE.
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+)
+(defrule
+	(goal gl-cb-cont 105)
+=>
+	(set-goal gl-cb-site 105)
+	(set-goal gl-cb-family 2)
+	(up-get-rule-id gl-cb-return)
+	(up-modify-goal gl-cb-return c:+ 1)
+	(up-jump-direct g: gl-cb-entry)
+)
+(defrule
+	(goal gl-cb-cont 105)
+=>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-repair-focus)
 	(set-goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
 )
+(defrule
+	(goal gl-cb-cont 105)
+=>
+	(set-goal gl-cb-cont 0)
+)
+;CB END 105
 
 ;A transport whose former task died can remain partially loaded indefinitely.
 ;Try a bounded local unload before any normal berth-clearing pass can reuse it.

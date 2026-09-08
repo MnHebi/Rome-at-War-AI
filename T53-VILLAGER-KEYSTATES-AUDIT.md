@@ -1,5 +1,15 @@
 # T53 Villager DUC writer audit
 
+## Current policy amendment (2026-09-07)
+
+The Phase A column below records the historical T53 experiment, not a blanket
+prohibition on boarding investigation. The current explicit, per-command policy
+is `villager-command-modifier-policy.json`, checked by
+`tools/villager_command_policy.py`. It expands this family inventory to current
+rule sites, including mixed migration hull/passenger exceptions.
+Five mining-passenger initial/retry garrison writers now test Ctrl2; shared scout
+paths remain unchanged. See `BOARDING-CTRL-EXPERIMENT.md` for scope and acceptance.
+
 This audit was completed before the T53 behavioral experiment. It covers every
 current `up-target-objects` / `up-target-point` family whose local list is known
 from source to contain, or can retain, a Villager. The complete all-object
@@ -65,11 +75,12 @@ Villager-capable and receive no T53 modifier.
 
 ## Experiment boundary
 
-Only writers 1-4 above receive Ctrl command issuance. Writer 4 covers three
+In the original T53 Phase A, only writers 1-4 received Ctrl command issuance. Writer 4 covers three
 separately observable target families, so the requested five behavior paths are
 Fisherman-to-Farm, Fisherman-to-Gold, Fisherman-to-Stone,
 Fisherman-to-tree, and free/idle economic Villager-to-Farm. Apart from the
 explicit zero-carry eligibility boundary above, target searches, ownership,
 action, stance and five/fifteen-second retry policy remain unchanged.
-All transport, garrison, movement, STOP, combat, construction, repair, relic,
-merchant, naval and migration commands remain modifier-free.
+Those original exclusions were experimental scope, not assessed modifier
+semantics. The current amendment explicitly admits five mining boarding sites;
+all other exceptions remain unchanged until assessed by command family.
