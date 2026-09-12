@@ -20,6 +20,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from good_units_provenance import INPUT_HASH_KEY, INPUT_SCHEMA, affinities_sha256, load_affinities
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE_ROOT = REPO_ROOT.parent.parent
@@ -400,25 +402,6 @@ def parse_args() -> argparse.Namespace:
         default=REPO_ROOT / "good-unit-evaluations.json",
     )
     return parser.parse_args()
-
-
-def load_affinities(path: Path) -> dict[str, dict[str, bool]]:
-    text = path.read_text(encoding="utf-8-sig")
-    blocks = re.split(r"(?=^#load-if-defined\s+)", text, flags=re.MULTILINE)
-    by_host: dict[str, dict[str, bool]] = {}
-    for block in blocks:
-        match = re.match(r"#load-if-defined\s+([^\s]+)", block)
-        if not match:
-            continue
-        host = match.group(1)
-        priest = re.search(r"\(set-goal\s+good-priests\s+(YES|NO)\)", block)
-        navy = re.search(r"\(set-goal\s+good-navy\s+(YES|NO)\)", block)
-        if priest and navy:
-            by_host[host] = {
-                "good_priests": priest.group(1) == "YES",
-                "good_navy": navy.group(1) == "YES",
-            }
-    return by_host
 
 
 def packed_value(raw: float) -> tuple[int, float]:
@@ -1567,7 +1550,6 @@ def main() -> None:
             for package in visible_packages
         ]
         host_constant = civ_records[civ_id].get("data_name", "")
-        host_constant = {"ETHIOPIAN-CIV": "ETHIOPIANS-CIV"}.get(host_constant, host_constant)
         affinity = affinities.get(host_constant)
         if affinity is None:
             raise ValueError(f"Missing AI affinity block for {key} ({host_constant})")
@@ -1650,6 +1632,8 @@ def main() -> None:
             "civTechTrees.json_sha256": sha256(tree_path),
             "civilizations.json_sha256": sha256(civs_path),
             "AI RAW.per_sha256": sha256(ai_path),
+            "AI RAW.per_input_schema": INPUT_SCHEMA,
+            INPUT_HASH_KEY: affinities_sha256(ai_path),
             "unique-unit-production.json_sha256": sha256(manifest_path),
         },
         "rubric": {

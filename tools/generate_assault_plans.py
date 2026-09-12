@@ -1,15 +1,34 @@
 """Generate bounded preparation-only planning; never mutate dispatched slots."""
+from shoreline_resolver import (COARSE_LIMIT, COARSE_STEP, MEMORY_RADIUS,
+                                REFINE_LIMIT, REFINE_STEP, SHORE_OFFSETS)
+
+
 FIELDS = ('active', 'clock', 'hull', 'until', 'enemy-until', 'objective',
           'objective-count', 'seen1', 'seen2', 'seen3', 'candidate', 'valid',
           'failure', 'after-failure', 'write', 'blocked', 'zone', 'live',
           'min-x', 'max-x', 'min-y', 'max-y', 'landing-threats', 'route-threats',
           'screen-validated', 'seed-enemy', 'preferred-enemy', 'chosen-enemy',
-          'enemies-tried', 'resume')
+          'enemies-tried', 'resume', 'shore-hull-x', 'shore-hull-y',
+          'shore-scan-x', 'shore-scan-y', 'shore-land-x', 'shore-land-y',
+          'shore-water-x', 'shore-water-y', 'shore-refine-x', 'shore-refine-y',
+          'shore-selected-water-x', 'shore-selected-water-y', 'shore-steps',
+          'shore-refines', 'water-zone', 'direct-threats',
+          'shore-water-distance', 'shore-land-distance', 'egress-count',
+          'egress-diag-left', 'egress-witness', 'ally-mode', 'ally-tried',
+          'ally-player', 'ally-next', 'ally-base', 'ally-x', 'ally-y',
+          'ally-until', 'ally-live', 'ally-self')
 STATES = ('BEGIN', 'OBJECTIVE', 'CANDIDATE', 'CACHE', 'SAFETY', 'SAFE-CHECK',
           'FAIL', 'ADVANCE', 'NEXT-OBJECTIVE', 'OBJECTIVE-FAILED',
-          'ENEMY-FAILED', 'NEXT-ENEMY', 'ENEMY-SEARCH', 'TERMINAL', 'FINAL-SAFETY')
+          'ENEMY-FAILED', 'NEXT-ENEMY', 'ENEMY-SEARCH', 'TERMINAL', 'FINAL-SAFETY',
+          'PATH', 'SHORE-INIT', 'SHORE-HULL', 'SHORE-COARSE',
+          'SHORE-COARSE-CHECK', 'SHORE-REFINE', 'SHORE-REFINE-CHECK',
+          'CANDIDATE-PATH', 'CANDIDATE-PATH-RESULT',
+          'EGRESS-SEARCH', 'EGRESS-0', 'EGRESS-1', 'EGRESS-2',
+          'EGRESS-ACCEPT', 'DIRECT-PATH', 'ALLY-BEGIN', 'ALLY-SCAN',
+          'ALLY-BASE', 'ALLY-NEXT', 'ALLY-DONE', 'UNSCREENED-ACCEPT')
 MEMORY = 16
-APPROACHES = (0, 28, -28, 56, -56)
+# Compatibility name retained for older focused tests and downstream imports.
+APPROACHES = SHORE_OFFSETS
 
 
 def rule(facts, actions):
@@ -28,7 +47,8 @@ def definitions():
     out += [f'(defconst AP-{key} {120+i})' for i, key in enumerate(STATES)]
     out += ['(defconst AP-RETRY-SECONDS 300)', '(defconst AP-ENEMY-SECONDS 180)',
             '(defconst AP-MISSION-SECONDS 360)']
-    for key in ('hull', 'enemy', 'objective', 'x', 'y', 'reason', 'retry', 'next-enemy'):
+    for key in ('hull', 'enemy', 'objective', 'x', 'y', 'reason', 'retry', 'next-enemy',
+                'egress-count', 'egress-witness', 'ally', 'base'):
         out.append(f'(defconst str-ap-{key} "RAW plan {key}: %d")')
     return '\n'.join(out) + '\n'
 
@@ -57,7 +77,12 @@ def plans():
            ';Reasons: screening2/4/6/7/8/10/11;21 topology;22 total budget;',
            ';23 enemy budget;24 invalid hull/manifest;26 no alternative enemy;',
            ';27 maximum opponents tried;28 enemy unavailable;29 no longer hostile.',
-           ';32 fallback danger;33 fallback topology;35 fallback Scout invalid.',
+           ';32 fallback danger;33 fallback topology;35 fallback Scout invalid;',
+           ';36 unload vicinity unreachable;37 corridor waypoint unreachable;',
+           ';38 shoreline water unreachable;39 shoreline land vicinity unreachable.',
+           ';41 no land egress toward objective;42 allied-base trial;',
+           ';43 ally/base invalid;44 allied bases exhausted;45 no allied-route witness;',
+           ';46 allied landing accepted;47 allied fallback budget exhausted.',
            ';after-failure:0 next approach,2 next enemy,3 terminal recovery.',
            ';A failed beach is excluded. Different beaches require fresh checks.']
     def emit(f, a): out.append(rule(f, a))
@@ -93,6 +118,8 @@ def plans():
         a += [f'(up-remove-objects search-remote object-data-id g:== gl-ap-seen{i})' for i in (1, 2, 3)]
         return a + ['(up-clean-search search-remote object-data-distance search-order-asc)']
     emit(['(true)'], ['(set-goal gl-ap-active NO)', '(set-goal gl-ap-write 1)',
+                     '(set-goal gl-ap-ally-mode NO)', '(set-goal gl-ap-ally-tried NO)',
+                     '(set-goal gl-ap-ally-self my-player-number)',
                      '(set-goal gl-ap-preferred-enemy -1)',
                      *[f'(set-goal gl-ap-memory{i}-until 0)' for i in range(1, MEMORY+1)],
                      '(disable-self)'])
@@ -112,6 +139,8 @@ def plans():
         '(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)'])
     emit([state('TRANSPORT-ROUTE-TARGET')], [
         '(set-goal gl-ap-active YES)', cp('gl-ap-hull', 'gl-transport-route-id'),
+        '(set-goal gl-ap-egress-diag-left 3)',
+        '(set-goal gl-ap-ally-mode NO)', '(set-goal gl-ap-ally-tried NO)',
         *deadline('gl-ap-until', 'AP-MISSION-SECONDS'), *deadline('gl-ap-enemy-until', 'AP-ENEMY-SECONDS'),
         '(set-goal gl-ap-enemies-tried 1)', '(set-goal gl-ap-objective-count 0)',
         '(set-goal gl-ap-seen1 -1)', '(set-goal gl-ap-seen2 -1)', '(set-goal gl-ap-seen3 -1)',
@@ -154,8 +183,15 @@ def plans():
          ['(set-goal gl-ap-failure 24)', go('AP-TERMINAL')])
     for timer, reason, after in (('gl-ap-until', 22, 3), ('gl-ap-enemy-until', 23, 2)):
         emit([*active(), '(goal gl-ap-after-failure 0)', f'(up-compare-goal gl-ap-clock g:>= {timer})',
+              *(['(goal gl-ap-ally-mode NO)'] if reason == 23 else []),
               f'(not {state("AP-TERMINAL")})', f'(not {state("AP-NEXT-ENEMY")})'],
              [f'(set-goal gl-ap-failure {reason})', f'(set-goal gl-ap-after-failure {after})', go('AP-FAIL')])
+    # Last-choice reserve never extends the original total mission deadline.
+    emit([*active(), '(goal gl-ap-ally-mode YES)',
+          '(goal gl-ap-after-failure 0)',
+          f'(not {state("AP-TERMINAL")})', f'(not {state("AP-NEXT-ENEMY")})',
+          '(up-compare-goal gl-ap-clock g:>= gl-ap-ally-until)'],
+         ['(set-goal gl-ap-failure 47)', go('AP-ALLY-DONE')])
     emit([state('AP-OBJECTIVE')], [
         '(set-goal gl-transport-route-target-zone -1)',
         '(up-get-point-zone gl-transport-route-target-x gl-transport-route-target-zone)',
@@ -167,19 +203,66 @@ def plans():
     for p in range(1, 9):
         emit([state('AP-OBJECTIVE'), f'(goal gl-assault-manifest-player {p})'],
              [f'(set-goal gl-ap-enemy{p}-visited YES)'])
-    emit([state('AP-OBJECTIVE')], [go('AP-CANDIDATE')])
-    emit([state('AP-CANDIDATE'), f'(up-compare-goal gl-ap-candidate c:>= {len(APPROACHES)})'],
+    emit([state('AP-OBJECTIVE')], [go('AP-SHORE-INIT')])
+    emit([state('AP-SHORE-INIT')], [*select_hull(), go('AP-SHORE-HULL')])
+    for mode, anchor in (('NO', 'gl-transport-route-target-x'), ('YES', 'gl-ap-ally-x')):
+        emit([state('AP-SHORE-HULL'), f'(goal gl-ap-ally-mode {mode})',
+              '(up-set-target-object search-local c: 0)'], [
+            '(up-get-point position-object gl-ap-shore-hull-x)',
+            f'(up-bound-point gl-ap-shore-scan-x {anchor})',
+            f'(up-bound-point gl-ap-shore-land-x {anchor})',
+            '(set-goal gl-ap-shore-steps 0)', '(set-goal gl-ap-shore-refines 0)',
+            go('AP-SHORE-COARSE')])
+    emit([state('AP-SHORE-COARSE'),
+          f'(up-compare-goal gl-ap-shore-steps c:>= {COARSE_LIMIT})'],
+         ['(set-goal gl-ap-failure 21)', go('AP-OBJECTIVE-FAILED')])
+    emit([state('AP-SHORE-COARSE'),
+          f'(up-compare-goal gl-ap-shore-steps c:< {COARSE_LIMIT})'], [
+        f'(up-lerp-tiles gl-ap-shore-scan-x gl-ap-shore-hull-x c: {COARSE_STEP})',
+        '(up-bound-point gl-ap-shore-scan-x gl-ap-shore-scan-x)',
+        '(set-goal gl-ap-zone -2)', '(up-get-point-zone gl-ap-shore-scan-x gl-ap-zone)',
+        '(up-modify-goal gl-ap-shore-steps c:+ 1)', go('AP-SHORE-COARSE-CHECK')])
+    emit([state('AP-SHORE-COARSE-CHECK'),
+          '(up-compare-goal gl-ap-zone g:== gl-transport-route-target-zone)'], [
+        '(up-bound-point gl-ap-shore-land-x gl-ap-shore-scan-x)', go('AP-SHORE-COARSE')])
+    emit([state('AP-SHORE-COARSE-CHECK'),
+          '(up-compare-goal gl-ap-zone g:!= gl-transport-route-target-zone)'], [
+        '(up-bound-point gl-ap-shore-water-x gl-ap-shore-scan-x)',
+        '(up-bound-point gl-ap-shore-refine-x gl-ap-shore-land-x)',
+        '(set-goal gl-ap-shore-refines 0)', go('AP-SHORE-REFINE')])
+    emit([state('AP-SHORE-REFINE'),
+          f'(up-compare-goal gl-ap-shore-refines c:>= {REFINE_LIMIT})'], [
+        '(set-goal gl-ap-candidate 0)', go('AP-CANDIDATE')])
+    emit([state('AP-SHORE-REFINE'),
+          f'(up-compare-goal gl-ap-shore-refines c:< {REFINE_LIMIT})'], [
+        f'(up-lerp-tiles gl-ap-shore-refine-x gl-ap-shore-water-x c: {REFINE_STEP})',
+        '(up-bound-point gl-ap-shore-refine-x gl-ap-shore-refine-x)',
+        '(set-goal gl-ap-zone -2)', '(up-get-point-zone gl-ap-shore-refine-x gl-ap-zone)',
+        '(up-modify-goal gl-ap-shore-refines c:+ 1)', go('AP-SHORE-REFINE-CHECK')])
+    emit([state('AP-SHORE-REFINE-CHECK'),
+          '(up-compare-goal gl-ap-zone g:== gl-transport-route-target-zone)'], [
+        '(up-bound-point gl-ap-shore-land-x gl-ap-shore-refine-x)', go('AP-SHORE-REFINE')])
+    emit([state('AP-SHORE-REFINE-CHECK'),
+          '(up-compare-goal gl-ap-zone g:!= gl-transport-route-target-zone)'], [
+        '(up-bound-point gl-ap-shore-water-x gl-ap-shore-refine-x)',
+        '(set-goal gl-ap-candidate 0)', go('AP-CANDIDATE')])
+    emit([state('AP-CANDIDATE'), f'(up-compare-goal gl-ap-candidate c:>= {len(SHORE_OFFSETS)})'],
          [go('AP-OBJECTIVE-FAILED')])
-    for i, offset in enumerate(APPROACHES):
+    for i, offset in enumerate(SHORE_OFFSETS):
         emit([state('AP-CANDIDATE'), f'(goal gl-ap-candidate {i})'], [
-            '(up-bound-point gl-transport-route-landing-x gl-transport-route-target-x)',
-            *([f'(up-cross-tiles gl-transport-route-landing-x gl-transport-route-origin-x c: {offset})'] if offset else []),
+            '(up-bound-point gl-transport-route-landing-x gl-ap-shore-land-x)',
+            '(up-bound-point gl-ap-shore-scan-x gl-ap-shore-water-x)',
+            *([f'(up-cross-tiles gl-transport-route-landing-x gl-ap-shore-water-x c: {offset})',
+               f'(up-cross-tiles gl-ap-shore-scan-x gl-ap-shore-land-x c: {-offset})'] if offset else []),
+            '(up-bound-point gl-transport-route-landing-x gl-transport-route-landing-x)',
+            '(up-bound-point gl-ap-shore-scan-x gl-ap-shore-scan-x)',
             '(set-goal gl-ap-zone -1)', '(up-get-point-zone gl-transport-route-landing-x gl-ap-zone)',
+            '(set-goal gl-ap-water-zone -1)', '(up-get-point-zone gl-ap-shore-scan-x gl-ap-water-zone)',
             '(set-goal gl-ap-valid YES)', '(set-goal gl-ap-blocked NO)',
-            cp('gl-ap-min-x', 'gl-transport-route-landing-x'), '(up-modify-goal gl-ap-min-x c:- 12)',
-            cp('gl-ap-max-x', 'gl-transport-route-landing-x'), '(up-modify-goal gl-ap-max-x c:+ 12)',
-            cp('gl-ap-min-y', 'gl-transport-route-landing-y'), '(up-modify-goal gl-ap-min-y c:- 12)',
-            cp('gl-ap-max-y', 'gl-transport-route-landing-y'), '(up-modify-goal gl-ap-max-y c:+ 12)', go('AP-CACHE')])
+            cp('gl-ap-min-x', 'gl-transport-route-landing-x'), f'(up-modify-goal gl-ap-min-x c:- {MEMORY_RADIUS})',
+            cp('gl-ap-max-x', 'gl-transport-route-landing-x'), f'(up-modify-goal gl-ap-max-x c:+ {MEMORY_RADIUS})',
+            cp('gl-ap-min-y', 'gl-transport-route-landing-y'), f'(up-modify-goal gl-ap-min-y c:- {MEMORY_RADIUS})',
+            cp('gl-ap-max-y', 'gl-transport-route-landing-y'), f'(up-modify-goal gl-ap-max-y c:+ {MEMORY_RADIUS})', go('AP-CACHE')])
     # Matching by beach also prevents a different objective evading the exclusion.
     for i in range(1, MEMORY+1):
         v = lambda key: f'gl-ap-memory{i}-{key}'
@@ -190,16 +273,172 @@ def plans():
              ['(set-goal gl-ap-blocked YES)'])
     emit([state('AP-CACHE'), '(goal gl-ap-blocked YES)'], [go('AP-ADVANCE')])
     emit([state('AP-CACHE'), '(or (up-compare-goal gl-transport-route-target-zone c:< 0)\n'
-          '\t(up-compare-goal gl-ap-zone g:!= gl-transport-route-target-zone))'],
+          '\t(or (up-compare-goal gl-ap-zone g:!= gl-transport-route-target-zone)\n'
+          '\t(or (up-compare-goal gl-ap-water-zone c:< 0)\n'
+          '\t(up-compare-goal gl-ap-water-zone g:== gl-transport-route-target-zone))))'],
          ['(set-goal gl-ap-failure 21)', go('AP-FAIL')])
-    emit([state('AP-CACHE')], ['(set-goal gl-ap-screen-validated NO)',
+    emit([state('AP-CACHE')], [go('AP-CANDIDATE-PATH')])
+    emit([state('AP-CANDIDATE-PATH'), '(up-set-target-object search-local c: 0)',
+          ], [
+        '(up-get-path-distance gl-ap-shore-scan-x 1 gl-ap-shore-water-distance)',
+        '(up-get-path-distance gl-transport-route-landing-x 0 gl-ap-shore-land-distance)',
+        go('AP-CANDIDATE-PATH-RESULT')])
+    emit([state('AP-CANDIDATE-PATH'), '(not (up-set-target-object search-local c: 0))'],
+         ['(set-goal gl-ap-active NO)', go('TRANSPORT-ROUTE-OWNER-LOST')])
+    emit([state('AP-CANDIDATE-PATH-RESULT'),
+          '(or (up-compare-goal gl-ap-shore-water-distance c:< 0)\n'
+          '\t(goal gl-ap-shore-water-distance 65535))'],
+         ['(set-goal gl-ap-failure 38)', go('AP-FAIL')])
+    emit([state('AP-CANDIDATE-PATH-RESULT'),
+          '(up-compare-goal gl-ap-shore-water-distance c:>= 0)',
+          '(up-compare-goal gl-ap-shore-water-distance c:!= 65535)',
+          '(or (up-compare-goal gl-ap-shore-land-distance c:< 0)\n'
+          '\t(goal gl-ap-shore-land-distance 65535))'],
+         ['(set-goal gl-ap-failure 39)', go('AP-FAIL')])
+    emit([state('AP-CANDIDATE-PATH-RESULT'),
+          '(up-compare-goal gl-ap-shore-water-distance c:>= 0)',
+          '(up-compare-goal gl-ap-shore-water-distance c:!= 65535)',
+          '(up-compare-goal gl-ap-shore-land-distance c:>= 0)',
+          '(up-compare-goal gl-ap-shore-land-distance c:!= 65535)'], [
+        '(up-bound-point gl-ap-shore-selected-water-x gl-ap-shore-scan-x)',
+        go('AP-EGRESS-SEARCH')])
+    # A Transport reaching the water point and an unload vicinity proves only
+    # hull geometry.  It does not prove that landed troops can leave a pocket
+    # below cliffs and reach the selected enemy objective. Ask up to three
+    # visible mobile enemy witnesses near the objective whether the landing is
+    # connected to that objective region.
+    emit([state('AP-EGRESS-SEARCH')], [
+        '(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)',
+        '(up-full-reset-search)',
+        '(up-set-target-point gl-transport-route-target-x)',
+        '(up-filter-distance c: -1 c: 80)',
+        '(up-find-remote c: scout-cavalry-class c: 40)',
+        '(up-find-remote c: cavalry-archer-class c: 40)',
+        '(up-find-remote c: cavalry-class c: 40)',
+        '(up-find-remote c: infantry-class c: 40)',
+        '(up-find-remote c: archery-class c: 40)',
+        '(up-find-remote c: siege-weapon-class c: 40)',
+        '(up-find-remote c: villager-class c: 40)',
+        '(up-find-remote c: priest c: 10)',
+        '(up-remove-objects search-remote object-data-player g:!= gl-assault-manifest-player)',
+        '(up-remove-objects search-remote object-data-hitpoints <= 0)',
+        '(up-remove-objects search-remote object-data-garrisoned == 1)',
+        '(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)',
+        '(up-set-target-point gl-transport-route-landing-x)',
+        '(up-clean-search search-remote object-data-distance search-order-asc)',
+        '(up-get-search-state local-total)',
+        '(up-modify-goal gl-ap-egress-count g:= remote-total)', go('AP-EGRESS-0')])
+    # Structure-only cleanup can have no mobile witness.  Retain the existing
+    # bounded zone/hull proof for that case rather than eliminating
+    # all end-game assaults.  When witnesses exist, one of the nearest three
+    # must have a real land path to the candidate.
+    emit([state('AP-EGRESS-0'), '(goal gl-ap-egress-count 0)', '(goal gl-ap-ally-mode YES)'],
+         ['(set-goal gl-ap-failure 45)', go('AP-FAIL')])
+    emit([state('AP-EGRESS-0'), '(goal gl-ap-egress-count 0)', '(goal gl-ap-ally-mode NO)'], [
+        '(set-goal gl-ap-egress-witness -1)', go('AP-EGRESS-ACCEPT')])
+    for index, current, following in ((0, 'AP-EGRESS-0', 'AP-EGRESS-1'),
+                                      (1, 'AP-EGRESS-1', 'AP-EGRESS-2')):
+        emit([state(current), f'(up-compare-goal gl-ap-egress-count c:> {index})',
+              f'(up-set-target-object search-remote c: {index})',
+              '(up-path-distance gl-transport-route-landing-x 1 != 65535)'],
+             ['(up-get-object-data object-data-id gl-ap-egress-witness)', go('AP-EGRESS-ACCEPT')])
+        emit([state(current), f'(up-compare-goal gl-ap-egress-count c:> {index})',
+              f'(up-set-target-object search-remote c: {index})',
+              '(up-path-distance gl-transport-route-landing-x 1 == 65535)'],
+             [go(following)])
+        emit([state(following), f'(up-compare-goal gl-ap-egress-count c:<= {index + 1})'],
+             ['(set-goal gl-ap-failure 41)', go('AP-FAIL')])
+    emit([state('AP-EGRESS-2'), '(up-compare-goal gl-ap-egress-count c:> 2)',
+          '(up-set-target-object search-remote c: 2)',
+          '(up-path-distance gl-transport-route-landing-x 1 != 65535)'],
+         ['(up-get-object-data object-data-id gl-ap-egress-witness)', go('AP-EGRESS-ACCEPT')])
+    emit([state('AP-EGRESS-2'), '(up-compare-goal gl-ap-egress-count c:> 2)',
+          '(up-set-target-object search-remote c: 2)',
+          '(up-path-distance gl-transport-route-landing-x 1 == 65535)'],
+         ['(set-goal gl-ap-failure 41)', go('AP-FAIL')])
+    # Option 0 allows separation: a reachable tile above a cliff does not
+    # establish a route to the requested landing below it. Land witnesses use
+    # option 1; the Transport's deliberately tolerant unload query stays 0.
+    # Three accepted-candidate records per new mission distinguish an exact
+    # witness from the unresolved no-visible-witness fallback in the next replay.
+    emit([state('AP-EGRESS-ACCEPT'), '(up-compare-goal gl-ap-egress-diag-left c:> 0)'], [
+        '(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)',
+        '(up-chat-data-to-all str-ap-objective g: gl-ap-objective)',
+        '(up-chat-data-to-all str-ap-x g: gl-transport-route-landing-x)',
+        '(up-chat-data-to-all str-ap-y g: gl-transport-route-landing-y)',
+        '(up-chat-data-to-all str-ap-egress-count g: gl-ap-egress-count)',
+        '(up-chat-data-to-all str-ap-egress-witness g: gl-ap-egress-witness)',
+        '(up-modify-goal gl-ap-egress-diag-left c:- 1)'])
+    emit([state('AP-EGRESS-ACCEPT')], [
+        '(set-goal gl-ap-screen-validated NO)',
         '(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)',
         go('TRANSPORT-ROUTE-CORRIDOR-PREPARE')])
+    # A same-land-zone objective is not proof of a usable coast, and the
+    # perpendicular corridor geometry can itself land on terrain. Rebuild the
+    # exact loaded hull before asking whether it can reach an open unload
+    # vicinity and the exact movement waypoint. Invalid geometry is one failed
+    # approach and returns to the existing bounded candidate/objective search.
+    emit([state('AP-PATH')], select_hull())
+    emit([state('AP-PATH'), '(up-set-target-object search-local c: 0)',
+          '(up-path-distance gl-transport-route-landing-x 0 == 65535)'],
+         ['(set-goal gl-ap-failure 36)', go('AP-FAIL')])
+    emit([state('AP-PATH'), '(up-set-target-object search-local c: 0)',
+          '(up-path-distance gl-transport-route-landing-x 0 != 65535)',
+          '(up-path-distance gl-transport-route-waypoint-x 1 == 65535)',
+          '(up-compare-goal gl-ap-direct-threats c:> 0)'],
+         ['(set-goal gl-ap-failure 37)', go('AP-FAIL')])
+    emit([state('AP-PATH'), '(up-set-target-object search-local c: 0)',
+          '(up-path-distance gl-transport-route-landing-x 0 != 65535)',
+          '(up-path-distance gl-transport-route-waypoint-x 1 == 65535)',
+          '(goal gl-ap-direct-threats 0)'], [
+        '(up-bound-point gl-transport-route-waypoint-x gl-ap-shore-selected-water-x)',
+        go('AP-DIRECT-PATH')])
+    emit([state('AP-PATH'), '(up-set-target-object search-local c: 0)',
+          '(up-path-distance gl-transport-route-landing-x 0 != 65535)',
+          '(up-path-distance gl-transport-route-waypoint-x 1 != 65535)'],
+         [go('TRANSPORT-ROUTE-SCREEN-FIND')])
+    emit([state('AP-DIRECT-PATH')], select_hull())
+    emit([state('AP-DIRECT-PATH'), '(up-set-target-object search-local c: 0)',
+          '(up-path-distance gl-transport-route-landing-x 0 == 65535)'],
+         ['(set-goal gl-ap-failure 36)', go('AP-FAIL')])
+    emit([state('AP-DIRECT-PATH'), '(up-set-target-object search-local c: 0)',
+          '(up-path-distance gl-transport-route-landing-x 0 != 65535)',
+          '(up-path-distance gl-transport-route-waypoint-x 1 == 65535)'],
+         ['(set-goal gl-ap-failure 37)', go('AP-FAIL')])
+    emit([state('AP-DIRECT-PATH'), '(up-set-target-object search-local c: 0)',
+          '(up-path-distance gl-transport-route-landing-x 0 != 65535)',
+          '(up-path-distance gl-transport-route-waypoint-x 1 != 65535)'],
+         [go('TRANSPORT-ROUTE-SCREEN-FIND')])
     # Check all enemies before exposing the Scout AND after its successful screen.
     emit([*active(), state('TRANSPORT-ROUTE-SCREEN-FIND'), '(goal gl-ap-screen-validated NO)'],
          ['(set-goal gl-ap-resume TRANSPORT-ROUTE-SCREEN-FIND)', go('AP-SAFETY')])
     emit([*active(), state('AP-FINAL-SAFETY')],
          ['(set-goal gl-ap-resume TRANSPORT-ROUTE-DEPARTURE-START)', go('AP-SAFETY')])
+    # Revalidate the literal allied TC before screening and again before commit.
+    # It is a geographic anchor only, NEVER the combat objective or path actor.
+    emit([state('AP-SAFETY'), '(goal gl-ap-ally-mode YES)'], ['(set-goal gl-ap-ally-live NO)'])
+    for p in range(1, 9):
+        emit([state('AP-SAFETY'), '(goal gl-ap-ally-mode YES)',
+              f'(goal gl-ap-ally-player {p})', f'(player-in-game {p})',
+              f'(stance-toward {p} ally)'], [
+            f'(set-strategic-number sn-focus-player-number {p})',
+            '(up-full-reset-search)', '(up-set-target-point gl-ap-ally-x)',
+            '(up-find-remote c: town-center c: 20)',
+            '(up-remove-objects search-remote object-data-id g:!= gl-ap-ally-base)',
+            f'(up-remove-objects search-remote object-data-player != {p})',
+            '(up-remove-objects search-remote object-data-id < 0)',
+            '(up-remove-objects search-remote object-data-hitpoints <= 0)',
+            '(up-remove-objects search-remote object-data-status != status-ready)',
+            '(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)',
+            '(set-goal gl-ap-ally-live 2)'])
+    emit([state('AP-SAFETY'), '(goal gl-ap-ally-mode YES)', '(goal gl-ap-ally-live 2)',
+          '(up-set-target-object search-remote c: 0)'], ['(set-goal gl-ap-ally-live YES)'])
+    emit([state('AP-SAFETY'), '(goal gl-ap-ally-mode YES)', '(not (goal gl-ap-ally-live YES))'],
+         ['(set-goal gl-ap-failure 43)',
+          '(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)',
+          '(up-chat-data-to-all str-ap-reason c: 43)',
+          '(up-chat-data-to-all str-ap-ally g: gl-ap-ally-player)',
+          '(up-chat-data-to-all str-ap-base g: gl-ap-ally-base)', go('AP-ALLY-NEXT')])
     emit([state('AP-SAFETY')], ['(set-goal gl-ap-landing-threats 0)', '(set-goal gl-ap-route-threats 0)'])
     for p in range(1, 9):
         a = [f'(set-strategic-number sn-focus-player-number {p})']
@@ -213,6 +452,16 @@ def plans():
     for count, reason in (('landing', 11), ('route', 7)):
         emit([state('AP-SAFE-CHECK'), f'(up-compare-goal gl-ap-{count}-threats c:> 0)'],
              [f'(set-goal gl-ap-failure {reason})', go('AP-FAIL')])
+    emit([state('AP-SAFE-CHECK'), '(goal gl-ap-ally-mode YES)',
+          '(goal gl-ap-resume TRANSPORT-ROUTE-DEPARTURE-START)'], [
+        '(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)',
+        '(up-chat-data-to-all str-ap-reason c: 46)',
+        '(up-chat-data-to-all str-ap-ally g: gl-ap-ally-player)',
+        '(up-chat-data-to-all str-ap-base g: gl-ap-ally-base)',
+        '(up-chat-data-to-all str-ap-objective g: gl-ap-objective)',
+        '(up-chat-data-to-all str-ap-x g: gl-transport-route-landing-x)',
+        '(up-chat-data-to-all str-ap-y g: gl-transport-route-landing-y)',
+        '(up-chat-data-to-all str-ap-egress-witness g: gl-ap-egress-witness)'])
     emit([state('AP-SAFE-CHECK')], ['(set-goal gl-ap-screen-validated YES)',
         '(up-set-timer c: t-transport-route c: 1)', cp('gl-transport-route-state', 'gl-ap-resume')])
     # Exactly one event/record; no hull or passenger order on a replan.
@@ -239,6 +488,7 @@ def plans():
     emit([state('AP-ADVANCE'), '(goal gl-ap-after-failure 2)'], [go('AP-ENEMY-FAILED')])
     emit([state('AP-ADVANCE')], ['(up-modify-goal gl-ap-candidate c:+ 1)', go('AP-CANDIDATE')])
     # One exhausted objective is one plan failure, not one rule evaluation.
+    emit([state('AP-OBJECTIVE-FAILED'), '(goal gl-ap-ally-mode YES)'], [go('AP-ALLY-NEXT')])
     for p in range(1, 9):
         emit([state('AP-OBJECTIVE-FAILED'), f'(goal gl-assault-manifest-player {p})'],
              [f'(up-modify-goal gl-ap-enemy{p}-failures c:+ 1)'])
@@ -251,12 +501,72 @@ def plans():
         '(up-get-object-data object-data-id gl-ap-objective)',
         '(up-get-point position-object gl-transport-route-target-x)', go('AP-OBJECTIVE')])
     emit([state('AP-NEXT-OBJECTIVE')], [go('AP-ENEMY-FAILED')])
+    # Enemy approaches/objectives were exhausted. Try one ready TC per living
+    # ally on the objective landmass before abandoning this opponent's load.
+    emit([state('AP-ENEMY-FAILED')], ['(set-goal gl-ap-ally-live NO)'])
+    for p in range(1, 9):
+        emit([state('AP-ENEMY-FAILED'), f'(up-compare-goal gl-ap-ally-self c:!= {p})',
+              f'(player-in-game {p})', f'(stance-toward {p} ally)'],
+             ['(set-goal gl-ap-ally-live YES)'])
+    emit([state('AP-ENEMY-FAILED'), '(goal gl-ap-ally-tried NO)',
+          '(goal gl-ap-ally-live YES)',
+          '(goal gl-ap-live YES)', '(up-compare-goal gl-ap-objective c:>= 0)',
+          '(up-compare-goal gl-transport-route-target-zone c:>= 0)',
+          '(up-compare-goal gl-ap-clock g:< gl-ap-until)'], [
+        '(set-goal gl-ap-ally-tried YES)', '(set-goal gl-ap-ally-mode YES)',
+        '(set-goal gl-ap-ally-next 1)', '(set-goal gl-ap-ally-player 0)',
+        '(set-goal gl-ap-after-failure 0)', *deadline('gl-ap-ally-until', 120),
+        *release_screen(), go('AP-ALLY-BEGIN')])
+    emit([state('AP-ALLY-BEGIN')], [
+        '(up-full-reset-search)', '(up-add-object-by-id search-remote g: gl-ap-objective)',
+        '(up-remove-objects search-remote object-data-player g:!= gl-assault-manifest-player)',
+        '(up-remove-objects search-remote object-data-hitpoints <= 0)',
+        '(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)'])
+    emit([state('AP-ALLY-BEGIN'), '(up-set-target-object search-remote c: 0)'], [go('AP-ALLY-SCAN')])
+    emit([state('AP-ALLY-BEGIN')], ['(set-goal gl-ap-failure 43)', go('AP-ALLY-DONE')])
+    for p in range(1, 9):
+        emit([state('AP-ALLY-SCAN'), f'(goal gl-ap-ally-next {p})',
+              f'(up-compare-goal gl-ap-ally-self c:!= {p})',
+              f'(player-in-game {p})', f'(stance-toward {p} ally)'], [
+            f'(set-goal gl-ap-ally-player {p})',
+            f'(set-strategic-number sn-focus-player-number {p})',
+            '(up-full-reset-search)', '(up-set-target-point gl-transport-route-target-x)',
+            '(up-find-remote c: town-center c: 20)',
+            f'(up-remove-objects search-remote object-data-player != {p})',
+            '(up-remove-objects search-remote object-data-hitpoints <= 0)',
+            '(up-remove-objects search-remote object-data-status != status-ready)',
+            '(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)',
+            '(up-clean-search search-remote object-data-distance search-order-asc)', go('AP-ALLY-BASE')])
+    emit([state('AP-ALLY-SCAN')], [go('AP-ALLY-NEXT')])
+    emit([state('AP-ALLY-BASE'), '(up-set-target-object search-remote c: 0)'], [
+        '(up-get-object-data object-data-id gl-ap-ally-base)',
+        '(up-get-point position-object gl-ap-ally-x)',
+        '(set-goal gl-ap-valid NO)', '(set-goal gl-ap-candidate 0)',
+        '(set-goal gl-ap-screen-validated NO)',
+        '(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)',
+        '(up-chat-data-to-all str-ap-reason c: 42)',
+        '(up-chat-data-to-all str-ap-ally g: gl-ap-ally-player)',
+        '(up-chat-data-to-all str-ap-base g: gl-ap-ally-base)', go('AP-SHORE-INIT')])
+    emit([state('AP-ALLY-BASE')], [go('AP-ALLY-NEXT')])
+    emit([state('AP-ALLY-NEXT')], [*release_screen(),
+        '(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)',
+        '(up-modify-goal gl-ap-ally-next c:+ 1)', '(set-goal gl-ap-ally-player 0)',
+        go('AP-ALLY-SCAN')])
+    emit([state('AP-ALLY-SCAN'), '(up-compare-goal gl-ap-ally-next c:> 8)'],
+         ['(set-goal gl-ap-failure 44)', go('AP-ALLY-DONE')])
+    emit([state('AP-ALLY-DONE')], [*release_screen(),
+        '(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)',
+        '(up-chat-data-to-all str-ap-reason g: gl-ap-failure)',
+        '(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)',
+        '(set-goal gl-ap-ally-mode NO)', '(set-goal gl-ap-ally-player 0)',
+        '(set-goal gl-ap-after-failure 2)', go('AP-ENEMY-FAILED')])
     for p in range(1, 9):
         emit([state('AP-ENEMY-FAILED'), f'(goal gl-assault-manifest-player {p})'], [
             *deadline(f'gl-ap-enemy{p}-until', 'AP-RETRY-SECONDS'),
             f'(set-goal gl-ap-enemy{p}-visited YES)', '(set-goal gl-ap-preferred-enemy -1)'])
     emit([state('AP-ENEMY-FAILED')], [go('AP-NEXT-ENEMY')])
-    emit([state('AP-NEXT-ENEMY')], [*release_screen(), '(set-goal gl-ap-chosen-enemy -1)'])
+    emit([state('AP-NEXT-ENEMY')], [*release_screen(), '(set-goal gl-ap-chosen-enemy -1)',
+                                  '(set-goal gl-ap-ally-mode NO)'])
     for p in range(1, 9):
         emit([state('AP-NEXT-ENEMY'), '(goal gl-ap-chosen-enemy -1)', f'(player-in-game {p})',
               f'(stance-toward {p} enemy)', f'(goal gl-ap-enemy{p}-visited NO)',
@@ -277,6 +587,7 @@ def plans():
         '(up-chat-data-to-all str-ap-next-enemy g: gl-assault-manifest-player)',
         '(up-modify-goal gl-ap-enemies-tried c:+ 1)', *deadline('gl-ap-enemy-until', 'AP-ENEMY-SECONDS'),
         '(set-goal gl-ap-after-failure 0)', '(set-goal gl-ap-objective-count 0)',
+        '(set-goal gl-ap-ally-tried NO)',
         '(set-goal gl-ap-valid NO)', '(set-goal gl-ap-seen1 -1)', '(set-goal gl-ap-seen2 -1)', '(set-goal gl-ap-seen3 -1)',
         '(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)',
         '(up-get-point position-focus gl-transport-route-target-x)', go('AP-ENEMY-SEARCH')])
@@ -295,4 +606,5 @@ def plans():
 
 
 def outputs():
-    return {'rawai-assault-plan-defs.per': definitions(), 'rawai-assault-plans.per': plans()}
+    from generate_command_boundary import decorate_outputs
+    return decorate_outputs({'rawai-assault-plan-defs.per': definitions(), 'rawai-assault-plans.per': plans()})

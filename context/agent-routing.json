@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "default_mode": "economy",
+  "optimization_target": "Minimize total expected model usage until correct task completion, not wall-clock time or agent count.",
+  "general_worker": {
+    "implementation": "current primary Codex agent; worker in topology means this agent, not a spawn",
+    "default": true,
+    "responsibilities": [
+      "understand the task",
+      "use deterministic tools and targeted reads",
+      "implement ordinary work",
+      "validate proportionally",
+      "report concisely and stop"
+    ]
+  },
+  "delegation_gate": {
+    "default": "do not delegate",
+    "allow_when": [
+      "one bounded specialist is plausibly cheaper than keeping noisy or unfamiliar exploration in the primary context",
+      "independent model verification materially protects correctness",
+      "the current agent genuinely lacks expertise needed for a difficult bounded question",
+      "the user explicitly requests a separate agent, multi-agent work, or independent-agent review"
+    ],
+    "deny_when": [
+      "the subtask is cheaper to solve than to explain and integrate",
+      "deterministic tooling can answer the immediate question",
+      "another agent would repeat context, reconnaissance, reasoning, or review",
+      "delegation is only for convenience, speed, or reassurance",
+      "the user requests a plan, research, or review but no independent agent and the cost/correctness gate does not pass"
+    ],
+    "costs_to_consider": [
+      "spawn",
+      "task capsule and context",
+      "specialist reasoning",
+      "returned result",
+      "parent integration"
+    ]
+  },
+  "tiers": [
+    {"id": 0, "name": "tool-only", "policy": "Use deterministic search, parser, formatter, test, compiler, static analysis, diff, or existing artifact."},
+    {"id": 1, "name": "single-agent", "policy": "Default: one general worker completes the task and stops."},
+    {"id": 2, "name": "worker-plus-one", "policy": "Invoke one bounded optional capability only after the delegation gate passes."},
+    {"id": 3, "name": "staged-multi-agent", "policy": "Uncommon; use sequential capabilities for genuinely separable high-complexity stages."},
+    {"id": 4, "name": "high-assurance", "policy": "Rare; add independent verification for high-risk, irreversible, security-sensitive, or explicitly adversarial work."}
+  ],
+  "modes": [
+    {"id": "economy", "policy": "Strongest single-agent bias, sequential escalation, targeted validation; repository default."},
+    {"id": "normal", "policy": "Balanced delegation and broader validation when moderate risk or uncertainty warrants it."},
+    {"id": "high-assurance", "policy": "Accept higher usage for necessary specialist analysis, independent verification, and broad validation."}
+  ],
+  "capabilities": [
+    {
+      "id": "economy_scout",
+      "config": ".codex/agents/economy_scout.toml",
+      "context_role": "scout",
+      "invoke_when": ["targeted primary-agent search was insufficient", "bounded unfamiliar discovery would otherwise pollute primary context"],
+      "do_not_invoke_when": ["trivial lookup", "relevant files are known", "implementation is required", "another scout already answered the question"]
+    },
+    {
+      "id": "economy_analyst",
+      "config": ".codex/agents/economy_analyst.toml",
+      "context_role": "analyst",
+      "invoke_when": ["one difficult bounded reasoning question remains after evidence collection", "specialist reasoning plausibly saves a much larger primary investigation"],
+      "do_not_invoke_when": ["ordinary implementation", "mechanical fact or simple failure", "generic review", "just-in-case expertise"]
+    },
+    {
+      "id": "economy_planner",
+      "config": ".codex/agents/economy_planner.toml",
+      "context_role": "architect",
+      "invoke_when": ["task crosses major boundaries with material rework risk and the delegation gate passes", "user explicitly requests a separate planner"],
+      "do_not_invoke_when": ["localized edit", "understood bug fix", "routine maintenance", "primary agent can plan locally", "a plan is requested without a separate planner or a passing delegation gate"]
+    },
+    {
+      "id": "economy_verifier",
+      "config": ".codex/agents/economy_verifier.toml",
+      "context_role": "reviewer",
+      "invoke_when": ["change is high-risk, broad, irreversible, security-sensitive, poorly tested, or explicitly requires independent review"],
+      "do_not_invoke_when": ["change is trivial", "mechanical tests fully cover the behavior", "no material uncertainty remains", "a review of unchanged material already exists"]
+    }
+  ],
+  "task_classes": [
+    {"id": "trivial-edit", "default_tier": 1, "topology": ["worker"], "conditional": []},
+    {"id": "localized-bug-fix", "default_tier": 1, "topology": ["worker"], "conditional": []},
+    {"id": "unfamiliar-code-investigation", "default_tier": 1, "topology": ["worker"], "conditional": ["economy_scout only if targeted search is insufficient", "economy_analyst only if a difficult bounded question remains"]},
+    {"id": "feature-implementation", "default_tier": 1, "topology": ["worker"], "conditional": ["economy_planner only for cross-boundary design risk", "economy_verifier only if resulting risk warrants review"]},
+    {"id": "test-failure-diagnosis", "default_tier": 0, "topology": ["tools", "worker"], "conditional": ["economy_scout only for an unresolved unfamiliar path"]},
+    {"id": "refactor", "default_tier": 1, "topology": ["worker"], "conditional": ["economy_planner for broad dependency risk", "economy_verifier for high regression risk"]},
+    {"id": "documentation", "default_tier": 1, "topology": ["worker"], "conditional": []},
+    {"id": "research-analysis", "default_tier": 1, "topology": ["worker"], "conditional": ["economy_analyst for one genuinely difficult bounded question"]},
+    {"id": "architectural-change", "default_tier": 1, "topology": ["worker"], "conditional": ["economy_planner when planning saves rework", "economy_verifier after validation when risk remains"]},
+    {"id": "high-assurance-review", "default_tier": 4, "topology": ["worker"], "conditional": ["economy_verifier when independent-agent review is explicitly requested or a concrete acceptance risk justifies it after mechanical checks", "economy_analyst only for a distinct specialist question"]},
+    {"id": "project-planning", "default_tier": 1, "topology": ["worker"], "conditional": ["economy_planner when a separate planner is explicitly requested or cross-boundary rework risk passes the delegation gate"]},
+    {"id": "repository-maintenance", "default_tier": 0, "topology": ["tools", "worker"], "conditional": []}
+  ],
+  "escalation_order": [
+    "inspect one additional relevant source",
+    "use deterministic tooling",
+    "invoke one tightly scoped capability if the delegation gate now passes",
+    "integrate the compact result",
+    "replan only after a material assumption fails"
+  ],
+  "task_capsule_fields": ["objective", "scope", "relevant_context", "known_facts", "constraints", "files", "expected_output", "validation", "stop_when"],
+  "output_contract": ["RESULT", "EVIDENCE", "ACTION", "UNCERTAINTY"],
+  "nested_delegation": {"default": "forbidden", "maximum_depth": 1, "exception": "unusual explicit user request with a stated economic or correctness justification"},
+  "validation_policy": "cheapest relevant check, then targeted tests; required broader acceptance gates still run. Repeat or broaden checks only after a relevant change, failure, stale result or specific unresolved risk. Model review is conditional and follows mechanical checks",
+  "replan_triggers": ["unexpected architecture", "failed core hypothesis", "scope change", "contradictory evidence", "validation disproves the approach"]
+}

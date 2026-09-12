@@ -152,7 +152,14 @@ class CommandCounterTests(unittest.TestCase):
                     found = re.findall(r'up-modify-goal gl-command-counter-(\d+) c:\+ 1', row[4])
                     self.assertEqual(len(found), 1, path.name)
                     codes.extend(int(c) for c in found)
-        self.assertEqual(sorted(codes), list(range(1, 27)))
+        self.assertEqual(sorted(codes), list(range(2, 27)))
+        general = rule_blocks(source('rawai-general.per'))
+        observation = [r for r in general if 'gl-command-counter-1 c:+ 1' in r[4]]
+        self.assertEqual(len(observation), 1)
+        self.assertNotIn('action-stop', observation[0][4])
+        cleanup = [r for r in general if 'gl-command-counter-2 c:+ 1' in r[4]]
+        self.assertEqual(len(cleanup), 1)
+        self.assertIn('(up-compare-const de-game != 1)', cleanup[0][3])
         self.assertIn('up-modify-goal gl-command-counter-23 c:+ 1', source('rawai-severe-defense.per'))
 
     def test_counter_reports_are_nonzero_and_minute_bounded(self):

@@ -396,7 +396,7 @@
 
 #end-if
 
-#load-if-defined UP-ETHIOPIANS-CIV-ENEMY ; Dacians
+#load-if-defined UP-ETHIOPIAN-CIV-ENEMY ; Dacians
 
 ;Respond to enemy doctrine: aggressive falx infantry with light cavalry and siege support.
 (defrule
@@ -1486,7 +1486,7 @@
 (defrule
 	(goal current-phase 7)
 =>
-	(up-modify-goal desired-number-towncenters c:= 8)
+	(up-modify-goal desired-number-towncenters c:= 4)
 	(up-modify-goal desired-number-barracks c:= 5)
 	(up-modify-goal desired-number-ranges c:= 4)
 	(up-modify-goal desired-number-stables c:= 2)
@@ -1513,6 +1513,7 @@
 )
 
 ; Taixue
+;CB BEGIN 1039
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(and
@@ -1521,8 +1522,47 @@
 	)
 	(can-build taixue)
 =>
+	(set-goal gl-cbf-cont 1039)
+)
+(defrule
+	(goal gl-cbf-cont 1039)
+=>
+	(set-goal gl-cbf-site 1039)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1039)
+=>
 	(build taixue)
 )
+(defrule
+	(goal gl-cbf-cont 1039)
+=>
+	(set-goal gl-cbf-site 1039)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1039)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1039
 
 ; Taixue research items
 (defrule
@@ -1634,13 +1674,53 @@
 )
 
 ; Commandery
+;CB BEGIN 1040
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(building-type-count-total commandery <= 2)
 	(can-build commandery)
 =>
+	(set-goal gl-cbf-cont 1040)
+)
+(defrule
+	(goal gl-cbf-cont 1040)
+=>
+	(set-goal gl-cbf-site 1040)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1040)
+=>
 	(build commandery)
 )
+(defrule
+	(goal gl-cbf-cont 1040)
+=>
+	(set-goal gl-cbf-site 1040)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1040)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1040
 
 ;Commandery research items
 

@@ -3,14 +3,24 @@
 
 (load "rawai-constants")
 
+(load "rawai-command-boundary-defs")
+(load "rawai-command-boundary-private-init")
+
 (load "rawai-customconstants")
+(load "rawai-boarding-ctrl-defs")
+(load "rawai-boarding-ctrl-init")
 (load "rawai-assault-mission-defs")
 (load "rawai-assault-plan-defs")
 (load "rawai-command-counter-defs")
+(load "rawai-shipyard-defs")
+(load "rawai-naval-row-defs")
+(load "rawai-expedition-defs")
 
 (load "rawai-unitconstants")
 
 (load "rawai-init-goals")
+(load "rawai-command-boundary-init")
+(load "rawai-command-boundary")
 
 (load "rawai-map")
 
@@ -51,12 +61,14 @@
 (load "rawai-unitswitchweapon")
 
 (load "rawai-homebase")
+(load "rawai-command-boundary-coverage")
 (load "rawai-wonder")
 
 (load "rawai-specialplacement")
 
 (load "rawai-attack-verification")
 (load "rawai-military")
+(load "rawai-naval-right-of-way")
 
 (load "rawai-diplomacy")
 
@@ -176,7 +188,7 @@
 
 #end-if
 
-#load-if-defined ETHIOPIANS-CIV
+#load-if-defined ETHIOPIAN-CIV
 
 (defrule
 	(true)
@@ -818,6 +830,9 @@
 ;Generated from the authoritative DAT-backed capability evaluation. This is
 ;loaded after the host-civilization doctrine goals and before unit production.
 (load "rawai-naval-doctrine")
+
+;Read-only class census before generic unit-production rules.
+(load "rawai-reactive-ranged-threat")
 
 #load-if-not-defined DIFFICULTY-HARD
 #load-if-not-defined DIFFICULTY-HARDEST

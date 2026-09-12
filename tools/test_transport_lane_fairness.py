@@ -1,5 +1,6 @@
 """Execute the shared migration/assault intake ordering contract."""
 import unittest
+from itertools import product
 
 from test_pre_backlog import source
 from test_t13_gate_recovery import CMP, CONSTANTS, Gate
@@ -67,6 +68,46 @@ class TransportLaneFairnessTests(unittest.TestCase):
                 gate = LaneGate(**change)
                 self.assertTrue(gate.accepts(self.migration))
                 self.assertFalse(gate.accepts(self.assault))
+
+    def test_tc_work_never_blocks_migration_admission_or_its_fingerprint(self):
+        fingerprint = next(row for row in rule_blocks(source('rawai-military.per'))
+                           if '(up-chat-data-to-all str-t12-diag-id c: 556)' in row[4])
+        for colony_busy, foundation, placement in product((False, True), repeat=3):
+            with self.subTest(colony=colony_busy, foundation=foundation, placement=placement):
+                gate = LaneGate(route_due=False)
+                gate.goals['gl-colony-towncenter-state'] += int(colony_busy)
+                gate.goals['gl-mig-diag-admission-left'] = 2
+                if foundation: gate.pending.add('town-center')
+                if placement: gate.placement.add('town-center')
+                self.assertTrue(gate.accepts(self.migration))
+                self.assertTrue(gate.accepts(fingerprint))
+
+    def test_tc_relaxation_does_not_bypass_transport_ownership(self):
+        for name in ('gl-relic-ferry-state', 'gl-transport-recovery-state',
+                     'gl-transport-repair-state', 'gl-transport-route-state',
+                     'gl-transport-clear-state'):
+            with self.subTest(owner=name):
+                gate = LaneGate(route_due=False)
+                gate.placement.add('town-center')
+                gate.goals[name] += 1
+                self.assertFalse(gate.accepts(self.migration))
+
+    def test_dropsite_construction_still_waits_for_all_tc_conflicts(self):
+        construction = next(row for row in rule_blocks(source('rawai-military.per'))
+                            if '(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-OWNER)' in row[3])
+        for colony_busy, foundation, placement in product((False, True), repeat=3):
+            with self.subTest(colony=colony_busy, foundation=foundation, placement=placement):
+                gate = LaneGate(route_due=False)
+                gate.goals.update({
+                    'gl-island-migration-state': CONSTANTS['MIGRATION-WAIT-DROPSITE-OWNER'],
+                    'gl-lumbercamp-placement-state': CONSTANTS['PLACEMENT-IDLE'],
+                    'gl-miningcamp-placement-state': CONSTANTS['PLACEMENT-IDLE'],
+                })
+                gate.goals['gl-colony-towncenter-state'] += int(colony_busy)
+                if foundation: gate.pending.add('town-center')
+                if placement: gate.placement.add('town-center')
+                self.assertEqual(gate.accepts(construction),
+                                 not (colony_busy or foundation or placement))
 
 
 if __name__ == '__main__':

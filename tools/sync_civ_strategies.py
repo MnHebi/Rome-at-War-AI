@@ -97,7 +97,7 @@ ENEMY_CIV_SYMBOLS = {
     "britons": "UP-BRITON-CIV-ENEMY",
     "carthagians": "UP-PORTUGUESE-CIV-ENEMY",
     "cretans": "UP-VIETNAMESE-CIV-ENEMY",
-    "dacians": "UP-ETHIOPIANS-CIV-ENEMY",
+    "dacians": "UP-ETHIOPIAN-CIV-ENEMY",
     "egyptians": "UP-AZTEC-CIV-ENEMY",
     "gauls": "UP-FRANKISH-CIV-ENEMY",
     "germani": "UP-TEUTONIC-CIV-ENEMY",

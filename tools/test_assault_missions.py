@@ -205,6 +205,8 @@ class AssaultMissionTests(unittest.TestCase):
         m.objects[10].update(point=(155, 100), cargo=0)
         for p in range(1000, 1009): m.objects[p].update(garrisoned=0, zone=3)
         m.sweep(8)
+        self.assertEqual(m.g['gl-am1-state'], 14)
+        m.sweep(8)
         self.assertEqual(m.g['gl-am1-state'], 6)
         self.assertEqual([m.g[f'gl-am{i}-state'] for i in (2, 3)], [1, 1])
         self.assertTrue(any(a == 'action-default' and point == (165, 110) for _, a, point in m.commands))
@@ -263,6 +265,8 @@ class AssaultMissionTests(unittest.TestCase):
                 m.objects[10].update(point=(155, 100), cargo=0)
                 for p in range(1000, 1009):
                     m.objects[p].update(garrisoned=0, zone=3)
+                m.sweep(8)
+                self.assertEqual(m.g['gl-am1-state'], 14)
                 m.sweep(8)
                 self.assertEqual(m.g['gl-am1-state'], 6)
                 self.assertEqual(m.g['gl-am1-reason'], 8)

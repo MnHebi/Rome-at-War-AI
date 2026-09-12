@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "id": "task.t53-villager-keystates",
+  "status": "investigating",
+  "objective": "Runtime-test whether Ctrl-modified, explicitly owned home-economy Villager retasks suppress the repeated AI_ORDER 706 actor flood without changing unrelated worker, migration, transport, garrison, construction or combat behavior.",
+  "scope": [
+    "fisherman to Farm",
+    "fisherman to Gold, Stone or tree",
+    "free or idle economic Villager to Farm",
+    "actor-level pre/post AI_ORDER 706 correlation"
+  ],
+  "ordered_steps": [
+    "complete source-visible Villager-writer audit",
+    "add separately rearmed actor diagnostics and offline correlation",
+    "apply the four bounded zero-carry Ctrl wrappers",
+    "await explicit deployment authority",
+    "correlate exact actor pre/post/later order-706 behavior in a fresh replay (the first marker-501 replay did not overlap a sampled actor with an active flood)",
+    "retain or independently revert the behavioral experiment"
+  ],
+  "source_commits": [
+    {
+      "commit": "e359ea5",
+      "classification": "diagnostic only",
+      "summary": "Complete Villager-writer audit, separately rearmed replay sample and exact actor-level 706 correlation tooling."
+    },
+    {
+      "commit": "5ece337",
+      "classification": "experimental behavioral change",
+      "summary": "Four immediate Ctrl/action-default/reset wrappers with selection and command-time zero-carry guards."
+    }
+  ],
+  "authoritative_files": [
+    "T53-VILLAGER-KEYSTATES-AUDIT.md",
+    "rawai-homebase.per",
+    "tools/validate_villager_keystates.py",
+    "tools/analyze_economic_retasks.py",
+    "tools/test_villager_economic_retask.py",
+    "context/project-state.json"
+  ],
+  "constraints": [
+    "Deployment was explicitly authorized and verified at ea3e146 / marker T53:501; do not mix later source into that replay attribution.",
+    "The order-706 cause remains unproven; this is a controlled experiment.",
+    "Do not add Ctrl to migration, transport, garrison, STOP, movement, build, repair, hunt or combat writers.",
+    "Do not retask a Villager carrying resources.",
+    "Restore sn-keystates to zero immediately after every modified command."
+  ],
+  "preserve": [
+    "the exact action-default target and no-attack stance",
+    "farm-staffing ownership, search and retry cadence apart from zero-carry eligibility",
+    "explicit boar rescue and safety garrisons",
+    "migration and assault Transport boarding",
+    "construction, repair, defense and ordinary combat",
+    "all T52 runtime behavior and diagnostics"
+  ],
+  "focused_validation": [
+    "py -3.12 tools/validate_villager_keystates.py",
+    "py -3.12 tools/test_villager_economic_retask.py",
+    "py -3.12 tools/validate_per.py",
+    "py -3.12 tools/audit_ownership_source.py",
+    "py -3.12 -m unittest discover -s tools -p test_*.py"
+  ],
+  "runtime_acceptance": "Under a verified future T53 runtime, reconstruct each 640-657 episode and compare the same actor's exact order-706 rate before and after the retask. Accept only if the flood materially falls or disappears while the requested assignment persists, later recurrence is classified, and all preserved worker/transport/garrison behaviors remain healthy.",
+  "rollback": "Revert 5ece337 independently if actor-level 706 telemetry is unchanged/worse, the Ctrl assignment does not persist, resources are lost, or any protected behavior regresses; retain e359ea5 diagnostics for attribution.",
+  "stopping_conditions": [
+    "Every sampled retask is correlated to the exact actor's pre/post/later 706 stream.",
+    "Unsampled major 706 actors are reported rather than attributed by inference.",
+    "The experiment is accepted or reverted from runtime evidence.",
+    "villager.order706 remains INVESTIGATING until the cause itself is established."
+  ],
+  "cold_evidence": [
+    "OWNERSHIP-SOURCE-INVENTORY.md",
+    "TASK-OWNERSHIP.md",
+    "T51-RUNTIME-REPLAY-ASSESSMENT.md",
+    "context/archive/HANDOFF-through-T52.md"
+  ]
+}

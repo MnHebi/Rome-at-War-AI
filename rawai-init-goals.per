@@ -113,9 +113,16 @@
 	(disable-self)
 )
 
+;CB BEGIN 1261
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(true)
+=>
+	(set-goal gl-cbf-cont 1261)
+	(disable-self)
+)
+(defrule
+	(goal gl-cbf-cont 1261)
 =>
 	(up-modify-goal desired-number-castles c:= 0)
 	(up-modify-goal desired-number-outposts c:= 0)
@@ -125,13 +132,65 @@
 	(up-modify-goal mill-max-distance c:= 3)
 	(up-modify-goal lumbercamp-max-distance c:= 3)
 	(up-modify-goal miningcamp-max-distance c:= 3)
-	(up-modify-sn sn-food-gatherer-percentage c:= 0)
-	(up-modify-sn sn-wood-gatherer-percentage c:= 0)
-	(up-modify-sn sn-gold-gatherer-percentage c:= 0)
-	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
-	
-	(disable-self)
 )
+(defrule
+	(goal gl-cbf-cont 1261)
+=>
+	(up-get-fact game-time 0 gl-cbf-boot-1261-time)
+	(up-modify-goal gl-cbf-boot-1261-pre s:= sn-food-gatherer-percentage)
+)
+(defrule
+	(goal gl-cbf-cont 1261)
+=>
+	(up-modify-sn sn-food-gatherer-percentage c:= 0)
+	(up-modify-goal gl-cbf-boot-1261-post s:= sn-food-gatherer-percentage)
+	(set-goal gl-cbf-boot-1261-ready 1)
+)
+(defrule
+	(goal gl-cbf-cont 1261)
+=>
+	(up-get-fact game-time 0 gl-cbf-boot-1262-time)
+	(up-modify-goal gl-cbf-boot-1262-pre s:= sn-wood-gatherer-percentage)
+)
+(defrule
+	(goal gl-cbf-cont 1261)
+=>
+	(up-modify-sn sn-wood-gatherer-percentage c:= 0)
+	(up-modify-goal gl-cbf-boot-1262-post s:= sn-wood-gatherer-percentage)
+	(set-goal gl-cbf-boot-1262-ready 1)
+)
+(defrule
+	(goal gl-cbf-cont 1261)
+=>
+	(up-get-fact game-time 0 gl-cbf-boot-1263-time)
+	(up-modify-goal gl-cbf-boot-1263-pre s:= sn-gold-gatherer-percentage)
+)
+(defrule
+	(goal gl-cbf-cont 1261)
+=>
+	(up-modify-sn sn-gold-gatherer-percentage c:= 0)
+	(up-modify-goal gl-cbf-boot-1263-post s:= sn-gold-gatherer-percentage)
+	(set-goal gl-cbf-boot-1263-ready 1)
+)
+(defrule
+	(goal gl-cbf-cont 1261)
+=>
+	(up-get-fact game-time 0 gl-cbf-boot-1264-time)
+	(up-modify-goal gl-cbf-boot-1264-pre s:= sn-stone-gatherer-percentage)
+)
+(defrule
+	(goal gl-cbf-cont 1261)
+=>
+	(up-modify-sn sn-stone-gatherer-percentage c:= 0)
+	(up-modify-goal gl-cbf-boot-1264-post s:= sn-stone-gatherer-percentage)
+	(set-goal gl-cbf-boot-1264-ready 1)
+)
+(defrule
+	(goal gl-cbf-cont 1261)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1261
 
 (defrule
 	(true)
@@ -373,7 +432,20 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-all "RAWAI-P3B44T29: %d" c: 477)
+	(up-chat-data-to-all "RAWAI-P3B44T58B: %d" c: 508)
+	(disable-self)
+)
+
+;A multi-unit action-garrison order can formation-couple slow siege passengers:
+;one obstructed engine then stops the other engines approaching the same hull.
+;The bounded round-robin below retains the ordinary group order for all units,
+;but gives each reserved siege engine its own command identity.
+(defrule
+	(true)
+=>
+	(set-goal gl-assault-siege-board-index 0)
+	(set-goal gl-assault-siege-board-count 0)
+	(set-goal gl-assault-siege-board-next 0)
 	(disable-self)
 )
 
@@ -649,6 +721,37 @@
 	(disable-self)
 )
 
+;T53 diagnostics use an independent episode latch instead of a finite lifetime
+;budget.  A real sampled economic retask consumes the latch; its delayed
+;observation schedules the next sample five minutes later.
+(defrule
+	(true)
+=>
+	(set-goal gl-econ-retask-diag-armed YES)
+	(set-goal gl-econ-retask-diag-state 0)
+	(set-goal gl-econ-retask-diag-due 0)
+	(set-goal gl-econ-retask-diag-next 0)
+	(set-goal gl-econ-retask-diag-writer 0)
+	(set-goal gl-econ-retask-diag-actor -1)
+	(set-goal gl-econ-retask-diag-action -1)
+	(set-goal gl-econ-retask-diag-target -1)
+	(set-goal gl-econ-retask-diag-language -1)
+	(set-goal gl-econ-retask-diag-gather -1)
+	(set-goal gl-econ-retask-diag-carry 0)
+	(set-goal gl-econ-retask-diag-target-id -1)
+	(set-goal gl-econ-retask-diag-target-type -1)
+	(set-goal gl-econ-retask-diag-target-class -1)
+	(set-goal gl-econ-retask-diag-time 0)
+	(set-goal gl-econ-retask-count1 0)
+	(set-goal gl-econ-retask-count2 0)
+	(set-goal gl-econ-retask-count3 0)
+	(set-goal gl-econ-retask-count4 0)
+	(set-goal gl-econ-retask-summary-next 300)
+	(set-goal gl-econ-retask-unsampled 0)
+	(set-goal gl-econ-retask-sampled 0)
+	(disable-self)
+)
+
 ;Home-island resource pressure and migration routing remain separate from the
 ;farm initializer so the replay marker and startup rules stay below ERR6002.
 (defrule
@@ -842,8 +945,15 @@
 	(disable-self)
 )
 
+;CB BEGIN 1265
 (defrule
 	(true)
+=>
+	(set-goal gl-cbf-cont 1265)
+	(disable-self)
+)
+(defrule
+	(goal gl-cbf-cont 1265)
 =>
 	(set-goal gl-attack-timer-random 0)
 	(set-goal gl-attack-timer-next 0)
@@ -855,8 +965,36 @@
 	(set-goal gl-transport-route-right-threats 0)
 	(set-goal gl-transport-route-random 0)
 	(set-goal gl-transport-route-id -1)
+)
+(defrule
+	(goal gl-cbf-cont 1265)
+=>
+	(up-get-fact game-time 0 gl-cbf-boot-1265-time)
+	(up-modify-goal gl-cbf-boot-1265-pre g:= gl-island-migration-state)
+)
+(defrule
+	(goal gl-cbf-cont 1265)
+=>
 	(set-goal gl-island-migration-state MIGRATION-IDLE)
+	(up-modify-goal gl-cbf-boot-1265-post g:= gl-island-migration-state)
+	(set-goal gl-cbf-boot-1265-ready 1)
+)
+(defrule
+	(goal gl-cbf-cont 1265)
+=>
+	(up-get-fact game-time 0 gl-cbf-boot-1266-time)
+	(up-modify-goal gl-cbf-boot-1266-pre g:= gl-island-migration-transport-id)
+)
+(defrule
+	(goal gl-cbf-cont 1265)
+=>
 	(set-goal gl-island-migration-transport-id -1)
+	(up-modify-goal gl-cbf-boot-1266-post g:= gl-island-migration-transport-id)
+	(set-goal gl-cbf-boot-1266-ready 1)
+)
+(defrule
+	(goal gl-cbf-cont 1265)
+=>
 	(set-goal gl-island-migration-focus 0)
 	(set-goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
 	(set-goal gl-transport-repair-id -1)
@@ -864,8 +1002,6 @@
 	(set-goal gl-transport-repair-maxhp 1)
 	(set-goal gl-transport-repair-percent 100)
 	(set-goal gl-transport-repair-focus 0)
-	;The active roster rotation only accepts known choices. T13 stayed at -1
-	;because disabling the legacy switcher also removed its implicit bootstrap.
 	(set-goal ship-train SCOUTSHIP)
 	(up-set-timer c: t-ship-train c: 12)
 	(generate-random-number 121)
@@ -874,9 +1010,13 @@
 	(generate-random-number 121)
 	(up-get-fact random-number 0 gl-rush-attack-delay)
 	(up-modify-goal gl-rush-attack-delay c:+ 300)
-
-	(disable-self)
 )
+(defrule
+	(goal gl-cbf-cont 1265)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1265
 
 ;Keep the larger transport state machines out of the rule above so startup
 ;remains below the engine's per-rule expression limit.

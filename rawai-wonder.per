@@ -112,6 +112,7 @@
 	(set-goal gl-wonder-state WONDER-STATE-ALLY-ACTIVE)
 )
 
+;CB BEGIN 1859
 (defrule
 	(goal gl-wonder-state WONDER-STATE-SAVING)
 	(victory-condition standard)
@@ -131,16 +132,56 @@
 	(stone-amount >= 1400)
 	(up-can-build 0 c: wonder)
 =>
-	;Normal placement keeps the foundation in the established defended town, and
-	;the existing Wonder assignment/placement-pressure owners supply 15 builders.
+	(set-goal gl-cbf-cont 1859)
+)
+(defrule
+	(goal gl-cbf-cont 1859)
+=>
+	(set-goal gl-cbf-site 1859)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1859)
+=>
 	(up-build place-normal 0 c: wonder)
+)
+(defrule
+	(goal gl-cbf-cont 1859)
+=>
+	(set-goal gl-cbf-site 1859)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1859)
+=>
 	(up-modify-goal gl-wonder-build-attempts c:+ 1)
 	(up-modify-goal gl-wonder-build-next g:= gl-game-time)
 	(up-modify-goal gl-wonder-build-next c:+ 180)
 	(up-chat-data-to-self "stalemate Wonder requested player: %d" g: gl-self-player-number)
-	(chat-to-allies "Long stalemate detected; I am building a Wonder")
 	(set-goal gl-wonder-state WONDER-STATE-BUILDING)
 )
+(defrule
+	(goal gl-cbf-cont 1859)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1859
 
 (defrule
 	(goal gl-wonder-state WONDER-STATE-BUILDING)

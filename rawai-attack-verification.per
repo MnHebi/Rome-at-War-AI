@@ -7,6 +7,15 @@
 =>
 	(set-goal gl-verify-state VERIFY-IDLE)
 	(set-goal gl-verify-next 0)
+	(set-goal gl-help-request-pending NO)
+	(set-goal gl-help-request-until 0)
+	(set-goal gl-help-threats 0)
+	(set-goal gl-help-responders 0)
+	(set-goal gl-help-assessment-ready NO)
+	(set-goal gl-help-episode-reported NO)
+	(set-goal gl-help-episode-until 0)
+	(set-goal gl-help-assessment-reported NO)
+	(set-goal gl-help-report-pending NO)
 	(disable-self)
 )
 (defrule
@@ -15,6 +24,24 @@
 	(up-get-fact game-time 0 gl-verify-clock)
 	;A self result is a same-pass pulse, never a stale attack latch.
 	(set-goal gl-self-attack-verified NO)
+)
+
+;The request is valid only while exact attack verification keeps refreshing it.
+;This lets a closed taunt cooldown wait for an ongoing attack without producing
+;a stale request after the attackers have stopped or left the settlement.
+(defrule
+	(goal gl-help-request-pending YES)
+	(up-compare-goal gl-verify-clock g:>= gl-help-request-until)
+=>
+	(set-goal gl-help-request-pending NO)
+	(set-goal gl-help-assessment-ready NO)
+)
+(defrule
+	(goal gl-help-episode-reported YES)
+	(up-compare-goal gl-verify-clock g:>= gl-help-episode-until)
+=>
+	(set-goal gl-help-episode-reported NO)
+	(set-goal gl-help-assessment-reported NO)
 )
 
 ;An accepted ally request has priority over the next periodic self scan.
@@ -88,6 +115,7 @@
 	(up-get-object-data object-data-class gl-verify-hostile-class)
 	(set-goal gl-verify-state VERIFY-ASSET)
 )
+;CB BEGIN 1036
 (defrule
 	(goal gl-verify-state VERIFY-CANDIDATE)
 	(up-set-target-object search-remote g: gl-verify-index)
@@ -95,6 +123,7 @@
 	(up-modify-goal gl-verify-index c:+ 1)
 	(up-jump-rule -2)
 )
+;CB END 1036
 (defrule
 	(goal gl-verify-state VERIFY-CANDIDATE)
 	(not (up-set-target-object search-remote g: gl-verify-index))
@@ -135,6 +164,22 @@
 (defrule
 	(goal gl-verify-state VERIFY-FOUND)
 	(goal gl-verify-caller 1)
+	(goal gl-help-episode-reported NO)
+=>
+	;One bounded identity record per continuous verified-attack episode.
+	(up-chat-data-to-all str-t12-diag-id c: 312)
+	(up-chat-data-to-all str-t12-diag-value g: gl-verify-enemy)
+	(up-chat-data-to-all str-t12-diag-id c: 313)
+	(up-chat-data-to-all str-t12-diag-value g: gl-verify-hostile)
+	(up-chat-data-to-all str-t12-diag-id c: 314)
+	(up-chat-data-to-all str-t12-diag-value g: gl-verify-asset)
+	(up-chat-data-to-all str-t12-diag-id c: 315)
+	(up-chat-data-to-all str-t12-diag-value g: gl-verify-zone)
+	(set-goal gl-help-episode-reported YES)
+)
+(defrule
+	(goal gl-verify-state VERIFY-FOUND)
+	(goal gl-verify-caller 1)
 =>
 	(set-goal gl-self-attack-verified YES)
 	(set-goal gl-t12-help-kind 2)
@@ -142,6 +187,80 @@
 	(up-modify-goal gl-t12-help-hostile g:= gl-verify-hostile)
 	(up-copy-point gl-t12-help-anchor-x gl-verify-asset-x)
 	(up-modify-goal gl-t12-help-time g:= gl-verify-clock)
+	(set-goal gl-help-request-pending YES)
+	(up-modify-goal gl-help-request-until g:= gl-verify-clock)
+	(up-modify-goal gl-help-request-until c:+ 24)
+	(up-modify-goal gl-help-episode-until g:= gl-verify-clock)
+	(up-modify-goal gl-help-episode-until c:+ 24)
+	(set-goal gl-help-assessment-ready NO)
+	(set-goal gl-verify-state VERIFY-SELF-THREATS)
+)
+
+;Assess the exact verified attacker around the exact victim-owned asset.  This
+;is independent of the ordinary ten-second defense leash and persists long
+;enough for the request cooldown to observe a continuous attack episode.
+(defrule
+	(goal gl-verify-state VERIFY-SELF-THREATS)
+=>
+	(up-modify-sn sn-focus-player-number g:= gl-verify-enemy)
+	(up-full-reset-search)
+	(up-set-target-point gl-verify-asset-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-filter-distance c: -1 c: 48)
+	(up-find-remote c: scout-cavalry-class c: 40)
+	(up-find-remote c: cavalry-archer-class c: 40)
+	(up-find-remote c: cavalry-class c: 40)
+	(up-find-remote c: infantry-class c: 40)
+	(up-find-remote c: archery-class c: 40)
+	(up-find-remote c: siege-weapon-class c: 40)
+	(up-find-remote c: priest c: 10)
+	(up-remove-objects search-remote object-data-player g:!= gl-verify-enemy)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-verify-zone)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-help-threats g:= remote-total)
+	(set-goal gl-verify-state VERIFY-SELF-RESPONDERS)
+)
+(defrule
+	(goal gl-verify-state VERIFY-SELF-RESPONDERS)
+=>
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-set-target-point gl-verify-asset-x)
+	(up-filter-status c: status-ready c: list-active)
+	(up-filter-distance c: -1 c: 48)
+	(up-find-local c: scout-cavalry-class c: 40)
+	(up-find-local c: cavalry-archer-class c: 40)
+	(up-find-local c: cavalry-class c: 40)
+	(up-find-local c: infantry-class c: 40)
+	(up-find-local c: archery-class c: 40)
+	(up-find-local c: siege-weapon-class c: 40)
+	(up-find-local c: priest c: 10)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-map-zone-id g:!= gl-verify-zone)
+	(up-remove-objects search-local object-data-hitpoints <= 0)
+	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-get-search-state local-total)
+	(up-modify-goal gl-help-responders g:= local-total)
+	(set-goal gl-help-assessment-ready YES)
+	(up-modify-sn sn-focus-player-number g:= gl-verify-focus)
+	(set-goal gl-verify-state VERIFY-SELF-DONE)
+)
+(defrule
+	(goal gl-verify-state VERIFY-SELF-DONE)
+	(goal gl-help-assessment-reported NO)
+=>
+	;One bounded balance record per episode distinguishes verifier silence from
+	;a locally adequate defense suppressing the request.
+	(up-chat-data-to-all str-t12-diag-id c: 316)
+	(up-chat-data-to-all str-t12-diag-value g: gl-help-threats)
+	(up-chat-data-to-all str-t12-diag-id c: 317)
+	(up-chat-data-to-all str-t12-diag-value g: gl-help-responders)
+	(set-goal gl-help-assessment-reported YES)
+)
+(defrule
+	(goal gl-verify-state VERIFY-SELF-DONE)
+=>
 	(set-goal gl-verify-state VERIFY-IDLE)
 )
 (defrule

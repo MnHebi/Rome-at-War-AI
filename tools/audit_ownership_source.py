@@ -87,6 +87,12 @@ def render():
 
 if __name__ == '__main__':
     rows, failures = inventory()
+    if '--write' in sys.argv:
+        if failures:
+            raise SystemExit('Refusing to regenerate an inventory with permission failures')
+        (ROOT / 'OWNERSHIP-SOURCE-INVENTORY.md').write_text(render(), encoding='utf-8')
+        print(f'Regenerated ownership inventory: {len(rows)} relevant sites')
+        raise SystemExit(0)
     if '--patch' not in sys.argv:
         print(f'{len(rows)} relevant sites; {len(failures)} direct permission failures')
         print('\n'.join(failures))

@@ -398,7 +398,7 @@
 
 #end-if
 
-#load-if-defined UP-ETHIOPIANS-CIV-ENEMY ; Dacians
+#load-if-defined UP-ETHIOPIAN-CIV-ENEMY ; Dacians
 
 #load-if-not-defined DIFFICULTY-EXTREME
 ;Respond to enemy doctrine: aggressive falx infantry with light cavalry and siege support.
@@ -1472,7 +1472,7 @@
 (defrule
 	(goal current-phase 7)
 =>
-	(up-modify-goal desired-number-towncenters c:= 8)
+	(up-modify-goal desired-number-towncenters c:= 4)
 	(up-modify-goal desired-number-barracks c:= 3)
 	(up-modify-goal desired-number-ranges c:= 4)
 	(up-modify-goal desired-number-stables c:= 5)
@@ -1524,23 +1524,111 @@
 
 ;make Pillars of Ashoka(not Ahsoka)
 ;5 in own base, 5 forward towards the enemy
+;CB BEGIN 1043
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(building-type-count-total pillar-of-ashoka < 5)
 	(can-build-with-escrow pillar-of-ashoka)
 =>
+	(set-goal gl-cbf-cont 1043)
+)
+(defrule
+	(goal gl-cbf-cont 1043)
+=>
 	(release-escrow stone)
+)
+(defrule
+	(goal gl-cbf-cont 1043)
+=>
+	(set-goal gl-cbf-site 1043)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1043)
+=>
 	(build pillar-of-ashoka)
 )
+(defrule
+	(goal gl-cbf-cont 1043)
+=>
+	(set-goal gl-cbf-site 1043)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1043)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1043
 
+;CB BEGIN 1044
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(building-type-count-total pillar-of-ashoka < 5)
 	(can-build-with-escrow pillar-of-ashoka)
 =>
+	(set-goal gl-cbf-cont 1044)
+)
+(defrule
+	(goal gl-cbf-cont 1044)
+=>
 	(release-escrow stone)
+)
+(defrule
+	(goal gl-cbf-cont 1044)
+=>
+	(set-goal gl-cbf-site 1044)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1044)
+=>
 	(build-forward pillar-of-ashoka)
 )
+(defrule
+	(goal gl-cbf-cont 1044)
+=>
+	(set-goal gl-cbf-site 1044)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1044)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1044
 
 ;unique technologies
 

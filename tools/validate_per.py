@@ -159,6 +159,31 @@ def project_defconst_values() -> dict[str, int]:
     return values
 
 
+def project_goal_identifiers() -> frozenset[str]:
+    """Collect names demonstrably used as writable goal-storage operands."""
+    text = "\n".join(
+        code_without_comments_or_strings(line)
+        for path in ROOT.glob("*.per")
+        for line in path.read_text(encoding="utf-8-sig").splitlines()
+    )
+    names = {
+        name.casefold()
+        for name in re.findall(
+            r"\((?:set-goal|up-modify-goal)\s+([^\s()]+)", text,
+            re.IGNORECASE,
+        )
+    }
+    names.update(
+        name.casefold()
+        for name in re.findall(
+            r"\(up-get-(?:fact|player-fact)\s+[^()]*?\s([^\s()]+)\s*\)",
+            text,
+            re.IGNORECASE,
+        )
+    )
+    return frozenset(names)
+
+
 def validate_timer_sources(
     sources: dict[str, str],
 ) -> dict[str, list[dict[str, object]]]:
@@ -225,6 +250,7 @@ ACTION_ID_CONSTANTS = constants_with_prefix("actionid-")
 ORDER_ID_CONSTANTS = constants_with_prefix("orderid-")
 PROJECT_DEFCONSTS = project_defconsts()
 PROJECT_DEFCONST_VALUES = project_defconst_values()
+PROJECT_GOAL_IDENTIFIERS = project_goal_identifiers()
 
 
 def defrule_blocks(lines: list[str]) -> list[tuple[int, str]]:
@@ -268,6 +294,39 @@ def validate_command_domains(lines: list[str]) -> list[dict[str, object]]:
             )
         }
     )
+    goal_identifiers = set(PROJECT_GOAL_IDENTIFIERS)
+    goal_identifiers.update(
+        name.casefold()
+        for name in re.findall(
+            r"\((?:set-goal|up-modify-goal)\s+([^\s()]+)", code,
+            re.IGNORECASE,
+        )
+    )
+    goal_identifiers.update(
+        name.casefold()
+        for name in re.findall(
+            r"\(up-get-(?:fact|player-fact)\s+[^()]*?\s([^\s()]+)\s*\)",
+            code,
+            re.IGNORECASE,
+        )
+    )
+    bare_goal_fact = re.compile(
+        r"(?m)^\s*\((?P<identifier>[a-z0-9-]+)\s+"
+        r"(?P<operator><=|>=|==|!=|<|>)\s+",
+        re.IGNORECASE,
+    )
+    for match in bare_goal_fact.finditer(code):
+        identifier = match.group("identifier")
+        if identifier.casefold() in goal_identifiers:
+            issues.append(
+                {
+                    "kind": "goal_identifier_used_as_fact",
+                    "identifier": identifier,
+                    "operator": match.group("operator"),
+                    "expected": "up-compare-goal",
+                    "line": code.count("\n", 0, match.start("identifier")) + 1,
+                }
+            )
     group_operand_patterns = (
         re.compile(
             r"\(up-create-group\s+\S+\s+\S+\s+c:\s*(?P<group>[^\s)]+)",
@@ -377,7 +436,9 @@ def validate_command_domains(lines: list[str]) -> list[dict[str, object]]:
         re.IGNORECASE,
     )
     for match in search_state_operand.finditer(code):
-        if match.group("operand").casefold() != "local-total":
+        # Boarding observations have a private, contiguous four-goal block;
+        # they must not overwrite the gameplay search totals.
+        if match.group("operand").casefold() not in {"local-total", "gl-board-diag-local", "gl-reactive-ranged-local", "gl-cb-local", "gl-cbf-local"}:
             issues.append(
                 {
                     "kind": "invalid_search_state_output_base",
@@ -570,7 +631,7 @@ def validate_file(path: Path) -> list[dict[str, object]]:
     parenthesis_stack: list[tuple[int, int]] = []
     expression_stack: list[dict[str, object]] = []
     preprocessor_stack: list[tuple[int, str, bool]] = []
-    defconst_lines: dict[str, int] = {}
+    defconst_lines: dict[str, list[tuple[int, dict[int, bool]]]] = {}
     rule_depth: int | None = None
     rule_start_line = 0
     rule_element_count = 0
@@ -687,6 +748,12 @@ def validate_file(path: Path) -> list[dict[str, object]]:
                             }
                         )
             preprocessor_stack.append((line_number, symbol, is_defined))
+        elif directive == "#else":
+            if preprocessor_stack:
+                opening, symbol, positive = preprocessor_stack[-1]
+                preprocessor_stack[-1] = (opening, symbol, not positive)
+            else:
+                issues.append({"kind": "unmatched_else", "line": line_number})
         elif directive == "#end-if":
             if preprocessor_stack:
                 preprocessor_stack.pop()
@@ -696,17 +763,22 @@ def validate_file(path: Path) -> list[dict[str, object]]:
         match = re.match(r"^\s*\(defconst\s+([^\s)]+)", line)
         if match:
             name = match.group(1)
-            if name in defconst_lines:
+            branch = {opening: positive for opening, _symbol, positive in preprocessor_stack}
+            # Opposite arms of the same conditional cannot both define a name.
+            # Retain every prior path so a later unconditional duplicate still fails.
+            overlap = next((first for first, prior in defconst_lines.get(name, [])
+                            if not any(k in branch and branch[k] != v
+                                       for k, v in prior.items())), None)
+            if overlap is not None:
                 issues.append(
                     {
                         "kind": "duplicate_defconst",
                         "name": name,
                         "line": line_number,
-                        "first_line": defconst_lines[name],
+                        "first_line": overlap,
                     }
                 )
-            else:
-                defconst_lines[name] = line_number
+            defconst_lines.setdefault(name, []).append((line_number, branch))
 
     for line_number, column in parenthesis_stack:
         issues.append(
@@ -767,6 +839,10 @@ def main() -> None:
                             "line": line_number,
                         }
                     )
+    from validate_rule_capacity import report as rule_capacity
+    capacity = rule_capacity(ROOT)
+    if capacity['status'] != 'PASS':
+        report['compiled_rule_capacity'] = [capacity['maximum']]
     print(json.dumps(report, indent=2))
     if report:
         raise SystemExit(1)

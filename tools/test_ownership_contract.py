@@ -79,7 +79,8 @@ def unit(i, flag=-2, player=1, idle=1, zone=4):
     return {'object-data-id': i, 'object-data-group-flag': flag,
             'object-data-player': player, 'object-data-idling': idle,
             'object-data-map-zone-id': zone, 'object-data-garrisoned': 0,
-            'object-data-type': 74, 'object-data-under-attack': 0,
+            'object-data-type': 74, 'object-data-class': 906,
+            'object-data-under-attack': 0,
             'object-data-action': -1, 'object-data-language-id': 0,
             'object-data-target': -1, 'object-data-distance': 10}
 
@@ -315,10 +316,11 @@ class OwnershipContractTests(unittest.TestCase):
 
     def test_generated_policy_matches_checked_in_runtime(self):
         from generate_ownership_policy import anchors, severe, releases, native_attack
+        from generate_command_boundary import decorate_outputs
         for filename, generate in (
             ('rawai-home-anchors.per', anchors), ('rawai-severe-defense.per', severe),
             ('rawai-owner-release.per', releases), ('rawai-native-attack-ownership.per', native_attack)):
-            self.assertEqual(source(filename), generate(), filename)
+            self.assertEqual(source(filename), decorate_outputs({filename:generate()})[filename], filename)
 
     def test_early_scout_capable_land_claims_cancel_exploration_before_claim(self):
         rows = rule_blocks(source('rawai-military.per'))

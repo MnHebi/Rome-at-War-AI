@@ -1,3 +1,15 @@
+#load-if-defined DE-AVAILABLE
+(defconst de-game 1)
+(defconst wk-game 1)
+#else
+(defconst de-game 0)
+#load-if-defined UP-GAME-WK
+(defconst wk-game 1)
+#else
+(defconst wk-game 0)
+#end-if
+#end-if
+
 ; Shamelessly copied from AiBuilder.per in AoE 2 DE files
 
 (defrule
@@ -1305,6 +1317,54 @@
 (defconst gl-fish-trap-skip 14243)
 (defconst gl-fish-reusable 14244)
 (defconst gl-fish-users 14245)
+;Assault boarding keeps siege engines out of one synchronized formation order.
+(defconst gl-assault-siege-board-index 14246)
+(defconst gl-assault-siege-board-count 14247)
+(defconst gl-assault-siege-board-next 14248)
+;Preparation-only migration shoreline resolver.  These goals are deliberately
+;separate from gl-ap-* so concurrent dispatched assault slots cannot alias them.
+(defconst gl-msr-hull-x 14300)
+(defconst gl-msr-hull-y 14301)
+(defconst gl-msr-scan-x 14302)
+(defconst gl-msr-scan-y 14303)
+(defconst gl-msr-land-x 14304)
+(defconst gl-msr-land-y 14305)
+(defconst gl-msr-water-x 14306)
+(defconst gl-msr-water-y 14307)
+(defconst gl-msr-refine-x 14308)
+(defconst gl-msr-refine-y 14309)
+(defconst gl-msr-candidate-water-x 14310)
+(defconst gl-msr-candidate-water-y 14311)
+(defconst gl-msr-steps 14312)
+(defconst gl-msr-refines 14313)
+(defconst gl-msr-candidate 14314)
+(defconst gl-msr-zone 14315)
+(defconst gl-msr-water-zone 14316)
+(defconst gl-msr-blocked 14317)
+(defconst gl-msr-min-x 14318)
+(defconst gl-msr-max-x 14319)
+(defconst gl-msr-min-y 14320)
+(defconst gl-msr-max-y 14321)
+(defconst gl-msr-write 14322)
+(defconst gl-msr-direct-threats 14323)
+(defconst gl-msr-memory1-x 14324)
+(defconst gl-msr-memory1-y 14325)
+(defconst gl-msr-memory1-until 14326)
+(defconst gl-msr-memory2-x 14327)
+(defconst gl-msr-memory2-y 14328)
+(defconst gl-msr-memory2-until 14329)
+(defconst gl-msr-memory3-x 14330)
+(defconst gl-msr-memory3-y 14331)
+(defconst gl-msr-memory3-until 14332)
+(defconst gl-msr-memory4-x 14333)
+(defconst gl-msr-memory4-y 14334)
+(defconst gl-msr-memory4-until 14335)
+(defconst gl-msr-selected-water-x 14336)
+(defconst gl-msr-selected-water-y 14337)
+(defconst gl-msr-water-distance 14338)
+(defconst gl-msr-land-distance 14339)
+(defconst gl-msr-selected-land-x 14340)
+(defconst gl-msr-selected-land-y 14341)
 (defconst FISH-WATCH-BASE 14400)
 (defconst FISH-WATCH-END 14560)
 ;40 records x 4 goals: object ID, last carry, progress deadline, command cooldown.
@@ -1372,8 +1432,71 @@
 (defconst VERIFY-NEXT 7)
 (defconst VERIFY-NEXT-CHECK 8)
 (defconst VERIFY-DONE 9)
+(defconst VERIFY-SELF-THREATS 10)
+(defconst VERIFY-SELF-RESPONDERS 11)
+(defconst VERIFY-SELF-DONE 12)
 (defconst str-t12-diag-id "RAW12 diag id: %d")
 (defconst str-t12-diag-value "RAW12 diag value: %d")
+
+;Verified local-help episodes.  These goals are outside the command-counter
+;allocation (14000-14191) and below the assault planner allocation (14200+).
+(defconst gl-help-request-pending 14192)
+(defconst gl-help-request-until 14193)
+(defconst gl-help-threats 14194)
+(defconst gl-help-responders 14195)
+(defconst gl-help-assessment-ready 14196)
+(defconst gl-help-episode-reported 14197)
+(defconst gl-help-episode-until 14198)
+(defconst gl-help-assessment-reported 14199)
+(defconst gl-help-report-pending 15990)
+
+;T51 migration diagnostic-only storage.  IDs 15800-15815 are deliberately
+;outside every controller allocation below 16000.  T52 reserves independent
+;bounded samples for each migration episode/class so boarding renewals cannot
+;consume the STOP or drop-site evidence needed later in a match.
+(defconst gl-mig-diag-clock 15800)
+(defconst gl-mig-diag-admission-left 15801)
+(defconst gl-mig-diag-stop-left 15802)
+(defconst gl-mig-diag-last-state 15803)
+(defconst gl-mig-diag-actor 15804)
+(defconst gl-mig-diag-target 15805)
+(defconst gl-mig-diag-count 15806)
+(defconst gl-mig-diag-action 15807)
+(defconst gl-mig-diag-order-target 15808)
+(defconst gl-mig-diag-terminal 15809)
+(defconst gl-mig-diag-admit-latch 15810)
+(defconst gl-mig-diag-boarding-left 15811)
+(defconst gl-mig-diag-landing-left 15812)
+(defconst gl-mig-diag-dropsite-left 15813)
+(defconst gl-mig-diag-recovery-left 15814)
+(defconst gl-mig-diag-lifecycle-left 15815)
+;T53 economic hard-retask diagnostic storage.  This class is independently
+;re-armed by elapsed time after a sampled Ctrl-retask episode; unrelated
+;migration/startup events cannot spend it, and no match-lifetime counter can
+;exhaust late-game observation.
+(defconst gl-econ-retask-diag-armed 15816)
+(defconst gl-econ-retask-diag-state 15817)
+(defconst gl-econ-retask-diag-due 15818)
+(defconst gl-econ-retask-diag-next 15819)
+(defconst gl-econ-retask-diag-writer 15820)
+(defconst gl-econ-retask-diag-actor 15821)
+(defconst gl-econ-retask-diag-action 15822)
+(defconst gl-econ-retask-diag-target 15823)
+(defconst gl-econ-retask-diag-language 15824)
+(defconst gl-econ-retask-diag-gather 15825)
+(defconst gl-econ-retask-diag-carry 15826)
+(defconst gl-econ-retask-diag-target-id 15827)
+(defconst gl-econ-retask-diag-target-type 15828)
+(defconst gl-econ-retask-diag-target-class 15829)
+(defconst gl-econ-retask-diag-time 15830)
+;T55B observation only: per-window writer invocations, not native packets.
+(defconst gl-econ-retask-count1 15831)
+(defconst gl-econ-retask-count2 15832)
+(defconst gl-econ-retask-count3 15833)
+(defconst gl-econ-retask-count4 15834)
+(defconst gl-econ-retask-summary-next 15835)
+(defconst gl-econ-retask-unsampled 15836)
+(defconst gl-econ-retask-sampled 15837)
 (defconst str-aid-food-100 "Sending 100 food to player %d")
 (defconst str-aid-wood-100 "Sending 100 wood to player %d")
 (defconst str-aid-gold-100 "Sending 100 gold to player %d")
@@ -1750,6 +1873,7 @@
 (defconst TRANSPORT-ROUTE-RENDEZVOUS-WAIT 66)
 (defconst TRANSPORT-ROUTE-RENDEZVOUS-CHECK 67)
 (defconst TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER 68)
+(defconst TRANSPORT-ROUTE-CORRIDOR-DIRECT 69)
 
 (defconst TRANSPORT-LOAD-TERMINAL-NONE 0)
 (defconst TRANSPORT-LOAD-TERMINAL-ABORT 1)
@@ -1836,6 +1960,24 @@
 (defconst MIGRATION-RENDEZVOUS-CHECK 77)
 (defconst MIGRATION-RENDEZVOUS-PASSENGER 78)
 (defconst MIGRATION-RENDEZVOUS-ANCHOR 79)
+(defconst MIGRATION-SHORE-INIT 80)
+(defconst MIGRATION-SHORE-HULL 81)
+(defconst MIGRATION-SHORE-COARSE 82)
+(defconst MIGRATION-SHORE-COARSE-CHECK 83)
+(defconst MIGRATION-SHORE-REFINE 84)
+(defconst MIGRATION-SHORE-REFINE-CHECK 85)
+(defconst MIGRATION-SHORE-CANDIDATE 86)
+(defconst MIGRATION-SHORE-CACHE 87)
+(defconst MIGRATION-SHORE-PATH 88)
+(defconst MIGRATION-SHORE-REMEMBER 89)
+(defconst MIGRATION-SHORE-EXHAUSTED 90)
+(defconst MIGRATION-ROUTE-DIRECT 91)
+(defconst MIGRATION-ROUTE-PATH 92)
+(defconst MIGRATION-ROUTE-DIRECT-PATH 93)
+(defconst MIGRATION-SHORE-PATH-RESULT 94)
+(defconst MIGRATION-ROUTE-PATH-RESULT 95)
+(defconst MIGRATION-ROUTE-DIRECT-RESULT 96)
+(defconst MIGRATION-ROUTE-DIRECT-VALIDATE 97)
 (defconst TRANSPORT-QUARANTINE-IDLE 0)
 (defconst TRANSPORT-QUARANTINE-CHECK 1)
 (defconst TRANSPORT-QUARANTINE-TERMINAL 2)
@@ -2206,21 +2348,104 @@
 (defconst t-house-placement 49)
 (defconst t-farm-staffing 50)
 
+;CB BEGIN 1045
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(true)
+=>
+	(set-goal gl-cbf-cont 1045)
+	(disable-self)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
 =>
 	(set-strategic-number sn-maximum-food-drop-distance 0)
 	(set-strategic-number sn-maximum-wood-drop-distance 0)
 	(set-strategic-number sn-maximum-gold-drop-distance 0)
 	(set-strategic-number sn-maximum-hunt-drop-distance 0)
 	(set-strategic-number sn-maximum-stone-drop-distance 0)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
+	(up-get-fact game-time 0 gl-cbf-boot-1045-time)
+	(up-modify-goal gl-cbf-boot-1045-pre s:= sn-food-gatherer-percentage)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
 	(set-strategic-number sn-food-gatherer-percentage 0)
+	(up-modify-goal gl-cbf-boot-1045-post s:= sn-food-gatherer-percentage)
+	(set-goal gl-cbf-boot-1045-ready 1)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
+	(up-get-fact game-time 0 gl-cbf-boot-1046-time)
+	(up-modify-goal gl-cbf-boot-1046-pre s:= sn-wood-gatherer-percentage)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
 	(set-strategic-number sn-wood-gatherer-percentage 0)
+	(up-modify-goal gl-cbf-boot-1046-post s:= sn-wood-gatherer-percentage)
+	(set-goal gl-cbf-boot-1046-ready 1)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
+	(up-get-fact game-time 0 gl-cbf-boot-1047-time)
+	(up-modify-goal gl-cbf-boot-1047-pre s:= sn-gold-gatherer-percentage)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
 	(set-strategic-number sn-gold-gatherer-percentage 0)
-	(set-strategic-number sn-stone-gatherer-percentage 0)	
+	(up-modify-goal gl-cbf-boot-1047-post s:= sn-gold-gatherer-percentage)
+	(set-goal gl-cbf-boot-1047-ready 1)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
+	(up-get-fact game-time 0 gl-cbf-boot-1048-time)
+	(up-modify-goal gl-cbf-boot-1048-pre s:= sn-stone-gatherer-percentage)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
+	(set-strategic-number sn-stone-gatherer-percentage 0)
+	(up-modify-goal gl-cbf-boot-1048-post s:= sn-stone-gatherer-percentage)
+	(set-goal gl-cbf-boot-1048-ready 1)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
+	(up-get-fact game-time 0 gl-cbf-boot-1049-time)
+	(up-modify-goal gl-cbf-boot-1049-pre s:= sn-cap-civilian-explorers)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
 	(set-strategic-number sn-cap-civilian-explorers 0)
+	(up-modify-goal gl-cbf-boot-1049-post s:= sn-cap-civilian-explorers)
+	(set-goal gl-cbf-boot-1049-ready 1)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
+	(up-get-fact game-time 0 gl-cbf-boot-1050-time)
+	(up-modify-goal gl-cbf-boot-1050-pre s:= sn-percent-civilian-explorers)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
 	(set-strategic-number sn-percent-civilian-explorers 100)
+	(up-modify-goal gl-cbf-boot-1050-post s:= sn-percent-civilian-explorers)
+	(set-goal gl-cbf-boot-1050-ready 1)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
 	(set-strategic-number sn-defense-distance 12)
 	(set-strategic-number sn-sentry-distance 12)
 	(set-strategic-number sn-percent-enemy-sighted-response 100)
@@ -2230,12 +2455,33 @@
 	(set-strategic-number sn-task-ungrouped-soldiers 0)
 	(set-strategic-number sn-number-attack-groups 0)
 	(set-strategic-number sn-enemy-sighted-response-distance 6)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
+	(up-get-fact game-time 0 gl-cbf-boot-1051-time)
+	(up-modify-goal gl-cbf-boot-1051-pre s:= sn-total-number-explorers)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
 	(set-strategic-number sn-total-number-explorers 0)
+	(up-modify-goal gl-cbf-boot-1051-post s:= sn-total-number-explorers)
+	(set-goal gl-cbf-boot-1051-ready 1)
+)
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
 	(set-strategic-number sn-minimum-town-size 0)
 	(set-strategic-number sn-maximum-town-size 0)
 	(set-strategic-number sn-enable-offensive-priority 1)
-	(disable-self)
 )
+(defrule
+	(goal gl-cbf-cont 1045)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1045
 
 (defrule
 	(true)

@@ -7,15 +7,29 @@
 	(chat-local-to-self "start taunt spam timer")
 )
 
-;Only a freshly verified victim/hostile event can produce an attack claim.
+;Only a current exact victim/hostile episode can produce an attack claim.
+;The episode remains pending while the verifier keeps refreshing it, so an
+;independent chat cooldown cannot silently discard an overwhelming attack.
 ;Ordinary incursion defense remains independent of this request policy.
 (defrule
 	(goal dont-spam-taunts NO)
-	(goal gl-self-attack-verified YES)
+	(goal gl-help-request-pending YES)
+	(goal gl-help-assessment-ready YES)
+	(up-compare-goal gl-verify-clock g:< gl-help-request-until)
 	(or (up-compare-goal military-superiority c:<= 1)
-	    (up-compare-goal gl-local-response-responders c:<= 0))
+	    (up-compare-goal gl-help-threats g:> gl-help-responders))
 =>
 	(chat-to-allies "48 My settlement is under attack; I need reinforcements!")
+	(set-goal gl-help-report-pending YES)
+	(set-goal dont-spam-taunts YES)
+	(enable-timer t-taunt-spam 120)
+)
+
+;Keep the request rule below the engine expression limit.  This diagnostic
+;consumer runs once immediately after the request and changes no gameplay state.
+(defrule
+	(goal gl-help-report-pending YES)
+=>
 	(up-chat-data-to-all str-t12-diag-id c: 300)
 	(up-chat-data-to-all str-t12-diag-value g: gl-t12-help-kind)
 	(up-chat-data-to-all str-t12-diag-id c: 301)
@@ -37,10 +51,9 @@
 	(up-chat-data-to-all str-t12-diag-id c: 309)
 	(up-chat-data-to-all str-t12-diag-value g: gl-t12-help-time)
 	(up-chat-data-to-all str-t12-diag-id c: 310)
-	(up-chat-data-to-all str-t12-diag-value g: gl-local-response-threats)
+	(up-chat-data-to-all str-t12-diag-value g: gl-help-threats)
 	(up-chat-data-to-all str-t12-diag-id c: 311)
-	(up-chat-data-to-all str-t12-diag-value g: gl-local-response-responders)
-	(set-goal dont-spam-taunts YES)
-	(enable-timer t-taunt-spam 120)
+	(up-chat-data-to-all str-t12-diag-value g: gl-help-responders)
+	(set-goal gl-help-report-pending NO)
 )
 

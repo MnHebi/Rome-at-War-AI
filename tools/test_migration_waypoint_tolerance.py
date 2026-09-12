@@ -16,6 +16,8 @@ class MigrationWaypoint(Missions):
             'gl-island-migration-route-waypoint-y': 0,
             'gl-island-migration-target-x': 80,
             'gl-island-migration-target-y': 80,
+            'gl-msr-selected-land-x': 80,
+            'gl-msr-selected-land-y': 80,
             'gl-island-migration-route-distance': best,
             'gl-island-migration-route-waits': waits,
             'gl-island-migration-focus': 2,
