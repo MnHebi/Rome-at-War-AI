@@ -6,7 +6,7 @@ Cold history: `context/archive/HANDOFF-through-T52.md`.
 ## Workspace
 
 - Canonical: `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`
-- Branch: `fix/trade-cog-cap-dacian`; current HEAD: `git rev-parse HEAD`. Publication base `a635d55`; T58B candidate and preserved maintenance are being added to PR11.
+- Branch: `fix/trade-cog-cap-dacian`; current HEAD: `git rev-parse HEAD`. T58B source commit `5e9e548`; maintenance `4250e7f`. Both published to PR11.
 - PR: https://github.com/MnHebi/Rome-at-War-AI/pull/11
 - PR11 refresh includes pending508 source/tests and507 evidence; deployment history: `T58-DEPLOYMENT.md`.
 - One owner; no new branch/worktree/overlay. Do not edit obsolete .pr-work.
