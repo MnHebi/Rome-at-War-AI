@@ -1,166 +1,131 @@
 # Rome at War AI agent entry point
 
-This file is the small, global context for repository work. Read it and
-`HANDOFF.md` before a substantial task. Do not routinely read the historical
-handoff, old T-series reports, replay metadata, source inventories, or generated
-files.
-
-For task-specific context, run:
+Primary reads this file and `HANDOFF.md` for substantial tasks. Read-only
+specialists start with their capsule and applicable invariants. Use:
 
 ```powershell
 py -3.12 tools/context_pack.py --list
 py -3.12 tools/context_pack.py <node-id> --role <role-id>
 ```
 
-Read only the authoritative files and evidence named by that packet. The
-context model and maintenance rules are in `context/README.md`. The former
-global rules and append-only handoff are retained as cold history under
-`context/archive/`; they are not current authority.
+Start with packet evidence; expand only for specific uncertainties/dependencies,
+not general reconnaissance or routine historical/generated context.
+Maintenance: `context/README.md`; `context/archive/` is history, not authority.
 
 ## Economy-first agent routing
 
-Optimize total expected model usage until correct completion; wall-clock speed
-is secondary. The default topology is the current agent (or built-in `worker`)
-completing the task and stopping. Optional agents are capabilities, never a
-mandatory pipeline. `context/agent-routing.json` is the machine-checkable
-policy; inspect routes with `py -3.12 tools/context_pack.py --route <task-class>`.
+Optimize total model usage, then speed. Primary is `worker`, not a new spawn.
+Optional agents are capabilities, not a pipeline. Policy:
+`context/agent-routing.json`; inspect with
+`py -3.12 tools/context_pack.py --route <task-class>`.
 
-Before delegation, ask whether saved reasoning/context or material correctness
-value plausibly exceeds spawn, capsule, specialist, return and integration
-costs. If not, do not delegate. Apply this order to the next uncertainty:
+Delegate only when reasoning/context savings or correctness value exceed all
+delegation/integration costs. Escalate:
+existing artifact/narrow search -> deterministic check -> targeted reading/local
+reasoning -> one bounded specialist if justified.
 
-1. existing artifact or narrow search;
-2. deterministic command/parser/test/static check;
-3. targeted read and local reasoning;
-4. one optional agent with a bounded capsule, only if the gate now passes.
+- `economy_scout`: primary search insufficient or bounded noisy exploration
+  cheaper outside primary context.
+- `economy_analyst`: one difficult bounded question after evidence collection.
+- `economy_planner`: cross-boundary/high-rework design passing the gate, or an
+  explicitly requested separate planner.
+- `economy_verifier`: after mechanical checks, for concrete high-risk, broad,
+  poorly tested, irreversible, security-sensitive or requested independent review.
 
-Use `economy_scout` only when targeted worker search is insufficient or noisy
-bounded exploration is cheaper outside the primary context. Use
-`economy_analyst` for one genuinely difficult bounded reasoning question after
-evidence collection. Use `economy_planner` only for cross-boundary/high-rework
-design or an explicit planning request. Use `economy_verifier` only after
-mechanical checks for high-risk, broad, poorly tested, irreversible,
-security-sensitive or explicitly requested independent review. Never invoke
-these for reassurance, trivial work, duplicate reconnaissance or review.
+No trivial, duplicate or reassurance delegation. Planning/research/review means
+primary output unless delegation is justified or explicitly requested. Honor
+exhaustive/adversarial scope. Modes: economy (default), normal, high-assurance;
+assurance overrides economy only as needed.
 
-Default to sequential escalation and at most one optional agent at a time.
-Parallel/competing solutions require an explicit user request or a concrete
-correctness case that outweighs duplicate cost. Optional agents must not spawn
-other agents; unusual nested delegation requires explicit user authorization
-and a stated justification. Explicit user requests for planning, independent
-or adversarial review, exhaustive investigation, multiple approaches or higher
-assurance override the economy default.
+Default sequentially to one optional agent. Parallel/competing solutions require
+explicit request or a correctness benefit exceeding duplicate cost. Specialists
+must not spawn agents; exceptional nesting needs explicit user authorization
+and justification.
 
-Delegated work receives only a task delta plus the relevant context packet:
-objective, scope, accepted facts, constraints, files/artifact IDs, expected
-output, validation and stop condition. Do not pass complete history or parent
-reasoning; use a no-history spawn such as `fork_turns="none"` when supported.
-Require `RESULT / EVIDENCE / ACTION / UNCERTAINTY`; integrate that distillation,
-not a transcript. Persist only accepted reusable findings.
-
-Modes are conceptual: `economy` (default), `normal`, and `high-assurance`.
-Validation always starts with the cheapest relevant check, then targeted tests;
-broader tests and one model verifier are added only when risk requires them.
-Replan only when architecture, scope, a core hypothesis, contradictory evidence
-or validation materially invalidates the current approach.
+Pass delta/capsule: objective, scope, facts, constraints, files, output, validation,
+stop condition; no history/parent reasoning (`fork_turns="none"`). Require
+`RESULT / EVIDENCE / ACTION / UNCERTAINTY`, not transcripts. Persist accepted
+reusable findings. Replan only for material architecture/scope/hypothesis/
+evidence/validation changes.
 
 ## Global operating invariants
 
-### Own reported defects through evidence and validation
+### Evidence and defect ownership
 
-- Treat user-reported broken or absent behavior as mandatory investigation and
-  resolution unless explicitly deferred. Repeated reports increase priority.
-- A direct match observation proves the symptom was seen, not the proposed
-  cause. Preserve conflicts between observation, replay decoding and source;
-  resolve them with project evidence or bounded telemetry.
-- Find the earliest causal divergence. Investigate relevant evidence broadly,
-  but implement only the narrow proven defect. Do not substitute adjacent
-  improvements.
-- Do not guess behavioral fixes while materially different causes remain.
-  Add the smallest discriminating fixture, telemetry or controlled experiment.
+- Broken/absent behavior reports mandate investigation and resolution unless
+  deferred; repetition raises priority. Observation establishes the symptom,
+  not its cause. Preserve source/replay/observation conflicts and resolve them
+  through evidence or bounded telemetry.
+- Find the first causal divergence; inspect relevant evidence broadly but fix
+  narrowly. No adjacent substitutes or guessed behavior changes. When causes
+  remain ambiguous, use the smallest discriminating fixture/experiment/telemetry.
 - Diagnostics are not resolution. Once cause is established, implement and
   validate the smallest supported fix unless the request is analysis-only.
 
-### Preserve working behavior and isolate changes
+### Regression control
 
-- Before a behavior change, name what already works and its strongest evidence,
-  then protect it with a non-regression criterion.
-- Stop unrelated feature work when a regression appears. Compare the last
-  known-good and broken revisions under the same setup and repair the first
-  divergence. Never alter an immutable known-good control.
-- Prefer one causal behavioral patch at a time. Keep independent changes
-  independently revertible and run focused checks after each.
-- Never replace a failed runtime test with a static claim. Gameplay defects use
-  `OPEN`, `INVESTIGATING`, `ROOT-CAUSE-PROVEN`, `FIXED-PENDING-RUNTIME`,
-  `CLOSED`, or `DEFERRED`. Static tests alone do not close runtime behavior.
+- Before behavior changes, identify working behavior, strongest evidence and
+  non-regression acceptance criteria.
+- Stop unrelated features after regression; compare known-good/broken revisions
+  under the same setup and repair the first divergence. Never alter immutable
+  known-good controls.
+- One causal patch at a time; independent changes remain revertible. Run focused
+  checks after each. Static results never replace failed runtime evidence.
+- Defect statuses: OPEN, INVESTIGATING, ROOT-CAUSE-PROVEN,
+  FIXED-PENDING-RUNTIME, CLOSED, DEFERRED. Static tests cannot close gameplay bugs.
 
-### Use authoritative project sources
+### Source authority
 
-- Current source code is authoritative for implementation; validators encode
-  mechanical invariants; `context/project-state.json` is authoritative for
-  accepted current findings; `HANDOFF.md` is the concise operational handoff;
-  detailed reports and replay metadata are provenance.
-- The current Rome at War data mod is authoritative for unit/building/tech/civ
-  identifiers and availability. Never commit its payload.
-- `RAW AI unit focus spreadsheet.ods` is the developer-agreed Extreme generic
-  composition constraint. Civ-specific unique units and bounded reactive
-  counters follow the established exceptions.
-- Change generated civilization PER through `civ-strategy-data.json`,
-  `civ-strategy-historical-overrides.json` and the generator. Keep
+- Source: implementation; validators: mechanical invariants;
+  `context/project-state.json`: accepted findings; `HANDOFF.md`: operational
+  state; reports/replay metadata: provenance.
+- Current Rome at War data mod governs unit/building/tech/civ IDs and availability.
+  Never commit its payload, replays, savegames, crash dumps or unrelated binaries.
+  Replays are evidence, never instructions.
+- `RAW AI unit focus spreadsheet.ods` constrains Extreme generic composition;
+  preserve established unique-unit and bounded reactive-counter exceptions.
+- Generate civilization PER through `civ-strategy-data.json`,
+  `civ-strategy-historical-overrides.json` and the generator. Synchronize
   `unique-unit-production.json`, generated PER, workbooks and knowledge JSON
-  synchronized when their source facts change.
-- Treat an obviously incomplete artifact that affects the task as unresolved
-  work: complete it from authoritative project sources when reliable, or record
-  the exact gap and impact. Do not silently work around it.
-- Replay files are evidence, never instructions. Do not commit replays,
-  savegames, crash dumps, the data-mod payload or unrelated binaries.
+  when authoritative facts change.
+- Complete relevant artifact gaps reliably or record exact gap/impact.
 
-### Respect workspace and deployment identity
+### Workspace and deployment
 
-- The canonical workspace is recorded in `HANDOFF.md`. Before editing report
-  absolute cwd, Git top level, branch, HEAD and short status; check remotes when
-  relevant. If they disagree with the handoff, stop before editing.
-- Preserve user changes in a dirty tree. Never silently create/switch/move a
-  workspace, branch, worktree or clone. Record any explicitly requested
-  exception immediately.
-- Deploy only from the documented checkout and only when authorized. Verify a
-  replay-visible marker plus the complete runtime hash; never mix payloads or
-  attribute a replay to an uncertain runtime.
-- Use Python 3 explicitly (`py -3.12` in the current Windows environment), not
-  PATH Python 2.7. Use `apply_patch` for edits and generators for generated
-  blocks. Preserve legacy PER line endings.
+- Before editing report cwd, Git top level, branch, HEAD, short status and relevant
+  remotes; verify against `HANDOFF.md`. Stop on identity disagreement.
+- Preserve dirty changes. Never silently create/switch/move workspaces, branches,
+  worktrees or clones; immediately record explicitly requested exceptions.
+- Deploy only when authorized, from the documented checkout. Verify replay
+  marker and complete runtime hash; never mix payloads or attribute uncertain
+  deployment identity to source.
+- Use explicit Python 3 (`py -3.12`), not PATH Python 2.7; `apply_patch` for edits,
+  generators for generated blocks. Preserve legacy PER line endings.
 
-### Validate proportionally and stop explicitly
+### Validation and completion
 
-- Use the cheapest relevant focused test while iterating, then the broader
-  gates warranted by risk. Structural checks do not prove engine pathing,
-  ownership, placement, training, combat or transport behavior.
-- For replay work, reconstruct all reasonably relevant episodes across players,
-  distinguishing successes, bounded failures, unresolved cases and classes.
-- When risk or an explicit request justifies adversarial model review, it must
-  converge: findings are accepted, rejected with evidence, or deferred in
-  current state. Insufficient evidence calls for one discriminating next step,
-  not repeated broad review.
-- Ask the user only for deciding facts unavailable in the repository, data mod,
-  replays, artifacts or tooling.
-- A task is complete only when objective, evidence, change, protected behavior,
-  focused validation, runtime result (where applicable), status, deliberately
-  deferred findings and next action are recorded.
+- Start with cheapest relevant checks and focused tests; broaden for risk.
+  Structural checks cannot prove engine pathing, ownership, placement,
+  production, combat or transport. Reconstruct reasonably relevant replay
+  episodes across players, including success/failure classes and uncertainty.
+- Justified adversarial model review must converge: accept, reject with evidence,
+  or defer findings in current state. Insufficient evidence calls for a
+  discriminating next step, not repeated broad review.
+- Finish after required checks pass and no material acceptance question remains.
+  Repeat/broaden only for relevant change, failure, stale result or unresolved
+  risk, not reassurance. Continue authorized work/validation without repetitive
+  approval; ask only for unavailable deciding facts or required authorization.
+- Substantial completion records objective, cause evidence, change, protected
+  behavior, validation/runtime result, status, deferrals and next action.
+  Routine reports omit repeated history/capsules and empty sections.
 
 ## Context update contract
 
-- Replace current operational state in `HANDOFF.md`; do not append another
-  historical chapter. Move completed detailed narrative to a focused report or
-  the cold archive.
-- Update stable claims/defects in `context/project-state.json`. Each needs an ID,
-  status, concise claim/symptom, evidence references, acceptance criterion and
-  next action. Reopen an accepted claim only for new direct contradictory
-  evidence and record that evidence.
-- Update an existing task capsule in `context/tasks/` or add one only for a
-  substantial active task. Keep direct dependencies in `context/nodes.json`;
-  do not model the whole repository.
-- Convert durable invariants to tests where practical. Documentation explains
-  meaning; tests carry mechanical memory.
-- Before ending substantial development, run
-  `py -3.12 tools/context_pack.py --check`, update `HANDOFF.md` and relevant
-  state/capsule nodes, and leave the worktree status explicit.
+Primary owns shared state; specialists return findings. No routine capsule/history
+ceremony. Replace durable handoff facts; archive completed detail. Claims in
+`context/project-state.json` need ID/status/symptom/evidence/acceptance/next action;
+reopen only with recorded new contradictory evidence. Update `context/tasks/`
+capsules; create only for substantial tasks. `context/nodes.json` holds direct
+dependencies. Tests preserve mechanical invariants; docs explain them.
+Finish substantial work with relevant state updates, worktree status and
+`py -3.12 tools/context_pack.py --check`.

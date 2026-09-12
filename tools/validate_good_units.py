@@ -9,6 +9,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from good_units_provenance import INPUT_HASH_KEY, INPUT_SCHEMA, affinities_sha256
+
 
 EXPECTED_CIVS = 34
 EXPECTED_CATEGORIES = (
@@ -87,6 +89,12 @@ def validate_provenance_sources(
     for key, source_path in provenance_paths.items():
         if not source_path.exists():
             issues.append(f"source_provenance/{key}: authoritative source is missing: {source_path}")
+            continue
+        if key == "AI RAW.per_sha256" and INPUT_HASH_KEY in provenance:
+            if provenance.get("AI RAW.per_input_schema") != INPUT_SCHEMA:
+                issues.append("source_provenance/AI RAW.per_input_schema: unsupported input schema")
+            elif provenance[INPUT_HASH_KEY] != affinities_sha256(source_path):
+                issues.append(f"source_provenance/{INPUT_HASH_KEY}: evaluator inputs changed: {source_path}")
             continue
         actual_hash = sha256(source_path)
         if provenance.get(key) != actual_hash:

@@ -554,6 +554,7 @@ def render_route(task_class_id: str, mode_id: str | None = None) -> str:
         f"- Mode: `{selected_mode}` - {modes[selected_mode]['policy']}",
         f"- Default tier: `{task_class['default_tier']}`",
         f"- Default topology: `{' -> '.join(task_class['topology'])}`", "",
+        "`worker` means the current primary agent, not a new subagent. Planning, research or review requests alone do not require delegation.", "",
         "## Conditional capabilities", "",
     ]
     if task_class["conditional"]:

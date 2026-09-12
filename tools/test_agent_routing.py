@@ -41,7 +41,7 @@ class AgentRoutingTests(unittest.TestCase):
         self.assertTrue(self.routing["general_worker"]["default"])
         self.assertEqual(
             self.routing["general_worker"]["implementation"],
-            "current Codex agent or built-in worker",
+            "current primary Codex agent; worker in topology means this agent, not a spawn",
         )
 
     def test_optional_agents_are_small_read_only_non_recursive_capabilities(self) -> None:
@@ -60,7 +60,8 @@ class AgentRoutingTests(unittest.TestCase):
         self.assertEqual(scout["model_reasoning_effort"], "low")
         for name in ("economy_analyst", "economy_planner", "economy_verifier"):
             self.assertNotIn("model", self.agents[name])
-            self.assertEqual(self.agents[name]["model_reasoning_effort"], "high")
+            self.assertEqual(self.agents[name]["model_reasoning_effort"],
+                             "medium" if name == "economy_planner" else "high")
 
     def test_trivial_bug_and_docs_routes_are_worker_only(self) -> None:
         by_class = {item["id"]: item for item in self.routing["task_classes"]}
@@ -71,13 +72,29 @@ class AgentRoutingTests(unittest.TestCase):
             self.assertIn("Complete with the worker and stop", route)
             self.assertNotIn("worker -> economy_", route)
 
-    def test_capabilities_are_conditional_outside_explicit_high_assurance(self) -> None:
+    def test_capabilities_are_conditional_including_high_assurance(self) -> None:
         optional = {item["id"] for item in self.routing["capabilities"]}
         for task_class in self.routing["task_classes"]:
-            if task_class["id"] == "high-assurance-review":
-                self.assertEqual(task_class["topology"], ["worker", "economy_verifier"])
-            else:
-                self.assertTrue(optional.isdisjoint(task_class["topology"]))
+            self.assertTrue(optional.isdisjoint(task_class["topology"]))
+        review=context_pack.render_route("high-assurance-review")
+        self.assertIn("independent-agent review is explicitly requested", review)
+        self.assertIn("concrete acceptance risk", review)
+
+    def test_planning_requests_do_not_automatically_delegate(self) -> None:
+        route=context_pack.render_route("project-planning")
+        self.assertIn("Default topology: `worker`", route)
+        self.assertIn("not a new subagent", route)
+        self.assertIn("separate planner is explicitly requested", route)
+        planner=next(x for x in self.routing['capabilities'] if x['id']=='economy_planner')
+        self.assertNotIn("user explicitly asks for planning or design", planner['invoke_when'])
+        self.assertIn("A request for a plan alone is not a delegation trigger", self.agents['economy_planner']['description'])
+
+    def test_specialists_leave_shared_state_to_primary(self) -> None:
+        for agent in self.agents.values():
+            self.assertIn("shared",agent['developer_instructions'])
+        verifier=self.agents['economy_verifier']['developer_instructions']
+        self.assertIn("dependencies",verifier)
+        self.assertIn("specific acceptance risk",verifier)
 
     def test_representative_escalation_is_specific_and_sequential(self) -> None:
         unfamiliar = context_pack.render_route("unfamiliar-code-investigation")
@@ -106,6 +123,10 @@ class AgentRoutingTests(unittest.TestCase):
     def test_project_config_limits_default_fanout_without_disabling_user_control(self) -> None:
         config = tomllib.loads((ROOT / ".codex" / "config.toml").read_text(encoding="utf-8"))
         self.assertEqual(config["agents"]["max_concurrent_threads_per_session"], 2)
+        self.assertEqual(config['model'], 'gpt-6-astra')
+        self.assertEqual(config['model_reasoning_effort'], 'medium')
+        self.assertNotIn('service_tier', config)
+        self.assertNotIn('default_subagent_model', config['agents'])
 
 
 if __name__ == "__main__":

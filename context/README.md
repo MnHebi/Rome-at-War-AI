@@ -7,7 +7,7 @@ task. It does not replace source, tests or evidence reports.
 
 | Tier | Contents | Normal use |
 |---|---|---|
-| Hot | Root `AGENTS.md`, root `HANDOFF.md`, current fields and accepted findings in `project-state.json` | Read for every substantial task. Keep concise and current. |
+| Hot | Root `AGENTS.md`, root `HANDOFF.md`, current fields and accepted findings in `project-state.json` | Primary reads for substantial tasks; specialists receive relevant invariants and a task capsule. Keep concise and current. |
 | Warm | `nodes.json`, `roles.json`, active task capsules, and the specific source/tests/reports named by a context packet | Load only for the selected task/subsystem/role. |
 | Cold | `archive/`, old T-series reports, raw replay metadata, full ownership inventories, writer-site maps, generated outputs and complete traces | Retain and index; open only when a relevant claim is challenged or provenance is required. |
 
@@ -51,7 +51,9 @@ py -3.12 tools/context_pack.py --check
 
 ## Economy-first agent routing
 
-The current agent or built-in `worker` owns ordinary tasks. Project-scoped
+The current primary agent owns ordinary tasks; `worker` in route output names
+that primary, not another spawned agent. Planning, research and review requests
+alone do not require delegation. Project-scoped
 agents under `.codex/agents/` are optional read-only capabilities, not stages.
 Inspect the deterministic route for a representative task class with:
 
@@ -75,6 +77,8 @@ identifies them as relevant.
 ## Maintenance
 
 - Replace the root handoff's current state; never resume append-only history.
+- The primary owns shared-state edits; specialists return findings. Routine
+  questions and trivial edits need no new capsule or handoff ceremony.
 - Update existing finding IDs rather than duplicating conclusions. A finding is
   reopened only when new direct evidence contradicts it; record that evidence
   and change status/next action.
