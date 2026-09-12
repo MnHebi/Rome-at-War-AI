@@ -43,6 +43,7 @@
 	(set-goal gl-transport-preparation-owned YES)
 )
 
+;CB BEGIN 1844
 (defrule
 	(or (goal gl-island-migration-state MIGRATION-BOARDING)
 		(or (goal gl-island-migration-state MIGRATION-LOADING)
@@ -58,8 +59,47 @@
 												(goal gl-island-migration-state MIGRATION-ROUTE-APPLY))))))))))))
 	(goal gl-transport-preparation-owned NO)
 =>
+	(set-goal gl-cbf-cont 1844)
+)
+(defrule
+	(goal gl-cbf-cont 1844)
+=>
+	(set-goal gl-cbf-site 1844)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1844)
+=>
 	(set-goal gl-island-migration-state MIGRATION-OWNER-LOST)
 )
+(defrule
+	(goal gl-cbf-cont 1844)
+=>
+	(set-goal gl-cbf-site 1844)
+	(set-goal gl-cbf-kind 7)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1844)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1844
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-OWNER-LOST)
@@ -79,6 +119,7 @@
 	(up-chat-data-to-all "RAW17 actual hull order: %d" g: gl-transport-observed-value)
 )
 
+;CB BEGIN 1845
 (defrule
 	(goal gl-island-migration-state MIGRATION-OWNER-LOST)
 	(up-set-target-object search-local c: 0)
@@ -87,47 +128,345 @@
 	(up-object-data object-data-idling == 1)
 	(up-object-data object-data-under-attack == 0)
 =>
+	(set-goal gl-cbf-cont 1845)
+)
+(defrule
+	(goal gl-cbf-cont 1845)
+=>
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-idling != 1)
 	(up-remove-objects search-local object-data-under-attack > 0)
+)
+(defrule
+	(goal gl-cbf-cont 1845)
+=>
+	(set-goal gl-cbf-site 1845)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1845)
+=>
 	(up-create-group 0 0 c: migration-transport-group)
+)
+(defrule
+	(goal gl-cbf-cont 1845)
+=>
+	(set-goal gl-cbf-site 1845)
+	(set-goal gl-cbf-kind 5)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1845)
+=>
+	(set-goal gl-cbf-site 1846)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1845)
+=>
 	(up-modify-group-flag 1 c: migration-transport-group)
 )
+(defrule
+	(goal gl-cbf-cont 1845)
+=>
+	(set-goal gl-cbf-site 1846)
+	(set-goal gl-cbf-kind 5)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1845)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1845
 
+;CB BEGIN 1847
 (defrule
 	(goal gl-island-migration-state MIGRATION-OWNER-LOST)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-player == my-player-number)
 	(up-object-data object-data-group-flag == migration-transport-group)
 =>
-	;OWNERSHIP command: migration-transport-group.
+	(set-goal gl-cbf-cont 1847)
+)
+(defrule
+	(goal gl-cbf-cont 1847)
+=>
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-transport-group)
+)
+(defrule
+	(goal gl-cbf-cont 1847)
+=>
+	(set-goal gl-cbf-site 1847)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-island-migration-origin-x)
+	(set-goal gl-cbf-args1 action-unload)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-island-migration-origin-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1847)
+=>
 	(up-target-point gl-island-migration-origin-x action-unload -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1847)
+=>
+	(set-goal gl-cbf-site 1847)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-island-migration-origin-x)
+	(set-goal gl-cbf-args1 action-unload)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-island-migration-origin-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1847)
+=>
 	(up-chat-data-to-all "RAW17 migration owner recovery hull: %d" g: gl-island-migration-transport-id)
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 15)
 	(set-goal gl-island-migration-route-waits 0)
 	(set-goal gl-island-migration-rejection-armed NO)
+)
+(defrule
+	(goal gl-cbf-cont 1847)
+=>
+	(set-goal gl-cbf-site 1848)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1847)
+=>
 	(set-goal gl-island-migration-state MIGRATION-RETURNING)
 )
+(defrule
+	(goal gl-cbf-cont 1847)
+=>
+	(set-goal gl-cbf-site 1848)
+	(set-goal gl-cbf-kind 7)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1847)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1847
 
+;CB BEGIN 1849
 (defrule
 	(goal gl-island-migration-state MIGRATION-OWNER-LOST)
+=>
+	(set-goal gl-cbf-cont 1849)
+)
+(defrule
+	(goal gl-cbf-cont 1849)
 =>
 	(up-chat-data-to-all "RAW17 migration owner yield hull: %d" g: gl-island-migration-transport-id)
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+)
+(defrule
+	(goal gl-cbf-cont 1849)
+=>
+	(set-goal gl-cbf-site 1849)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1849)
+=>
 	(up-create-group 0 0 c: migration-boarding-group)
+)
+(defrule
+	(goal gl-cbf-cont 1849)
+=>
+	(set-goal gl-cbf-site 1849)
+	(set-goal gl-cbf-kind 5)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1849)
+=>
+	(set-goal gl-cbf-site 1850)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1849)
+=>
 	(up-modify-group-flag 0 c: migration-boarding-group)
+)
+(defrule
+	(goal gl-cbf-cont 1849)
+=>
+	(set-goal gl-cbf-site 1850)
+	(set-goal gl-cbf-kind 5)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1849)
+=>
+	(set-goal gl-cbf-site 1851)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1849)
+=>
 	(up-reset-group c: migration-boarding-group)
+)
+(defrule
+	(goal gl-cbf-cont 1849)
+=>
+	(set-goal gl-cbf-site 1851)
+	(set-goal gl-cbf-kind 5)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1849)
+=>
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 60)
+)
+(defrule
+	(goal gl-cbf-cont 1849)
+=>
+	(set-goal gl-cbf-site 1852)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1849)
+=>
 	(set-goal gl-island-migration-state MIGRATION-IDLE)
 )
+(defrule
+	(goal gl-cbf-cont 1849)
+=>
+	(set-goal gl-cbf-site 1852)
+	(set-goal gl-cbf-kind 7)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1849)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1849
 
 (defrule
 	(or (goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-SELECT)
@@ -212,22 +551,69 @@
 	(up-modify-group-flag 1 c: attack-transport-group)
 )
 
+;CB BEGIN 1853
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-OWNER-LOST)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-player == my-player-number)
 	(up-object-data object-data-group-flag == attack-transport-group)
 =>
-	;OWNERSHIP command: attack-transport-group.
+	(set-goal gl-cbf-cont 1853)
+)
+(defrule
+	(goal gl-cbf-cont 1853)
+=>
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
+)
+(defrule
+	(goal gl-cbf-cont 1853)
+=>
+	(set-goal gl-cbf-site 1853)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-transport-route-origin-x)
+	(set-goal gl-cbf-args1 action-unload)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-transport-route-origin-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1853)
+=>
 	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1853)
+=>
+	(set-goal gl-cbf-site 1853)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-transport-route-origin-x)
+	(set-goal gl-cbf-args1 action-unload)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-transport-route-origin-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1853)
+=>
 	(up-chat-data-to-all "RAW17 assault owner recovery hull: %d" g: gl-transport-route-id)
 	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
 	(up-set-timer c: t-transport-route c: 15)
 	(set-goal gl-route-unload-attempts 0)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)
 )
+(defrule
+	(goal gl-cbf-cont 1853)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1853
 
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-OWNER-LOST)

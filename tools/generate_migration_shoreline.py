@@ -186,4 +186,5 @@ def migration_shoreline():
 
 
 def outputs():
-    return {'rawai-migration-shoreline.per': migration_shoreline()}
+    from generate_command_boundary import decorate_outputs
+    return decorate_outputs({'rawai-migration-shoreline.per': migration_shoreline()})

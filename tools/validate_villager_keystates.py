@@ -41,7 +41,9 @@ def validate_repository(root: Path = ROOT) -> list[str]:
         for raw in text.splitlines():
             line = raw.split(";", 1)[0].strip()
             if "sn-keystates" in line:
-                if path.name == 'rawai-command-boundary.per' and line == '(up-modify-goal gl-cb-modifier s:= sn-keystates)':
+                if (path.name == 'rawai-command-boundary.per' and line == '(up-modify-goal gl-cb-modifier s:= sn-keystates)' or
+                    path.name in {'rawai-command-boundary.per', 'rawai-command-boundary-coverage.per'} and
+                    line == '(up-modify-goal gl-cbf-value s:= sn-keystates)'):
                     continue  # exact read-only observation, not a modifier writer
                 modifier_lines.append((path.name, line))
                 if path.name not in {"rawai-homebase.per", "rawai-military.per"} or line not in {

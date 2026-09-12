@@ -106,12 +106,18 @@
 
 ;The voyage controller validates the untouched geometric landing against the
 ;target land zone before state 2. Only then replace its physical unload target.
+;CB BEGIN 1854
 (defrule
 	(goal gl-am1-state 2)
 	(or
 		(goal gl-am1-unload-state 1)
 		(goal gl-am1-unload-state 2)
 	)
+=>
+	(set-goal gl-cbf-cont 1854)
+)
+(defrule
+	(goal gl-cbf-cont 1854)
 =>
 	(up-bound-point gl-am1-landing-x gl-am1-unload-x)
 	(set-goal gl-am1-unload-state 3)
@@ -121,16 +127,64 @@
 	(up-add-object-by-id search-local g: gl-am1-hull)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != assault-mission-1-group)
+)
+(defrule
+	(goal gl-cbf-cont 1854)
+=>
+	(set-goal gl-cbf-site 1854)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-am1-landing-x)
+	(set-goal gl-cbf-args1 action-unload)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-am1-landing-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1854)
+=>
 	(up-target-point gl-am1-landing-x action-unload -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1854)
+=>
+	(set-goal gl-cbf-site 1854)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-am1-landing-x)
+	(set-goal gl-cbf-args1 action-unload)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-am1-landing-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1854)
+=>
 	(set-goal gl-am1-issue 0)
 )
+(defrule
+	(goal gl-cbf-cont 1854)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1854
 
+;CB BEGIN 1855
 (defrule
 	(goal gl-am2-state 2)
 	(or
 		(goal gl-am2-unload-state 1)
 		(goal gl-am2-unload-state 2)
 	)
+=>
+	(set-goal gl-cbf-cont 1855)
+)
+(defrule
+	(goal gl-cbf-cont 1855)
 =>
 	(up-bound-point gl-am2-landing-x gl-am2-unload-x)
 	(set-goal gl-am2-unload-state 3)
@@ -140,16 +194,64 @@
 	(up-add-object-by-id search-local g: gl-am2-hull)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != assault-mission-2-group)
+)
+(defrule
+	(goal gl-cbf-cont 1855)
+=>
+	(set-goal gl-cbf-site 1855)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-am2-landing-x)
+	(set-goal gl-cbf-args1 action-unload)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-am2-landing-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1855)
+=>
 	(up-target-point gl-am2-landing-x action-unload -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1855)
+=>
+	(set-goal gl-cbf-site 1855)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-am2-landing-x)
+	(set-goal gl-cbf-args1 action-unload)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-am2-landing-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1855)
+=>
 	(set-goal gl-am2-issue 0)
 )
+(defrule
+	(goal gl-cbf-cont 1855)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1855
 
+;CB BEGIN 1856
 (defrule
 	(goal gl-am3-state 2)
 	(or
 		(goal gl-am3-unload-state 1)
 		(goal gl-am3-unload-state 2)
 	)
+=>
+	(set-goal gl-cbf-cont 1856)
+)
+(defrule
+	(goal gl-cbf-cont 1856)
 =>
 	(up-bound-point gl-am3-landing-x gl-am3-unload-x)
 	(set-goal gl-am3-unload-state 3)
@@ -159,9 +261,51 @@
 	(up-add-object-by-id search-local g: gl-am3-hull)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != assault-mission-3-group)
+)
+(defrule
+	(goal gl-cbf-cont 1856)
+=>
+	(set-goal gl-cbf-site 1856)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-am3-landing-x)
+	(set-goal gl-cbf-args1 action-unload)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-am3-landing-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1856)
+=>
 	(up-target-point gl-am3-landing-x action-unload -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1856)
+=>
+	(set-goal gl-cbf-site 1856)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-am3-landing-x)
+	(set-goal gl-cbf-args1 action-unload)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-am3-landing-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1856)
+=>
 	(set-goal gl-am3-issue 0)
 )
+(defrule
+	(goal gl-cbf-cont 1856)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1856
 
 ;Every new route/screen attempt invalidates a shoreline from an earlier
 ;candidate. Dispatched slots seal the previous route before this can matter.

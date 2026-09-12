@@ -7,7 +7,9 @@ No duplicated predicates, rule insertion in writers, or relative-jump changes.
 from pathlib import Path
 import difflib
 import re
+import json
 from validate_naval_doctrine import rule_blocks
+from generate_command_boundary import strip_source, decorate_outputs, REG
 
 ROOT = Path(__file__).resolve().parents[1]
 STRIP = re.compile(r'\t; RAW12 counter \d+\n\t\(up-modify-goal gl-command-counter-\d+ c:\+ 1\)\n')
@@ -30,6 +32,7 @@ def render():
         if path.name.startswith('rawai-command-counter'):
             continue
         old = path.read_text(encoding='utf-8-sig')
+        if ';CB BEGIN ' in old:old=strip_source(old,json.loads(REG.read_text()))
         base = STRIP.sub('', old)
         edits = []
         for a, b, body, facts, actions in rule_blocks(base):
@@ -86,7 +89,7 @@ def render():
 \t(up-modify-goal gl-command-counter-next c:+ 60)
 )''']
     result['rawai-command-counters.per'] = '\n\n'.join(report) + '\n'
-    return result
+    return decorate_outputs(result)
 
 
 if __name__ == '__main__':

@@ -1435,15 +1435,56 @@
 	(up-modify-goal gl-transport-route-state g:= gl-ap-resume)
 )
 
+;CB BEGIN 1030
 (defrule
 	(goal gl-transport-route-state AP-FAIL)
 =>
+	(set-goal gl-cbf-cont 1030)
+)
+(defrule
+	(goal gl-cbf-cont 1030)
+=>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-screen-id)
-	;OWNERSHIP command: transport-screen-group.
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
+)
+(defrule
+	(goal gl-cbf-cont 1030)
+=>
+	(set-goal gl-cbf-site 1030)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-transport-route-origin-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-transport-route-origin-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1030)
+=>
 	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1030)
+=>
+	(set-goal gl-cbf-site 1030)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-transport-route-origin-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-transport-route-origin-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1030)
+=>
 	(up-create-group 0 0 c: transport-screen-group)
 	(up-modify-group-flag 0 c: transport-screen-group)
 	(up-reset-group c: transport-screen-group)
@@ -1460,6 +1501,12 @@
 	(up-chat-data-to-all str-ap-y g: gl-transport-route-landing-y)
 	(up-chat-data-to-all str-ap-reason g: gl-ap-failure)
 )
+(defrule
+	(goal gl-cbf-cont 1030)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1030
 
 (defrule
 	(goal gl-transport-route-state AP-FAIL)
@@ -2003,15 +2050,56 @@
 	(set-goal gl-transport-route-state AP-NEXT-ENEMY)
 )
 
+;CB BEGIN 1031
 (defrule
 	(goal gl-transport-route-state AP-NEXT-ENEMY)
 =>
+	(set-goal gl-cbf-cont 1031)
+)
+(defrule
+	(goal gl-cbf-cont 1031)
+=>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-screen-id)
-	;OWNERSHIP command: transport-screen-group.
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
+)
+(defrule
+	(goal gl-cbf-cont 1031)
+=>
+	(set-goal gl-cbf-site 1031)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-transport-route-origin-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-transport-route-origin-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1031)
+=>
 	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1031)
+=>
+	(set-goal gl-cbf-site 1031)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-transport-route-origin-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-transport-route-origin-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1031)
+=>
 	(up-create-group 0 0 c: transport-screen-group)
 	(up-modify-group-flag 0 c: transport-screen-group)
 	(up-reset-group c: transport-screen-group)
@@ -2019,6 +2107,12 @@
 	(set-goal gl-transport-screen-waits 0)
 	(set-goal gl-ap-chosen-enemy -1)
 )
+(defrule
+	(goal gl-cbf-cont 1031)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1031
 
 (defrule
 	(goal gl-transport-route-state AP-NEXT-ENEMY)

@@ -766,14 +766,15 @@ def preparation_ownership():
 
 
 def outputs():
-    return {**plan_outputs(), **migration_shoreline_outputs(),
+    from generate_command_boundary import decorate_outputs
+    return decorate_outputs({**plan_outputs(), **migration_shoreline_outputs(),
             'rawai-assault-mission-defs.per': definitions(),
             'rawai-assault-admission.per': admission(), 'rawai-assault-missions.per': missions(),
             'rawai-transport-preparation-ownership.per': preparation_ownership(),
             'rawai-assault-enemy-scan.per': fallback_enemy_scan(),
             'rawai-assault-cancel-details.per': ';Generated diagnostic-only terminal report; code 4 namespace, not RAW3 event 4.\n' +
                 cancellation_details(['(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DENY)',
-                                      '(goal gl-assault-fallback-denial 4)'], 2) + '\n'}
+                                      '(goal gl-assault-fallback-denial 4)'], 2) + '\n'})
 
 
 def patch():

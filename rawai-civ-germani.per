@@ -1648,16 +1648,57 @@
 	(set-goal gl-dejbjerg-state DEJBJERG-IDLE)
 )
 
+;CB BEGIN 1034
 (defrule
 	(goal gl-dejbjerg-state DEJBJERG-CHECK-CLUSTER)
 	(up-compare-goal local-total c:>= 3)
 =>
+	(set-goal gl-cbf-cont 1034)
+)
+(defrule
+	(goal gl-cbf-cont 1034)
+=>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-dejbjerg-id)
-	;OWNERSHIP command: FREE worker (recheck, not just selection).
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+)
+(defrule
+	(goal gl-cbf-cont 1034)
+=>
+	(set-goal gl-cbf-site 1034)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-dejbjerg-target-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-dejbjerg-target-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1034)
+=>
 	(up-target-point gl-dejbjerg-target-x action-move -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1034)
+=>
+	(set-goal gl-cbf-site 1034)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-dejbjerg-target-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-dejbjerg-target-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1034)
+=>
 	(set-goal gl-dejbjerg-attempts 1)
 	(up-modify-goal gl-dejbjerg-next g:= gl-game-time)
 	(up-modify-goal gl-dejbjerg-next c:+ 15)
@@ -1665,6 +1706,12 @@
 	(up-chat-data-to-self "Dejbjerg Wagon moving to cluster: %d" g: local-total)
 	(set-goal gl-dejbjerg-state DEJBJERG-MOVING)
 )
+(defrule
+	(goal gl-cbf-cont 1034)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1034
 
 (defrule
 	(goal gl-dejbjerg-state DEJBJERG-MOVING)
@@ -1688,21 +1735,68 @@
 	(set-goal gl-dejbjerg-state DEJBJERG-IDLE)
 )
 
+;CB BEGIN 1035
 (defrule
 	(goal gl-dejbjerg-state DEJBJERG-MOVING)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-distance > 8)
 	(up-compare-goal gl-dejbjerg-attempts c:< 4)
 =>
-	;OWNERSHIP command: FREE worker (recheck, not just selection).
+	(set-goal gl-cbf-cont 1035)
+)
+(defrule
+	(goal gl-cbf-cont 1035)
+=>
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+)
+(defrule
+	(goal gl-cbf-cont 1035)
+=>
+	(set-goal gl-cbf-site 1035)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-dejbjerg-target-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-dejbjerg-target-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1035)
+=>
 	(up-target-point gl-dejbjerg-target-x action-move -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1035)
+=>
+	(set-goal gl-cbf-site 1035)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-dejbjerg-target-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-dejbjerg-target-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1035)
+=>
 	(up-modify-goal gl-dejbjerg-attempts c:+ 1)
 	(up-modify-goal gl-dejbjerg-next g:= gl-game-time)
 	(up-modify-goal gl-dejbjerg-next c:+ 15)
 	(up-modify-sn sn-focus-player-number g:= gl-dejbjerg-focus)
 )
+(defrule
+	(goal gl-cbf-cont 1035)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1035
 
 (defrule
 	(goal gl-dejbjerg-state DEJBJERG-MOVING)

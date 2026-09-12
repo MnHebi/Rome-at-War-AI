@@ -1733,6 +1733,7 @@
 	(up-modify-goal gl-sy-diag-placement-left c:- 1)
 )
 
+;CB BEGIN 1826
 (defrule
 	(goal gl-sy-stage 10)
 	(goal gl-owner-worker-hold NO)
@@ -1744,12 +1745,55 @@
 	(not (up-pending-placement c: shipyard))
 	(up-can-build-line 0 gl-shipyard-x c: shipyard)
 =>
+	(set-goal gl-cbf-cont 1826)
+)
+(defrule
+	(goal gl-cbf-cont 1826)
+=>
+	(set-goal gl-cbf-site 1826)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1826)
+=>
 	(up-build-line gl-shipyard-x gl-shipyard-x c: shipyard)
+)
+(defrule
+	(goal gl-cbf-cont 1826)
+=>
+	(set-goal gl-cbf-site 1826)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1826)
+=>
 	(up-modify-goal gl-sy-until g:= gl-sy-clock)
 	(up-modify-goal gl-sy-until c:+ 24)
 	(set-goal gl-sy-foundation -1)
 	(set-goal gl-sy-stage 20)
 )
+(defrule
+	(goal gl-cbf-cont 1826)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1826
 
 (defrule
 	(goal gl-sy-stage 10)

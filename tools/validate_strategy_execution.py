@@ -71,6 +71,9 @@ def code_only(text: str) -> str:
 
 
 def defrule_blocks(text: str) -> list[str]:
+    if ';CB BEGIN ' in text:
+        from generate_command_boundary import strip_source, REG
+        text=strip_source(text,json.loads(REG.read_text()))
     code = code_only(text)
     blocks: list[str] = []
     start = 0

@@ -432,7 +432,8 @@ def generate():
 
 
 def outputs():
-    return {'rawai-shipyard-defs.per': definitions(), 'rawai-specialplacement.per': generate()}
+    from generate_command_boundary import decorate_outputs
+    return decorate_outputs({'rawai-shipyard-defs.per': definitions(), 'rawai-specialplacement.per': generate()})
 
 
 if __name__ == '__main__':

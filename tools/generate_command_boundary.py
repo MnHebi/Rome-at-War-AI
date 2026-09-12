@@ -205,6 +205,9 @@ def clean_actions(actions):
 
 
 def render_site(site):
+    if 'file_commands' in site:
+        from command_boundary_file import render_site as file_site
+        return file_site(site)
     facts=site['facts']; actions=site['actions'];idx=site['command_index']
     prefix,suffix=actions[:idx],actions[idx:]
     ident=site['id'];result=[]
@@ -229,7 +232,10 @@ def strip_source(text,registry):
         s=byid[int(m[1])]
         if hashlib.sha256(s['original'].encode()).hexdigest()!=s['original_sha256']:
             raise ValueError('original contract hash changed: '+m[1])
-        if m.group()!=render_site(s):raise ValueError('modified diagnostic bridge: '+m[1])
+        if s.get('emitted_sha256'):
+            if hashlib.sha256(m.group().encode()).hexdigest()!=s['emitted_sha256']:
+                raise ValueError('modified diagnostic bridge: '+m[1])
+        elif m.group()!=render_site(s):raise ValueError('modified diagnostic bridge: '+m[1])
         return s['original']
     return MARKER.sub(replace,text)
 
@@ -275,7 +281,35 @@ def discover():
         provenance='Extends shared RAW12 numeric diagnostics after T56 IDs700-719; no new strings.')
 
 
+def decorate_outputs(outputs):
+    """Keep generated gameplay source authoritative; overlay verified observer.
+
+    A changed original rule fails closed and requires deliberate inventory
+    regeneration. Other generators must never silently erase instrumentation.
+    """
+    if not REG.exists(): return outputs
+    reg=json.loads(REG.read_text())
+    if reg.get('schema') != 2: return outputs
+    result={}
+    for name,text in outputs.items():
+        if ';CB BEGIN ' in text:
+            strip_source(text,reg)  # validate existing bridge, don't nest it
+            result[name]=text;continue
+        for site in sorted((s for s in reg['sites'] if s['file']==name),key=lambda s:s['line'],reverse=True):
+            start=sum(len(x) for x in text.splitlines(keepends=True)[:site['line']-1])
+            end=start+len(site['original'])
+            if text[start:end]!=site['original']:
+                raise ValueError(f'Generated command source changed: {name}:{site["id"]}; refresh registry deliberately')
+            text=text[:start]+render_site(site)+text[end:]
+        result[name]=text
+    return result
+
+
 def main():
+    if '--file-write' in sys.argv or json.loads(REG.read_text()).get('schema') == 2:
+        from command_boundary_file import generate
+        generate(write='--write' in sys.argv or '--file-write' in sys.argv)
+        return
     if '--restore-legacy-endings' in sys.argv:
         # Formatting only: retain current text/edits; reuse HEAD terminators for
         # exactly matching lines. Never substitute HEAD gameplay/source text.

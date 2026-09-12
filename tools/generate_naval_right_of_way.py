@@ -305,7 +305,9 @@ def generate():
     return '\n\n'.join(out)+'\n'
 
 
-def outputs(): return {'rawai-naval-row-defs.per':definitions(), 'rawai-naval-right-of-way.per':generate()}
+def outputs():
+    from generate_command_boundary import decorate_outputs
+    return decorate_outputs({'rawai-naval-row-defs.per':definitions(), 'rawai-naval-right-of-way.per':generate()})
 
 
 if __name__=='__main__':

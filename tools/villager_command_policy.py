@@ -21,6 +21,9 @@ def inventory(root=ROOT):
     all_commands=[]
     for path in sorted(root.glob('*.per')):
         text=path.read_text(encoding='utf-8-sig')
+        if ';CB BEGIN ' in text:
+            from generate_command_boundary import strip_source, REG
+            text=strip_source(text,json.loads(REG.read_text()))
         for a,b,block,facts,actions in rule_blocks(text):
             commands=list(DUC.finditer(actions))
             if not commands:

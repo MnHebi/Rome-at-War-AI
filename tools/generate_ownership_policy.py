@@ -10,6 +10,8 @@ def rule(facts, actions):
 
 
 def emit(name, text):
+    from generate_command_boundary import decorate_outputs
+    text=decorate_outputs({name:text})[name]
     path = ROOT / name
     if not path.exists():
         print('*** Add File: ' + path.as_posix())

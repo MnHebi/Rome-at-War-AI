@@ -5,12 +5,53 @@
 =>
 	(up-modify-sn sn-number-explore-groups g:= desired-military-explorers))
 
+;CB BEGIN 1143
 (defrule
 	(goal gl-owner-explore-suspended NO)
 	(current-age < imperial-age)
 	(up-compare-sn sn-cap-civilian-explorers g:!= desired-civilian-explorers)
 =>
-	(up-modify-sn sn-cap-civilian-explorers g:= desired-civilian-explorers))
+	(set-goal gl-cbf-cont 1143)
+)
+(defrule
+	(goal gl-cbf-cont 1143)
+=>
+	(set-goal gl-cbf-site 1143)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1143)
+=>
+	(up-modify-sn sn-cap-civilian-explorers g:= desired-civilian-explorers)
+)
+(defrule
+	(goal gl-cbf-cont 1143)
+=>
+	(set-goal gl-cbf-site 1143)
+	(set-goal gl-cbf-kind 6)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1143)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1143
 
 (defrule
 	(goal gl-owner-explore-suspended NO)
@@ -26,29 +67,109 @@
 	;ships. A DUC controller in rawai-military owns Scout Ship exploration.
 	(set-strategic-number sn-number-boat-explore-groups 0))
 
+;CB BEGIN 1144
 (defrule
 	(goal gl-owner-explore-suspended NO)
 	(current-age < imperial-age)
 	(up-compare-goal current-phase c:< 4)
 	(up-compare-sn sn-total-number-explorers c:!= 2)
 =>
-	;The engine owns at most two early explorers. Late-phase scouting belongs to
-	;the bounded naval and military DUC controllers instead.
-	(set-strategic-number sn-total-number-explorers 2))
+	(set-goal gl-cbf-cont 1144)
+)
+(defrule
+	(goal gl-cbf-cont 1144)
+=>
+	(set-goal gl-cbf-site 1144)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1144)
+=>
+	(set-strategic-number sn-total-number-explorers 2)
+)
+(defrule
+	(goal gl-cbf-cont 1144)
+=>
+	(set-goal gl-cbf-site 1144)
+	(set-goal gl-cbf-kind 6)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1144)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1144
 
+;CB BEGIN 1145
 (defrule
 	(up-compare-goal current-phase c:>= 4)
 	(up-compare-sn sn-total-number-explorers c:!= 0)
 =>
-	;Retire the engine explorer owner after the Middle Age so it cannot alternate
-	;explore and stop orders with attack, defense, or trade controllers.
-	(set-strategic-number sn-total-number-explorers 0))
+	(set-goal gl-cbf-cont 1145)
+)
+(defrule
+	(goal gl-cbf-cont 1145)
+=>
+	(set-goal gl-cbf-site 1145)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1145)
+=>
+	(set-strategic-number sn-total-number-explorers 0)
+)
+(defrule
+	(goal gl-cbf-cont 1145)
+=>
+	(set-goal gl-cbf-site 1145)
+	(set-goal gl-cbf-kind 6)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1145)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1145
 
+;CB BEGIN 1146
 (defrule
 	(or (up-compare-goal villager-count <= 0)
 	    (not (goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)))
 =>
-	(up-jump-rule 5))
+	(up-jump-rule 15))
+;CB END 1146
 (defrule
 	(true)
 =>
@@ -66,6 +187,7 @@
 	(up-modify-group-flag 1 c: attack-transport-group)
 	(up-get-search-state local-total)
 	(up-remove-objects search-local object-data-index g:!= temporary-goal))
+;CB BEGIN 1147
 (defrule
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-target-id == -1)
@@ -74,22 +196,110 @@
 (or	(up-object-data object-data-order == orderid-repair)
 	(up-object-data object-data-order == orderid-enter))))
 =>
+	(set-goal gl-cbf-cont 1147)
+)
+(defrule
+	(goal gl-cbf-cont 1147)
+=>
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
-	; RAW12 counter 1
 	(up-modify-goal gl-command-counter-1 c:+ 1)
-	(up-target-point 0 action-stop -1 -1))
+)
+(defrule
+	(goal gl-cbf-cont 1147)
+=>
+	(set-goal gl-cbf-site 1147)
+	(set-goal gl-cbf-kind 1)
+	(set-goal gl-cbf-args0 0)
+	(set-goal gl-cbf-args1 action-stop)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 -1)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1147)
+=>
+	(up-target-point 0 action-stop -1 -1)
+)
+(defrule
+	(goal gl-cbf-cont 1147)
+=>
+	(set-goal gl-cbf-site 1147)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 0)
+	(set-goal gl-cbf-args1 action-stop)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 -1)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1147)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1147
+;CB BEGIN 1148
 (defrule
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-order == orderid-build)
 	(up-object-data object-data-target-id != -1)
 	(up-object-target-data object-data-status != status-pending)
 =>
+	(set-goal gl-cbf-cont 1148)
+)
+(defrule
+	(goal gl-cbf-cont 1148)
+=>
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-transport-group)
-	; RAW12 counter 2
 	(up-modify-goal gl-command-counter-2 c:+ 1)
-	(up-target-point 0 action-stop -1 -1))
+)
+(defrule
+	(goal gl-cbf-cont 1148)
+=>
+	(set-goal gl-cbf-site 1148)
+	(set-goal gl-cbf-kind 1)
+	(set-goal gl-cbf-args0 0)
+	(set-goal gl-cbf-args1 action-stop)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 -1)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1148)
+=>
+	(up-target-point 0 action-stop -1 -1)
+)
+(defrule
+	(goal gl-cbf-cont 1148)
+=>
+	(set-goal gl-cbf-site 1148)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 0)
+	(set-goal gl-cbf-args1 action-stop)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 -1)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1148)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1148
+;CB BEGIN 1149
 (defrule
 	(up-set-target-object search-local c: 0)
 	(up-compare-goal temporary-goal g:< local-total)
@@ -97,7 +307,8 @@
 	(up-modify-goal temporary-goal c:+ 1)
 	(up-set-group search-local c: attack-transport-group)
 	(up-remove-objects search-local object-data-index g:!= temporary-goal)
-	(up-jump-rule -3))
+	(up-jump-rule -13))
+;CB END 1149
 (defrule
 	(true)
 =>

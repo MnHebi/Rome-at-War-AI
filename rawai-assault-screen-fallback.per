@@ -232,6 +232,7 @@
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DENY)
 )
 
+;CB BEGIN 1032
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DECIDE)
 	(up-compare-goal gl-assault-manifest-hull g:== gl-transport-route-id)
@@ -241,22 +242,58 @@
 	(up-object-data object-data-under-attack == 0)
 	(up-object-data object-data-garrison-count g:>= gl-assault-fallback-required)
 =>
-	;One-way commitment: only departure/progress/landing or terminal recovery
-	;follow this edge. No voyage state returns to any SCREEN-FIND/WAIT state.
+	(set-goal gl-cbf-cont 1032)
+)
+(defrule
+	(goal gl-cbf-cont 1032)
+=>
 	(up-get-object-data object-data-distance gl-assault-fallback-progress-limit)
 	(up-modify-goal gl-assault-fallback-progress-limit c:- 2)
 	(up-get-fact game-time 0 gl-assault-fallback-progress-deadline)
 	(up-modify-goal gl-assault-fallback-progress-deadline c:+ ASSAULT-UNSCREENED-PROGRESS-LIMIT)
-	;Move only this mission's scout aside if it exists, then release that group.
-	;Do not take an escort/scout owned by any other controller to satisfy screening.
 	(up-bound-point point-x gl-transport-route-landing-x)
 	(up-cross-tiles point-x gl-transport-route-waypoint-x c: 18)
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-screen-id)
-	;OWNERSHIP command: transport-screen-group.
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
+)
+(defrule
+	(goal gl-cbf-cont 1032)
+=>
+	(set-goal gl-cbf-site 1032)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= point-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= point-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1032)
+=>
 	(up-target-point point-x action-move -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1032)
+=>
+	(set-goal gl-cbf-site 1032)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= point-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= point-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1032)
+=>
 	(up-modify-group-flag 0 c: transport-screen-group)
 	(up-reset-group c: transport-screen-group)
 	(set-goal gl-transport-screen-id -1)
@@ -268,6 +305,12 @@
 	(up-chat-data-to-all "RAW44T screening bypass reason: %d" g: gl-assault-fallback-reason)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-DEPARTURE-START)
 )
+(defrule
+	(goal gl-cbf-cont 1032)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1032
 
 (defrule
 	(goal gl-transport-route-state TRANSPORT-ROUTE-UNSCREENED-DECIDE)

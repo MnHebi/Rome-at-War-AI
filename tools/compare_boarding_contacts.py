@@ -74,7 +74,7 @@ def compare(events, known_actors, known_hulls, follow_ms=30000, diagnostics=()):
                       and x['milliseconds'] <= now+follow_ms]
             any706 = any(x['action']=='AI_ORDER' and x.get('order_id')==706 for x in future)
             outcome = ('already-active' if active else 'sustained-onset' if onsets else
-                       'censored' if not complete else 'isolated706-only' if any706 else 'no706-in-window')
+                       'censored' if not complete else 'isolated706-only' if any706 else 'no706-observed-ORDER-WORK-not-excluded')
             near = [x for x in by_actor[key] if now-5000 <= x['milliseconds'] <= now+5000 and x['action'] in ('WORK','ORDER','STOP')]
             snapshot = next((s for s in reversed(states[key]) if s['milliseconds'] <= now), None)
             stage=next((s for s in reversed(stages[p]) if s['milliseconds']<=now),None)

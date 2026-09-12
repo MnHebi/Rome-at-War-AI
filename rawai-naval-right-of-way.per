@@ -479,6 +479,7 @@
 	(set-goal gl-row-m0-hold-until 0)
 )
 
+;CB BEGIN 1793
 (defrule
 	(up-compare-goal gl-row-m0-id c:>= 0)
 	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
@@ -494,12 +495,59 @@
 		(or (up-object-data object-data-move-x g:!= gl-row-m0-x) (up-object-data object-data-move-y g:!= gl-row-m0-y)))))
 	(up-path-distance gl-row-m0-x 1 != 65535)
 =>
+	(set-goal gl-cbf-cont 1793)
+)
+(defrule
+	(goal gl-cbf-cont 1793)
+=>
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+)
+(defrule
+	(goal gl-cbf-cont 1793)
+=>
+	(set-goal gl-cbf-site 1793)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-row-m0-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-row-m0-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1793)
+=>
 	(up-target-point gl-row-m0-x action-move -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1793)
+=>
+	(set-goal gl-cbf-site 1793)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-row-m0-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-row-m0-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1793)
+=>
 	(up-modify-goal gl-row-m0-renewals c:+ 1)
 	(set-goal gl-row-issued 1)
 )
+(defrule
+	(goal gl-cbf-cont 1793)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1793
 
 (defrule
 	(up-compare-goal gl-row-m0-id c:>= 0)
@@ -627,6 +675,7 @@
 	(set-goal gl-row-safe 1)
 )
 
+;CB BEGIN 1794
 (defrule
 	(up-compare-goal gl-row-m0-id c:>= 0)
 	(up-compare-goal gl-row-clock g:>= gl-row-m0-next)
@@ -635,14 +684,57 @@
 	(goal gl-row-safe 1)
 	(up-set-target-object search-remote c: 0)
 =>
+	(set-goal gl-cbf-cont 1794)
+)
+(defrule
+	(goal gl-cbf-cont 1794)
+=>
 	(up-reset-search 1 1 0 0)
 	(up-add-object-by-id search-local g: gl-row-m0-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-class != trade-cog-class)
 	(up-remove-objects search-local object-data-action == actionid-trade)
+)
+(defrule
+	(goal gl-cbf-cont 1794)
+=>
+	(set-goal gl-cbf-site 1794)
+	(set-goal gl-cbf-kind 1)
+	(set-goal gl-cbf-args0 0)
+	(set-goal gl-cbf-args1 action-default)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1794)
+=>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 )
+(defrule
+	(goal gl-cbf-cont 1794)
+=>
+	(set-goal gl-cbf-site 1794)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 0)
+	(set-goal gl-cbf-args1 action-default)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1794)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1794
 
 (defrule
 	(up-compare-goal gl-row-m0-id c:>= 0)
@@ -705,6 +797,7 @@
 	(set-goal gl-row-m1-hold-until 0)
 )
 
+;CB BEGIN 1795
 (defrule
 	(up-compare-goal gl-row-m1-id c:>= 0)
 	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
@@ -720,12 +813,59 @@
 		(or (up-object-data object-data-move-x g:!= gl-row-m1-x) (up-object-data object-data-move-y g:!= gl-row-m1-y)))))
 	(up-path-distance gl-row-m1-x 1 != 65535)
 =>
+	(set-goal gl-cbf-cont 1795)
+)
+(defrule
+	(goal gl-cbf-cont 1795)
+=>
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+)
+(defrule
+	(goal gl-cbf-cont 1795)
+=>
+	(set-goal gl-cbf-site 1795)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-row-m1-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-row-m1-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1795)
+=>
 	(up-target-point gl-row-m1-x action-move -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1795)
+=>
+	(set-goal gl-cbf-site 1795)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-row-m1-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-row-m1-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1795)
+=>
 	(up-modify-goal gl-row-m1-renewals c:+ 1)
 	(set-goal gl-row-issued 1)
 )
+(defrule
+	(goal gl-cbf-cont 1795)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1795
 
 (defrule
 	(up-compare-goal gl-row-m1-id c:>= 0)
@@ -853,6 +993,7 @@
 	(set-goal gl-row-safe 1)
 )
 
+;CB BEGIN 1796
 (defrule
 	(up-compare-goal gl-row-m1-id c:>= 0)
 	(up-compare-goal gl-row-clock g:>= gl-row-m1-next)
@@ -861,14 +1002,57 @@
 	(goal gl-row-safe 1)
 	(up-set-target-object search-remote c: 0)
 =>
+	(set-goal gl-cbf-cont 1796)
+)
+(defrule
+	(goal gl-cbf-cont 1796)
+=>
 	(up-reset-search 1 1 0 0)
 	(up-add-object-by-id search-local g: gl-row-m1-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-class != trade-cog-class)
 	(up-remove-objects search-local object-data-action == actionid-trade)
+)
+(defrule
+	(goal gl-cbf-cont 1796)
+=>
+	(set-goal gl-cbf-site 1796)
+	(set-goal gl-cbf-kind 1)
+	(set-goal gl-cbf-args0 0)
+	(set-goal gl-cbf-args1 action-default)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1796)
+=>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 )
+(defrule
+	(goal gl-cbf-cont 1796)
+=>
+	(set-goal gl-cbf-site 1796)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 0)
+	(set-goal gl-cbf-args1 action-default)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1796)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1796
 
 (defrule
 	(up-compare-goal gl-row-m1-id c:>= 0)
@@ -931,6 +1115,7 @@
 	(set-goal gl-row-m2-hold-until 0)
 )
 
+;CB BEGIN 1797
 (defrule
 	(up-compare-goal gl-row-m2-id c:>= 0)
 	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
@@ -946,12 +1131,59 @@
 		(or (up-object-data object-data-move-x g:!= gl-row-m2-x) (up-object-data object-data-move-y g:!= gl-row-m2-y)))))
 	(up-path-distance gl-row-m2-x 1 != 65535)
 =>
+	(set-goal gl-cbf-cont 1797)
+)
+(defrule
+	(goal gl-cbf-cont 1797)
+=>
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+)
+(defrule
+	(goal gl-cbf-cont 1797)
+=>
+	(set-goal gl-cbf-site 1797)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-row-m2-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-row-m2-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1797)
+=>
 	(up-target-point gl-row-m2-x action-move -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1797)
+=>
+	(set-goal gl-cbf-site 1797)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-row-m2-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-row-m2-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1797)
+=>
 	(up-modify-goal gl-row-m2-renewals c:+ 1)
 	(set-goal gl-row-issued 1)
 )
+(defrule
+	(goal gl-cbf-cont 1797)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1797
 
 (defrule
 	(up-compare-goal gl-row-m2-id c:>= 0)
@@ -1079,6 +1311,7 @@
 	(set-goal gl-row-safe 1)
 )
 
+;CB BEGIN 1798
 (defrule
 	(up-compare-goal gl-row-m2-id c:>= 0)
 	(up-compare-goal gl-row-clock g:>= gl-row-m2-next)
@@ -1087,14 +1320,57 @@
 	(goal gl-row-safe 1)
 	(up-set-target-object search-remote c: 0)
 =>
+	(set-goal gl-cbf-cont 1798)
+)
+(defrule
+	(goal gl-cbf-cont 1798)
+=>
 	(up-reset-search 1 1 0 0)
 	(up-add-object-by-id search-local g: gl-row-m2-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 	(up-remove-objects search-local object-data-class != trade-cog-class)
 	(up-remove-objects search-local object-data-action == actionid-trade)
+)
+(defrule
+	(goal gl-cbf-cont 1798)
+=>
+	(set-goal gl-cbf-site 1798)
+	(set-goal gl-cbf-kind 1)
+	(set-goal gl-cbf-args0 0)
+	(set-goal gl-cbf-args1 action-default)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1798)
+=>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 )
+(defrule
+	(goal gl-cbf-cont 1798)
+=>
+	(set-goal gl-cbf-site 1798)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 0)
+	(set-goal gl-cbf-args1 action-default)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1798)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1798
 
 (defrule
 	(up-compare-goal gl-row-m2-id c:>= 0)
@@ -1958,10 +2234,16 @@
 	(up-modify-goal gl-row-diag-issue-left c:- 1)
 )
 
+;CB BEGIN 1799
 (defrule
 	(goal gl-row-stage 8)
 	(goal gl-row-record 0)
 	(up-set-target-object search-local c: 0)
+=>
+	(set-goal gl-cbf-cont 1799)
+)
+(defrule
+	(goal gl-cbf-cont 1799)
 =>
 	(up-get-object-data object-data-target-id gl-row-m0-target)
 	(up-modify-goal gl-row-m0-id g:= gl-row-merchant)
@@ -1976,7 +2258,43 @@
 	(set-goal gl-row-m0-renewals 0)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+)
+(defrule
+	(goal gl-cbf-cont 1799)
+=>
+	(set-goal gl-cbf-site 1799)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-row-hold-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-row-hold-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1799)
+=>
 	(up-target-point gl-row-hold-x action-move -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1799)
+=>
+	(set-goal gl-cbf-site 1799)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-row-hold-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-row-hold-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1799)
+=>
 	(up-modify-goal gl-row-tries c:+ 1)
 	(set-goal gl-row-active 1)
 	(set-goal gl-row-issued 1)
@@ -1986,6 +2304,12 @@
 	(up-chat-data-to-all str-t12-diag-value g: gl-row-hull)
 	(set-goal gl-row-stage 9)
 )
+(defrule
+	(goal gl-cbf-cont 1799)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1799
 
 (defrule
 	(goal gl-row-stage 6)
@@ -2024,10 +2348,16 @@
 	(up-modify-goal gl-row-diag-issue-left c:- 1)
 )
 
+;CB BEGIN 1800
 (defrule
 	(goal gl-row-stage 8)
 	(goal gl-row-record 1)
 	(up-set-target-object search-local c: 0)
+=>
+	(set-goal gl-cbf-cont 1800)
+)
+(defrule
+	(goal gl-cbf-cont 1800)
 =>
 	(up-get-object-data object-data-target-id gl-row-m1-target)
 	(up-modify-goal gl-row-m1-id g:= gl-row-merchant)
@@ -2042,7 +2372,43 @@
 	(set-goal gl-row-m1-renewals 0)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+)
+(defrule
+	(goal gl-cbf-cont 1800)
+=>
+	(set-goal gl-cbf-site 1800)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-row-hold-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-row-hold-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1800)
+=>
 	(up-target-point gl-row-hold-x action-move -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1800)
+=>
+	(set-goal gl-cbf-site 1800)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-row-hold-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-row-hold-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1800)
+=>
 	(up-modify-goal gl-row-tries c:+ 1)
 	(set-goal gl-row-active 1)
 	(set-goal gl-row-issued 1)
@@ -2052,6 +2418,12 @@
 	(up-chat-data-to-all str-t12-diag-value g: gl-row-hull)
 	(set-goal gl-row-stage 9)
 )
+(defrule
+	(goal gl-cbf-cont 1800)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1800
 
 (defrule
 	(goal gl-row-stage 6)
@@ -2090,10 +2462,16 @@
 	(up-modify-goal gl-row-diag-issue-left c:- 1)
 )
 
+;CB BEGIN 1801
 (defrule
 	(goal gl-row-stage 8)
 	(goal gl-row-record 2)
 	(up-set-target-object search-local c: 0)
+=>
+	(set-goal gl-cbf-cont 1801)
+)
+(defrule
+	(goal gl-cbf-cont 1801)
 =>
 	(up-get-object-data object-data-target-id gl-row-m2-target)
 	(up-modify-goal gl-row-m2-id g:= gl-row-merchant)
@@ -2108,7 +2486,43 @@
 	(set-goal gl-row-m2-renewals 0)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
+)
+(defrule
+	(goal gl-cbf-cont 1801)
+=>
+	(set-goal gl-cbf-site 1801)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-row-hold-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-row-hold-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1801)
+=>
 	(up-target-point gl-row-hold-x action-move -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1801)
+=>
+	(set-goal gl-cbf-site 1801)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-row-hold-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-row-hold-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1801)
+=>
 	(up-modify-goal gl-row-tries c:+ 1)
 	(set-goal gl-row-active 1)
 	(set-goal gl-row-issued 1)
@@ -2118,6 +2532,12 @@
 	(up-chat-data-to-all str-t12-diag-value g: gl-row-hull)
 	(set-goal gl-row-stage 9)
 )
+(defrule
+	(goal gl-cbf-cont 1801)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1801
 
 (defrule
 	(goal gl-row-stage 9)

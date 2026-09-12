@@ -438,7 +438,7 @@ def validate_command_domains(lines: list[str]) -> list[dict[str, object]]:
     for match in search_state_operand.finditer(code):
         # Boarding observations have a private, contiguous four-goal block;
         # they must not overwrite the gameplay search totals.
-        if match.group("operand").casefold() not in {"local-total", "gl-board-diag-local", "gl-reactive-ranged-local", "gl-cb-local"}:
+        if match.group("operand").casefold() not in {"local-total", "gl-board-diag-local", "gl-reactive-ranged-local", "gl-cb-local", "gl-cbf-local"}:
             issues.append(
                 {
                     "kind": "invalid_search_state_output_base",

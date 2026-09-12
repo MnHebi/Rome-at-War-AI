@@ -490,4 +490,5 @@ def plans():
 
 
 def outputs():
-    return {'rawai-assault-plan-defs.per': definitions(), 'rawai-assault-plans.per': plans()}
+    from generate_command_boundary import decorate_outputs
+    return decorate_outputs({'rawai-assault-plan-defs.per': definitions(), 'rawai-assault-plans.per': plans()})

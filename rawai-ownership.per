@@ -20,6 +20,7 @@
 
 ;Reset native soldier exploration BEFORE the ferry can reserve its passenger.
 ;Zero counts alone do not disband existing explorer groups (AIRef).
+;CB BEGIN 1808
 (defrule
 	(goal gl-owner-explore-suspended NO)
 	(or (current-age >= imperial-age)
@@ -31,15 +32,129 @@
 	(or (up-group-size c: opportunistic-raid-group > 0)
 	     (up-group-size c: allied-relief-group > 0))))))))
 =>
+	(set-goal gl-cbf-cont 1808)
+)
+(defrule
+	(goal gl-cbf-cont 1808)
+=>
 	(set-strategic-number sn-number-explore-groups 0)
+)
+(defrule
+	(goal gl-cbf-cont 1808)
+=>
+	(set-goal gl-cbf-site 1808)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1808)
+=>
 	(set-strategic-number sn-total-number-explorers 0)
+)
+(defrule
+	(goal gl-cbf-cont 1808)
+=>
+	(set-goal gl-cbf-site 1808)
+	(set-goal gl-cbf-kind 6)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1808)
+=>
+	(set-goal gl-cbf-site 1809)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1808)
+=>
 	(set-strategic-number sn-cap-civilian-explorers 0)
+)
+(defrule
+	(goal gl-cbf-cont 1808)
+=>
+	(set-goal gl-cbf-site 1809)
+	(set-goal gl-cbf-kind 6)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1808)
+=>
 	(set-strategic-number sn-minimum-civilian-explorers 0)
-	; RAW12 counter 22
 	(up-modify-goal gl-command-counter-22 c:+ 1)
+)
+(defrule
+	(goal gl-cbf-cont 1808)
+=>
+	(set-goal gl-cbf-site 1810)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1808)
+=>
 	(up-reset-scouts)
+)
+(defrule
+	(goal gl-cbf-cont 1808)
+=>
+	(set-goal gl-cbf-site 1810)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1808)
+=>
 	(set-goal gl-owner-explore-suspended YES)
 )
+(defrule
+	(goal gl-cbf-cont 1808)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1808
 
 (defrule
 	(goal gl-owner-explore-suspended YES)
