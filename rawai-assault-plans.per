@@ -12,7 +12,11 @@
 
 ;38 shoreline water unreachable;39 shoreline land vicinity unreachable.
 
-;41 no land egress toward objective.
+;41 no land egress toward objective;42 allied-base trial;
+
+;43 ally/base invalid;44 allied bases exhausted;45 no allied-route witness;
+
+;46 allied landing accepted;47 allied fallback budget exhausted.
 
 ;after-failure:0 next approach,2 next enemy,3 terminal recovery.
 
@@ -23,6 +27,9 @@
 =>
 	(set-goal gl-ap-active NO)
 	(set-goal gl-ap-write 1)
+	(set-goal gl-ap-ally-mode NO)
+	(set-goal gl-ap-ally-tried NO)
+	(set-goal gl-ap-ally-self my-player-number)
 	(set-goal gl-ap-preferred-enemy -1)
 	(set-goal gl-ap-memory1-until 0)
 	(set-goal gl-ap-memory2-until 0)
@@ -91,6 +98,8 @@
 	(set-goal gl-ap-active YES)
 	(up-modify-goal gl-ap-hull g:= gl-transport-route-id)
 	(set-goal gl-ap-egress-diag-left 3)
+	(set-goal gl-ap-ally-mode NO)
+	(set-goal gl-ap-ally-tried NO)
 	(up-modify-goal gl-ap-until g:= gl-ap-clock)
 	(up-modify-goal gl-ap-until c:+ AP-MISSION-SECONDS)
 	(up-modify-goal gl-ap-enemy-until g:= gl-ap-clock)
@@ -354,12 +363,25 @@
 	(goal gl-ap-active YES)
 	(goal gl-ap-after-failure 0)
 	(up-compare-goal gl-ap-clock g:>= gl-ap-enemy-until)
+	(goal gl-ap-ally-mode NO)
 	(not (goal gl-transport-route-state AP-TERMINAL))
 	(not (goal gl-transport-route-state AP-NEXT-ENEMY))
 =>
 	(set-goal gl-ap-failure 23)
 	(set-goal gl-ap-after-failure 2)
 	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-ap-active YES)
+	(goal gl-ap-ally-mode YES)
+	(goal gl-ap-after-failure 0)
+	(not (goal gl-transport-route-state AP-TERMINAL))
+	(not (goal gl-transport-route-state AP-NEXT-ENEMY))
+	(up-compare-goal gl-ap-clock g:>= gl-ap-ally-until)
+=>
+	(set-goal gl-ap-failure 47)
+	(set-goal gl-transport-route-state AP-ALLY-DONE)
 )
 
 (defrule
@@ -468,11 +490,25 @@
 
 (defrule
 	(goal gl-transport-route-state AP-SHORE-HULL)
+	(goal gl-ap-ally-mode NO)
 	(up-set-target-object search-local c: 0)
 =>
 	(up-get-point position-object gl-ap-shore-hull-x)
 	(up-bound-point gl-ap-shore-scan-x gl-transport-route-target-x)
 	(up-bound-point gl-ap-shore-land-x gl-transport-route-target-x)
+	(set-goal gl-ap-shore-steps 0)
+	(set-goal gl-ap-shore-refines 0)
+	(set-goal gl-transport-route-state AP-SHORE-COARSE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SHORE-HULL)
+	(goal gl-ap-ally-mode YES)
+	(up-set-target-object search-local c: 0)
+=>
+	(up-get-point position-object gl-ap-shore-hull-x)
+	(up-bound-point gl-ap-shore-scan-x gl-ap-ally-x)
+	(up-bound-point gl-ap-shore-land-x gl-ap-ally-x)
 	(set-goal gl-ap-shore-steps 0)
 	(set-goal gl-ap-shore-refines 0)
 	(set-goal gl-transport-route-state AP-SHORE-COARSE)
@@ -986,6 +1022,16 @@
 (defrule
 	(goal gl-transport-route-state AP-EGRESS-0)
 	(goal gl-ap-egress-count 0)
+	(goal gl-ap-ally-mode YES)
+=>
+	(set-goal gl-ap-failure 45)
+	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-EGRESS-0)
+	(goal gl-ap-egress-count 0)
+	(goal gl-ap-ally-mode NO)
 =>
 	(set-goal gl-ap-egress-witness -1)
 	(set-goal gl-transport-route-state AP-EGRESS-ACCEPT)
@@ -1187,6 +1233,195 @@
 =>
 	(set-goal gl-ap-resume TRANSPORT-ROUTE-DEPARTURE-START)
 	(set-goal gl-transport-route-state AP-SAFETY)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(goal gl-ap-ally-mode YES)
+=>
+	(set-goal gl-ap-ally-live NO)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(goal gl-ap-ally-mode YES)
+	(goal gl-ap-ally-player 1)
+	(player-in-game 1)
+	(stance-toward 1 ally)
+=>
+	(set-strategic-number sn-focus-player-number 1)
+	(up-full-reset-search)
+	(up-set-target-point gl-ap-ally-x)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-id g:!= gl-ap-ally-base)
+	(up-remove-objects search-remote object-data-player != 1)
+	(up-remove-objects search-remote object-data-id < 0)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(set-goal gl-ap-ally-live 2)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(goal gl-ap-ally-mode YES)
+	(goal gl-ap-ally-player 2)
+	(player-in-game 2)
+	(stance-toward 2 ally)
+=>
+	(set-strategic-number sn-focus-player-number 2)
+	(up-full-reset-search)
+	(up-set-target-point gl-ap-ally-x)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-id g:!= gl-ap-ally-base)
+	(up-remove-objects search-remote object-data-player != 2)
+	(up-remove-objects search-remote object-data-id < 0)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(set-goal gl-ap-ally-live 2)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(goal gl-ap-ally-mode YES)
+	(goal gl-ap-ally-player 3)
+	(player-in-game 3)
+	(stance-toward 3 ally)
+=>
+	(set-strategic-number sn-focus-player-number 3)
+	(up-full-reset-search)
+	(up-set-target-point gl-ap-ally-x)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-id g:!= gl-ap-ally-base)
+	(up-remove-objects search-remote object-data-player != 3)
+	(up-remove-objects search-remote object-data-id < 0)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(set-goal gl-ap-ally-live 2)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(goal gl-ap-ally-mode YES)
+	(goal gl-ap-ally-player 4)
+	(player-in-game 4)
+	(stance-toward 4 ally)
+=>
+	(set-strategic-number sn-focus-player-number 4)
+	(up-full-reset-search)
+	(up-set-target-point gl-ap-ally-x)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-id g:!= gl-ap-ally-base)
+	(up-remove-objects search-remote object-data-player != 4)
+	(up-remove-objects search-remote object-data-id < 0)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(set-goal gl-ap-ally-live 2)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(goal gl-ap-ally-mode YES)
+	(goal gl-ap-ally-player 5)
+	(player-in-game 5)
+	(stance-toward 5 ally)
+=>
+	(set-strategic-number sn-focus-player-number 5)
+	(up-full-reset-search)
+	(up-set-target-point gl-ap-ally-x)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-id g:!= gl-ap-ally-base)
+	(up-remove-objects search-remote object-data-player != 5)
+	(up-remove-objects search-remote object-data-id < 0)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(set-goal gl-ap-ally-live 2)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(goal gl-ap-ally-mode YES)
+	(goal gl-ap-ally-player 6)
+	(player-in-game 6)
+	(stance-toward 6 ally)
+=>
+	(set-strategic-number sn-focus-player-number 6)
+	(up-full-reset-search)
+	(up-set-target-point gl-ap-ally-x)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-id g:!= gl-ap-ally-base)
+	(up-remove-objects search-remote object-data-player != 6)
+	(up-remove-objects search-remote object-data-id < 0)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(set-goal gl-ap-ally-live 2)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(goal gl-ap-ally-mode YES)
+	(goal gl-ap-ally-player 7)
+	(player-in-game 7)
+	(stance-toward 7 ally)
+=>
+	(set-strategic-number sn-focus-player-number 7)
+	(up-full-reset-search)
+	(up-set-target-point gl-ap-ally-x)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-id g:!= gl-ap-ally-base)
+	(up-remove-objects search-remote object-data-player != 7)
+	(up-remove-objects search-remote object-data-id < 0)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(set-goal gl-ap-ally-live 2)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(goal gl-ap-ally-mode YES)
+	(goal gl-ap-ally-player 8)
+	(player-in-game 8)
+	(stance-toward 8 ally)
+=>
+	(set-strategic-number sn-focus-player-number 8)
+	(up-full-reset-search)
+	(up-set-target-point gl-ap-ally-x)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-id g:!= gl-ap-ally-base)
+	(up-remove-objects search-remote object-data-player != 8)
+	(up-remove-objects search-remote object-data-id < 0)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(set-goal gl-ap-ally-live 2)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(goal gl-ap-ally-mode YES)
+	(goal gl-ap-ally-live 2)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-goal gl-ap-ally-live YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFETY)
+	(goal gl-ap-ally-mode YES)
+	(not (goal gl-ap-ally-live YES))
+=>
+	(set-goal gl-ap-failure 43)
+	(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)
+	(up-chat-data-to-all str-ap-reason c: 43)
+	(up-chat-data-to-all str-ap-ally g: gl-ap-ally-player)
+	(up-chat-data-to-all str-ap-base g: gl-ap-ally-base)
+	(set-goal gl-transport-route-state AP-ALLY-NEXT)
 )
 
 (defrule
@@ -1425,6 +1660,21 @@
 =>
 	(set-goal gl-ap-failure 7)
 	(set-goal gl-transport-route-state AP-FAIL)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-SAFE-CHECK)
+	(goal gl-ap-ally-mode YES)
+	(goal gl-ap-resume TRANSPORT-ROUTE-DEPARTURE-START)
+=>
+	(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)
+	(up-chat-data-to-all str-ap-reason c: 46)
+	(up-chat-data-to-all str-ap-ally g: gl-ap-ally-player)
+	(up-chat-data-to-all str-ap-base g: gl-ap-ally-base)
+	(up-chat-data-to-all str-ap-objective g: gl-ap-objective)
+	(up-chat-data-to-all str-ap-x g: gl-transport-route-landing-x)
+	(up-chat-data-to-all str-ap-y g: gl-transport-route-landing-y)
+	(up-chat-data-to-all str-ap-egress-witness g: gl-ap-egress-witness)
 )
 
 (defrule
@@ -1794,6 +2044,13 @@
 
 (defrule
 	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
+	(goal gl-ap-ally-mode YES)
+=>
+	(set-goal gl-transport-route-state AP-ALLY-NEXT)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-OBJECTIVE-FAILED)
 	(goal gl-assault-manifest-player 1)
 =>
 	(up-modify-goal gl-ap-enemy1-failures c:+ 1)
@@ -1966,6 +2223,518 @@
 
 (defrule
 	(goal gl-transport-route-state AP-ENEMY-FAILED)
+=>
+	(set-goal gl-ap-ally-live NO)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(up-compare-goal gl-ap-ally-self c:!= 1)
+	(player-in-game 1)
+	(stance-toward 1 ally)
+=>
+	(set-goal gl-ap-ally-live YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(up-compare-goal gl-ap-ally-self c:!= 2)
+	(player-in-game 2)
+	(stance-toward 2 ally)
+=>
+	(set-goal gl-ap-ally-live YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(up-compare-goal gl-ap-ally-self c:!= 3)
+	(player-in-game 3)
+	(stance-toward 3 ally)
+=>
+	(set-goal gl-ap-ally-live YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(up-compare-goal gl-ap-ally-self c:!= 4)
+	(player-in-game 4)
+	(stance-toward 4 ally)
+=>
+	(set-goal gl-ap-ally-live YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(up-compare-goal gl-ap-ally-self c:!= 5)
+	(player-in-game 5)
+	(stance-toward 5 ally)
+=>
+	(set-goal gl-ap-ally-live YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(up-compare-goal gl-ap-ally-self c:!= 6)
+	(player-in-game 6)
+	(stance-toward 6 ally)
+=>
+	(set-goal gl-ap-ally-live YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(up-compare-goal gl-ap-ally-self c:!= 7)
+	(player-in-game 7)
+	(stance-toward 7 ally)
+=>
+	(set-goal gl-ap-ally-live YES)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(up-compare-goal gl-ap-ally-self c:!= 8)
+	(player-in-game 8)
+	(stance-toward 8 ally)
+=>
+	(set-goal gl-ap-ally-live YES)
+)
+
+;CB BEGIN 1031
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
+	(goal gl-ap-ally-tried NO)
+	(goal gl-ap-ally-live YES)
+	(goal gl-ap-live YES)
+	(up-compare-goal gl-ap-objective c:>= 0)
+	(up-compare-goal gl-transport-route-target-zone c:>= 0)
+	(up-compare-goal gl-ap-clock g:< gl-ap-until)
+=>
+	(set-goal gl-cbf-cont 1031)
+)
+(defrule
+	(goal gl-cbf-cont 1031)
+=>
+	(set-goal gl-ap-ally-tried YES)
+	(set-goal gl-ap-ally-mode YES)
+	(set-goal gl-ap-ally-next 1)
+	(set-goal gl-ap-ally-player 0)
+	(set-goal gl-ap-after-failure 0)
+	(up-modify-goal gl-ap-ally-until g:= gl-ap-clock)
+	(up-modify-goal gl-ap-ally-until c:+ 120)
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-screen-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
+)
+(defrule
+	(goal gl-cbf-cont 1031)
+=>
+	(set-goal gl-cbf-site 1031)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-transport-route-origin-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-transport-route-origin-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1031)
+=>
+	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1031)
+=>
+	(set-goal gl-cbf-site 1031)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-transport-route-origin-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-transport-route-origin-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1031)
+=>
+	(up-create-group 0 0 c: transport-screen-group)
+	(up-modify-group-flag 0 c: transport-screen-group)
+	(up-reset-group c: transport-screen-group)
+	(set-goal gl-transport-screen-id -1)
+	(set-goal gl-transport-screen-waits 0)
+	(set-goal gl-transport-route-state AP-ALLY-BEGIN)
+)
+(defrule
+	(goal gl-cbf-cont 1031)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1031
+
+(defrule
+	(goal gl-transport-route-state AP-ALLY-BEGIN)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-remote g: gl-ap-objective)
+	(up-remove-objects search-remote object-data-player g:!= gl-assault-manifest-player)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ALLY-BEGIN)
+	(up-set-target-object search-remote c: 0)
+=>
+	(set-goal gl-transport-route-state AP-ALLY-SCAN)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ALLY-BEGIN)
+=>
+	(set-goal gl-ap-failure 43)
+	(set-goal gl-transport-route-state AP-ALLY-DONE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ALLY-SCAN)
+	(goal gl-ap-ally-next 1)
+	(up-compare-goal gl-ap-ally-self c:!= 1)
+	(player-in-game 1)
+	(stance-toward 1 ally)
+=>
+	(set-goal gl-ap-ally-player 1)
+	(set-strategic-number sn-focus-player-number 1)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-target-x)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-player != 1)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-transport-route-state AP-ALLY-BASE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ALLY-SCAN)
+	(goal gl-ap-ally-next 2)
+	(up-compare-goal gl-ap-ally-self c:!= 2)
+	(player-in-game 2)
+	(stance-toward 2 ally)
+=>
+	(set-goal gl-ap-ally-player 2)
+	(set-strategic-number sn-focus-player-number 2)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-target-x)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-player != 2)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-transport-route-state AP-ALLY-BASE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ALLY-SCAN)
+	(goal gl-ap-ally-next 3)
+	(up-compare-goal gl-ap-ally-self c:!= 3)
+	(player-in-game 3)
+	(stance-toward 3 ally)
+=>
+	(set-goal gl-ap-ally-player 3)
+	(set-strategic-number sn-focus-player-number 3)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-target-x)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-player != 3)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-transport-route-state AP-ALLY-BASE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ALLY-SCAN)
+	(goal gl-ap-ally-next 4)
+	(up-compare-goal gl-ap-ally-self c:!= 4)
+	(player-in-game 4)
+	(stance-toward 4 ally)
+=>
+	(set-goal gl-ap-ally-player 4)
+	(set-strategic-number sn-focus-player-number 4)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-target-x)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-player != 4)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-transport-route-state AP-ALLY-BASE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ALLY-SCAN)
+	(goal gl-ap-ally-next 5)
+	(up-compare-goal gl-ap-ally-self c:!= 5)
+	(player-in-game 5)
+	(stance-toward 5 ally)
+=>
+	(set-goal gl-ap-ally-player 5)
+	(set-strategic-number sn-focus-player-number 5)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-target-x)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-player != 5)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-transport-route-state AP-ALLY-BASE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ALLY-SCAN)
+	(goal gl-ap-ally-next 6)
+	(up-compare-goal gl-ap-ally-self c:!= 6)
+	(player-in-game 6)
+	(stance-toward 6 ally)
+=>
+	(set-goal gl-ap-ally-player 6)
+	(set-strategic-number sn-focus-player-number 6)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-target-x)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-player != 6)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-transport-route-state AP-ALLY-BASE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ALLY-SCAN)
+	(goal gl-ap-ally-next 7)
+	(up-compare-goal gl-ap-ally-self c:!= 7)
+	(player-in-game 7)
+	(stance-toward 7 ally)
+=>
+	(set-goal gl-ap-ally-player 7)
+	(set-strategic-number sn-focus-player-number 7)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-target-x)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-player != 7)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-transport-route-state AP-ALLY-BASE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ALLY-SCAN)
+	(goal gl-ap-ally-next 8)
+	(up-compare-goal gl-ap-ally-self c:!= 8)
+	(player-in-game 8)
+	(stance-toward 8 ally)
+=>
+	(set-goal gl-ap-ally-player 8)
+	(set-strategic-number sn-focus-player-number 8)
+	(up-full-reset-search)
+	(up-set-target-point gl-transport-route-target-x)
+	(up-find-remote c: town-center c: 20)
+	(up-remove-objects search-remote object-data-player != 8)
+	(up-remove-objects search-remote object-data-hitpoints <= 0)
+	(up-remove-objects search-remote object-data-status != status-ready)
+	(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)
+	(up-clean-search search-remote object-data-distance search-order-asc)
+	(set-goal gl-transport-route-state AP-ALLY-BASE)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ALLY-SCAN)
+=>
+	(set-goal gl-transport-route-state AP-ALLY-NEXT)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ALLY-BASE)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-id gl-ap-ally-base)
+	(up-get-point position-object gl-ap-ally-x)
+	(set-goal gl-ap-valid NO)
+	(set-goal gl-ap-candidate 0)
+	(set-goal gl-ap-screen-validated NO)
+	(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)
+	(up-chat-data-to-all str-ap-reason c: 42)
+	(up-chat-data-to-all str-ap-ally g: gl-ap-ally-player)
+	(up-chat-data-to-all str-ap-base g: gl-ap-ally-base)
+	(set-goal gl-transport-route-state AP-SHORE-INIT)
+)
+
+(defrule
+	(goal gl-transport-route-state AP-ALLY-BASE)
+=>
+	(set-goal gl-transport-route-state AP-ALLY-NEXT)
+)
+
+;CB BEGIN 1032
+(defrule
+	(goal gl-transport-route-state AP-ALLY-NEXT)
+=>
+	(set-goal gl-cbf-cont 1032)
+)
+(defrule
+	(goal gl-cbf-cont 1032)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-screen-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
+)
+(defrule
+	(goal gl-cbf-cont 1032)
+=>
+	(set-goal gl-cbf-site 1032)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-transport-route-origin-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-transport-route-origin-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1032)
+=>
+	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1032)
+=>
+	(set-goal gl-cbf-site 1032)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-transport-route-origin-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-transport-route-origin-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1032)
+=>
+	(up-create-group 0 0 c: transport-screen-group)
+	(up-modify-group-flag 0 c: transport-screen-group)
+	(up-reset-group c: transport-screen-group)
+	(set-goal gl-transport-screen-id -1)
+	(set-goal gl-transport-screen-waits 0)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(up-modify-goal gl-ap-ally-next c:+ 1)
+	(set-goal gl-ap-ally-player 0)
+	(set-goal gl-transport-route-state AP-ALLY-SCAN)
+)
+(defrule
+	(goal gl-cbf-cont 1032)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1032
+
+(defrule
+	(goal gl-transport-route-state AP-ALLY-SCAN)
+	(up-compare-goal gl-ap-ally-next c:> 8)
+=>
+	(set-goal gl-ap-failure 44)
+	(set-goal gl-transport-route-state AP-ALLY-DONE)
+)
+
+;CB BEGIN 1033
+(defrule
+	(goal gl-transport-route-state AP-ALLY-DONE)
+=>
+	(set-goal gl-cbf-cont 1033)
+)
+(defrule
+	(goal gl-cbf-cont 1033)
+=>
+	(up-full-reset-search)
+	(up-add-object-by-id search-local g: gl-transport-screen-id)
+	(up-remove-objects search-local object-data-player != my-player-number)
+	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
+)
+(defrule
+	(goal gl-cbf-cont 1033)
+=>
+	(set-goal gl-cbf-site 1033)
+	(set-goal gl-cbf-kind 1)
+	(up-modify-goal gl-cbf-args0 g:= gl-transport-route-origin-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-transport-route-origin-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1033)
+=>
+	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
+)
+(defrule
+	(goal gl-cbf-cont 1033)
+=>
+	(set-goal gl-cbf-site 1033)
+	(set-goal gl-cbf-kind 2)
+	(up-modify-goal gl-cbf-args0 g:= gl-transport-route-origin-x)
+	(set-goal gl-cbf-args1 action-move)
+	(set-goal gl-cbf-args2 -1)
+	(set-goal gl-cbf-args3 stance-no-attack)
+	(up-modify-goal gl-cbf-point-y g:= gl-transport-route-origin-y)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1033)
+=>
+	(up-create-group 0 0 c: transport-screen-group)
+	(up-modify-group-flag 0 c: transport-screen-group)
+	(up-reset-group c: transport-screen-group)
+	(set-goal gl-transport-screen-id -1)
+	(set-goal gl-transport-screen-waits 0)
+	(up-chat-data-to-all str-ap-hull g: gl-transport-route-id)
+	(up-chat-data-to-all str-ap-reason g: gl-ap-failure)
+	(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)
+	(set-goal gl-ap-ally-mode NO)
+	(set-goal gl-ap-ally-player 0)
+	(set-goal gl-ap-after-failure 2)
+	(set-goal gl-transport-route-state AP-ENEMY-FAILED)
+)
+(defrule
+	(goal gl-cbf-cont 1033)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1033
+
+(defrule
+	(goal gl-transport-route-state AP-ENEMY-FAILED)
 	(goal gl-assault-manifest-player 1)
 =>
 	(up-modify-goal gl-ap-enemy1-until g:= gl-ap-clock)
@@ -2050,14 +2819,14 @@
 	(set-goal gl-transport-route-state AP-NEXT-ENEMY)
 )
 
-;CB BEGIN 1031
+;CB BEGIN 1034
 (defrule
 	(goal gl-transport-route-state AP-NEXT-ENEMY)
 =>
-	(set-goal gl-cbf-cont 1031)
+	(set-goal gl-cbf-cont 1034)
 )
 (defrule
-	(goal gl-cbf-cont 1031)
+	(goal gl-cbf-cont 1034)
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-transport-screen-id)
@@ -2065,9 +2834,9 @@
 	(up-remove-objects search-local object-data-group-flag != transport-screen-group)
 )
 (defrule
-	(goal gl-cbf-cont 1031)
+	(goal gl-cbf-cont 1034)
 =>
-	(set-goal gl-cbf-site 1031)
+	(set-goal gl-cbf-site 1034)
 	(set-goal gl-cbf-kind 1)
 	(up-modify-goal gl-cbf-args0 g:= gl-transport-route-origin-x)
 	(set-goal gl-cbf-args1 action-move)
@@ -2079,14 +2848,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1031)
+	(goal gl-cbf-cont 1034)
 =>
 	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
 )
 (defrule
-	(goal gl-cbf-cont 1031)
+	(goal gl-cbf-cont 1034)
 =>
-	(set-goal gl-cbf-site 1031)
+	(set-goal gl-cbf-site 1034)
 	(set-goal gl-cbf-kind 2)
 	(up-modify-goal gl-cbf-args0 g:= gl-transport-route-origin-x)
 	(set-goal gl-cbf-args1 action-move)
@@ -2098,7 +2867,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1031)
+	(goal gl-cbf-cont 1034)
 =>
 	(up-create-group 0 0 c: transport-screen-group)
 	(up-modify-group-flag 0 c: transport-screen-group)
@@ -2106,13 +2875,14 @@
 	(set-goal gl-transport-screen-id -1)
 	(set-goal gl-transport-screen-waits 0)
 	(set-goal gl-ap-chosen-enemy -1)
+	(set-goal gl-ap-ally-mode NO)
 )
 (defrule
-	(goal gl-cbf-cont 1031)
+	(goal gl-cbf-cont 1034)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1031
+;CB END 1034
 
 (defrule
 	(goal gl-transport-route-state AP-NEXT-ENEMY)
@@ -2238,6 +3008,7 @@
 	(up-modify-goal gl-ap-enemy-until c:+ AP-ENEMY-SECONDS)
 	(set-goal gl-ap-after-failure 0)
 	(set-goal gl-ap-objective-count 0)
+	(set-goal gl-ap-ally-tried NO)
 	(set-goal gl-ap-valid NO)
 	(set-goal gl-ap-seen1 -1)
 	(set-goal gl-ap-seen2 -1)

@@ -13,11 +13,15 @@ from command_boundary_log import classify_events, actor_timelines
 from compare_boarding_contacts import compare, cohorts
 from validate_naval_doctrine import rule_blocks
 from writer_trace import string_budget
+from validate_rule_capacity import report as rule_capacity
 
 ROOT=Path(__file__).resolve().parents[1]
 
 
 def manifest(root=ROOT):
+    capacity=rule_capacity(root)
+    if capacity['status']!='PASS':
+        raise ValueError('Compiled rule capacity exceeded: '+str(capacity['maximum']))
     payload={p.name:p.read_bytes() for p in sorted(root.iterdir()) if p.is_file() and p.suffix in ('.ai','.per')}
     hashes={n:hashlib.sha256(b).hexdigest() for n,b in payload.items()}
     aggregate=hashlib.sha256(''.join(n+'\0'+hashes[n]+'\n' for n in sorted(hashes)).encode()).hexdigest()
@@ -28,13 +32,14 @@ def manifest(root=ROOT):
         file_count=len(payload),files=hashes,aggregate_sha256=aggregate,
         aggregate_algorithm='SHA256(sorted filename + NUL + file SHA256 + LF); not interchangeable with older aggregate formats',
         source_identity_words=trace.identity_words(),string_budget=string_budget(payload),
+        compiled_rule_capacity={k:v for k,v in capacity.items() if k!='profiles'},
         observer_physical_rules={n:len(rule_blocks(b.decode('utf-8-sig'),diagnostic_view=False))
             for n,b in payload.items() if n.startswith('rawai-command-boundary')},
         sites=len(reg['sites']),commands=len(commands),direct_list_commands=sum(not c['indirect'] for c in commands),
         bootstrap_commands=len(trace.bootstrap_commands()),roster_capacity=trace.ROSTER,
         list_supported_count=241,postrelease_game_seconds=trace.RELEASE_SECONDS,
         storage='private named goals10000.. plus journal10200.. and400x3 roster10500..11699',
-        installed_exceptions='Not incorporated. Future authorized deployment must reconcile rawai-general/customconstants experiments explicitly.')
+        installed_exceptions='Former general/customconstants experiments reconciled in canonical source; verify installed baseline before any future deployment.')
 
 
 def assess(cache, supplement=None):

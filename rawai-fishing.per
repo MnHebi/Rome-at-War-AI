@@ -14,17 +14,17 @@
 )
 
 ;No automatic villager recruitment; construction is assigned to a specific ship.
-;CB BEGIN 1138
+;CB BEGIN 1141
 (defrule
 	(goal gl-owner-worker-hold NO)
 =>
-	(set-goal gl-cbf-cont 1138)
+	(set-goal gl-cbf-cont 1141)
 	(disable-self)
 )
 (defrule
-	(goal gl-cbf-cont 1138)
+	(goal gl-cbf-cont 1141)
 =>
-	(set-goal gl-cbf-site 1138)
+	(set-goal gl-cbf-site 1141)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -36,14 +36,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1138)
+	(goal gl-cbf-cont 1141)
 =>
 	(up-assign-builders c: fish-trap c: -1)
 )
 (defrule
-	(goal gl-cbf-cont 1138)
+	(goal gl-cbf-cont 1141)
 =>
-	(set-goal gl-cbf-site 1138)
+	(set-goal gl-cbf-site 1141)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -55,11 +55,11 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1138)
+	(goal gl-cbf-cont 1141)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1138
+;CB END 1141
 
 (defrule
 	(up-compare-goal gl-fish-init c:< FISH-WATCH-END)
@@ -199,15 +199,15 @@
 	(set-goal gl-fish-state 5)
 )
 
-;CB BEGIN 1139
+;CB BEGIN 1142
 (defrule
 	(goal gl-fish-state 5)
 	(up-set-target-object search-remote c: 0)
 =>
-	(set-goal gl-cbf-cont 1139)
+	(set-goal gl-cbf-cont 1142)
 )
 (defrule
-	(goal gl-cbf-cont 1139)
+	(goal gl-cbf-cont 1142)
 =>
 	(up-reset-search 1 1 0 0)
 	(up-add-object-by-id search-local g: gl-fish-id)
@@ -220,9 +220,9 @@
 	(up-remove-objects search-local object-data-action == actionid-build)
 )
 (defrule
-	(goal gl-cbf-cont 1139)
+	(goal gl-cbf-cont 1142)
 =>
-	(set-goal gl-cbf-site 1139)
+	(set-goal gl-cbf-site 1142)
 	(set-goal gl-cbf-kind 1)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-gather)
@@ -234,14 +234,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1139)
+	(goal gl-cbf-cont 1142)
 =>
 	(up-target-objects 0 action-gather -1 stance-no-attack)
 )
 (defrule
-	(goal gl-cbf-cont 1139)
+	(goal gl-cbf-cont 1142)
 =>
-	(set-goal gl-cbf-site 1139)
+	(set-goal gl-cbf-site 1142)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-gather)
@@ -253,18 +253,18 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1139)
+	(goal gl-cbf-cont 1142)
 =>
 	(up-modify-goal gl-fish-command-next g:= gl-game-time)
 	(up-modify-goal gl-fish-command-next c:+ 45)
 	(set-goal gl-fish-state 90)
 )
 (defrule
-	(goal gl-cbf-cont 1139)
+	(goal gl-cbf-cont 1142)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1139
+;CB END 1142
 
 ;No usable known fish: native fishing exploration is still allowed; never issue STOP/EXPLORE here.
 (defrule
@@ -446,7 +446,7 @@
 )
 
 ;One point, one foundation request; four legal-position attempts, no generic build queue.
-;CB BEGIN 1140
+;CB BEGIN 1143
 (defrule
 	(goal gl-fish-state 23)
 	(goal gl-owner-worker-hold NO)
@@ -461,12 +461,12 @@
 	(not (up-pending-placement c: fish-trap))
 	(up-can-build-line 0 gl-fish-build-x c: fish-trap)
 =>
-	(set-goal gl-cbf-cont 1140)
+	(set-goal gl-cbf-cont 1143)
 )
 (defrule
-	(goal gl-cbf-cont 1140)
+	(goal gl-cbf-cont 1143)
 =>
-	(set-goal gl-cbf-site 1140)
+	(set-goal gl-cbf-site 1143)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -478,14 +478,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1140)
+	(goal gl-cbf-cont 1143)
 =>
 	(up-assign-builders c: fish-trap c: -1)
 )
 (defrule
-	(goal gl-cbf-cont 1140)
+	(goal gl-cbf-cont 1143)
 =>
-	(set-goal gl-cbf-site 1140)
+	(set-goal gl-cbf-site 1143)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -497,9 +497,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1140)
+	(goal gl-cbf-cont 1143)
 =>
-	(set-goal gl-cbf-site 1141)
+	(set-goal gl-cbf-site 1144)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -511,14 +511,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1140)
+	(goal gl-cbf-cont 1143)
 =>
 	(up-build-line gl-fish-build-x gl-fish-build-x c: fish-trap)
 )
 (defrule
-	(goal gl-cbf-cont 1140)
+	(goal gl-cbf-cont 1143)
 =>
-	(set-goal gl-cbf-site 1141)
+	(set-goal gl-cbf-site 1144)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -530,18 +530,18 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1140)
+	(goal gl-cbf-cont 1143)
 =>
 	(up-modify-goal gl-fish-wait-until g:= gl-game-time)
 	(up-modify-goal gl-fish-wait-until c:+ 20)
 	(set-goal gl-fish-state 30)
 )
 (defrule
-	(goal gl-cbf-cont 1140)
+	(goal gl-cbf-cont 1143)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1140
+;CB END 1143
 
 (defrule
 	(goal gl-fish-state 23)
@@ -620,25 +620,25 @@
 	(set-goal gl-fish-state 80)
 )
 
-;CB BEGIN 1142
+;CB BEGIN 1145
 (defrule
 	(goal gl-fish-state 42)
 	(up-compare-goal local-total c:> 0)
 	(up-set-target-object search-remote c: 0)
 =>
-	(set-goal gl-cbf-cont 1142)
+	(set-goal gl-cbf-cont 1145)
 )
 (defrule
-	(goal gl-cbf-cont 1142)
+	(goal gl-cbf-cont 1145)
 =>
 	(up-remove-objects search-local object-data-id g:!= gl-fish-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 )
 (defrule
-	(goal gl-cbf-cont 1142)
+	(goal gl-cbf-cont 1145)
 =>
-	(set-goal gl-cbf-site 1142)
+	(set-goal gl-cbf-site 1145)
 	(set-goal gl-cbf-kind 1)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -650,14 +650,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1142)
+	(goal gl-cbf-cont 1145)
 =>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 )
 (defrule
-	(goal gl-cbf-cont 1142)
+	(goal gl-cbf-cont 1145)
 =>
-	(set-goal gl-cbf-site 1142)
+	(set-goal gl-cbf-site 1145)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -669,17 +669,17 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1142)
+	(goal gl-cbf-cont 1145)
 =>
 	(up-chat-data-to-self "RAW15 trap ship assigned: %d" g: gl-fish-id)
 	(set-goal gl-fish-state 80)
 )
 (defrule
-	(goal gl-cbf-cont 1142)
+	(goal gl-cbf-cont 1145)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1142
+;CB END 1145
 
 (defrule
 	(goal gl-fish-state 42)

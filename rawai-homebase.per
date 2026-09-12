@@ -2,7 +2,7 @@
 ;======================== CRITICAL BUILD BOOTSTRAP ========================
 
 ;University is a hard Middle-Age progression prerequisite.
-;CB BEGIN 1150
+;CB BEGIN 1152
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(current-age >= middle-antiquity-age)
@@ -10,110 +10,6 @@
 	(up-pending-objects c: university <= 0)
 	(not (up-pending-placement c: university))
 	(up-can-build 0 c: university)
-=>
-	(set-goal gl-cbf-cont 1150)
-)
-(defrule
-	(goal gl-cbf-cont 1150)
-=>
-	(set-goal gl-cbf-site 1150)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1150)
-=>
-	(up-build place-normal 0 c: university)
-)
-(defrule
-	(goal gl-cbf-cont 1150)
-=>
-	(set-goal gl-cbf-site 1150)
-	(set-goal gl-cbf-kind 2)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1150)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1150
-
-;At least one Temple is a hard Middle-Age progression prerequisite.
-;CB BEGIN 1151
-(defrule
-	(goal gl-owner-worker-hold NO)
-	(current-age >= middle-antiquity-age)
-	(building-type-count-total monastery < 1)
-	(up-pending-objects c: monastery <= 0)
-	(not (up-pending-placement c: monastery))
-	(up-can-build 0 c: monastery)
-=>
-	(set-goal gl-cbf-cont 1151)
-)
-(defrule
-	(goal gl-cbf-cont 1151)
-=>
-	(set-goal gl-cbf-site 1151)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1151)
-=>
-	(up-build place-normal 0 c: monastery)
-)
-(defrule
-	(goal gl-cbf-cont 1151)
-=>
-	(set-goal gl-cbf-site 1151)
-	(set-goal gl-cbf-kind 2)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1151)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1151
-
-;Every normal military economy needs its first Barracks.
-;CB BEGIN 1152
-(defrule
-	(goal gl-owner-worker-hold NO)
-	(goal gl-opening-drop-sites-ready YES)
-	(building-type-count-total barracks < 1)
-	(up-pending-objects c: barracks <= 0)
-	(not (up-pending-placement c: barracks))
-	(up-can-build 0 c: barracks)
 =>
 	(set-goal gl-cbf-cont 1152)
 )
@@ -134,7 +30,7 @@
 (defrule
 	(goal gl-cbf-cont 1152)
 =>
-	(up-build place-normal 0 c: barracks)
+	(up-build place-normal 0 c: university)
 )
 (defrule
 	(goal gl-cbf-cont 1152)
@@ -157,25 +53,15 @@
 )
 ;CB END 1152
 
-;Water maps need the first Port independently of later expansion policy.
+;At least one Temple is a hard Middle-Age progression prerequisite.
 ;CB BEGIN 1153
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(or
-		(goal map-type LAKE)
-		(or
-			(goal map-type RIVERS)
-			(or
-				(goal map-type ISLANDS)
-				(goal map-type TEAM-ISLANDS)
-			)
-		)
-	)
-	(building-type-count-total lumber-camp >= 1)
-	(building-type-count-total dock < 1)
-	(up-pending-objects c: dock <= 0)
-	(not (up-pending-placement c: dock))
-	(up-can-build 0 c: dock)
+	(current-age >= middle-antiquity-age)
+	(building-type-count-total monastery < 1)
+	(up-pending-objects c: monastery <= 0)
+	(not (up-pending-placement c: monastery))
+	(up-can-build 0 c: monastery)
 =>
 	(set-goal gl-cbf-cont 1153)
 )
@@ -196,7 +82,7 @@
 (defrule
 	(goal gl-cbf-cont 1153)
 =>
-	(up-build place-normal 0 c: dock)
+	(up-build place-normal 0 c: monastery)
 )
 (defrule
 	(goal gl-cbf-cont 1153)
@@ -218,6 +104,120 @@
 	(set-goal gl-cbf-cont 0)
 )
 ;CB END 1153
+
+;Every normal military economy needs its first Barracks.
+;CB BEGIN 1154
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-opening-drop-sites-ready YES)
+	(building-type-count-total barracks < 1)
+	(up-pending-objects c: barracks <= 0)
+	(not (up-pending-placement c: barracks))
+	(up-can-build 0 c: barracks)
+=>
+	(set-goal gl-cbf-cont 1154)
+)
+(defrule
+	(goal gl-cbf-cont 1154)
+=>
+	(set-goal gl-cbf-site 1154)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1154)
+=>
+	(up-build place-normal 0 c: barracks)
+)
+(defrule
+	(goal gl-cbf-cont 1154)
+=>
+	(set-goal gl-cbf-site 1154)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1154)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1154
+
+;Water maps need the first Port independently of later expansion policy.
+;CB BEGIN 1155
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(or
+		(goal map-type LAKE)
+		(or
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
+		)
+	)
+	(building-type-count-total lumber-camp >= 1)
+	(building-type-count-total dock < 1)
+	(up-pending-objects c: dock <= 0)
+	(not (up-pending-placement c: dock))
+	(up-can-build 0 c: dock)
+=>
+	(set-goal gl-cbf-cont 1155)
+)
+(defrule
+	(goal gl-cbf-cont 1155)
+=>
+	(set-goal gl-cbf-site 1155)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1155)
+=>
+	(up-build place-normal 0 c: dock)
+)
+(defrule
+	(goal gl-cbf-cont 1155)
+=>
+	(set-goal gl-cbf-site 1155)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1155)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1155
 
 ; Straight from AiBuilder files. Now extensively modified.
 
@@ -245,18 +245,18 @@
 ;Builder targets are persistent foundation assignments. They speed large
 ;buildings without globally converting most gatherers -- including animal-food
 ;workers -- into builders every time a foundation appears.
-;CB BEGIN 1154
+;CB BEGIN 1156
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(true)
 =>
-	(set-goal gl-cbf-cont 1154)
+	(set-goal gl-cbf-cont 1156)
 	(disable-self)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1154)
+	(set-goal gl-cbf-site 1156)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -268,14 +268,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
 	(up-assign-builders c: town-center-foundation c: 6)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1154)
+	(set-goal gl-cbf-site 1156)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -287,9 +287,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1155)
+	(set-goal gl-cbf-site 1157)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -301,14 +301,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
 	(up-assign-builders c: market c: 4)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1155)
+	(set-goal gl-cbf-site 1157)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -320,9 +320,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1156)
+	(set-goal gl-cbf-site 1158)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -334,14 +334,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
 	(up-assign-builders c: university c: 4)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1156)
+	(set-goal gl-cbf-site 1158)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -353,9 +353,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1157)
+	(set-goal gl-cbf-site 1159)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -367,14 +367,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
 	(up-assign-builders c: monastery c: 4)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1157)
+	(set-goal gl-cbf-site 1159)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -386,9 +386,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1158)
+	(set-goal gl-cbf-site 1160)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -400,14 +400,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
 	(up-assign-builders c: siege-workshop c: 4)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1158)
+	(set-goal gl-cbf-site 1160)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -419,9 +419,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1159)
+	(set-goal gl-cbf-site 1161)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -433,14 +433,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
 	(up-assign-builders c: dock c: 4)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1159)
+	(set-goal gl-cbf-site 1161)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -452,9 +452,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1160)
+	(set-goal gl-cbf-site 1162)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -466,14 +466,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
 	(up-assign-builders c: shipyard c: 4)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1160)
+	(set-goal gl-cbf-site 1162)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -485,9 +485,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1161)
+	(set-goal gl-cbf-site 1163)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -499,14 +499,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
 	(up-assign-builders c: caravanserai c: 4)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1161)
+	(set-goal gl-cbf-site 1163)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -518,9 +518,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1162)
+	(set-goal gl-cbf-site 1164)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -532,14 +532,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
 	(up-assign-builders c: castle c: 10)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1162)
+	(set-goal gl-cbf-site 1164)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -551,9 +551,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1163)
+	(set-goal gl-cbf-site 1165)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -565,14 +565,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
 	(up-assign-builders c: wonder c: 15)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1163)
+	(set-goal gl-cbf-site 1165)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -584,9 +584,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1164)
+	(set-goal gl-cbf-site 1166)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -598,14 +598,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
 	(up-assign-builders c: wall-class c: 0)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1164)
+	(set-goal gl-cbf-site 1166)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -617,9 +617,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1165)
+	(set-goal gl-cbf-site 1167)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -631,14 +631,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
 	(up-assign-builders c: gate-class c: 0)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
-	(set-goal gl-cbf-site 1165)
+	(set-goal gl-cbf-site 1167)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -650,11 +650,11 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1154)
+	(goal gl-cbf-cont 1156)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1154
+;CB END 1156
 
 ;Do not let the automatic builder-assistance pool pull shepherds or hunters
 ;away while animal food is still being harvested. Explicit foundation builder
@@ -699,7 +699,7 @@
 
 ;Temporarily pull extra villagers onto large foundations. The percentages and
 ;caps return to the normal economy profile as soon as those foundations finish.
-;CB BEGIN 1166
+;CB BEGIN 1168
 (defrule
 	(or
 		(up-pending-objects c: castle >= 1)
@@ -707,12 +707,12 @@
 	)
 	(strategic-number sn-percent-civilian-builders != 35)
 =>
-	(set-goal gl-cbf-cont 1166)
+	(set-goal gl-cbf-cont 1168)
 )
 (defrule
-	(goal gl-cbf-cont 1166)
+	(goal gl-cbf-cont 1168)
 =>
-	(set-goal gl-cbf-site 1166)
+	(set-goal gl-cbf-site 1168)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -724,14 +724,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1166)
+	(goal gl-cbf-cont 1168)
 =>
 	(set-strategic-number sn-percent-civilian-builders 35)
 )
 (defrule
-	(goal gl-cbf-cont 1166)
+	(goal gl-cbf-cont 1168)
 =>
-	(set-goal gl-cbf-site 1166)
+	(set-goal gl-cbf-site 1168)
 	(set-goal gl-cbf-kind 6)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -743,14 +743,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1166)
+	(goal gl-cbf-cont 1168)
 =>
 	(set-strategic-number sn-cap-civilian-builders 15)
 )
 (defrule
-	(goal gl-cbf-cont 1166)
+	(goal gl-cbf-cont 1168)
 =>
-	(set-goal gl-cbf-site 1167)
+	(set-goal gl-cbf-site 1169)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -762,14 +762,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1166)
+	(goal gl-cbf-cont 1168)
 =>
 	(set-strategic-number sn-percent-civilian-gatherers 65)
 )
 (defrule
-	(goal gl-cbf-cont 1166)
+	(goal gl-cbf-cont 1168)
 =>
-	(set-goal gl-cbf-site 1167)
+	(set-goal gl-cbf-site 1169)
 	(set-goal gl-cbf-kind 6)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -781,13 +781,13 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1166)
+	(goal gl-cbf-cont 1168)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1166
+;CB END 1168
 
-;CB BEGIN 1168
+;CB BEGIN 1170
 (defrule
 	(and
 		(up-pending-objects c: castle <= 0)
@@ -817,100 +817,6 @@
 	)
 	(strategic-number sn-percent-civilian-builders != 25)
 =>
-	(set-goal gl-cbf-cont 1168)
-)
-(defrule
-	(goal gl-cbf-cont 1168)
-=>
-	(set-goal gl-cbf-site 1168)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1168)
-=>
-	(set-strategic-number sn-percent-civilian-builders 25)
-)
-(defrule
-	(goal gl-cbf-cont 1168)
-=>
-	(set-goal gl-cbf-site 1168)
-	(set-goal gl-cbf-kind 6)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1168)
-=>
-	(set-strategic-number sn-cap-civilian-builders 10)
-)
-(defrule
-	(goal gl-cbf-cont 1168)
-=>
-	(set-goal gl-cbf-site 1169)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1168)
-=>
-	(set-strategic-number sn-percent-civilian-gatherers 75)
-)
-(defrule
-	(goal gl-cbf-cont 1168)
-=>
-	(set-goal gl-cbf-site 1169)
-	(set-goal gl-cbf-kind 6)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1168)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1168
-
-;CB BEGIN 1170
-(defrule
-	(up-pending-objects c: castle <= 0)
-	(up-pending-objects c: wonder <= 0)
-	(up-pending-objects c: town-center <= 0)
-	(up-pending-objects c: market <= 0)
-	(up-pending-objects c: university <= 0)
-	(up-pending-objects c: monastery <= 0)
-	(up-pending-objects c: siege-workshop <= 0)
-	(up-pending-objects c: dock <= 0)
-	(up-pending-objects c: shipyard <= 0)
-	(up-pending-objects c: caravanserai <= 0)
-	(strategic-number sn-percent-civilian-builders != 15)
-=>
 	(set-goal gl-cbf-cont 1170)
 )
 (defrule
@@ -930,7 +836,7 @@
 (defrule
 	(goal gl-cbf-cont 1170)
 =>
-	(set-strategic-number sn-percent-civilian-builders 15)
+	(set-strategic-number sn-percent-civilian-builders 25)
 )
 (defrule
 	(goal gl-cbf-cont 1170)
@@ -949,7 +855,7 @@
 (defrule
 	(goal gl-cbf-cont 1170)
 =>
-	(set-strategic-number sn-cap-civilian-builders 8)
+	(set-strategic-number sn-cap-civilian-builders 10)
 )
 (defrule
 	(goal gl-cbf-cont 1170)
@@ -968,7 +874,7 @@
 (defrule
 	(goal gl-cbf-cont 1170)
 =>
-	(set-strategic-number sn-percent-civilian-gatherers 85)
+	(set-strategic-number sn-percent-civilian-gatherers 75)
 )
 (defrule
 	(goal gl-cbf-cont 1170)
@@ -990,6 +896,100 @@
 	(set-goal gl-cbf-cont 0)
 )
 ;CB END 1170
+
+;CB BEGIN 1172
+(defrule
+	(up-pending-objects c: castle <= 0)
+	(up-pending-objects c: wonder <= 0)
+	(up-pending-objects c: town-center <= 0)
+	(up-pending-objects c: market <= 0)
+	(up-pending-objects c: university <= 0)
+	(up-pending-objects c: monastery <= 0)
+	(up-pending-objects c: siege-workshop <= 0)
+	(up-pending-objects c: dock <= 0)
+	(up-pending-objects c: shipyard <= 0)
+	(up-pending-objects c: caravanserai <= 0)
+	(strategic-number sn-percent-civilian-builders != 15)
+=>
+	(set-goal gl-cbf-cont 1172)
+)
+(defrule
+	(goal gl-cbf-cont 1172)
+=>
+	(set-goal gl-cbf-site 1172)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1172)
+=>
+	(set-strategic-number sn-percent-civilian-builders 15)
+)
+(defrule
+	(goal gl-cbf-cont 1172)
+=>
+	(set-goal gl-cbf-site 1172)
+	(set-goal gl-cbf-kind 6)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1172)
+=>
+	(set-strategic-number sn-cap-civilian-builders 8)
+)
+(defrule
+	(goal gl-cbf-cont 1172)
+=>
+	(set-goal gl-cbf-site 1173)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1172)
+=>
+	(set-strategic-number sn-percent-civilian-gatherers 85)
+)
+(defrule
+	(goal gl-cbf-cont 1172)
+=>
+	(set-goal gl-cbf-site 1173)
+	(set-goal gl-cbf-kind 6)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1172)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1172
 
 ;A pending placement must persist for twelve seconds before it is classified as
 ;crowding. Naval and exact point-placement owners are intentionally excluded:
@@ -1587,7 +1587,7 @@
 	(goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 	(goal gl-miningcamp-placement-state PLACEMENT-IDLE)
 	(current-age >= middle-antiquity-age)
-	(building-type-count-total town-center < 8)
+	(building-type-count-total town-center < 4)
 	(or
 		(building-type-count-total town-center g:< desired-number-towncenters)
 		(or
@@ -1759,7 +1759,7 @@
 	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
 )
 
-;CB BEGIN 1172
+;CB BEGIN 1174
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-colony-towncenter-state COLONY-TC-ISSUE)
@@ -1767,12 +1767,12 @@
 	(not (up-pending-placement c: town-center))
 	(up-can-build 0 c: town-center)
 =>
-	(set-goal gl-cbf-cont 1172)
+	(set-goal gl-cbf-cont 1174)
 )
 (defrule
-	(goal gl-cbf-cont 1172)
+	(goal gl-cbf-cont 1174)
 =>
-	(set-goal gl-cbf-site 1172)
+	(set-goal gl-cbf-site 1174)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -1784,14 +1784,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1172)
+	(goal gl-cbf-cont 1174)
 =>
 	(up-build place-point 0 c: town-center)
 )
 (defrule
-	(goal gl-cbf-cont 1172)
+	(goal gl-cbf-cont 1174)
 =>
-	(set-goal gl-cbf-site 1172)
+	(set-goal gl-cbf-site 1174)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -1803,7 +1803,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1172)
+	(goal gl-cbf-cont 1174)
 =>
 	(up-modify-goal gl-colony-towncenter-attempts c:+ 1)
 	(up-chat-data-to-self "colony TC placement attempt: %d" g: gl-colony-towncenter-attempts)
@@ -1812,11 +1812,11 @@
 	(set-goal gl-colony-towncenter-state COLONY-TC-WAIT)
 )
 (defrule
-	(goal gl-cbf-cont 1172)
+	(goal gl-cbf-cont 1174)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1172
+;CB END 1174
 
 (defrule
 	(goal gl-colony-towncenter-state COLONY-TC-ISSUE)
@@ -1863,15 +1863,15 @@
 	(set-goal gl-colony-towncenter-state COLONY-TC-ASSIGN)
 )
 
-;CB BEGIN 1173
+;CB BEGIN 1175
 (defrule
 	(goal gl-colony-towncenter-state COLONY-TC-ASSIGN)
 	(up-set-target-object search-local c: 0)
 =>
-	(set-goal gl-cbf-cont 1173)
+	(set-goal gl-cbf-cont 1175)
 )
 (defrule
-	(goal gl-cbf-cont 1173)
+	(goal gl-cbf-cont 1175)
 =>
 	(up-get-object-data object-data-id gl-colony-towncenter-id)
 	(up-get-point position-object gl-colony-towncenter-target-x)
@@ -1892,9 +1892,9 @@
 	(up-remove-objects search-local object-data-group-flag >= 0)
 )
 (defrule
-	(goal gl-cbf-cont 1173)
+	(goal gl-cbf-cont 1175)
 =>
-	(set-goal gl-cbf-site 1173)
+	(set-goal gl-cbf-site 1175)
 	(set-goal gl-cbf-kind 1)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -1906,14 +1906,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1173)
+	(goal gl-cbf-cont 1175)
 =>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 )
 (defrule
-	(goal gl-cbf-cont 1173)
+	(goal gl-cbf-cont 1175)
 =>
-	(set-goal gl-cbf-site 1173)
+	(set-goal gl-cbf-site 1175)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -1925,7 +1925,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1173)
+	(goal gl-cbf-cont 1175)
 =>
 	(up-chat-data-to-self "colony TC accepted in zone: %d" g: gl-island-colony-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
@@ -1933,11 +1933,11 @@
 	(set-goal gl-colony-towncenter-state COLONY-TC-IDLE)
 )
 (defrule
-	(goal gl-cbf-cont 1173)
+	(goal gl-cbf-cont 1175)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1173
+;CB END 1175
 
 (defrule
 	(goal gl-colony-towncenter-state COLONY-TC-ASSIGN)
@@ -2166,7 +2166,7 @@
 	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
 )
 
-;CB BEGIN 1174
+;CB BEGIN 1176
 (defrule
 	(goal gl-home-retirement-state HOME-RETIRE-VALIDATE-OLD)
 	(up-set-target-object search-local c: 0)
@@ -2184,19 +2184,19 @@
 	(up-pending-objects c: town-center <= 0)
 	(not (up-pending-placement c: town-center))
 =>
-	(set-goal gl-cbf-cont 1174)
+	(set-goal gl-cbf-cont 1176)
 )
 (defrule
-	(goal gl-cbf-cont 1174)
+	(goal gl-cbf-cont 1176)
 =>
 	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 )
 (defrule
-	(goal gl-cbf-cont 1174)
+	(goal gl-cbf-cont 1176)
 =>
-	(set-goal gl-cbf-site 1174)
+	(set-goal gl-cbf-site 1176)
 	(set-goal gl-cbf-kind 1)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-delete)
@@ -2208,14 +2208,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1174)
+	(goal gl-cbf-cont 1176)
 =>
 	(up-target-point 0 action-delete -1 -1)
 )
 (defrule
-	(goal gl-cbf-cont 1174)
+	(goal gl-cbf-cont 1176)
 =>
-	(set-goal gl-cbf-site 1174)
+	(set-goal gl-cbf-site 1176)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-delete)
@@ -2227,7 +2227,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1174)
+	(goal gl-cbf-cont 1176)
 =>
 	(up-chat-data-to-self "home TC retired exact id: %d" g: gl-home-retirement-target-id)
 	(set-goal gl-home-retirement-target-id -2)
@@ -2238,11 +2238,11 @@
 	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
 )
 (defrule
-	(goal gl-cbf-cont 1174)
+	(goal gl-cbf-cont 1176)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1174
+;CB END 1176
 
 (defrule
 	(goal gl-home-retirement-state HOME-RETIRE-VALIDATE-OLD)
@@ -2283,7 +2283,7 @@
 	(set-goal gl-home-retirement-state HOME-RETIRE-IDLE)
 )
 
-;CB BEGIN 1175
+;CB BEGIN 1177
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(current-age >= middle-antiquity-age)
@@ -2295,12 +2295,12 @@
 	(not (up-pending-placement c: town-center))
 	(up-can-build 0 c: town-center)
 =>
-	(set-goal gl-cbf-cont 1175)
+	(set-goal gl-cbf-cont 1177)
 )
 (defrule
-	(goal gl-cbf-cont 1175)
+	(goal gl-cbf-cont 1177)
 =>
-	(set-goal gl-cbf-site 1175)
+	(set-goal gl-cbf-site 1177)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -2312,14 +2312,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1175)
+	(goal gl-cbf-cont 1177)
 =>
 	(up-build place-normal 0 c: town-center)
 )
 (defrule
-	(goal gl-cbf-cont 1175)
+	(goal gl-cbf-cont 1177)
 =>
-	(set-goal gl-cbf-site 1175)
+	(set-goal gl-cbf-site 1177)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -2331,13 +2331,13 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1175)
+	(goal gl-cbf-cont 1177)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1175
+;CB END 1177
 
-;CB BEGIN 1176
+;CB BEGIN 1178
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal allow-houses 1)
@@ -2351,141 +2351,7 @@
 	(can-afford-building house)
 	(up-can-build 0 c: house)
 =>
-	(set-goal gl-cbf-cont 1176)
-)
-(defrule
-	(goal gl-cbf-cont 1176)
-=>
-	(set-goal gl-cbf-site 1176)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1176)
-=>
-	(up-build place-normal 0 c: house)
-)
-(defrule
-	(goal gl-cbf-cont 1176)
-=>
-	(set-goal gl-cbf-site 1176)
-	(set-goal gl-cbf-kind 2)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1176)
-=>
-	(up-set-timer c: t-house-placement c: 8)
-)
-(defrule
-	(goal gl-cbf-cont 1176)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1176
-
-;CB BEGIN 1177
-(defrule
-	(goal gl-owner-worker-hold NO)
-	(current-age <= early-antiquity-age)
-	(goal allow-houses 1)
-	(building-type-count-total house > 0)
-	(building-type-count-total mill == 0)
-	(goal gl-migration-placement-lock NO)
-	(up-pending-objects c: house <= 0)
-	(population-headroom > 0)
-	(housing-headroom < 5)
-	(up-timer-status t-house-placement != timer-running)
-	(can-afford-building house)
-	(up-can-build 0 c: house)
-=>
-	(set-goal gl-cbf-cont 1177)
-)
-(defrule
-	(goal gl-cbf-cont 1177)
-=>
-	(up-set-placement-data my-player-number -1 c: -10)
-)
-(defrule
-	(goal gl-cbf-cont 1177)
-=>
-	(set-goal gl-cbf-site 1177)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1177)
-=>
-	(up-build place-control 0 c: house)
-)
-(defrule
-	(goal gl-cbf-cont 1177)
-=>
-	(set-goal gl-cbf-site 1177)
-	(set-goal gl-cbf-kind 2)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1177)
-=>
-	(up-set-timer c: t-house-placement c: 8)
-)
-(defrule
-	(goal gl-cbf-cont 1177)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1177
-
-;CB BEGIN 1178
-(defrule
-	(goal gl-owner-worker-hold NO)
-	(current-age <= early-antiquity-age)
-	(goal allow-houses 1)
-	(building-type-count-total house > 0)
-	(building-type-count-total mill >= 1)
-	(goal gl-migration-placement-lock NO)
-	(up-pending-objects c: house <= 0)
-	(population-headroom > 0)
-	(housing-headroom < 5)
-	(up-timer-status t-house-placement != timer-running)
-	(can-afford-building house)
-	(up-can-build 0 c: house)
-=>
 	(set-goal gl-cbf-cont 1178)
-)
-(defrule
-	(goal gl-cbf-cont 1178)
-=>
-	(up-set-placement-data my-player-number mill c: 8)
 )
 (defrule
 	(goal gl-cbf-cont 1178)
@@ -2504,7 +2370,7 @@
 (defrule
 	(goal gl-cbf-cont 1178)
 =>
-	(up-build place-control 0 c: house)
+	(up-build place-normal 0 c: house)
 )
 (defrule
 	(goal gl-cbf-cont 1178)
@@ -2535,7 +2401,7 @@
 ;CB BEGIN 1179
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= middle-antiquity-age)
+	(current-age <= early-antiquity-age)
 	(goal allow-houses 1)
 	(building-type-count-total house > 0)
 	(building-type-count-total mill == 0)
@@ -2548,6 +2414,11 @@
 	(up-can-build 0 c: house)
 =>
 	(set-goal gl-cbf-cont 1179)
+)
+(defrule
+	(goal gl-cbf-cont 1179)
+=>
+	(up-set-placement-data my-player-number -1 c: -10)
 )
 (defrule
 	(goal gl-cbf-cont 1179)
@@ -2566,7 +2437,7 @@
 (defrule
 	(goal gl-cbf-cont 1179)
 =>
-	(up-build place-normal 0 c: house)
+	(up-build place-control 0 c: house)
 )
 (defrule
 	(goal gl-cbf-cont 1179)
@@ -2597,8 +2468,9 @@
 ;CB BEGIN 1180
 (defrule
 	(goal gl-owner-worker-hold NO)
+	(current-age <= early-antiquity-age)
 	(goal allow-houses 1)
-	(building-type-count-total house == 0)
+	(building-type-count-total house > 0)
 	(building-type-count-total mill >= 1)
 	(goal gl-migration-placement-lock NO)
 	(up-pending-objects c: house <= 0)
@@ -2660,40 +2532,22 @@
 )
 ;CB END 1180
 
-;Under sustained population pressure, put one new House at the confirmed
-;colony instead of consuming another military-production tile around the home
-;Mill. This is replacement-free: completed inner housing is never deleted.
 ;CB BEGIN 1181
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(goal gl-house-pressure YES)
-	(goal gl-island-colony-established YES)
+	(current-age >= middle-antiquity-age)
+	(goal allow-houses 1)
+	(building-type-count-total house > 0)
+	(building-type-count-total mill == 0)
 	(goal gl-migration-placement-lock NO)
-	(up-timer-status t-house-pressure == timer-triggered)
-	(up-pending-objects c: house < 2)
+	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
-	(housing-headroom < 3)
+	(housing-headroom < 5)
 	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
 	(up-can-build 0 c: house)
-	(or
-		(goal map-type RIVERS)
-		(or
-			(goal map-type ISLANDS)
-			(goal map-type TEAM-ISLANDS)
-		)
-	)
 =>
 	(set-goal gl-cbf-cont 1181)
-)
-(defrule
-	(goal gl-cbf-cont 1181)
-=>
-	(up-copy-point point2-x gl-island-colony-x)
-	(up-modify-goal point2-x c:+ 6)
-	(up-modify-goal point2-y c:+ 6)
-	(up-bound-point point3-x point2-x)
-	(up-set-target-point point3-x)
 )
 (defrule
 	(goal gl-cbf-cont 1181)
@@ -2712,7 +2566,7 @@
 (defrule
 	(goal gl-cbf-cont 1181)
 =>
-	(up-build place-point 0 c: house)
+	(up-build place-normal 0 c: house)
 )
 (defrule
 	(goal gl-cbf-cont 1181)
@@ -2731,7 +2585,6 @@
 (defrule
 	(goal gl-cbf-cont 1181)
 =>
-	(up-set-timer c: t-house-pressure c: 30)
 	(up-set-timer c: t-house-placement c: 8)
 )
 (defrule
@@ -2744,13 +2597,13 @@
 ;CB BEGIN 1182
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(goal gl-house-pressure YES)
-	(up-timer-status t-house-pressure == timer-triggered)
+	(goal allow-houses 1)
+	(building-type-count-total house == 0)
 	(building-type-count-total mill >= 1)
 	(goal gl-migration-placement-lock NO)
-	(up-pending-objects c: house < 2)
+	(up-pending-objects c: house <= 0)
 	(population-headroom > 0)
-	(housing-headroom < 3)
+	(housing-headroom < 5)
 	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
 	(up-can-build 0 c: house)
@@ -2798,7 +2651,6 @@
 (defrule
 	(goal gl-cbf-cont 1182)
 =>
-	(up-set-timer c: t-house-pressure c: 30)
 	(up-set-timer c: t-house-placement c: 8)
 )
 (defrule
@@ -2808,21 +2660,40 @@
 )
 ;CB END 1182
 
+;Under sustained population pressure, put one new House at the confirmed
+;colony instead of consuming another military-production tile around the home
+;Mill. This is replacement-free: completed inner housing is never deleted.
 ;CB BEGIN 1183
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-house-pressure YES)
-	(up-timer-status t-house-pressure == timer-triggered)
-	(building-type-count-total mill == 0)
+	(goal gl-island-colony-established YES)
 	(goal gl-migration-placement-lock NO)
+	(up-timer-status t-house-pressure == timer-triggered)
 	(up-pending-objects c: house < 2)
 	(population-headroom > 0)
 	(housing-headroom < 3)
 	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
 	(up-can-build 0 c: house)
+	(or
+		(goal map-type RIVERS)
+		(or
+			(goal map-type ISLANDS)
+			(goal map-type TEAM-ISLANDS)
+		)
+	)
 =>
 	(set-goal gl-cbf-cont 1183)
+)
+(defrule
+	(goal gl-cbf-cont 1183)
+=>
+	(up-copy-point point2-x gl-island-colony-x)
+	(up-modify-goal point2-x c:+ 6)
+	(up-modify-goal point2-y c:+ 6)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
 )
 (defrule
 	(goal gl-cbf-cont 1183)
@@ -2841,7 +2712,7 @@
 (defrule
 	(goal gl-cbf-cont 1183)
 =>
-	(up-build place-normal 0 c: house)
+	(up-build place-point 0 c: house)
 )
 (defrule
 	(goal gl-cbf-cont 1183)
@@ -2873,14 +2744,13 @@
 ;CB BEGIN 1184
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= middle-antiquity-age)
-	(goal allow-houses 1)
-	(building-type-count-total house > 0)
+	(goal gl-house-pressure YES)
+	(up-timer-status t-house-pressure == timer-triggered)
 	(building-type-count-total mill >= 1)
 	(goal gl-migration-placement-lock NO)
-	(up-pending-objects c: house <= 0)
+	(up-pending-objects c: house < 2)
 	(population-headroom > 0)
-	(housing-headroom < 5)
+	(housing-headroom < 3)
 	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
 	(up-can-build 0 c: house)
@@ -2928,6 +2798,7 @@
 (defrule
 	(goal gl-cbf-cont 1184)
 =>
+	(up-set-timer c: t-house-pressure c: 30)
 	(up-set-timer c: t-house-placement c: 8)
 )
 (defrule
@@ -2936,6 +2807,135 @@
 	(set-goal gl-cbf-cont 0)
 )
 ;CB END 1184
+
+;CB BEGIN 1185
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-house-pressure YES)
+	(up-timer-status t-house-pressure == timer-triggered)
+	(building-type-count-total mill == 0)
+	(goal gl-migration-placement-lock NO)
+	(up-pending-objects c: house < 2)
+	(population-headroom > 0)
+	(housing-headroom < 3)
+	(up-timer-status t-house-placement != timer-running)
+	(can-afford-building house)
+	(up-can-build 0 c: house)
+=>
+	(set-goal gl-cbf-cont 1185)
+)
+(defrule
+	(goal gl-cbf-cont 1185)
+=>
+	(set-goal gl-cbf-site 1185)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1185)
+=>
+	(up-build place-normal 0 c: house)
+)
+(defrule
+	(goal gl-cbf-cont 1185)
+=>
+	(set-goal gl-cbf-site 1185)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1185)
+=>
+	(up-set-timer c: t-house-pressure c: 30)
+	(up-set-timer c: t-house-placement c: 8)
+)
+(defrule
+	(goal gl-cbf-cont 1185)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1185
+
+;CB BEGIN 1186
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(current-age >= middle-antiquity-age)
+	(goal allow-houses 1)
+	(building-type-count-total house > 0)
+	(building-type-count-total mill >= 1)
+	(goal gl-migration-placement-lock NO)
+	(up-pending-objects c: house <= 0)
+	(population-headroom > 0)
+	(housing-headroom < 5)
+	(up-timer-status t-house-placement != timer-running)
+	(can-afford-building house)
+	(up-can-build 0 c: house)
+=>
+	(set-goal gl-cbf-cont 1186)
+)
+(defrule
+	(goal gl-cbf-cont 1186)
+=>
+	(up-set-placement-data my-player-number mill c: 8)
+)
+(defrule
+	(goal gl-cbf-cont 1186)
+=>
+	(set-goal gl-cbf-site 1186)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1186)
+=>
+	(up-build place-control 0 c: house)
+)
+(defrule
+	(goal gl-cbf-cont 1186)
+=>
+	(set-goal gl-cbf-site 1186)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1186)
+=>
+	(up-set-timer c: t-house-placement c: 8)
+)
+(defrule
+	(goal gl-cbf-cont 1186)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1186
 
 ;The first Lumber Camp cannot depend on an existing classified woodcutter: with
 ;three opening villagers, a ten-percent wood allocation can legitimately round
@@ -3133,142 +3133,11 @@
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
 )
 
-;CB BEGIN 1185
-(defrule
-	(goal gl-owner-worker-hold NO)
-	(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
-	(goal gl-lumbercamp-placement-attempts 0)
-	(can-afford-building lumber-camp)
-=>
-	(set-goal gl-cbf-cont 1185)
-)
-(defrule
-	(goal gl-cbf-cont 1185)
-=>
-	(up-copy-point point2-x gl-lumbercamp-target-x)
-	(up-modify-goal point2-x c:+ 3)
-	(up-modify-goal point2-y c:+ 3)
-	(up-bound-point point3-x point2-x)
-	(up-set-target-point point3-x)
-)
-(defrule
-	(goal gl-cbf-cont 1185)
-=>
-	(set-goal gl-cbf-site 1185)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1185)
-=>
-	(up-build place-point 0 c: lumber-camp)
-)
-(defrule
-	(goal gl-cbf-cont 1185)
-=>
-	(set-goal gl-cbf-site 1185)
-	(set-goal gl-cbf-kind 2)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1185)
-=>
-	(set-goal gl-lumbercamp-placement-attempts 1)
-	(up-chat-data-to-self "lumber camp resource zone: %d" g: gl-lumbercamp-resource-zone)
-	(up-set-timer c: t-lumbercamp-placement c: 30)
-	(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)
-)
-(defrule
-	(goal gl-cbf-cont 1185)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1185
-
-;CB BEGIN 1186
-(defrule
-	(goal gl-owner-worker-hold NO)
-	(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
-	(goal gl-lumbercamp-placement-attempts 1)
-	(can-afford-building lumber-camp)
-=>
-	(set-goal gl-cbf-cont 1186)
-)
-(defrule
-	(goal gl-cbf-cont 1186)
-=>
-	(up-copy-point point2-x gl-lumbercamp-target-x)
-	(up-modify-goal point2-x c:- 3)
-	(up-modify-goal point2-y c:+ 3)
-	(up-bound-point point3-x point2-x)
-	(up-set-target-point point3-x)
-)
-(defrule
-	(goal gl-cbf-cont 1186)
-=>
-	(set-goal gl-cbf-site 1186)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1186)
-=>
-	(up-build place-point 0 c: lumber-camp)
-)
-(defrule
-	(goal gl-cbf-cont 1186)
-=>
-	(set-goal gl-cbf-site 1186)
-	(set-goal gl-cbf-kind 2)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1186)
-=>
-	(set-goal gl-lumbercamp-placement-attempts 2)
-	(up-set-timer c: t-lumbercamp-placement c: 30)
-	(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)
-)
-(defrule
-	(goal gl-cbf-cont 1186)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1186
-
 ;CB BEGIN 1187
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
-	(goal gl-lumbercamp-placement-attempts 2)
+	(goal gl-lumbercamp-placement-attempts 0)
 	(can-afford-building lumber-camp)
 =>
 	(set-goal gl-cbf-cont 1187)
@@ -3278,7 +3147,7 @@
 =>
 	(up-copy-point point2-x gl-lumbercamp-target-x)
 	(up-modify-goal point2-x c:+ 3)
-	(up-modify-goal point2-y c:- 3)
+	(up-modify-goal point2-y c:+ 3)
 	(up-bound-point point3-x point2-x)
 	(up-set-target-point point3-x)
 )
@@ -3318,7 +3187,8 @@
 (defrule
 	(goal gl-cbf-cont 1187)
 =>
-	(set-goal gl-lumbercamp-placement-attempts 3)
+	(set-goal gl-lumbercamp-placement-attempts 1)
+	(up-chat-data-to-self "lumber camp resource zone: %d" g: gl-lumbercamp-resource-zone)
 	(up-set-timer c: t-lumbercamp-placement c: 30)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)
 )
@@ -3333,7 +3203,7 @@
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
-	(goal gl-lumbercamp-placement-attempts 3)
+	(goal gl-lumbercamp-placement-attempts 1)
 	(can-afford-building lumber-camp)
 =>
 	(set-goal gl-cbf-cont 1188)
@@ -3343,7 +3213,7 @@
 =>
 	(up-copy-point point2-x gl-lumbercamp-target-x)
 	(up-modify-goal point2-x c:- 3)
-	(up-modify-goal point2-y c:- 3)
+	(up-modify-goal point2-y c:+ 3)
 	(up-bound-point point3-x point2-x)
 	(up-set-target-point point3-x)
 )
@@ -3383,7 +3253,7 @@
 (defrule
 	(goal gl-cbf-cont 1188)
 =>
-	(set-goal gl-lumbercamp-placement-attempts 4)
+	(set-goal gl-lumbercamp-placement-attempts 2)
 	(up-set-timer c: t-lumbercamp-placement c: 30)
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)
 )
@@ -3393,6 +3263,136 @@
 	(set-goal gl-cbf-cont 0)
 )
 ;CB END 1188
+
+;CB BEGIN 1189
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
+	(goal gl-lumbercamp-placement-attempts 2)
+	(can-afford-building lumber-camp)
+=>
+	(set-goal gl-cbf-cont 1189)
+)
+(defrule
+	(goal gl-cbf-cont 1189)
+=>
+	(up-copy-point point2-x gl-lumbercamp-target-x)
+	(up-modify-goal point2-x c:+ 3)
+	(up-modify-goal point2-y c:- 3)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+)
+(defrule
+	(goal gl-cbf-cont 1189)
+=>
+	(set-goal gl-cbf-site 1189)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1189)
+=>
+	(up-build place-point 0 c: lumber-camp)
+)
+(defrule
+	(goal gl-cbf-cont 1189)
+=>
+	(set-goal gl-cbf-site 1189)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1189)
+=>
+	(set-goal gl-lumbercamp-placement-attempts 3)
+	(up-set-timer c: t-lumbercamp-placement c: 30)
+	(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)
+)
+(defrule
+	(goal gl-cbf-cont 1189)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1189
+
+;CB BEGIN 1190
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
+	(goal gl-lumbercamp-placement-attempts 3)
+	(can-afford-building lumber-camp)
+=>
+	(set-goal gl-cbf-cont 1190)
+)
+(defrule
+	(goal gl-cbf-cont 1190)
+=>
+	(up-copy-point point2-x gl-lumbercamp-target-x)
+	(up-modify-goal point2-x c:- 3)
+	(up-modify-goal point2-y c:- 3)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+)
+(defrule
+	(goal gl-cbf-cont 1190)
+=>
+	(set-goal gl-cbf-site 1190)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1190)
+=>
+	(up-build place-point 0 c: lumber-camp)
+)
+(defrule
+	(goal gl-cbf-cont 1190)
+=>
+	(set-goal gl-cbf-site 1190)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1190)
+=>
+	(set-goal gl-lumbercamp-placement-attempts 4)
+	(up-set-timer c: t-lumbercamp-placement c: 30)
+	(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)
+)
+(defrule
+	(goal gl-cbf-cont 1190)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1190
 
 (defrule
 	(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)
@@ -3431,17 +3431,17 @@
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-VALIDATE-FOUNDATION-RESOURCE)
 )
 
-;CB BEGIN 1189
+;CB BEGIN 1191
 (defrule
 	(goal gl-lumbercamp-placement-state PLACEMENT-CHECK-FOUNDATION)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-distance <= 8)
 	(up-object-data object-data-map-zone-id g:!= gl-lumbercamp-resource-zone)
 =>
-	(set-goal gl-cbf-cont 1189)
+	(set-goal gl-cbf-cont 1191)
 )
 (defrule
-	(goal gl-cbf-cont 1189)
+	(goal gl-cbf-cont 1191)
 =>
 	(up-get-object-data object-data-id gl-lumbercamp-foundation-id)
 	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
@@ -3449,9 +3449,9 @@
 	(up-remove-objects search-local object-data-group-flag >= 0)
 )
 (defrule
-	(goal gl-cbf-cont 1189)
+	(goal gl-cbf-cont 1191)
 =>
-	(set-goal gl-cbf-site 1189)
+	(set-goal gl-cbf-site 1191)
 	(set-goal gl-cbf-kind 1)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-delete)
@@ -3463,14 +3463,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1189)
+	(goal gl-cbf-cont 1191)
 =>
 	(up-target-point 0 action-delete -1 -1)
 )
 (defrule
-	(goal gl-cbf-cont 1189)
+	(goal gl-cbf-cont 1191)
 =>
-	(set-goal gl-cbf-site 1189)
+	(set-goal gl-cbf-site 1191)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-delete)
@@ -3482,7 +3482,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1189)
+	(goal gl-cbf-cont 1191)
 =>
 	(up-reset-placement c: lumber-camp)
 	(up-chat-data-to-self "lumber camp deleted wrong-zone foundation: %d" g: gl-lumbercamp-foundation-id)
@@ -3491,11 +3491,11 @@
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 )
 (defrule
-	(goal gl-cbf-cont 1189)
+	(goal gl-cbf-cont 1191)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1189
+;CB END 1191
 
 (defrule
 	(goal gl-lumbercamp-placement-state PLACEMENT-CHECK-FOUNDATION)
@@ -3507,17 +3507,17 @@
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 )
 
-;CB BEGIN 1190
+;CB BEGIN 1192
 (defrule
 	(goal gl-lumbercamp-placement-state PLACEMENT-VALIDATE-FOUNDATION-RESOURCE)
 	(up-set-target-object search-remote c: 0)
 	(up-object-data object-data-class == tree-class)
 	(up-object-data object-data-map-zone-id g:== gl-lumbercamp-resource-zone)
 =>
-	(set-goal gl-cbf-cont 1190)
+	(set-goal gl-cbf-cont 1192)
 )
 (defrule
-	(goal gl-cbf-cont 1190)
+	(goal gl-cbf-cont 1192)
 =>
 	(up-chat-data-to-self "lumber camp accepted live resource: %d" g: gl-lumbercamp-resource-id)
 	(set-strategic-number sn-focus-player-number my-player-number)
@@ -3538,9 +3538,9 @@
 	(up-remove-objects search-local object-data-group-flag >= 0)
 )
 (defrule
-	(goal gl-cbf-cont 1190)
+	(goal gl-cbf-cont 1192)
 =>
-	(set-goal gl-cbf-site 1190)
+	(set-goal gl-cbf-site 1192)
 	(set-goal gl-cbf-kind 1)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -3552,14 +3552,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1190)
+	(goal gl-cbf-cont 1192)
 =>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 )
 (defrule
-	(goal gl-cbf-cont 1190)
+	(goal gl-cbf-cont 1192)
 =>
-	(set-goal gl-cbf-site 1190)
+	(set-goal gl-cbf-site 1192)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -3571,7 +3571,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1190)
+	(goal gl-cbf-cont 1192)
 =>
 	(up-chat-data-to-self "lumber camp builders assigned: %d" g: local-total)
 	(up-modify-sn sn-focus-player-number g:= gl-lumbercamp-placement-focus)
@@ -3581,13 +3581,13 @@
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 )
 (defrule
-	(goal gl-cbf-cont 1190)
+	(goal gl-cbf-cont 1192)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1190
+;CB END 1192
 
-;CB BEGIN 1191
+;CB BEGIN 1193
 (defrule
 	(goal gl-lumbercamp-placement-state PLACEMENT-VALIDATE-FOUNDATION-RESOURCE)
 	(or
@@ -3598,10 +3598,10 @@
 		)
 	)
 =>
-	(set-goal gl-cbf-cont 1191)
+	(set-goal gl-cbf-cont 1193)
 )
 (defrule
-	(goal gl-cbf-cont 1191)
+	(goal gl-cbf-cont 1193)
 =>
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
@@ -3612,9 +3612,9 @@
 	(up-remove-objects search-local object-data-group-flag >= 0)
 )
 (defrule
-	(goal gl-cbf-cont 1191)
+	(goal gl-cbf-cont 1193)
 =>
-	(set-goal gl-cbf-site 1191)
+	(set-goal gl-cbf-site 1193)
 	(set-goal gl-cbf-kind 1)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-delete)
@@ -3626,14 +3626,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1191)
+	(goal gl-cbf-cont 1193)
 =>
 	(up-target-point 0 action-delete -1 -1)
 )
 (defrule
-	(goal gl-cbf-cont 1191)
+	(goal gl-cbf-cont 1193)
 =>
-	(set-goal gl-cbf-site 1191)
+	(set-goal gl-cbf-site 1193)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-delete)
@@ -3645,7 +3645,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1191)
+	(goal gl-cbf-cont 1193)
 =>
 	(up-reset-placement c: lumber-camp)
 	(up-modify-goal gl-lumbercamp-rejected-resource-id3 g:= gl-lumbercamp-rejected-resource-id2)
@@ -3658,11 +3658,11 @@
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 )
 (defrule
-	(goal gl-cbf-cont 1191)
+	(goal gl-cbf-cont 1193)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1191
+;CB END 1193
 
 ;Four builders can complete the tiny foundation before the WAIT sweep ever
 ;observes a pending object. Resolve a ready camp at the exact candidate before
@@ -3775,7 +3775,7 @@
 	(set-goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 )
 
-;CB BEGIN 1192
+;CB BEGIN 1194
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(and	
@@ -3796,12 +3796,12 @@
 	(up-pending-objects c: mill <= 0)
 	(up-can-build 0 c: mill)
 =>
-	(set-goal gl-cbf-cont 1192)
+	(set-goal gl-cbf-cont 1194)
 )
 (defrule
-	(goal gl-cbf-cont 1192)
+	(goal gl-cbf-cont 1194)
 =>
-	(set-goal gl-cbf-site 1192)
+	(set-goal gl-cbf-site 1194)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -3813,14 +3813,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1192)
+	(goal gl-cbf-cont 1194)
 =>
 	(up-build place-normal 0 c: mill)
 )
 (defrule
-	(goal gl-cbf-cont 1192)
+	(goal gl-cbf-cont 1194)
 =>
-	(set-goal gl-cbf-site 1192)
+	(set-goal gl-cbf-site 1194)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -3832,11 +3832,11 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1192)
+	(goal gl-cbf-cont 1194)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1192
+;CB END 1194
 
 (defrule
 	(goal dependent-farms FARM-DEMAND-DEPENDENT)
@@ -4084,15 +4084,15 @@
 	(set-goal gl-econ-retask-diag-state 2)
 )
 
-;CB BEGIN 1193
+;CB BEGIN 1195
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-FISHERMAN)
 	(up-set-target-object search-local c: 0)
 =>
-	(set-goal gl-cbf-cont 1193)
+	(set-goal gl-cbf-cont 1195)
 )
 (defrule
-	(goal gl-cbf-cont 1193)
+	(goal gl-cbf-cont 1195)
 =>
 	(up-add-object-by-id search-remote g: gl-farm-staffing-id)
 	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
@@ -4102,9 +4102,9 @@
 	(up-modify-goal gl-econ-retask-count1 c:+ 1)
 )
 (defrule
-	(goal gl-cbf-cont 1193)
+	(goal gl-cbf-cont 1195)
 =>
-	(set-goal gl-cbf-site 1193)
+	(set-goal gl-cbf-site 1195)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -4116,14 +4116,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1193)
+	(goal gl-cbf-cont 1195)
 =>
 	(set-strategic-number sn-keystates 2)
 )
 (defrule
-	(goal gl-cbf-cont 1193)
+	(goal gl-cbf-cont 1195)
 =>
-	(set-goal gl-cbf-site 1193)
+	(set-goal gl-cbf-site 1195)
 	(set-goal gl-cbf-kind 6)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -4135,9 +4135,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1193)
+	(goal gl-cbf-cont 1195)
 =>
-	(set-goal gl-cbf-site 1194)
+	(set-goal gl-cbf-site 1196)
 	(set-goal gl-cbf-kind 1)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -4149,14 +4149,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1193)
+	(goal gl-cbf-cont 1195)
 =>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 )
 (defrule
-	(goal gl-cbf-cont 1193)
+	(goal gl-cbf-cont 1195)
 =>
-	(set-goal gl-cbf-site 1194)
+	(set-goal gl-cbf-site 1196)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -4168,9 +4168,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1193)
+	(goal gl-cbf-cont 1195)
 =>
-	(set-goal gl-cbf-site 1195)
+	(set-goal gl-cbf-site 1197)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -4182,14 +4182,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1193)
+	(goal gl-cbf-cont 1195)
 =>
 	(set-strategic-number sn-keystates 0)
 )
 (defrule
-	(goal gl-cbf-cont 1193)
+	(goal gl-cbf-cont 1195)
 =>
-	(set-goal gl-cbf-site 1195)
+	(set-goal gl-cbf-site 1197)
 	(set-goal gl-cbf-kind 6)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -4201,7 +4201,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1193)
+	(goal gl-cbf-cont 1195)
 =>
 	(up-chat-data-to-self "farm staffing fisherman: %d" g: gl-farm-staffing-id)
 	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
@@ -4209,11 +4209,11 @@
 	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
 )
 (defrule
-	(goal gl-cbf-cont 1193)
+	(goal gl-cbf-cont 1195)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1193
+;CB END 1195
 
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-FISHERMAN)
@@ -4281,15 +4281,15 @@
 	(set-goal gl-econ-retask-diag-state 2)
 )
 
-;CB BEGIN 1196
+;CB BEGIN 1198
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-IDLE)
 	(up-set-target-object search-local c: 0)
 =>
-	(set-goal gl-cbf-cont 1196)
+	(set-goal gl-cbf-cont 1198)
 )
 (defrule
-	(goal gl-cbf-cont 1196)
+	(goal gl-cbf-cont 1198)
 =>
 	(up-add-object-by-id search-remote g: gl-farm-staffing-id)
 	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
@@ -4299,9 +4299,9 @@
 	(up-modify-goal gl-econ-retask-count2 c:+ 1)
 )
 (defrule
-	(goal gl-cbf-cont 1196)
+	(goal gl-cbf-cont 1198)
 =>
-	(set-goal gl-cbf-site 1196)
+	(set-goal gl-cbf-site 1198)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -4313,14 +4313,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1196)
+	(goal gl-cbf-cont 1198)
 =>
 	(set-strategic-number sn-keystates 2)
 )
 (defrule
-	(goal gl-cbf-cont 1196)
+	(goal gl-cbf-cont 1198)
 =>
-	(set-goal gl-cbf-site 1196)
+	(set-goal gl-cbf-site 1198)
 	(set-goal gl-cbf-kind 6)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -4332,9 +4332,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1196)
+	(goal gl-cbf-cont 1198)
 =>
-	(set-goal gl-cbf-site 1197)
+	(set-goal gl-cbf-site 1199)
 	(set-goal gl-cbf-kind 1)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -4346,14 +4346,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1196)
+	(goal gl-cbf-cont 1198)
 =>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 )
 (defrule
-	(goal gl-cbf-cont 1196)
+	(goal gl-cbf-cont 1198)
 =>
-	(set-goal gl-cbf-site 1197)
+	(set-goal gl-cbf-site 1199)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -4365,9 +4365,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1196)
+	(goal gl-cbf-cont 1198)
 =>
-	(set-goal gl-cbf-site 1198)
+	(set-goal gl-cbf-site 1200)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -4379,14 +4379,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1196)
+	(goal gl-cbf-cont 1198)
 =>
 	(set-strategic-number sn-keystates 0)
 )
 (defrule
-	(goal gl-cbf-cont 1196)
+	(goal gl-cbf-cont 1198)
 =>
-	(set-goal gl-cbf-site 1198)
+	(set-goal gl-cbf-site 1200)
 	(set-goal gl-cbf-kind 6)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -4398,7 +4398,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1196)
+	(goal gl-cbf-cont 1198)
 =>
 	(up-chat-data-to-self "farm staffing idle: %d" g: gl-farm-staffing-id)
 	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
@@ -4406,11 +4406,11 @@
 	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
 )
 (defrule
-	(goal gl-cbf-cont 1196)
+	(goal gl-cbf-cont 1198)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1196
+;CB END 1198
 
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-CHECK-IDLE)
@@ -4488,15 +4488,15 @@
 	(set-goal gl-econ-retask-diag-state 2)
 )
 
-;CB BEGIN 1199
+;CB BEGIN 1201
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-ASSIGN)
 	(up-set-target-object search-local c: 0)
 =>
-	(set-goal gl-cbf-cont 1199)
+	(set-goal gl-cbf-cont 1201)
 )
 (defrule
-	(goal gl-cbf-cont 1199)
+	(goal gl-cbf-cont 1201)
 =>
 	(up-add-object-by-id search-remote g: gl-farm-staffing-id)
 	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
@@ -4506,9 +4506,9 @@
 	(up-modify-goal gl-econ-retask-count3 c:+ 1)
 )
 (defrule
-	(goal gl-cbf-cont 1199)
+	(goal gl-cbf-cont 1201)
 =>
-	(set-goal gl-cbf-site 1199)
+	(set-goal gl-cbf-site 1201)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -4520,14 +4520,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1199)
+	(goal gl-cbf-cont 1201)
 =>
 	(set-strategic-number sn-keystates 2)
 )
 (defrule
-	(goal gl-cbf-cont 1199)
+	(goal gl-cbf-cont 1201)
 =>
-	(set-goal gl-cbf-site 1199)
+	(set-goal gl-cbf-site 1201)
 	(set-goal gl-cbf-kind 6)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -4539,9 +4539,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1199)
+	(goal gl-cbf-cont 1201)
 =>
-	(set-goal gl-cbf-site 1200)
+	(set-goal gl-cbf-site 1202)
 	(set-goal gl-cbf-kind 1)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -4553,14 +4553,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1199)
+	(goal gl-cbf-cont 1201)
 =>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 )
 (defrule
-	(goal gl-cbf-cont 1199)
+	(goal gl-cbf-cont 1201)
 =>
-	(set-goal gl-cbf-site 1200)
+	(set-goal gl-cbf-site 1202)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -4572,9 +4572,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1199)
+	(goal gl-cbf-cont 1201)
 =>
-	(set-goal gl-cbf-site 1201)
+	(set-goal gl-cbf-site 1203)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -4586,14 +4586,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1199)
+	(goal gl-cbf-cont 1201)
 =>
 	(set-strategic-number sn-keystates 0)
 )
 (defrule
-	(goal gl-cbf-cont 1199)
+	(goal gl-cbf-cont 1201)
 =>
-	(set-goal gl-cbf-site 1201)
+	(set-goal gl-cbf-site 1203)
 	(set-goal gl-cbf-kind 6)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -4605,7 +4605,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1199)
+	(goal gl-cbf-cont 1201)
 =>
 	(up-chat-data-to-self "farm staffing worker: %d" g: gl-farm-staffing-id)
 	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
@@ -4613,11 +4613,11 @@
 	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
 )
 (defrule
-	(goal gl-cbf-cont 1199)
+	(goal gl-cbf-cont 1201)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1199
+;CB END 1201
 
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-ASSIGN)
@@ -4723,15 +4723,15 @@
 	(set-goal gl-econ-retask-diag-state 2)
 )
 
-;CB BEGIN 1202
+;CB BEGIN 1204
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-FIND-RESOURCE)
 	(up-set-target-object search-remote c: 0)
 =>
-	(set-goal gl-cbf-cont 1202)
+	(set-goal gl-cbf-cont 1204)
 )
 (defrule
-	(goal gl-cbf-cont 1202)
+	(goal gl-cbf-cont 1204)
 =>
 	(up-get-object-data object-data-id gl-farm-staffing-id)
 	(set-strategic-number sn-focus-player-number my-player-number)
@@ -4746,9 +4746,9 @@
 	(up-modify-goal gl-econ-retask-count4 c:+ 1)
 )
 (defrule
-	(goal gl-cbf-cont 1202)
+	(goal gl-cbf-cont 1204)
 =>
-	(set-goal gl-cbf-site 1202)
+	(set-goal gl-cbf-site 1204)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -4760,14 +4760,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1202)
+	(goal gl-cbf-cont 1204)
 =>
 	(set-strategic-number sn-keystates 2)
 )
 (defrule
-	(goal gl-cbf-cont 1202)
+	(goal gl-cbf-cont 1204)
 =>
-	(set-goal gl-cbf-site 1202)
+	(set-goal gl-cbf-site 1204)
 	(set-goal gl-cbf-kind 6)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -4779,9 +4779,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1202)
+	(goal gl-cbf-cont 1204)
 =>
-	(set-goal gl-cbf-site 1203)
+	(set-goal gl-cbf-site 1205)
 	(set-goal gl-cbf-kind 1)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -4793,14 +4793,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1202)
+	(goal gl-cbf-cont 1204)
 =>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 )
 (defrule
-	(goal gl-cbf-cont 1202)
+	(goal gl-cbf-cont 1204)
 =>
-	(set-goal gl-cbf-site 1203)
+	(set-goal gl-cbf-site 1205)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -4812,9 +4812,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1202)
+	(goal gl-cbf-cont 1204)
 =>
-	(set-goal gl-cbf-site 1204)
+	(set-goal gl-cbf-site 1206)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -4826,14 +4826,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1202)
+	(goal gl-cbf-cont 1204)
 =>
 	(set-strategic-number sn-keystates 0)
 )
 (defrule
-	(goal gl-cbf-cont 1202)
+	(goal gl-cbf-cont 1204)
 =>
-	(set-goal gl-cbf-site 1204)
+	(set-goal gl-cbf-site 1206)
 	(set-goal gl-cbf-kind 6)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -4845,7 +4845,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1202)
+	(goal gl-cbf-cont 1204)
 =>
 	(up-chat-data-to-self "fisherman redirected to resource: %d" g: gl-farm-staffing-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-farm-staffing-focus)
@@ -4853,11 +4853,11 @@
 	(set-goal gl-farm-staffing-state FARM-STAFFING-IDLE)
 )
 (defrule
-	(goal gl-cbf-cont 1202)
+	(goal gl-cbf-cont 1204)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1202
+;CB END 1204
 
 (defrule
 	(goal gl-farm-staffing-state FARM-STAFFING-FIND-RESOURCE)
@@ -4907,7 +4907,7 @@
 	(disable-timer t-farm-report)
 )
 
-;CB BEGIN 1205
+;CB BEGIN 1207
 (defrule
 	(wood-amount < 160)
 	(dropsite-min-distance wood >= 5)
@@ -4916,9 +4916,9 @@
 =>
 	(up-jump-rule 27)
 )
-;CB END 1205
+;CB END 1207
 
-;CB BEGIN 1206
+;CB BEGIN 1208
 (defrule
 (or	(goal gl-farm-placement-suspended YES)
 (or	(up-compare-goal gl-farm-build-target <= 0)
@@ -4929,7 +4929,7 @@
 	(up-jump-rule 26)
 
 )
-;CB END 1206
+;CB END 1208
 
 (defrule
 	(true)
@@ -4954,13 +4954,13 @@
 	(up-clean-search search-local object-data-distance search-order-asc)
 )
 
-;CB BEGIN 1207
+;CB BEGIN 1209
 (defrule; end neg jump
 (not	(up-set-target-object search-local g: temporary-goal4))
 =>
 	(up-jump-rule 17)
 )
-;CB END 1207
+;CB END 1209
 
 (defrule
 	(up-set-target-object search-local g: temporary-goal4)
@@ -5011,7 +5011,7 @@
 	(up-copy-point point3-x point-x)
 )
 
-;CB BEGIN 1208
+;CB BEGIN 1210
 (defrule
 	(up-compare-goal temporary-goal6 >= 2)
 =>
@@ -5019,7 +5019,7 @@
 	(up-modify-goal temporary-goal6 c:- 1)
 	(up-jump-rule -2)
 )
-;CB END 1208
+;CB END 1210
 
 (defrule
 	(up-compare-goal temporary-goal6 == 1)
@@ -5031,7 +5031,7 @@
 	(set-goal temporary-goal6 -7)
 )
 
-;CB BEGIN 1209
+;CB BEGIN 1211
 (defrule
 	(up-compare-goal temporary-goal6 <= -2)
 =>
@@ -5039,9 +5039,9 @@
 	(up-modify-goal temporary-goal6 c:+ 1)
 	(up-jump-rule -4)
 )
-;CB END 1209
+;CB END 1211
 
-;CB BEGIN 1210
+;CB BEGIN 1212
 (defrule
 	(goal temporary-goal8 0)
 =>
@@ -5054,9 +5054,9 @@
 	(set-goal temporary-goal8 1)
 	(up-jump-rule -6)
 )
-;CB END 1210
+;CB END 1212
 
-;CB BEGIN 1211
+;CB BEGIN 1213
 (defrule
 	(goal temporary-goal10 0)
 	(goal point3-x -1)
@@ -5065,9 +5065,9 @@
 	(set-goal temporary-goal10 1)
 	(up-jump-rule -10)
 )
-;CB END 1211
+;CB END 1213
 
-;CB BEGIN 1212
+;CB BEGIN 1214
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-farm-placement-suspended NO)
@@ -5076,12 +5076,12 @@
 	(up-can-build-line 0 point3-x c: farm)
 	(up-can-build 0 c: farm)
 =>
-	(set-goal gl-cbf-cont 1212)
+	(set-goal gl-cbf-cont 1214)
 )
 (defrule
-	(goal gl-cbf-cont 1212)
+	(goal gl-cbf-cont 1214)
 =>
-	(set-goal gl-cbf-site 1212)
+	(set-goal gl-cbf-site 1214)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -5093,14 +5093,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1212)
+	(goal gl-cbf-cont 1214)
 =>
 	(up-build-line point3-x point3-x c: farm)
 )
 (defrule
-	(goal gl-cbf-cont 1212)
+	(goal gl-cbf-cont 1214)
 =>
-	(set-goal gl-cbf-site 1212)
+	(set-goal gl-cbf-site 1214)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -5112,19 +5112,19 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1212)
+	(goal gl-cbf-cont 1214)
 =>
 	(set-goal gl-cbf-cont 0)
 	(up-jump-rule 8)
 )
 (defrule
-	(goal gl-cbf-cont 1212)
+	(goal gl-cbf-cont 1214)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1212
+;CB END 1214
 
-;CB BEGIN 1213
+;CB BEGIN 1215
 (defrule
 	(up-set-target-object search-local g: temporary-goal4)
 =>
@@ -5133,9 +5133,9 @@
 	(set-goal temporary-goal10 0)
 	(up-jump-rule -18)
 )
-;CB END 1213
+;CB END 1215
 
-;CB BEGIN 1214
+;CB BEGIN 1216
 (defrule
 	(not	
 		(up-set-target-object search-local g: temporary-goal4)
@@ -5151,11 +5151,11 @@
 	(set-goal temporary-goal10 0)
 	(up-jump-rule -19)
 )
-;CB END 1214
+;CB END 1216
 
 ;jumps end
 
-;CB BEGIN 1215
+;CB BEGIN 1217
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-farm-placement-suspended NO)
@@ -5163,12 +5163,12 @@
 	(building-type-count mill >= 1)
 	(up-can-build 0 c: farm)
 =>
-	(set-goal gl-cbf-cont 1215)
+	(set-goal gl-cbf-cont 1217)
 )
 (defrule
-	(goal gl-cbf-cont 1215)
+	(goal gl-cbf-cont 1217)
 =>
-	(set-goal gl-cbf-site 1215)
+	(set-goal gl-cbf-site 1217)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -5180,14 +5180,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1215)
+	(goal gl-cbf-cont 1217)
 =>
 	(up-build place-normal 0 c: farm)
 )
 (defrule
-	(goal gl-cbf-cont 1215)
+	(goal gl-cbf-cont 1217)
 =>
-	(set-goal gl-cbf-site 1215)
+	(set-goal gl-cbf-site 1217)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -5199,13 +5199,13 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1215)
+	(goal gl-cbf-cont 1217)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1215
+;CB END 1217
 
-;CB BEGIN 1216
+;CB BEGIN 1218
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
@@ -5217,12 +5217,12 @@
 	(not (up-pending-placement c: town-center))
 	(up-can-build 0 c: town-center)
 =>
-	(set-goal gl-cbf-cont 1216)
+	(set-goal gl-cbf-cont 1218)
 )
 (defrule
-	(goal gl-cbf-cont 1216)
+	(goal gl-cbf-cont 1218)
 =>
-	(set-goal gl-cbf-site 1216)
+	(set-goal gl-cbf-site 1218)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -5234,14 +5234,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1216)
+	(goal gl-cbf-cont 1218)
 =>
 	(up-build place-normal 0 c: town-center)
 )
 (defrule
-	(goal gl-cbf-cont 1216)
+	(goal gl-cbf-cont 1218)
 =>
-	(set-goal gl-cbf-site 1216)
+	(set-goal gl-cbf-site 1218)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -5253,11 +5253,11 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1216)
+	(goal gl-cbf-cont 1218)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1216
+;CB END 1218
 
 ;The opening Mill must not be placed before the home explorers have had a real
 ;chance to reveal forage. Search from the active-home Town Center under Gaia
@@ -5474,24 +5474,24 @@
 	(set-goal gl-opening-mill-state OPENING-MILL-IDLE)
 )
 
-;CB BEGIN 1217
+;CB BEGIN 1219
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-opening-mill-state OPENING-MILL-FALLBACK)
 =>
-	(set-goal gl-cbf-cont 1217)
+	(set-goal gl-cbf-cont 1219)
 )
 (defrule
-	(goal gl-cbf-cont 1217)
+	(goal gl-cbf-cont 1219)
 =>
 	(set-goal gl-opening-mill-candidate-index 0)
 	(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)
 	(up-full-reset-search)
 )
 (defrule
-	(goal gl-cbf-cont 1217)
+	(goal gl-cbf-cont 1219)
 =>
-	(set-goal gl-cbf-site 1217)
+	(set-goal gl-cbf-site 1219)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -5503,14 +5503,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1217)
+	(goal gl-cbf-cont 1219)
 =>
 	(up-build place-normal 0 c: mill)
 )
 (defrule
-	(goal gl-cbf-cont 1217)
+	(goal gl-cbf-cont 1219)
 =>
-	(set-goal gl-cbf-site 1217)
+	(set-goal gl-cbf-site 1219)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -5522,7 +5522,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1217)
+	(goal gl-cbf-cont 1219)
 =>
 	(set-goal gl-opening-mill-requested YES)
 	(chat-local-to-self "opening Mill fallback placement")
@@ -5530,11 +5530,11 @@
 	(set-goal gl-opening-mill-state OPENING-MILL-FALLBACK-WAIT)
 )
 (defrule
-	(goal gl-cbf-cont 1217)
+	(goal gl-cbf-cont 1219)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1217
+;CB END 1219
 
 (defrule
 	(goal gl-opening-mill-state OPENING-MILL-FALLBACK-WAIT)
@@ -5580,143 +5580,11 @@
 ;Try four bounded diagonals around the exact forage object. A failed cluster
 ;advances one candidate at a time so another cluster cannot be skipped merely
 ;because home-distance sorting interleaves the two clusters.
-;CB BEGIN 1218
-(defrule
-	(goal gl-owner-worker-hold NO)
-	(goal gl-opening-mill-state OPENING-MILL-PLACE)
-	(goal gl-opening-mill-placement-attempts 0)
-	(can-afford-building mill)
-=>
-	(set-goal gl-cbf-cont 1218)
-)
-(defrule
-	(goal gl-cbf-cont 1218)
-=>
-	(up-copy-point point2-x gl-opening-mill-target-x)
-	(up-modify-goal point2-x c:+ 4)
-	(up-modify-goal point2-y c:+ 4)
-	(up-bound-point point3-x point2-x)
-	(up-set-target-point point3-x)
-)
-(defrule
-	(goal gl-cbf-cont 1218)
-=>
-	(set-goal gl-cbf-site 1218)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1218)
-=>
-	(up-build place-point 0 c: mill)
-)
-(defrule
-	(goal gl-cbf-cont 1218)
-=>
-	(set-goal gl-cbf-site 1218)
-	(set-goal gl-cbf-kind 2)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1218)
-=>
-	(set-goal gl-opening-mill-requested YES)
-	(set-goal gl-opening-mill-placement-attempts 1)
-	(up-set-timer c: t-opening-mill c: 30)
-	(set-goal gl-opening-mill-state OPENING-MILL-WAIT)
-)
-(defrule
-	(goal gl-cbf-cont 1218)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1218
-
-;CB BEGIN 1219
-(defrule
-	(goal gl-owner-worker-hold NO)
-	(goal gl-opening-mill-state OPENING-MILL-PLACE)
-	(goal gl-opening-mill-placement-attempts 1)
-	(can-afford-building mill)
-=>
-	(set-goal gl-cbf-cont 1219)
-)
-(defrule
-	(goal gl-cbf-cont 1219)
-=>
-	(up-copy-point point2-x gl-opening-mill-target-x)
-	(up-modify-goal point2-x c:- 4)
-	(up-modify-goal point2-y c:+ 4)
-	(up-bound-point point3-x point2-x)
-	(up-set-target-point point3-x)
-)
-(defrule
-	(goal gl-cbf-cont 1219)
-=>
-	(set-goal gl-cbf-site 1219)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1219)
-=>
-	(up-build place-point 0 c: mill)
-)
-(defrule
-	(goal gl-cbf-cont 1219)
-=>
-	(set-goal gl-cbf-site 1219)
-	(set-goal gl-cbf-kind 2)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1219)
-=>
-	(set-goal gl-opening-mill-requested YES)
-	(set-goal gl-opening-mill-placement-attempts 2)
-	(up-set-timer c: t-opening-mill c: 30)
-	(set-goal gl-opening-mill-state OPENING-MILL-WAIT)
-)
-(defrule
-	(goal gl-cbf-cont 1219)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1219
-
 ;CB BEGIN 1220
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-opening-mill-state OPENING-MILL-PLACE)
-	(goal gl-opening-mill-placement-attempts 2)
+	(goal gl-opening-mill-placement-attempts 0)
 	(can-afford-building mill)
 =>
 	(set-goal gl-cbf-cont 1220)
@@ -5726,7 +5594,7 @@
 =>
 	(up-copy-point point2-x gl-opening-mill-target-x)
 	(up-modify-goal point2-x c:+ 4)
-	(up-modify-goal point2-y c:- 4)
+	(up-modify-goal point2-y c:+ 4)
 	(up-bound-point point3-x point2-x)
 	(up-set-target-point point3-x)
 )
@@ -5767,7 +5635,7 @@
 	(goal gl-cbf-cont 1220)
 =>
 	(set-goal gl-opening-mill-requested YES)
-	(set-goal gl-opening-mill-placement-attempts 3)
+	(set-goal gl-opening-mill-placement-attempts 1)
 	(up-set-timer c: t-opening-mill c: 30)
 	(set-goal gl-opening-mill-state OPENING-MILL-WAIT)
 )
@@ -5782,7 +5650,7 @@
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-opening-mill-state OPENING-MILL-PLACE)
-	(goal gl-opening-mill-placement-attempts 3)
+	(goal gl-opening-mill-placement-attempts 1)
 	(can-afford-building mill)
 =>
 	(set-goal gl-cbf-cont 1221)
@@ -5792,7 +5660,7 @@
 =>
 	(up-copy-point point2-x gl-opening-mill-target-x)
 	(up-modify-goal point2-x c:- 4)
-	(up-modify-goal point2-y c:- 4)
+	(up-modify-goal point2-y c:+ 4)
 	(up-bound-point point3-x point2-x)
 	(up-set-target-point point3-x)
 )
@@ -5833,7 +5701,7 @@
 	(goal gl-cbf-cont 1221)
 =>
 	(set-goal gl-opening-mill-requested YES)
-	(set-goal gl-opening-mill-placement-attempts 4)
+	(set-goal gl-opening-mill-placement-attempts 2)
 	(up-set-timer c: t-opening-mill c: 30)
 	(set-goal gl-opening-mill-state OPENING-MILL-WAIT)
 )
@@ -5843,6 +5711,138 @@
 	(set-goal gl-cbf-cont 0)
 )
 ;CB END 1221
+
+;CB BEGIN 1222
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-opening-mill-state OPENING-MILL-PLACE)
+	(goal gl-opening-mill-placement-attempts 2)
+	(can-afford-building mill)
+=>
+	(set-goal gl-cbf-cont 1222)
+)
+(defrule
+	(goal gl-cbf-cont 1222)
+=>
+	(up-copy-point point2-x gl-opening-mill-target-x)
+	(up-modify-goal point2-x c:+ 4)
+	(up-modify-goal point2-y c:- 4)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+)
+(defrule
+	(goal gl-cbf-cont 1222)
+=>
+	(set-goal gl-cbf-site 1222)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1222)
+=>
+	(up-build place-point 0 c: mill)
+)
+(defrule
+	(goal gl-cbf-cont 1222)
+=>
+	(set-goal gl-cbf-site 1222)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1222)
+=>
+	(set-goal gl-opening-mill-requested YES)
+	(set-goal gl-opening-mill-placement-attempts 3)
+	(up-set-timer c: t-opening-mill c: 30)
+	(set-goal gl-opening-mill-state OPENING-MILL-WAIT)
+)
+(defrule
+	(goal gl-cbf-cont 1222)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1222
+
+;CB BEGIN 1223
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-opening-mill-state OPENING-MILL-PLACE)
+	(goal gl-opening-mill-placement-attempts 3)
+	(can-afford-building mill)
+=>
+	(set-goal gl-cbf-cont 1223)
+)
+(defrule
+	(goal gl-cbf-cont 1223)
+=>
+	(up-copy-point point2-x gl-opening-mill-target-x)
+	(up-modify-goal point2-x c:- 4)
+	(up-modify-goal point2-y c:- 4)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+)
+(defrule
+	(goal gl-cbf-cont 1223)
+=>
+	(set-goal gl-cbf-site 1223)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1223)
+=>
+	(up-build place-point 0 c: mill)
+)
+(defrule
+	(goal gl-cbf-cont 1223)
+=>
+	(set-goal gl-cbf-site 1223)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1223)
+=>
+	(set-goal gl-opening-mill-requested YES)
+	(set-goal gl-opening-mill-placement-attempts 4)
+	(up-set-timer c: t-opening-mill c: 30)
+	(set-goal gl-opening-mill-state OPENING-MILL-WAIT)
+)
+(defrule
+	(goal gl-cbf-cont 1223)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1223
 
 (defrule
 	(goal gl-opening-mill-state OPENING-MILL-PLACE)
@@ -6266,141 +6266,11 @@
 
 ;Try four bounded diagonals around the resource target. Retain state ownership
 ;until a foundation exists or every offset has failed.
-;CB BEGIN 1222
-(defrule
-	(goal gl-owner-worker-hold NO)
-	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
-	(goal gl-miningcamp-placement-attempts 0)
-	(can-afford-building mining-camp)
-=>
-	(set-goal gl-cbf-cont 1222)
-)
-(defrule
-	(goal gl-cbf-cont 1222)
-=>
-	(up-copy-point point2-x gl-miningcamp-target-x)
-	(up-modify-goal point2-x c:+ 3)
-	(up-modify-goal point2-y c:+ 3)
-	(up-bound-point point3-x point2-x)
-	(up-set-target-point point3-x)
-)
-(defrule
-	(goal gl-cbf-cont 1222)
-=>
-	(set-goal gl-cbf-site 1222)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1222)
-=>
-	(up-build place-point 0 c: mining-camp)
-)
-(defrule
-	(goal gl-cbf-cont 1222)
-=>
-	(set-goal gl-cbf-site 1222)
-	(set-goal gl-cbf-kind 2)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1222)
-=>
-	(set-goal gl-miningcamp-placement-attempts 1)
-	(up-set-timer c: t-miningcamp-placement c: 30)
-	(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)
-)
-(defrule
-	(goal gl-cbf-cont 1222)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1222
-
-;CB BEGIN 1223
-(defrule
-	(goal gl-owner-worker-hold NO)
-	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
-	(goal gl-miningcamp-placement-attempts 1)
-	(can-afford-building mining-camp)
-=>
-	(set-goal gl-cbf-cont 1223)
-)
-(defrule
-	(goal gl-cbf-cont 1223)
-=>
-	(up-copy-point point2-x gl-miningcamp-target-x)
-	(up-modify-goal point2-x c:- 3)
-	(up-modify-goal point2-y c:+ 3)
-	(up-bound-point point3-x point2-x)
-	(up-set-target-point point3-x)
-)
-(defrule
-	(goal gl-cbf-cont 1223)
-=>
-	(set-goal gl-cbf-site 1223)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1223)
-=>
-	(up-build place-point 0 c: mining-camp)
-)
-(defrule
-	(goal gl-cbf-cont 1223)
-=>
-	(set-goal gl-cbf-site 1223)
-	(set-goal gl-cbf-kind 2)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1223)
-=>
-	(set-goal gl-miningcamp-placement-attempts 2)
-	(up-set-timer c: t-miningcamp-placement c: 30)
-	(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)
-)
-(defrule
-	(goal gl-cbf-cont 1223)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1223
-
 ;CB BEGIN 1224
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
-	(goal gl-miningcamp-placement-attempts 2)
+	(goal gl-miningcamp-placement-attempts 0)
 	(can-afford-building mining-camp)
 =>
 	(set-goal gl-cbf-cont 1224)
@@ -6410,7 +6280,7 @@
 =>
 	(up-copy-point point2-x gl-miningcamp-target-x)
 	(up-modify-goal point2-x c:+ 3)
-	(up-modify-goal point2-y c:- 3)
+	(up-modify-goal point2-y c:+ 3)
 	(up-bound-point point3-x point2-x)
 	(up-set-target-point point3-x)
 )
@@ -6450,7 +6320,7 @@
 (defrule
 	(goal gl-cbf-cont 1224)
 =>
-	(set-goal gl-miningcamp-placement-attempts 3)
+	(set-goal gl-miningcamp-placement-attempts 1)
 	(up-set-timer c: t-miningcamp-placement c: 30)
 	(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)
 )
@@ -6465,7 +6335,7 @@
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
-	(goal gl-miningcamp-placement-attempts 3)
+	(goal gl-miningcamp-placement-attempts 1)
 	(can-afford-building mining-camp)
 =>
 	(set-goal gl-cbf-cont 1225)
@@ -6475,7 +6345,7 @@
 =>
 	(up-copy-point point2-x gl-miningcamp-target-x)
 	(up-modify-goal point2-x c:- 3)
-	(up-modify-goal point2-y c:- 3)
+	(up-modify-goal point2-y c:+ 3)
 	(up-bound-point point3-x point2-x)
 	(up-set-target-point point3-x)
 )
@@ -6515,7 +6385,7 @@
 (defrule
 	(goal gl-cbf-cont 1225)
 =>
-	(set-goal gl-miningcamp-placement-attempts 4)
+	(set-goal gl-miningcamp-placement-attempts 2)
 	(up-set-timer c: t-miningcamp-placement c: 30)
 	(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)
 )
@@ -6525,6 +6395,136 @@
 	(set-goal gl-cbf-cont 0)
 )
 ;CB END 1225
+
+;CB BEGIN 1226
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
+	(goal gl-miningcamp-placement-attempts 2)
+	(can-afford-building mining-camp)
+=>
+	(set-goal gl-cbf-cont 1226)
+)
+(defrule
+	(goal gl-cbf-cont 1226)
+=>
+	(up-copy-point point2-x gl-miningcamp-target-x)
+	(up-modify-goal point2-x c:+ 3)
+	(up-modify-goal point2-y c:- 3)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+)
+(defrule
+	(goal gl-cbf-cont 1226)
+=>
+	(set-goal gl-cbf-site 1226)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1226)
+=>
+	(up-build place-point 0 c: mining-camp)
+)
+(defrule
+	(goal gl-cbf-cont 1226)
+=>
+	(set-goal gl-cbf-site 1226)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1226)
+=>
+	(set-goal gl-miningcamp-placement-attempts 3)
+	(up-set-timer c: t-miningcamp-placement c: 30)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)
+)
+(defrule
+	(goal gl-cbf-cont 1226)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1226
+
+;CB BEGIN 1227
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
+	(goal gl-miningcamp-placement-attempts 3)
+	(can-afford-building mining-camp)
+=>
+	(set-goal gl-cbf-cont 1227)
+)
+(defrule
+	(goal gl-cbf-cont 1227)
+=>
+	(up-copy-point point2-x gl-miningcamp-target-x)
+	(up-modify-goal point2-x c:- 3)
+	(up-modify-goal point2-y c:- 3)
+	(up-bound-point point3-x point2-x)
+	(up-set-target-point point3-x)
+)
+(defrule
+	(goal gl-cbf-cont 1227)
+=>
+	(set-goal gl-cbf-site 1227)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1227)
+=>
+	(up-build place-point 0 c: mining-camp)
+)
+(defrule
+	(goal gl-cbf-cont 1227)
+=>
+	(set-goal gl-cbf-site 1227)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1227)
+=>
+	(set-goal gl-miningcamp-placement-attempts 4)
+	(up-set-timer c: t-miningcamp-placement c: 30)
+	(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)
+)
+(defrule
+	(goal gl-cbf-cont 1227)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1227
 
 (defrule
 	(goal gl-miningcamp-placement-state PLACEMENT-PLACE)
@@ -6563,17 +6563,17 @@
 	(set-goal gl-miningcamp-placement-state PLACEMENT-VALIDATE-FOUNDATION-RESOURCE)
 )
 
-;CB BEGIN 1226
+;CB BEGIN 1228
 (defrule
 	(goal gl-miningcamp-placement-state PLACEMENT-CHECK-FOUNDATION)
 	(up-set-target-object search-local c: 0)
 	(up-object-data object-data-distance <= 8)
 	(up-object-data object-data-map-zone-id g:!= gl-miningcamp-resource-zone)
 =>
-	(set-goal gl-cbf-cont 1226)
+	(set-goal gl-cbf-cont 1228)
 )
 (defrule
-	(goal gl-cbf-cont 1226)
+	(goal gl-cbf-cont 1228)
 =>
 	(up-get-object-data object-data-id gl-miningcamp-foundation-id)
 	(up-remove-objects search-local object-data-id g:== gl-boar-lurer-id)
@@ -6581,9 +6581,9 @@
 	(up-remove-objects search-local object-data-group-flag >= 0)
 )
 (defrule
-	(goal gl-cbf-cont 1226)
+	(goal gl-cbf-cont 1228)
 =>
-	(set-goal gl-cbf-site 1226)
+	(set-goal gl-cbf-site 1228)
 	(set-goal gl-cbf-kind 1)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-delete)
@@ -6595,14 +6595,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1226)
+	(goal gl-cbf-cont 1228)
 =>
 	(up-target-point 0 action-delete -1 -1)
 )
 (defrule
-	(goal gl-cbf-cont 1226)
+	(goal gl-cbf-cont 1228)
 =>
-	(set-goal gl-cbf-site 1226)
+	(set-goal gl-cbf-site 1228)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-delete)
@@ -6614,7 +6614,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1226)
+	(goal gl-cbf-cont 1228)
 =>
 	(up-reset-placement c: mining-camp)
 	(up-chat-data-to-self "mining camp deleted wrong-zone foundation: %d" g: gl-miningcamp-foundation-id)
@@ -6623,11 +6623,11 @@
 	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
 )
 (defrule
-	(goal gl-cbf-cont 1226)
+	(goal gl-cbf-cont 1228)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1226
+;CB END 1228
 
 (defrule
 	(goal gl-miningcamp-placement-state PLACEMENT-CHECK-FOUNDATION)
@@ -6664,7 +6664,7 @@
 
 ;If the exact mine disappeared before the matching same-zone foundation was
 ;accepted, remove that now-useless foundation instead of satisfying a quota.
-;CB BEGIN 1227
+;CB BEGIN 1229
 (defrule
 	(goal gl-miningcamp-placement-state PLACEMENT-VALIDATE-FOUNDATION-RESOURCE)
 	(or
@@ -6684,10 +6684,10 @@
 		)
 	)
 =>
-	(set-goal gl-cbf-cont 1227)
+	(set-goal gl-cbf-cont 1229)
 )
 (defrule
-	(goal gl-cbf-cont 1227)
+	(goal gl-cbf-cont 1229)
 =>
 	(set-strategic-number sn-focus-player-number my-player-number)
 	(up-full-reset-search)
@@ -6698,9 +6698,9 @@
 	(up-remove-objects search-local object-data-group-flag >= 0)
 )
 (defrule
-	(goal gl-cbf-cont 1227)
+	(goal gl-cbf-cont 1229)
 =>
-	(set-goal gl-cbf-site 1227)
+	(set-goal gl-cbf-site 1229)
 	(set-goal gl-cbf-kind 1)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-delete)
@@ -6712,14 +6712,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1227)
+	(goal gl-cbf-cont 1229)
 =>
 	(up-target-point 0 action-delete -1 -1)
 )
 (defrule
-	(goal gl-cbf-cont 1227)
+	(goal gl-cbf-cont 1229)
 =>
-	(set-goal gl-cbf-site 1227)
+	(set-goal gl-cbf-site 1229)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-delete)
@@ -6731,7 +6731,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1227)
+	(goal gl-cbf-cont 1229)
 =>
 	(up-reset-placement c: mining-camp)
 	(up-chat-data-to-self "mining camp deleted stale resource foundation: %d" g: gl-miningcamp-foundation-id)
@@ -6741,11 +6741,11 @@
 	(set-goal gl-miningcamp-placement-state PLACEMENT-IDLE)
 )
 (defrule
-	(goal gl-cbf-cont 1227)
+	(goal gl-cbf-cont 1229)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1227
+;CB END 1229
 
 (defrule
 	(goal gl-miningcamp-placement-state PLACEMENT-WAIT)
@@ -6816,7 +6816,7 @@
 	(set-goal gl-opening-drop-sites-ready YES)
 )
 
-;CB BEGIN 1228
+;CB BEGIN 1230
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(can-afford-building barracks)
@@ -6845,146 +6845,6 @@
 	)
 	(up-can-build 0 c: barracks)
 =>
-	(set-goal gl-cbf-cont 1228)
-)
-(defrule
-	(goal gl-cbf-cont 1228)
-=>
-	(set-goal gl-cbf-site 1228)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1228)
-=>
-	(up-build place-normal 0 c: barracks)
-)
-(defrule
-	(goal gl-cbf-cont 1228)
-=>
-	(set-goal gl-cbf-site 1228)
-	(set-goal gl-cbf-kind 2)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1228)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1228
-
-;A player whose last army and Barracks were destroyed has no responder with
-;which to raise gl-home-defense-state. Rebuild the foundational producer even
-;while age-up escrow is active; this rule is threat-gated and cannot restore the
-;old opening Barracks regression.
-;CB BEGIN 1229
-(defrule
-	(goal gl-owner-worker-hold NO)
-	(current-age >= early-antiquity-age)
-	(goal gl-local-threat-active YES)
-	(building-type-count-total barracks < 1)
-	(up-pending-objects c: barracks <= 0)
-	(not (up-pending-placement c: barracks))
-	(can-afford-building barracks)
-	(up-can-build 0 c: barracks)
-=>
-	(set-goal gl-cbf-cont 1229)
-)
-(defrule
-	(goal gl-cbf-cont 1229)
-=>
-	(set-goal gl-cbf-site 1229)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1229)
-=>
-	(up-build place-normal 0 c: barracks)
-)
-(defrule
-	(goal gl-cbf-cont 1229)
-=>
-	(set-goal gl-cbf-site 1229)
-	(set-goal gl-cbf-kind 2)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1229)
-=>
-	(chat-local-to-self "Emergency Barracks requested after local attack")
-)
-(defrule
-	(goal gl-cbf-cont 1229)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1229
-
-(defrule
-	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
-	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
-	(goal gl-local-threat-active YES)
-	(building-type-count-total barracks < 1)
-	(up-pending-objects c: barracks <= 0)
-	(not (up-pending-placement c: barracks))
-	(can-afford-building barracks)
-	(not (up-can-build 0 c: barracks))
-=>
-	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
-	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
-)
-
-;CB BEGIN 1230
-(defrule
-	(goal gl-owner-worker-hold NO)
-	(current-age >= early-antiquity-age)
-	(goal wait-techup-requirements NO)
-	(can-afford-building archery-range)
-	(building-type-count-total barracks > 0)
-	(building-type-count-total archery-range g:< desired-number-ranges)
-	(or
-		(current-age < middle-antiquity-age)
-		(or
-			(or (building-type-count town-center >= 2)
-			    (and (building-type-count town-center >= 1)
-			         (building-type-count-total archery-range < 1)))
-			(or
-				(goal gl-home-defense-state YES)
-				(goal rush-rushing YES)
-			)
-		)
-	)
-	(up-can-build 0 c: archery-range)
-=>
 	(set-goal gl-cbf-cont 1230)
 )
 (defrule
@@ -7004,7 +6864,7 @@
 (defrule
 	(goal gl-cbf-cont 1230)
 =>
-	(up-build place-normal 0 c: archery-range)
+	(up-build place-normal 0 c: barracks)
 )
 (defrule
 	(goal gl-cbf-cont 1230)
@@ -7027,27 +6887,20 @@
 )
 ;CB END 1230
 
+;A player whose last army and Barracks were destroyed has no responder with
+;which to raise gl-home-defense-state. Rebuild the foundational producer even
+;while age-up escrow is active; this rule is threat-gated and cannot restore the
+;old opening Barracks regression.
 ;CB BEGIN 1231
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(current-age >= early-antiquity-age)
-	(goal wait-techup-requirements NO)
-	(can-afford-building stable)
-	(building-type-count-total barracks > 0)
-	(building-type-count-total stable g:< desired-number-stables)
-	(or
-		(current-age < middle-antiquity-age)
-		(or
-			(or (building-type-count town-center >= 2)
-			    (and (building-type-count town-center >= 1)
-			         (building-type-count-total stable < 1)))
-			(or
-				(goal gl-home-defense-state YES)
-				(goal rush-rushing YES)
-			)
-		)
-	)
-	(up-can-build 0 c: stable)
+	(goal gl-local-threat-active YES)
+	(building-type-count-total barracks < 1)
+	(up-pending-objects c: barracks <= 0)
+	(not (up-pending-placement c: barracks))
+	(can-afford-building barracks)
+	(up-can-build 0 c: barracks)
 =>
 	(set-goal gl-cbf-cont 1231)
 )
@@ -7068,7 +6921,7 @@
 (defrule
 	(goal gl-cbf-cont 1231)
 =>
-	(up-build place-normal 0 c: stable)
+	(up-build place-normal 0 c: barracks)
 )
 (defrule
 	(goal gl-cbf-cont 1231)
@@ -7087,25 +6940,50 @@
 (defrule
 	(goal gl-cbf-cont 1231)
 =>
+	(chat-local-to-self "Emergency Barracks requested after local attack")
+)
+(defrule
+	(goal gl-cbf-cont 1231)
+=>
 	(set-goal gl-cbf-cont 0)
 )
 ;CB END 1231
 
+(defrule
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
+	(goal gl-local-threat-active YES)
+	(building-type-count-total barracks < 1)
+	(up-pending-objects c: barracks <= 0)
+	(not (up-pending-placement c: barracks))
+	(can-afford-building barracks)
+	(not (up-can-build 0 c: barracks))
+=>
+	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
+	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
+)
+
 ;CB BEGIN 1232
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= middle-antiquity-age)
+	(current-age >= early-antiquity-age)
 	(goal wait-techup-requirements NO)
-	(can-afford-building siege-workshop)
-	(building-type-count-total siege-workshop g:< desired-number-workshops)
+	(can-afford-building archery-range)
+	(building-type-count-total barracks > 0)
+	(building-type-count-total archery-range g:< desired-number-ranges)
 	(or
-		(building-type-count town-center >= 2)
+		(current-age < middle-antiquity-age)
 		(or
-			(goal gl-home-defense-state YES)
-			(goal rush-rushing YES)
+			(or (building-type-count town-center >= 2)
+			    (and (building-type-count town-center >= 1)
+			         (building-type-count-total archery-range < 1)))
+			(or
+				(goal gl-home-defense-state YES)
+				(goal rush-rushing YES)
+			)
 		)
 	)
-	(up-can-build 0 c: siege-workshop)
+	(up-can-build 0 c: archery-range)
 =>
 	(set-goal gl-cbf-cont 1232)
 )
@@ -7126,7 +7004,7 @@
 (defrule
 	(goal gl-cbf-cont 1232)
 =>
-	(up-build place-normal 0 c: siege-workshop)
+	(up-build place-normal 0 c: archery-range)
 )
 (defrule
 	(goal gl-cbf-cont 1232)
@@ -7153,16 +7031,23 @@
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(current-age >= early-antiquity-age)
-	(can-afford-building blacksmith)
-	(building-type-count-total blacksmith g:< desired-number-blacksmiths)
+	(goal wait-techup-requirements NO)
+	(can-afford-building stable)
+	(building-type-count-total barracks > 0)
+	(building-type-count-total stable g:< desired-number-stables)
 	(or
 		(current-age < middle-antiquity-age)
 		(or
-			(building-type-count town-center >= 2)
-			(goal gl-home-defense-state YES)
+			(or (building-type-count town-center >= 2)
+			    (and (building-type-count town-center >= 1)
+			         (building-type-count-total stable < 1)))
+			(or
+				(goal gl-home-defense-state YES)
+				(goal rush-rushing YES)
+			)
 		)
 	)
-	(up-can-build 0 c: blacksmith)
+	(up-can-build 0 c: stable)
 =>
 	(set-goal gl-cbf-cont 1233)
 )
@@ -7183,7 +7068,7 @@
 (defrule
 	(goal gl-cbf-cont 1233)
 =>
-	(up-build place-normal 0 c: blacksmith)
+	(up-build place-normal 0 c: stable)
 )
 (defrule
 	(goal gl-cbf-cont 1233)
@@ -7206,43 +7091,21 @@
 )
 ;CB END 1233
 
-(defrule
-	(current-age >= early-antiquity-age)
-	(building-type-count-total market g:< desired-number-markets)
-	(up-pending-objects c: market <= 0)
-	(up-pending-placement c: market)
-	(up-timer-status t-market-placement == timer-triggered)
-=>
-	;A managed placement can remain pending without ever creating a foundation.
-	;Release it and count the expired attempt so the fallback remains reachable.
-	(up-reset-placement c: market)
-	(up-modify-goal gl-market-placement-attempts c:+ 1)
-)
-
 ;CB BEGIN 1234
 (defrule
 	(goal gl-owner-worker-hold NO)
+	(current-age >= middle-antiquity-age)
+	(goal wait-techup-requirements NO)
+	(can-afford-building siege-workshop)
+	(building-type-count-total siege-workshop g:< desired-number-workshops)
 	(or
-		(current-age == early-antiquity-age)
-		(and
-			(current-age == middle-antiquity-age)
-			(or
-				(building-type-count town-center >= 2)
-				(or
-					(goal gl-home-defense-state YES)
-					(goal rush-rushing YES)
-				)
-			)
+		(building-type-count town-center >= 2)
+		(or
+			(goal gl-home-defense-state YES)
+			(goal rush-rushing YES)
 		)
 	)
-	(goal gl-migration-placement-lock NO)
-	(can-afford-building market)
-	(building-type-count-total market == 0)
-	(up-pending-objects c: market <= 0)
-	(not (up-pending-placement c: market))
-	(up-timer-status t-market-placement != timer-running)
-	(up-compare-goal gl-market-placement-attempts c:< 3)
-	(up-can-build 0 c: market)
+	(up-can-build 0 c: siege-workshop)
 =>
 	(set-goal gl-cbf-cont 1234)
 )
@@ -7263,7 +7126,7 @@
 (defrule
 	(goal gl-cbf-cont 1234)
 =>
-	(up-build place-normal 0 c: market)
+	(up-build place-normal 0 c: siege-workshop)
 )
 (defrule
 	(goal gl-cbf-cont 1234)
@@ -7282,46 +7145,26 @@
 (defrule
 	(goal gl-cbf-cont 1234)
 =>
-	(up-modify-goal gl-market-placement-attempts c:+ 1)
-	(up-set-timer c: t-market-placement c: 30)
-)
-(defrule
-	(goal gl-cbf-cont 1234)
-=>
 	(set-goal gl-cbf-cont 0)
 )
 ;CB END 1234
 
-;After three normal failures, clear the managed placement and retry from a
-;positive town radius. This cannot issue thousands of identical commands.
 ;CB BEGIN 1235
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(current-age >= early-antiquity-age)
-	(goal gl-migration-placement-lock NO)
+	(can-afford-building blacksmith)
+	(building-type-count-total blacksmith g:< desired-number-blacksmiths)
 	(or
-		(current-age != middle-antiquity-age)
+		(current-age < middle-antiquity-age)
 		(or
 			(building-type-count town-center >= 2)
-			(or
-				(goal gl-home-defense-state YES)
-				(goal rush-rushing YES)
-			)
+			(goal gl-home-defense-state YES)
 		)
 	)
-	(building-type-count-total market g:< desired-number-markets)
-	(up-pending-objects c: market <= 0)
-	(up-timer-status t-market-placement != timer-running)
-	(up-compare-goal gl-market-placement-attempts c:>= 3)
-	(up-can-build 0 c: market)
+	(up-can-build 0 c: blacksmith)
 =>
 	(set-goal gl-cbf-cont 1235)
-)
-(defrule
-	(goal gl-cbf-cont 1235)
-=>
-	(up-reset-placement c: market)
-	(up-set-placement-data my-player-number -1 c: 12)
 )
 (defrule
 	(goal gl-cbf-cont 1235)
@@ -7340,7 +7183,7 @@
 (defrule
 	(goal gl-cbf-cont 1235)
 =>
-	(up-build place-control 0 c: market)
+	(up-build place-normal 0 c: blacksmith)
 )
 (defrule
 	(goal gl-cbf-cont 1235)
@@ -7359,30 +7202,42 @@
 (defrule
 	(goal gl-cbf-cont 1235)
 =>
-	(set-goal gl-market-placement-attempts 0)
-	(up-set-timer c: t-market-placement c: 180)
-)
-(defrule
-	(goal gl-cbf-cont 1235)
-=>
 	(set-goal gl-cbf-cont 0)
 )
 ;CB END 1235
 
 (defrule
-	(building-type-count-total market g:>= desired-number-markets)
-	(up-compare-goal gl-market-placement-attempts c:> 0)
+	(current-age >= early-antiquity-age)
+	(building-type-count-total market g:< desired-number-markets)
+	(up-pending-objects c: market <= 0)
+	(up-pending-placement c: market)
+	(up-timer-status t-market-placement == timer-triggered)
 =>
-	(set-goal gl-market-placement-attempts 0)
+	;A managed placement can remain pending without ever creating a foundation.
+	;Release it and count the expired attempt so the fallback remains reachable.
+	(up-reset-placement c: market)
+	(up-modify-goal gl-market-placement-attempts c:+ 1)
 )
 
 ;CB BEGIN 1236
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age == imperial-age)
+	(or
+		(current-age == early-antiquity-age)
+		(and
+			(current-age == middle-antiquity-age)
+			(or
+				(building-type-count town-center >= 2)
+				(or
+					(goal gl-home-defense-state YES)
+					(goal rush-rushing YES)
+				)
+			)
+		)
+	)
 	(goal gl-migration-placement-lock NO)
 	(can-afford-building market)
-	(building-type-count-total market g:< desired-number-markets)
+	(building-type-count-total market == 0)
 	(up-pending-objects c: market <= 0)
 	(not (up-pending-placement c: market))
 	(up-timer-status t-market-placement != timer-running)
@@ -7437,26 +7292,36 @@
 )
 ;CB END 1236
 
+;After three normal failures, clear the managed placement and retry from a
+;positive town radius. This cannot issue thousands of identical commands.
 ;CB BEGIN 1237
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(can-afford-building dock)
-	(goal wait-techup-requirements NO)
+	(current-age >= early-antiquity-age)
+	(goal gl-migration-placement-lock NO)
 	(or
-		(goal map-type LAKE)
+		(current-age != middle-antiquity-age)
 		(or
-			(goal map-type RIVERS)
+			(building-type-count town-center >= 2)
 			(or
-				(goal map-type ISLANDS)
-				(goal map-type TEAM-ISLANDS)
+				(goal gl-home-defense-state YES)
+				(goal rush-rushing YES)
 			)
 		)
 	)
-	(building-type-count-total dock g:< desired-number-docks)
-	(building-type-count-total lumber-camp >= 1)
-	(up-can-build 0 c: dock)
+	(building-type-count-total market g:< desired-number-markets)
+	(up-pending-objects c: market <= 0)
+	(up-timer-status t-market-placement != timer-running)
+	(up-compare-goal gl-market-placement-attempts c:>= 3)
+	(up-can-build 0 c: market)
 =>
 	(set-goal gl-cbf-cont 1237)
+)
+(defrule
+	(goal gl-cbf-cont 1237)
+=>
+	(up-reset-placement c: market)
+	(up-set-placement-data my-player-number -1 c: 12)
 )
 (defrule
 	(goal gl-cbf-cont 1237)
@@ -7475,7 +7340,7 @@
 (defrule
 	(goal gl-cbf-cont 1237)
 =>
-	(up-build place-normal 0 c: dock)
+	(up-build place-control 0 c: market)
 )
 (defrule
 	(goal gl-cbf-cont 1237)
@@ -7494,19 +7359,35 @@
 (defrule
 	(goal gl-cbf-cont 1237)
 =>
+	(set-goal gl-market-placement-attempts 0)
+	(up-set-timer c: t-market-placement c: 180)
+)
+(defrule
+	(goal gl-cbf-cont 1237)
+=>
 	(set-goal gl-cbf-cont 0)
 )
 ;CB END 1237
 
+(defrule
+	(building-type-count-total market g:>= desired-number-markets)
+	(up-compare-goal gl-market-placement-attempts c:> 0)
+=>
+	(set-goal gl-market-placement-attempts 0)
+)
+
 ;CB BEGIN 1238
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= middle-antiquity-age)
-	(can-afford-building university)
-	(building-type-count-total university g:< desired-number-universities)
-	(up-pending-objects c: university <= 0)
-	(not (up-pending-placement c: university))
-	(up-can-build 0 c: university)
+	(current-age == imperial-age)
+	(goal gl-migration-placement-lock NO)
+	(can-afford-building market)
+	(building-type-count-total market g:< desired-number-markets)
+	(up-pending-objects c: market <= 0)
+	(not (up-pending-placement c: market))
+	(up-timer-status t-market-placement != timer-running)
+	(up-compare-goal gl-market-placement-attempts c:< 3)
+	(up-can-build 0 c: market)
 =>
 	(set-goal gl-cbf-cont 1238)
 )
@@ -7527,7 +7408,7 @@
 (defrule
 	(goal gl-cbf-cont 1238)
 =>
-	(up-build place-normal 0 c: university)
+	(up-build place-normal 0 c: market)
 )
 (defrule
 	(goal gl-cbf-cont 1238)
@@ -7546,6 +7427,12 @@
 (defrule
 	(goal gl-cbf-cont 1238)
 =>
+	(up-modify-goal gl-market-placement-attempts c:+ 1)
+	(up-set-timer c: t-market-placement c: 30)
+)
+(defrule
+	(goal gl-cbf-cont 1238)
+=>
 	(set-goal gl-cbf-cont 0)
 )
 ;CB END 1238
@@ -7553,19 +7440,21 @@
 ;CB BEGIN 1239
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= middle-antiquity-age)
+	(can-afford-building dock)
+	(goal wait-techup-requirements NO)
 	(or
-		(building-type-count-total monastery < 1)
+		(goal map-type LAKE)
 		(or
-			(building-type-count town-center >= 2)
-			(game-time >= 990)
+			(goal map-type RIVERS)
+			(or
+				(goal map-type ISLANDS)
+				(goal map-type TEAM-ISLANDS)
+			)
 		)
 	)
-	(can-afford-building monastery)
-	(building-type-count-total monastery g:< desired-number-monasteries)
-	(up-pending-objects c: monastery <= 0)
-	(not (up-pending-placement c: monastery))
-	(up-can-build 0 c: monastery)
+	(building-type-count-total dock g:< desired-number-docks)
+	(building-type-count-total lumber-camp >= 1)
+	(up-can-build 0 c: dock)
 =>
 	(set-goal gl-cbf-cont 1239)
 )
@@ -7586,7 +7475,7 @@
 (defrule
 	(goal gl-cbf-cont 1239)
 =>
-	(up-build place-normal 0 c: monastery)
+	(up-build place-normal 0 c: dock)
 )
 (defrule
 	(goal gl-cbf-cont 1239)
@@ -7613,17 +7502,11 @@
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(current-age >= middle-antiquity-age)
-		(or (building-type-count town-center >= 2)
-	    (and (building-type-count town-center >= 1)
-	         (building-type-count-total castle < 1)))
-	(goal gl-migration-placement-lock NO)
-	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
-	(up-compare-goal gl-game-time g:>= gl-castle-request-next)
-	(can-afford-building castle)
-	(building-type-count-total castle g:< desired-number-castles)
-	(up-pending-objects c: castle <= 0)
-	(not (up-pending-placement c: castle))
-	(up-can-build 0 c: castle)
+	(can-afford-building university)
+	(building-type-count-total university g:< desired-number-universities)
+	(up-pending-objects c: university <= 0)
+	(not (up-pending-placement c: university))
+	(up-can-build 0 c: university)
 =>
 	(set-goal gl-cbf-cont 1240)
 )
@@ -7644,7 +7527,7 @@
 (defrule
 	(goal gl-cbf-cont 1240)
 =>
-	(up-build place-normal 0 c: castle)
+	(up-build place-normal 0 c: university)
 )
 (defrule
 	(goal gl-cbf-cont 1240)
@@ -7663,12 +7546,6 @@
 (defrule
 	(goal gl-cbf-cont 1240)
 =>
-	(up-modify-goal gl-castle-request-next g:= gl-game-time)
-	(up-modify-goal gl-castle-request-next c:+ 30)
-)
-(defrule
-	(goal gl-cbf-cont 1240)
-=>
 	(set-goal gl-cbf-cont 0)
 )
 ;CB END 1240
@@ -7677,10 +7554,18 @@
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(current-age >= middle-antiquity-age)
-	(building-type-count town-center >= 2)
-	(can-afford-building outpost)
-	(building-type-count-total outpost g:< desired-number-outposts)
-	(up-can-build 0 c: outpost)
+	(or
+		(building-type-count-total monastery < 1)
+		(or
+			(building-type-count town-center >= 2)
+			(game-time >= 990)
+		)
+	)
+	(can-afford-building monastery)
+	(building-type-count-total monastery g:< desired-number-monasteries)
+	(up-pending-objects c: monastery <= 0)
+	(not (up-pending-placement c: monastery))
+	(up-can-build 0 c: monastery)
 =>
 	(set-goal gl-cbf-cont 1241)
 )
@@ -7701,7 +7586,7 @@
 (defrule
 	(goal gl-cbf-cont 1241)
 =>
-	(up-build place-normal 0 c: outpost)
+	(up-build place-normal 0 c: monastery)
 )
 (defrule
 	(goal gl-cbf-cont 1241)
@@ -7727,30 +7612,20 @@
 ;CB BEGIN 1242
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= early-antiquity-age)
-	(or
-		(current-age < middle-antiquity-age)
-		(or
-			(building-type-count town-center >= 2)
-			(goal gl-home-defense-state YES)
-		)
-	)
-	(can-afford-building watch-tower)
-	(building-type-count-total watch-tower g:< desired-number-watchtowers)
-	(up-can-build 0 c: watch-tower)
-	(up-pending-objects c: watch-tower < 1)
+	(current-age >= middle-antiquity-age)
+		(or (building-type-count town-center >= 2)
+	    (and (building-type-count town-center >= 1)
+	         (building-type-count-total castle < 1)))
+	(goal gl-migration-placement-lock NO)
+	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
+	(up-compare-goal gl-game-time g:>= gl-castle-request-next)
+	(can-afford-building castle)
+	(building-type-count-total castle g:< desired-number-castles)
+	(up-pending-objects c: castle <= 0)
+	(not (up-pending-placement c: castle))
+	(up-can-build 0 c: castle)
 =>
 	(set-goal gl-cbf-cont 1242)
-)
-(defrule
-	(goal gl-cbf-cont 1242)
-=>
-	(up-get-fact building-type-count watch-tower gl-number-watchtowers)
-	(up-modify-goal gl-watchtower-placement c:= 4)
-	(up-modify-goal gl-watchtower-placement g:* gl-number-watchtowers)
-	(up-modify-goal gl-watchtower-placement c:+ 4)
-	(up-modify-goal gl-watchtower-placement s:min sn-maximum-town-size)
-	(up-set-placement-data my-player-number -1 g: gl-watchtower-placement)
 )
 (defrule
 	(goal gl-cbf-cont 1242)
@@ -7769,7 +7644,7 @@
 (defrule
 	(goal gl-cbf-cont 1242)
 =>
-	(up-build place-control 0 c: watch-tower)
+	(up-build place-normal 0 c: castle)
 )
 (defrule
 	(goal gl-cbf-cont 1242)
@@ -7788,9 +7663,134 @@
 (defrule
 	(goal gl-cbf-cont 1242)
 =>
+	(up-modify-goal gl-castle-request-next g:= gl-game-time)
+	(up-modify-goal gl-castle-request-next c:+ 30)
+)
+(defrule
+	(goal gl-cbf-cont 1242)
+=>
 	(set-goal gl-cbf-cont 0)
 )
 ;CB END 1242
+
+;CB BEGIN 1243
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(current-age >= middle-antiquity-age)
+	(building-type-count town-center >= 2)
+	(can-afford-building outpost)
+	(building-type-count-total outpost g:< desired-number-outposts)
+	(up-can-build 0 c: outpost)
+=>
+	(set-goal gl-cbf-cont 1243)
+)
+(defrule
+	(goal gl-cbf-cont 1243)
+=>
+	(set-goal gl-cbf-site 1243)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1243)
+=>
+	(up-build place-normal 0 c: outpost)
+)
+(defrule
+	(goal gl-cbf-cont 1243)
+=>
+	(set-goal gl-cbf-site 1243)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1243)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1243
+
+;CB BEGIN 1244
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(current-age >= early-antiquity-age)
+	(or
+		(current-age < middle-antiquity-age)
+		(or
+			(building-type-count town-center >= 2)
+			(goal gl-home-defense-state YES)
+		)
+	)
+	(can-afford-building watch-tower)
+	(building-type-count-total watch-tower g:< desired-number-watchtowers)
+	(up-can-build 0 c: watch-tower)
+	(up-pending-objects c: watch-tower < 1)
+=>
+	(set-goal gl-cbf-cont 1244)
+)
+(defrule
+	(goal gl-cbf-cont 1244)
+=>
+	(up-get-fact building-type-count watch-tower gl-number-watchtowers)
+	(up-modify-goal gl-watchtower-placement c:= 4)
+	(up-modify-goal gl-watchtower-placement g:* gl-number-watchtowers)
+	(up-modify-goal gl-watchtower-placement c:+ 4)
+	(up-modify-goal gl-watchtower-placement s:min sn-maximum-town-size)
+	(up-set-placement-data my-player-number -1 g: gl-watchtower-placement)
+)
+(defrule
+	(goal gl-cbf-cont 1244)
+=>
+	(set-goal gl-cbf-site 1244)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1244)
+=>
+	(up-build place-control 0 c: watch-tower)
+)
+(defrule
+	(goal gl-cbf-cont 1244)
+=>
+	(set-goal gl-cbf-site 1244)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1244)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1244
 
 ;Wall posture starts with the actual exposed flank role. Pocket detection was
 ;formerly inverted in rawai-map, which gave this doctrine to the wrong players.
@@ -7971,7 +7971,7 @@
 	(chat-local-to-self "Wall owner latched palisade perimeter")
 )
 
-;CB BEGIN 1243
+;CB BEGIN 1245
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(current-age >= early-antiquity-age)
@@ -7986,17 +7986,17 @@
 	(wall-completed-percentage 2 < 100)
 	(can-build-wall-with-escrow 2 stone-wall-line)
 =>
-	(set-goal gl-cbf-cont 1243)
+	(set-goal gl-cbf-cont 1245)
 )
 (defrule
-	(goal gl-cbf-cont 1243)
+	(goal gl-cbf-cont 1245)
 =>
 	(release-escrow stone)
 )
 (defrule
-	(goal gl-cbf-cont 1243)
+	(goal gl-cbf-cont 1245)
 =>
-	(set-goal gl-cbf-site 1243)
+	(set-goal gl-cbf-site 1245)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -8008,14 +8008,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1243)
+	(goal gl-cbf-cont 1245)
 =>
 	(build-wall 2 stone-wall-line)
 )
 (defrule
-	(goal gl-cbf-cont 1243)
+	(goal gl-cbf-cont 1245)
 =>
-	(set-goal gl-cbf-site 1243)
+	(set-goal gl-cbf-site 1245)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -8027,7 +8027,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1243)
+	(goal gl-cbf-cont 1245)
 =>
 	(up-modify-goal gl-wall-retries c:+ 1)
 	(up-modify-goal gl-wall-next g:= gl-game-time)
@@ -8035,13 +8035,13 @@
 	(chat-local-to-self "Wall owner issued stone line")
 )
 (defrule
-	(goal gl-cbf-cont 1243)
+	(goal gl-cbf-cont 1245)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1243
+;CB END 1245
 
-;CB BEGIN 1244
+;CB BEGIN 1246
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(current-age >= early-antiquity-age)
@@ -8056,17 +8056,17 @@
 	(wall-completed-percentage 2 < 100)
 	(can-build-wall-with-escrow 2 palisade-wall)
 =>
-	(set-goal gl-cbf-cont 1244)
+	(set-goal gl-cbf-cont 1246)
 )
 (defrule
-	(goal gl-cbf-cont 1244)
+	(goal gl-cbf-cont 1246)
 =>
 	(release-escrow wood)
 )
 (defrule
-	(goal gl-cbf-cont 1244)
+	(goal gl-cbf-cont 1246)
 =>
-	(set-goal gl-cbf-site 1244)
+	(set-goal gl-cbf-site 1246)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -8078,14 +8078,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1244)
+	(goal gl-cbf-cont 1246)
 =>
 	(build-wall 2 palisade-wall)
 )
 (defrule
-	(goal gl-cbf-cont 1244)
+	(goal gl-cbf-cont 1246)
 =>
-	(set-goal gl-cbf-site 1244)
+	(set-goal gl-cbf-site 1246)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -8097,7 +8097,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1244)
+	(goal gl-cbf-cont 1246)
 =>
 	(up-modify-goal gl-wall-retries c:+ 1)
 	(up-modify-goal gl-wall-next g:= gl-game-time)
@@ -8105,11 +8105,11 @@
 	(chat-local-to-self "Wall owner issued palisade line")
 )
 (defrule
-	(goal gl-cbf-cont 1244)
+	(goal gl-cbf-cont 1246)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1244
+;CB END 1246
 
 (defrule
 	(goal gl-wall-needed YES)
@@ -8167,157 +8167,16 @@
 ;perimeter-specific; a scenario or unrelated gate elsewhere must not suppress
 ;these requests. Gate timing is independent of the wall command/backoff
 ;deadline.
-;CB BEGIN 1245
-(defrule
-	(goal gl-owner-worker-hold NO)
-	(goal gl-wall-needed YES)
-	(goal gl-wall-enabled YES)
-	(goal gl-wall-material WALL-MATERIAL-STONE)
-	(goal gl-wall-gates-issued 0)
-	(building-type-count town-center >= 1)
-	(up-object-type-count-total c: villager-class >= 20)
-	(goal gl-home-defense-state NO)
-	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
-	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
-	(can-build-gate-with-escrow 2)
-=>
-	(set-goal gl-cbf-cont 1245)
-)
-(defrule
-	(goal gl-cbf-cont 1245)
-=>
-	(release-escrow stone)
-)
-(defrule
-	(goal gl-cbf-cont 1245)
-=>
-	(set-goal gl-cbf-site 1245)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1245)
-=>
-	(build-gate 2)
-)
-(defrule
-	(goal gl-cbf-cont 1245)
-=>
-	(set-goal gl-cbf-site 1245)
-	(set-goal gl-cbf-kind 2)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1245)
-=>
-	(set-goal gl-wall-gates-issued 1)
-	(set-goal gl-wall-gate-attempts 0)
-	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
-	(up-modify-goal gl-wall-gate-next c:+ 60)
-	(chat-local-to-self "Wall owner issued stone gate 1")
-)
-(defrule
-	(goal gl-cbf-cont 1245)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1245
-
-;CB BEGIN 1246
-(defrule
-	(goal gl-owner-worker-hold NO)
-	(goal gl-wall-needed YES)
-	(goal gl-wall-enabled YES)
-	(goal gl-wall-material WALL-MATERIAL-PALISADE)
-	(goal gl-wall-gates-issued 0)
-	(building-type-count town-center >= 1)
-	(up-object-type-count-total c: villager-class >= 20)
-	(goal gl-home-defense-state NO)
-	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
-	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
-	(can-build-gate-with-escrow 2)
-=>
-	(set-goal gl-cbf-cont 1246)
-)
-(defrule
-	(goal gl-cbf-cont 1246)
-=>
-	(release-escrow wood)
-)
-(defrule
-	(goal gl-cbf-cont 1246)
-=>
-	(set-goal gl-cbf-site 1246)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1246)
-=>
-	(build-gate 2)
-)
-(defrule
-	(goal gl-cbf-cont 1246)
-=>
-	(set-goal gl-cbf-site 1246)
-	(set-goal gl-cbf-kind 2)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1246)
-=>
-	(set-goal gl-wall-gates-issued 1)
-	(set-goal gl-wall-gate-attempts 0)
-	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
-	(up-modify-goal gl-wall-gate-next c:+ 60)
-	(chat-local-to-self "Wall owner issued palisade gate 1")
-)
-(defrule
-	(goal gl-cbf-cont 1246)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1246
-
 ;CB BEGIN 1247
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-wall-needed YES)
 	(goal gl-wall-enabled YES)
 	(goal gl-wall-material WALL-MATERIAL-STONE)
-	(goal gl-wall-gates-issued 1)
+	(goal gl-wall-gates-issued 0)
 	(building-type-count town-center >= 1)
 	(up-object-type-count-total c: villager-class >= 20)
 	(goal gl-home-defense-state NO)
-	(wall-completed-percentage 2 >= 40)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
 	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(can-build-gate-with-escrow 2)
@@ -8365,11 +8224,11 @@
 (defrule
 	(goal gl-cbf-cont 1247)
 =>
-	(set-goal gl-wall-gates-issued 2)
+	(set-goal gl-wall-gates-issued 1)
 	(set-goal gl-wall-gate-attempts 0)
 	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
 	(up-modify-goal gl-wall-gate-next c:+ 60)
-	(chat-local-to-self "Wall owner issued stone gate 2")
+	(chat-local-to-self "Wall owner issued stone gate 1")
 )
 (defrule
 	(goal gl-cbf-cont 1247)
@@ -8384,11 +8243,10 @@
 	(goal gl-wall-needed YES)
 	(goal gl-wall-enabled YES)
 	(goal gl-wall-material WALL-MATERIAL-PALISADE)
-	(goal gl-wall-gates-issued 1)
+	(goal gl-wall-gates-issued 0)
 	(building-type-count town-center >= 1)
 	(up-object-type-count-total c: villager-class >= 20)
 	(goal gl-home-defense-state NO)
-	(wall-completed-percentage 2 >= 40)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
 	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(can-build-gate-with-escrow 2)
@@ -8436,11 +8294,11 @@
 (defrule
 	(goal gl-cbf-cont 1248)
 =>
-	(set-goal gl-wall-gates-issued 2)
+	(set-goal gl-wall-gates-issued 1)
 	(set-goal gl-wall-gate-attempts 0)
 	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
 	(up-modify-goal gl-wall-gate-next c:+ 60)
-	(chat-local-to-self "Wall owner issued palisade gate 2")
+	(chat-local-to-self "Wall owner issued palisade gate 1")
 )
 (defrule
 	(goal gl-cbf-cont 1248)
@@ -8455,11 +8313,11 @@
 	(goal gl-wall-needed YES)
 	(goal gl-wall-enabled YES)
 	(goal gl-wall-material WALL-MATERIAL-STONE)
-	(goal gl-wall-gates-issued 2)
+	(goal gl-wall-gates-issued 1)
 	(building-type-count town-center >= 1)
 	(up-object-type-count-total c: villager-class >= 20)
 	(goal gl-home-defense-state NO)
-	(wall-completed-percentage 2 >= 75)
+	(wall-completed-percentage 2 >= 40)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
 	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(can-build-gate-with-escrow 2)
@@ -8507,11 +8365,11 @@
 (defrule
 	(goal gl-cbf-cont 1249)
 =>
-	(set-goal gl-wall-gates-issued 3)
+	(set-goal gl-wall-gates-issued 2)
 	(set-goal gl-wall-gate-attempts 0)
 	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
 	(up-modify-goal gl-wall-gate-next c:+ 60)
-	(chat-local-to-self "Wall owner issued stone gate 3")
+	(chat-local-to-self "Wall owner issued stone gate 2")
 )
 (defrule
 	(goal gl-cbf-cont 1249)
@@ -8526,11 +8384,11 @@
 	(goal gl-wall-needed YES)
 	(goal gl-wall-enabled YES)
 	(goal gl-wall-material WALL-MATERIAL-PALISADE)
-	(goal gl-wall-gates-issued 2)
+	(goal gl-wall-gates-issued 1)
 	(building-type-count town-center >= 1)
 	(up-object-type-count-total c: villager-class >= 20)
 	(goal gl-home-defense-state NO)
-	(wall-completed-percentage 2 >= 75)
+	(wall-completed-percentage 2 >= 40)
 	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
 	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
 	(can-build-gate-with-escrow 2)
@@ -8578,11 +8436,11 @@
 (defrule
 	(goal gl-cbf-cont 1250)
 =>
-	(set-goal gl-wall-gates-issued 3)
+	(set-goal gl-wall-gates-issued 2)
 	(set-goal gl-wall-gate-attempts 0)
 	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
 	(up-modify-goal gl-wall-gate-next c:+ 60)
-	(chat-local-to-self "Wall owner issued palisade gate 3")
+	(chat-local-to-self "Wall owner issued palisade gate 2")
 )
 (defrule
 	(goal gl-cbf-cont 1250)
@@ -8590,6 +8448,148 @@
 	(set-goal gl-cbf-cont 0)
 )
 ;CB END 1250
+
+;CB BEGIN 1251
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-wall-needed YES)
+	(goal gl-wall-enabled YES)
+	(goal gl-wall-material WALL-MATERIAL-STONE)
+	(goal gl-wall-gates-issued 2)
+	(building-type-count town-center >= 1)
+	(up-object-type-count-total c: villager-class >= 20)
+	(goal gl-home-defense-state NO)
+	(wall-completed-percentage 2 >= 75)
+	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
+	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
+	(can-build-gate-with-escrow 2)
+=>
+	(set-goal gl-cbf-cont 1251)
+)
+(defrule
+	(goal gl-cbf-cont 1251)
+=>
+	(release-escrow stone)
+)
+(defrule
+	(goal gl-cbf-cont 1251)
+=>
+	(set-goal gl-cbf-site 1251)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1251)
+=>
+	(build-gate 2)
+)
+(defrule
+	(goal gl-cbf-cont 1251)
+=>
+	(set-goal gl-cbf-site 1251)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1251)
+=>
+	(set-goal gl-wall-gates-issued 3)
+	(set-goal gl-wall-gate-attempts 0)
+	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
+	(up-modify-goal gl-wall-gate-next c:+ 60)
+	(chat-local-to-self "Wall owner issued stone gate 3")
+)
+(defrule
+	(goal gl-cbf-cont 1251)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1251
+
+;CB BEGIN 1252
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal gl-wall-needed YES)
+	(goal gl-wall-enabled YES)
+	(goal gl-wall-material WALL-MATERIAL-PALISADE)
+	(goal gl-wall-gates-issued 2)
+	(building-type-count town-center >= 1)
+	(up-object-type-count-total c: villager-class >= 20)
+	(goal gl-home-defense-state NO)
+	(wall-completed-percentage 2 >= 75)
+	(up-compare-goal gl-game-time g:>= gl-wall-gate-next)
+	(up-compare-goal gl-game-time g:>= gl-wall-danger-until)
+	(can-build-gate-with-escrow 2)
+=>
+	(set-goal gl-cbf-cont 1252)
+)
+(defrule
+	(goal gl-cbf-cont 1252)
+=>
+	(release-escrow wood)
+)
+(defrule
+	(goal gl-cbf-cont 1252)
+=>
+	(set-goal gl-cbf-site 1252)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1252)
+=>
+	(build-gate 2)
+)
+(defrule
+	(goal gl-cbf-cont 1252)
+=>
+	(set-goal gl-cbf-site 1252)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1252)
+=>
+	(set-goal gl-wall-gates-issued 3)
+	(set-goal gl-wall-gate-attempts 0)
+	(up-modify-goal gl-wall-gate-next g:= gl-game-time)
+	(up-modify-goal gl-wall-gate-next c:+ 60)
+	(chat-local-to-self "Wall owner issued palisade gate 3")
+)
+(defrule
+	(goal gl-cbf-cont 1252)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1252
 
 ;A partially built line may not yet contain a replaceable gate span. Poll that
 ;engine fact on a separate bounded cadence without consuming a gate request.
@@ -8648,7 +8648,7 @@
 
 ;farm fallback
 
-;CB BEGIN 1251
+;CB BEGIN 1253
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-farm-placement-suspended NO)
@@ -8662,17 +8662,17 @@
 		(building-type-count farm < gl-farm-build-target)
 	(up-can-build 0 c: farm)
 =>
-	(set-goal gl-cbf-cont 1251)
+	(set-goal gl-cbf-cont 1253)
 )
 (defrule
-	(goal gl-cbf-cont 1251)
+	(goal gl-cbf-cont 1253)
 =>
 	(chat-local-to-self "fallback farm placement")
 )
 (defrule
-	(goal gl-cbf-cont 1251)
+	(goal gl-cbf-cont 1253)
 =>
-	(set-goal gl-cbf-site 1251)
+	(set-goal gl-cbf-site 1253)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -8684,14 +8684,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1251)
+	(goal gl-cbf-cont 1253)
 =>
 	(up-build place-normal 0 c: farm)
 )
 (defrule
-	(goal gl-cbf-cont 1251)
+	(goal gl-cbf-cont 1253)
 =>
-	(set-goal gl-cbf-site 1251)
+	(set-goal gl-cbf-site 1253)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -8703,10 +8703,10 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1251)
+	(goal gl-cbf-cont 1253)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1251
+;CB END 1253
 
 

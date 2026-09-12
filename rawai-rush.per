@@ -276,7 +276,7 @@
 )
 
 ;Production buildings required by the selected opening.
-;CB BEGIN 1811
+;CB BEGIN 1813
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(or
@@ -303,109 +303,6 @@
 	(up-pending-objects c: mill <= 0)
 	(up-can-build gl-buildingescrow-state c: barracks)
 =>
-	(set-goal gl-cbf-cont 1811)
-)
-(defrule
-	(goal gl-cbf-cont 1811)
-=>
-	(set-goal gl-cbf-site 1811)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1811)
-=>
-	(up-build place-normal gl-buildingescrow-state c: barracks)
-)
-(defrule
-	(goal gl-cbf-cont 1811)
-=>
-	(set-goal gl-cbf-site 1811)
-	(set-goal gl-cbf-kind 2)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1811)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1811
-
-;CB BEGIN 1812
-(defrule
-	(goal gl-owner-worker-hold NO)
-	(or
-		(goal rush-krush YES)
-		(goal rush-scush YES)
-	)
-	(current-age >= early-antiquity-age)
-	(building-type-count-total stable c:< 1)
-	(up-can-build gl-buildingescrow-state c: stable)
-=>
-	(set-goal gl-cbf-cont 1812)
-)
-(defrule
-	(goal gl-cbf-cont 1812)
-=>
-	(set-goal gl-cbf-site 1812)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1812)
-=>
-	(up-build place-normal gl-buildingescrow-state c: stable)
-)
-(defrule
-	(goal gl-cbf-cont 1812)
-=>
-	(set-goal gl-cbf-site 1812)
-	(set-goal gl-cbf-kind 2)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1812)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1812
-
-;CB BEGIN 1813
-(defrule
-	(goal gl-owner-worker-hold NO)
-	(goal rush-skrush YES)
-	(current-age >= early-antiquity-age)
-	(building-type-count-total archery-range c:< 1)
-	(up-can-build gl-buildingescrow-state c: archery-range)
-=>
 	(set-goal gl-cbf-cont 1813)
 )
 (defrule
@@ -425,7 +322,7 @@
 (defrule
 	(goal gl-cbf-cont 1813)
 =>
-	(up-build place-normal gl-buildingescrow-state c: archery-range)
+	(up-build place-normal gl-buildingescrow-state c: barracks)
 )
 (defrule
 	(goal gl-cbf-cont 1813)
@@ -451,10 +348,13 @@
 ;CB BEGIN 1814
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(goal rush-mush YES)
-	(current-age >= middle-antiquity-age)
-	(building-type-count-total monastery c:< 1)
-	(up-can-build gl-buildingescrow-state c: monastery)
+	(or
+		(goal rush-krush YES)
+		(goal rush-scush YES)
+	)
+	(current-age >= early-antiquity-age)
+	(building-type-count-total stable c:< 1)
+	(up-can-build gl-buildingescrow-state c: stable)
 =>
 	(set-goal gl-cbf-cont 1814)
 )
@@ -475,7 +375,7 @@
 (defrule
 	(goal gl-cbf-cont 1814)
 =>
-	(up-build place-normal gl-buildingescrow-state c: monastery)
+	(up-build place-normal gl-buildingescrow-state c: stable)
 )
 (defrule
 	(goal gl-cbf-cont 1814)
@@ -501,9 +401,10 @@
 ;CB BEGIN 1815
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(goal rush-sgush YES)
-	(building-type-count-total siege-workshop c:< 1)
-	(up-can-build gl-buildingescrow-state c: siege-workshop)
+	(goal rush-skrush YES)
+	(current-age >= early-antiquity-age)
+	(building-type-count-total archery-range c:< 1)
+	(up-can-build gl-buildingescrow-state c: archery-range)
 =>
 	(set-goal gl-cbf-cont 1815)
 )
@@ -524,7 +425,7 @@
 (defrule
 	(goal gl-cbf-cont 1815)
 =>
-	(up-build place-normal gl-buildingescrow-state c: siege-workshop)
+	(up-build place-normal gl-buildingescrow-state c: archery-range)
 )
 (defrule
 	(goal gl-cbf-cont 1815)
@@ -546,6 +447,105 @@
 	(set-goal gl-cbf-cont 0)
 )
 ;CB END 1815
+
+;CB BEGIN 1816
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal rush-mush YES)
+	(current-age >= middle-antiquity-age)
+	(building-type-count-total monastery c:< 1)
+	(up-can-build gl-buildingescrow-state c: monastery)
+=>
+	(set-goal gl-cbf-cont 1816)
+)
+(defrule
+	(goal gl-cbf-cont 1816)
+=>
+	(set-goal gl-cbf-site 1816)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1816)
+=>
+	(up-build place-normal gl-buildingescrow-state c: monastery)
+)
+(defrule
+	(goal gl-cbf-cont 1816)
+=>
+	(set-goal gl-cbf-site 1816)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1816)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1816
+
+;CB BEGIN 1817
+(defrule
+	(goal gl-owner-worker-hold NO)
+	(goal rush-sgush YES)
+	(building-type-count-total siege-workshop c:< 1)
+	(up-can-build gl-buildingescrow-state c: siege-workshop)
+=>
+	(set-goal gl-cbf-cont 1817)
+)
+(defrule
+	(goal gl-cbf-cont 1817)
+=>
+	(set-goal gl-cbf-site 1817)
+	(set-goal gl-cbf-kind 3)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1817)
+=>
+	(up-build place-normal gl-buildingescrow-state c: siege-workshop)
+)
+(defrule
+	(goal gl-cbf-cont 1817)
+=>
+	(set-goal gl-cbf-site 1817)
+	(set-goal gl-cbf-kind 2)
+	(set-goal gl-cbf-args0 -2)
+	(set-goal gl-cbf-args1 -2)
+	(set-goal gl-cbf-args2 -2)
+	(set-goal gl-cbf-args3 -2)
+	(set-goal gl-cbf-point-y -2)
+	(up-get-rule-id gl-cbf-return)
+	(up-modify-goal gl-cbf-return c:+ 1)
+	(up-jump-direct g: gl-cbf-entry)
+)
+(defrule
+	(goal gl-cbf-cont 1817)
+=>
+	(set-goal gl-cbf-cont 0)
+)
+;CB END 1817
 
 ;Unit rushes train a bounded opening force; the normal composition system takes over after it.
 (defrule
@@ -697,7 +697,7 @@
 	(up-modify-goal desired-ageup-villagers c:= 20)
 )
 
-;CB BEGIN 1816
+;CB BEGIN 1818
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal rush-trush YES)
@@ -705,12 +705,12 @@
 	(building-type-count-total watch-tower c:< 2)
 	(can-build watch-tower)
 =>
-	(set-goal gl-cbf-cont 1816)
+	(set-goal gl-cbf-cont 1818)
 )
 (defrule
-	(goal gl-cbf-cont 1816)
+	(goal gl-cbf-cont 1818)
 =>
-	(set-goal gl-cbf-site 1816)
+	(set-goal gl-cbf-site 1818)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -722,14 +722,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1816)
+	(goal gl-cbf-cont 1818)
 =>
 	(build-forward watch-tower)
 )
 (defrule
-	(goal gl-cbf-cont 1816)
+	(goal gl-cbf-cont 1818)
 =>
-	(set-goal gl-cbf-site 1816)
+	(set-goal gl-cbf-site 1818)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -741,13 +741,13 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1816)
+	(goal gl-cbf-cont 1818)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1816
+;CB END 1818
 
-;CB BEGIN 1817
+;CB BEGIN 1819
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal rush-fcast YES)
@@ -755,12 +755,12 @@
 	(building-type-count-total castle c:< 1)
 	(can-build castle)
 =>
-	(set-goal gl-cbf-cont 1817)
+	(set-goal gl-cbf-cont 1819)
 )
 (defrule
-	(goal gl-cbf-cont 1817)
+	(goal gl-cbf-cont 1819)
 =>
-	(set-goal gl-cbf-site 1817)
+	(set-goal gl-cbf-site 1819)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -772,14 +772,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1817)
+	(goal gl-cbf-cont 1819)
 =>
 	(build-forward castle)
 )
 (defrule
-	(goal gl-cbf-cont 1817)
+	(goal gl-cbf-cont 1819)
 =>
-	(set-goal gl-cbf-site 1817)
+	(set-goal gl-cbf-site 1819)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -791,14 +791,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1817)
+	(goal gl-cbf-cont 1819)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1817
+;CB END 1819
 
 ;Commit the opening force instead of waiting for the regular late-game attack cycle.
-;CB BEGIN 1818
+;CB BEGIN 1820
 (defrule
 	(not
 		(goal rush-rushing NO)
@@ -835,19 +835,19 @@
 		(goal current-action ACTION-RETREAT)
 	)
 =>
-	(set-goal gl-cbf-cont 1818)
+	(set-goal gl-cbf-cont 1820)
 	(disable-self)
 )
 (defrule
-	(goal gl-cbf-cont 1818)
+	(goal gl-cbf-cont 1820)
 =>
 	(set-goal current-action ACTION-ATTACK)
 	(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)
 )
 (defrule
-	(goal gl-cbf-cont 1818)
+	(goal gl-cbf-cont 1820)
 =>
-	(set-goal gl-cbf-site 1818)
+	(set-goal gl-cbf-site 1820)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -859,14 +859,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1818)
+	(goal gl-cbf-cont 1820)
 =>
 	(attack-now)
 )
 (defrule
-	(goal gl-cbf-cont 1818)
+	(goal gl-cbf-cont 1820)
 =>
-	(set-goal gl-cbf-site 1818)
+	(set-goal gl-cbf-site 1820)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -878,13 +878,13 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1818)
+	(goal gl-cbf-cont 1820)
 =>
 	(set-goal rush-rushing NO)
 )
 (defrule
-	(goal gl-cbf-cont 1818)
+	(goal gl-cbf-cont 1820)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1818
+;CB END 1820

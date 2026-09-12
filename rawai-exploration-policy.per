@@ -1,22 +1,22 @@
 ;User policy: Imperial Age ends general exploration, not active ferry screening
 ;or resource fishing. Native land admissions/reset live in rawai-ownership.
 ;Run before military so delayed naval scout consumers cannot restart a leg.
-;CB BEGIN 1128
+;CB BEGIN 1131
 (defrule
 	(current-age >= imperial-age)
 =>
-	(set-goal gl-cbf-cont 1128)
+	(set-goal gl-cbf-cont 1131)
 	(disable-self)
 )
 (defrule
-	(goal gl-cbf-cont 1128)
+	(goal gl-cbf-cont 1131)
 =>
 	(set-strategic-number sn-number-explore-groups 0)
 )
 (defrule
-	(goal gl-cbf-cont 1128)
+	(goal gl-cbf-cont 1131)
 =>
-	(set-goal gl-cbf-site 1128)
+	(set-goal gl-cbf-site 1131)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -28,14 +28,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1128)
+	(goal gl-cbf-cont 1131)
 =>
 	(set-strategic-number sn-total-number-explorers 0)
 )
 (defrule
-	(goal gl-cbf-cont 1128)
+	(goal gl-cbf-cont 1131)
 =>
-	(set-goal gl-cbf-site 1128)
+	(set-goal gl-cbf-site 1131)
 	(set-goal gl-cbf-kind 6)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -47,9 +47,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1128)
+	(goal gl-cbf-cont 1131)
 =>
-	(set-goal gl-cbf-site 1129)
+	(set-goal gl-cbf-site 1132)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -61,14 +61,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1128)
+	(goal gl-cbf-cont 1131)
 =>
 	(set-strategic-number sn-cap-civilian-explorers 0)
 )
 (defrule
-	(goal gl-cbf-cont 1128)
+	(goal gl-cbf-cont 1131)
 =>
-	(set-goal gl-cbf-site 1129)
+	(set-goal gl-cbf-site 1132)
 	(set-goal gl-cbf-kind 6)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -80,7 +80,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1128)
+	(goal gl-cbf-cont 1131)
 =>
 	(set-strategic-number sn-minimum-civilian-explorers 0)
 	(set-strategic-number sn-number-boat-explore-groups 0)
@@ -93,9 +93,9 @@
 	(up-modify-goal gl-command-counter-25 c:+ 1)
 )
 (defrule
-	(goal gl-cbf-cont 1128)
+	(goal gl-cbf-cont 1131)
 =>
-	(set-goal gl-cbf-site 1130)
+	(set-goal gl-cbf-site 1133)
 	(set-goal gl-cbf-kind 1)
 	(up-modify-goal gl-cbf-args0 g:= position-self-x)
 	(set-goal gl-cbf-args1 action-stop)
@@ -107,14 +107,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1128)
+	(goal gl-cbf-cont 1131)
 =>
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
 )
 (defrule
-	(goal gl-cbf-cont 1128)
+	(goal gl-cbf-cont 1131)
 =>
-	(set-goal gl-cbf-site 1130)
+	(set-goal gl-cbf-site 1133)
 	(set-goal gl-cbf-kind 2)
 	(up-modify-goal gl-cbf-args0 g:= position-self-x)
 	(set-goal gl-cbf-args1 action-stop)
@@ -126,7 +126,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1128)
+	(goal gl-cbf-cont 1131)
 =>
 	(up-modify-group-flag 0 c: naval-scout-group)
 	(up-reset-group c: naval-scout-group)
@@ -134,16 +134,16 @@
 	(set-goal gl-naval-scout-count 0)
 )
 (defrule
-	(goal gl-cbf-cont 1128)
+	(goal gl-cbf-cont 1131)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1128
+;CB END 1131
 
 ;An already-started scout ferry finishes its landing/recovery. Once ashore,
 ;retire the patrol instead of cancelling its voyage with passengers on board.
 ;This also catches a patrol already in progress when the age changes.
-;CB BEGIN 1131
+;CB BEGIN 1134
 (defrule
 	(current-age >= imperial-age)
 	(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)
@@ -154,12 +154,12 @@
 	(or (goal gl-island-migration-state MIGRATION-SCOUT-PATROL-WAIT)
 	    (goal gl-island-migration-state MIGRATION-SCOUT-PATROL-CHECK))))))
 =>
-	(set-goal gl-cbf-cont 1131)
+	(set-goal gl-cbf-cont 1134)
 )
 (defrule
-	(goal gl-cbf-cont 1131)
+	(goal gl-cbf-cont 1134)
 =>
-	(set-goal gl-cbf-site 1131)
+	(set-goal gl-cbf-site 1134)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -171,14 +171,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1131)
+	(goal gl-cbf-cont 1134)
 =>
 	(set-goal gl-island-migration-state MIGRATION-RETIRE-SCOUT)
 )
 (defrule
-	(goal gl-cbf-cont 1131)
+	(goal gl-cbf-cont 1134)
 =>
-	(set-goal gl-cbf-site 1131)
+	(set-goal gl-cbf-site 1134)
 	(set-goal gl-cbf-kind 7)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -190,11 +190,11 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1131)
+	(goal gl-cbf-cont 1134)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1131
+;CB END 1134
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-RETIRE-SCOUT)
@@ -208,14 +208,14 @@
 	(up-modify-goal gl-mig-diag-stop-left c:- 1)
 )
 
-;CB BEGIN 1132
+;CB BEGIN 1135
 (defrule
 	(goal gl-island-migration-state MIGRATION-RETIRE-SCOUT)
 =>
-	(set-goal gl-cbf-cont 1132)
+	(set-goal gl-cbf-cont 1135)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
@@ -224,9 +224,9 @@
 	(up-remove-objects search-local object-data-garrisoned == 1)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
-	(set-goal gl-cbf-site 1132)
+	(set-goal gl-cbf-site 1135)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -238,14 +238,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
 	(up-create-group 0 0 c: migration-boarding-group)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
-	(set-goal gl-cbf-site 1132)
+	(set-goal gl-cbf-site 1135)
 	(set-goal gl-cbf-kind 5)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -257,14 +257,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
 	(up-modify-goal gl-command-counter-26 c:+ 1)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
-	(set-goal gl-cbf-site 1133)
+	(set-goal gl-cbf-site 1136)
 	(set-goal gl-cbf-kind 1)
 	(up-modify-goal gl-cbf-args0 g:= position-self-x)
 	(set-goal gl-cbf-args1 action-stop)
@@ -276,14 +276,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
 	(up-target-point position-self-x action-stop -1 stance-no-attack)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
-	(set-goal gl-cbf-site 1133)
+	(set-goal gl-cbf-site 1136)
 	(set-goal gl-cbf-kind 2)
 	(up-modify-goal gl-cbf-args0 g:= position-self-x)
 	(set-goal gl-cbf-args1 action-stop)
@@ -295,9 +295,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
-	(set-goal gl-cbf-site 1134)
+	(set-goal gl-cbf-site 1137)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -309,14 +309,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
 	(up-modify-group-flag 0 c: migration-boarding-group)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
-	(set-goal gl-cbf-site 1134)
+	(set-goal gl-cbf-site 1137)
 	(set-goal gl-cbf-kind 5)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -328,9 +328,9 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
-	(set-goal gl-cbf-site 1135)
+	(set-goal gl-cbf-site 1138)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -342,14 +342,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
 	(up-reset-group c: migration-boarding-group)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
-	(set-goal gl-cbf-site 1135)
+	(set-goal gl-cbf-site 1138)
 	(set-goal gl-cbf-kind 5)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -361,7 +361,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
 	(up-full-reset-search)
 	(up-add-object-by-id search-local g: gl-island-migration-transport-id)
@@ -370,9 +370,9 @@
 	(up-remove-objects search-local object-data-garrison-count > 0)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
-	(set-goal gl-cbf-site 1136)
+	(set-goal gl-cbf-site 1139)
 	(set-goal gl-cbf-kind 1)
 	(up-modify-goal gl-cbf-args0 g:= gl-island-migration-origin-x)
 	(set-goal gl-cbf-args1 action-move)
@@ -384,14 +384,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
 	(up-target-point gl-island-migration-origin-x action-move -1 stance-no-attack)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
-	(set-goal gl-cbf-site 1136)
+	(set-goal gl-cbf-site 1139)
 	(set-goal gl-cbf-kind 2)
 	(up-modify-goal gl-cbf-args0 g:= gl-island-migration-origin-x)
 	(set-goal gl-cbf-args1 action-move)
@@ -403,15 +403,15 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
 	(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)
 	(up-set-timer c: t-island-migration c: 60)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
-	(set-goal gl-cbf-site 1137)
+	(set-goal gl-cbf-site 1140)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -423,14 +423,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
 	(set-goal gl-island-migration-state MIGRATION-IDLE)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
-	(set-goal gl-cbf-site 1137)
+	(set-goal gl-cbf-site 1140)
 	(set-goal gl-cbf-kind 7)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -442,8 +442,8 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1132)
+	(goal gl-cbf-cont 1135)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1132
+;CB END 1135

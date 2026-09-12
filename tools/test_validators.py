@@ -4753,13 +4753,15 @@ class FarmPolicyTests(unittest.TestCase):
             facts=(
                 "t-island-migration == timer-triggered",
                 "(goal gl-island-migration-state MIGRATION-IDLE)",
-                "(goal gl-colony-towncenter-state COLONY-TC-IDLE)",
             ),
             actions=(
                 "(set-goal gl-island-migration-state MIGRATION-GATE-OWNER)",
             ),
         )
         self.assertEqual(len(migration_gate), 1)
+        self.assertNotIn("gl-colony-towncenter-state", migration_gate[0][3])
+        self.assertNotIn("up-pending-objects c: town-center", migration_gate[0][3])
+        self.assertNotIn("up-pending-placement c: town-center", migration_gate[0][3])
         self.assertNotIn("gl-quarantine-transport-id c:< 0", migration_gate[0][3])
         replacement = matching_rules(
             self.economy,
@@ -5776,7 +5778,9 @@ class FarmPolicyTests(unittest.TestCase):
     def test_transport_departure_moving_normally_resets_stall_without_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests
         AssaultMissionTests().test_moving_hulls_do_not_receive_repeated_orders()
-        self.assertIn('(up-chat-data-to-all "RAWAI-P3B44T56: %d" c: 504)', self.init_goals)
+        marker=json.loads((Path(__file__).resolve().parents[1] / 'context/project-state.json').read_text())['repository']['candidate_marker']
+        label,number=marker.rsplit(':',1)
+        self.assertIn(f'(up-chat-data-to-all "{label}: %d" c: {number})', self.init_goals)
 
     def test_transport_departure_stalled_near_origin_activates_clearance(self) -> None:
         from test_assault_missions import AssaultMissionTests

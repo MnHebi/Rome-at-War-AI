@@ -10,7 +10,7 @@ import re
 import unittest
 
 import generate_command_boundary as gen
-from command_boundary_observations import decode, paired_progress, correlate
+from command_boundary_observations import decode, paired_progress, correlate, frame_integrity
 from validate_naval_doctrine import rule_blocks
 
 
@@ -257,6 +257,25 @@ class CommandBoundaryTests(unittest.TestCase):
                          d(1,'site',24,5),d(2,'coverage-family',2,6),d(2,'calls',2,7),d(2,'invalid',0,8)])
         self.assertTrue(frames[0]['incomplete']);self.assertFalse(frames[1]['incomplete'])
         self.assertTrue(frames[2]['incomplete']);self.assertEqual(c[0]['calls'],2)
+
+    def test_orphan_end_is_visible_without_fabricating_frame(self):
+        # T57 contains609 such ends, but no720 headers. Preserve uncertainty.
+        pairs=[dict(player=8,diag_id=gen.CODES[n],value=v,sequence=i,milliseconds=0)
+               for i,(n,v) in enumerate([('actor',34455),('owner',8),('end',12)])]
+        frames,_=decode(pairs)
+        self.assertEqual(frames,[])
+        self.assertEqual(frame_integrity(pairs)['counts']['orphan_ends'],1)
+
+    def test_integrity_separates_players_and_broken_serials(self):
+        pairs=[dict(player=p,diag_id=gen.CODES[n],value=v) for p,n,v in
+               [(1,'site',24),(2,'site',101),(1,'serial',4),(2,'end',7),
+                (1,'end',4),(3,'site',23),(3,'site',24)]]
+        counts=frame_integrity(pairs)['counts']
+        self.assertEqual(counts['starts'],4)
+        self.assertEqual(counts['ends'],2)
+        self.assertEqual(counts['serial_mismatches'],1)
+        self.assertEqual(counts['abandoned_headers'],1)
+        self.assertEqual(counts['unclosed_headers'],1)
 
 
 if __name__=='__main__':unittest.main()

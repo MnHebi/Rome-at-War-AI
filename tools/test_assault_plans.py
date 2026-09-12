@@ -40,7 +40,14 @@ class Planner(Missions):
     def point_value(self, name):
         return self.g.get(name, 0), self.g.get(name[:-1]+'y', 0)
 
+    def data(self, field, target=False):
+        if field == 'object-data-status':
+            return self.val(str(self.objects.get(self.target, {}).get('status', -1)))
+        return super().data(field, target)
+
     def fact(self, e):
+        if e[0] == 'stance-toward' and e[2] == 'ally':
+            return self.players.get(int(e[1]), {}).get('ally', False)
         if e[0] == 'up-timer-status': return self.now >= self.timers.get(self.val(e[1]), 0)
         if e[0] == 'up-path-distance':
             point = self.point_value(e[1])

@@ -175,7 +175,7 @@
 ;The lurer was accepted while the sheep line remained empty. Request a total
 ;kill group immediately in the same script pass, before another worker role can
 ;become eligible for the tactical support selector.
-;CB BEGIN 1252
+;CB BEGIN 1254
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-boar-commit-state BOAR-COMMIT-VERIFY)
@@ -185,10 +185,10 @@
 	(unit-type-count villager >= 8)
 	(unit-type-count villager < 10)
 =>
-	(set-goal gl-cbf-cont 1252)
+	(set-goal gl-cbf-cont 1254)
 )
 (defrule
-	(goal gl-cbf-cont 1252)
+	(goal gl-cbf-cont 1254)
 =>
 	(up-get-object-data object-data-id gl-boar-lurer-id)
 	(up-get-object-data object-data-target-id gl-boar-target-id)
@@ -197,9 +197,9 @@
 	(set-strategic-number sn-minimum-number-hunters 6)
 )
 (defrule
-	(goal gl-cbf-cont 1252)
+	(goal gl-cbf-cont 1254)
 =>
-	(set-goal gl-cbf-site 1252)
+	(set-goal gl-cbf-site 1254)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -211,14 +211,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1252)
+	(goal gl-cbf-cont 1254)
 =>
 	(up-request-hunters c: 6)
 )
 (defrule
-	(goal gl-cbf-cont 1252)
+	(goal gl-cbf-cont 1254)
 =>
-	(set-goal gl-cbf-site 1252)
+	(set-goal gl-cbf-site 1254)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -230,7 +230,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1252)
+	(goal gl-cbf-cont 1254)
 =>
 	(enable-timer t-boar-support 3)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
@@ -240,13 +240,13 @@
 	(up-chat-data-to-self "boar commit active hunters: %d" c: 6)
 )
 (defrule
-	(goal gl-cbf-cont 1252)
+	(goal gl-cbf-cont 1254)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1252
+;CB END 1254
 
-;CB BEGIN 1253
+;CB BEGIN 1255
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-boar-commit-state BOAR-COMMIT-VERIFY)
@@ -255,10 +255,10 @@
 	(unit-type-count villager-shepherd <= 0)
 	(unit-type-count villager >= 10)
 =>
-	(set-goal gl-cbf-cont 1253)
+	(set-goal gl-cbf-cont 1255)
 )
 (defrule
-	(goal gl-cbf-cont 1253)
+	(goal gl-cbf-cont 1255)
 =>
 	(up-get-object-data object-data-id gl-boar-lurer-id)
 	(up-get-object-data object-data-target-id gl-boar-target-id)
@@ -267,9 +267,9 @@
 	(set-strategic-number sn-minimum-number-hunters 7)
 )
 (defrule
-	(goal gl-cbf-cont 1253)
+	(goal gl-cbf-cont 1255)
 =>
-	(set-goal gl-cbf-site 1253)
+	(set-goal gl-cbf-site 1255)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -281,14 +281,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1253)
+	(goal gl-cbf-cont 1255)
 =>
 	(up-request-hunters c: 7)
 )
 (defrule
-	(goal gl-cbf-cont 1253)
+	(goal gl-cbf-cont 1255)
 =>
-	(set-goal gl-cbf-site 1253)
+	(set-goal gl-cbf-site 1255)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -300,7 +300,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1253)
+	(goal gl-cbf-cont 1255)
 =>
 	(enable-timer t-boar-support 3)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
@@ -310,11 +310,11 @@
 	(up-chat-data-to-self "boar commit active hunters: %d" c: 7)
 )
 (defrule
-	(goal gl-cbf-cont 1253)
+	(goal gl-cbf-cont 1255)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1253
+;CB END 1255
 
 ;If newly discovered sheep arrives after the lurer has already targeted the
 ;boar, keep the shepherds in place. Preserve the exact lurer and boar IDs, then
@@ -453,24 +453,24 @@
 	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-SEND-SEVEN)
 )
 
-;CB BEGIN 1254
+;CB BEGIN 1256
 (defrule
 	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-SEND-SIX)
 	(up-compare-goal local-total c:>= 5)
 =>
-	(set-goal gl-cbf-cont 1254)
+	(set-goal gl-cbf-cont 1256)
 )
 (defrule
-	(goal gl-cbf-cont 1254)
+	(goal gl-cbf-cont 1256)
 =>
 	(up-add-object-by-id search-remote g: gl-boar-target-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 )
 (defrule
-	(goal gl-cbf-cont 1254)
+	(goal gl-cbf-cont 1256)
 =>
-	(set-goal gl-cbf-site 1254)
+	(set-goal gl-cbf-site 1256)
 	(set-goal gl-cbf-kind 1)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -482,14 +482,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1254)
+	(goal gl-cbf-cont 1256)
 =>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 )
 (defrule
-	(goal gl-cbf-cont 1254)
+	(goal gl-cbf-cont 1256)
 =>
-	(set-goal gl-cbf-site 1254)
+	(set-goal gl-cbf-site 1256)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -501,7 +501,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1254)
+	(goal gl-cbf-cont 1256)
 =>
 	(set-strategic-number sn-minimum-boar-lure-group-size 300)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
@@ -514,30 +514,30 @@
 	(up-chat-data-to-self "boar rescue non-shepherds: %d" g: local-total)
 )
 (defrule
-	(goal gl-cbf-cont 1254)
+	(goal gl-cbf-cont 1256)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1254
+;CB END 1256
 
-;CB BEGIN 1255
+;CB BEGIN 1257
 (defrule
 	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-SEND-SEVEN)
 	(up-compare-goal local-total c:>= 6)
 =>
-	(set-goal gl-cbf-cont 1255)
+	(set-goal gl-cbf-cont 1257)
 )
 (defrule
-	(goal gl-cbf-cont 1255)
+	(goal gl-cbf-cont 1257)
 =>
 	(up-add-object-by-id search-remote g: gl-boar-target-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 )
 (defrule
-	(goal gl-cbf-cont 1255)
+	(goal gl-cbf-cont 1257)
 =>
-	(set-goal gl-cbf-site 1255)
+	(set-goal gl-cbf-site 1257)
 	(set-goal gl-cbf-kind 1)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -549,14 +549,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1255)
+	(goal gl-cbf-cont 1257)
 =>
 	(up-target-objects 0 action-default -1 stance-no-attack)
 )
 (defrule
-	(goal gl-cbf-cont 1255)
+	(goal gl-cbf-cont 1257)
 =>
-	(set-goal gl-cbf-site 1255)
+	(set-goal gl-cbf-site 1257)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-default)
@@ -568,7 +568,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1255)
+	(goal gl-cbf-cont 1257)
 =>
 	(set-strategic-number sn-minimum-boar-lure-group-size 300)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
@@ -581,11 +581,11 @@
 	(up-chat-data-to-self "boar rescue non-shepherds: %d" g: local-total)
 )
 (defrule
-	(goal gl-cbf-cont 1255)
+	(goal gl-cbf-cont 1257)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1255
+;CB END 1257
 
 (defrule
 	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-SEND-SIX)
@@ -627,24 +627,24 @@
 	(set-goal gl-boar-commit-state BOAR-COMMIT-RESCUE-GARRISON-SEND)
 )
 
-;CB BEGIN 1256
+;CB BEGIN 1258
 (defrule
 	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-GARRISON-SEND)
 	(up-set-target-object search-local c: 0)
 	(up-set-target-object search-remote c: 0)
 =>
-	(set-goal gl-cbf-cont 1256)
+	(set-goal gl-cbf-cont 1258)
 )
 (defrule
-	(goal gl-cbf-cont 1256)
+	(goal gl-cbf-cont 1258)
 =>
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag >= 0)
 )
 (defrule
-	(goal gl-cbf-cont 1256)
+	(goal gl-cbf-cont 1258)
 =>
-	(set-goal gl-cbf-site 1256)
+	(set-goal gl-cbf-site 1258)
 	(set-goal gl-cbf-kind 1)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-garrison)
@@ -656,14 +656,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1256)
+	(goal gl-cbf-cont 1258)
 =>
 	(up-target-objects 0 action-garrison -1 stance-no-attack)
 )
 (defrule
-	(goal gl-cbf-cont 1256)
+	(goal gl-cbf-cont 1258)
 =>
-	(set-goal gl-cbf-site 1256)
+	(set-goal gl-cbf-site 1258)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 0)
 	(set-goal gl-cbf-args1 action-garrison)
@@ -675,7 +675,7 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1256)
+	(goal gl-cbf-cont 1258)
 =>
 	(set-strategic-number sn-enable-boar-hunting 0)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 1)
@@ -686,11 +686,11 @@
 	(up-chat-data-to-self "boar rescue garrisoned lurer: %d" g: gl-boar-lurer-id)
 )
 (defrule
-	(goal gl-cbf-cont 1256)
+	(goal gl-cbf-cont 1258)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1256
+;CB END 1258
 
 (defrule
 	(goal gl-boar-commit-state BOAR-COMMIT-RESCUE-GARRISON-SEND)
@@ -760,7 +760,7 @@
 	(set-goal gl-boar-commit-state BOAR-COMMIT-RETRY-COMMIT)
 )
 
-;CB BEGIN 1257
+;CB BEGIN 1259
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-boar-commit-state BOAR-COMMIT-RETRY-COMMIT)
@@ -771,19 +771,19 @@
 	(unit-type-count villager >= 8)
 	(unit-type-count villager < 10)
 =>
-	(set-goal gl-cbf-cont 1257)
+	(set-goal gl-cbf-cont 1259)
 )
 (defrule
-	(goal gl-cbf-cont 1257)
+	(goal gl-cbf-cont 1259)
 =>
 	(set-strategic-number sn-minimum-boar-lure-group-size 300)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 6)
 	(set-strategic-number sn-minimum-number-hunters 6)
 )
 (defrule
-	(goal gl-cbf-cont 1257)
+	(goal gl-cbf-cont 1259)
 =>
-	(set-goal gl-cbf-site 1257)
+	(set-goal gl-cbf-site 1259)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -795,14 +795,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1257)
+	(goal gl-cbf-cont 1259)
 =>
 	(up-request-hunters c: 6)
 )
 (defrule
-	(goal gl-cbf-cont 1257)
+	(goal gl-cbf-cont 1259)
 =>
-	(set-goal gl-cbf-site 1257)
+	(set-goal gl-cbf-site 1259)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -814,20 +814,20 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1257)
+	(goal gl-cbf-cont 1259)
 =>
 	(enable-timer t-boar-support 3)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
 )
 (defrule
-	(goal gl-cbf-cont 1257)
+	(goal gl-cbf-cont 1259)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1257
+;CB END 1259
 
-;CB BEGIN 1258
+;CB BEGIN 1260
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-boar-commit-state BOAR-COMMIT-RETRY-COMMIT)
@@ -837,19 +837,19 @@
 	(unit-type-count villager-shepherd <= 0)
 	(unit-type-count villager >= 10)
 =>
-	(set-goal gl-cbf-cont 1258)
+	(set-goal gl-cbf-cont 1260)
 )
 (defrule
-	(goal gl-cbf-cont 1258)
+	(goal gl-cbf-cont 1260)
 =>
 	(set-strategic-number sn-minimum-boar-lure-group-size 300)
 	(set-strategic-number sn-minimum-boar-hunt-group-size 7)
 	(set-strategic-number sn-minimum-number-hunters 7)
 )
 (defrule
-	(goal gl-cbf-cont 1258)
+	(goal gl-cbf-cont 1260)
 =>
-	(set-goal gl-cbf-site 1258)
+	(set-goal gl-cbf-site 1260)
 	(set-goal gl-cbf-kind 3)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -861,14 +861,14 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1258)
+	(goal gl-cbf-cont 1260)
 =>
 	(up-request-hunters c: 7)
 )
 (defrule
-	(goal gl-cbf-cont 1258)
+	(goal gl-cbf-cont 1260)
 =>
-	(set-goal gl-cbf-site 1258)
+	(set-goal gl-cbf-site 1260)
 	(set-goal gl-cbf-kind 2)
 	(set-goal gl-cbf-args0 -2)
 	(set-goal gl-cbf-args1 -2)
@@ -880,18 +880,18 @@
 	(up-jump-direct g: gl-cbf-entry)
 )
 (defrule
-	(goal gl-cbf-cont 1258)
+	(goal gl-cbf-cont 1260)
 =>
 	(enable-timer t-boar-support 3)
 	(set-goal gl-boar-commit-state BOAR-COMMIT-ACTIVE)
 	(up-modify-sn sn-focus-player-number g:= gl-boar-commit-focus)
 )
 (defrule
-	(goal gl-cbf-cont 1258)
+	(goal gl-cbf-cont 1260)
 =>
 	(set-goal gl-cbf-cont 0)
 )
-;CB END 1258
+;CB END 1260
 
 (defrule
 	(goal gl-boar-commit-state BOAR-COMMIT-RETRY-COMMIT)

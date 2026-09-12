@@ -1,5 +1,6 @@
 """Decode bounded720+ records and validate paired measurements offline."""
 import math
+from collections import Counter
 try:
     from generate_command_boundary import CODES, PREV
 except ImportError:
@@ -29,6 +30,35 @@ def decode(pairs):
             elif f['members']:f['members'][-1][name]=d['value']
             else:f[name]=d['value']
     return frames,coverage
+
+
+def frame_integrity(pairs):
+    """Expose lost framing without inventing site/actor links from orphan tails.
+
+    Counts describe recorded fields, not successful PER calls or the mechanism
+    that lost them. In particular, zero decoded frames is not zero activity.
+    """
+    active={};counts=Counter();players={}
+    for d in pairs:
+        p,code=d['player'],d['diag_id']
+        if code not in (CODES['site'],CODES['serial'],CODES['end']):continue
+        row=players.setdefault(p,Counter())
+        def add(key):
+            counts[key]+=1;row[key]+=1
+        if code==CODES['site']:
+            add('starts')
+            if p in active:add('abandoned_headers')
+            active[p]=None
+        elif code==CODES['serial']:
+            if p in active:active[p]=d['value']
+            else:add('orphan_serials')
+        else:
+            add('ends')
+            if p not in active:add('orphan_ends')
+            elif active.pop(p)!=d['value']:add('serial_mismatches')
+    counts['unclosed_headers']=len(active)
+    return dict(counts=dict(counts),by_player={p:dict(v) for p,v in players.items()},
+                limitation='Orphan tails cannot identify their missing site or establish native origin.')
 
 
 def paired_progress(frame,member,max_age=15,map_tiles=480):
@@ -84,6 +114,7 @@ if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('cache',type=Path);p.add_argument('output',type=Path);a=p.parse_args()
     data=json.loads(a.cache.read_text());frames,coverage=decode(data['diagnostics'])
     result=dict(source_sha256=data.get('sha256'),frames=frames,coverage=coverage,
+                frame_integrity=frame_integrity(data['diagnostics']),
                 correlations=correlate(frames,data['events']),
                 limitations=['No sampled message is not proof of native origin.',
                              'Only emitted actors and target0 have command-boundary coverage.',

@@ -631,7 +631,7 @@ def validate_file(path: Path) -> list[dict[str, object]]:
     parenthesis_stack: list[tuple[int, int]] = []
     expression_stack: list[dict[str, object]] = []
     preprocessor_stack: list[tuple[int, str, bool]] = []
-    defconst_lines: dict[str, int] = {}
+    defconst_lines: dict[str, list[tuple[int, dict[int, bool]]]] = {}
     rule_depth: int | None = None
     rule_start_line = 0
     rule_element_count = 0
@@ -748,6 +748,12 @@ def validate_file(path: Path) -> list[dict[str, object]]:
                             }
                         )
             preprocessor_stack.append((line_number, symbol, is_defined))
+        elif directive == "#else":
+            if preprocessor_stack:
+                opening, symbol, positive = preprocessor_stack[-1]
+                preprocessor_stack[-1] = (opening, symbol, not positive)
+            else:
+                issues.append({"kind": "unmatched_else", "line": line_number})
         elif directive == "#end-if":
             if preprocessor_stack:
                 preprocessor_stack.pop()
@@ -757,17 +763,22 @@ def validate_file(path: Path) -> list[dict[str, object]]:
         match = re.match(r"^\s*\(defconst\s+([^\s)]+)", line)
         if match:
             name = match.group(1)
-            if name in defconst_lines:
+            branch = {opening: positive for opening, _symbol, positive in preprocessor_stack}
+            # Opposite arms of the same conditional cannot both define a name.
+            # Retain every prior path so a later unconditional duplicate still fails.
+            overlap = next((first for first, prior in defconst_lines.get(name, [])
+                            if not any(k in branch and branch[k] != v
+                                       for k, v in prior.items())), None)
+            if overlap is not None:
                 issues.append(
                     {
                         "kind": "duplicate_defconst",
                         "name": name,
                         "line": line_number,
-                        "first_line": defconst_lines[name],
+                        "first_line": overlap,
                     }
                 )
-            else:
-                defconst_lines[name] = line_number
+            defconst_lines.setdefault(name, []).append((line_number, branch))
 
     for line_number, column in parenthesis_stack:
         issues.append(
@@ -828,6 +839,10 @@ def main() -> None:
                             "line": line_number,
                         }
                     )
+    from validate_rule_capacity import report as rule_capacity
+    capacity = rule_capacity(ROOT)
+    if capacity['status'] != 'PASS':
+        report['compiled_rule_capacity'] = [capacity['maximum']]
     print(json.dumps(report, indent=2))
     if report:
         raise SystemExit(1)

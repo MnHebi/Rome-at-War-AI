@@ -1,8 +1,14 @@
 # T58 file-observer candidate
 
-**FILE TRACE IMPLEMENTED — ENGINE PREFLIGHT PENDING.**
-**VILLAGER COMMAND FLOOD — INVESTIGATING.** No deployment, Steam-option change,
-game launch, termination, or installed-experiment modification was performed.
+**T58/506 ENGINE STARTUP FAILED;507 REPAIR DEPLOYED, STARTUP PENDING.**
+See `T58A-RULE-CAPACITY-REPAIR.md`: shared emitter fixes excessive compiled rules;
+the record/roster contract below remains unchanged. Historical physical counts
+and costs below describe506, not507.
+**VILLAGER COMMAND FLOOD — INVESTIGATING.** T58/506 deployed2026-09-12;
+see `T58-DEPLOYMENT.md` for installed identity and frozen source map. Former
+installed experiments are reconciled in source. No Steam-option change, game
+launch or termination was performed by the agent. User startup failed ERR6001;
+no usable engine delivery was demonstrated.
 
 ## Findings and scope
 
@@ -24,11 +30,12 @@ The old detailed720-family chat observer is replaced, not run alongside the file
 observer. Existing separate boarding-Ctrl experiments/counters remain unchanged.
 Only one compact RAW12 diagnostic790 warning is added on first observer failure.
 
-The source registry contains577 rules and815 observed command/setting/lifecycle
-sites, including208 direct final-list DUC commands. This deliberately includes
+The deployed registry contains576 rules and814 observed command/setting/lifecycle
+sites, including207 direct final-list DUC commands. This deliberately includes
 non-Villager/mixed sites rather than silently excluding possible worker writers.
-The existing75-entry Villager modifier inventory has the **same command digest**;
-only semantic-source line locations changed. The registry retains original rules,
+The initial75-entry inventory preserved the source command digest. Deployment
+reconciliation removes the STOP already absent from installed T57, yielding74
+entries; the remaining modifiers are unchanged. The registry retains original rules,
 command expressions, hashes, file locations, command indices and old boarding
 writer20/21/23/24/25 mappings. Native/indirect sites have UNKNOWN recipients.
 
@@ -178,14 +185,12 @@ External artifacts under workspace-root `.analysis`: `t58-offline-t57.json`,
 `t58-source-manifest.json`, `t58-static-cost.json`, `t58-full-validation.txt`.
 Original replay/cache/logs are not committed.
 
-## Authorized preflight procedure — not executed
+## Engine preflight procedure — not executed
 
-1. Obtain explicit authorization for deployment and launch-option changes. First
-   reconcile the two installed cleanup experiments; do not overwrite them with
-   source variants implicitly. Generate a fresh full payload manifest. Existing
-   installed T57/505 identity remains unchanged by this task. Committed source
-   retains T56:504; the working copy retains the pre-existing T57:505 marker edit.
-   Neither marker identifies T58. Verify file startup40 plus the full manifest.
+1. Deployment authorized and completed: T58/506 with both experiments reconciled.
+   Use the manifest and frozen registry in `T58-DEPLOYMENT.md`, not historical
+   b4f0e2c identity. Confirm hashes and startup40. Steam launch-option changes
+   still require authorization; deployment did not change those options.
 2. Preserve all existing Steam options. Add exactly the case-sensitive options
    `LOGSYSTEMS=AIScript VERBOSELOGGING CONSTANTLOGGING` when authorized. Use normal
    game speed and the authoritative lobby setup. Do not delete any old logs.
@@ -242,6 +247,10 @@ Runtime acceptance remains PENDING. Productive boarding/gathering plus actor-lev
 causal evidence is the goal; synthetic complete frames do not close the flood.
 
 ## Validation and reviewable payload
+
+Historical snapshot below is immutable evidence for b4f0e2c, not the current
+working payload. Current marker/whitespace maintenance and the user's Syracusan
+edit are documented in `MAINTENANCE-CONSISTENCY.md`; regenerate the manifest.
 
 Source commit: `b4f0e2ca245d3cfc1e51f6cb47ca592fbaf5c844`.
 `T58-VALIDATION.json` records all109 committed runtime-file hashes, the source-map

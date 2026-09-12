@@ -1,5 +1,6 @@
 """Executable and mechanical contracts for the land/water trade topology."""
 import operator
+import json
 import re
 import unittest
 
@@ -80,7 +81,9 @@ class TradeTopologyTests(unittest.TestCase):
         for name, value in expected.items():
             self.assertEqual(found.get(name), value, name)
             self.assertIn(f"(set-goal {name} ", self.init)
-        self.assertIn('RAWAI-P3B44T56: %d" c: 504', self.init)
+        marker=json.loads(source('context/project-state.json'))['repository']['candidate_marker']
+        label,number=marker.rsplit(':',1)
+        self.assertIn(f'{label}: %d" c: {number}', self.init)
 
     def test_land_scan_uses_bounded_literal_player_slots(self):
         rows = matching(

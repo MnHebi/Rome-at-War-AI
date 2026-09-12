@@ -120,8 +120,10 @@ class T52DiagnosticTests(unittest.TestCase):
         text = source('rawai-military.per')
         self.assertEqual(text.count('(set-goal gl-mig-diag-admit-latch 0)'), 2)
         self.assertEqual(text.count('(set-goal gl-mig-diag-admit-latch 1)'), 1)
-        for bit in (1, 2, 4, 8, 16, 32, 64, 128, 256):
+        for bit in (1, 2, 4, 8, 16, 256):
             self.assertIn(f'(up-modify-goal gl-mig-diag-terminal c:+ {bit})', text)
+        for retired in (32, 64, 128):
+            self.assertNotIn(f'(up-modify-goal gl-mig-diag-terminal c:+ {retired})', text)
         for code in range(568, 579):
             self.assertIn(f'(up-chat-data-to-all str-t12-diag-id c: {code})', text, code)
         self.assertIn(';T52 class-reserved diagnostic: separate preloaded-hull quarantine adoption path.', text)

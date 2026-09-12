@@ -34,6 +34,8 @@ SETTINGS = ['sn-percent-civilian-gatherers','sn-percent-civilian-builders',
             'sn-gold-gatherer-percentage','sn-stone-gatherer-percentage']
 NAMES += ['sn-'+str(i) for i in range(len(SETTINGS))]
 NAMES += ['data-'+str(i) for i in range(len(FIELDS))]
+# Append: existing private goal addresses must not move.
+NAMES += ['token-return', 'token-framing']
 BEGIN = -2147483001
 END = -2147483002
 ESCAPE = -2147483003
@@ -55,32 +57,42 @@ def rule(f,a): return cb.rule(f,a)
 
 
 class Program:
-    def __init__(self): self.rules=[]; self.labels={}; self.fix=[]
+    def __init__(self): self.rules=[]; self.labels={}; self.fix=[]; self.tokens=False; self.finalized=False
     def add(self,f,a): self.rules.append(rule(f,a))
     def label(self,name): self.labels[name]=len(self.rules)
     def jump(self,f,label):
         self.fix.append((len(self.rules),label)); self.add(f,['JUMP'])
     def text(self):
+        if self.tokens and not self.finalized:
+            # Main fallthrough and all existing end labels skip the subroutine.
+            self.jump(['(true)'],'token-end')
+            self.label('token-emit')
+            for p in range(1,9):
+                self.add([eq('player',p),eq('token-framing',0),
+                          f'(or {eq("value",BEGIN)} {eq("value",ESCAPE)})'],
+                         [f'(up-log-data 0 str-cbf-p{p} c: {ESCAPE})'])
+                self.add([eq('player',p)],
+                         [f'(up-log-data 0 str-cbf-p{p} g: {g("value")})'])
+            self.add(['(true)'],[mod('count','c:+',1),mod('value','c:mod',65521),
+                                  mod('value','c:+',65521),mod('value','c:mod',65521),
+                                  mod('sum','c:*',31),mod('sum','g:+',g('value')),mod('sum','c:mod',65521),
+                                  f'(up-jump-direct g: {g("token-return")})'])
+            self.label('token-end')
+            self.finalized=True
         for i,label in self.fix:
             self.rules[i]=self.rules[i].replace('JUMP',f'(up-jump-rule {self.labels[label]-i-1})')
         return ''.join(self.rules)
     def batch(self,f,actions):
         for c in cb.chunks(actions,24): self.add(f,c)
     def token(self,operand,framing=False):
-        # Distinct per-player reusable formats, one scalar per documented call.
-        # Every token contributes count and rolling checksum; reduce before add
-        # so a legitimate signed32 object value cannot overflow the accumulator.
-        self.add(['(true)'],[mod('value',operand.split()[0].replace(':',':='),operand.split()[1])])
-        for p in range(1,9):
-            if not framing:
-                self.add([eq('player',p),
-                          f'(or {eq("value",BEGIN)} {eq("value",ESCAPE)})'],
-                         [f'(up-log-data 0 str-cbf-p{p} c: {ESCAPE})'])
-            self.add([eq('player',p)],
-                     [f'(up-log-data 0 str-cbf-p{p} g: {g("value")})'])
-        self.add(['(true)'],[mod('count','c:+',1),mod('value','c:mod',65521),
-                              mod('value','c:+',65521),mod('value','c:mod',65521),
-                              mod('sum','c:*',31),mod('sum','g:+',g('value')),mod('sum','c:mod',65521)])
+        # One call site, one shared emitter per module. The old inline emitter
+        # generated13,771 library/coverage rules and exceeded DE's10,000 total.
+        # Separate return storage preserves the surrounding observer call frame.
+        self.tokens=True
+        self.fix.append((len(self.rules),'token-emit'))
+        self.add(['(true)'],[mod('value',operand.split()[0].replace(':',':='),operand.split()[1]),
+                             put('token-framing',int(framing)),
+                             f'(up-get-rule-id {g("token-return")})',mod('token-return','c:+',1),'JUMP'])
     def record(self,typ,values):
         if typ==90:
             self.add([eq('incomplete',0)],[put('incomplete',1),
@@ -112,7 +124,10 @@ def init():
     actions += [f'(set-goal {journal(c["id"],field)} {0 if field=="ready" else -2})'
                 for c in bootstrap_commands() for field in ('pre','post','time','ready')]
     return ''.join(rule(['(true)'],c+['(disable-self)']) for c in cb.chunks(actions,28))+rule(['(true)'],[
-        f'(up-get-precise-time 0 {g("start")})',f'(up-get-fact my-player-number 0 {g("player")})','(disable-self)'])
+        # my-player-number is a player constant, NOT a FactId. In T58A Green
+        # queried FactId 3 (housing-headroom), stored 1, and emitted RAW58P1.
+        # This private identity also controls roster ownership filtering.
+        f'(up-get-precise-time 0 {g("start")})',f'(set-goal {g("player")} my-player-number)','(disable-self)'])
 
 
 def library():

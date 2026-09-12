@@ -95,6 +95,29 @@ def decode(lines):
 
 
 class FileTraceTests(unittest.TestCase):
+    def test_bootstrap_uses_player_constant_not_fact_id_for_all_players(self):
+        # Previous fixtures injected player=1 and never executed bootstrap.
+        # Exercise the emitted initialization, including its private resets.
+        for player in range(1,9):
+            o=FileObserver();o.const['my-player-number']=player
+            before=(o.pointer,list(o.local),list(o.remote),deepcopy(o.objects))
+            for _,_,_,_,actions in rule_blocks(f.init(),diagnostic_view=False):
+                for action in atoms(actions):
+                    if action=='disable-self':continue
+                    if action.startswith('up-get-precise-time '):
+                        self.assertEqual(action.split()[1],'0')
+                        o.goals[action.split()[2]]=10001
+                    else:o.action(action)
+            self.assertEqual(o.goals[f.g('player')],player)
+            self.assertEqual(before,(o.pointer,o.local,o.remote,o.objects))
+            # The same identity controls emitted prefixes and roster eligibility.
+            for obj in o.objects.values():obj['player']=player
+            records,_=decode(o.call())
+            self.assertTrue(records)
+            self.assertEqual({r['player'] for r in records},{player})
+            self.assertTrue(any(r['type']==20 for r in records),player)
+        self.assertNotIn('up-get-fact my-player-number',f.init())
+
     def test_entry_survives_all_old_gates_and_invalid_saved_object(self):
         o=FileObserver();o.pointer=-1
         for n in ('capture','b-turn','b-phase-valid','b-early-left','b-middle-left','b-late-left','b-final-left'):

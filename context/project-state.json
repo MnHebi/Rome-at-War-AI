@@ -1,31 +1,27 @@
 {
   "schema_version": 1,
-  "updated": "2026-09-08",
+  "updated": "2026-09-12",
   "authority": "Current accepted findings and defect status. Git remains authoritative for source and current HEAD.",
   "repository": {
     "canonical_workspace": "G:\\Projects\\Codex\\Rome at War AI\\.trade-work\\T30-trade-cap-civ-fix",
     "branch": "fix/trade-cog-cap-dacian",
     "pull_request": "https://github.com/MnHebi/Rome-at-War-AI/pull/11",
-    "runtime_source_commit": "2254038 + T57:505 marker; two preserved installed experiments (T57-DEPLOYMENT.md)",
-    "runtime_marker": "RAWAI-P3B44T57:505",
-    "runtime_files": 108,
-    "runtime_sha256": "8bb2b763162f4eabf726131774164127996f1f01d4634fc185a2b12884c9a949",
+    "runtime_source_commit": "a635d5598a6d292a9571d14abd178b669189b345 + working changes; installed experiments reconciled in canonical source (T58-DEPLOYMENT.md)",
+    "runtime_marker": "RAWAI-P3B44T58A:507",
+    "runtime_status": "507 MATCH FINISHED; replay133042.207,244 frames rawP1 label actually expose Green-owned locals; player-domain bug. Age/goal floods persist.",
+    "runtime_files": 109,
+    "runtime_sha256": "9e3823727574792e3677321a1ca07a92f2e5f80144269844f0f967b0d7ac5969",
     "writer_trace_overlay": false,
-    "canonical_candidate_sha256": "0d14e9ff7eb639abc415134753ebea9d11358e6ecf891b93197ed2876f5d0bc2",
-    "candidate_manifest": "Historical pre-marker candidate; current installed manifest: external .analysis/deployment-t57-505/manifest.json"
+    "candidate_marker": "RAWAI-P3B44T58B:508",
+    "candidate_status": "NOT DEPLOYED: player initializer, TC-independent migration admission, TC cap4 and allied-base last-choice landing. Original safety/slots preserved; runtime pending.",
+    "candidate_manifest": "Not prepared for508. Installed507 manifest remains .analysis/deployment-t58a-507-20260912T102708Z/manifest.json."
   },
   "current_task": "task.t52-runtime",
   "known_baseline_failures": [
     {
-      "id": "validation.good-units.frozen-provenance",
-      "claim": "validate_good_units.py reports the pre-existing frozen source_provenance/AI RAW.per_sha256 mismatch.",
-      "action": "Do not silently rebaseline it; it is unrelated to T52 runtime work.",
-      "evidence": ["HANDOFF.md"]
-    },
-    {
       "id": "validation.civ-strategy-generated-drift",
-      "claim": "The read-only strategy synchronizer reports six pre-existing generated civilization PER outputs it would update; T53 changed none of the strategy source, generator, or generated civilization files.",
-      "action": "Keep this unrelated baseline explicit and do not silently regenerate it during the order-706 experiment.",
+      "claim": "User-approved Dacian/Syracusan PER lineups need source-data reconciliation. User fixed Syracusan duplicate writer/late Spearman training. Four whitespace-only warnings resolved.",
+      "action": "Align generator to approved PER, preserving Dacian Bowman phase4-7 guard. Never restore old lineups. See MAINTENANCE-CONSISTENCY.md.",
       "evidence": ["HANDOFF.md"]
     }
   ],
@@ -36,19 +32,19 @@
       "claim": "Enemy class counts via players-unit-type-count are unsupported. Four reactive rules now use bounded recently sighted enemy census; no production gate relaxation.",
       "related_to": ["task.t52-runtime"],
       "depends_on": [],
-      "evidence": ["T56-RESOURCE-AND-COUNTER-AUDIT.md"],
+      "evidence": ["T56-RESOURCE-AND-COUNTER-AUDIT.md", "T57-RUNTIME-REPLAY-ASSESSMENT.md"],
       "implementation": ["tools/generate_ranged_threat.py", "rawai-reactive-ranged-threat.per"],
       "acceptance": "Observed ranged threat produces bounded Skirmishers while preserving normal production.",
-      "next_action": "Undeployed. Runtime-test after authorization; transport and706 boundaries remain open.",
+      "next_action": "Deployed in505: T57 all8 players queue Skirmisher-family units. Verify births, threat matching and live bounds before full acceptance; transport and706 remain open.",
       "reopen_when": "Fresh runtime shows threat present but counter gate absent."
     },
     {
       "id": "shipyard.sampler.t51",
-      "claim": "T55B: dense batches and expansion work; inspected affordable Red/Cyan sites leave exact buildability-input uncertainty. Blue49162 completion corroborated by52:50 count.",
+      "claim": "T57 foundations all8, ready confirmations7; Purple first build53:02. Evaluated11,524 rejection tuples; reason64 includes3,538 inland/2,461 open-water-no-shore/4,491 coastal unresolved. Candidate quality and exact coastal buildability remain open.",
       "status": "FIXED-PENDING-RUNTIME",
       "related_to": ["subsystem.shipyard", "task.t52-runtime"],
       "depends_on": [],
-      "evidence": ["T55B-CAUSAL-INVESTIGATION.md", "T55B-RUNTIME-REPLAY-ASSESSMENT.md", "T54-SHIPYARD-SPATIAL-AUDIT.md", "T52-RUNTIME-ACCEPTANCE.md"],
+      "evidence": ["T57-RUNTIME-REPLAY-ASSESSMENT.md", "T55B-CAUSAL-INVESTIGATION.md", "T55B-RUNTIME-REPLAY-ASSESSMENT.md", "T54-SHIPYARD-SPATIAL-AUDIT.md", "T52-RUNTIME-ACCEPTANCE.md"],
       "implementation": ["ec3ee78", "fc71f0e"],
       "acceptance": "Fresh verified replay demonstrates earlier multi-player foundations and expansion where affordable, without cramped or unreachable yards.",
       "next_action": "Use bounded666-676 rejection inputs; preserve all placement/admission gates.",
@@ -104,14 +100,14 @@
     },
     {
       "id": "diagnostics.command-boundary.t57",
-      "status": "FIXED-PENDING-RUNTIME",
-      "claim": "T58 file ENTRY removes capture quotas, records full supported lists and periodic roster state. Historical failed gate remains unknown. File delivery and execution cost require engine preflight; gameplay unchanged.",
+      "status": "INVESTIGATING",
+      "claim": "507 misuses player constant as FactId; Green queries housing headroom1 and emitsP1. Initializer corrected locally, FIXED-PENDING-RUNTIME. OldP1 must not be joined to Blue; operand errors remain open.",
       "related_to": ["task.t52-runtime", "subsystem.villager-commands"],
       "depends_on": [],
-      "evidence": ["T57-RUNTIME-REPLAY-ASSESSMENT.md", "T58-FILE-TRACE.md"],
-      "implementation": ["tools/command_boundary_file.py", "tools/command_boundary_log.py"],
+      "evidence": ["T58A-RUNTIME-REPLAY-ASSESSMENT.md", "T58-FILE-TRACE.md", "T58A-RULE-CAPACITY-REPAIR.md"],
+      "implementation": ["tools/command_boundary_file.py", "tools/command_boundary_log.py", "tools/validate_rule_capacity.py"],
       "acceptance": "Complete identifiable delivered records and actual paired boarding actors across early/late renewal windows; preserve all gameplay actions and ownership.",
-      "next_action": "No deployment yet. Authorize/reconcile installed exceptions; verify startup identity, complete lists and ordinary command/boarding execution before a long match.",
+      "next_action": "Authorized bounded identity and operand-probe runtime before long all-player logging. Preserve installed experiments; no blind zero replacement.",
       "reopen_when": "Not applicable while open."
     },
     {
@@ -136,7 +132,7 @@
       "evidence": ["T53-RUNTIME-REPLAY-ASSESSMENT.md", "rawai-attack-verification.per", "rawai-diplomacy.per", "rawai-military.per"],
       "implementation": ["0e1a83b"],
       "acceptance": "A fresh verified runtime emits exact episode identity and balance diagnostics 312-317, requests help while local threats exceed responders, remains silent for locally adequate defense, and does not restore broad proximity false reports.",
-      "next_action": "In marker 502, reconstruct every 312-317 episode and request outcome.",
+      "next_action": "Reconstruct312-317 episodes in verified T57/505 evidence; never attribute later candidate behavior retrospectively.",
       "reopen_when": "An exact locally overwhelming attack remains silent, a stale episode requests help, or false allied attack reports recur."
     },
     {
@@ -152,6 +148,18 @@
       "reopen_when": "An assault is again admitted to a shore from which visible objective-region land units cannot path, or the gate suppresses viable assault/cleanup behavior."
     },
     {
+      "id": "assault.allied-fallback.t58b",
+      "claim": "Exhausted enemy plans lacked allied-base landing anchors;508 adds bounded last-choice TC search without replacing enemy objective.",
+      "status": "FIXED-PENDING-RUNTIME",
+      "related_to": ["subsystem.assault-transport"],
+      "depends_on": [],
+      "evidence": ["T58B-ALLIED-LANDING-FALLBACK.md"],
+      "implementation": ["tools/generate_assault_plans.py", "rawai-assault-screen-fallback.per"],
+      "acceptance": "Reason42 ->46 ->slot commit/unload/advance to enemy; direct assaults and safety preserved.",
+      "next_action": "Authorized508 replay;14 fixtures pass, engine behavior unproven.",
+      "reopen_when": "Runtime rejects viable allied routes or regresses existing assaults."
+    },
+    {
       "id": "assault.preparation.close-boarders",
       "claim": "Some close, reserved assault passengers keep exact Transport/group/enter intent but fail to complete boarding before bounded preparation terminates.",
       "status": "INVESTIGATING",
@@ -160,19 +168,19 @@
       "evidence": ["T51-RUNTIME-REPLAY-ASSESSMENT.md", "T52-RUNTIME-ACCEPTANCE.md"],
       "implementation": [],
       "acceptance": "A complete abort episode distinguishes physical blockage, oscillation, reissuance, ownership displacement or genuine inability to enter; the resulting narrow fix preserves successful useful-partial and three-slot dispatch.",
-      "next_action": "Reconstruct each marker-500 abort rather than increasing timers broadly.",
+      "next_action": "Reconstruct historical T57/505 aborts; T58A/507 deployed but file preflight pending. No broad timer increases.",
       "reopen_when": "Not applicable while open."
     },
     {
       "id": "migration.productive-dropsite",
-      "claim": "Migration launch and unload are demonstrated, but an autonomous remote drop-site reaching ready state followed by gather and deposit is not yet runtime-proven.",
-      "status": "OPEN",
+      "claim": "507 Blue/Yellow no proven resource delivery.508 removes three TC admission checks from22ab687, preserving construction-stage guards. This boundary is FIXED-PENDING-RUNTIME; zero-mask windows and inner gates remain unresolved.",
+      "status": "INVESTIGATING",
       "related_to": ["subsystem.migration", "task.t52-runtime"],
       "depends_on": ["migration.launch-landing.t51"],
-      "evidence": ["T51-RUNTIME-REPLAY-ASSESSMENT.md", "T52-RUNTIME-ACCEPTANCE.md"],
+      "evidence": ["T58A-RUNTIME-REPLAY-ASSESSMENT.md", "T51-RUNTIME-REPLAY-ASSESSMENT.md", "T52-RUNTIME-ACCEPTANCE.md"],
       "implementation": ["e7031f9"],
       "acceptance": "Without manual input: exact foundation selection/issue, concrete foundation, code 579 value 2 ready, post-foundation gather writer, and visible intended-resource gather/deposit.",
-      "next_action": "Trace the first complete marker-500 migration productivity lifecycle; code 579 value 3 is a failed episode.",
+      "next_action": "Verify508 admission during TC work without construction collision; require ready/gather/deposit. See T58B-MIGRATION-TC-ADMISSION.md. Inner gates remain open; no deployment yet.",
       "reopen_when": "Not applicable while open."
     },
     {
