@@ -439,8 +439,9 @@ def generate(write=False):
             if text[start:end]!=s['original']:raise ValueError(f'original position mismatch {name}:{s["id"]}')
             text=text[:start]+render_site(s)+text[end:]
         rendered[name]=text
-    # Old observer disabled, definitions retained so ENTRY can expose its gates.
-    rendered.update(cb.support())
+    # Old observer disabled. Only the shared defs/init are built; the retired
+    # chat library and its coverage source are not constructed for file mode.
+    rendered.update(cb.support_definitions())
     rendered['rawai-command-boundary.per']=library()
     rendered['rawai-command-boundary-coverage.per']=coverage()
     rendered['rawai-command-boundary-defs.per']+=constants()

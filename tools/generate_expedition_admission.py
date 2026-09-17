@@ -39,7 +39,7 @@ def generate():
     add(['(true)'],['(up-get-fact game-time 0 gl-exp-clock)', '(set-goal gl-exp-allowed NO)'])
     for f in ('(goal gl-home-defense-state YES)','(goal gl-self-attack-verified YES)'):
         add([f],['(up-modify-goal gl-exp-safe-after g:= gl-exp-clock)', '(up-modify-goal gl-exp-safe-after c:+ 180)'])
-    add(['(up-compare-goal gl-exp-clock g:>= gl-exp-next)', '(current-age >= middle-antiquity-age)',
+    add(['(up-compare-goal gl-exp-clock g:>= gl-exp-next)', '(current-age >= castle-age)',
          '(up-compare-goal gl-home-zone c:>= 0)'],['(up-modify-goal gl-exp-next g:= gl-exp-clock)',
         '(up-modify-goal gl-exp-next c:+ 30)', '(set-goal gl-exp-blocked YES)', '(set-goal gl-exp-naval-pressure NO)',
         '(set-goal gl-exp-worker -1)',

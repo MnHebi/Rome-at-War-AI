@@ -93,10 +93,10 @@ def generate():
     add(['(building-type-count shipyard g:>= gl-sy-minimum)'], ['(set-goal gl-sy-deficit-since 0)'])
     add(['(building-type-count shipyard g:>= gl-sy-sustained)'],
         ['(set-goal gl-sy-sustained-since 0)'])
-    add([water, '(current-age >= early-antiquity-age)', '(building-type-count port > 0)',
+    add([water, '(current-age >= feudal-age)', '(building-type-count port > 0)',
          '(building-type-count shipyard g:< gl-sy-minimum)', '(goal gl-sy-deficit-since 0)'],
         ['(up-modify-goal gl-sy-deficit-since g:= gl-sy-clock)', '(up-modify-goal gl-sy-deficit-since c:+ 90)'])
-    add([water, '(current-age >= middle-antiquity-age)', '(building-type-count port > 0)',
+    add([water, '(current-age >= castle-age)', '(building-type-count port > 0)',
          '(building-type-count shipyard g:>= gl-sy-minimum)',
          '(building-type-count shipyard g:< gl-sy-sustained)',
          '(goal gl-sy-sustained-since 0)'],
@@ -113,7 +113,7 @@ def generate():
     # A blocked deficit may open a fresh one-sample episode after 60 seconds;
     # placement/foundation reserves are armed only by actual admission.
     deficit=[*stage(0), '(goal gl-sy-sample 1)', water,
-             '(current-age >= early-antiquity-age)', '(building-type-count port > 0)',
+             '(current-age >= feudal-age)', '(building-type-count port > 0)',
              '(building-type-count-total shipyard g:< desired-number-shipyards)',
              '(goal shipyard-placement-state SHIPYARD-IDLE)',
              '(up-compare-goal gl-sy-diag-admission-left c:<= 0)',
@@ -125,7 +125,7 @@ def generate():
     add(life,['(set-goal gl-sy-diag-age 0)', '(set-goal gl-sy-diag-afford 0)',
         '(set-goal gl-sy-diag-can-build 0)',
         '(up-modify-goal gl-sy-diag-sustained g:= gl-sy-sustained)'])
-    for age, name in enumerate(('iron-age','early-antiquity-age','middle-antiquity-age','imperial-age')):
+    for age, name in enumerate(('dark-age','feudal-age','castle-age','imperial-age')):
         add([*life,f'(current-age == {name})'],[f'(set-goal gl-sy-diag-age {age})'])
     add([*life,'(can-afford-building shipyard)'],['(set-goal gl-sy-diag-afford 1)'])
     add([*life,'(can-build shipyard)'],['(set-goal gl-sy-diag-can-build 1)'])
@@ -151,7 +151,7 @@ def generate():
         '(up-modify-goal gl-sy-diag-admission-next c:+ 60)',
         '(up-modify-goal gl-sy-diag-admission-left c:- 1)',
         '(set-goal gl-sy-diag-phase 0)'])
-    common = [*stage(0), '(goal gl-sy-sample 1)', water, '(current-age >= early-antiquity-age)',
+    common = [*stage(0), '(goal gl-sy-sample 1)', water, '(current-age >= feudal-age)',
               '(building-type-count port > 0)', '(goal shipyard-placement-state SHIPYARD-IDLE)']
     # Preserve the high-priority first-yard opening, including its wood reserve.
     add([*common, '(building-type-count-total shipyard == 0)', '(wood-amount > 250)',

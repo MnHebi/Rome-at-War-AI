@@ -3,6 +3,7 @@
 These do not simulate pathfinding, native queues or prove in-game acceptance.
 """
 from pathlib import Path
+from functools import lru_cache
 import re
 import unittest
 
@@ -11,7 +12,9 @@ from validate_naval_doctrine import rule_blocks
 ROOT = Path(__file__).resolve().parents[1]
 
 
+@lru_cache(maxsize=None)
 def source(name):
+    """Cached: runtime sources are immutable for the life of a test process."""
     return (ROOT / name).read_text(encoding='utf-8-sig')
 
 
@@ -155,17 +158,6 @@ class ConcreteHeavyRemeTests(unittest.TestCase):
                 self.assertIn('gl-naval-fleet-count-total g:<', row[3])
                 self.assertIn('(up-modify-goal gl-heavy-reme-count c:+ 1)', row[4])
                 self.assertIn('(up-modify-goal gl-naval-fleet-count-total c:+ 1)', row[4])
-
-    def test_family_upgrade_and_queued_units_do_not_double_allowance(self):
-        # Concrete census arithmetic and three capped producers are asserted above.
-        for base, upgraded, queued, expected in ((3, 0, 0, 1), (0, 3, 0, 1),
-                                                (2, 1, 1, 0), (0, 4, 0, 0)):
-            count, trained = base + upgraded + queued, 0
-            for _ in range(3):
-                if count < 4:
-                    count += 1
-                    trained += 1
-            self.assertEqual(trained, expected)
 
     def test_both_concrete_forms_are_available_to_existing_search_owners(self):
         text = source('rawai-military.per')

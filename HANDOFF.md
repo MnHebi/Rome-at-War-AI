@@ -1,56 +1,65 @@
 # Rome at War AI current handoff
 
-Latest candidate: `T58B-ALLIED-LANDING-FALLBACK.md`; replay evidence: `T58A-RUNTIME-REPLAY-ASSESSMENT.md`.
-Cold history: `context/archive/HANDOFF-through-T52.md`.
+Candidate: `T58B-ALLIED-LANDING-FALLBACK.md`; replay: `T58A-RUNTIME-REPLAY-ASSESSMENT.md`. Cold: `context/archive/HANDOFF-through-T52.md`.
 
 ## Workspace
 
 - Canonical: `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`
-- Branch: `fix/trade-cog-cap-dacian`; current HEAD: `git rev-parse HEAD`. T58B source commit `5e9e548`; maintenance `4250e7f`. Both published to PR11.
+- Branch: `fix/trade-cog-cap-dacian`; HEAD `git rev-parse HEAD`. T58B source `5e9e548`; maintenance `4250e7f`; both on PR11.
 - PR: https://github.com/MnHebi/Rome-at-War-AI/pull/11
-- PR11 refresh includes pending508 source/tests and507 evidence; deployment history: `T58-DEPLOYMENT.md`.
-- One owner; no new branch/worktree/overlay. Do not edit obsolete .pr-work.
+- PR11 holds earlier508 source/tests and507 evidence; uncommitted Age fixes preserved. One owner; no new branch/worktree/overlay.
 
-## Current deployment
+## Deployment
 
-2026-09-12: `RAWAI-P3B44T58A:507`,109 canonical runtime files installed and hash verified.
-SHA256 `9e3823727574792e3677321a1ca07a92f2e5f80144269844f0f967b0d7ac5969`.
-Source: `a635d5598a6d292a9571d14abd178b669189b345 + working changes; installed experiments reconciled in canonical source (T58-DEPLOYMENT.md)`. Counter1 is NOT STOP proof.
-**507 MATCH FINISHED, ACCEPTANCE FAILED**. Replay133042 lasted87:53; all109 installed hashes reverified.207,244 frames labeledP1 actually expose Green-owned locals. Never join that raw label to Blue. Age/goal floods remain unresolved.
-Manifest/frozen registry/506 backup: `.analysis/deployment-t58a-507-20260912T102708Z/`. No deployment this turn.
+2026-09-12: `RAWAI-P3B44T58B:508`109 runtime files installed, hash verified.
+SHA256 `0641fa7373a92e4246b8800e33d2c0ef15bbff1d6ab84e7a23e2569be4eab387`.
+Source: `e84cec97f557de501176462bfae898a91d1dff19 + working Age fixes; T58B-DEPLOYMENT.md`. Counter1 is NOT STOP proof.
+Manifest/registry/507 backup `.analysis/deployment-t58b-508-20260912T200909Z/`. No options changed.
+507 replay133042 failed: rawP1 exposes Green-owned locals, not Blue; Age/goal floods. Keep registry `.analysis/deployment-t58a-507-20260912T102708Z/`.
 
 ## Active task
 
 - Node `task.t52-runtime`; capsule `context/tasks/t52-runtime.json`.
 - Entry: `py -3.12 tools/context_pack.py task.t52-runtime --role runtime-analyst`.
-- Local508 (not deployed): player initializer, TC-independent migration admission, cap4 and last-choice allied-base landing. Earlier fixes/uncertainty: `T58B-MIGRATION-TC-ADMISSION.md`.
-- Allied fallback: exhausted enemy plan -> ready allied TC on objective landmass -> existing shoreline/danger checks + mandatory exact mobile witness -> same enemy/manifest dispatch.120-second local allowance within unchanged360 total; three slots unchanged. `T58B-ALLIED-LANDING-FALLBACK.md`.
-- Preserve507 frozen registry for old logs. Candidate9312/10000 rules,1498/1500 literals; reclaim before adding strings. Protocol: `T58-FILE-TRACE.md`.
-- Operand probe not installed: `T58A-RUNTIME-OPERAND-ERRORS.md`.
-- 508 also caps TC targets/colony expansion at4 (all34 civs); protected lineups unchanged. `T58A-BACKLOG-SWEEP.md`: all8 Shipyards ready but mostly late; no recorded ROW/help verification; all8 Skirmisher queues; Gray20,142 order706 packets. No backlog closure.
+- Installed508: initializer, native Age facts, TC-independent migration admission, cap4, allied landing (`T58B-MIGRATION-TC-ADMISSION.md`).
+- Allied fallback: exhausted plan -> ready allied TC on objective landmass -> shoreline/danger checks + mobile witness -> same enemy/manifest dispatch;120s local within360.
+- Preserve507 registry. Candidate9312/10000 rules,1498/1500 literals. Protocol `T58-FILE-TRACE.md`; Age probe not installed.
+- 508 caps TC targets/colony expansion4; lineups unchanged. `T58A-BACKLOG-SWEEP.md`: all8 Shipyards ready but late; no ROW/help verification; all8 Skirmisher queues. No closure.
+
+## Tests
+
+- `TEST-EXECUTION-POLICY.md`, `T59-TEST-SUITE-CLEANUP.md`: 17 fewer default tests, 6.6s. Retired `test_boarding_sampling.py` + legacy chat-emitter tests; frozen history via `RAWAI_HISTORICAL_OVERLAY_TESTS=1`.
+- Open: `rawai-init-goals.per` `my-player-number` as `up-get-fact` fact-id (unfixed); no-escrow goal absent; `test_validators.py` split pending.
+
+## T59 replay 231130
+
+- Identity: markers508 + registry words all8 + 109/109 hashes; file trace 1,130,143 complete records, 0 malformed, all8 startup/entry/boarding.
+- Operands: `up-can-build`86277 + `up-can-build-line`3001 + `up-get-point-distance`24490 = Invalid goal used(0); fix = agreed no-escrow goal + `gl-shipyard-x` operand (`rawai-specialplacement.per:792-843`); reason64=6186/7139 is that verdict.
+- Migration: admission463x all8; p2 CONFIRM-DROPSITE2950s with colony-TC0 (508 fix confirmed) but 579=0, never status-ready; p7 aborted3683s; p1/3/4/8 IDLE.
+- 706:38259 packets/46850 incidences; all5 dense onsets <=4s after scripted boarding; 0 inside traced brackets. Help300-317=0. Detail `T59-REPLAY-231130-ANALYSIS.md`.
 
 ## Defects retained
 
 | ID | Status | Next boundary |
 |---|---|---|
-| villager.order706 | INVESTIGATING | Ordinary-match paired command/onset attribution. |
-| diagnostics.command-boundary.t57 | INVESTIGATING | Player initializer FIXED-PENDING-RUNTIME; oldP1 label is not Blue. Operand floods/all-player delivery remain open. |
-| villager.keystates.t53 | INVESTIGATING | Existing Ctrl experiment inconclusive; policy constant. |
-| shipyard.sampler.t51 | FIXED-PENDING-RUNTIME | T57 foundations all8, ready7;11,524 rejected samples spatially evaluated. Late Purple53:02; coastal buildability still unresolved. |
+| villager.order706 | INVESTIGATING | Onset <=4s after scripted boarding; issuer unknown (T59). |
+| diagnostics.command-boundary.t57 | INVESTIGATING | Delivery/identity runtime-verified all8; operand floods = separate operand item. |
+| villager.keystates.t53 | INVESTIGATING | Ctrl experiment inconclusive; policy constant. |
+| shipyard.sampler.t51 | FIXED-PENDING-RUNTIME | Reason64 decisions use `up-can-build-line 0`; operand fix pending (T59). |
 | help.exact-episode.t53 | FIXED-PENDING-RUNTIME | Exact312–317 request/silence outcome. |
 | assault.shore-egress.t53 | INVESTIGATING | Actual unload path; no-witness gap. |
 | assault.voyage.t55b | INVESTIGATING | Commands vs positions, private680–690. |
 | assault.preparation.close-boarders | INVESTIGATING | Blockage/reissue/ownership at abort. |
-| migration.productive-dropsite | INVESTIGATING | TC-admission fix pending runtime; require resource launch, safe construction, gather/deposit; inner gates remain unresolved. |
+| migration.productive-dropsite | INVESTIGATING | Admission confirmed (p2 CONFIRM-DROPSITE2950s, colony-TC0); dropsite never status-ready (579=0). |
 | merchant.row.real-choke | INVESTIGATING | Yield → hull progress → native trade. |
 | expedition.commitment | INVESTIGATING | No tuning before upstream acceptance. |
-| production.reactive-skirmisher.t56 | FIXED-PENDING-RUNTIME | T57 all8 queue counters; births/threat matching/live bounds still unproven. |
+| production.reactive-skirmisher.t56 | FIXED-PENDING-RUNTIME | T57 all8 queue counters; births/threat matching/live bounds unproven. |
 
-Preserve land trade, migration launch/landing, landed combat, three independent assault slots, partial loads, shoreline/danger gates, ownership and relic separation. No native gathering replacement.
+Preserve land trade, migration launch/landing, landed combat, three assault slots, partial loads, shoreline/danger gates, ownership, relic separation; no native gathering replacement.
 
 ## Validation / next action
 
-508:131 assault/PER/generator/capacity checks PASS. Full Python3.12 discovery:683run,681PASS,2retired skips(98.462s). All109 installed507 hashes unchanged; runtime acceptance pending.
+508: PER/generators/capacity PASS; cleanup cut 17 default tests (T59). Deployment verified; runtime acceptance pending (`T58B-AGE-OPERAND-AUDIT.md`).
 Maintenance: `MAINTENANCE-CONSISTENCY.md`; preserve Dacian/Syracusan lineups.
 
-Next: authorized508 runtime must prove allied unload/land advance and resource migration productivity. Operand probe/backlog remain separate. No deployment authorized.
+Next: operand fix (no-escrow + point operand), dropsite status-ready observation, 706 issuer observation, allied unload/land advance.

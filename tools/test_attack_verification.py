@@ -19,7 +19,9 @@ class Verifier:
     def __init__(self, objects, enemies=(7,), victim=2, relief=False):
         self.objects = {o['id']: o for o in objects}
         self.enemies = list(enemies)
-        self.constants = {}
+        # Native Age symbols are engine-provided, not project defconsts.
+        self.constants = dict(zip(
+            ('dark-age', 'feudal-age', 'castle-age', 'imperial-age'), range(4)))
         for name in ('rawai-constants.per', 'rawai-customconstants.per', 'rawai-unitconstants.per'):
             self.constants.update({k: int(v) for k, v in re.findall(r'\(defconst ([\w-]+) (-?\d+)\)', source(name))})
         self.g = {'gl-self-player-number': 2, 'gl-ally-help-player': victim,
