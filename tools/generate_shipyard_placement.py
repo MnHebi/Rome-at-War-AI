@@ -262,9 +262,13 @@ def generate():
     add([*stage(3), '(or (up-compare-goal gl-shipyard-x g:!= gl-sy-bounded-x) (up-compare-goal gl-shipyard-y g:!= gl-sy-bounded-y))'], retry(62))
     for i in range(4):
         add([*stage(3), f'(up-compare-goal gl-sy-clock g:< gl-sy-memory{i}-until)'], [
-            '(up-set-target-point gl-shipyard-x)', f'(up-get-point-distance gl-sy-memory{i}-x 0 gl-sy-count)'])
+            # Both operands are points: the remembered site and the current
+            # candidate. A literal 0 here is an invalid Point (engine "Invalid
+            # goal used (0)"), not an escrow shortcut.
+            '(up-set-target-point gl-shipyard-x)',
+            f'(up-get-point-distance gl-sy-memory{i}-x gl-shipyard-x gl-sy-count)'])
         add([*stage(3), f'(up-compare-goal gl-sy-clock g:< gl-sy-memory{i}-until)', '(up-compare-goal gl-sy-count c:< 10)'], retry(63))
-    add([*stage(3), '(not (up-can-build-line 0 gl-shipyard-x c: shipyard))'], retry(64))
+    add([*stage(3), '(not (up-can-build-line gl-no-escrow-state gl-shipyard-x c: shipyard))'], retry(64))
     add(stage(3), ['(up-full-reset-search)', '(up-set-target-point gl-shipyard-x)',
         '(up-filter-distance c: -1 c: 10)', '(up-find-local c: port c: 40)', '(up-find-local c: shipyard c: 40)',
         '(up-reset-search 1 0 0 0)',
@@ -375,7 +379,7 @@ def generate():
          '(up-compare-goal gl-sy-admission-tier c:> 0)',
          '(or (building-type-count-total shipyard == 0) (building-type-count-total shipyard g:< desired-number-shipyards))',
          '(up-pending-objects c: shipyard <= 0)', '(not (up-pending-placement c: shipyard))',
-         '(up-can-build-line 0 gl-shipyard-x c: shipyard)',
+         '(up-can-build-line gl-no-escrow-state gl-shipyard-x c: shipyard)',
          '(up-compare-goal gl-sy-diag-placement-left c:> 0)'], [
         # Writer fingerprint at the exact build-line issuance boundary.
         *diag(536,'gl-shipyard-x'), *diag(537,'gl-shipyard-y'),
@@ -385,7 +389,7 @@ def generate():
          '(up-compare-goal gl-sy-admission-tier c:> 0)',
          '(or (building-type-count-total shipyard == 0) (building-type-count-total shipyard g:< desired-number-shipyards))',
          '(up-pending-objects c: shipyard <= 0)', '(not (up-pending-placement c: shipyard))',
-         '(up-can-build-line 0 gl-shipyard-x c: shipyard)'], [
+         '(up-can-build-line gl-no-escrow-state gl-shipyard-x c: shipyard)'], [
         '(up-build-line gl-shipyard-x gl-shipyard-x c: shipyard)', *deadline(24),
         '(set-goal gl-sy-foundation -1)', '(set-goal gl-sy-stage 20)'])
     add(stage(10), reset(4))

@@ -160,8 +160,46 @@ def observations(records):
         f['gaps'].append('truncated-observation');yield f
 
 
+OBJECT_ACTIONS=('action-garrison','action-unload','action-guard','action-attack')
+OBJECT_COMMANDS={'up-reset-unit','up-retreat-now','up-retreat-to','up-garrison','up-ungarrison',
+                 'up-guard-unit','up-delete-idle-units','delete-unit','delete-building'}
+ADMISSION_COMMANDS={'up-build','up-build-line','up-assign-builders','up-send-scout','up-reset-scouts'}
+GROUP_COMMANDS={'up-create-group','up-modify-group-flag','up-reset-group','up-disband-group-type'}
+# Deferred delivery: the writer-trace control shows an after-command chat
+# preceding its ORDER packet by 14-38 ms, so a command issued near a whole-second
+# boundary can deliver in the following second. One extra whole second is the
+# smallest interval that covers that boundary crossing at this timestamp
+# resolution; candidates stay labelled by offset, never selected by proximity.
+POST_INVOCATION_SECONDS=1
+
+
+def contract(command):
+    """Recipient/target contract of one registered command, from its operands.
+
+    Object-target DUC commands require the packet's target to be a traced remote
+    object. Point commands use their point/action inputs and must not inherit an
+    irrelevant remote-target requirement. State, group and native-admission
+    writes expect no directly attributable packet.
+    """
+    text=command.strip().lstrip('(')
+    if text.startswith(('up-target-point','up-target-objects')):
+        if any(action in text for action in OBJECT_ACTIONS):return 'object-target'
+        return 'point'
+    head=text.split()[0]
+    if head in OBJECT_COMMANDS:return 'object-target'
+    if head in ADMISSION_COMMANDS:return 'native-admission'
+    if head in GROUP_COMMANDS:return 'group-write'
+    return 'state-write'
+
+
 def correlations(records,events,registry):
-    """Require intact PRE plus INVOKED. Whole-second timing is only a candidate."""
+    """Require intact PRE plus INVOKED. Whole-second timing is only a candidate.
+
+    Target and recipient requirements follow the registered command contract, so
+    a point or STOP command is not rejected by an unrelated remote list, and
+    indirect state/group/admission writes are named as such instead of being
+    reported as unidentified recipient orders.
+    """
     from audit_writer_trace import compatible
     commands={c['id']:c for s in registry['sites'] for c in s.get('file_commands',[])}
     buckets=defaultdict(list)
@@ -179,19 +217,36 @@ def correlations(records,events,registry):
             gaps.append('PRE-INVOKED-mismatch')
         actors=[v[2] for v in pre['local'] if v[1]==1]
         targets=[v[2] for v in pre['remote'] if v[1]==1]
+        shape=contract(c['command']) if c else None
+        # A recipient-bearing command with no traced recipient rows cannot be
+        # matched to a packet; name the gap instead of guessing a producer.
+        unknown_recipients=shape in ('object-target','point') and not actors
         candidates=[]
-        if c and not gaps and not c['indirect']:
-            for second in range(a['game_seconds'],entry['game_seconds']+1):
+        if c and not gaps and not unknown_recipients and shape not in ('state-write','group-write','native-admission'):
+            for second in range(a['game_seconds'],entry['game_seconds']+1+POST_INVOCATION_SECONDS):
                 for e in buckets[(player,second)]:
                     ids=set(e.get('object_ids',[]))
-                    if (ids and ids<=set(actors) and (not targets or e.get('target_id') in targets)
-                        and compatible(e,{'actions':c['command']})):
-                        candidates.append(e['sequence'])
+                    if not ids or (actors and not ids<=set(actors)):
+                        continue
+                    target=e.get('target_id')
+                    if shape=='object-target':
+                        if not targets or target not in targets:continue
+                    elif targets and target not in (None,-1) and target not in targets:
+                        continue
+                    if compatible(e,{'actions':c['command']}):
+                        candidates.append(dict(sequence=e['sequence'],second_offset=second-a['game_seconds'],
+                            exact_recipients=bool(actors) and ids==set(actors)))
         yield dict(player=player,event=a['event'],site=a['site'],actors=actors,targets=targets,
-            coverage_gaps=gaps,packet_sequences=candidates,
-            status='incomplete-inputs' if gaps else 'indirect-recipients-unknown' if c and c['indirect'] else
+            command=c['command'] if c else None,contract=shape,
+            coverage_gaps=gaps,packet_sequences=[x['sequence'] for x in candidates],
+            candidates=candidates,
+            status='incomplete-inputs' if gaps else 'no-expected-packet' if shape in
+                       ('state-write','group-write','native-admission') else
+                   'recipients-unknown' if c and c['indirect'] else
+                   'recipients-unknown' if unknown_recipients else
                    'ambiguous' if len(candidates)>1 else 'candidate-not-causation' if candidates else 'unmatched-not-native-proof',
-            timing='PRE through INVOKED whole game-second buckets; subsets may be native expansion')
+            window_seconds=[a['game_seconds'],entry['game_seconds']+POST_INVOCATION_SECONDS],
+            timing='PRE through INVOKED whole game-second buckets plus one post-invocation second; subsets may be native expansion')
 
 
 def actor_timelines(cache,classification):

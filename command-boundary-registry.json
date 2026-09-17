@@ -1582,13 +1582,13 @@
       "facts": "(goal gl-owner-worker-hold NO)\n\t(and\n\t\t(building-type-count-total market > 0)\n\t\t(building-type-count-total caravanserai < 2)\n\t)\n\t(up-pending-objects c: caravanserai < 1)\n\t(can-build caravanserai)",
       "actions": [
         "(up-set-placement-data my-player-number market c: 5)",
-        "(up-build place-control 0 c: caravanserai)"
+        "(up-build place-control gl-no-escrow-state c: caravanserai)"
       ],
       "file_commands": [
         {
           "index": 1,
           "id": 1042,
-          "command": "(up-build place-control 0 c: caravanserai)",
+          "command": "(up-build place-control gl-no-escrow-state c: caravanserai)",
           "indirect": true,
           "args": [
             -2,
@@ -1599,9 +1599,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(and\n\t\t(building-type-count-total market > 0)\n\t\t(building-type-count-total caravanserai < 2)\n\t)\n\t(up-pending-objects c: caravanserai < 1)\n\t(can-build caravanserai)\n=>\n\t(up-set-placement-data my-player-number market c: 5)\n\t(up-build place-control 0 c: caravanserai)\n)\n",
-      "original_sha256": "4f5a05b82413758c8333d394b6bece8ee6bde73bddf5088e527aca166da84e9f",
-      "emitted_sha256": "1e8b4ed18c7e2052109392696d5ff9ca676a9ac117dc87fa921b2c54e1e2a294"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(and\n\t\t(building-type-count-total market > 0)\n\t\t(building-type-count-total caravanserai < 2)\n\t)\n\t(up-pending-objects c: caravanserai < 1)\n\t(can-build caravanserai)\n=>\n\t(up-set-placement-data my-player-number market c: 5)\n\t(up-build place-control gl-no-escrow-state c: caravanserai)\n)\n",
+      "original_sha256": "1375c9bb8f3bb5f3ae3280fca3b853a5119372ced2fb4ad629cdfff7a196f5c7",
+      "emitted_sha256": "6a666fb48b2b73f0edbadf1dce56b419292e760577e499482a4be0ad25526a5d"
     },
     {
       "id": 1043,
@@ -1664,7 +1664,7 @@
     {
       "id": 1045,
       "file": "rawai-customconstants.per",
-      "line": 2351,
+      "line": 2359,
       "jump_only": false,
       "facts": "(goal gl-owner-worker-hold NO)\n\t(true)",
       "actions": [
@@ -3563,7 +3563,7 @@
       "file": "rawai-fishing.per",
       "line": 361,
       "jump_only": false,
-      "facts": "(goal gl-fish-state 23)\n\t(goal gl-owner-worker-hold NO)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-player == my-player-number)\n\t(up-object-data object-data-type == dock)\n\t(up-object-data object-data-status == status-ready)\n\t(up-object-data object-data-under-attack == 0)\n\t(up-compare-goal gl-fish-build-zone g:== gl-fish-zone)\n\t(building-type-count-total fish-trap g:< gl-fish-boats)\n\t(up-pending-objects c: fish-trap <= 0)\n\t(not (up-pending-placement c: fish-trap))\n\t(up-can-build-line 0 gl-fish-build-x c: fish-trap)",
+      "facts": "(goal gl-fish-state 23)\n\t(goal gl-owner-worker-hold NO)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-player == my-player-number)\n\t(up-object-data object-data-type == dock)\n\t(up-object-data object-data-status == status-ready)\n\t(up-object-data object-data-under-attack == 0)\n\t(up-compare-goal gl-fish-build-zone g:== gl-fish-zone)\n\t(building-type-count-total fish-trap g:< gl-fish-boats)\n\t(up-pending-objects c: fish-trap <= 0)\n\t(not (up-pending-placement c: fish-trap))\n\t(up-can-build-line gl-no-escrow-state gl-fish-build-x c: fish-trap)",
       "actions": [
         "(up-assign-builders c: fish-trap c: -1)",
         "(up-build-line gl-fish-build-x gl-fish-build-x c: fish-trap)",
@@ -3599,9 +3599,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-fish-state 23)\n\t(goal gl-owner-worker-hold NO)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-player == my-player-number)\n\t(up-object-data object-data-type == dock)\n\t(up-object-data object-data-status == status-ready)\n\t(up-object-data object-data-under-attack == 0)\n\t(up-compare-goal gl-fish-build-zone g:== gl-fish-zone)\n\t(building-type-count-total fish-trap g:< gl-fish-boats)\n\t(up-pending-objects c: fish-trap <= 0)\n\t(not (up-pending-placement c: fish-trap))\n\t(up-can-build-line 0 gl-fish-build-x c: fish-trap)\n=>\n\t(up-assign-builders c: fish-trap c: -1)\n\t(up-build-line gl-fish-build-x gl-fish-build-x c: fish-trap)\n\t(up-modify-goal gl-fish-wait-until g:= gl-game-time)\n\t(up-modify-goal gl-fish-wait-until c:+ 20)\n\t(set-goal gl-fish-state 30)\n)\n",
-      "original_sha256": "633f201805caa7c4d8881d5b012ffb4ad8e23204cf26eeb027bf5c59efd30dec",
-      "emitted_sha256": "5e039484c8ae64f8991240a7c6ea7b0102d8d791063d6c86fde840f35a55691e"
+      "original": "(defrule\n\t(goal gl-fish-state 23)\n\t(goal gl-owner-worker-hold NO)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-player == my-player-number)\n\t(up-object-data object-data-type == dock)\n\t(up-object-data object-data-status == status-ready)\n\t(up-object-data object-data-under-attack == 0)\n\t(up-compare-goal gl-fish-build-zone g:== gl-fish-zone)\n\t(building-type-count-total fish-trap g:< gl-fish-boats)\n\t(up-pending-objects c: fish-trap <= 0)\n\t(not (up-pending-placement c: fish-trap))\n\t(up-can-build-line gl-no-escrow-state gl-fish-build-x c: fish-trap)\n=>\n\t(up-assign-builders c: fish-trap c: -1)\n\t(up-build-line gl-fish-build-x gl-fish-build-x c: fish-trap)\n\t(up-modify-goal gl-fish-wait-until g:= gl-game-time)\n\t(up-modify-goal gl-fish-wait-until c:+ 20)\n\t(set-goal gl-fish-state 30)\n)\n",
+      "original_sha256": "5e29038d5feb4e07da48f107556d51d6fffe2ac7f4262ea20f8f32b704d3638d",
+      "emitted_sha256": "7f82ea505edfe7fa964e920374caa8b48431c5232d2eace337e3eb901d57050b"
     },
     {
       "id": 1145,
@@ -3799,15 +3799,15 @@
       "file": "rawai-homebase.per",
       "line": 5,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(building-type-count-total university < 1)\n\t(up-pending-objects c: university <= 0)\n\t(not (up-pending-placement c: university))\n\t(up-can-build 0 c: university)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(building-type-count-total university < 1)\n\t(up-pending-objects c: university <= 0)\n\t(not (up-pending-placement c: university))\n\t(up-can-build gl-no-escrow-state c: university)",
       "actions": [
-        "(up-build place-normal 0 c: university)"
+        "(up-build place-normal gl-no-escrow-state c: university)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1152,
-          "command": "(up-build place-normal 0 c: university)",
+          "command": "(up-build place-normal gl-no-escrow-state c: university)",
           "indirect": true,
           "args": [
             -2,
@@ -3818,24 +3818,24 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(building-type-count-total university < 1)\n\t(up-pending-objects c: university <= 0)\n\t(not (up-pending-placement c: university))\n\t(up-can-build 0 c: university)\n=>\n\t(up-build place-normal 0 c: university)\n)\n",
-      "original_sha256": "86c5138e11cf4ef657ef7430bb2672a011bbca7d87ce8318d104623b64911437",
-      "emitted_sha256": "e5e7af62b435f8057fd72d8e3af833357445d04b748746267c56eb1cf40ca563"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(building-type-count-total university < 1)\n\t(up-pending-objects c: university <= 0)\n\t(not (up-pending-placement c: university))\n\t(up-can-build gl-no-escrow-state c: university)\n=>\n\t(up-build place-normal gl-no-escrow-state c: university)\n)\n",
+      "original_sha256": "b6dced26848b7b1975a228e6558c1fc591d4c344f7f1e7ba9399bea333c283c2",
+      "emitted_sha256": "9857f0fd09e36bc1ad5c8fae8ef76dd88e2e3feca942570f157e5745e3d02286"
     },
     {
       "id": 1153,
       "file": "rawai-homebase.per",
       "line": 17,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(building-type-count-total monastery < 1)\n\t(up-pending-objects c: monastery <= 0)\n\t(not (up-pending-placement c: monastery))\n\t(up-can-build 0 c: monastery)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(building-type-count-total monastery < 1)\n\t(up-pending-objects c: monastery <= 0)\n\t(not (up-pending-placement c: monastery))\n\t(up-can-build gl-no-escrow-state c: monastery)",
       "actions": [
-        "(up-build place-normal 0 c: monastery)"
+        "(up-build place-normal gl-no-escrow-state c: monastery)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1153,
-          "command": "(up-build place-normal 0 c: monastery)",
+          "command": "(up-build place-normal gl-no-escrow-state c: monastery)",
           "indirect": true,
           "args": [
             -2,
@@ -3846,24 +3846,24 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(building-type-count-total monastery < 1)\n\t(up-pending-objects c: monastery <= 0)\n\t(not (up-pending-placement c: monastery))\n\t(up-can-build 0 c: monastery)\n=>\n\t(up-build place-normal 0 c: monastery)\n)\n",
-      "original_sha256": "a0f549e8a902fd787467c6af52ac9293906ca5e814475253122f75443d5bd2fa",
-      "emitted_sha256": "3dc540f72d31cd4cd94df0a4e458462d311e84eeaa34acb71a48a77038dcb773"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(building-type-count-total monastery < 1)\n\t(up-pending-objects c: monastery <= 0)\n\t(not (up-pending-placement c: monastery))\n\t(up-can-build gl-no-escrow-state c: monastery)\n=>\n\t(up-build place-normal gl-no-escrow-state c: monastery)\n)\n",
+      "original_sha256": "b57e367ac62a3249db2a722bc6342c6431f141b225778c128fbc7b67073e3875",
+      "emitted_sha256": "5613ae2a86448438b35c36ce42ef76fa778744851d96f2a22f85d1caedc39b68"
     },
     {
       "id": 1154,
       "file": "rawai-homebase.per",
       "line": 29,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-opening-drop-sites-ready YES)\n\t(building-type-count-total barracks < 1)\n\t(up-pending-objects c: barracks <= 0)\n\t(not (up-pending-placement c: barracks))\n\t(up-can-build 0 c: barracks)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-opening-drop-sites-ready YES)\n\t(building-type-count-total barracks < 1)\n\t(up-pending-objects c: barracks <= 0)\n\t(not (up-pending-placement c: barracks))\n\t(up-can-build gl-no-escrow-state c: barracks)",
       "actions": [
-        "(up-build place-normal 0 c: barracks)"
+        "(up-build place-normal gl-no-escrow-state c: barracks)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1154,
-          "command": "(up-build place-normal 0 c: barracks)",
+          "command": "(up-build place-normal gl-no-escrow-state c: barracks)",
           "indirect": true,
           "args": [
             -2,
@@ -3874,24 +3874,24 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-opening-drop-sites-ready YES)\n\t(building-type-count-total barracks < 1)\n\t(up-pending-objects c: barracks <= 0)\n\t(not (up-pending-placement c: barracks))\n\t(up-can-build 0 c: barracks)\n=>\n\t(up-build place-normal 0 c: barracks)\n)\n",
-      "original_sha256": "45b90911c5dfad6987f602da37c4038439d97920352ad5c485fa3d6fc56ca5dd",
-      "emitted_sha256": "65f56a30980bb1dcd98a44523c643e2fdd3ac3948f2556e15110c46dab5ed026"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-opening-drop-sites-ready YES)\n\t(building-type-count-total barracks < 1)\n\t(up-pending-objects c: barracks <= 0)\n\t(not (up-pending-placement c: barracks))\n\t(up-can-build gl-no-escrow-state c: barracks)\n=>\n\t(up-build place-normal gl-no-escrow-state c: barracks)\n)\n",
+      "original_sha256": "38a4a8c18e16fd14618ef8dd55c1e8cce17727ee0f7ecc7cd00866be40d8552d",
+      "emitted_sha256": "fe443804e91704aa6d939737bfad3f990e68d4a742dbe1d6ea2383ea5f7156a4"
     },
     {
       "id": 1155,
       "file": "rawai-homebase.per",
       "line": 41,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(or\n\t\t(goal map-type LAKE)\n\t\t(or\n\t\t\t(goal map-type RIVERS)\n\t\t\t(or\n\t\t\t\t(goal map-type ISLANDS)\n\t\t\t\t(goal map-type TEAM-ISLANDS)\n\t\t\t)\n\t\t)\n\t)\n\t(building-type-count-total lumber-camp >= 1)\n\t(building-type-count-total dock < 1)\n\t(up-pending-objects c: dock <= 0)\n\t(not (up-pending-placement c: dock))\n\t(up-can-build 0 c: dock)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(or\n\t\t(goal map-type LAKE)\n\t\t(or\n\t\t\t(goal map-type RIVERS)\n\t\t\t(or\n\t\t\t\t(goal map-type ISLANDS)\n\t\t\t\t(goal map-type TEAM-ISLANDS)\n\t\t\t)\n\t\t)\n\t)\n\t(building-type-count-total lumber-camp >= 1)\n\t(building-type-count-total dock < 1)\n\t(up-pending-objects c: dock <= 0)\n\t(not (up-pending-placement c: dock))\n\t(up-can-build gl-no-escrow-state c: dock)",
       "actions": [
-        "(up-build place-normal 0 c: dock)"
+        "(up-build place-normal gl-no-escrow-state c: dock)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1155,
-          "command": "(up-build place-normal 0 c: dock)",
+          "command": "(up-build place-normal gl-no-escrow-state c: dock)",
           "indirect": true,
           "args": [
             -2,
@@ -3902,9 +3902,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(or\n\t\t(goal map-type LAKE)\n\t\t(or\n\t\t\t(goal map-type RIVERS)\n\t\t\t(or\n\t\t\t\t(goal map-type ISLANDS)\n\t\t\t\t(goal map-type TEAM-ISLANDS)\n\t\t\t)\n\t\t)\n\t)\n\t(building-type-count-total lumber-camp >= 1)\n\t(building-type-count-total dock < 1)\n\t(up-pending-objects c: dock <= 0)\n\t(not (up-pending-placement c: dock))\n\t(up-can-build 0 c: dock)\n=>\n\t(up-build place-normal 0 c: dock)\n)\n",
-      "original_sha256": "99149cbe4243e04491408e7a735ed4c6c922b64c85a1c0503b4eaf3f9547a294",
-      "emitted_sha256": "fcf2c25b1e1ea790c3318369d97b59b9c1c16c6b6eb148dcf5e24bd6229996e8"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(or\n\t\t(goal map-type LAKE)\n\t\t(or\n\t\t\t(goal map-type RIVERS)\n\t\t\t(or\n\t\t\t\t(goal map-type ISLANDS)\n\t\t\t\t(goal map-type TEAM-ISLANDS)\n\t\t\t)\n\t\t)\n\t)\n\t(building-type-count-total lumber-camp >= 1)\n\t(building-type-count-total dock < 1)\n\t(up-pending-objects c: dock <= 0)\n\t(not (up-pending-placement c: dock))\n\t(up-can-build gl-no-escrow-state c: dock)\n=>\n\t(up-build place-normal gl-no-escrow-state c: dock)\n)\n",
+      "original_sha256": "8a7afcf1fbe78da397a121cad737b1dc87fb41f568593e8c4cb04081098ff9a7",
+      "emitted_sha256": "112379910dbe38fe93c0ce7b7c49181885ffacf69eb0b398dc05cb574f8c750b"
     },
     {
       "id": 1156,
@@ -4223,9 +4223,9 @@
       "file": "rawai-homebase.per",
       "line": 987,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-colony-towncenter-state COLONY-TC-ISSUE)\n\t(up-pending-objects c: town-center <= 0)\n\t(not (up-pending-placement c: town-center))\n\t(up-can-build 0 c: town-center)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-colony-towncenter-state COLONY-TC-ISSUE)\n\t(up-pending-objects c: town-center <= 0)\n\t(not (up-pending-placement c: town-center))\n\t(up-can-build gl-no-escrow-state c: town-center)",
       "actions": [
-        "(up-build place-point 0 c: town-center)",
+        "(up-build place-point gl-no-escrow-state c: town-center)",
         "(up-modify-goal gl-colony-towncenter-attempts c:+ 1)",
         "(up-chat-data-to-self \"colony TC placement attempt: %d\" g: gl-colony-towncenter-attempts)",
         "(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)",
@@ -4236,7 +4236,7 @@
         {
           "index": 0,
           "id": 1174,
-          "command": "(up-build place-point 0 c: town-center)",
+          "command": "(up-build place-point gl-no-escrow-state c: town-center)",
           "indirect": true,
           "args": [
             -2,
@@ -4247,9 +4247,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-colony-towncenter-state COLONY-TC-ISSUE)\n\t(up-pending-objects c: town-center <= 0)\n\t(not (up-pending-placement c: town-center))\n\t(up-can-build 0 c: town-center)\n=>\n\t(up-build place-point 0 c: town-center)\n\t(up-modify-goal gl-colony-towncenter-attempts c:+ 1)\n\t(up-chat-data-to-self \"colony TC placement attempt: %d\" g: gl-colony-towncenter-attempts)\n\t(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)\n\t(up-set-timer c: t-colony-towncenter c: 20)\n\t(set-goal gl-colony-towncenter-state COLONY-TC-WAIT)\n)\n",
-      "original_sha256": "69c03f3555cdc4764407b7544db434349393fb3a45be8f4fc44b3dda6a638d60",
-      "emitted_sha256": "8c09b1a95ca5ca419d1c54bc08b2148dbd19bb52e5d9640591382cdcbb927de3"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-colony-towncenter-state COLONY-TC-ISSUE)\n\t(up-pending-objects c: town-center <= 0)\n\t(not (up-pending-placement c: town-center))\n\t(up-can-build gl-no-escrow-state c: town-center)\n=>\n\t(up-build place-point gl-no-escrow-state c: town-center)\n\t(up-modify-goal gl-colony-towncenter-attempts c:+ 1)\n\t(up-chat-data-to-self \"colony TC placement attempt: %d\" g: gl-colony-towncenter-attempts)\n\t(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)\n\t(up-set-timer c: t-colony-towncenter c: 20)\n\t(set-goal gl-colony-towncenter-state COLONY-TC-WAIT)\n)\n",
+      "original_sha256": "0b663e5f035ebaee38a3132d8fd3e82cdbcae4008029e0fde5bd9f3ef65b6643",
+      "emitted_sha256": "862ee2caffa40525b18fa1894b749004d94a01e1e47638ae6bc9fe665f047a9d"
     },
     {
       "id": 1175,
@@ -4343,15 +4343,15 @@
       "file": "rawai-homebase.per",
       "line": 1373,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(goal gl-colony-towncenter-state COLONY-TC-IDLE)\n\t(goal gl-migration-placement-lock NO)\n\t(can-afford-building town-center)\n\t(building-type-count-total town-center g:< desired-number-towncenters)\n\t(up-pending-objects c: town-center <= 0)\n\t(not (up-pending-placement c: town-center))\n\t(up-can-build 0 c: town-center)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(goal gl-colony-towncenter-state COLONY-TC-IDLE)\n\t(goal gl-migration-placement-lock NO)\n\t(can-afford-building town-center)\n\t(building-type-count-total town-center g:< desired-number-towncenters)\n\t(up-pending-objects c: town-center <= 0)\n\t(not (up-pending-placement c: town-center))\n\t(up-can-build gl-no-escrow-state c: town-center)",
       "actions": [
-        "(up-build place-normal 0 c: town-center)"
+        "(up-build place-normal gl-no-escrow-state c: town-center)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1177,
-          "command": "(up-build place-normal 0 c: town-center)",
+          "command": "(up-build place-normal gl-no-escrow-state c: town-center)",
           "indirect": true,
           "args": [
             -2,
@@ -4362,25 +4362,25 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(goal gl-colony-towncenter-state COLONY-TC-IDLE)\n\t(goal gl-migration-placement-lock NO)\n\t(can-afford-building town-center)\n\t(building-type-count-total town-center g:< desired-number-towncenters)\n\t(up-pending-objects c: town-center <= 0)\n\t(not (up-pending-placement c: town-center))\n\t(up-can-build 0 c: town-center)\n=>\n\t(up-build place-normal 0 c: town-center)\n)\n",
-      "original_sha256": "357b8ea8da588f7a18bba52433392bd699582888c8c340c27e098369c1e26369",
-      "emitted_sha256": "6c334716ca46971e975539a3027d60dce662b48ea622d48a1910e95629efef48"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(goal gl-colony-towncenter-state COLONY-TC-IDLE)\n\t(goal gl-migration-placement-lock NO)\n\t(can-afford-building town-center)\n\t(building-type-count-total town-center g:< desired-number-towncenters)\n\t(up-pending-objects c: town-center <= 0)\n\t(not (up-pending-placement c: town-center))\n\t(up-can-build gl-no-escrow-state c: town-center)\n=>\n\t(up-build place-normal gl-no-escrow-state c: town-center)\n)\n",
+      "original_sha256": "8b44789f75490aeb1b3efc585b0bd2374cae63e45169bffe7534c95c5b963e49",
+      "emitted_sha256": "06a4dd138fbf86d857adc9875034d2a65c933910cad58b2bf08a5ee24a954b9d"
     },
     {
       "id": 1178,
       "file": "rawai-homebase.per",
       "line": 1387,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal allow-houses 1)\n\t(building-type-count-total house == 0)\n\t(building-type-count-total mill == 0)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal allow-houses 1)\n\t(building-type-count-total house == 0)\n\t(building-type-count-total mill == 0)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)",
       "actions": [
-        "(up-build place-normal 0 c: house)",
+        "(up-build place-normal gl-no-escrow-state c: house)",
         "(up-set-timer c: t-house-placement c: 8)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1178,
-          "command": "(up-build place-normal 0 c: house)",
+          "command": "(up-build place-normal gl-no-escrow-state c: house)",
           "indirect": true,
           "args": [
             -2,
@@ -4391,26 +4391,26 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal allow-houses 1)\n\t(building-type-count-total house == 0)\n\t(building-type-count-total mill == 0)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)\n=>\n\t(up-build place-normal 0 c: house)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
-      "original_sha256": "c58d861a1d90f73cccfd7095765d0a3760dd6da5a0edb81dcf62220a37351d80",
-      "emitted_sha256": "59d61154b2056ea60a174babbaaa31de9c8a6b7bec0506f9057521b55a9d66b8"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal allow-houses 1)\n\t(building-type-count-total house == 0)\n\t(building-type-count-total mill == 0)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)\n=>\n\t(up-build place-normal gl-no-escrow-state c: house)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
+      "original_sha256": "990905e91dbe364ea6b91074a4ef8b846fe1c5220848af9a5816bcb4fa8a42ab",
+      "emitted_sha256": "5327d24bee704958eaa8c65eb508a39677655e5e89a33a32153d196eaa75bb71"
     },
     {
       "id": 1179,
       "file": "rawai-homebase.per",
       "line": 1404,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age <= feudal-age)\n\t(goal allow-houses 1)\n\t(building-type-count-total house > 0)\n\t(building-type-count-total mill == 0)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age <= feudal-age)\n\t(goal allow-houses 1)\n\t(building-type-count-total house > 0)\n\t(building-type-count-total mill == 0)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)",
       "actions": [
         "(up-set-placement-data my-player-number -1 c: -10)",
-        "(up-build place-control 0 c: house)",
+        "(up-build place-control gl-no-escrow-state c: house)",
         "(up-set-timer c: t-house-placement c: 8)"
       ],
       "file_commands": [
         {
           "index": 1,
           "id": 1179,
-          "command": "(up-build place-control 0 c: house)",
+          "command": "(up-build place-control gl-no-escrow-state c: house)",
           "indirect": true,
           "args": [
             -2,
@@ -4421,26 +4421,26 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age <= feudal-age)\n\t(goal allow-houses 1)\n\t(building-type-count-total house > 0)\n\t(building-type-count-total mill == 0)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)\n=>\n\t(up-set-placement-data my-player-number -1 c: -10)\n\t(up-build place-control 0 c: house)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
-      "original_sha256": "acf8a5e6d174d57cd46ff72942d43d3fd7683cdb126450847e4ac8eef30f8d7d",
-      "emitted_sha256": "4adcf4ecfa2d549ae4ac05156ee10f31819413827d8452dc6a004c4428c075ac"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age <= feudal-age)\n\t(goal allow-houses 1)\n\t(building-type-count-total house > 0)\n\t(building-type-count-total mill == 0)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)\n=>\n\t(up-set-placement-data my-player-number -1 c: -10)\n\t(up-build place-control gl-no-escrow-state c: house)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
+      "original_sha256": "8d5f60ce2d3336b8096f241f1425838f14cdda53a6017bf76975db61e1e3e5c7",
+      "emitted_sha256": "30b54f2005658f2fadef40a69834a6892f47c793cbeb0ffaa60e4aa6e6f4bf42"
     },
     {
       "id": 1180,
       "file": "rawai-homebase.per",
       "line": 1423,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age <= feudal-age)\n\t(goal allow-houses 1)\n\t(building-type-count-total house > 0)\n\t(building-type-count-total mill >= 1)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age <= feudal-age)\n\t(goal allow-houses 1)\n\t(building-type-count-total house > 0)\n\t(building-type-count-total mill >= 1)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)",
       "actions": [
         "(up-set-placement-data my-player-number mill c: 8)",
-        "(up-build place-control 0 c: house)",
+        "(up-build place-control gl-no-escrow-state c: house)",
         "(up-set-timer c: t-house-placement c: 8)"
       ],
       "file_commands": [
         {
           "index": 1,
           "id": 1180,
-          "command": "(up-build place-control 0 c: house)",
+          "command": "(up-build place-control gl-no-escrow-state c: house)",
           "indirect": true,
           "args": [
             -2,
@@ -4451,25 +4451,25 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age <= feudal-age)\n\t(goal allow-houses 1)\n\t(building-type-count-total house > 0)\n\t(building-type-count-total mill >= 1)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)\n=>\n\t;Bias later houses away from the Mill anchor selected by the placement engine\n\t;letting the compact TC housing pattern seal every farm approach.\n\t(up-set-placement-data my-player-number mill c: 8)\n\t(up-build place-control 0 c: house)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
-      "original_sha256": "254959812a5719b1ff8484c76736746ee8a7ec1520c04c1190a8968707de17ba",
-      "emitted_sha256": "5570c642768a9db234d8d5185939533a196889eceb18307de34ec35961e61723"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age <= feudal-age)\n\t(goal allow-houses 1)\n\t(building-type-count-total house > 0)\n\t(building-type-count-total mill >= 1)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)\n=>\n\t;Bias later houses away from the Mill anchor selected by the placement engine\n\t;letting the compact TC housing pattern seal every farm approach.\n\t(up-set-placement-data my-player-number mill c: 8)\n\t(up-build place-control gl-no-escrow-state c: house)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
+      "original_sha256": "5bbed9cc5a8cfda13c655d6621100c8ce6937eace8dce142a5eee66276814f8b",
+      "emitted_sha256": "a65780c1f314ac5c6168c6d855c798f0411f1e1d21dea6bf83dc638909205b84"
     },
     {
       "id": 1181,
       "file": "rawai-homebase.per",
       "line": 1444,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(goal allow-houses 1)\n\t(building-type-count-total house > 0)\n\t(building-type-count-total mill == 0)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(goal allow-houses 1)\n\t(building-type-count-total house > 0)\n\t(building-type-count-total mill == 0)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)",
       "actions": [
-        "(up-build place-normal 0 c: house)",
+        "(up-build place-normal gl-no-escrow-state c: house)",
         "(up-set-timer c: t-house-placement c: 8)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1181,
-          "command": "(up-build place-normal 0 c: house)",
+          "command": "(up-build place-normal gl-no-escrow-state c: house)",
           "indirect": true,
           "args": [
             -2,
@@ -4480,26 +4480,26 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(goal allow-houses 1)\n\t(building-type-count-total house > 0)\n\t(building-type-count-total mill == 0)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)\n=>\n\t(up-build place-normal 0 c: house)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
-      "original_sha256": "901c57cc6bb2ac0cc1f1cdcbb1d4dd69c1c6cfde3d5fa26b45b11c33c4e6968c",
-      "emitted_sha256": "efc078b683474a0faf94cff890f649a7103999c4d32aa035c457cd1dd6369f0a"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(goal allow-houses 1)\n\t(building-type-count-total house > 0)\n\t(building-type-count-total mill == 0)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)\n=>\n\t(up-build place-normal gl-no-escrow-state c: house)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
+      "original_sha256": "a2d460ffd0618eb09230a778483344e03408561d194b9da267106461a98815a5",
+      "emitted_sha256": "57e022825b3c32cb4822cc3f85f3f2a9b95e421811783afdf5619c2354af2411"
     },
     {
       "id": 1182,
       "file": "rawai-homebase.per",
       "line": 1462,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal allow-houses 1)\n\t(building-type-count-total house == 0)\n\t(building-type-count-total mill >= 1)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal allow-houses 1)\n\t(building-type-count-total house == 0)\n\t(building-type-count-total mill >= 1)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)",
       "actions": [
         "(up-set-placement-data my-player-number mill c: 8)",
-        "(up-build place-control 0 c: house)",
+        "(up-build place-control gl-no-escrow-state c: house)",
         "(up-set-timer c: t-house-placement c: 8)"
       ],
       "file_commands": [
         {
           "index": 1,
           "id": 1182,
-          "command": "(up-build place-control 0 c: house)",
+          "command": "(up-build place-control gl-no-escrow-state c: house)",
           "indirect": true,
           "args": [
             -2,
@@ -4510,23 +4510,23 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal allow-houses 1)\n\t(building-type-count-total house == 0)\n\t(building-type-count-total mill >= 1)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)\n=>\n\t;Starting-Mill starts and rebuilt housing use the same local clearance bias.\n\t(up-set-placement-data my-player-number mill c: 8)\n\t(up-build place-control 0 c: house)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
-      "original_sha256": "48fad547902e9888a0bc23db2c4af49f6aa339dbee2eac659e50d52bff76b5b3",
-      "emitted_sha256": "bc1d65c8ce2b3be0fd7b142232505ca1c4891b3e74395795e2b70e992c7345aa"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal allow-houses 1)\n\t(building-type-count-total house == 0)\n\t(building-type-count-total mill >= 1)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)\n=>\n\t;Starting-Mill starts and rebuilt housing use the same local clearance bias.\n\t(up-set-placement-data my-player-number mill c: 8)\n\t(up-build place-control gl-no-escrow-state c: house)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
+      "original_sha256": "99e91f9ad9bb75bb8412ec5aa62d935cd854842d9ed85137a8544f85ce6ba897",
+      "emitted_sha256": "21a17fb521095acd33bbceb2d1f7a5e62e7c13ed3f9c7f627a95601295a0b49c"
     },
     {
       "id": 1183,
       "file": "rawai-homebase.per",
       "line": 1484,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-house-pressure YES)\n\t(goal gl-island-colony-established YES)\n\t(goal gl-migration-placement-lock NO)\n\t(up-timer-status t-house-pressure == timer-triggered)\n\t(up-pending-objects c: house < 2)\n\t(population-headroom > 0)\n\t(housing-headroom < 3)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)\n\t(or\n\t\t(goal map-type RIVERS)\n\t\t(or\n\t\t\t(goal map-type ISLANDS)\n\t\t\t(goal map-type TEAM-ISLANDS)\n\t\t)\n\t)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-house-pressure YES)\n\t(goal gl-island-colony-established YES)\n\t(goal gl-migration-placement-lock NO)\n\t(up-timer-status t-house-pressure == timer-triggered)\n\t(up-pending-objects c: house < 2)\n\t(population-headroom > 0)\n\t(housing-headroom < 3)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)\n\t(or\n\t\t(goal map-type RIVERS)\n\t\t(or\n\t\t\t(goal map-type ISLANDS)\n\t\t\t(goal map-type TEAM-ISLANDS)\n\t\t)\n\t)",
       "actions": [
         "(up-copy-point point2-x gl-island-colony-x)",
         "(up-modify-goal point2-x c:+ 6)",
         "(up-modify-goal point2-y c:+ 6)",
         "(up-bound-point point3-x point2-x)",
         "(up-set-target-point point3-x)",
-        "(up-build place-point 0 c: house)",
+        "(up-build place-point gl-no-escrow-state c: house)",
         "(up-set-timer c: t-house-pressure c: 30)",
         "(up-set-timer c: t-house-placement c: 8)"
       ],
@@ -4534,7 +4534,7 @@
         {
           "index": 5,
           "id": 1183,
-          "command": "(up-build place-point 0 c: house)",
+          "command": "(up-build place-point gl-no-escrow-state c: house)",
           "indirect": true,
           "args": [
             -2,
@@ -4545,19 +4545,19 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-house-pressure YES)\n\t(goal gl-island-colony-established YES)\n\t(goal gl-migration-placement-lock NO)\n\t(up-timer-status t-house-pressure == timer-triggered)\n\t(up-pending-objects c: house < 2)\n\t(population-headroom > 0)\n\t(housing-headroom < 3)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)\n\t(or\n\t\t(goal map-type RIVERS)\n\t\t(or\n\t\t\t(goal map-type ISLANDS)\n\t\t\t(goal map-type TEAM-ISLANDS)\n\t\t)\n\t)\n=>\n\t(up-copy-point point2-x gl-island-colony-x)\n\t;Keep colony housing near its confirmed resource anchor. The former diagonal\n\t;offset was almost twenty tiles away and could cross a narrow island.\n\t(up-modify-goal point2-x c:+ 6)\n\t(up-modify-goal point2-y c:+ 6)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point 0 c: house)\n\t(up-set-timer c: t-house-pressure c: 30)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
-      "original_sha256": "6056c15ae5e8eed3eeed1bedb6c798d587f5717c13cea0c1ab279ba0fab147bf",
-      "emitted_sha256": "ee8e88133da3507500eed266a148034bee7253d4735142e671ef03683be3a6f1"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-house-pressure YES)\n\t(goal gl-island-colony-established YES)\n\t(goal gl-migration-placement-lock NO)\n\t(up-timer-status t-house-pressure == timer-triggered)\n\t(up-pending-objects c: house < 2)\n\t(population-headroom > 0)\n\t(housing-headroom < 3)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)\n\t(or\n\t\t(goal map-type RIVERS)\n\t\t(or\n\t\t\t(goal map-type ISLANDS)\n\t\t\t(goal map-type TEAM-ISLANDS)\n\t\t)\n\t)\n=>\n\t(up-copy-point point2-x gl-island-colony-x)\n\t;Keep colony housing near its confirmed resource anchor. The former diagonal\n\t;offset was almost twenty tiles away and could cross a narrow island.\n\t(up-modify-goal point2-x c:+ 6)\n\t(up-modify-goal point2-y c:+ 6)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point gl-no-escrow-state c: house)\n\t(up-set-timer c: t-house-pressure c: 30)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
+      "original_sha256": "dcd3d509b6f5c5690d7ae9731be550c0479050d70464ce7fbdab6901fda942cc",
+      "emitted_sha256": "89f2e2b1c29b5c25612189adb8fed6a0c20fa9a674a71db28536100b07c55dc3"
     },
     {
       "id": 1184,
       "file": "rawai-homebase.per",
       "line": 1516,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-house-pressure YES)\n\t(up-timer-status t-house-pressure == timer-triggered)\n\t(building-type-count-total mill >= 1)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house < 2)\n\t(population-headroom > 0)\n\t(housing-headroom < 3)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-house-pressure YES)\n\t(up-timer-status t-house-pressure == timer-triggered)\n\t(building-type-count-total mill >= 1)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house < 2)\n\t(population-headroom > 0)\n\t(housing-headroom < 3)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)",
       "actions": [
         "(up-set-placement-data my-player-number mill c: 8)",
-        "(up-build place-control 0 c: house)",
+        "(up-build place-control gl-no-escrow-state c: house)",
         "(up-set-timer c: t-house-pressure c: 30)",
         "(up-set-timer c: t-house-placement c: 8)"
       ],
@@ -4565,7 +4565,7 @@
         {
           "index": 1,
           "id": 1184,
-          "command": "(up-build place-control 0 c: house)",
+          "command": "(up-build place-control gl-no-escrow-state c: house)",
           "indirect": true,
           "args": [
             -2,
@@ -4576,18 +4576,18 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-house-pressure YES)\n\t(up-timer-status t-house-pressure == timer-triggered)\n\t(building-type-count-total mill >= 1)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house < 2)\n\t(population-headroom > 0)\n\t(housing-headroom < 3)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)\n=>\n\t(up-set-placement-data my-player-number mill c: 8)\n\t(up-build place-control 0 c: house)\n\t(up-set-timer c: t-house-pressure c: 30)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
-      "original_sha256": "c87d3834c96d33159ebc9033b317bff0bf83f9193036824394ec5f18e0fc670f",
-      "emitted_sha256": "5d90acdefc5ef166446deea80f535a32a6cc815acbc367e03dda82b9d58ed10b"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-house-pressure YES)\n\t(up-timer-status t-house-pressure == timer-triggered)\n\t(building-type-count-total mill >= 1)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house < 2)\n\t(population-headroom > 0)\n\t(housing-headroom < 3)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)\n=>\n\t(up-set-placement-data my-player-number mill c: 8)\n\t(up-build place-control gl-no-escrow-state c: house)\n\t(up-set-timer c: t-house-pressure c: 30)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
+      "original_sha256": "5766df823cde1004beb0dc29302e10dd0cb0857e8ab97fd3e6778f34c266f6e0",
+      "emitted_sha256": "70e98ae80103492fcc05723700c1de9bb50be3f379c4bb276844a1ba97775e53"
     },
     {
       "id": 1185,
       "file": "rawai-homebase.per",
       "line": 1535,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-house-pressure YES)\n\t(up-timer-status t-house-pressure == timer-triggered)\n\t(building-type-count-total mill == 0)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house < 2)\n\t(population-headroom > 0)\n\t(housing-headroom < 3)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-house-pressure YES)\n\t(up-timer-status t-house-pressure == timer-triggered)\n\t(building-type-count-total mill == 0)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house < 2)\n\t(population-headroom > 0)\n\t(housing-headroom < 3)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)",
       "actions": [
-        "(up-build place-normal 0 c: house)",
+        "(up-build place-normal gl-no-escrow-state c: house)",
         "(up-set-timer c: t-house-pressure c: 30)",
         "(up-set-timer c: t-house-placement c: 8)"
       ],
@@ -4595,7 +4595,7 @@
         {
           "index": 0,
           "id": 1185,
-          "command": "(up-build place-normal 0 c: house)",
+          "command": "(up-build place-normal gl-no-escrow-state c: house)",
           "indirect": true,
           "args": [
             -2,
@@ -4606,26 +4606,26 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-house-pressure YES)\n\t(up-timer-status t-house-pressure == timer-triggered)\n\t(building-type-count-total mill == 0)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house < 2)\n\t(population-headroom > 0)\n\t(housing-headroom < 3)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)\n=>\n\t(up-build place-normal 0 c: house)\n\t(up-set-timer c: t-house-pressure c: 30)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
-      "original_sha256": "014d414a2ffcb048f08cb90b526a2cedf87da4f2f133b8d0735603827e385123",
-      "emitted_sha256": "49d59ab812a3491c6889c9ba3804c367f54a9773ca6320f3cd447818526b91e9"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-house-pressure YES)\n\t(up-timer-status t-house-pressure == timer-triggered)\n\t(building-type-count-total mill == 0)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house < 2)\n\t(population-headroom > 0)\n\t(housing-headroom < 3)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)\n=>\n\t(up-build place-normal gl-no-escrow-state c: house)\n\t(up-set-timer c: t-house-pressure c: 30)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
+      "original_sha256": "2941d7f85fb0a4756b5e73cf02addf8cb5b5d9d222de77720036a8e26adf2e76",
+      "emitted_sha256": "89b77b9a39eee0da033b44100f2933dd2fd11179d4f131390f520af33744e231"
     },
     {
       "id": 1186,
       "file": "rawai-homebase.per",
       "line": 1553,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(goal allow-houses 1)\n\t(building-type-count-total house > 0)\n\t(building-type-count-total mill >= 1)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(goal allow-houses 1)\n\t(building-type-count-total house > 0)\n\t(building-type-count-total mill >= 1)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)",
       "actions": [
         "(up-set-placement-data my-player-number mill c: 8)",
-        "(up-build place-control 0 c: house)",
+        "(up-build place-control gl-no-escrow-state c: house)",
         "(up-set-timer c: t-house-placement c: 8)"
       ],
       "file_commands": [
         {
           "index": 1,
           "id": 1186,
-          "command": "(up-build place-control 0 c: house)",
+          "command": "(up-build place-control gl-no-escrow-state c: house)",
           "indirect": true,
           "args": [
             -2,
@@ -4636,9 +4636,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(goal allow-houses 1)\n\t(building-type-count-total house > 0)\n\t(building-type-count-total mill >= 1)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build 0 c: house)\n=>\n\t(up-set-placement-data my-player-number mill c: 8)\n\t(up-build place-control 0 c: house)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
-      "original_sha256": "48a32d6e82735a92fb16fb775ed2c1864ae8b271d000b4662c16783c094cecad",
-      "emitted_sha256": "3e04645047b448e539b85986192a1a1fd64e58faa7acb66b1f903dde67efb34e"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(goal allow-houses 1)\n\t(building-type-count-total house > 0)\n\t(building-type-count-total mill >= 1)\n\t(goal gl-migration-placement-lock NO)\n\t(up-pending-objects c: house <= 0)\n\t(population-headroom > 0)\n\t(housing-headroom < 5)\n\t(up-timer-status t-house-placement != timer-running)\n\t(can-afford-building house)\n\t(up-can-build gl-no-escrow-state c: house)\n=>\n\t(up-set-placement-data my-player-number mill c: 8)\n\t(up-build place-control gl-no-escrow-state c: house)\n\t(up-set-timer c: t-house-placement c: 8)\n)\n",
+      "original_sha256": "b2d77d28008023f9a820a9933908c0ef584196bbdb2e5c25292880a2b7746040",
+      "emitted_sha256": "fe4214fa528ffb55b3c4d237f6325d3245e5ddfdf16f5e9437b952d193a8ce37"
     },
     {
       "id": 1187,
@@ -4652,7 +4652,7 @@
         "(up-modify-goal point2-y c:+ 3)",
         "(up-bound-point point3-x point2-x)",
         "(up-set-target-point point3-x)",
-        "(up-build place-point 0 c: lumber-camp)",
+        "(up-build place-point gl-no-escrow-state c: lumber-camp)",
         "(set-goal gl-lumbercamp-placement-attempts 1)",
         "(up-chat-data-to-self \"lumber camp resource zone: %d\" g: gl-lumbercamp-resource-zone)",
         "(up-set-timer c: t-lumbercamp-placement c: 30)",
@@ -4662,7 +4662,7 @@
         {
           "index": 5,
           "id": 1187,
-          "command": "(up-build place-point 0 c: lumber-camp)",
+          "command": "(up-build place-point gl-no-escrow-state c: lumber-camp)",
           "indirect": true,
           "args": [
             -2,
@@ -4673,9 +4673,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)\n\t(goal gl-lumbercamp-placement-attempts 0)\n\t(can-afford-building lumber-camp)\n=>\n\t(up-copy-point point2-x gl-lumbercamp-target-x)\n\t(up-modify-goal point2-x c:+ 3)\n\t(up-modify-goal point2-y c:+ 3)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point 0 c: lumber-camp)\n\t(set-goal gl-lumbercamp-placement-attempts 1)\n\t(up-chat-data-to-self \"lumber camp resource zone: %d\" g: gl-lumbercamp-resource-zone)\n\t(up-set-timer c: t-lumbercamp-placement c: 30)\n\t(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)\n)\n",
-      "original_sha256": "73d0e63887c96963c16b96b8bca25622705a37ebdc231c141450dcf044962ed8",
-      "emitted_sha256": "9f869f8c3d277c9f2817f17aaf170fdd89608ac0790a64e0aaba82bb5c0cd888"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)\n\t(goal gl-lumbercamp-placement-attempts 0)\n\t(can-afford-building lumber-camp)\n=>\n\t(up-copy-point point2-x gl-lumbercamp-target-x)\n\t(up-modify-goal point2-x c:+ 3)\n\t(up-modify-goal point2-y c:+ 3)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point gl-no-escrow-state c: lumber-camp)\n\t(set-goal gl-lumbercamp-placement-attempts 1)\n\t(up-chat-data-to-self \"lumber camp resource zone: %d\" g: gl-lumbercamp-resource-zone)\n\t(up-set-timer c: t-lumbercamp-placement c: 30)\n\t(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)\n)\n",
+      "original_sha256": "dc684b63259f82f81cfa889e68114aee84bba502487d9820253f2c0a0f4eea8e",
+      "emitted_sha256": "235963ae72fddfe89bc1c84d77259e1de8dfcb7daaf83d8d69a1d854173ad45a"
     },
     {
       "id": 1188,
@@ -4689,7 +4689,7 @@
         "(up-modify-goal point2-y c:+ 3)",
         "(up-bound-point point3-x point2-x)",
         "(up-set-target-point point3-x)",
-        "(up-build place-point 0 c: lumber-camp)",
+        "(up-build place-point gl-no-escrow-state c: lumber-camp)",
         "(set-goal gl-lumbercamp-placement-attempts 2)",
         "(up-set-timer c: t-lumbercamp-placement c: 30)",
         "(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)"
@@ -4698,7 +4698,7 @@
         {
           "index": 5,
           "id": 1188,
-          "command": "(up-build place-point 0 c: lumber-camp)",
+          "command": "(up-build place-point gl-no-escrow-state c: lumber-camp)",
           "indirect": true,
           "args": [
             -2,
@@ -4709,9 +4709,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)\n\t(goal gl-lumbercamp-placement-attempts 1)\n\t(can-afford-building lumber-camp)\n=>\n\t(up-copy-point point2-x gl-lumbercamp-target-x)\n\t(up-modify-goal point2-x c:- 3)\n\t(up-modify-goal point2-y c:+ 3)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point 0 c: lumber-camp)\n\t(set-goal gl-lumbercamp-placement-attempts 2)\n\t(up-set-timer c: t-lumbercamp-placement c: 30)\n\t(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)\n)\n",
-      "original_sha256": "fb1eb1e775ee6f525c64b41cc741f5a5db8c602b3c6ec7910980bd664f1d515c",
-      "emitted_sha256": "2896c1aa3e637bc8251ee464e310aeff74c0ac0db74b8236d1efe2166c7794fe"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)\n\t(goal gl-lumbercamp-placement-attempts 1)\n\t(can-afford-building lumber-camp)\n=>\n\t(up-copy-point point2-x gl-lumbercamp-target-x)\n\t(up-modify-goal point2-x c:- 3)\n\t(up-modify-goal point2-y c:+ 3)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point gl-no-escrow-state c: lumber-camp)\n\t(set-goal gl-lumbercamp-placement-attempts 2)\n\t(up-set-timer c: t-lumbercamp-placement c: 30)\n\t(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)\n)\n",
+      "original_sha256": "cbdb1263b8b610239b51bb965172ef8a6c692ba57328c672cd7c5aa932d7f350",
+      "emitted_sha256": "03762ab45974897d27b8a82f693be3133cb5949f9cf2479c56239e0eef80a7d8"
     },
     {
       "id": 1189,
@@ -4725,7 +4725,7 @@
         "(up-modify-goal point2-y c:- 3)",
         "(up-bound-point point3-x point2-x)",
         "(up-set-target-point point3-x)",
-        "(up-build place-point 0 c: lumber-camp)",
+        "(up-build place-point gl-no-escrow-state c: lumber-camp)",
         "(set-goal gl-lumbercamp-placement-attempts 3)",
         "(up-set-timer c: t-lumbercamp-placement c: 30)",
         "(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)"
@@ -4734,7 +4734,7 @@
         {
           "index": 5,
           "id": 1189,
-          "command": "(up-build place-point 0 c: lumber-camp)",
+          "command": "(up-build place-point gl-no-escrow-state c: lumber-camp)",
           "indirect": true,
           "args": [
             -2,
@@ -4745,9 +4745,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)\n\t(goal gl-lumbercamp-placement-attempts 2)\n\t(can-afford-building lumber-camp)\n=>\n\t(up-copy-point point2-x gl-lumbercamp-target-x)\n\t(up-modify-goal point2-x c:+ 3)\n\t(up-modify-goal point2-y c:- 3)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point 0 c: lumber-camp)\n\t(set-goal gl-lumbercamp-placement-attempts 3)\n\t(up-set-timer c: t-lumbercamp-placement c: 30)\n\t(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)\n)\n",
-      "original_sha256": "8eba433b93f1222641f00a7c8280d243e8f5f20cc33077aec10ae8ca1bb07700",
-      "emitted_sha256": "2c0af0e886a93b2d223f98f217c2d4d283df342f596de0f174ef78e8ca9b665f"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)\n\t(goal gl-lumbercamp-placement-attempts 2)\n\t(can-afford-building lumber-camp)\n=>\n\t(up-copy-point point2-x gl-lumbercamp-target-x)\n\t(up-modify-goal point2-x c:+ 3)\n\t(up-modify-goal point2-y c:- 3)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point gl-no-escrow-state c: lumber-camp)\n\t(set-goal gl-lumbercamp-placement-attempts 3)\n\t(up-set-timer c: t-lumbercamp-placement c: 30)\n\t(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)\n)\n",
+      "original_sha256": "f9cc9befac86c3b5f63563098464b6a190bc93d0e303a1e60b8cbe11f9aa52da",
+      "emitted_sha256": "7914617c3031c6d4df4b5ca50d5149de72915e7caa1651d3c71ee5e1d1c80d2b"
     },
     {
       "id": 1190,
@@ -4761,7 +4761,7 @@
         "(up-modify-goal point2-y c:- 3)",
         "(up-bound-point point3-x point2-x)",
         "(up-set-target-point point3-x)",
-        "(up-build place-point 0 c: lumber-camp)",
+        "(up-build place-point gl-no-escrow-state c: lumber-camp)",
         "(set-goal gl-lumbercamp-placement-attempts 4)",
         "(up-set-timer c: t-lumbercamp-placement c: 30)",
         "(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)"
@@ -4770,7 +4770,7 @@
         {
           "index": 5,
           "id": 1190,
-          "command": "(up-build place-point 0 c: lumber-camp)",
+          "command": "(up-build place-point gl-no-escrow-state c: lumber-camp)",
           "indirect": true,
           "args": [
             -2,
@@ -4781,9 +4781,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)\n\t(goal gl-lumbercamp-placement-attempts 3)\n\t(can-afford-building lumber-camp)\n=>\n\t(up-copy-point point2-x gl-lumbercamp-target-x)\n\t(up-modify-goal point2-x c:- 3)\n\t(up-modify-goal point2-y c:- 3)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point 0 c: lumber-camp)\n\t(set-goal gl-lumbercamp-placement-attempts 4)\n\t(up-set-timer c: t-lumbercamp-placement c: 30)\n\t(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)\n)\n",
-      "original_sha256": "95779ca72f8c63e5e6c021e34adbecb877534a8d42c22c55cc8db7ac9b23d7c1",
-      "emitted_sha256": "c6d0ae3a39b782e84199c5015b609659550d9a46bdcd0ee33cfdb64fd91d8ea2"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)\n\t(goal gl-lumbercamp-placement-attempts 3)\n\t(can-afford-building lumber-camp)\n=>\n\t(up-copy-point point2-x gl-lumbercamp-target-x)\n\t(up-modify-goal point2-x c:- 3)\n\t(up-modify-goal point2-y c:- 3)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point gl-no-escrow-state c: lumber-camp)\n\t(set-goal gl-lumbercamp-placement-attempts 4)\n\t(up-set-timer c: t-lumbercamp-placement c: 30)\n\t(set-goal gl-lumbercamp-placement-state PLACEMENT-WAIT)\n)\n",
+      "original_sha256": "bffdfecf26fc28c453d195b8b5f8dd9c619ad20c73bc33f2c4b4861f08e1af13",
+      "emitted_sha256": "fdde94245835cc84214d709dd6a8efc6b8b7e25ebb968b824b92f5c890c1c589"
     },
     {
       "id": 1191,
@@ -4922,15 +4922,15 @@
       "file": "rawai-homebase.per",
       "line": 2080,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(and\t\n\t\t(up-gaia-type-count c: food >= 5)\n\t\t(and\n\t\t\t(building-type-count-total lumber-camp >= 1)\n\t\t\t(and\n\t\t\t\t(building-type-count-total farm g:< gl-farm-build-target)\n\t\t\t\t(building-type-count-total mill g:< desired-number-mills)\n\t\t\t)\n\t\t)\n\t)\n\t\t\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t(building-type-count-total mill > 0)\n\t(dropsite-min-distance food > 12)\n\t(dropsite-min-distance food g:< map-size)\n\t(can-afford-building mill)\n\t(up-pending-objects c: mill <= 0)\n\t(up-can-build 0 c: mill)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(and\t\n\t\t(up-gaia-type-count c: food >= 5)\n\t\t(and\n\t\t\t(building-type-count-total lumber-camp >= 1)\n\t\t\t(and\n\t\t\t\t(building-type-count-total farm g:< gl-farm-build-target)\n\t\t\t\t(building-type-count-total mill g:< desired-number-mills)\n\t\t\t)\n\t\t)\n\t)\n\t\t\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t(building-type-count-total mill > 0)\n\t(dropsite-min-distance food > 12)\n\t(dropsite-min-distance food g:< map-size)\n\t(can-afford-building mill)\n\t(up-pending-objects c: mill <= 0)\n\t(up-can-build gl-no-escrow-state c: mill)",
       "actions": [
-        "(up-build place-normal 0 c: mill)"
+        "(up-build place-normal gl-no-escrow-state c: mill)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1194,
-          "command": "(up-build place-normal 0 c: mill)",
+          "command": "(up-build place-normal gl-no-escrow-state c: mill)",
           "indirect": true,
           "args": [
             -2,
@@ -4941,9 +4941,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(and\t\n\t\t(up-gaia-type-count c: food >= 5)\n\t\t(and\n\t\t\t(building-type-count-total lumber-camp >= 1)\n\t\t\t(and\n\t\t\t\t(building-type-count-total farm g:< gl-farm-build-target)\n\t\t\t\t(building-type-count-total mill g:< desired-number-mills)\n\t\t\t)\n\t\t)\n\t)\n\t;The opening Mill is exclusively owned by the escrow bootstrap below. This\n\t;rule may only add a genuinely additional drop site later.\n\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t(building-type-count-total mill > 0)\n\t(dropsite-min-distance food > 12)\n\t(dropsite-min-distance food g:< map-size)\n\t(can-afford-building mill)\n\t(up-pending-objects c: mill <= 0)\n\t(up-can-build 0 c: mill)\n=>\n\t(up-build place-normal 0 c: mill)\n)\n",
-      "original_sha256": "98828ee2793e16fae5812f61020025052c462c6409c0c6fd27c0b6d077045af1",
-      "emitted_sha256": "f9c0408f85ed0d756068d5823645041355662e14c069b4b0133cd0c930363838"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(and\t\n\t\t(up-gaia-type-count c: food >= 5)\n\t\t(and\n\t\t\t(building-type-count-total lumber-camp >= 1)\n\t\t\t(and\n\t\t\t\t(building-type-count-total farm g:< gl-farm-build-target)\n\t\t\t\t(building-type-count-total mill g:< desired-number-mills)\n\t\t\t)\n\t\t)\n\t)\n\t;The opening Mill is exclusively owned by the escrow bootstrap below. This\n\t;rule may only add a genuinely additional drop site later.\n\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t(building-type-count-total mill > 0)\n\t(dropsite-min-distance food > 12)\n\t(dropsite-min-distance food g:< map-size)\n\t(can-afford-building mill)\n\t(up-pending-objects c: mill <= 0)\n\t(up-can-build gl-no-escrow-state c: mill)\n=>\n\t(up-build place-normal gl-no-escrow-state c: mill)\n)\n",
+      "original_sha256": "4dc6e256bb550c2ec85de919b236564ebb9dcbe9727e7253edbef92c63d96374",
+      "emitted_sha256": "371637a749afe9a4d4c47df3e45b76c27e9eba9951094c55497a69623ad78e0b"
     },
     {
       "id": 1195,
@@ -5239,20 +5239,20 @@
       "file": "rawai-homebase.per",
       "line": 2739,
       "jump_only": true,
-      "facts": "(or\t(goal gl-farm-placement-suspended YES)\n(or\t(up-compare-goal gl-farm-build-target <= 0)\n(or\t(building-type-count-total farm g:>= gl-farm-build-target)\n(or\t(up-pending-placement c: farm)\n\t(not (up-can-build 0 c: farm))))))",
+      "facts": "(or\t(goal gl-farm-placement-suspended YES)\n(or\t(up-compare-goal gl-farm-build-target <= 0)\n(or\t(building-type-count-total farm g:>= gl-farm-build-target)\n(or\t(up-pending-placement c: farm)\n\t(not (up-can-build gl-no-escrow-state c: farm))))))",
       "actions": [
         "(up-jump-rule 17)"
       ],
       "file_commands": [],
-      "original": "(defrule\n(or\t(goal gl-farm-placement-suspended YES)\n(or\t(up-compare-goal gl-farm-build-target <= 0)\n(or\t(building-type-count-total farm g:>= gl-farm-build-target)\n(or\t(up-pending-placement c: farm)\n\t(not (up-can-build 0 c: farm))))))\n=>\n\t(up-jump-rule 17)\n\n)\n",
-      "original_sha256": "e0f2f75e3ac4884a39d8c7473e83efc678c76bbb8586c1ed6e9348a088dce3b2",
+      "original": "(defrule\n(or\t(goal gl-farm-placement-suspended YES)\n(or\t(up-compare-goal gl-farm-build-target <= 0)\n(or\t(building-type-count-total farm g:>= gl-farm-build-target)\n(or\t(up-pending-placement c: farm)\n\t(not (up-can-build gl-no-escrow-state c: farm))))))\n=>\n\t(up-jump-rule 17)\n\n)\n",
+      "original_sha256": "ff2e46c61f790996da3e360ccfddeaedd34d58823614378ea4256e5f1919c1e0",
       "jumps": [
         [
           17,
           26
         ]
       ],
-      "emitted_sha256": "cbba77f33e76ca8210ee0cb0c34d972f5fba2296a9822ceb85bca79b9714111b"
+      "emitted_sha256": "eb3a50d989a265b9475aa4b1a1e5dfda49a9b8e03768fd8c43d321b8e982e95f"
     },
     {
       "id": 1209,
@@ -5372,7 +5372,7 @@
       "file": "rawai-homebase.per",
       "line": 2876,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-farm-placement-suspended NO)\n\t(building-type-count mill >= 1)\n\t(up-compare-goal point3-x >= 0)\n\t(up-can-build-line 0 point3-x c: farm)\n\t(up-can-build 0 c: farm)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-farm-placement-suspended NO)\n\t(building-type-count mill >= 1)\n\t(up-compare-goal point3-x >= 0)\n\t(up-can-build-line gl-no-escrow-state point3-x c: farm)\n\t(up-can-build gl-no-escrow-state c: farm)",
       "actions": [
         "(up-build-line point3-x point3-x c: farm)",
         "(up-jump-rule 3)"
@@ -5392,15 +5392,15 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-farm-placement-suspended NO)\n\t(building-type-count mill >= 1)\n\t(up-compare-goal point3-x >= 0)\n\t(up-can-build-line 0 point3-x c: farm)\n\t(up-can-build 0 c: farm)\n=>\n;\t(chat-to-player my-player-number \"Manual farm.\")\n\t(up-build-line point3-x point3-x c: farm)\n\t(up-jump-rule 3)\n)\n",
-      "original_sha256": "2d771feaf5835646341c8900d05e65eb29b2d48d1e6194331736107da45e2eb3",
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-farm-placement-suspended NO)\n\t(building-type-count mill >= 1)\n\t(up-compare-goal point3-x >= 0)\n\t(up-can-build-line gl-no-escrow-state point3-x c: farm)\n\t(up-can-build gl-no-escrow-state c: farm)\n=>\n;\t(chat-to-player my-player-number \"Manual farm.\")\n\t(up-build-line point3-x point3-x c: farm)\n\t(up-jump-rule 3)\n)\n",
+      "original_sha256": "ccb65234f014cc76885a3560b71d6abba0460cd0d0bf3475f2677e5c076eb0c5",
       "jumps": [
         [
           3,
           8
         ]
       ],
-      "emitted_sha256": "696dd23a64a2fa81edd3664d712a80ec489c10755d08f041359ee5c8721a4c21"
+      "emitted_sha256": "65ac4dc4bff08f6748500e2b7e05e143c30a366d2abacfb2bb78509664d533bf"
     },
     {
       "id": 1215,
@@ -5456,15 +5456,15 @@
       "file": "rawai-homebase.per",
       "line": 2916,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-farm-placement-suspended NO)\n\t(wood-amount > 150)\n\t(building-type-count mill >= 1)\n\t(up-can-build 0 c: farm)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-farm-placement-suspended NO)\n\t(wood-amount > 150)\n\t(building-type-count mill >= 1)\n\t(up-can-build gl-no-escrow-state c: farm)",
       "actions": [
-        "(up-build place-normal 0 c: farm)"
+        "(up-build place-normal gl-no-escrow-state c: farm)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1217,
-          "command": "(up-build place-normal 0 c: farm)",
+          "command": "(up-build place-normal gl-no-escrow-state c: farm)",
           "indirect": true,
           "args": [
             -2,
@@ -5475,24 +5475,24 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-farm-placement-suspended NO)\n\t(wood-amount > 150)\n\t(building-type-count mill >= 1)\n\t(up-can-build 0 c: farm)\n=>\n;\t(chat-to-player my-player-number \"Normal farm.\")\n\t(up-build place-normal 0 c: farm)\n)\n",
-      "original_sha256": "94736b5f622037ac478297bba0ec65066ab40101c829d0154d9207f9997205ab",
-      "emitted_sha256": "84c7dd7a386ae1ce552030d8ff96de085813d23d5e99a56bf6ed6c975b5a6b80"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-farm-placement-suspended NO)\n\t(wood-amount > 150)\n\t(building-type-count mill >= 1)\n\t(up-can-build gl-no-escrow-state c: farm)\n=>\n;\t(chat-to-player my-player-number \"Normal farm.\")\n\t(up-build place-normal gl-no-escrow-state c: farm)\n)\n",
+      "original_sha256": "ceb405d93c433d1fb8e4c8080bdcf005a55bdbe3f3d05378d83283f0292b8153",
+      "emitted_sha256": "f7b61b8d590e03e9c9bf4c61c7f1015747c9b8e6b981c586e5f9da09eadedcbe"
     },
     {
       "id": 1218,
       "file": "rawai-homebase.per",
       "line": 2927,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-colony-towncenter-state COLONY-TC-IDLE)\n\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t(goal gl-migration-placement-lock NO)\n\t(can-afford-building town-center)\n\t(building-type-count-total town-center == 0)\n\t(up-pending-objects c: town-center <= 0)\n\t(not (up-pending-placement c: town-center))\n\t(up-can-build 0 c: town-center)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-colony-towncenter-state COLONY-TC-IDLE)\n\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t(goal gl-migration-placement-lock NO)\n\t(can-afford-building town-center)\n\t(building-type-count-total town-center == 0)\n\t(up-pending-objects c: town-center <= 0)\n\t(not (up-pending-placement c: town-center))\n\t(up-can-build gl-no-escrow-state c: town-center)",
       "actions": [
-        "(up-build place-normal 0 c: town-center)"
+        "(up-build place-normal gl-no-escrow-state c: town-center)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1218,
-          "command": "(up-build place-normal 0 c: town-center)",
+          "command": "(up-build place-normal gl-no-escrow-state c: town-center)",
           "indirect": true,
           "args": [
             -2,
@@ -5503,9 +5503,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-colony-towncenter-state COLONY-TC-IDLE)\n\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t(goal gl-migration-placement-lock NO)\n\t(can-afford-building town-center)\n\t(building-type-count-total town-center == 0)\n\t(up-pending-objects c: town-center <= 0)\n\t(not (up-pending-placement c: town-center))\n\t(up-can-build 0 c: town-center)\n=>\n\t(up-build place-normal 0 c: town-center)\n)\n",
-      "original_sha256": "b5dc498a02e6d1926d6378b4d54a84f00437a47ff5a95b62287f1504ce5f58e8",
-      "emitted_sha256": "7cee44909b6a38486b0de9adf5884b5107de6c3835e7bbbdf35ae46577697613"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-colony-towncenter-state COLONY-TC-IDLE)\n\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t(goal gl-migration-placement-lock NO)\n\t(can-afford-building town-center)\n\t(building-type-count-total town-center == 0)\n\t(up-pending-objects c: town-center <= 0)\n\t(not (up-pending-placement c: town-center))\n\t(up-can-build gl-no-escrow-state c: town-center)\n=>\n\t(up-build place-normal gl-no-escrow-state c: town-center)\n)\n",
+      "original_sha256": "a6d4d9a2c0db8ec6d1834cc8f687bbb0f3752d47a35484053870d15364349d2a",
+      "emitted_sha256": "3ca20758b2359f0406bfea111e13821012ea6928fd4ef2596ac310f504bd488a"
     },
     {
       "id": 1219,
@@ -5517,7 +5517,7 @@
         "(set-goal gl-opening-mill-candidate-index 0)",
         "(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)",
         "(up-full-reset-search)",
-        "(up-build place-normal 0 c: mill)",
+        "(up-build place-normal gl-no-escrow-state c: mill)",
         "(set-goal gl-opening-mill-requested YES)",
         "(chat-local-to-self \"opening Mill fallback placement\")",
         "(up-set-timer c: t-opening-mill c: 90)",
@@ -5527,7 +5527,7 @@
         {
           "index": 3,
           "id": 1219,
-          "command": "(up-build place-normal 0 c: mill)",
+          "command": "(up-build place-normal gl-no-escrow-state c: mill)",
           "indirect": true,
           "args": [
             -2,
@@ -5538,9 +5538,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-opening-mill-state OPENING-MILL-FALLBACK)\n=>\n\t(set-goal gl-opening-mill-candidate-index 0)\n\t(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)\n\t(up-full-reset-search)\n\t(up-build place-normal 0 c: mill)\n\t(set-goal gl-opening-mill-requested YES)\n\t(chat-local-to-self \"opening Mill fallback placement\")\n\t(up-set-timer c: t-opening-mill c: 90)\n\t(set-goal gl-opening-mill-state OPENING-MILL-FALLBACK-WAIT)\n)\n",
-      "original_sha256": "7394adeead118487279870b7d8a41f5b457cd4e7b6534b00aad5fc05fc8b393e",
-      "emitted_sha256": "46173287e0c8ac8a3501a859922902d34ac95e5bdae7009a407a288183681ead"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-opening-mill-state OPENING-MILL-FALLBACK)\n=>\n\t(set-goal gl-opening-mill-candidate-index 0)\n\t(up-modify-sn sn-focus-player-number g:= gl-opening-mill-focus)\n\t(up-full-reset-search)\n\t(up-build place-normal gl-no-escrow-state c: mill)\n\t(set-goal gl-opening-mill-requested YES)\n\t(chat-local-to-self \"opening Mill fallback placement\")\n\t(up-set-timer c: t-opening-mill c: 90)\n\t(set-goal gl-opening-mill-state OPENING-MILL-FALLBACK-WAIT)\n)\n",
+      "original_sha256": "06fdaa5336f5932f3ccafc3bc759a70cc87298e39a8c9bf7a9996578faf0c233",
+      "emitted_sha256": "ee4a45695b7647e12a695a000ab338159a31122bfac481ba5de46be950d7eb79"
     },
     {
       "id": 1220,
@@ -5554,7 +5554,7 @@
         "(up-modify-goal point2-y c:+ 4)",
         "(up-bound-point point3-x point2-x)",
         "(up-set-target-point point3-x)",
-        "(up-build place-point 0 c: mill)",
+        "(up-build place-point gl-no-escrow-state c: mill)",
         "(set-goal gl-opening-mill-requested YES)",
         "(set-goal gl-opening-mill-placement-attempts 1)",
         "(up-set-timer c: t-opening-mill c: 30)",
@@ -5564,7 +5564,7 @@
         {
           "index": 5,
           "id": 1220,
-          "command": "(up-build place-point 0 c: mill)",
+          "command": "(up-build place-point gl-no-escrow-state c: mill)",
           "indirect": true,
           "args": [
             -2,
@@ -5575,9 +5575,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-opening-mill-state OPENING-MILL-PLACE)\n\t(goal gl-opening-mill-placement-attempts 0)\n\t(can-afford-building mill)\n=>\n\t(up-copy-point point2-x gl-opening-mill-target-x)\n\t(up-modify-goal point2-x c:+ 4)\n\t(up-modify-goal point2-y c:+ 4)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point 0 c: mill)\n\t(set-goal gl-opening-mill-requested YES)\n\t(set-goal gl-opening-mill-placement-attempts 1)\n\t(up-set-timer c: t-opening-mill c: 30)\n\t(set-goal gl-opening-mill-state OPENING-MILL-WAIT)\n)\n",
-      "original_sha256": "0c35ba1a09e3b0da08042c1b55f4ccdd5b8730aa951511e6b29700f3f172c536",
-      "emitted_sha256": "2206d9e7344fa5ccb32513b2870aa8e883043de7386c2845a9dd77ef92db5a11"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-opening-mill-state OPENING-MILL-PLACE)\n\t(goal gl-opening-mill-placement-attempts 0)\n\t(can-afford-building mill)\n=>\n\t(up-copy-point point2-x gl-opening-mill-target-x)\n\t(up-modify-goal point2-x c:+ 4)\n\t(up-modify-goal point2-y c:+ 4)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point gl-no-escrow-state c: mill)\n\t(set-goal gl-opening-mill-requested YES)\n\t(set-goal gl-opening-mill-placement-attempts 1)\n\t(up-set-timer c: t-opening-mill c: 30)\n\t(set-goal gl-opening-mill-state OPENING-MILL-WAIT)\n)\n",
+      "original_sha256": "c1ebd19d3205f0940ee72fe04d962aa6ea8a421a85601f4068d722c2be384061",
+      "emitted_sha256": "e2bdf3fdb41d4a66b28b1855a3c85a2c95f5646d3d484bcc8d01410ce48da316"
     },
     {
       "id": 1221,
@@ -5591,7 +5591,7 @@
         "(up-modify-goal point2-y c:+ 4)",
         "(up-bound-point point3-x point2-x)",
         "(up-set-target-point point3-x)",
-        "(up-build place-point 0 c: mill)",
+        "(up-build place-point gl-no-escrow-state c: mill)",
         "(set-goal gl-opening-mill-requested YES)",
         "(set-goal gl-opening-mill-placement-attempts 2)",
         "(up-set-timer c: t-opening-mill c: 30)",
@@ -5601,7 +5601,7 @@
         {
           "index": 5,
           "id": 1221,
-          "command": "(up-build place-point 0 c: mill)",
+          "command": "(up-build place-point gl-no-escrow-state c: mill)",
           "indirect": true,
           "args": [
             -2,
@@ -5612,9 +5612,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-opening-mill-state OPENING-MILL-PLACE)\n\t(goal gl-opening-mill-placement-attempts 1)\n\t(can-afford-building mill)\n=>\n\t(up-copy-point point2-x gl-opening-mill-target-x)\n\t(up-modify-goal point2-x c:- 4)\n\t(up-modify-goal point2-y c:+ 4)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point 0 c: mill)\n\t(set-goal gl-opening-mill-requested YES)\n\t(set-goal gl-opening-mill-placement-attempts 2)\n\t(up-set-timer c: t-opening-mill c: 30)\n\t(set-goal gl-opening-mill-state OPENING-MILL-WAIT)\n)\n",
-      "original_sha256": "1f8fb797f0ddb952552db5e336eeb560d296b75353a3e52fd699cfa45d4f3ae5",
-      "emitted_sha256": "adb5d912c7bc6ad9870a068ead85aaff62374f8c92bb4bf27c04cb292509a605"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-opening-mill-state OPENING-MILL-PLACE)\n\t(goal gl-opening-mill-placement-attempts 1)\n\t(can-afford-building mill)\n=>\n\t(up-copy-point point2-x gl-opening-mill-target-x)\n\t(up-modify-goal point2-x c:- 4)\n\t(up-modify-goal point2-y c:+ 4)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point gl-no-escrow-state c: mill)\n\t(set-goal gl-opening-mill-requested YES)\n\t(set-goal gl-opening-mill-placement-attempts 2)\n\t(up-set-timer c: t-opening-mill c: 30)\n\t(set-goal gl-opening-mill-state OPENING-MILL-WAIT)\n)\n",
+      "original_sha256": "27478a02297c3f863383a23c1342e9e065c6ce3711cdb572803f5470a1b400ff",
+      "emitted_sha256": "531ab7ec124e4e6ffd16bae51d97fbda4d5c1078faaade1ab0bd2fcccac69f37"
     },
     {
       "id": 1222,
@@ -5628,7 +5628,7 @@
         "(up-modify-goal point2-y c:- 4)",
         "(up-bound-point point3-x point2-x)",
         "(up-set-target-point point3-x)",
-        "(up-build place-point 0 c: mill)",
+        "(up-build place-point gl-no-escrow-state c: mill)",
         "(set-goal gl-opening-mill-requested YES)",
         "(set-goal gl-opening-mill-placement-attempts 3)",
         "(up-set-timer c: t-opening-mill c: 30)",
@@ -5638,7 +5638,7 @@
         {
           "index": 5,
           "id": 1222,
-          "command": "(up-build place-point 0 c: mill)",
+          "command": "(up-build place-point gl-no-escrow-state c: mill)",
           "indirect": true,
           "args": [
             -2,
@@ -5649,9 +5649,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-opening-mill-state OPENING-MILL-PLACE)\n\t(goal gl-opening-mill-placement-attempts 2)\n\t(can-afford-building mill)\n=>\n\t(up-copy-point point2-x gl-opening-mill-target-x)\n\t(up-modify-goal point2-x c:+ 4)\n\t(up-modify-goal point2-y c:- 4)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point 0 c: mill)\n\t(set-goal gl-opening-mill-requested YES)\n\t(set-goal gl-opening-mill-placement-attempts 3)\n\t(up-set-timer c: t-opening-mill c: 30)\n\t(set-goal gl-opening-mill-state OPENING-MILL-WAIT)\n)\n",
-      "original_sha256": "76b35c3b2a0835f0255b966e3ff83ee4c2e0184f21c7c7b658f83a0b7052be0f",
-      "emitted_sha256": "5257b32a45ebc13fd5f57df82e1e261d02765ea2c8a4bda527032b8681ed0962"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-opening-mill-state OPENING-MILL-PLACE)\n\t(goal gl-opening-mill-placement-attempts 2)\n\t(can-afford-building mill)\n=>\n\t(up-copy-point point2-x gl-opening-mill-target-x)\n\t(up-modify-goal point2-x c:+ 4)\n\t(up-modify-goal point2-y c:- 4)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point gl-no-escrow-state c: mill)\n\t(set-goal gl-opening-mill-requested YES)\n\t(set-goal gl-opening-mill-placement-attempts 3)\n\t(up-set-timer c: t-opening-mill c: 30)\n\t(set-goal gl-opening-mill-state OPENING-MILL-WAIT)\n)\n",
+      "original_sha256": "a36bba5be7dd5032431eab7bbe3fb83eaac8841a9fd986d6d717de840f58fa8c",
+      "emitted_sha256": "6415dc1c1eff11bf49f77e2252f8f1fde832909dd58e96e3fee3d3e39e9b3922"
     },
     {
       "id": 1223,
@@ -5665,7 +5665,7 @@
         "(up-modify-goal point2-y c:- 4)",
         "(up-bound-point point3-x point2-x)",
         "(up-set-target-point point3-x)",
-        "(up-build place-point 0 c: mill)",
+        "(up-build place-point gl-no-escrow-state c: mill)",
         "(set-goal gl-opening-mill-requested YES)",
         "(set-goal gl-opening-mill-placement-attempts 4)",
         "(up-set-timer c: t-opening-mill c: 30)",
@@ -5675,7 +5675,7 @@
         {
           "index": 5,
           "id": 1223,
-          "command": "(up-build place-point 0 c: mill)",
+          "command": "(up-build place-point gl-no-escrow-state c: mill)",
           "indirect": true,
           "args": [
             -2,
@@ -5686,9 +5686,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-opening-mill-state OPENING-MILL-PLACE)\n\t(goal gl-opening-mill-placement-attempts 3)\n\t(can-afford-building mill)\n=>\n\t(up-copy-point point2-x gl-opening-mill-target-x)\n\t(up-modify-goal point2-x c:- 4)\n\t(up-modify-goal point2-y c:- 4)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point 0 c: mill)\n\t(set-goal gl-opening-mill-requested YES)\n\t(set-goal gl-opening-mill-placement-attempts 4)\n\t(up-set-timer c: t-opening-mill c: 30)\n\t(set-goal gl-opening-mill-state OPENING-MILL-WAIT)\n)\n",
-      "original_sha256": "fd78b509fa801bdfba55cc1eced5cdf5602b69db5ebc114e040c8ed1fe63c6cf",
-      "emitted_sha256": "69e5633f6bacddc3f0134efe113525d085b7049697fcb6a41fd0d8cbb0563f0f"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-opening-mill-state OPENING-MILL-PLACE)\n\t(goal gl-opening-mill-placement-attempts 3)\n\t(can-afford-building mill)\n=>\n\t(up-copy-point point2-x gl-opening-mill-target-x)\n\t(up-modify-goal point2-x c:- 4)\n\t(up-modify-goal point2-y c:- 4)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point gl-no-escrow-state c: mill)\n\t(set-goal gl-opening-mill-requested YES)\n\t(set-goal gl-opening-mill-placement-attempts 4)\n\t(up-set-timer c: t-opening-mill c: 30)\n\t(set-goal gl-opening-mill-state OPENING-MILL-WAIT)\n)\n",
+      "original_sha256": "06411a052c876d71a5c74aa142adfe441001bfe4c7bbb93f6c1915a33bce638c",
+      "emitted_sha256": "1429c5b81b7f368f1ed8a18263a915da476fa47c69481ffd0d810e012e55c026"
     },
     {
       "id": 1224,
@@ -5702,7 +5702,7 @@
         "(up-modify-goal point2-y c:+ 3)",
         "(up-bound-point point3-x point2-x)",
         "(up-set-target-point point3-x)",
-        "(up-build place-point 0 c: mining-camp)",
+        "(up-build place-point gl-no-escrow-state c: mining-camp)",
         "(set-goal gl-miningcamp-placement-attempts 1)",
         "(up-set-timer c: t-miningcamp-placement c: 30)",
         "(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)"
@@ -5711,7 +5711,7 @@
         {
           "index": 5,
           "id": 1224,
-          "command": "(up-build place-point 0 c: mining-camp)",
+          "command": "(up-build place-point gl-no-escrow-state c: mining-camp)",
           "indirect": true,
           "args": [
             -2,
@@ -5722,9 +5722,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-miningcamp-placement-state PLACEMENT-PLACE)\n\t(goal gl-miningcamp-placement-attempts 0)\n\t(can-afford-building mining-camp)\n=>\n\t(up-copy-point point2-x gl-miningcamp-target-x)\n\t(up-modify-goal point2-x c:+ 3)\n\t(up-modify-goal point2-y c:+ 3)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point 0 c: mining-camp)\n\t(set-goal gl-miningcamp-placement-attempts 1)\n\t(up-set-timer c: t-miningcamp-placement c: 30)\n\t(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)\n)\n",
-      "original_sha256": "ee62f35a63251f8f14f2c1354aee88337c7f2ee4b3c2fe25cef3f6cc6d4bdc3b",
-      "emitted_sha256": "3788af42f977229da4803edaaa1319dd6044d58cf3d7b42033042d9401a702ef"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-miningcamp-placement-state PLACEMENT-PLACE)\n\t(goal gl-miningcamp-placement-attempts 0)\n\t(can-afford-building mining-camp)\n=>\n\t(up-copy-point point2-x gl-miningcamp-target-x)\n\t(up-modify-goal point2-x c:+ 3)\n\t(up-modify-goal point2-y c:+ 3)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point gl-no-escrow-state c: mining-camp)\n\t(set-goal gl-miningcamp-placement-attempts 1)\n\t(up-set-timer c: t-miningcamp-placement c: 30)\n\t(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)\n)\n",
+      "original_sha256": "eabe3739992167205167b08f73d5314f360e9d9d82c6632ee18af05d3119620d",
+      "emitted_sha256": "8a315823eb08dc4c121cee6bef613bcb6b0dd6b4a5f342f95cfb567e3132224f"
     },
     {
       "id": 1225,
@@ -5738,7 +5738,7 @@
         "(up-modify-goal point2-y c:+ 3)",
         "(up-bound-point point3-x point2-x)",
         "(up-set-target-point point3-x)",
-        "(up-build place-point 0 c: mining-camp)",
+        "(up-build place-point gl-no-escrow-state c: mining-camp)",
         "(set-goal gl-miningcamp-placement-attempts 2)",
         "(up-set-timer c: t-miningcamp-placement c: 30)",
         "(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)"
@@ -5747,7 +5747,7 @@
         {
           "index": 5,
           "id": 1225,
-          "command": "(up-build place-point 0 c: mining-camp)",
+          "command": "(up-build place-point gl-no-escrow-state c: mining-camp)",
           "indirect": true,
           "args": [
             -2,
@@ -5758,9 +5758,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-miningcamp-placement-state PLACEMENT-PLACE)\n\t(goal gl-miningcamp-placement-attempts 1)\n\t(can-afford-building mining-camp)\n=>\n\t(up-copy-point point2-x gl-miningcamp-target-x)\n\t(up-modify-goal point2-x c:- 3)\n\t(up-modify-goal point2-y c:+ 3)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point 0 c: mining-camp)\n\t(set-goal gl-miningcamp-placement-attempts 2)\n\t(up-set-timer c: t-miningcamp-placement c: 30)\n\t(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)\n)\n",
-      "original_sha256": "ad478f9b28122116ce7a9ef2fa31a02660736dca5360a4f847f110f259258d9f",
-      "emitted_sha256": "073119082c000093e0e1039959ab9268a4812a8bf81eb3116e28a572f49fe66a"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-miningcamp-placement-state PLACEMENT-PLACE)\n\t(goal gl-miningcamp-placement-attempts 1)\n\t(can-afford-building mining-camp)\n=>\n\t(up-copy-point point2-x gl-miningcamp-target-x)\n\t(up-modify-goal point2-x c:- 3)\n\t(up-modify-goal point2-y c:+ 3)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point gl-no-escrow-state c: mining-camp)\n\t(set-goal gl-miningcamp-placement-attempts 2)\n\t(up-set-timer c: t-miningcamp-placement c: 30)\n\t(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)\n)\n",
+      "original_sha256": "3021b4a5e53912f0e405d73faae6822543153d2a70717425c865f1dd1a776a15",
+      "emitted_sha256": "7004fc210991b2c9eb859b66447b0dac6dbe51eb20e31a76891e133957c0d30e"
     },
     {
       "id": 1226,
@@ -5774,7 +5774,7 @@
         "(up-modify-goal point2-y c:- 3)",
         "(up-bound-point point3-x point2-x)",
         "(up-set-target-point point3-x)",
-        "(up-build place-point 0 c: mining-camp)",
+        "(up-build place-point gl-no-escrow-state c: mining-camp)",
         "(set-goal gl-miningcamp-placement-attempts 3)",
         "(up-set-timer c: t-miningcamp-placement c: 30)",
         "(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)"
@@ -5783,7 +5783,7 @@
         {
           "index": 5,
           "id": 1226,
-          "command": "(up-build place-point 0 c: mining-camp)",
+          "command": "(up-build place-point gl-no-escrow-state c: mining-camp)",
           "indirect": true,
           "args": [
             -2,
@@ -5794,9 +5794,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-miningcamp-placement-state PLACEMENT-PLACE)\n\t(goal gl-miningcamp-placement-attempts 2)\n\t(can-afford-building mining-camp)\n=>\n\t(up-copy-point point2-x gl-miningcamp-target-x)\n\t(up-modify-goal point2-x c:+ 3)\n\t(up-modify-goal point2-y c:- 3)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point 0 c: mining-camp)\n\t(set-goal gl-miningcamp-placement-attempts 3)\n\t(up-set-timer c: t-miningcamp-placement c: 30)\n\t(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)\n)\n",
-      "original_sha256": "e73a31acf5f890005e2d4c7268b1faefcc3b45b2f8b9c8b43e3fc1115dd5c0bc",
-      "emitted_sha256": "5d400db7715283ec0c45b1dbf03beaf2bf5ad7eadb67aa1d0f3292b643bbb765"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-miningcamp-placement-state PLACEMENT-PLACE)\n\t(goal gl-miningcamp-placement-attempts 2)\n\t(can-afford-building mining-camp)\n=>\n\t(up-copy-point point2-x gl-miningcamp-target-x)\n\t(up-modify-goal point2-x c:+ 3)\n\t(up-modify-goal point2-y c:- 3)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point gl-no-escrow-state c: mining-camp)\n\t(set-goal gl-miningcamp-placement-attempts 3)\n\t(up-set-timer c: t-miningcamp-placement c: 30)\n\t(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)\n)\n",
+      "original_sha256": "72af5818d1796367db82c251cc73db5c672e28d92c0bc77b517a99fe14b434a6",
+      "emitted_sha256": "7671ba7242c0064b870cb38daeb200844c0e588d87b19aefa7e89017938ab2bc"
     },
     {
       "id": 1227,
@@ -5810,7 +5810,7 @@
         "(up-modify-goal point2-y c:- 3)",
         "(up-bound-point point3-x point2-x)",
         "(up-set-target-point point3-x)",
-        "(up-build place-point 0 c: mining-camp)",
+        "(up-build place-point gl-no-escrow-state c: mining-camp)",
         "(set-goal gl-miningcamp-placement-attempts 4)",
         "(up-set-timer c: t-miningcamp-placement c: 30)",
         "(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)"
@@ -5819,7 +5819,7 @@
         {
           "index": 5,
           "id": 1227,
-          "command": "(up-build place-point 0 c: mining-camp)",
+          "command": "(up-build place-point gl-no-escrow-state c: mining-camp)",
           "indirect": true,
           "args": [
             -2,
@@ -5830,9 +5830,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-miningcamp-placement-state PLACEMENT-PLACE)\n\t(goal gl-miningcamp-placement-attempts 3)\n\t(can-afford-building mining-camp)\n=>\n\t(up-copy-point point2-x gl-miningcamp-target-x)\n\t(up-modify-goal point2-x c:- 3)\n\t(up-modify-goal point2-y c:- 3)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point 0 c: mining-camp)\n\t(set-goal gl-miningcamp-placement-attempts 4)\n\t(up-set-timer c: t-miningcamp-placement c: 30)\n\t(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)\n)\n",
-      "original_sha256": "d32038b98c25ac74b8570e04a8028da08bf4cf1d5cb9a6fc8c7bfeca2cb0721c",
-      "emitted_sha256": "feba58cc87b7b51e356bff5b501e1b885c0fb0c06069fe6576f27c0f4fe4bd57"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-miningcamp-placement-state PLACEMENT-PLACE)\n\t(goal gl-miningcamp-placement-attempts 3)\n\t(can-afford-building mining-camp)\n=>\n\t(up-copy-point point2-x gl-miningcamp-target-x)\n\t(up-modify-goal point2-x c:- 3)\n\t(up-modify-goal point2-y c:- 3)\n\t(up-bound-point point3-x point2-x)\n\t(up-set-target-point point3-x)\n\t(up-build place-point gl-no-escrow-state c: mining-camp)\n\t(set-goal gl-miningcamp-placement-attempts 4)\n\t(up-set-timer c: t-miningcamp-placement c: 30)\n\t(set-goal gl-miningcamp-placement-state PLACEMENT-WAIT)\n)\n",
+      "original_sha256": "da5c1d69a2667fac9b09add5b2790d7bceecb121a0e76a2429a1de9f50e70d5d",
+      "emitted_sha256": "6e70d71a0c0798222a055dc4f7f34731760d4101ed7799afa7d235e85d546aff"
     },
     {
       "id": 1228,
@@ -5917,15 +5917,15 @@
       "file": "rawai-homebase.per",
       "line": 3972,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(can-afford-building barracks)\n\t(goal wait-techup-requirements NO)\n\t(goal gl-opening-drop-sites-ready YES)\n\t(building-type-count-total barracks g:< desired-number-barracks)\n\t\t\t(building-type-count lumber-camp >= 1)\n\t(building-type-count mill >= 1)\n\t(up-pending-objects c: lumber-camp <= 0)\n\t(up-pending-objects c: mill <= 0)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(or\n\t\t\t\t(building-type-count-total archery-range g:< desired-number-ranges)\n\t\t\t\t(or\n\t\t\t\t\t(building-type-count-total stable g:< desired-number-stables)\n\t\t\t\t\t(or\n\t\t\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t\t\t(goal rush-rushing YES)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(up-can-build 0 c: barracks)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(can-afford-building barracks)\n\t(goal wait-techup-requirements NO)\n\t(goal gl-opening-drop-sites-ready YES)\n\t(building-type-count-total barracks g:< desired-number-barracks)\n\t\t\t(building-type-count lumber-camp >= 1)\n\t(building-type-count mill >= 1)\n\t(up-pending-objects c: lumber-camp <= 0)\n\t(up-pending-objects c: mill <= 0)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(or\n\t\t\t\t(building-type-count-total archery-range g:< desired-number-ranges)\n\t\t\t\t(or\n\t\t\t\t\t(building-type-count-total stable g:< desired-number-stables)\n\t\t\t\t\t(or\n\t\t\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t\t\t(goal rush-rushing YES)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(up-can-build gl-no-escrow-state c: barracks)",
       "actions": [
-        "(up-build place-normal 0 c: barracks)"
+        "(up-build place-normal gl-no-escrow-state c: barracks)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1230,
-          "command": "(up-build place-normal 0 c: barracks)",
+          "command": "(up-build place-normal gl-no-escrow-state c: barracks)",
           "indirect": true,
           "args": [
             -2,
@@ -5936,25 +5936,25 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(can-afford-building barracks)\n\t(goal wait-techup-requirements NO)\n\t(goal gl-opening-drop-sites-ready YES)\n\t(building-type-count-total barracks g:< desired-number-barracks)\n\t;Non-total counts exclude queued buildings, and pending checks keep a live\n\t;foundation from satisfying the prerequisite.\n\t(building-type-count lumber-camp >= 1)\n\t(building-type-count mill >= 1)\n\t(up-pending-objects c: lumber-camp <= 0)\n\t(up-pending-objects c: mill <= 0)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(or\n\t\t\t\t(building-type-count-total archery-range g:< desired-number-ranges)\n\t\t\t\t(or\n\t\t\t\t\t(building-type-count-total stable g:< desired-number-stables)\n\t\t\t\t\t(or\n\t\t\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t\t\t(goal rush-rushing YES)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(up-can-build 0 c: barracks)\n=>\n\t(up-build place-normal 0 c: barracks))\n",
-      "original_sha256": "9bae5c85d8f73f0428dff4a17cb7281026b59f7d5b2516eab3afa733a872fc93",
-      "emitted_sha256": "48d87689ac6d632f2efeaa78a7df256b913070530732a8a07e7a1a7c832413cc"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(can-afford-building barracks)\n\t(goal wait-techup-requirements NO)\n\t(goal gl-opening-drop-sites-ready YES)\n\t(building-type-count-total barracks g:< desired-number-barracks)\n\t;Non-total counts exclude queued buildings, and pending checks keep a live\n\t;foundation from satisfying the prerequisite.\n\t(building-type-count lumber-camp >= 1)\n\t(building-type-count mill >= 1)\n\t(up-pending-objects c: lumber-camp <= 0)\n\t(up-pending-objects c: mill <= 0)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(or\n\t\t\t\t(building-type-count-total archery-range g:< desired-number-ranges)\n\t\t\t\t(or\n\t\t\t\t\t(building-type-count-total stable g:< desired-number-stables)\n\t\t\t\t\t(or\n\t\t\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t\t\t(goal rush-rushing YES)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(up-can-build gl-no-escrow-state c: barracks)\n=>\n\t(up-build place-normal gl-no-escrow-state c: barracks))\n",
+      "original_sha256": "03d2b38949de1dff01be04ee9687ff7852f5cee2549e47a37ebef4e864e83680",
+      "emitted_sha256": "4d437b3c4429828e7203147a557e602d831120ba73e71ba3989de7d04af1ebd0"
     },
     {
       "id": 1231,
       "file": "rawai-homebase.per",
       "line": 4008,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(goal gl-local-threat-active YES)\n\t(building-type-count-total barracks < 1)\n\t(up-pending-objects c: barracks <= 0)\n\t(not (up-pending-placement c: barracks))\n\t(can-afford-building barracks)\n\t(up-can-build 0 c: barracks)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(goal gl-local-threat-active YES)\n\t(building-type-count-total barracks < 1)\n\t(up-pending-objects c: barracks <= 0)\n\t(not (up-pending-placement c: barracks))\n\t(can-afford-building barracks)\n\t(up-can-build gl-no-escrow-state c: barracks)",
       "actions": [
-        "(up-build place-normal 0 c: barracks)",
+        "(up-build place-normal gl-no-escrow-state c: barracks)",
         "(chat-local-to-self \"Emergency Barracks requested after local attack\")"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1231,
-          "command": "(up-build place-normal 0 c: barracks)",
+          "command": "(up-build place-normal gl-no-escrow-state c: barracks)",
           "indirect": true,
           "args": [
             -2,
@@ -5965,24 +5965,24 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(goal gl-local-threat-active YES)\n\t(building-type-count-total barracks < 1)\n\t(up-pending-objects c: barracks <= 0)\n\t(not (up-pending-placement c: barracks))\n\t(can-afford-building barracks)\n\t(up-can-build 0 c: barracks)\n=>\n\t(up-build place-normal 0 c: barracks)\n\t(chat-local-to-self \"Emergency Barracks requested after local attack\")\n)\n",
-      "original_sha256": "40e593b3363605f18f5afef71638af5f716df891aabf69e2132e2c2eab1dcc74",
-      "emitted_sha256": "b0cc19b0df096adf39ce82c64878bf4ddd63c3f6d24f0c519dbe754056656e45"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(goal gl-local-threat-active YES)\n\t(building-type-count-total barracks < 1)\n\t(up-pending-objects c: barracks <= 0)\n\t(not (up-pending-placement c: barracks))\n\t(can-afford-building barracks)\n\t(up-can-build gl-no-escrow-state c: barracks)\n=>\n\t(up-build place-normal gl-no-escrow-state c: barracks)\n\t(chat-local-to-self \"Emergency Barracks requested after local attack\")\n)\n",
+      "original_sha256": "cdb6e89ebba39d65d67d252a2c5bb645840f3b2a89fb69bb52ba78fbaf89a88c",
+      "emitted_sha256": "577e43b0885838f3cac8ae0a7a0706fd909ec9b4bbf71cea7132cb4496774253"
     },
     {
       "id": 1232,
       "file": "rawai-homebase.per",
       "line": 4036,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(goal wait-techup-requirements NO)\n\t(can-afford-building archery-range)\n\t(building-type-count-total barracks > 0)\n\t(building-type-count-total archery-range g:< desired-number-ranges)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(or (building-type-count town-center >= 2)\n\t\t\t    (and (building-type-count town-center >= 1)\n\t\t\t         (building-type-count-total archery-range < 1)))\n\t\t\t(or\n\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t(goal rush-rushing YES)\n\t\t\t)\n\t\t)\n\t)\n\t(up-can-build 0 c: archery-range)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(goal wait-techup-requirements NO)\n\t(can-afford-building archery-range)\n\t(building-type-count-total barracks > 0)\n\t(building-type-count-total archery-range g:< desired-number-ranges)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(or (building-type-count town-center >= 2)\n\t\t\t    (and (building-type-count town-center >= 1)\n\t\t\t         (building-type-count-total archery-range < 1)))\n\t\t\t(or\n\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t(goal rush-rushing YES)\n\t\t\t)\n\t\t)\n\t)\n\t(up-can-build gl-no-escrow-state c: archery-range)",
       "actions": [
-        "(up-build place-normal 0 c: archery-range)"
+        "(up-build place-normal gl-no-escrow-state c: archery-range)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1232,
-          "command": "(up-build place-normal 0 c: archery-range)",
+          "command": "(up-build place-normal gl-no-escrow-state c: archery-range)",
           "indirect": true,
           "args": [
             -2,
@@ -5993,24 +5993,24 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(goal wait-techup-requirements NO)\n\t(can-afford-building archery-range)\n\t(building-type-count-total barracks > 0)\n\t(building-type-count-total archery-range g:< desired-number-ranges)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(or (building-type-count town-center >= 2)\n\t\t\t    (and (building-type-count town-center >= 1)\n\t\t\t         (building-type-count-total archery-range < 1)))\n\t\t\t(or\n\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t(goal rush-rushing YES)\n\t\t\t)\n\t\t)\n\t)\n\t(up-can-build 0 c: archery-range)\n=>\n\t(up-build place-normal 0 c: archery-range))\n",
-      "original_sha256": "74ef66b2c78c560d549db8daf77d7df52d8874def0ef46f0e5803d7295290dd6",
-      "emitted_sha256": "da764c54e78b5fb5a1f358da85be688fcbd6c2cc23f735503b3e03524c153126"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(goal wait-techup-requirements NO)\n\t(can-afford-building archery-range)\n\t(building-type-count-total barracks > 0)\n\t(building-type-count-total archery-range g:< desired-number-ranges)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(or (building-type-count town-center >= 2)\n\t\t\t    (and (building-type-count town-center >= 1)\n\t\t\t         (building-type-count-total archery-range < 1)))\n\t\t\t(or\n\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t(goal rush-rushing YES)\n\t\t\t)\n\t\t)\n\t)\n\t(up-can-build gl-no-escrow-state c: archery-range)\n=>\n\t(up-build place-normal gl-no-escrow-state c: archery-range))\n",
+      "original_sha256": "c3d6b2d51605ff9aaba5802110e616744eef66ddbf889b2d9dd32558cb02c14c",
+      "emitted_sha256": "fb0e3160d1f16afa61aa7120d37e35981cdbc4c733d62dfe5985060a379267e1"
     },
     {
       "id": 1233,
       "file": "rawai-homebase.per",
       "line": 4059,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(goal wait-techup-requirements NO)\n\t(can-afford-building stable)\n\t(building-type-count-total barracks > 0)\n\t(building-type-count-total stable g:< desired-number-stables)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(or (building-type-count town-center >= 2)\n\t\t\t    (and (building-type-count town-center >= 1)\n\t\t\t         (building-type-count-total stable < 1)))\n\t\t\t(or\n\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t(goal rush-rushing YES)\n\t\t\t)\n\t\t)\n\t)\n\t(up-can-build 0 c: stable)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(goal wait-techup-requirements NO)\n\t(can-afford-building stable)\n\t(building-type-count-total barracks > 0)\n\t(building-type-count-total stable g:< desired-number-stables)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(or (building-type-count town-center >= 2)\n\t\t\t    (and (building-type-count town-center >= 1)\n\t\t\t         (building-type-count-total stable < 1)))\n\t\t\t(or\n\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t(goal rush-rushing YES)\n\t\t\t)\n\t\t)\n\t)\n\t(up-can-build gl-no-escrow-state c: stable)",
       "actions": [
-        "(up-build place-normal 0 c: stable)"
+        "(up-build place-normal gl-no-escrow-state c: stable)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1233,
-          "command": "(up-build place-normal 0 c: stable)",
+          "command": "(up-build place-normal gl-no-escrow-state c: stable)",
           "indirect": true,
           "args": [
             -2,
@@ -6021,24 +6021,24 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(goal wait-techup-requirements NO)\n\t(can-afford-building stable)\n\t(building-type-count-total barracks > 0)\n\t(building-type-count-total stable g:< desired-number-stables)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(or (building-type-count town-center >= 2)\n\t\t\t    (and (building-type-count town-center >= 1)\n\t\t\t         (building-type-count-total stable < 1)))\n\t\t\t(or\n\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t(goal rush-rushing YES)\n\t\t\t)\n\t\t)\n\t)\n\t(up-can-build 0 c: stable)\n=>\n\t(up-build place-normal 0 c: stable))\n",
-      "original_sha256": "01d14be0dac29430cd9d80591f2d600d32427bb42594b1827d9b8bc209bc9819",
-      "emitted_sha256": "b97a4b695eed12ebbeb194e1d387ddf2039d18e2666c88f769fe4ab4f5216a81"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(goal wait-techup-requirements NO)\n\t(can-afford-building stable)\n\t(building-type-count-total barracks > 0)\n\t(building-type-count-total stable g:< desired-number-stables)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(or (building-type-count town-center >= 2)\n\t\t\t    (and (building-type-count town-center >= 1)\n\t\t\t         (building-type-count-total stable < 1)))\n\t\t\t(or\n\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t(goal rush-rushing YES)\n\t\t\t)\n\t\t)\n\t)\n\t(up-can-build gl-no-escrow-state c: stable)\n=>\n\t(up-build place-normal gl-no-escrow-state c: stable))\n",
+      "original_sha256": "7f0765af76b3a3944c928d29e86dce67d3a14614fa76e2eb6155ca3b18a18e02",
+      "emitted_sha256": "71ee667c3a4d61426c76856b5e0b3f0a08ebbcc230f1102d11259a9152fbe28f"
     },
     {
       "id": 1234,
       "file": "rawai-homebase.per",
       "line": 4082,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(goal wait-techup-requirements NO)\n\t(can-afford-building siege-workshop)\n\t(building-type-count-total siege-workshop g:< desired-number-workshops)\n\t(or\n\t\t(building-type-count town-center >= 2)\n\t\t(or\n\t\t\t(goal gl-home-defense-state YES)\n\t\t\t(goal rush-rushing YES)\n\t\t)\n\t)\n\t(up-can-build 0 c: siege-workshop)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(goal wait-techup-requirements NO)\n\t(can-afford-building siege-workshop)\n\t(building-type-count-total siege-workshop g:< desired-number-workshops)\n\t(or\n\t\t(building-type-count town-center >= 2)\n\t\t(or\n\t\t\t(goal gl-home-defense-state YES)\n\t\t\t(goal rush-rushing YES)\n\t\t)\n\t)\n\t(up-can-build gl-no-escrow-state c: siege-workshop)",
       "actions": [
-        "(up-build place-normal 0 c: siege-workshop)"
+        "(up-build place-normal gl-no-escrow-state c: siege-workshop)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1234,
-          "command": "(up-build place-normal 0 c: siege-workshop)",
+          "command": "(up-build place-normal gl-no-escrow-state c: siege-workshop)",
           "indirect": true,
           "args": [
             -2,
@@ -6049,24 +6049,24 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(goal wait-techup-requirements NO)\n\t(can-afford-building siege-workshop)\n\t(building-type-count-total siege-workshop g:< desired-number-workshops)\n\t(or\n\t\t(building-type-count town-center >= 2)\n\t\t(or\n\t\t\t(goal gl-home-defense-state YES)\n\t\t\t(goal rush-rushing YES)\n\t\t)\n\t)\n\t(up-can-build 0 c: siege-workshop)\n=>\n\t(up-build place-normal 0 c: siege-workshop))\n",
-      "original_sha256": "95cbcf57d9fe4187f0b4c4efdb9bae30f9f1e209d3438c1847217103f1437ee4",
-      "emitted_sha256": "11d25a94017c55de3db7ba4f7646399ece85e35076ca2368e53b4efd1c1c409a"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(goal wait-techup-requirements NO)\n\t(can-afford-building siege-workshop)\n\t(building-type-count-total siege-workshop g:< desired-number-workshops)\n\t(or\n\t\t(building-type-count town-center >= 2)\n\t\t(or\n\t\t\t(goal gl-home-defense-state YES)\n\t\t\t(goal rush-rushing YES)\n\t\t)\n\t)\n\t(up-can-build gl-no-escrow-state c: siege-workshop)\n=>\n\t(up-build place-normal gl-no-escrow-state c: siege-workshop))\n",
+      "original_sha256": "2db56bc02855e3a6d87e150f81e7d8b47466da4576dd7bc03d68e695624450b0",
+      "emitted_sha256": "e037b53ac68e493db7b61be236c9305f9f1528f243b81429cebac7e5d956d1ea"
     },
     {
       "id": 1235,
       "file": "rawai-homebase.per",
       "line": 4099,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(can-afford-building blacksmith)\n\t(building-type-count-total blacksmith g:< desired-number-blacksmiths)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(goal gl-home-defense-state YES)\n\t\t)\n\t)\n\t(up-can-build 0 c: blacksmith)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(can-afford-building blacksmith)\n\t(building-type-count-total blacksmith g:< desired-number-blacksmiths)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(goal gl-home-defense-state YES)\n\t\t)\n\t)\n\t(up-can-build gl-no-escrow-state c: blacksmith)",
       "actions": [
-        "(up-build place-normal 0 c: blacksmith)"
+        "(up-build place-normal gl-no-escrow-state c: blacksmith)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1235,
-          "command": "(up-build place-normal 0 c: blacksmith)",
+          "command": "(up-build place-normal gl-no-escrow-state c: blacksmith)",
           "indirect": true,
           "args": [
             -2,
@@ -6077,18 +6077,18 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(can-afford-building blacksmith)\n\t(building-type-count-total blacksmith g:< desired-number-blacksmiths)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(goal gl-home-defense-state YES)\n\t\t)\n\t)\n\t(up-can-build 0 c: blacksmith)\n=>\n\t(up-build place-normal 0 c: blacksmith)\n)\n",
-      "original_sha256": "cc0b59c23a991262c1a2cd343414bbfc75cc5ed96238f2e243c8d877c3273cd3",
-      "emitted_sha256": "a82a1b8b907dfa5ab7bf9b96be91d76f111a06f757228b436fd352d91f381e9d"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(can-afford-building blacksmith)\n\t(building-type-count-total blacksmith g:< desired-number-blacksmiths)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(goal gl-home-defense-state YES)\n\t\t)\n\t)\n\t(up-can-build gl-no-escrow-state c: blacksmith)\n=>\n\t(up-build place-normal gl-no-escrow-state c: blacksmith)\n)\n",
+      "original_sha256": "851d7183fc104c6406850f83735020a2e617afb56a8d5b64a3d561f101634ec6",
+      "emitted_sha256": "edd68f5d657d668b1e77e09f449ff5f352b11e58a8c0f1cfe6065c410c978c87"
     },
     {
       "id": 1236,
       "file": "rawai-homebase.per",
       "line": 4129,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(or\n\t\t(current-age == feudal-age)\n\t\t(and\n\t\t\t(current-age == castle-age)\n\t\t\t(or\n\t\t\t\t(building-type-count town-center >= 2)\n\t\t\t\t(or\n\t\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t\t(goal rush-rushing YES)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(goal gl-migration-placement-lock NO)\n\t(can-afford-building market)\n\t(building-type-count-total market == 0)\n\t(up-pending-objects c: market <= 0)\n\t(not (up-pending-placement c: market))\n\t(up-timer-status t-market-placement != timer-running)\n\t(up-compare-goal gl-market-placement-attempts c:< 3)\n\t(up-can-build 0 c: market)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(or\n\t\t(current-age == feudal-age)\n\t\t(and\n\t\t\t(current-age == castle-age)\n\t\t\t(or\n\t\t\t\t(building-type-count town-center >= 2)\n\t\t\t\t(or\n\t\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t\t(goal rush-rushing YES)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(goal gl-migration-placement-lock NO)\n\t(can-afford-building market)\n\t(building-type-count-total market == 0)\n\t(up-pending-objects c: market <= 0)\n\t(not (up-pending-placement c: market))\n\t(up-timer-status t-market-placement != timer-running)\n\t(up-compare-goal gl-market-placement-attempts c:< 3)\n\t(up-can-build gl-no-escrow-state c: market)",
       "actions": [
-        "(up-build place-normal 0 c: market)",
+        "(up-build place-normal gl-no-escrow-state c: market)",
         "(up-modify-goal gl-market-placement-attempts c:+ 1)",
         "(up-set-timer c: t-market-placement c: 30)"
       ],
@@ -6096,7 +6096,7 @@
         {
           "index": 0,
           "id": 1236,
-          "command": "(up-build place-normal 0 c: market)",
+          "command": "(up-build place-normal gl-no-escrow-state c: market)",
           "indirect": true,
           "args": [
             -2,
@@ -6107,20 +6107,20 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(or\n\t\t(current-age == feudal-age)\n\t\t(and\n\t\t\t(current-age == castle-age)\n\t\t\t(or\n\t\t\t\t(building-type-count town-center >= 2)\n\t\t\t\t(or\n\t\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t\t(goal rush-rushing YES)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(goal gl-migration-placement-lock NO)\n\t(can-afford-building market)\n\t(building-type-count-total market == 0)\n\t(up-pending-objects c: market <= 0)\n\t(not (up-pending-placement c: market))\n\t(up-timer-status t-market-placement != timer-running)\n\t(up-compare-goal gl-market-placement-attempts c:< 3)\n\t(up-can-build 0 c: market)\n=>\n\t(up-build place-normal 0 c: market)\n\t(up-modify-goal gl-market-placement-attempts c:+ 1)\n\t(up-set-timer c: t-market-placement c: 30)\n)\n",
-      "original_sha256": "7d0db0fcb9f3405f1e16be93cc0240f9218c789b8c03c856052a32940fc3b8e7",
-      "emitted_sha256": "9fc6ea4fef6b835cb3ae89597444ad76702aeb14eb4e3759578cbe5f02e4a195"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(or\n\t\t(current-age == feudal-age)\n\t\t(and\n\t\t\t(current-age == castle-age)\n\t\t\t(or\n\t\t\t\t(building-type-count town-center >= 2)\n\t\t\t\t(or\n\t\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t\t(goal rush-rushing YES)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(goal gl-migration-placement-lock NO)\n\t(can-afford-building market)\n\t(building-type-count-total market == 0)\n\t(up-pending-objects c: market <= 0)\n\t(not (up-pending-placement c: market))\n\t(up-timer-status t-market-placement != timer-running)\n\t(up-compare-goal gl-market-placement-attempts c:< 3)\n\t(up-can-build gl-no-escrow-state c: market)\n=>\n\t(up-build place-normal gl-no-escrow-state c: market)\n\t(up-modify-goal gl-market-placement-attempts c:+ 1)\n\t(up-set-timer c: t-market-placement c: 30)\n)\n",
+      "original_sha256": "5203e7ca09138ec7a1a0458bf16af69ee007db96e1ee45d576e8a160f8ec5de5",
+      "emitted_sha256": "53b3e8194a9388ed69c1fae15d54b0bde404c86a58686ed7a5d54d914866ad57"
     },
     {
       "id": 1237,
       "file": "rawai-homebase.per",
       "line": 4160,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(goal gl-migration-placement-lock NO)\n\t(or\n\t\t(current-age != castle-age)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(or\n\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t(goal rush-rushing YES)\n\t\t\t)\n\t\t)\n\t)\n\t(building-type-count-total market g:< desired-number-markets)\n\t(up-pending-objects c: market <= 0)\n\t(up-timer-status t-market-placement != timer-running)\n\t(up-compare-goal gl-market-placement-attempts c:>= 3)\n\t(up-can-build 0 c: market)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(goal gl-migration-placement-lock NO)\n\t(or\n\t\t(current-age != castle-age)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(or\n\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t(goal rush-rushing YES)\n\t\t\t)\n\t\t)\n\t)\n\t(building-type-count-total market g:< desired-number-markets)\n\t(up-pending-objects c: market <= 0)\n\t(up-timer-status t-market-placement != timer-running)\n\t(up-compare-goal gl-market-placement-attempts c:>= 3)\n\t(up-can-build gl-no-escrow-state c: market)",
       "actions": [
         "(up-reset-placement c: market)",
         "(up-set-placement-data my-player-number -1 c: 12)",
-        "(up-build place-control 0 c: market)",
+        "(up-build place-control gl-no-escrow-state c: market)",
         "(set-goal gl-market-placement-attempts 0)",
         "(up-set-timer c: t-market-placement c: 180)"
       ],
@@ -6128,7 +6128,7 @@
         {
           "index": 2,
           "id": 1237,
-          "command": "(up-build place-control 0 c: market)",
+          "command": "(up-build place-control gl-no-escrow-state c: market)",
           "indirect": true,
           "args": [
             -2,
@@ -6139,18 +6139,18 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(goal gl-migration-placement-lock NO)\n\t(or\n\t\t(current-age != castle-age)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(or\n\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t(goal rush-rushing YES)\n\t\t\t)\n\t\t)\n\t)\n\t(building-type-count-total market g:< desired-number-markets)\n\t(up-pending-objects c: market <= 0)\n\t(up-timer-status t-market-placement != timer-running)\n\t(up-compare-goal gl-market-placement-attempts c:>= 3)\n\t(up-can-build 0 c: market)\n=>\n\t(up-reset-placement c: market)\n\t(up-set-placement-data my-player-number -1 c: 12)\n\t(up-build place-control 0 c: market)\n\t(set-goal gl-market-placement-attempts 0)\n\t(up-set-timer c: t-market-placement c: 180)\n)\n",
-      "original_sha256": "294a4cf5910df4a687329c1994d0394e0ee965f10047f2e7f0d0db588bf5de8b",
-      "emitted_sha256": "c92502e18c1ecbc2ed4864f447d9184d12e36b89e67bfd5a254f6b0915026a88"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(goal gl-migration-placement-lock NO)\n\t(or\n\t\t(current-age != castle-age)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(or\n\t\t\t\t(goal gl-home-defense-state YES)\n\t\t\t\t(goal rush-rushing YES)\n\t\t\t)\n\t\t)\n\t)\n\t(building-type-count-total market g:< desired-number-markets)\n\t(up-pending-objects c: market <= 0)\n\t(up-timer-status t-market-placement != timer-running)\n\t(up-compare-goal gl-market-placement-attempts c:>= 3)\n\t(up-can-build gl-no-escrow-state c: market)\n=>\n\t(up-reset-placement c: market)\n\t(up-set-placement-data my-player-number -1 c: 12)\n\t(up-build place-control gl-no-escrow-state c: market)\n\t(set-goal gl-market-placement-attempts 0)\n\t(up-set-timer c: t-market-placement c: 180)\n)\n",
+      "original_sha256": "a27679d7a82cdf5b79789d8e2c03b2ff9ac027870f85fdc265b2caae7f284301",
+      "emitted_sha256": "49fe607a3de2d647eff7cf99e907ea32b0de6422099f9fb21171f1d556c788be"
     },
     {
       "id": 1238,
       "file": "rawai-homebase.per",
       "line": 4194,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age == imperial-age)\n\t(goal gl-migration-placement-lock NO)\n\t(can-afford-building market)\n\t(building-type-count-total market g:< desired-number-markets)\n\t(up-pending-objects c: market <= 0)\n\t(not (up-pending-placement c: market))\n\t(up-timer-status t-market-placement != timer-running)\n\t(up-compare-goal gl-market-placement-attempts c:< 3)\n\t(up-can-build 0 c: market)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age == imperial-age)\n\t(goal gl-migration-placement-lock NO)\n\t(can-afford-building market)\n\t(building-type-count-total market g:< desired-number-markets)\n\t(up-pending-objects c: market <= 0)\n\t(not (up-pending-placement c: market))\n\t(up-timer-status t-market-placement != timer-running)\n\t(up-compare-goal gl-market-placement-attempts c:< 3)\n\t(up-can-build gl-no-escrow-state c: market)",
       "actions": [
-        "(up-build place-normal 0 c: market)",
+        "(up-build place-normal gl-no-escrow-state c: market)",
         "(up-modify-goal gl-market-placement-attempts c:+ 1)",
         "(up-set-timer c: t-market-placement c: 30)"
       ],
@@ -6158,7 +6158,7 @@
         {
           "index": 0,
           "id": 1238,
-          "command": "(up-build place-normal 0 c: market)",
+          "command": "(up-build place-normal gl-no-escrow-state c: market)",
           "indirect": true,
           "args": [
             -2,
@@ -6169,24 +6169,24 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age == imperial-age)\n\t(goal gl-migration-placement-lock NO)\n\t(can-afford-building market)\n\t(building-type-count-total market g:< desired-number-markets)\n\t(up-pending-objects c: market <= 0)\n\t(not (up-pending-placement c: market))\n\t(up-timer-status t-market-placement != timer-running)\n\t(up-compare-goal gl-market-placement-attempts c:< 3)\n\t(up-can-build 0 c: market)\n=>\n\t(up-build place-normal 0 c: market)\n\t(up-modify-goal gl-market-placement-attempts c:+ 1)\n\t(up-set-timer c: t-market-placement c: 30)\n)\n",
-      "original_sha256": "cc0f4c9a905a68a97244ff0f2cb9d92784de20fcdccbf3846890eafd97797eeb",
-      "emitted_sha256": "e92fc2009ea8f3181e12d6032b3335b64b3f91fb98a4ab200ec9d980ff01efd2"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age == imperial-age)\n\t(goal gl-migration-placement-lock NO)\n\t(can-afford-building market)\n\t(building-type-count-total market g:< desired-number-markets)\n\t(up-pending-objects c: market <= 0)\n\t(not (up-pending-placement c: market))\n\t(up-timer-status t-market-placement != timer-running)\n\t(up-compare-goal gl-market-placement-attempts c:< 3)\n\t(up-can-build gl-no-escrow-state c: market)\n=>\n\t(up-build place-normal gl-no-escrow-state c: market)\n\t(up-modify-goal gl-market-placement-attempts c:+ 1)\n\t(up-set-timer c: t-market-placement c: 30)\n)\n",
+      "original_sha256": "b24f7810602724a0363c2e319d919b7b77cc8cc5c900d7daf8c4c4ea3ac1ee03",
+      "emitted_sha256": "fa33cc01f218369c42f1851be3143da721ea344d3de6fec05d03b58fc48969c5"
     },
     {
       "id": 1239,
       "file": "rawai-homebase.per",
       "line": 4211,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(can-afford-building dock)\n\t(goal wait-techup-requirements NO)\n\t(or\n\t\t(goal map-type LAKE)\n\t\t(or\n\t\t\t(goal map-type RIVERS)\n\t\t\t(or\n\t\t\t\t(goal map-type ISLANDS)\n\t\t\t\t(goal map-type TEAM-ISLANDS)\n\t\t\t)\n\t\t)\n\t)\n\t(building-type-count-total dock g:< desired-number-docks)\n\t(building-type-count-total lumber-camp >= 1)\n\t(up-can-build 0 c: dock)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(can-afford-building dock)\n\t(goal wait-techup-requirements NO)\n\t(or\n\t\t(goal map-type LAKE)\n\t\t(or\n\t\t\t(goal map-type RIVERS)\n\t\t\t(or\n\t\t\t\t(goal map-type ISLANDS)\n\t\t\t\t(goal map-type TEAM-ISLANDS)\n\t\t\t)\n\t\t)\n\t)\n\t(building-type-count-total dock g:< desired-number-docks)\n\t(building-type-count-total lumber-camp >= 1)\n\t(up-can-build gl-no-escrow-state c: dock)",
       "actions": [
-        "(up-build place-normal 0 c: dock)"
+        "(up-build place-normal gl-no-escrow-state c: dock)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1239,
-          "command": "(up-build place-normal 0 c: dock)",
+          "command": "(up-build place-normal gl-no-escrow-state c: dock)",
           "indirect": true,
           "args": [
             -2,
@@ -6197,24 +6197,24 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(can-afford-building dock)\n\t(goal wait-techup-requirements NO)\n\t(or\n\t\t(goal map-type LAKE)\n\t\t(or\n\t\t\t(goal map-type RIVERS)\n\t\t\t(or\n\t\t\t\t(goal map-type ISLANDS)\n\t\t\t\t(goal map-type TEAM-ISLANDS)\n\t\t\t)\n\t\t)\n\t)\n\t(building-type-count-total dock g:< desired-number-docks)\n\t(building-type-count-total lumber-camp >= 1)\n\t(up-can-build 0 c: dock)\n=>\n\t(up-build place-normal 0 c: dock)\n)\n",
-      "original_sha256": "d5c6176e87bf76fc6d8a8e42b37d82213aa47ffa9dfec18af524a0a566ff83b7",
-      "emitted_sha256": "9ef638fbab917f7fdf60ca093d1fb09e05351dd73625d6109dbc0ae53e197c7f"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(can-afford-building dock)\n\t(goal wait-techup-requirements NO)\n\t(or\n\t\t(goal map-type LAKE)\n\t\t(or\n\t\t\t(goal map-type RIVERS)\n\t\t\t(or\n\t\t\t\t(goal map-type ISLANDS)\n\t\t\t\t(goal map-type TEAM-ISLANDS)\n\t\t\t)\n\t\t)\n\t)\n\t(building-type-count-total dock g:< desired-number-docks)\n\t(building-type-count-total lumber-camp >= 1)\n\t(up-can-build gl-no-escrow-state c: dock)\n=>\n\t(up-build place-normal gl-no-escrow-state c: dock)\n)\n",
+      "original_sha256": "e7fd82619f28be8e1dc61cf34ee7c8bb495b249faecb592da04cc48eb1bf0e8d",
+      "emitted_sha256": "97b0ce509dbe571cc4bd5ba90c089ff32518c50eab9072919d5a97a07acacd4a"
     },
     {
       "id": 1240,
       "file": "rawai-homebase.per",
       "line": 4232,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(can-afford-building university)\n\t(building-type-count-total university g:< desired-number-universities)\n\t(up-pending-objects c: university <= 0)\n\t(not (up-pending-placement c: university))\n\t(up-can-build 0 c: university)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(can-afford-building university)\n\t(building-type-count-total university g:< desired-number-universities)\n\t(up-pending-objects c: university <= 0)\n\t(not (up-pending-placement c: university))\n\t(up-can-build gl-no-escrow-state c: university)",
       "actions": [
-        "(up-build place-normal 0 c: university)"
+        "(up-build place-normal gl-no-escrow-state c: university)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1240,
-          "command": "(up-build place-normal 0 c: university)",
+          "command": "(up-build place-normal gl-no-escrow-state c: university)",
           "indirect": true,
           "args": [
             -2,
@@ -6225,24 +6225,24 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(can-afford-building university)\n\t(building-type-count-total university g:< desired-number-universities)\n\t(up-pending-objects c: university <= 0)\n\t(not (up-pending-placement c: university))\n\t(up-can-build 0 c: university)\n=>\n\t(up-build place-normal 0 c: university))\n",
-      "original_sha256": "fcfc0b938210a706353107447d52cf57358f936b22ad1f75ea9573585cc1f708",
-      "emitted_sha256": "c1162bb91f38089332d12da84bc60753dd6d5cea062cf8512daad5c5de3da0e0"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(can-afford-building university)\n\t(building-type-count-total university g:< desired-number-universities)\n\t(up-pending-objects c: university <= 0)\n\t(not (up-pending-placement c: university))\n\t(up-can-build gl-no-escrow-state c: university)\n=>\n\t(up-build place-normal gl-no-escrow-state c: university))\n",
+      "original_sha256": "4c37004989aa4c7e3bae5a5ebe531c167b3cd4e7ca8356e5dd3e495a68c4cd59",
+      "emitted_sha256": "3a9179d6e7a459c9321ffa3d253ba8142230a61546bc0800230fa4cfbd17ed75"
     },
     {
       "id": 1241,
       "file": "rawai-homebase.per",
       "line": 4243,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(or\n\t\t(building-type-count-total monastery < 1)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(game-time >= 990)\n\t\t)\n\t)\n\t(can-afford-building monastery)\n\t(building-type-count-total monastery g:< desired-number-monasteries)\n\t(up-pending-objects c: monastery <= 0)\n\t(not (up-pending-placement c: monastery))\n\t(up-can-build 0 c: monastery)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(or\n\t\t(building-type-count-total monastery < 1)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(game-time >= 990)\n\t\t)\n\t)\n\t(can-afford-building monastery)\n\t(building-type-count-total monastery g:< desired-number-monasteries)\n\t(up-pending-objects c: monastery <= 0)\n\t(not (up-pending-placement c: monastery))\n\t(up-can-build gl-no-escrow-state c: monastery)",
       "actions": [
-        "(up-build place-normal 0 c: monastery)"
+        "(up-build place-normal gl-no-escrow-state c: monastery)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1241,
-          "command": "(up-build place-normal 0 c: monastery)",
+          "command": "(up-build place-normal gl-no-escrow-state c: monastery)",
           "indirect": true,
           "args": [
             -2,
@@ -6253,18 +6253,18 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(or\n\t\t(building-type-count-total monastery < 1)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(game-time >= 990)\n\t\t)\n\t)\n\t(can-afford-building monastery)\n\t(building-type-count-total monastery g:< desired-number-monasteries)\n\t(up-pending-objects c: monastery <= 0)\n\t(not (up-pending-placement c: monastery))\n\t(up-can-build 0 c: monastery)\n=>\n\t(up-build place-normal 0 c: monastery)\n)\n",
-      "original_sha256": "d95b6f208ae9049d260f85080ba82a721ffbb044742e2bdb67e380d08d9db413",
-      "emitted_sha256": "98b4b2713fc75ea63221033fc98c964a0468d5e6d96ec40f6968283176dfacaa"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(or\n\t\t(building-type-count-total monastery < 1)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(game-time >= 990)\n\t\t)\n\t)\n\t(can-afford-building monastery)\n\t(building-type-count-total monastery g:< desired-number-monasteries)\n\t(up-pending-objects c: monastery <= 0)\n\t(not (up-pending-placement c: monastery))\n\t(up-can-build gl-no-escrow-state c: monastery)\n=>\n\t(up-build place-normal gl-no-escrow-state c: monastery)\n)\n",
+      "original_sha256": "83dc7370fb1ef1e2e9da414d3c8ce0151fe7e4316ba49329f56daaa1187d2150",
+      "emitted_sha256": "a8ec73eefabb55be92d0c114332fc48d7d0e617a9d8cd1874298daeccc2a9fe4"
     },
     {
       "id": 1242,
       "file": "rawai-homebase.per",
       "line": 4262,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t\t(or (building-type-count town-center >= 2)\n\t    (and (building-type-count town-center >= 1)\n\t         (building-type-count-total castle < 1)))\n\t(goal gl-migration-placement-lock NO)\n\t(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)\n\t(up-compare-goal gl-game-time g:>= gl-castle-request-next)\n\t(can-afford-building castle)\n\t(building-type-count-total castle g:< desired-number-castles)\n\t(up-pending-objects c: castle <= 0)\n\t(not (up-pending-placement c: castle))\n\t(up-can-build 0 c: castle)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t\t(or (building-type-count town-center >= 2)\n\t    (and (building-type-count town-center >= 1)\n\t         (building-type-count-total castle < 1)))\n\t(goal gl-migration-placement-lock NO)\n\t(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)\n\t(up-compare-goal gl-game-time g:>= gl-castle-request-next)\n\t(can-afford-building castle)\n\t(building-type-count-total castle g:< desired-number-castles)\n\t(up-pending-objects c: castle <= 0)\n\t(not (up-pending-placement c: castle))\n\t(up-can-build gl-no-escrow-state c: castle)",
       "actions": [
-        "(up-build place-normal 0 c: castle)",
+        "(up-build place-normal gl-no-escrow-state c: castle)",
         "(up-modify-goal gl-castle-request-next g:= gl-game-time)",
         "(up-modify-goal gl-castle-request-next c:+ 30)"
       ],
@@ -6272,7 +6272,7 @@
         {
           "index": 0,
           "id": 1242,
-          "command": "(up-build place-normal 0 c: castle)",
+          "command": "(up-build place-normal gl-no-escrow-state c: castle)",
           "indirect": true,
           "args": [
             -2,
@@ -6283,24 +6283,24 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t;Match the first-Fortress admission used by placement-pressure recovery.\n\t(or (building-type-count town-center >= 2)\n\t    (and (building-type-count town-center >= 1)\n\t         (building-type-count-total castle < 1)))\n\t(goal gl-migration-placement-lock NO)\n\t(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)\n\t(up-compare-goal gl-game-time g:>= gl-castle-request-next)\n\t(can-afford-building castle)\n\t(building-type-count-total castle g:< desired-number-castles)\n\t(up-pending-objects c: castle <= 0)\n\t(not (up-pending-placement c: castle))\n\t(up-can-build 0 c: castle)\n=>\n\t;Normal placement may choose another valid point after a crowded location\n\t;fails. A dedicated cadence prevents hundreds of identical BUILD requests.\n\t(up-build place-normal 0 c: castle)\n\t(up-modify-goal gl-castle-request-next g:= gl-game-time)\n\t(up-modify-goal gl-castle-request-next c:+ 30)\n)\n",
-      "original_sha256": "60bc0f8d4e646229df95d51fd7fff2c1b31c7cd008495ff5e9899807ba4b1756",
-      "emitted_sha256": "b98248a6e67bbaf37299eadc06d0152563f8cf61069914073100a83cd6562669"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t;Match the first-Fortress admission used by placement-pressure recovery.\n\t(or (building-type-count town-center >= 2)\n\t    (and (building-type-count town-center >= 1)\n\t         (building-type-count-total castle < 1)))\n\t(goal gl-migration-placement-lock NO)\n\t(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)\n\t(up-compare-goal gl-game-time g:>= gl-castle-request-next)\n\t(can-afford-building castle)\n\t(building-type-count-total castle g:< desired-number-castles)\n\t(up-pending-objects c: castle <= 0)\n\t(not (up-pending-placement c: castle))\n\t(up-can-build gl-no-escrow-state c: castle)\n=>\n\t;Normal placement may choose another valid point after a crowded location\n\t;fails. A dedicated cadence prevents hundreds of identical BUILD requests.\n\t(up-build place-normal gl-no-escrow-state c: castle)\n\t(up-modify-goal gl-castle-request-next g:= gl-game-time)\n\t(up-modify-goal gl-castle-request-next c:+ 30)\n)\n",
+      "original_sha256": "b20af3ecd68313032dd39278a7b7675631865c40aaf3959fffcd63b95b94b7e0",
+      "emitted_sha256": "b38427423188997573fb808a3c38cbe4e8509bfce5c7fa29405c03a13511a4ce"
     },
     {
       "id": 1243,
       "file": "rawai-homebase.per",
       "line": 4285,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(building-type-count town-center >= 2)\n\t(can-afford-building outpost)\n\t(building-type-count-total outpost g:< desired-number-outposts)\n\t(up-can-build 0 c: outpost)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(building-type-count town-center >= 2)\n\t(can-afford-building outpost)\n\t(building-type-count-total outpost g:< desired-number-outposts)\n\t(up-can-build gl-no-escrow-state c: outpost)",
       "actions": [
-        "(up-build place-normal 0 c: outpost)"
+        "(up-build place-normal gl-no-escrow-state c: outpost)"
       ],
       "file_commands": [
         {
           "index": 0,
           "id": 1243,
-          "command": "(up-build place-normal 0 c: outpost)",
+          "command": "(up-build place-normal gl-no-escrow-state c: outpost)",
           "indirect": true,
           "args": [
             -2,
@@ -6311,16 +6311,16 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(building-type-count town-center >= 2)\n\t(can-afford-building outpost)\n\t(building-type-count-total outpost g:< desired-number-outposts)\n\t(up-can-build 0 c: outpost)\n=>\n\t(up-build place-normal 0 c: outpost))\n",
-      "original_sha256": "b3581a0f1cc028825f123e8b57156a8e1261e9c27c490981a1b9f12265889638",
-      "emitted_sha256": "daf758d01e86f7b32476f958dbb4d584cda7ba998e3a6ec8ecf7fb25c29571be"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= castle-age)\n\t(building-type-count town-center >= 2)\n\t(can-afford-building outpost)\n\t(building-type-count-total outpost g:< desired-number-outposts)\n\t(up-can-build gl-no-escrow-state c: outpost)\n=>\n\t(up-build place-normal gl-no-escrow-state c: outpost))\n",
+      "original_sha256": "f01b493112313c0bb3c37904bfe95285131a4c6024914a45d4922e715211f0f0",
+      "emitted_sha256": "12e351702f4363d7ab14550b31e7c0f1e931e7a2d53092550215df19a5022059"
     },
     {
       "id": 1244,
       "file": "rawai-homebase.per",
       "line": 4295,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(goal gl-home-defense-state YES)\n\t\t)\n\t)\n\t(can-afford-building watch-tower)\n\t(building-type-count-total watch-tower g:< desired-number-watchtowers)\n\t(up-can-build 0 c: watch-tower)\n\t(up-pending-objects c: watch-tower < 1)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(goal gl-home-defense-state YES)\n\t\t)\n\t)\n\t(can-afford-building watch-tower)\n\t(building-type-count-total watch-tower g:< desired-number-watchtowers)\n\t(up-can-build gl-no-escrow-state c: watch-tower)\n\t(up-pending-objects c: watch-tower < 1)",
       "actions": [
         "(up-get-fact building-type-count watch-tower gl-number-watchtowers)",
         "(up-modify-goal gl-watchtower-placement c:= 4)",
@@ -6328,13 +6328,13 @@
         "(up-modify-goal gl-watchtower-placement c:+ 4)",
         "(up-modify-goal gl-watchtower-placement s:min sn-maximum-town-size)",
         "(up-set-placement-data my-player-number -1 g: gl-watchtower-placement)",
-        "(up-build place-control 0 c: watch-tower)"
+        "(up-build place-control gl-no-escrow-state c: watch-tower)"
       ],
       "file_commands": [
         {
           "index": 6,
           "id": 1244,
-          "command": "(up-build place-control 0 c: watch-tower)",
+          "command": "(up-build place-control gl-no-escrow-state c: watch-tower)",
           "indirect": true,
           "args": [
             -2,
@@ -6345,9 +6345,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(goal gl-home-defense-state YES)\n\t\t)\n\t)\n\t(can-afford-building watch-tower)\n\t(building-type-count-total watch-tower g:< desired-number-watchtowers)\n\t(up-can-build 0 c: watch-tower)\n\t(up-pending-objects c: watch-tower < 1)\n=>\n\t(up-get-fact building-type-count watch-tower gl-number-watchtowers)\n\t\n\t(up-modify-goal gl-watchtower-placement c:= 4)\n\t(up-modify-goal gl-watchtower-placement g:* gl-number-watchtowers)\n\t(up-modify-goal gl-watchtower-placement c:+ 4)\n\t(up-modify-goal gl-watchtower-placement s:min sn-maximum-town-size)\n\t\n\t(up-set-placement-data my-player-number -1 g: gl-watchtower-placement)\n\t(up-build place-control 0 c: watch-tower)\n)\n",
-      "original_sha256": "f8d7098779deb042b363e3db499afcc5d79435f8b86b730b2c4035495d6097ef",
-      "emitted_sha256": "7a2d4986d8164cebbd36f02c4148e1abb38f2cf7e78aed2456e174b5cc96f112"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(current-age >= feudal-age)\n\t(or\n\t\t(current-age < castle-age)\n\t\t(or\n\t\t\t(building-type-count town-center >= 2)\n\t\t\t(goal gl-home-defense-state YES)\n\t\t)\n\t)\n\t(can-afford-building watch-tower)\n\t(building-type-count-total watch-tower g:< desired-number-watchtowers)\n\t(up-can-build gl-no-escrow-state c: watch-tower)\n\t(up-pending-objects c: watch-tower < 1)\n=>\n\t(up-get-fact building-type-count watch-tower gl-number-watchtowers)\n\t\n\t(up-modify-goal gl-watchtower-placement c:= 4)\n\t(up-modify-goal gl-watchtower-placement g:* gl-number-watchtowers)\n\t(up-modify-goal gl-watchtower-placement c:+ 4)\n\t(up-modify-goal gl-watchtower-placement s:min sn-maximum-town-size)\n\t\n\t(up-set-placement-data my-player-number -1 g: gl-watchtower-placement)\n\t(up-build place-control gl-no-escrow-state c: watch-tower)\n)\n",
+      "original_sha256": "cc3a02dd9cb9b5a4786f0a16179aea05c0a8179927286b4eb4dc37bf20ff242d",
+      "emitted_sha256": "baca4d934ef79c66cb046ad9d07d613dcf08888d9c66ed839045ffb722c7ae32"
     },
     {
       "id": 1245,
@@ -6624,16 +6624,16 @@
       "file": "rawai-homebase.per",
       "line": 4793,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-farm-placement-suspended NO)\n\t(current-age >= feudal-age)\n\t(wood-amount > 150)\n\t(up-compare-goal gl-farm-build-target > 0)\n\t(and\n\t\t(building-type-count mill >= 1)\n\t\t(building-type-count farm == 0)\n\t)\n\t\t(building-type-count farm < gl-farm-build-target)\n\t(up-can-build 0 c: farm)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-farm-placement-suspended NO)\n\t(current-age >= feudal-age)\n\t(wood-amount > 150)\n\t(up-compare-goal gl-farm-build-target > 0)\n\t(and\n\t\t(building-type-count mill >= 1)\n\t\t(building-type-count farm == 0)\n\t)\n\t\t(building-type-count farm < gl-farm-build-target)\n\t(up-can-build gl-no-escrow-state c: farm)",
       "actions": [
         "(chat-local-to-self \"fallback farm placement\")",
-        "(up-build place-normal 0 c: farm)"
+        "(up-build place-normal gl-no-escrow-state c: farm)"
       ],
       "file_commands": [
         {
           "index": 1,
           "id": 1253,
-          "command": "(up-build place-normal 0 c: farm)",
+          "command": "(up-build place-normal gl-no-escrow-state c: farm)",
           "indirect": true,
           "args": [
             -2,
@@ -6644,9 +6644,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-farm-placement-suspended NO)\n\t(current-age >= feudal-age)\n\t(wood-amount > 150)\n\t(up-compare-goal gl-farm-build-target > 0)\n\t(and\n\t\t(building-type-count mill >= 1)\n\t\t(building-type-count farm == 0)\n\t)\n\t\t(building-type-count farm < gl-farm-build-target)\n\t(up-can-build 0 c: farm)\n=>\n\t(chat-local-to-self \"fallback farm placement\")\n\t(up-build place-normal 0 c: farm)\n)\n",
-      "original_sha256": "1329d1af0cf80ce5142d2c66510061d2d31eab3e3069f3028073b21c6a3dd74b",
-      "emitted_sha256": "907980e0f00dcfdcbd17e908e87f200e178b53c4fc1947d958304d024339534a"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-farm-placement-suspended NO)\n\t(current-age >= feudal-age)\n\t(wood-amount > 150)\n\t(up-compare-goal gl-farm-build-target > 0)\n\t(and\n\t\t(building-type-count mill >= 1)\n\t\t(building-type-count farm == 0)\n\t)\n\t\t(building-type-count farm < gl-farm-build-target)\n\t(up-can-build gl-no-escrow-state c: farm)\n=>\n\t(chat-local-to-self \"fallback farm placement\")\n\t(up-build place-normal gl-no-escrow-state c: farm)\n)\n",
+      "original_sha256": "e0200dbcff19a135a2174cec6a487f2021e25c378cf9e1d64c1f5dd47fd48599",
+      "emitted_sha256": "6ff2bf201670bd1a0752ffea9d6b96778d17a7bb5b2ef18f40efe4ca5a673d67"
     },
     {
       "id": 1254,
@@ -6993,7 +6993,7 @@
     {
       "id": 1265,
       "file": "rawai-init-goals.per",
-      "line": 889,
+      "line": 890,
       "jump_only": false,
       "facts": "(true)",
       "actions": [
@@ -15171,7 +15171,7 @@
       "file": "rawai-military.per",
       "line": 4787,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(up-pending-objects c: mining-camp <= 0)\n\t(not (up-pending-placement c: mining-camp))\n\t(up-can-build 0 c: mining-camp)\n\t(up-can-build-line 0 gl-migration-build-x c: mining-camp)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(up-pending-objects c: mining-camp <= 0)\n\t(not (up-pending-placement c: mining-camp))\n\t(up-can-build gl-no-escrow-state c: mining-camp)\n\t(up-can-build-line gl-no-escrow-state gl-migration-build-x c: mining-camp)",
       "actions": [
         "(up-copy-point gl-t12-drop-x gl-migration-build-x)",
         "(up-build-line gl-migration-build-x gl-migration-build-x c: mining-camp)",
@@ -15209,16 +15209,16 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(up-pending-objects c: mining-camp <= 0)\n\t(not (up-pending-placement c: mining-camp))\n\t(up-can-build 0 c: mining-camp)\n\t(up-can-build-line 0 gl-migration-build-x c: mining-camp)\n=>\n\t;place-point queues an expanding search, not an exact foundation. T17's\n\t;requests drifted 25-34 tiles from the resource and failed our 8-tile verifier.\n\t;Use the explicit point twice for ONE foundation; keep the ordinary\n\t;up-can-build gate as well, so up-build-line cannot consume escrow.\n\t(up-copy-point gl-t12-drop-x gl-migration-build-x)\n\t(up-build-line gl-migration-build-x gl-migration-build-x c: mining-camp)\n\t(set-goal gl-t12-drop-stage 1)\n\t(up-modify-goal gl-island-migration-placement-attempts c:+ 1)\n\t(up-chat-data-to-self \"migration mining camp attempt: %d\" g: gl-island-migration-placement-attempts)\n\t(up-set-timer c: t-island-migration c: 20)\n\t(set-goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)\n)\n",
-      "original_sha256": "3fc1516feef4e8842edcd6a6565963beeba53b764d38e3fec903cd599ce6fd33",
-      "emitted_sha256": "89ad15182e26f5000c2c2a376b4f2a6743f404682b0f9c4546331d6599cdab44"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(up-pending-objects c: mining-camp <= 0)\n\t(not (up-pending-placement c: mining-camp))\n\t(up-can-build gl-no-escrow-state c: mining-camp)\n\t(up-can-build-line gl-no-escrow-state gl-migration-build-x c: mining-camp)\n=>\n\t;place-point queues an expanding search, not an exact foundation. T17's\n\t;requests drifted 25-34 tiles from the resource and failed our 8-tile verifier.\n\t;Use the explicit point twice for ONE foundation; keep the ordinary\n\t;up-can-build gate as well, so up-build-line cannot consume escrow.\n\t(up-copy-point gl-t12-drop-x gl-migration-build-x)\n\t(up-build-line gl-migration-build-x gl-migration-build-x c: mining-camp)\n\t(set-goal gl-t12-drop-stage 1)\n\t(up-modify-goal gl-island-migration-placement-attempts c:+ 1)\n\t(up-chat-data-to-self \"migration mining camp attempt: %d\" g: gl-island-migration-placement-attempts)\n\t(up-set-timer c: t-island-migration c: 20)\n\t(set-goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)\n)\n",
+      "original_sha256": "a796a3764f0c39c9dc678d6dea255d2d5675b8ac060fcd9d53b984dbbcc746ba",
+      "emitted_sha256": "0f81bd45a5307661fe52fcc03ea079d0fa0c9c3fabd225ec378bfa5e23c274f6"
     },
     {
       "id": 1566,
       "file": "rawai-military.per",
       "line": 4814,
       "jump_only": false,
-      "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 3)\n\t(can-afford-building mining-camp)\n\t(or\n\t\t(not (up-can-build 0 c: mining-camp))\n\t\t(not (up-can-build-line 0 gl-migration-build-x c: mining-camp))\n\t)",
+      "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 3)\n\t(can-afford-building mining-camp)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: mining-camp))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: mining-camp))\n\t)",
       "actions": [
         "(up-chat-data-to-self \"migration rejected mining point: %d\" g: gl-island-migration-placement-attempts)",
         "(up-modify-goal gl-island-migration-placement-attempts c:+ 1)",
@@ -15240,16 +15240,16 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 3)\n\t(can-afford-building mining-camp)\n\t(or\n\t\t(not (up-can-build 0 c: mining-camp))\n\t\t(not (up-can-build-line 0 gl-migration-build-x c: mining-camp))\n\t)\n=>\n\t(up-chat-data-to-self \"migration rejected mining point: %d\" g: gl-island-migration-placement-attempts)\n\t(up-modify-goal gl-island-migration-placement-attempts c:+ 1)\n\t(up-set-timer c: t-island-migration c: 1)\n\t(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)\n)\n",
-      "original_sha256": "61c26723cb61012ad4fe0e057fb4234d20380a1689983783df666eebacc4960d",
-      "emitted_sha256": "ae9ec4aa8b04d7976ac5861753c82f712edace614c4ad99e7a0ce025b7089008"
+      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 3)\n\t(can-afford-building mining-camp)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: mining-camp))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: mining-camp))\n\t)\n=>\n\t(up-chat-data-to-self \"migration rejected mining point: %d\" g: gl-island-migration-placement-attempts)\n\t(up-modify-goal gl-island-migration-placement-attempts c:+ 1)\n\t(up-set-timer c: t-island-migration c: 1)\n\t(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)\n)\n",
+      "original_sha256": "77e54cb991c3e09077ddda710fcff9ed9f963fc3fafcba2fa8ccf4957d5d755e",
+      "emitted_sha256": "a18b091cd792874c1b1d8dad825d26783bf2b451c4dd480d451e2df904338af3"
     },
     {
       "id": 1567,
       "file": "rawai-military.per",
       "line": 4833,
       "jump_only": false,
-      "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:>= 3)\n\t(can-afford-building mining-camp)\n\t(or\n\t\t(not (up-can-build 0 c: mining-camp))\n\t\t(not (up-can-build-line 0 gl-migration-build-x c: mining-camp))\n\t)",
+      "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:>= 3)\n\t(can-afford-building mining-camp)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: mining-camp))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: mining-camp))\n\t)",
       "actions": [
         "(up-chat-data-to-self \"migration rejected mining point: %d\" g: gl-island-migration-placement-attempts)",
         "(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)"
@@ -15269,16 +15269,16 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:>= 3)\n\t(can-afford-building mining-camp)\n\t(or\n\t\t(not (up-can-build 0 c: mining-camp))\n\t\t(not (up-can-build-line 0 gl-migration-build-x c: mining-camp))\n\t)\n=>\n\t(up-chat-data-to-self \"migration rejected mining point: %d\" g: gl-island-migration-placement-attempts)\n\t(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)\n)\n",
-      "original_sha256": "863711e21163608e779cc1f30711ad9926140f4db11642c2b2638513e3040162",
-      "emitted_sha256": "052934627325f5f661e94e5780f2a180d142c61f6e9165bd1bb9e72371c20dcd"
+      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:>= 3)\n\t(can-afford-building mining-camp)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: mining-camp))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: mining-camp))\n\t)\n=>\n\t(up-chat-data-to-self \"migration rejected mining point: %d\" g: gl-island-migration-placement-attempts)\n\t(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)\n)\n",
+      "original_sha256": "d77add48d9609c56b3fa91dc9234d3d066871ef0cca3cc8ccdc0df4c26b10e2f",
+      "emitted_sha256": "ad9a5b650f2b0f28fb53e382b4ea94b2a468d9b7a600d15d9789140ec0855dac"
     },
     {
       "id": 1568,
       "file": "rawai-military.per",
       "line": 4850,
       "jump_only": false,
-      "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 3)\n\t(can-afford-building lumber-camp)\n\t(or\n\t\t(not (up-can-build 0 c: lumber-camp))\n\t\t(not (up-can-build-line 0 gl-migration-build-x c: lumber-camp))\n\t)",
+      "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 3)\n\t(can-afford-building lumber-camp)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: lumber-camp))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: lumber-camp))\n\t)",
       "actions": [
         "(up-chat-data-to-self \"migration rejected lumber point: %d\" g: gl-island-migration-placement-attempts)",
         "(up-modify-goal gl-island-migration-placement-attempts c:+ 1)",
@@ -15300,16 +15300,16 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 3)\n\t(can-afford-building lumber-camp)\n\t(or\n\t\t(not (up-can-build 0 c: lumber-camp))\n\t\t(not (up-can-build-line 0 gl-migration-build-x c: lumber-camp))\n\t)\n=>\n\t(up-chat-data-to-self \"migration rejected lumber point: %d\" g: gl-island-migration-placement-attempts)\n\t(up-modify-goal gl-island-migration-placement-attempts c:+ 1)\n\t(up-set-timer c: t-island-migration c: 1)\n\t(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)\n)\n",
-      "original_sha256": "d48614fd74df550dcbb47a53c9601c29e370b5503d5f7b24853dd0a0adf1aa9c",
-      "emitted_sha256": "5a15d8ada83241d34fd71ada5bd9e8e009cff740c541c258da508e99d70ff692"
+      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 3)\n\t(can-afford-building lumber-camp)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: lumber-camp))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: lumber-camp))\n\t)\n=>\n\t(up-chat-data-to-self \"migration rejected lumber point: %d\" g: gl-island-migration-placement-attempts)\n\t(up-modify-goal gl-island-migration-placement-attempts c:+ 1)\n\t(up-set-timer c: t-island-migration c: 1)\n\t(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)\n)\n",
+      "original_sha256": "ffe23067a90486cf62ad1b113e893a6def021f769595b5cefe2303ad8aa059c6",
+      "emitted_sha256": "5b8735fef44998db5dcdceebcfbafa9f46e9a804991b05ddd0b46f0c04b74673"
     },
     {
       "id": 1569,
       "file": "rawai-military.per",
       "line": 4866,
       "jump_only": false,
-      "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(up-compare-goal gl-island-migration-placement-attempts c:>= 3)\n\t(can-afford-building lumber-camp)\n\t(or\n\t\t(not (up-can-build 0 c: lumber-camp))\n\t\t(not (up-can-build-line 0 gl-migration-build-x c: lumber-camp))\n\t)",
+      "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(up-compare-goal gl-island-migration-placement-attempts c:>= 3)\n\t(can-afford-building lumber-camp)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: lumber-camp))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: lumber-camp))\n\t)",
       "actions": [
         "(up-chat-data-to-self \"migration rejected lumber point: %d\" g: gl-island-migration-placement-attempts)",
         "(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)"
@@ -15329,16 +15329,16 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(up-compare-goal gl-island-migration-placement-attempts c:>= 3)\n\t(can-afford-building lumber-camp)\n\t(or\n\t\t(not (up-can-build 0 c: lumber-camp))\n\t\t(not (up-can-build-line 0 gl-migration-build-x c: lumber-camp))\n\t)\n=>\n\t(up-chat-data-to-self \"migration rejected lumber point: %d\" g: gl-island-migration-placement-attempts)\n\t(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)\n)\n",
-      "original_sha256": "6c4f6fa82a5c9373c1d9914ff078fa30cb63b97e5ff888caf3dc334de524e770",
-      "emitted_sha256": "cb1cb9498032e8e01604ad5daa0627b3a101bbf3207faca3d57dc71a48df7388"
+      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(up-compare-goal gl-island-migration-placement-attempts c:>= 3)\n\t(can-afford-building lumber-camp)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: lumber-camp))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: lumber-camp))\n\t)\n=>\n\t(up-chat-data-to-self \"migration rejected lumber point: %d\" g: gl-island-migration-placement-attempts)\n\t(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)\n)\n",
+      "original_sha256": "bce218a184605d04f5e75dd2d90ae08974ac30e6b47eac9a931a83d1cc648f6e",
+      "emitted_sha256": "933ec9947941e5053fd3bde1c364dae612c4061d937f46e07d76427e611017ae"
     },
     {
       "id": 1570,
       "file": "rawai-military.per",
       "line": 4880,
       "jump_only": false,
-      "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 3)\n\t(can-afford-building mill)\n\t(or\n\t\t(not (up-can-build 0 c: mill))\n\t\t(not (up-can-build-line 0 gl-migration-build-x c: mill))\n\t)",
+      "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 3)\n\t(can-afford-building mill)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: mill))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: mill))\n\t)",
       "actions": [
         "(up-chat-data-to-self \"migration rejected mill point: %d\" g: gl-island-migration-placement-attempts)",
         "(up-modify-goal gl-island-migration-placement-attempts c:+ 1)",
@@ -15360,16 +15360,16 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 3)\n\t(can-afford-building mill)\n\t(or\n\t\t(not (up-can-build 0 c: mill))\n\t\t(not (up-can-build-line 0 gl-migration-build-x c: mill))\n\t)\n=>\n\t(up-chat-data-to-self \"migration rejected mill point: %d\" g: gl-island-migration-placement-attempts)\n\t(up-modify-goal gl-island-migration-placement-attempts c:+ 1)\n\t(up-set-timer c: t-island-migration c: 1)\n\t(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)\n)\n",
-      "original_sha256": "0c6d2e51c6664e5b8949ee7d0bbb851123a738bd0396a4e63d6c7bdc6409e9ae",
-      "emitted_sha256": "91acbb36fe5106fd0f219b4dc6d2a92b591352513c3abd085a759dd2d0de8b71"
+      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 3)\n\t(can-afford-building mill)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: mill))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: mill))\n\t)\n=>\n\t(up-chat-data-to-self \"migration rejected mill point: %d\" g: gl-island-migration-placement-attempts)\n\t(up-modify-goal gl-island-migration-placement-attempts c:+ 1)\n\t(up-set-timer c: t-island-migration c: 1)\n\t(set-goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)\n)\n",
+      "original_sha256": "03500a524f25d005923e249fc562f4c84769f5ac031705004daa23f94518132e",
+      "emitted_sha256": "f0e76436bd2c8ec75fffd8345cf5568587acae8727eed5123664ab91d48c5e8c"
     },
     {
       "id": 1571,
       "file": "rawai-military.per",
       "line": 4899,
       "jump_only": false,
-      "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:>= 3)\n\t(can-afford-building mill)\n\t(or\n\t\t(not (up-can-build 0 c: mill))\n\t\t(not (up-can-build-line 0 gl-migration-build-x c: mill))\n\t)",
+      "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:>= 3)\n\t(can-afford-building mill)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: mill))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: mill))\n\t)",
       "actions": [
         "(up-chat-data-to-self \"migration rejected mill point: %d\" g: gl-island-migration-placement-attempts)",
         "(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)"
@@ -15389,16 +15389,16 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:>= 3)\n\t(can-afford-building mill)\n\t(or\n\t\t(not (up-can-build 0 c: mill))\n\t\t(not (up-can-build-line 0 gl-migration-build-x c: mill))\n\t)\n=>\n\t(up-chat-data-to-self \"migration rejected mill point: %d\" g: gl-island-migration-placement-attempts)\n\t(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)\n)\n",
-      "original_sha256": "e9bc80b1a019a7612508b93de4d027ecd372eb7fdcd957fd65485f30fb4decdc",
-      "emitted_sha256": "d81db1b681f30cc6541172297ca43bd7ee2af27037ca8e54947015cbfe1c8153"
+      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:>= 3)\n\t(can-afford-building mill)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: mill))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: mill))\n\t)\n=>\n\t(up-chat-data-to-self \"migration rejected mill point: %d\" g: gl-island-migration-placement-attempts)\n\t(set-goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)\n)\n",
+      "original_sha256": "86627a172ef1003adea6f9a2551f5b2344504f5ac001586b89fe35b219218dec",
+      "emitted_sha256": "8aec62e260a6449ecb92804805d50e154a97feb3601cef5fa7f21e1ae9c2b550"
     },
     {
       "id": 1572,
       "file": "rawai-military.per",
       "line": 4936,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(up-pending-objects c: lumber-camp <= 0)\n\t(not (up-pending-placement c: lumber-camp))\n\t(up-can-build 0 c: lumber-camp)\n\t(up-can-build-line 0 gl-migration-build-x c: lumber-camp)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(up-pending-objects c: lumber-camp <= 0)\n\t(not (up-pending-placement c: lumber-camp))\n\t(up-can-build gl-no-escrow-state c: lumber-camp)\n\t(up-can-build-line gl-no-escrow-state gl-migration-build-x c: lumber-camp)",
       "actions": [
         "(up-copy-point gl-t12-drop-x gl-migration-build-x)",
         "(up-build-line gl-migration-build-x gl-migration-build-x c: lumber-camp)",
@@ -15436,16 +15436,16 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(up-pending-objects c: lumber-camp <= 0)\n\t(not (up-pending-placement c: lumber-camp))\n\t(up-can-build 0 c: lumber-camp)\n\t(up-can-build-line 0 gl-migration-build-x c: lumber-camp)\n=>\n\t(up-copy-point gl-t12-drop-x gl-migration-build-x)\n\t(up-build-line gl-migration-build-x gl-migration-build-x c: lumber-camp)\n\t(set-goal gl-t12-drop-stage 1)\n\t(up-modify-goal gl-island-migration-placement-attempts c:+ 1)\n\t(up-chat-data-to-self \"migration lumber camp attempt: %d\" g: gl-island-migration-placement-attempts)\n\t(up-set-timer c: t-island-migration c: 20)\n\t(set-goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)\n)\n",
-      "original_sha256": "1060c58557d6973729a87b8f2e99d4b953353dc32b638e67389e4d6fd1f0569e",
-      "emitted_sha256": "9513a74a71eb71ba9b2b4d1dcd01dbd10cdeb0d155d021d2fee20108561d2fc4"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(up-pending-objects c: lumber-camp <= 0)\n\t(not (up-pending-placement c: lumber-camp))\n\t(up-can-build gl-no-escrow-state c: lumber-camp)\n\t(up-can-build-line gl-no-escrow-state gl-migration-build-x c: lumber-camp)\n=>\n\t(up-copy-point gl-t12-drop-x gl-migration-build-x)\n\t(up-build-line gl-migration-build-x gl-migration-build-x c: lumber-camp)\n\t(set-goal gl-t12-drop-stage 1)\n\t(up-modify-goal gl-island-migration-placement-attempts c:+ 1)\n\t(up-chat-data-to-self \"migration lumber camp attempt: %d\" g: gl-island-migration-placement-attempts)\n\t(up-set-timer c: t-island-migration c: 20)\n\t(set-goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)\n)\n",
+      "original_sha256": "cdca145d098e1fda61146455f623aad7ab8d0934cffcdf70b0b123f4e8635c75",
+      "emitted_sha256": "26b62e802dcc5b6d50b570d90a133b0672f636d1234dba012cce6cf9a7dbc372"
     },
     {
       "id": 1574,
       "file": "rawai-military.per",
       "line": 4977,
       "jump_only": false,
-      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(up-pending-objects c: mill <= 0)\n\t(not (up-pending-placement c: mill))\n\t(up-can-build 0 c: mill)\n\t(up-can-build-line 0 gl-migration-build-x c: mill)",
+      "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(up-pending-objects c: mill <= 0)\n\t(not (up-pending-placement c: mill))\n\t(up-can-build gl-no-escrow-state c: mill)\n\t(up-can-build-line gl-no-escrow-state gl-migration-build-x c: mill)",
       "actions": [
         "(up-copy-point gl-t12-drop-x gl-migration-build-x)",
         "(up-build-line gl-migration-build-x gl-migration-build-x c: mill)",
@@ -15483,9 +15483,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(up-pending-objects c: mill <= 0)\n\t(not (up-pending-placement c: mill))\n\t(up-can-build 0 c: mill)\n\t(up-can-build-line 0 gl-migration-build-x c: mill)\n=>\n\t(up-copy-point gl-t12-drop-x gl-migration-build-x)\n\t(up-build-line gl-migration-build-x gl-migration-build-x c: mill)\n\t(set-goal gl-t12-drop-stage 1)\n\t(up-modify-goal gl-island-migration-placement-attempts c:+ 1)\n\t(up-chat-data-to-self \"migration mill attempt: %d\" g: gl-island-migration-placement-attempts)\n\t(up-set-timer c: t-island-migration c: 20)\n\t(set-goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)\n)\n",
-      "original_sha256": "cc7e165c8bb1732eed64c7aa147d788d9207a0533a8d1a101c0f89faf43d68e1",
-      "emitted_sha256": "461171ebcf4c6a3de6d4475b70bddc255c24fa725b048557a8d0c63947d14373"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(up-pending-objects c: mill <= 0)\n\t(not (up-pending-placement c: mill))\n\t(up-can-build gl-no-escrow-state c: mill)\n\t(up-can-build-line gl-no-escrow-state gl-migration-build-x c: mill)\n=>\n\t(up-copy-point gl-t12-drop-x gl-migration-build-x)\n\t(up-build-line gl-migration-build-x gl-migration-build-x c: mill)\n\t(set-goal gl-t12-drop-stage 1)\n\t(up-modify-goal gl-island-migration-placement-attempts c:+ 1)\n\t(up-chat-data-to-self \"migration mill attempt: %d\" g: gl-island-migration-placement-attempts)\n\t(up-set-timer c: t-island-migration c: 20)\n\t(set-goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)\n)\n",
+      "original_sha256": "52a1c0dca04bb7be737ce67fcfa81f6eabbfa224acd8c944f119eb6cde922346",
+      "emitted_sha256": "7e727de8cb46c4ac41710312564b28390e1e142a28894d7c357eba0b7461a507"
     },
     {
       "id": 1576,
@@ -22515,7 +22515,7 @@
       "file": "rawai-specialplacement.per",
       "line": 1736,
       "jump_only": false,
-      "facts": "(goal gl-sy-stage 10)\n\t(goal gl-owner-worker-hold NO)\n\t(can-build shipyard)\n\t(can-afford-building shipyard)\n\t(up-compare-goal gl-sy-admission-tier c:> 0)\n\t(or (building-type-count-total shipyard == 0) (building-type-count-total shipyard g:< desired-number-shipyards))\n\t(up-pending-objects c: shipyard <= 0)\n\t(not (up-pending-placement c: shipyard))\n\t(up-can-build-line 0 gl-shipyard-x c: shipyard)",
+      "facts": "(goal gl-sy-stage 10)\n\t(goal gl-owner-worker-hold NO)\n\t(can-build shipyard)\n\t(can-afford-building shipyard)\n\t(up-compare-goal gl-sy-admission-tier c:> 0)\n\t(or (building-type-count-total shipyard == 0) (building-type-count-total shipyard g:< desired-number-shipyards))\n\t(up-pending-objects c: shipyard <= 0)\n\t(not (up-pending-placement c: shipyard))\n\t(up-can-build-line gl-no-escrow-state gl-shipyard-x c: shipyard)",
       "actions": [
         "(up-build-line gl-shipyard-x gl-shipyard-x c: shipyard)",
         "(up-modify-goal gl-sy-until g:= gl-sy-clock)",
@@ -22538,9 +22538,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-sy-stage 10)\n\t(goal gl-owner-worker-hold NO)\n\t(can-build shipyard)\n\t(can-afford-building shipyard)\n\t(up-compare-goal gl-sy-admission-tier c:> 0)\n\t(or (building-type-count-total shipyard == 0) (building-type-count-total shipyard g:< desired-number-shipyards))\n\t(up-pending-objects c: shipyard <= 0)\n\t(not (up-pending-placement c: shipyard))\n\t(up-can-build-line 0 gl-shipyard-x c: shipyard)\n=>\n\t(up-build-line gl-shipyard-x gl-shipyard-x c: shipyard)\n\t(up-modify-goal gl-sy-until g:= gl-sy-clock)\n\t(up-modify-goal gl-sy-until c:+ 24)\n\t(set-goal gl-sy-foundation -1)\n\t(set-goal gl-sy-stage 20)\n)\n",
-      "original_sha256": "a1696125fa52ccf1f565905b08392087f82efb2499abe00f32f5c07e634d7bed",
-      "emitted_sha256": "264e07c55d83c04309528e80b47eb60aab9d91c1ca01a71855c4d49320bc80b1"
+      "original": "(defrule\n\t(goal gl-sy-stage 10)\n\t(goal gl-owner-worker-hold NO)\n\t(can-build shipyard)\n\t(can-afford-building shipyard)\n\t(up-compare-goal gl-sy-admission-tier c:> 0)\n\t(or (building-type-count-total shipyard == 0) (building-type-count-total shipyard g:< desired-number-shipyards))\n\t(up-pending-objects c: shipyard <= 0)\n\t(not (up-pending-placement c: shipyard))\n\t(up-can-build-line gl-no-escrow-state gl-shipyard-x c: shipyard)\n=>\n\t(up-build-line gl-shipyard-x gl-shipyard-x c: shipyard)\n\t(up-modify-goal gl-sy-until g:= gl-sy-clock)\n\t(up-modify-goal gl-sy-until c:+ 24)\n\t(set-goal gl-sy-foundation -1)\n\t(set-goal gl-sy-stage 20)\n)\n",
+      "original_sha256": "4c6e7554df102e9d864ae31fd993e4f7afef4a25f05a49c4c4db70e4410a5759",
+      "emitted_sha256": "8153eebc92f34cbde28050ea314a8a36fd725e435290dc2c7933b956236561f2"
     },
     {
       "id": 1829,
@@ -22762,7 +22762,7 @@
       "actions": [
         "(up-find-player-flare any-ally gl-flared-market-x)",
         "(up-set-target-point gl-flared-market-x)",
-        "(up-build place-point 0 c: market)",
+        "(up-build place-point gl-no-escrow-state c: market)",
         "(set-goal market-flare NO)",
         "(set-goal target-action NO)",
         "(set-goal gl-flare-command-deadline 0)",
@@ -22772,7 +22772,7 @@
         {
           "index": 2,
           "id": 1836,
-          "command": "(up-build place-point 0 c: market)",
+          "command": "(up-build place-point gl-no-escrow-state c: market)",
           "indirect": true,
           "args": [
             -2,
@@ -22783,9 +22783,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal market-flare YES)\n\t(goal gl-migration-placement-lock NO)\n\t(cc-players-unit-type-count any-ally flare >= 1)\n\t(can-build market)\n=>\n\t(up-find-player-flare any-ally gl-flared-market-x)\n\t(up-set-target-point gl-flared-market-x)\n\t(up-build place-point 0 c: market)\n\t;(set-goal place-flare-market YES)\n\t(set-goal market-flare NO)\n\t(set-goal target-action NO)\n\t(set-goal gl-flare-command-deadline 0)\n\t(chat-to-allies \"39 Placed the Market you requested.\")\n)\n",
-      "original_sha256": "fd99fb10547b9a9dac5af41fc7b3c08b842f0cd6361031813f11d7d173cd0a53",
-      "emitted_sha256": "519779a7323016c8b6586b3d1997e1c8d9ce0b566824cd8bfcaece3aee926a35"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(goal market-flare YES)\n\t(goal gl-migration-placement-lock NO)\n\t(cc-players-unit-type-count any-ally flare >= 1)\n\t(can-build market)\n=>\n\t(up-find-player-flare any-ally gl-flared-market-x)\n\t(up-set-target-point gl-flared-market-x)\n\t(up-build place-point gl-no-escrow-state c: market)\n\t;(set-goal place-flare-market YES)\n\t(set-goal market-flare NO)\n\t(set-goal target-action NO)\n\t(set-goal gl-flare-command-deadline 0)\n\t(chat-to-allies \"39 Placed the Market you requested.\")\n)\n",
+      "original_sha256": "1f4eae5fc2acf53f01b67fc85ab5d18864dc652e2292df23e29b5adf9ae87b3c",
+      "emitted_sha256": "97f035a833ed83293bdad8e78f69f93b42028281f114b461fda04cb81bfe3765"
     },
     {
       "id": 1837,
@@ -23463,9 +23463,9 @@
       "file": "rawai-wonder.per",
       "line": 115,
       "jump_only": false,
-      "facts": "(goal gl-wonder-state WONDER-STATE-SAVING)\n\t(victory-condition standard)\n\t(current-age == imperial-age)\n\t(goal gl-owner-worker-hold NO)\n\t(up-compare-goal gl-game-time g:>= gl-wonder-election-time)\n\t(up-compare-goal gl-game-time g:>= gl-wonder-build-next)\n\t(goal gl-home-defense-state NO)\n\t(building-type-count town-center >= 1)\n\t(up-object-type-count-total c: villager-class >= 60)\n\t(building-type-count-total wonder <= 0)\n\t(up-pending-objects c: wonder <= 0)\n\t(not (up-pending-placement c: wonder))\n\t(players-building-type-count any-ally wonder <= 0)\n\t(wood-amount >= 1400)\n\t(gold-amount >= 1500)\n\t(stone-amount >= 1400)\n\t(up-can-build 0 c: wonder)",
+      "facts": "(goal gl-wonder-state WONDER-STATE-SAVING)\n\t(victory-condition standard)\n\t(current-age == imperial-age)\n\t(goal gl-owner-worker-hold NO)\n\t(up-compare-goal gl-game-time g:>= gl-wonder-election-time)\n\t(up-compare-goal gl-game-time g:>= gl-wonder-build-next)\n\t(goal gl-home-defense-state NO)\n\t(building-type-count town-center >= 1)\n\t(up-object-type-count-total c: villager-class >= 60)\n\t(building-type-count-total wonder <= 0)\n\t(up-pending-objects c: wonder <= 0)\n\t(not (up-pending-placement c: wonder))\n\t(players-building-type-count any-ally wonder <= 0)\n\t(wood-amount >= 1400)\n\t(gold-amount >= 1500)\n\t(stone-amount >= 1400)\n\t(up-can-build gl-no-escrow-state c: wonder)",
       "actions": [
-        "(up-build place-normal 0 c: wonder)",
+        "(up-build place-normal gl-no-escrow-state c: wonder)",
         "(up-modify-goal gl-wonder-build-attempts c:+ 1)",
         "(up-modify-goal gl-wonder-build-next g:= gl-game-time)",
         "(up-modify-goal gl-wonder-build-next c:+ 180)",
@@ -23476,7 +23476,7 @@
         {
           "index": 0,
           "id": 1859,
-          "command": "(up-build place-normal 0 c: wonder)",
+          "command": "(up-build place-normal gl-no-escrow-state c: wonder)",
           "indirect": true,
           "args": [
             -2,
@@ -23487,9 +23487,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-wonder-state WONDER-STATE-SAVING)\n\t(victory-condition standard)\n\t(current-age == imperial-age)\n\t(goal gl-owner-worker-hold NO)\n\t(up-compare-goal gl-game-time g:>= gl-wonder-election-time)\n\t(up-compare-goal gl-game-time g:>= gl-wonder-build-next)\n\t(goal gl-home-defense-state NO)\n\t(building-type-count town-center >= 1)\n\t(up-object-type-count-total c: villager-class >= 60)\n\t(building-type-count-total wonder <= 0)\n\t(up-pending-objects c: wonder <= 0)\n\t(not (up-pending-placement c: wonder))\n\t(players-building-type-count any-ally wonder <= 0)\n\t(wood-amount >= 1400)\n\t(gold-amount >= 1500)\n\t(stone-amount >= 1400)\n\t(up-can-build 0 c: wonder)\n=>\n\t;Normal placement keeps the foundation in the established defended town, and\n\t;the existing Wonder assignment/placement-pressure owners supply 15 builders.\n\t(up-build place-normal 0 c: wonder)\n\t(up-modify-goal gl-wonder-build-attempts c:+ 1)\n\t(up-modify-goal gl-wonder-build-next g:= gl-game-time)\n\t(up-modify-goal gl-wonder-build-next c:+ 180)\n\t(up-chat-data-to-self \"stalemate Wonder requested player: %d\" g: gl-self-player-number)\n\t(chat-to-allies \"Long stalemate detected; I am building a Wonder\")\n\t(set-goal gl-wonder-state WONDER-STATE-BUILDING)\n)\n",
-      "original_sha256": "616ab4641b7601e91bda68c65fc044639203d7f8fe2b4c373694c1bfab0718a2",
-      "emitted_sha256": "a90a34a2908665fa2782427ab7b25d0cb6fba1dbc196a1057caa5ccba6122e86"
+      "original": "(defrule\n\t(goal gl-wonder-state WONDER-STATE-SAVING)\n\t(victory-condition standard)\n\t(current-age == imperial-age)\n\t(goal gl-owner-worker-hold NO)\n\t(up-compare-goal gl-game-time g:>= gl-wonder-election-time)\n\t(up-compare-goal gl-game-time g:>= gl-wonder-build-next)\n\t(goal gl-home-defense-state NO)\n\t(building-type-count town-center >= 1)\n\t(up-object-type-count-total c: villager-class >= 60)\n\t(building-type-count-total wonder <= 0)\n\t(up-pending-objects c: wonder <= 0)\n\t(not (up-pending-placement c: wonder))\n\t(players-building-type-count any-ally wonder <= 0)\n\t(wood-amount >= 1400)\n\t(gold-amount >= 1500)\n\t(stone-amount >= 1400)\n\t(up-can-build gl-no-escrow-state c: wonder)\n=>\n\t;Normal placement keeps the foundation in the established defended town, and\n\t;the existing Wonder assignment/placement-pressure owners supply 15 builders.\n\t(up-build place-normal gl-no-escrow-state c: wonder)\n\t(up-modify-goal gl-wonder-build-attempts c:+ 1)\n\t(up-modify-goal gl-wonder-build-next g:= gl-game-time)\n\t(up-modify-goal gl-wonder-build-next c:+ 180)\n\t(up-chat-data-to-self \"stalemate Wonder requested player: %d\" g: gl-self-player-number)\n\t(chat-to-allies \"Long stalemate detected; I am building a Wonder\")\n\t(set-goal gl-wonder-state WONDER-STATE-BUILDING)\n)\n",
+      "original_sha256": "60c2438660795e84c46624f58157897e2a69fe312b10a723fff6368d3b7a2f8b",
+      "emitted_sha256": "4b1aa22ccd00ba8e94124f3aa6d8501bc0c91b5c07e16a4a9bbad4a7d51eb503"
     }
   ],
   "fields": {

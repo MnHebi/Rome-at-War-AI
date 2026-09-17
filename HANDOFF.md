@@ -28,32 +28,21 @@ Manifest/registry/507 backup `.analysis/deployment-t58b-508-20260912T200909Z/`. 
 
 ## Tests
 
-- `TEST-EXECUTION-POLICY.md`, `T59-TEST-SUITE-CLEANUP.md`: 17 fewer default tests, 6.6s. Retired `test_boarding_sampling.py` + legacy chat-emitter tests; frozen history via `RAWAI_HISTORICAL_OVERLAY_TESTS=1`.
-- Open: `rawai-init-goals.per` `my-player-number` as `up-get-fact` fact-id (unfixed); no-escrow goal absent; `test_validators.py` split pending.
+- `TEST-EXECUTION-POLICY.md`, `T59-TEST-SUITE-CLEANUP.md`: -17 default tests,6.6s; retired chat-emitter+`test_boarding_sampling`; history via `RAWAI_HISTORICAL_OVERLAY_TESTS=1`. Open: `my-player-number` as `up-get-fact` fact-id; `test_validators.py` split.
 
-## T59 replay 231130
+## T60 operand repair + 508 analysis
 
-- Identity: markers508 + registry words all8 + 109/109 hashes; file trace 1,130,143 complete records, 0 malformed, all8 startup/entry/boarding.
-- Operands: `up-can-build`86277 + `up-can-build-line`3001 + `up-get-point-distance`24490 = Invalid goal used(0); fix = agreed no-escrow goal + `gl-shipyard-x` operand (`rawai-specialplacement.per:792-843`); reason64=6186/7139 is that verdict.
-- Migration: admission463x all8; p2 CONFIRM-DROPSITE2950s with colony-TC0 (508 fix confirmed) but 579=0, never status-ready; p7 aborted3683s; p1/3/4/8 IDLE.
-- 706:38259 packets/46850 incidences; all5 dense onsets <=4s after scripted boarding; 0 inside traced brackets. Help300-317=0. Detail `T59-REPLAY-231130-ANALYSIS.md`.
+- Repair (`T60-OPERAND-REPAIR.md`, PENDING RUNTIME): `gl-no-escrow-state`396 init once at `rawai-init-goals.per:911`; 136 escrow +4 point operands; bridges/registry regenerated (579/817). Gates: sync PASS, validate_per clean, 9312/10000, 1498/1500, 288 tests OK.
+- Correlator fixed (`T60-508-ANALYSIS-UPDATE.md`): 196,168 no-expected-packet, 1,628 recipient gaps, 94 unmatched, 9/38259 `706` in brackets.
+- `706`: 5 waiting-hull runs =99.3%; onset at `garrisoned 0->1`; gap = DUC selection for sites1303/1706/1738-1741. Migration: p2 ready->RETASK2971s->RELEASE->IDLE; p7 DROPSITE-FAILED3682s; p1/3/4/8 blocked by unrecorded `t-transport-route` timer.
+- Assault hull p8/7645: 573 boards/232 unloads, 259 WORK+2 BUILD after. ROW sampler all8; 318 land-proof chats all p1. Help300-317=0; skirmisher ANALYSIS PENDING.
 
 ## Defects retained
 
-| ID | Status | Next boundary |
-|---|---|---|
-| villager.order706 | INVESTIGATING | Onset <=4s after scripted boarding; issuer unknown (T59). |
-| diagnostics.command-boundary.t57 | INVESTIGATING | Delivery/identity runtime-verified all8; operand floods = separate operand item. |
-| villager.keystates.t53 | INVESTIGATING | Ctrl experiment inconclusive; policy constant. |
-| shipyard.sampler.t51 | FIXED-PENDING-RUNTIME | Reason64 decisions use `up-can-build-line 0`; operand fix pending (T59). |
-| help.exact-episode.t53 | FIXED-PENDING-RUNTIME | Exact312–317 request/silence outcome. |
-| assault.shore-egress.t53 | INVESTIGATING | Actual unload path; no-witness gap. |
-| assault.voyage.t55b | INVESTIGATING | Commands vs positions, private680–690. |
-| assault.preparation.close-boarders | INVESTIGATING | Blockage/reissue/ownership at abort. |
-| migration.productive-dropsite | INVESTIGATING | Admission confirmed (p2 CONFIRM-DROPSITE2950s, colony-TC0); dropsite never status-ready (579=0). |
-| merchant.row.real-choke | INVESTIGATING | Yield → hull progress → native trade. |
-| expedition.commitment | INVESTIGATING | No tuning before upstream acceptance. |
-| production.reactive-skirmisher.t56 | FIXED-PENDING-RUNTIME | T57 all8 queue counters; births/threat matching/live bounds unproven. |
+17 accepted findings (status/claim/acceptance/next action) live in `context/project-state.json`;
+render with `py -3.12 tools/context_pack.py task.t52-runtime --role runtime-analyst`.
+T60 boundaries: order706 = waiting-hull DUC selection; shipyard = repaired operands pending runtime;
+migration = p2 ready/retask confirmed, p7 dropsite-failed, p1/3/4/8 admission timer unrecorded.
 
 Preserve land trade, migration launch/landing, landed combat, three assault slots, partial loads, shoreline/danger gates, ownership, relic separation; no native gathering replacement.
 

@@ -1522,7 +1522,7 @@ class FarmPolicyTests(unittest.TestCase):
             ),
             actions=(
                 "(up-find-player-flare any-ally gl-flared-market-x)",
-                "(up-build place-point 0 c: market)",
+                "(up-build place-point gl-no-escrow-state c: market)",
             ),
         )
         self.assertEqual(len(selector), 1)
@@ -1575,9 +1575,9 @@ class FarmPolicyTests(unittest.TestCase):
         self.assertEqual(len(economy_reset), 1)
         for managed in ("town-center", "farm", "market"):
             self.assertNotIn(f"up-reset-placement c: {managed}", economy_reset[0][4])
-        self.assertIn("(not (up-can-build 0 c: market))", self.homebase)
-        self.assertIn("(not (up-can-build 0 c: farm))", self.homebase)
-        self.assertIn("(not (up-can-build 0 c: castle))", self.homebase)
+        self.assertIn("(not (up-can-build gl-no-escrow-state c: market))", self.homebase)
+        self.assertIn("(not (up-can-build gl-no-escrow-state c: farm))", self.homebase)
+        self.assertIn("(not (up-can-build gl-no-escrow-state c: castle))", self.homebase)
         self.assertNotRegex(
             self.homebase,
             r"\(up-modify-sn\s+sn-maximum-town-size\s+[cg]:[<>]=?",
@@ -2360,7 +2360,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "(not (up-pending-placement c: castle))",
             ),
             actions=(
-                "(up-build place-normal 0 c: castle)",
+                "(up-build place-normal gl-no-escrow-state c: castle)",
                 "gl-castle-request-next g:= gl-game-time",
                 "gl-castle-request-next c:+ 30",
             ),
@@ -2429,7 +2429,7 @@ class FarmPolicyTests(unittest.TestCase):
             },
         )
         self.assertNotIn("(build lumber-camp)", self.homebase)
-        self.assertNotIn("(up-build place-normal 0 c: lumber-camp)", self.homebase)
+        self.assertNotIn("(up-build place-normal gl-no-escrow-state c: lumber-camp)", self.homebase)
         self.assertNotIn("(can-build-with-escrow lumber-camp)", self.homebase)
 
         lumber_bootstrap = matching_rules(
@@ -2510,7 +2510,7 @@ class FarmPolicyTests(unittest.TestCase):
         lumber_builds = matching_rules(
             self.homebase,
             facts=("(goal gl-lumbercamp-placement-state PLACEMENT-PLACE)",),
-            actions=("(up-build place-point 0 c: lumber-camp)",),
+            actions=("(up-build place-point gl-no-escrow-state c: lumber-camp)",),
         )
         self.assertEqual(len(lumber_builds), 4)
         self.assertEqual(
@@ -2672,7 +2672,7 @@ class FarmPolicyTests(unittest.TestCase):
         mining_builds = matching_rules(
             self.homebase,
             facts=("(goal gl-miningcamp-placement-state PLACEMENT-PLACE)",),
-            actions=("(up-build place-point 0 c: mining-camp)",),
+            actions=("(up-build place-point gl-no-escrow-state c: mining-camp)",),
         )
         self.assertEqual(len(mining_builds), 4)
         self.assertTrue(
@@ -2771,7 +2771,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "(up-object-type-count-total c: mill == 0)",
                 "(not (up-pending-placement c: mill))",
                 "(can-afford-building mill)",
-                "(up-can-build 0 c: mill)",
+                "(up-can-build gl-no-escrow-state c: mill)",
             ),
             actions=(
                 "sn-focus-player-number 0",
@@ -2890,7 +2890,7 @@ class FarmPolicyTests(unittest.TestCase):
             self.homebase,
             facts=("(goal gl-opening-mill-state OPENING-MILL-PLACE)",),
             actions=(
-                "(up-build place-point 0 c: mill)",
+                "(up-build place-point gl-no-escrow-state c: mill)",
                 "(set-goal gl-opening-mill-requested YES)",
                 "OPENING-MILL-WAIT",
             ),
@@ -2901,13 +2901,13 @@ class FarmPolicyTests(unittest.TestCase):
             self.homebase,
             facts=("(goal gl-opening-mill-state OPENING-MILL-FALLBACK)",),
             actions=(
-                "(up-build place-normal 0 c: mill)",
+                "(up-build place-normal gl-no-escrow-state c: mill)",
                 "(set-goal gl-opening-mill-requested YES)",
                 "OPENING-MILL-FALLBACK-WAIT",
             ),
         )
         self.assertEqual(len(mill_fallback), 1)
-        self.assertEqual(self.homebase.count("(up-build place-normal 0 c: mill)"), 2)
+        self.assertEqual(self.homebase.count("(up-build place-normal gl-no-escrow-state c: mill)"), 2)
 
         unconditional_fallback = matching_rules(
             self.homebase,
@@ -5072,7 +5072,7 @@ class FarmPolicyTests(unittest.TestCase):
                 "(goal gl-local-threat-active YES)",
                 "building-type-count-total barracks < 1",
             ),
-            actions=("(up-build place-normal 0 c: barracks)",),
+            actions=("(up-build place-normal gl-no-escrow-state c: barracks)",),
         )
         self.assertEqual(len(emergency_barracks), 1)
         self.assertNotIn("wait-techup-requirements", emergency_barracks[0][3])
