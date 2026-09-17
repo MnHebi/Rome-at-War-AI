@@ -14,7 +14,7 @@ Candidate: `T58B-ALLIED-LANDING-FALLBACK.md`; replay: `T58A-RUNTIME-REPLAY-ASSES
 2026-09-12: `RAWAI-P3B44T58B:508`109 runtime files installed, hash verified.
 SHA256 `0641fa7373a92e4246b8800e33d2c0ef15bbff1d6ab84e7a23e2569be4eab387`.
 Source: `e84cec97f557de501176462bfae898a91d1dff19 + working Age fixes; T58B-DEPLOYMENT.md`. Counter1 is NOT STOP proof.
-Manifest/registry/507 backup `.analysis/deployment-t58b-508-20260912T200909Z/`. No options changed.
+Manifest/registry/507 backup `.analysis/deployment-t58b-508-20260912T200909Z/`.
 507 replay133042 failed: rawP1 exposes Green-owned locals, not Blue; Age/goal floods. Keep registry `.analysis/deployment-t58a-507-20260912T102708Z/`.
 
 ## Active task
@@ -28,14 +28,14 @@ Manifest/registry/507 backup `.analysis/deployment-t58b-508-20260912T200909Z/`. 
 
 ## Tests
 
-- `TEST-EXECUTION-POLICY.md`, `T59-TEST-SUITE-CLEANUP.md`: -17 default tests,6.6s; retired chat-emitter+`test_boarding_sampling`; history via `RAWAI_HISTORICAL_OVERLAY_TESTS=1`. Open: `my-player-number` as `up-get-fact` fact-id; `test_validators.py` split.
+- `TEST-EXECUTION-POLICY.md`, `T59-TEST-SUITE-CLEANUP.md`: -17 default tests; history via `RAWAI_HISTORICAL_OVERLAY_TESTS=1`. Open: `my-player-number` as `up-get-fact` fact-id; `test_validators.py` split.
 
-## T60 operand repair + 508 analysis
+## T61 correlator + 508 follow-up
 
-- Repair (`T60-OPERAND-REPAIR.md`, PENDING RUNTIME): `gl-no-escrow-state`396 init once at `rawai-init-goals.per:911`; 136 escrow +4 point operands; bridges/registry regenerated (579/817). Gates: sync PASS, validate_per clean, 9312/10000, 1498/1500, 288 tests OK.
-- Correlator fixed (`T60-508-ANALYSIS-UPDATE.md`): 196,168 no-expected-packet, 1,628 recipient gaps, 94 unmatched, 9/38259 `706` in brackets.
-- `706`: 5 waiting-hull runs =99.3%; onset at `garrisoned 0->1`; gap = DUC selection for sites1303/1706/1738-1741. Migration: p2 ready->RETASK2971s->RELEASE->IDLE; p7 DROPSITE-FAILED3682s; p1/3/4/8 blocked by unrecorded `t-transport-route` timer.
-- Assault hull p8/7645: 573 boards/232 unloads, 259 WORK+2 BUILD after. ROW sampler all8; 318 land-proof chats all p1. Help300-317=0; skirmisher ANALYSIS PENDING.
+- Contracts now come from the AIRef (`tools/command_contracts.py`): point/object targets, Option0/1, type-based, unclassified. Run `.analysis/t61-508-correlations-v3.jsonl`: 196,154 no-direct-packet, 2,199 candidates, 1,651 empty-input-recorded, 32 ambiguous, 14 type-based, 1 unsupported; 0/38,259 `706` in brackets.
+- `706`: five runs =85.0% (sequence union, not 99.3%); onsets = `garrisoned 0->1` in a slowly moving hull; writers = farm-staffing sites1205/1202/1196; cohort 369/42/7/5.
+- Migration: p2 retask->release with 7,135 WORK after; p7 DROPSITE-FAILED decided by the literal-0 `up-can-build` at `rawai-military.per:4833` (T60 repair); p1/3/4/8 masks0 in293/299 -> T60 timer hypothesis withdrawn.
+- Assault hull p8/7645: 573 boards/232 unloads/259 WORK after. ROW ids corrected (581 hull; 618-622 rejected). Skirmisher births p6=0. Detail `T61-CORRELATOR-AND-508-FOLLOW-UP.md`.
 
 ## Defects retained
 

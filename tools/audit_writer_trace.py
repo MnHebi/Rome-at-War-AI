@@ -10,40 +10,18 @@ import re
 
 
 def compatible(packet: dict, site: dict) -> bool:
-    """Conservative command-family match, never nearest-log attribution."""
-    kind, order = packet['action'], packet.get('order_id')
-    for expression in re.findall(r'\([^()]*\)', site['actions']):
-        command = expression[1:-1].split()[0]
-        if command in {'up-retreat-now', 'up-retreat-to'} and kind == 'DE_RETREAT':
-            return True
-        if command in {'up-target-point', 'up-target-objects'}:
-            if 'action-garrison' in expression:
-                if kind == 'SPECIAL' and order == 5:
-                    return True
-            elif 'action-unload' in expression:
-                if kind == 'UNGARRISON':
-                    return True
-            elif 'action-stop' in expression:
-                if kind == 'STOP' or (kind == 'AI_ORDER' and order == 706):
-                    return True
-            elif 'action-move' in expression:
-                if kind in {'MOVE', 'ORDER'} and packet.get('target_id', -1) == -1:
-                    return True
-            elif kind in {'WORK', 'ORDER', 'AI_ORDER', 'GUARD', 'FOLLOW', 'PATROL', 'DE_ATTACK_MOVE'}:
-                return True
-        elif command == 'up-reset-unit' and (kind == 'STOP' or kind == 'AI_ORDER' and order == 706):
-            return True
-        elif command in {'delete-unit', 'up-delete-idle-units', 'delete-building'} and kind == 'DELETE':
-            return True
-        elif command in {'up-send-scout', 'up-reset-scouts'} and kind in {'AI_ORDER', 'DE_AUTOSCOUT'}:
-            return True
-        elif command in {'up-garrison', 'up-ungarrison'} and kind in {'SPECIAL', 'UNGARRISON'}:
-            return True
-        elif command == 'up-guard-unit' and kind in {'GUARD', 'AI_ORDER'}:
-            return True
-        elif command == 'up-retask-gatherers' and kind in {'WORK', 'ORDER'}:
-            return True
-    return False
+    """Command-family match from the AIRef contracts, never nearest-log attribution.
+
+    Delegates to tools/command_contracts.py so the writer trace and the file-trace
+    correlator cannot drift: an action only matches the packet families its
+    documented action can produce (up-target-point action-garrison is movement,
+    up-target-objects action-unload is action-none, undocumented AI_ORDER ids
+    match nothing).
+    """
+    from command_contracts import compatible_any
+    actions = site['actions']
+    text = ' '.join(actions) if isinstance(actions, (list, tuple)) else actions
+    return compatible_any(packet, text)
 
 
 def intersections(packet, player, windows):

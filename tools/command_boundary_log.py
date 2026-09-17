@@ -195,12 +195,22 @@ def contract(command):
 def correlations(records,events,registry):
     """Require intact PRE plus INVOKED. Whole-second timing is only a candidate.
 
-    Target and recipient requirements follow the registered command contract, so
-    a point or STOP command is not rejected by an unrelated remote list, and
-    indirect state/group/admission writes are named as such instead of being
-    reported as unidentified recipient orders.
+    Target and recipient requirements follow the AIRef command contracts
+    (tools/command_contracts.py), so a point command is not rejected by an
+    unrelated remote list, an object command keeps its object-target relation,
+    and each unmatched row states why nothing could be matched:
+
+    * ``empty-input-recorded``      - complete PRE declares the consumed list empty
+    * ``incomplete-inputs``         - declared rows missing/invalid (with gaps)
+    * ``type-based-recipients``     - command acts on a type/global set, not a list
+    * ``unsupported-contract``      - command or action not documented; no claim
+    * ``no-direct-packet-expected`` - state/group/engine-side admission command
+
+    The PRE frame records its declared local/remote counts and the selected
+    object (``saved``/``valid``), so select-object commands are anchored on that
+    identity instead of demanding unrelated list rows.
     """
-    from audit_writer_trace import compatible
+    from command_contracts import UNCLASSIFIED, compatible, describe
     commands={c['id']:c for s in registry['sites'] for c in s.get('file_commands',[])}
     buckets=defaultdict(list)
     for e in events:buckets[(e.get('player_id'),e['milliseconds']//1000)].append(e)
@@ -215,36 +225,67 @@ def correlations(records,events,registry):
         gaps=pre['gaps']+f['gaps']
         if (a['session'],a['event']+1,a['site'])!=(entry['session'],entry['event'],entry['site']):
             gaps.append('PRE-INVOKED-mismatch')
+        # Declared list counts and the selected object belong to the PRE frame:
+        # the INVOKED frame records only the kind that closed the observation.
+        declared_local,declared_remote=a['values'][1:3]
+        saved,valid=a['values'][3:5]
         actors=[v[2] for v in pre['local'] if v[1]==1]
         targets=[v[2] for v in pre['remote'] if v[1]==1]
-        shape=contract(c['command']) if c else None
-        # A recipient-bearing command with no traced recipient rows cannot be
-        # matched to a packet; name the gap instead of guessing a producer.
-        unknown_recipients=shape in ('object-target','point') and not actors
+        shape=describe(c['command']) if c else None
+        category=None;reason=None
+        if not c:
+            category,reason='unsupported-contract','site absent from the executed registry'
+        elif shape['kind']=='unclassified':
+            category,reason='unsupported-contract',shape['note']
+        elif shape['target']==UNCLASSIFIED and shape['kind']=='duc-target':
+            category,reason='unsupported-contract','target source not documented for this option'
+        elif shape['kind'] in ('state-write','group-write','state-read','native-effect-command'):
+            category,reason='no-direct-packet-expected',shape['note']
+        elif shape['kind']=='type-based':
+            category,reason='type-based-recipients',f"{shape['recipients']} recipients are not list-anchored"
+        elif shape['recipients']=='local-list' and declared_local==0 and not pre['local']:
+            category,reason='empty-input-recorded','complete PRE declares an empty local list'
+        elif shape['recipients']=='local-list' and len(pre['local'])<declared_local:
+            category,reason='incomplete-inputs',f"PRE declares {declared_local} local rows, {len(pre['local'])} recorded"
+        elif shape['target'] in ('remote-list',) and declared_remote==0 and not pre['remote']:
+            category,reason='empty-input-recorded','complete PRE declares an empty remote list (no target object)'
+        if gaps and category is None:
+            category,reason='incomplete-inputs','; '.join(str(g) for g in gaps)
+        anchors=actors
+        selected=saved if valid==1 and saved is not None else None
         candidates=[]
-        if c and not gaps and not unknown_recipients and shape not in ('state-write','group-write','native-admission'):
+        if category is None and anchors:
             for second in range(a['game_seconds'],entry['game_seconds']+1+POST_INVOCATION_SECONDS):
                 for e in buckets[(player,second)]:
                     ids=set(e.get('object_ids',[]))
-                    if not ids or (actors and not ids<=set(actors)):
+                    if not ids or not ids<=set(anchors):
                         continue
                     target=e.get('target_id')
-                    if shape=='object-target':
+                    if shape['target']=='remote-list':
                         if not targets or target not in targets:continue
-                    elif targets and target not in (None,-1) and target not in targets:
+                    elif shape['target']=='selected-object':
+                        if selected is None or target not in (selected,):
+                            continue
+                    elif shape['target']=='point' and targets and target not in (None,-1) and target not in targets:
                         continue
-                    if compatible(e,{'actions':c['command']}):
+                    if compatible(e,c['command']):
                         candidates.append(dict(sequence=e['sequence'],second_offset=second-a['game_seconds'],
-                            exact_recipients=bool(actors) and ids==set(actors)))
+                            exact_recipients=ids==set(anchors),target_source=shape['target'],
+                            families=sorted(shape['packets'])))
+            if not candidates:
+                category='unmatched-not-native-proof'
+            elif len(candidates)>1:
+                category='ambiguous'
+            else:
+                category='candidate-not-causation'
         yield dict(player=player,event=a['event'],site=a['site'],actors=actors,targets=targets,
-            command=c['command'] if c else None,contract=shape,
+            command=c['command'] if c else None,contract=shape['kind'] if shape else None,
+            declared_local=declared_local,declared_remote=declared_remote,
+            selected_object=saved if valid==1 else None,
+            category=category,category_reason=reason,
             coverage_gaps=gaps,packet_sequences=[x['sequence'] for x in candidates],
             candidates=candidates,
-            status='incomplete-inputs' if gaps else 'no-expected-packet' if shape in
-                       ('state-write','group-write','native-admission') else
-                   'recipients-unknown' if c and c['indirect'] else
-                   'recipients-unknown' if unknown_recipients else
-                   'ambiguous' if len(candidates)>1 else 'candidate-not-causation' if candidates else 'unmatched-not-native-proof',
+            status=category,
             window_seconds=[a['game_seconds'],entry['game_seconds']+POST_INVOCATION_SECONDS],
             timing='PRE through INVOKED whole game-second buckets plus one post-invocation second; subsets may be native expansion')
 
