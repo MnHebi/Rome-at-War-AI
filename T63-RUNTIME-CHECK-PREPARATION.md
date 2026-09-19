@@ -4,6 +4,13 @@ Scope of this pass: **preparation and inspection only.** No deployment, no marke
 change, no runtime/generator/registry edit, no game launch and no new match.
 **OPERAND REPAIR — IMPLEMENTED, PENDING RUNTIME.**
 
+**Update:** the candidate was subsequently deployed on explicit authorization
+(marker `RAWAI-P3B44T58B:509`, aggregate `2e9144ea…a58a`, exactly the 10 files
+listed in section 2) — see `T63-DEPLOYMENT.md` and the manifest under
+`.analysis\deployment-t63-509-20260919T172057Z\`. Startup is still pending, so
+the acceptance criteria below remain unmet until a match is played and the
+checker is run on its log and replay.
+
 ## 1. Candidate identity and gates
 
 | Item | Value |
