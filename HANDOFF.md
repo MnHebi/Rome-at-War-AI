@@ -24,18 +24,18 @@ Manifest/registry/507 backup `.analysis/deployment-t58b-508-20260912T200909Z/`.
 - Installed508: initializer, native Age facts, TC-independent migration admission, cap4, allied landing (`T58B-MIGRATION-TC-ADMISSION.md`).
 - Allied fallback: exhausted plan -> ready allied TC on objective landmass -> shoreline/danger checks + mobile witness -> same enemy/manifest dispatch;120s local within360.
 - Preserve507 registry. Candidate9312/10000 rules,1498/1500 literals. Protocol `T58-FILE-TRACE.md`; Age probe not installed.
-- 508 caps TC targets/colony expansion4; lineups unchanged. `T58A-BACKLOG-SWEEP.md`: all8 Shipyards ready but late; no ROW/help verification; all8 Skirmisher queues. No closure.
+- 508 caps TC targets/colony4; lineups unchanged. `T58A-BACKLOG-SWEEP.md`: Shipyards late; no ROW/help verification; all8 Skirmisher queues. No closure.
 
 ## Tests
 
 - `TEST-EXECUTION-POLICY.md`, `T59-TEST-SUITE-CLEANUP.md`: -17 default tests; history via `RAWAI_HISTORICAL_OVERLAY_TESTS=1`. Open: `my-player-number` as `up-get-fact` fact-id; `test_validators.py` split.
 
-## T61 correlator + 508 follow-up
+## T61/T62 correlator + 508 follow-up
 
-- Contracts now come from the AIRef (`tools/command_contracts.py`): point/object targets, Option0/1, type-based, unclassified. Run `.analysis/t61-508-correlations-v3.jsonl`: 196,154 no-direct-packet, 2,199 candidates, 1,651 empty-input-recorded, 32 ambiguous, 14 type-based, 1 unsupported; 0/38,259 `706` in brackets.
-- `706`: five runs =85.0% (sequence union, not 99.3%); onsets = `garrisoned 0->1` in a slowly moving hull; writers = farm-staffing sites1205/1202/1196; cohort 369/42/7/5.
-- Migration: p2 retask->release with 7,135 WORK after; p7 DROPSITE-FAILED decided by the literal-0 `up-can-build` at `rawai-military.per:4833` (T60 repair); p1/3/4/8 masks0 in293/299 -> T60 timer hypothesis withdrawn.
-- Assault hull p8/7645: 573 boards/232 unloads/259 WORK after. ROW ids corrected (581 hull; 618-622 rejected). Skirmisher births p6=0. Detail `T61-CORRELATOR-AND-508-FOLLOW-UP.md`.
+- Contracts from the AIRef (`command_contracts.py`): point/object, Option0/1, type-based, unclassified. v4 run `.analysis/t62-508-v4.jsonl` (identical to v3 after the point-branch removal): 196,154 no-direct-packet, 2,199 candidates, 1,651 empty-input, 32 ambiguous, 14/1 type-based/unsupported; 0/38,259 `706` in brackets.
+- `706`: four boarding runs + one unloading run =85.0% (sequence union); hulls move inside bursts; garrison calls 1-2 each; writers = farm-staffing sites1205/1202/1196; cohort 369/42/7/5.
+- Migration: p2 retask->release with 7,135 WORK after; p7 DROPSITE-FAILED decided by the literal-0 `up-can-build` at `rawai-military.per:4833`; p1/3/4/8 masks0 in293/299 -> timer hypothesis withdrawn.
+- Assault p8/7645: 573 boards/232 unloads/259 WORK after. ROW ids corrected (581 hull; 618-622 rejected). 269 MAKE records, none p6 (completion unproven). Detail `T61-CORRELATOR-AND-508-FOLLOW-UP.md`.
 
 ## Defects retained
 

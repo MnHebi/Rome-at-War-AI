@@ -52,11 +52,23 @@ missing observation. They are complete PRE frames whose declared local list was
 **empty**. The named sites behave exactly that way — `1303`
 (`position-self-x action-stop`) declared 0/0 in 333 rows and 1/0 in 57, `1706`
 declared 0/1 in 298 and 1/1 in 57, `1738/1740` 0/0 in 154/134, `1739/1741` 0/1
-in 79/80 with 57 rows at 0/2. Site 1303 sits directly after
-`(up-full-reset-search)` + `(up-add-object-by-id search-local
-g: gl-island-migration-transport-id)` in the rendezvous rule, so the recorded
-empty list means that hull lookup resolved nothing at that moment; the only
-object the stop command could address is the hull itself, never a passenger.
+in 79/80 with 57 rows at 0/2.
+
+Site 1303 corrected (T62): it is the **transport-escort** rule
+(`rawai-military.per:135` in the frozen 508 registry), not a migration-hull
+lookup. Its own recorded actions load the recipients first —
+`(up-set-group search-local c: transport-escort-group)`,
+`(up-remove-objects search-local object-data-player != my-player-number)`,
+`(up-remove-objects search-local object-data-group-flag != transport-escort-group)`
+— and only then `(up-target-point position-self-x action-stop …)`. A group
+loaded into a search list is represented by that list for commands documented to
+consume it, so the 333 declared-empty frames mean the escort group had no owned
+member at that moment and the stop could not address anything; there is no
+hidden-selection gap for those calls. The 57 nonempty rows must be read from
+their recorded rows, and they are escort ships, not passengers — e.g. p6
+`[id 35010, type 1880, class 953, group-flag 9, carry 100, action 601, order 701]`
+and `[id 35171, type 1877, class 922, action 610, order 701, target 34434]`.
+No passenger identity is claimed for any of them.
 
 Also corrected: Option-1 `up-target-objects` rows (14 sites) are now anchored on
 the recorded selected object; the 94 rows v2 reported as
@@ -98,11 +110,20 @@ migration load sites 1513 (72) / 1388 (22). Genuine transport boarding sites are
 these migration/assault ones; their in-burst occurrences are the handful listed
 above.
 
-Conclusion (unchanged in substance, corrected in detail): the 706 churn is an
-engine-side reaction while passengers sit inside a hull that is being re-tasked
-and slowly repositioned; the script is not re-boarding them during the burst,
-and no traced command's documented packet family matches any 706 packet in this
-recording.
+Conclusion as corrected in T62: of the five sustained runs, **four are
+boarding/garrison-associated** (p6 42361, p6 33901, p2 33923, p7 7674 — each
+onset is the actor's `garrisoned 0→1` transition) and **one is
+unloading-associated** (p2 33889, already garrisoned from 2864 s, short run
+2926-2928 s across its unload, then gathering with a changing carry).
+This pattern is not generalised to all 706 events. The affected hulls were not
+stationary throughout the long bursts. The script did address those actors
+during the bursts, but rarely: 2 `up-target-objects 0 action-garrison`
+occurrences for p2 33923 (site 1513), 1 each for p6 33901/42361 (site 1398, and
+1419 once) and 1 for p7 7674 (site 1614) — against 2,471-14,692 706 packets per
+run. No traced command's documented packet family matches any 706 packet in this
+recording, so the producer is unresolved: "engine-side reaction to the ongoing
+tasking" remains a **hypothesis**, and the absence of a matched STOP command
+does not exclude delayed effects of earlier scripted tasking.
 
 ## 4. Migration, assault, merchant, production
 
@@ -165,20 +186,29 @@ own path or the priority hull's progress.
 **Reactive skirmishers.** The command cache omits the production family
 (`MAKE` is decoded but not retained by the command extractor), so a targeted
 extraction of only that family was added (`.analysis/t61_train.py`,
-4,017 packets with `unit_id`). Skirmisher (unit id 7, `rawai-unitconstants.per`)
-production per player: p1 43, p2 67, p3 41, p4 42, p5 20, **p6 0**, p7 30,
-p8 26 (elite id 6: 0 everywhere). These are **births**, not queues or threats;
-requests/threat response are not observable, and unit-ids beyond the mod's own
-constants are unverified names.
+4,017 packets with `unit_id`). Bounded decoder check (T62): the decoder action
+is `MAKE = 100`, parsed as `building_id, unit_id`, and it is distinct from
+`QUEUE = 119`, `MULTIQUEUE = 112` and `DE_QUEUE = 129`; the payload carries no
+new-object instance or completion field and the project's own replay analyzer
+counts MAKE per unit id without labelling it as a completed unit. Recorded
+result, stated at that boundary: **269 MAKE records for the mapped Skirmisher
+unit type** (unit id 7, `rawai-unitconstants.per`) — p1 43, p2 67, p3 41, p4 42,
+p5 20, **none attributed to player 6 in that extraction**, p7 30, p8 26 (elite
+id 6: 0 everywhere). Completed-unit counts and complete AI queue/request state
+are **not established**, and "no MAKE record for this mapped type" is not proof
+that a player possessed or produced no Skirmishers by every route.
 
 ## 5. Remaining evidence gaps (with why the recording cannot close them)
 
-1. **Group/selection contents for group-scoped commands**: only what the trace
-   reads from the search lists is recorded; the 1,651 empty-input rows show the
-   lists *were* empty, so no hidden selection is needed for them. Missing
-   observation for any group command that does act: the group membership at
-   command time (a group loaded but not enumerated would look like an empty
-   list).
+1. **No generic hidden-selection gap (T62).** A group loaded into a search list
+   by `up-set-group` is represented by that list for commands documented to
+   consume it, and the trace snapshots that list after the load. The 1,651
+   empty-input rows are therefore recorded empty inputs, and the nonempty rows
+   are interpreted from their actual recorded object rows (site 1303: escort
+   ships, group-flag 9). The remaining gap is narrower and named: for a
+   *type-based* command the recipient set is every object of that type and is
+   not list-anchored (`up-reset-scouts`, 14 rows); for engine-side commands the
+   later native packets are not attributable to the call.
 2. **Transport-route timer status**: no registered command arms
    `t-transport-route`; the arm (`rawai-assault-missions.per:108`, `c: 1`) is not
    traced, so admission-timer state cannot be reconstructed.
@@ -186,8 +216,10 @@ constants are unverified names.
    object's `status-pending → status-ready` transition and the assigned builder
    are not recorded per actor; deposits are unproven.
 4. **Merchant path/progress**: no merchant-side state in the ROW family.
-5. **Queues vs births**: production packets are births; AI queue/request state is
-   not in the replay and has no 508 diagnostic.
+5. **Queues vs completion**: `MAKE` (decoder action 100, `building_id` +
+   `unit_id`, no instance/completion field) records production orders of the
+   mapped unit type; completed-unit counts and AI queue/request state are not in
+   the replay and have no 508 diagnostic.
 6. Whole-second trace timestamps define intervals, log record ids and replay
    sequence ids are different orderings, and packet presence never proves a
    task's success.
@@ -205,6 +237,10 @@ constants are unverified names.
 | "p7 aborted unexplained" | explicit `MIGRATION-DROPSITE-FAILED` after 3 placement attempts, decided by the literal-0 `up-can-build` test repaired in T60 |
 | "618 = selected hull, 619 = hold reason, 621-622 = merchant counts" | 581 = selected hull; 618/619/621/622 = rejected hull, its action and its destination |
 | "hull waits stationary during the burst" | hulls move slowly inside the bursts (10-32 tiles); the passenger's frozen position is not hull stationarity |
+| "site 1303's recipients were a migration-hull lookup" (T61) | site 1303 is the transport-escort rule: it loads `transport-escort-group` into `search-local` with owner/group filters before the stop; the nonempty recorded rows are escort ships (group-flag 9), no passenger is claimed |
+| "point commands were validated against the remote list" (T61 matcher) | the residual point/remote branch is removed; the packet's target field is auxiliary (an UNGARRISON packet names the released object) and point coordinates are not compared — one focused regression covers the branch |
+| "269 Skirmisher MAKE records are births" (T61) | 269 MAKE records for the mapped unit type; none attributed to player 6 in that extraction; completion and queue state are not established |
+| "the script is not re-boarding them during the burst" (T61) | the script addressed the flood actors 1-2 times per burst (5 occurrences total) against 2,471-14,692 706 packets; the producer stays unresolved |
 
 ## 7. Validation
 
@@ -219,3 +255,64 @@ were re-run for the shared `compatible()` change (55 tests, OK, 17 historical
 opt-in skips). Real-recording spot checks for the corrected matcher: p2 hull
 34898 boarding episodes, p8 hull 7645 unload with follow-up work, p2 1450-1560 s
 ROW selection, and the p7 3680 s dropsite PRE frames.
+
+## 8. T62 correction batch (residual matcher branch and affected results)
+
+The reviewed correlator still rejected a point-directed command when its packet
+carried a nonnegative auxiliary target that was absent from the remote list.
+That branch is removed: point-directed commands no longer inherit a remote-object
+requirement, the auxiliary field (e.g. the object named by an UNGARRISON packet)
+is not treated as the PER command's target, and point coordinates are not
+compared without verified precision. Recipients, player, documented packet
+family, exact-versus-subset labelling and the labelled window are unchanged;
+object-target (`remote-list`) and select-object (`selected-object`) validation
+are retained.
+
+Regression coverage: `tools/test_command_boundary_log.py` gained
+`test_point_command_ignores_auxiliary_target_and_unrelated_remote_list`, which
+reaches the failing branch (contract-compatible UNGARRISON packet, nonnegative
+auxiliary target, unrelated nonempty remote list), shows the result is unchanged
+when only that remote list is emptied, and keeps a neighbouring object-target
+mismatch rejected. The fixture is synthetic and tests matcher behaviour only.
+
+Affected results (recomputed from the existing 508 extraction and the frozen 508
+registry; previous outputs preserved, corrected output
+`.analysis/t62-508-correlations-v4.jsonl`):
+
+| Measure | v3 | v4 |
+|---|---|---|
+| rows | 200,051 | 200,051 |
+| no-direct-packet-expected | 196,154 | 196,154 |
+| candidate-not-causation | 2,199 | 2,199 |
+| empty-input-recorded | 1,651 | 1,651 |
+| ambiguous | 32 | 32 |
+| type-based-recipients / unsupported | 14 / 1 | 14 / 1 |
+| packets gaining or losing candidate matches | — | **0** |
+
+Why no site or packet changed in this recording: of 1,476 point-command rows
+only 25 had a nonempty remote list, and all 506 candidate packets from point rows
+carried `target_id` -1 or absent (343 ORDER, 93 STOP, 70 UNGARRISON in the point
+form). The removed branch therefore never rejected a compatible packet here — the
+fix removes a latent mis-rejection rather than changing this recording's
+results. Conclusions that remain unchanged: the empty-input classification, the
+Option-1 select-object anchoring, the 0-of-38,259 order-706 coverage, the 85.0 %
+de-duplicated flood share and the censored-cohort accounting.
+
+## 9. Next authorized runtime check (preparation only, not authorization)
+
+1. Record the deployed candidate's distinct identity and preserve the existing
+   intentional user edits through the established deployment process.
+2. Keep the existing logger and the transport/gathering policies unchanged.
+3. Verify actual execution of the repaired `up-can-build`, `up-can-build-line`
+   and `up-get-point-distance` sites without their former errors; unexercised
+   calls do not pass merely because startup is quiet.
+4. Assess shipyard placement/completion and resource-migration construction,
+   including the failure boundary that stopped p7 in 508.
+5. Continue observing order-706 with the corrected analysis tools, without
+   attributing any improvement to the operand repair before evidence supports it.
+
+Statuses: **OPERAND REPAIR — IMPLEMENTED, PENDING RUNTIME**; logging
+delivery/player identity — observed success in 508; flood mechanism —
+unresolved, with associations and matching limits specified; p2 ready/retask/
+release evidence — retained; unfinished or unobservable assault/merchant
+outcomes — not closed.

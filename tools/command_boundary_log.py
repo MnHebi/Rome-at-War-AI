@@ -266,8 +266,12 @@ def correlations(records,events,registry):
                     elif shape['target']=='selected-object':
                         if selected is None or target not in (selected,):
                             continue
-                    elif shape['target']=='point' and targets and target not in (None,-1) and target not in targets:
-                        continue
+                    # Point-directed commands carry no remote-object
+                    # requirement: the packet's target field is auxiliary (an
+                    # UNGARRISON packet names the released object, a point order
+                    # may report -1) and point coordinates are not compared
+                    # without verified precision, so only recipients, player,
+                    # documented family and the labelled window constrain it.
                     if compatible(e,c['command']):
                         candidates.append(dict(sequence=e['sequence'],second_offset=second-a['game_seconds'],
                             exact_recipients=ids==set(anchors),target_source=shape['target'],

@@ -109,6 +109,22 @@ class CorrelatorTests(unittest.TestCase):
                         local=(10,), remote=(54321,))
         self.assertEqual(rows[0]['category'], 'unmatched-not-native-proof')
 
+    def test_point_command_ignores_auxiliary_target_and_unrelated_remote_list(self):
+        # An UNGARRISON packet names the released object, not the PER point
+        # command's target, and its nonnegative field must not be compared
+        # against an unrelated remote search list.
+        unload = packet(11, 100, 'UNGARRISON', object_ids=(10,), target_id=99999)
+        with_remote = rows_for(POINT_UNLOAD, [unload], local=(10,), remote=(54321,))
+        without_remote = rows_for(POINT_UNLOAD, [unload], local=(10,), remote=())
+        self.assertEqual([c['sequence'] for c in with_remote[0]['candidates']], [11])
+        self.assertEqual([c['sequence'] for c in without_remote[0]['candidates']], [11])
+        self.assertEqual(with_remote[0]['category'], without_remote[0]['category'])
+        # ... while a genuinely object-directed command keeps the requirement.
+        object_mismatch = rows_for(OBJECT_GARRISON,
+                                   [packet(12, 100, 'SPECIAL', object_ids=(10,), target_id=99999, order_id=5)],
+                                   local=(10,), remote=(54321,))
+        self.assertEqual(object_mismatch[0]['category'], 'unmatched-not-native-proof')
+
     def test_object_garrison_requires_the_traced_target(self):
         wrong = rows_for(OBJECT_GARRISON, [packet(7, 100, 'SPECIAL', target_id=99999, order_id=5)],
                          local=(10,), remote=(54321,))
