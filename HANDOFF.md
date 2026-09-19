@@ -11,10 +11,10 @@ Candidate: `T58B-ALLIED-LANDING-FALLBACK.md`; replay: `T58A-RUNTIME-REPLAY-ASSES
 
 ## Deployment
 
-2026-09-19T17:20Z: `RAWAI-P3B44T58B:509`109 runtime files installed and hash verified; first 509 match accepted at the engine boundary.
-SHA256 `2e9144ea6c2920a469e027713300bd5f38df34a6a794e5f30bd213f3df77a58a`.
-Source: `ff30967bca69749846814bb343a331d1943ff702 + deployed marker509; T63-DEPLOYMENT.md`. Counter1 is NOT STOP proof.
-Manifest/registry/508 backup `.analysis/deployment-t63-509-20260919T172057Z/`.
+2026-09-19T19:23Z: `RAWAI-P3B44T58B:510`109 runtime files installed and hash verified; first 510 match pending. 510 = 509 + taunt fix + entering guard.
+SHA256 `ba6b82099dd15900e61bf011c9a080ffc09afd308ce079d4b35d61d294bd6c04`.
+Source: `74e27f752fe40cc8145f150b44fedbe1571b070d + deployed marker510; T67-DEPLOYMENT.md`.
+Manifest/registry/509 backup `.analysis/deployment-t67-510-20260919T192316Z/`.
 507 replay133042 failed: rawP1 exposes Green-owned locals; Age/goal floods. Keep `.analysis/deployment-t58a-507-20260912T102708Z/`.
 
 ## Active task
