@@ -11,7 +11,7 @@ Candidate: `T58B-ALLIED-LANDING-FALLBACK.md`; replay: `T58A-RUNTIME-REPLAY-ASSES
 
 ## Deployment
 
-2026-09-19T17:20Z: `RAWAI-P3B44T58B:509`109 runtime files installed, hash verified; startup pending.
+2026-09-19T17:20Z: `RAWAI-P3B44T58B:509`109 runtime files installed, hash verified; first 509 match accepted at the engine boundary (`T64-509-RUNTIME-RESULTS.md`).
 SHA256 `2e9144ea6c2920a469e027713300bd5f38df34a6a794e5f30bd213f3df77a58a`.
 Source: `ff30967bca69749846814bb343a331d1943ff702 + deployed marker509; T63-DEPLOYMENT.md`. Counter1 is NOT STOP proof.
 Manifest/registry/508 backup `.analysis/deployment-t63-509-20260919T172057Z/`.
@@ -32,11 +32,12 @@ Manifest/registry/508 backup `.analysis/deployment-t63-509-20260919T172057Z/`.
 
 ## T61/T62 correlator + 508 follow-up
 
-- Contracts from the AIRef (`command_contracts.py`): point/object, Option0/1, type-based, unclassified. v4 run `.analysis/t62-508-v4.jsonl` (identical to v3): 196,154 no-direct-packet, 2,199 candidates, 1,651 empty-input, 32 ambiguous, 14/1 type-based/unsupported; 0/38,259 `706` in brackets.
+- Contracts from the AIRef (`command_contracts.py`): point/object, Option0/1, type-based, unclassified. v4 run (identical to v3): 196,154 no-direct-packet, 2,199 candidates, 1,651 empty-input, 32 ambiguous; 0/38,259 `706` in brackets.
 - `706`: four boarding runs + one unloading =85.0%; hulls move inside bursts; garrison calls 1-2 each; writers farm-staffing1205/1202/1196; cohort 369/42/7/5.
-- Migration: p2 retask->release +7,135 WORK; p7 DROPSITE-FAILED decided by the literal-0 `up-can-build` at `rawai-military.per:4833`; p1/3/4/8 masks0 in293/299.
-- Assault p8/7645: 573 boards/232 unloads/259 WORK after. ROW ids corrected (581 hull; 618-622 rejected). 269 MAKE records, none p6. Detail `T61-CORRELATOR-AND-508-FOLLOW-UP.md`.
-- Runtime check prepared (`T63-RUNTIME-CHECK-PREPARATION.md`): candidate=10 changed files vs installed508, 99 identical; gates PASS; offline checker `tools/verify_operand_runtime.py` (+5 tests) reproduces the508 baselines. Deploy/marker/launch still need explicit authorization.
+- Migration: p2 retask->release+7,135 WORK; p7 DROPSITE-FAILED from the literal-0 `up-can-build` at `rawai-military.per:4833`; p1/3/4/8 masks0 in293/299.
+- Assault p8/7645: 573 boards/232 unloads/259 WORK after. 269 MAKE records, none p6.
+- 509 runtime (`T64-509-RUNTIME-RESULTS.md`): identity match; repaired error families 86277/3001/24490 -> 0, controls intact, sites36/63 exercised; shipyard reason64 .8665->.5118, reason63 now3415; 706 38259->4631 (no attribution).
+- 509 defects (unfixed): taunt31 site1829 re-fires184x/101s (`acknowledge-taunt this-any-ally` fails to clear `taunt-detected any-ally`; taunt48 shows per-player pattern); ROW hold/issue625-637=0 in508/509 (stall counter never2, merchants0).
 
 ## Defects retained
 
@@ -48,7 +49,7 @@ Preserve land trade, migration launch/landing, landed combat, three assault slot
 
 ## Validation / next action
 
-509: PER/generators/capacity PASS; cleanup cut17 default tests. Deployed+hash verified; startup/acceptance pending (`T63-DEPLOYMENT.md`).
+509: capacity PASS; engine-boundary acceptance PASSED, gameplay open (`T64-509-RUNTIME-RESULTS.md`).
 Maintenance: `MAINTENANCE-CONSISTENCY.md`; preserve Dacian/Syracusan lineups.
 
 Next: operand fix (no-escrow + point operand), dropsite status-ready observation, 706 issuer observation, allied unload/land advance.
