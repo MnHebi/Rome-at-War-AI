@@ -5,16 +5,16 @@ Candidate: `T58B-ALLIED-LANDING-FALLBACK.md`; replay: `T58A-RUNTIME-REPLAY-ASSES
 ## Workspace
 
 - Canonical: `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`
-- Branch: `fix/trade-cog-cap-dacian`; HEAD `git rev-parse HEAD`. T58B source `5e9e548`; maintenance `4250e7f`; both on PR11.
-- PR: https://github.com/MnHebi/Rome-at-War-AI/pull/11
+- Branch: `t59/age-operand-and-test-suite-cleanup`; HEAD `git rev-parse HEAD`.
+- PR: https://github.com/MnHebi/Rome-at-War-AI/pull/12 (PR11 merged)
 - PR11 holds earlier508 source/tests and507 evidence; uncommitted Age fixes preserved. One owner; no new branch/worktree/overlay.
 
 ## Deployment
 
-2026-09-12: `RAWAI-P3B44T58B:508`109 runtime files installed, hash verified.
-SHA256 `0641fa7373a92e4246b8800e33d2c0ef15bbff1d6ab84e7a23e2569be4eab387`.
-Source: `e84cec97f557de501176462bfae898a91d1dff19 + working Age fixes; T58B-DEPLOYMENT.md`. Counter1 is NOT STOP proof.
-Manifest/registry/507 backup `.analysis/deployment-t58b-508-20260912T200909Z/`.
+2026-09-19T17:20Z: `RAWAI-P3B44T58B:509`109 runtime files installed, hash verified; startup pending.
+SHA256 `2e9144ea6c2920a469e027713300bd5f38df34a6a794e5f30bd213f3df77a58a`.
+Source: `ff30967bca69749846814bb343a331d1943ff702 + deployed marker509; T63-DEPLOYMENT.md`. Counter1 is NOT STOP proof.
+Manifest/registry/508 backup `.analysis/deployment-t63-509-20260919T172057Z/`.
 507 replay133042 failed: rawP1 exposes Green-owned locals; Age/goal floods. Keep `.analysis/deployment-t58a-507-20260912T102708Z/`.
 
 ## Active task
@@ -48,7 +48,7 @@ Preserve land trade, migration launch/landing, landed combat, three assault slot
 
 ## Validation / next action
 
-508: PER/generators/capacity PASS; cleanup cut 17 default tests (T59). Deployment verified; runtime acceptance pending (`T58B-AGE-OPERAND-AUDIT.md`).
+509: PER/generators/capacity PASS; cleanup cut17 default tests. Deployed+hash verified; startup/acceptance pending (`T63-DEPLOYMENT.md`).
 Maintenance: `MAINTENANCE-CONSISTENCY.md`; preserve Dacian/Syracusan lineups.
 
 Next: operand fix (no-escrow + point operand), dropsite status-ready observation, 706 issuer observation, allied unload/land advance.

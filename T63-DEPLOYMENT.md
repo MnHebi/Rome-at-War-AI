@@ -14,7 +14,7 @@ file, and no installed file outside the AI payload touched.
 | Payload aggregate | `2e9144ea6c2920a469e027713300bd5f38df34a6a794e5f30bd213f3df77a58a` (SHA256 sorted filename + NUL + file hash + LF) |
 | Source identity words | `[-1841858553, 271991160, -517365673, 424529343, -638624529, 1292396916, 1560141061, -1844389435]` |
 | Files | 109 runtime `.ai`/`.per`, 99 identical to the installed 508 payload |
-| Source | HEAD `bfb309b` plus the disclosed marker bump 508 → 509; the identical tree is committed as the deployment commit and named in `project-state.json` / `HANDOFF.md` |
+| Source | HEAD at deploy time `bfb309b` plus the disclosed marker bump 508 → 509; the deployed tree is committed as **`ff30967`** (recorded in `project-state.json` and `HANDOFF.md`) |
 | Manifest | `.analysis\deployment-t63-509-20260919T172057Z\manifest.json` (+ `before-manifest.json`, `command-boundary-registry.json`, `before/` backup of all installed files) |
 | Prior payload | `.analysis\deployment-t58b-508-20260912T200909Z\manifest.json` |
 | Engine options changed / game launched | `false` / `false` |
