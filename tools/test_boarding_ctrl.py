@@ -103,5 +103,27 @@ class BoardingCtrlTests(unittest.TestCase):
         self.assertEqual(sum(s['policy']=='EXPERIMENT: mining boarding' for s in policy['sites']),5)
         self.assertTrue(all(s['assessment'] for s in policy['sites']))
 
+    def test_passenger_task_selections_bar_entering_units(self):
+        """A selection that commands reserved passengers must exclude units that
+        are already entering a transport, exactly as the stock AI does. Without
+        this guard the boarding retry re-tasks villagers that are mid-board
+        (T66: every sustained ORDER storm follows such a re-task)."""
+        registry=json.loads((ROOT/'command-boundary-registry.json').read_text())
+        guarded=0
+        for site in registry['sites']:
+            original=site.get('original') or ''
+            if 'migration-boarding-group' not in original:
+                continue
+            if '(up-remove-objects search-local object-data-garrisoned == 1)' not in original:
+                continue
+            if not re.search(r'\(up-target-(objects|point) ',original):
+                continue
+            guarded+=1
+            self.assertIn('(up-remove-objects search-local object-data-action == actionid-enter)',
+                original,f'site {site["id"]} commands passengers without the enter guard')
+            self.assertIn('(up-remove-objects search-local object-data-order == orderid-enter)',
+                original,f'site {site["id"]} commands passengers without the enter-order guard')
+        self.assertGreaterEqual(guarded,17)
+
 if __name__=='__main__':
     unittest.main()
