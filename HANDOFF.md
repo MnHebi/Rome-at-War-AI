@@ -38,7 +38,7 @@ Manifest/registry/508 backup `.analysis/deployment-t63-509-20260919T172057Z/`.
 - Assault p8/7645: 573 boards/232 unloads/259 WORK after. 269 MAKE records, none p6.
 - 509 runtime (`T64-509-RUNTIME-RESULTS.md`): identity match; repaired error families 86277/3001/24490 -> 0, controls intact, sites36/63 exercised; shipyard reason64 .8665->.5118, reason63 now3415; 706 38259->4631 (no attribution).
 - 509 defects (unfixed): taunt31 site1829 re-fires184x/101s (`acknowledge-taunt this-any-ally` fails to clear `taunt-detected any-ally`; taunt48 shows per-player pattern); ROW hold/issue625-637=0 in508/509 (stall counter never2, merchants0).
-- T66 (`T66-ORDER-STORM-ATTRIBUTION.md`): p2 7806/34426 and p4 34824 ORDER storms have no compatible traced producer; actors garrisoned 1-5s prior; ambiguous, no fix.
+- T66 (`T66-ORDER-STORM-ATTRIBUTION.md`): p2 7806/34426 and p4 34824 gather-order storms, no traced producer; Promisory `actionid-enter` guard missing here; ambiguous, no fix.
 
 ## Defects retained
 

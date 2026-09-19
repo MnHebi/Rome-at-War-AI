@@ -38,45 +38,96 @@ exactly one candidate packet of its own (never a storm packet):
 | p4 34824 | 1380, 1398, 1513 (×3) | `rawai-military.per` (boarding) | `(up-target-objects 0 action-garrison …)` | actor | hull **35255** | 3343-3362 s | 1 each (SPECIAL order 5) | candidate-not-causation |
 | p4 34824 | 1419 | `rawai-military.per` (boarding) | as above | actor | — (empty remote list) | 3351 s | 0 | empty-input-recorded |
 
-Timing: the boarding invocations are **1-5 s before each storm starts** and the
-storm begins exactly as the actor's traced state becomes `action 609 / order 709`
-— the pair observed for garrisoned passengers.
+Timing: the boarding invocations are **1-5 s before each storm starts**, and the
+storm begins as the actor's traced state reads `action 609 / order 709`. Those
+ids are **gather/gather** (section 3), so the storms are gather-order streams,
+not the garrisoned-passenger reading of the first draft.
 
 ## 3. Actor state during each storm (type-21 records)
 
+The recorded tuple is `(action, order, target)`. It decodes against
+`rawai-constants.per` and cross-checks against the shipped `Promisory/const.per`:
+**609 = `actionid-gather` and 709 = `orderid-gather`**; 617/717 are
+`actionid-enter`/`orderid-enter`.
+
 | Actor | Dominant recorded state inside the storm | Other states |
 |---|---|---|
-| p2 7806 | `(609, 709, target -1)` ×233 samples — garrisoned | 70 unknown, 1 move sample `(617, 717, 63029)` |
+| p2 7806 | `(609, 709, target -1)` ×233 samples — **gather/gather** | 70 unknown, 1 sample `(617, 717, 63029)` — enter hull |
 | p2 34426 | identical (233/70/1) | — |
-| p4 34824 | `(609, 709, -1)` ×70 samples — garrisoned | 10 unknown, 2 move samples `(617, 717, 35202)` |
+| p4 34824 | `(609, 709, -1)` ×70 samples — **gather/gather** | 10 unknown, 2 samples `(617, 717, 35202)` — enter hull |
 
-So in all three storms the ordered actor is **inside a hull** (it was boarded
-1-5 s earlier) while the ORDER stream to a fixed destination continues for
-3.5-5 minutes. The two Red actors share this path exactly (one hull, 63029, one
-episode); Yellow shows the same symptom class but a different actor, hull (35255)
-and destination, and its destination also receives AI orders while Red's does not
-— so the two are **the same packet symptom, not yet proven to be one defect**.
+**Correction to the first draft.** That draft read this tuple as a "garrisoned
+passenger". The constants contradict it: the standing state is gather/gather, so
+these are **gather-order storms**. The single enter-hull sample per actor is the
+boarding command (the boardings tabulated in section 2); it is the exception, not
+the state the unit holds while the stream runs.
+
+The packet cadence agrees. The three storms run at a ~16 ms median gap
+(~40-48 packets/s), roughly 15x the AI's own order rate (`AI_ORDER` median
+235 ms, ~4/s) and far above `300dac4`'s taunt loop (~1.8/s). So this is the
+engine re-applying a standing order, not an AI rule re-firing on its tick.
+
+The storming villagers therefore stay *gatherers* whose recorded state is
+gather/gather throughout, while a fixed-point gather ORDER to one object is
+re-issued ~40x/s for 3.5-5 minutes. Red's two actors share one path exactly (one
+hull, 63029, one episode). Yellow differs in actor, hull (35255) and destination,
+and its destination additionally receives AI orders while Red's does not — **the
+same packet symptom, not yet proven to be one defect**.
 
 ## 4. Classification and the smallest discriminating gap
 
 Per the attribution rules: **no directly compatible traced producer**; the only
-traced events correlated with the storms are the scripted boardings that put the
-actors into the hull. "Earlier scripted tasking causing delayed native
-repetition" remains a **hypothesis** — the boarding is 1-5 s before the onset,
-which establishes timing, not causation.
+traced events correlated with the storms are the scripted boardings, 1-5 s before
+the onset. That establishes timing, not causation, and "no direct match" is not
+"engine generated".
 
-Smallest discriminating gap (no new logger needed): the file trace records which
-scripted site addressed an actor, but a garrisoned unit's ORDER packets in the
-storm window are not attributable to any traced invocation — the missing
-observation is the **issuer/mode of orders issued for a unit inside a transport**
-(whether the script re-issues the destination order for a loaded hull, or the
-engine expands the hull's own destination order per passenger). One bounded
-discriminator would settle it: in a controlled recording, board one transport,
-give the hull a single destination order and no further scripted orders, and see
-whether the same ORDER stream appears for the passenger; or record, for one
-voyage, the command site that issues the hull's destination order together with
-the passenger order stream.
+Smallest discriminating gap: the file trace records which scripted site
+addressed an actor, but the storm's ORDER packets are attributable to no traced
+invocation. The missing observation is the **issuer/mode of a gather order
+re-issued to a unit that is boarding or aboard a transport** — whether a script
+selection keeps re-issuing it, or the engine re-applies the unit's own standing
+order. One bounded discriminator settles it: in a controlled recording, board one
+villager with no pending gather order and give only the hull a destination, then
+see whether the villager's gather stream appears; or record, for one voyage, the
+site that issues the villager's gather order together with its packet stream.
 
-**No fix implemented.** Attribution is ambiguous, the implicated state cannot be
-named, and the instruction was to stop at the smallest discriminating gap rather
-than add blanket retry suppression, waits or order throttling.
+## 5. Stock-AI guard this checkout does not carry (source comparison)
+
+The shipped AI's source is available locally
+(`G:\SteamLibrary\steamapps\common\AoE2DE\resources\_common\ai\Promisory\`, 36
+`.per` files — the same snapshot as the 2026-09-07
+`comparison\Promisory_vs_RAW_Migration_Comparison.md`). Its worker-task
+selections strip out units tied up with a transport, in **both** the action and
+the order field:
+
+```per
+(up-remove-objects search-local object-data-action == actionid-enter)
+(up-remove-objects search-local object-data-order  == orderid-enter)
+```
+
+Occurrences: `gatherers.per` 2 (lines 2923-2924, 3010-3011), `general.per` 11,
+`tsa.per` 7; separate `object-data-garrisoned` filters appear in `general.per`
+(4), `tsa.per` (4), `orb.per` (3) and `boarhunting.per` (1).
+
+This checkout defines the same ids (`rawai-constants.per`: `actionid-enter 617`,
+`orderid-enter 717`, matching `Promisory/const.per`) but applies them unevenly:
+
+| Guard | Promisory | this checkout |
+|---|---|---|
+| `object-data-action == actionid-enter` | 20+ sites, 3 files | **never used** — the defconst is its only occurrence |
+| `object-data-order == orderid-enter` | used in task selections | only `rawai-expedition-budget.per`, `rawai-general.per:196`, `rawai-military.per` |
+| `object-data-garrisoned` | `general`, `tsa`, `orb`, `boarhunting` | only the assault/attack files |
+
+The economy-side tasking paths carry no transport guard at all: the camp
+placement selections at `rawai-homebase.per:6077` and `:6107` filter on
+`actionid-gather`, gather type and `target-id` with no enter/transport predicate.
+A villager tied up with a transport therefore stays eligible for gather-side
+tasking — the class the stock AI guards against, and the strongest remaining
+candidate for these storms. It is a candidate, not an attribution: no traced site
+has yet been shown to select actor 7806, 34426 or 34824.
+
+**No fix implemented.** The decode correction changes what the storms are (a
+gather-order stream, not a garrisoned-passenger stream), but it does not yet name
+the writer that produces them, and the instruction was to stop at the smallest
+discriminating gap rather than add blanket retry suppression, waits or order
+throttling.
