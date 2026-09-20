@@ -665,36 +665,20 @@
 		(unit-type-count villager-shepherd >= 1)
 		(unit-type-count villager-hunter >= 1)
 	)
-	(or
-		(strategic-number sn-disable-builder-assistance != 1)
-		(or
-			(strategic-number sn-retask-gather-amount != 40)
-			(strategic-number sn-max-retask-gather-amount != 40)
-		)
-	)
+	(strategic-number sn-disable-builder-assistance != 1)
 =>
 	(set-strategic-number sn-disable-builder-assistance 1)
-	;This is a global engine control, so use the documented normal maximum as a
-	;bounded retention floor instead of freezing every resource worker.
-	(set-strategic-number sn-retask-gather-amount 40)
-	(set-strategic-number sn-max-retask-gather-amount 40)
+	;The native retask configuration is fixed at bootstrap (intelligent gathering
+	;on, both retask amounts 0); this rule only owns builder assistance.
 )
 
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(unit-type-count villager-shepherd <= 0)
 	(unit-type-count villager-hunter <= 0)
-	(or
-		(strategic-number sn-disable-builder-assistance != 0)
-		(or
-			(strategic-number sn-retask-gather-amount != 20)
-			(strategic-number sn-max-retask-gather-amount != 40)
-		)
-	)
+	(strategic-number sn-disable-builder-assistance != 0)
 =>
 	(set-strategic-number sn-disable-builder-assistance 0)
-	(set-strategic-number sn-retask-gather-amount 20)
-	(set-strategic-number sn-max-retask-gather-amount 40)
 )
 
 ;Temporarily pull extra villagers onto large foundations. The percentages and

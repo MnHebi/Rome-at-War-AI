@@ -11,10 +11,10 @@ Candidate: `T58B-ALLIED-LANDING-FALLBACK.md`; replay: `T58A-RUNTIME-REPLAY-ASSES
 
 ## Deployment
 
-2026-09-19T19:23Z: `RAWAI-P3B44T58B:510`109 runtime files installed and hash verified; first 510 match ran 3633s then the engine crashed. 510 = 509 + taunt fix + entering guard.
-SHA256 `ba6b82099dd15900e61bf011c9a080ffc09afd308ce079d4b35d61d294bd6c04`.
-Source: `74e27f752fe40cc8145f150b44fedbe1571b070d + deployed marker510; T67-DEPLOYMENT.md`.
-Manifest/registry/509 backup `.analysis/deployment-t67-510-20260919T192316Z/`.
+2026-09-20T11:03Z: `RAWAI-P3B44T58B:511`109 runtime files installed and hash verified. 511 = 510 + T69/T70 enemy-scan guards + the T71 native-gather experiment (`sn-intelligent-gathering 1`, both retask amounts 0; percentages unchanged).
+SHA256 `3f3430a6b3e541c64c8f726458afdca1a0a2041e9b94690d81f5c7662f450360`.
+Source: `7e49d173916498a2c8996b77e8fd420b9655b50f + deployed marker511; T71-DEPLOYMENT.md`.
+Manifest/registry/510 backup `.analysis/deployment-t71-511-20260920T110354Z/`.
 507 replay133042 failed: Green-owned locals; Age/goal floods. Keep `.analysis/deployment-t58a-507-20260912T102708Z/`.
 
 ## Active task
@@ -37,8 +37,8 @@ Manifest/registry/509 backup `.analysis/deployment-t67-510-20260919T192316Z/`.
 - Migration: p2 retask->release+7,135 WORK; p7 DROPSITE-FAILED from the literal-0 `up-can-build` at `rawai-military.per:4833`; p1/3/4/8 masks0 in293/299.
 - Assault p8/7645: 573 boards/232 unloads/259 WORK after. 269 MAKE records, none p6.
 - 509 runtime (`T64-509-RUNTIME-RESULTS.md`): identity match; repaired error families 86277/3001/24490 -> 0, controls intact, sites36/63 exercised; shipyard reason64 .8665->.5118, reason63 now3415; 706 38259->4631 (no attribution).
-- 509 defects (unfixed): taunt31 site1829 re-fires184x/101s (`acknowledge-taunt this-any-ally` fails to clear `taunt-detected any-ally`; taunt48 shows per-player pattern); ROW hold/issue625-637=0 in508/509 (stall counter never2, merchants0).
-- T66/T68 (`T66-ORDER-STORM-ATTRIBUTION.md`, `T68-510-RUNTIME-RESULTS-AND-CRASH.md`): entering guard at 17 sites; on 510 taunt fixed, guard unproven; 510 crashed with no stack. T69: enemy scans require `player-in-game`.
+- 509 defects: taunt31 fixed in 510 (site1829 736->0); ROW hold/issue625-637 never executed in508/509 (stall counter never2, merchants0); taunt48 per-player pattern open.
+- T66-T71 (`T66-ORDER-STORM-ATTRIBUTION.md`, `T68-510-RUNTIME-RESULTS-AND-CRASH.md`): entering guard at 17 sites, unproven; 510 crashed, no stack; enemy scans now require `player-in-game`; 511 tests the native-gather retask bundle.
 
 ## Defects retained
 
