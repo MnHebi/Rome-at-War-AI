@@ -12,9 +12,9 @@ Candidate: `T58B-ALLIED-LANDING-FALLBACK.md`; replay: `T58A-RUNTIME-REPLAY-ASSES
 ## Deployment
 
 2026-09-20T12:11Z: `RAWAI-P3B44T58B:512`109 runtime files installed and hash verified. 512 = 511 + the T72 migration load-wait latch (the CHECK-LOAD -> LOADING ping-pong branch removed; retries unchanged).
-SHA256 `f9c6e3a564f7dc65f1164dab15d57d6092070f653d876504c50a3cc089c330e5`.
+SHA256 `8c8d1f09661834af5f11f162aec109671d9d40b3d99774acb3d6c59e528ac8b8`.
 Source: `cbb674e2269e72fafb95c7ab04c3f0de32cbb6a3 + deployed marker512; T72-DEPLOYMENT.md`.
-Manifest/registry/511 backup `.analysis/deployment-t72-512-20260920T121152Z/`.
+Manifest/registry/511 backup `.analysis/deployment-t72-512-20260920T121449Z/`.
 507 replay133042 failed: Green-owned locals; Age/goal floods. Keep `.analysis/deployment-t58a-507-20260912T102708Z/`.
 
 ## Active task

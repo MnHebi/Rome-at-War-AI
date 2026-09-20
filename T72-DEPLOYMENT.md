@@ -1,6 +1,6 @@
 # T72 deployment — migration load-wait latch `RAWAI-P3B44T58B:512`
 
-Installed 2026-09-20T12:11:52Z on user authorization, from the canonical
+Installed 2026-09-20T12:14:49Z on user authorization, from the canonical
 checkout, through the established process (`deploy-t72-512.py`, modelled on
 `deploy-t71-511.py`). No game launch, no option change, no installed file
 outside the AI payload touched.
@@ -10,15 +10,23 @@ outside the AI payload touched.
 | Item | Value |
 |---|---|
 | Marker | **`RAWAI-P3B44T58B:512`** |
-| Payload aggregate | `f9c6e3a564f7dc65f1164dab15d57d6092070f653d876504c50a3cc089c330e5` |
+| Payload aggregate | `8c8d1f09661834af5f11f162aec109671d9d40b3d99774acb3d6c59e528ac8b8` |
 | Files | 109 runtime `.ai`/`.per`; **3 changed vs 511** |
 | Changed | `rawai-military.per` (the latch), `rawai-init-goals.per` (marker), `rawai-command-boundary-coverage.per` (identity) |
-| Source | HEAD `cbb674e` plus the disclosed marker bump 511 → 512 and the T72 latch |
-| Manifest | `.analysis\deployment-t72-512-20260920T121152Z\manifest.json` (+ `before/` backup of the installed 511 payload) |
+| Source | HEAD `b7e1c1c` plus the disclosed marker bump 511 → 512 and the T72 latch; the corrected tree is committed immediately after |
+| Manifest | `.analysis\deployment-t72-512-20260920T121449Z\manifest.json` (+ `before/` backup of the installed 511 payload) |
 | Installed / source / backup bytes | identical / identical / identical |
 | Engine options changed / game launched | `false` / `false` |
 
 ## The change
+
+One build note: the first install (12:11:52Z) was made from a tree whose
+`rawai-military.per` had been rewritten with LF line endings by the removal
+script. That was caught in review, the file was restored and the block removed
+byte-preservingly, and the payload was reinstalled from the corrected tree —
+against the 511 baseline restored from the backup. The installed payload now
+differs from 511 by the 49-line block plus the marker and the coverage identity,
+with no line-ending churn.
 
 The 511 trace showed `MIGRATION-LOADING ↔ MIGRATION-CHECK-LOAD` alternating at
 roughly 2 Hz for ~31 s stretches — 56 transitions each way — on hull 36524 (p1),
