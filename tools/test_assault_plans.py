@@ -496,5 +496,24 @@ class AssaultPlanTests(unittest.TestCase):
             self.assertIn(('"RAW plan next-enemy: %d"',7),p.logs)
             self.assertEqual(p.objects[10]['cargo'],9)
 
+    def test_enemy_scans_require_the_player_to_be_in_game(self):
+        """A remote search focused on a player who has left the game is an engine
+        error, so every planner scan that names the manifest player must carry
+        the matching in-game fact, and the departed case must advance explicitly."""
+        checked = unguarded = departed = 0
+        for a,b,block,facts,actions in rule_blocks(source('rawai-assault-plans.per')):
+            m=re.search(r'\(goal gl-assault-manifest-player (\d)\)',facts)
+            if not m:
+                continue
+            if 'up-find-remote' in actions:
+                checked+=1
+                if f'(player-in-game {m.group(1)})' not in facts:
+                    unguarded+=1
+            if re.search(r'\(not \(player-in-game \d\)\)',facts):
+                departed+=1
+        self.assertGreaterEqual(checked,24)
+        self.assertEqual(unguarded,0,f'{unguarded} manifest scan(s) lack an in-game guard')
+        self.assertEqual(departed,24)
+
 
 if __name__=='__main__': unittest.main()
