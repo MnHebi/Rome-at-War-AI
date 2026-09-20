@@ -18930,7 +18930,7 @@
         "(up-add-object-by-id search-local g: gl-transport-route-id)",
         "(up-remove-objects search-local object-data-player != my-player-number)",
         "(up-remove-objects search-local object-data-group-flag != attack-transport-group)",
-        "(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)",
+        "(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)",
         "(up-chat-data-to-self \"attack lift boarding aborted: %d\" g: gl-transport-route-load-target)",
         "(up-chat-data-to-all \"RAW44B attack load terminal abort: %d\" g: gl-transport-route-load-observed)",
         "(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)",
@@ -18943,20 +18943,20 @@
         {
           "index": 4,
           "id": 1705,
-          "command": "(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)",
+          "command": "(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)",
           "indirect": false,
           "args": [
             "gl-transport-route-origin-x",
-            "action-unload",
+            "action-move",
             "-1",
             "stance-no-attack"
           ],
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)\n\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-ABORT)\n=>\n\t(up-full-reset-search)\n\t(up-add-object-by-id search-local g: gl-transport-route-id)\n\t;OWNERSHIP command: attack-transport-group.\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-transport-group)\n\t(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)\n\t(up-chat-data-to-self \"attack lift boarding aborted: %d\" g: gl-transport-route-load-target)\n\t(up-chat-data-to-all \"RAW44B attack load terminal abort: %d\" g: gl-transport-route-load-observed)\n\t(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)\n\t;Retain both exact groups until the recovery owner proves the hull empty and\n\t;back at its origin. Releasing here lets another subsystem steal a partial.\n\t(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)\n\t(up-set-timer c: t-transport-route c: 15)\n\t(set-goal gl-route-unload-attempts 0)\n\t(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)\n)\n",
-      "original_sha256": "c176dc6cf5f6f80d721c64ac8626e778f3b47a777b99fab7dbee1b1bd2a2c2b2",
-      "emitted_sha256": "e6d2bcdb4c93d02ee8cf0d707f84305b3ab776e50ffc83b02fb85fb2a27778f3"
+      "original": "(defrule\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)\n\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-ABORT)\n=>\n\t(up-full-reset-search)\n\t(up-add-object-by-id search-local g: gl-transport-route-id)\n\t;OWNERSHIP command: attack-transport-group.\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-transport-group)\n\t(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)\n\t(up-chat-data-to-self \"attack lift boarding aborted: %d\" g: gl-transport-route-load-target)\n\t(up-chat-data-to-all \"RAW44B attack load terminal abort: %d\" g: gl-transport-route-load-observed)\n\t(up-modify-sn sn-focus-player-number g:= gl-transport-route-focus)\n\t;Retain both exact groups until the recovery owner proves the hull empty and\n\t;back at its origin. Releasing here lets another subsystem steal a partial.\n\t(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)\n\t(up-set-timer c: t-transport-route c: 15)\n\t(set-goal gl-route-unload-attempts 0)\n\t(set-goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-WAIT)\n)\n",
+      "original_sha256": "d3b58444a512d4356d6280f2e9b8854abbc857f49977b075664c267217e636ad",
+      "emitted_sha256": "760e89bb9b064a037ecf3069bc6577d8c4a7d2729dcaa16f1a3df882bc6a4a2a"
     },
     {
       "id": 1706,

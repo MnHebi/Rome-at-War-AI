@@ -75,7 +75,7 @@ class FilterMachine:
                 self.commands.append(list(self.local))
 
 
-def unit(i, flag=-2, player=1, idle=1, zone=4):
+def unit(i, flag=-2, player=1, idle=1, zone=4, carry=0):
     return {'object-data-id': i, 'object-data-group-flag': flag,
             'object-data-player': player, 'object-data-idling': idle,
             'object-data-map-zone-id': zone, 'object-data-garrisoned': 0,
@@ -85,7 +85,9 @@ def unit(i, flag=-2, player=1, idle=1, zone=4):
             'object-data-target': -1, 'object-data-distance': 10,
             # The migration passenger selections exclude members that are already
             # entering a transport, so the fixtures must carry both fields.
-            'object-data-order': -1}
+            'object-data-order': -1,
+            # 514 also excludes passengers that are still carrying resources.
+            'object-data-carry': carry}
 
 
 class OwnershipContractTests(unittest.TestCase):
@@ -117,7 +119,10 @@ class OwnershipContractTests(unittest.TestCase):
                 and 'up-target-objects' in r[4]]
         self.assertEqual(len(rows), 2)
         for row in rows:
-            m = FilterMachine([unit(1, 11), unit(2, 4), unit(3, 13)])
+            # A laden member of the boarding group is not admitted (514); the
+            # freighted fourth unit must stay with the economy.
+            m = FilterMachine([unit(1, 11), unit(2, 4), unit(3, 13),
+                               unit(4, 11, carry=5)])
             m.run(row[4])
             self.assertEqual(m.commands, [[1]])
 
