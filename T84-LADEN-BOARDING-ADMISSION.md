@@ -87,12 +87,17 @@ and the DUC policy refreshed.
 
 ## Status and predicted runtime result
 
-Status `FIXED-PENDING-RUNTIME`; nothing is deployed, the installed runtime
-remains `RAWAI-P3B44T58B:513`. Predicted 514 result: the laden subset of the
-storms largely disappears, the residual storms concentrate in the known
-unladen + persistent-work-task batch boarders with an unchanged frame cadence,
-the 511 load-state oscillation does not return, and successful departures are
-not materially reduced.
+Status `FIXED-PENDING-RUNTIME`. Deployed 2026-09-20T17:04Z as
+`RAWAI-P3B44T58B:514`, aggregate
+`b6e24bf7d8ad17077e1aa0b4fe79e31d821afbd2eee708ad02f277ca39d872d0`, 109 runtime
+files hash-verified against `.analysis/deployment-t88-514-20260920T170428Z/`
+(513 backup in the same record). The 514 baseline is the 190351 replay on 513:
+149 laden boarding episodes, 5,946/10,298 laden garrisoned samples, 103
+sustained storms. Predicted 514 result: the laden subset of the storms largely
+disappears, the residual storms concentrate in the known unladen +
+persistent-work-task batch boarders with an unchanged frame cadence, the 511
+load-state oscillation does not return, and successful departures are not
+materially reduced.
 
 Residual scope, deliberately not bundled: eleven passenger **move** sites
 (rendezvous/recall) still walk laden workers away from their economy task. If

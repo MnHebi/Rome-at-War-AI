@@ -11,11 +11,10 @@ Candidate: `T58B-ALLIED-LANDING-FALLBACK.md`; replay: `T58A-RUNTIME-REPLAY-ASSES
 
 ## Deployment
 
-2026-09-20T14:04Z: `RAWAI-P3B44T58B:513`109 runtime files installed and hash verified. 513 = 512 + the T76 native hunter floor (`sn-minimum-number-hunters` 0 by default, 2 during a boar commit, matching Promisory).
-SHA256 `7b0fe74e5493ada25d7e1489862f248ee0ef0b9be9cfaadce2580d97d71ddb67`.
-Source: `011f25efa472343d2e7ed053e05781b32d92649e + deployed marker513; T76-DEPLOYMENT.md`.
-Manifest/registry/512 backup `.analysis/deployment-t76-513-20260920T140436Z/`.
-507 replay133042 failed: Green-owned locals; Age/goal floods. Keep `.analysis/deployment-t58a-507-20260912T102708Z/`.
+2026-09-20T17:04Z: `RAWAI-P3B44T58B:514`109 runtime files installed and hash verified. 514 = 513 + T84 laden-passenger boarding admission (11 sites, `object-data-carry > 0` excluded).
+SHA256 `b6e24bf7d8ad17077e1aa0b4fe79e31d821afbd2eee708ad02f277ca39d872d0`.
+Source: `a226e0ef9bf5658466e022d2c1e8a005ff8ef198 + deployed marker514; T84-LADEN-BOARDING-ADMISSION.md`.
+Manifest/registry/513 backup `.analysis/deployment-t88-514-20260920T170428Z/`; 513 kept at `.analysis/deployment-t76-513-20260920T140436Z/`.
 
 ## Active task
 
