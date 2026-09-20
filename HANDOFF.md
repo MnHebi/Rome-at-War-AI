@@ -7,7 +7,7 @@ Candidate: `T58B-ALLIED-LANDING-FALLBACK.md`; replay: `T58A-RUNTIME-REPLAY-ASSES
 - Canonical: `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`
 - Branch: `t59/age-operand-and-test-suite-cleanup`; HEAD `git rev-parse HEAD`.
 - PR: https://github.com/MnHebi/Rome-at-War-AI/pull/12 (PR11 merged)
-- PR11 holds earlier508 source/tests and507 evidence; uncommitted Age fixes preserved. One owner; no new branch/worktree.
+- PR11 holds earlier508 source/tests and507 evidence. One owner; no new branch/worktree.
 
 ## Deployment
 
@@ -22,9 +22,8 @@ Manifest/registry/512 backup `.analysis/deployment-t76-513-20260920T140436Z/`.
 - Node `task.t52-runtime`; capsule `context/tasks/t52-runtime.json`.
 - Entry: `py -3.12 tools/context_pack.py task.t52-runtime --role runtime-analyst`.
 - Installed508: initializer, Age facts, TC-independent migration admission, cap4, allied landing (`T58B-MIGRATION-TC-ADMISSION.md`).
-- Allied fallback: exhausted plan -> allied TC on objective landmass -> shoreline/danger + mobile witness -> same enemy/manifest dispatch;120s local within360.
 - Preserve507 registry. Candidate9312/10000,1498/1500. Protocol `T58-FILE-TRACE.md`; Age probe not installed.
-- 508 caps TC targets/colony4; lineups unchanged. `T58A-BACKLOG-SWEEP.md`: Shipyards late; no ROW/help verification.
+- 508 caps TC targets/colony4; lineups unchanged (`T58B-MIGRATION-TC-ADMISSION.md`, `T58A-BACKLOG-SWEEP.md`).
 
 ## Tests
 
@@ -32,18 +31,19 @@ Manifest/registry/512 backup `.analysis/deployment-t76-513-20260920T140436Z/`.
 
 ## T61/T62 correlator + 508 follow-up
 
-- Contracts from the AIRef (`command_contracts.py`): point/object, Option0/1, type-based, unclassified. v4 run: 196,154 no-direct-packet, 2,199 candidates, 1,651 empty-input, 32 ambiguous; 0/38,259 `706` in brackets.
-- `706`: five heavy runs =85.0% of packets; writers farm-staffing1205/1202/1196.
-- Migration: p2 retask->release+7,135 WORK; p7 DROPSITE-FAILED from the literal-0 `up-can-build` at `rawai-military.per:4833`; p1/3/4/8 masks0 in293/299.
+- Contracts from the AIRef (`command_contracts.py`); v4 run: 196,154 no-direct-packet, 2,199 candidates, 1,651 empty-input, 32 ambiguous; 0/38,259 `706` in brackets.
+- `706`: five heavy runs =85.0% of packets; writers farm-staffing1205/1202/1196. Migration: p2 retask->release+7,135 WORK; p7 DROPSITE-FAILED from the literal-0 `up-can-build` at `rawai-military.per:4833`.
 - Assault p8/7645: 573 boards/232 unloads/259 WORK after. 269 MAKE records, none p6.
 - 509 runtime (`T64-509-RUNTIME-RESULTS.md`): identity match; repaired error families 86277/3001/24490 -> 0, controls intact, sites36/63 exercised; shipyard reason64 .8665->.5118, reason63 now3415; 706 38259->4631 (no attribution).
-- 509 defects: taunt31 fixed in 510 (site1829 736->0); ROW hold/issue625-637 never executed in508/509 (stall counter never2, merchants0); taunt48 per-player pattern open.
-- T66-T71 (`T66-ORDER-STORM-ATTRIBUTION.md`, `T68-510-RUNTIME-RESULTS-AND-CRASH.md`): entering guard at 17 sites, unproven; 510 crashed, no stack; enemy scans now require `player-in-game`; 511 tests the native-gather retask bundle.
+- 509 defects: taunt31 fixed in 510 (site1829 736->0); ROW hold/issue625-637 never executed in508/509; taunt48 open.
+- T66-T71 (`T66-ORDER-STORM-ATTRIBUTION.md`): entering guard at 17 sites, unproven; 510 crashed, no stack; enemy scans require `player-in-game`.
+- T78-T84 (`T84-LADEN-BOARDING-ADMISSION.md`): storms are the native return intent of boarded laden passengers (target = the player's own drop-off; onset = enter->`garrisoned=1` while laden; no traced producer). 514 excludes `object-data-carry > 0` at 11 boarding admission sites; no SN/percentage change, nothing deployed.
 
 ## Defects retained
 
 17 findings live in `context/project-state.json` (render via the entry command above).
-T60/T61 boundaries: 706 producer unresolved; shipyard repaired pending runtime; migration p2 ready/retask kept.
+T60/T61 boundaries: shipyard repaired pending runtime; migration p2 ready/retask kept.
+`villager.order706`: ROOT-CAUSE-PROVEN, fixed pending runtime by 514; residual population = unladen work-task batch boarders.
 
 Preserve land trade, migration launch/landing, landed combat, three assault slots, partial loads, shoreline/danger gates, ownership, relic separation; no native gathering replacement.
 
@@ -52,4 +52,4 @@ Preserve land trade, migration launch/landing, landed combat, three assault slot
 509: capacity PASS; engine-boundary acceptance PASSED, gameplay open (`T64-509-RUNTIME-RESULTS.md`).
 Maintenance: `MAINTENANCE-CONSISTENCY.md`; preserve Dacian/Syracusan lineups.
 
-Next: dropsite status-ready observation, 706 issuer observation, allied unload/land advance.
+Next: run 514 and compare the predicted storm split, departures and partial loads; then dropsite status-ready and allied unload/land observation.

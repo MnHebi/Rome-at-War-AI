@@ -125,5 +125,30 @@ class BoardingCtrlTests(unittest.TestCase):
                 original,f'site {site["id"]} commands passengers without the enter-order guard')
         self.assertGreaterEqual(guarded,17)
 
+    def test_passenger_task_selections_bar_laden_villagers(self):
+        """514: a villager carrying resources is not admitted to the transport
+        boarding command. T78/T80: every sustained ORDER storm follows a laden
+        passenger that actually boards, and the carried load is what leaves the
+        native return intent alive inside the hull. Laden units stay with the
+        economy (no stop/reset/idle) and re-enter the boarding list once their
+        carry reaches zero."""
+        registry=json.loads((ROOT/'command-boundary-registry.json').read_text())
+        guarded=0
+        for site in registry['sites']:
+            original=site.get('original') or ''
+            if 'migration-boarding-group' not in original:
+                continue
+            if not re.search(r'\(up-target-objects 0 action-garrison ',original):
+                continue
+            guarded+=1
+            self.assertIn('(up-remove-objects search-local object-data-carry > 0)',
+                original,f'site {site["id"]} boards passengers without the laden filter')
+            # The filter is an admission rule only: no release, stop or reset.
+            for command in ('(up-reset-unit','action-stop','(up-retreat-now',
+                            '(up-retreat-to','(up-delete-idle-units','(up-ungarrison'):
+                self.assertNotIn(command,original,
+                    f'site {site["id"]} mixes {command} into boarding admission')
+        self.assertGreaterEqual(guarded,11)
+
 if __name__=='__main__':
     unittest.main()
