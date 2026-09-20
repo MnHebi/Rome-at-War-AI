@@ -33,12 +33,12 @@ Manifest/registry/509 backup `.analysis/deployment-t67-510-20260919T192316Z/`.
 ## T61/T62 correlator + 508 follow-up
 
 - Contracts from the AIRef (`command_contracts.py`): point/object, Option0/1, type-based, unclassified. v4 run: 196,154 no-direct-packet, 2,199 candidates, 1,651 empty-input, 32 ambiguous; 0/38,259 `706` in brackets.
-- `706`: five heavy runs =85.0% of packets; hulls move inside bursts; writers farm-staffing1205/1202/1196.
+- `706`: five heavy runs =85.0% of packets; writers farm-staffing1205/1202/1196.
 - Migration: p2 retask->release+7,135 WORK; p7 DROPSITE-FAILED from the literal-0 `up-can-build` at `rawai-military.per:4833`; p1/3/4/8 masks0 in293/299.
 - Assault p8/7645: 573 boards/232 unloads/259 WORK after. 269 MAKE records, none p6.
 - 509 runtime (`T64-509-RUNTIME-RESULTS.md`): identity match; repaired error families 86277/3001/24490 -> 0, controls intact, sites36/63 exercised; shipyard reason64 .8665->.5118, reason63 now3415; 706 38259->4631 (no attribution).
 - 509 defects (unfixed): taunt31 site1829 re-fires184x/101s (`acknowledge-taunt this-any-ally` fails to clear `taunt-detected any-ally`; taunt48 shows per-player pattern); ROW hold/issue625-637=0 in508/509 (stall counter never2, merchants0).
-- T66/T68 (`T66-ORDER-STORM-ATTRIBUTION.md`, `T68-510-RUNTIME-RESULTS-AND-CRASH.md`): entering guard at 17 sites; on 510 taunt fix confirmed (site1829 736->0), storms persist so the guard is unproven; 510 crashed with no stack.
+- T66/T68 (`T66-ORDER-STORM-ATTRIBUTION.md`, `T68-510-RUNTIME-RESULTS-AND-CRASH.md`): entering guard at 17 sites; on 510 the taunt fix is confirmed, storms persist so the guard is unproven; 510 crashed with no stack. T69: mission enemy scans require `player-in-game`.
 
 ## Defects retained
 
