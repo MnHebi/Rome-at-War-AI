@@ -1,6 +1,6 @@
 # Rome at War AI current handoff
 
-Candidate: `T58B-ALLIED-LANDING-FALLBACK.md`; replay: `T58A-RUNTIME-REPLAY-ASSESSMENT.md`. Cold: `context/archive/HANDOFF-through-T52.md`.
+Cold: `context/archive/HANDOFF-through-T52.md`.
 
 ## Workspace
 
@@ -20,31 +20,27 @@ Manifest/registry/513 backup `.analysis/deployment-t88-514-20260920T170428Z/`; 5
 
 - Node `task.t52-runtime`; capsule `context/tasks/t52-runtime.json`.
 - Entry: `py -3.12 tools/context_pack.py task.t52-runtime --role runtime-analyst`.
-- Installed508: initializer, Age facts, TC-independent migration admission, cap4, allied landing (`T58B-MIGRATION-TC-ADMISSION.md`).
-- Preserve507 registry. Candidate9312/10000,1498/1500. Protocol `T58-FILE-TRACE.md`; Age probe not installed.
-- 508 caps TC targets/colony4; lineups unchanged (`T58B-MIGRATION-TC-ADMISSION.md`, `T58A-BACKLOG-SWEEP.md`).
+- Installed508: Age facts, TC-independent migration admission, cap4, allied landing (`T58B-MIGRATION-TC-ADMISSION.md`).
+- Preserve507 registry. Protocol `T58-FILE-TRACE.md`; Age probe not installed.
 
 ## Tests
 
-- `TEST-EXECUTION-POLICY.md`, `T59-TEST-SUITE-CLEANUP.md`: -17 default tests; history via `RAWAI_HISTORICAL_OVERLAY_TESTS=1`. Open: `my-player-number` fact-id misuse; `test_validators.py` split.
+- `TEST-EXECUTION-POLICY.md`: -17 default tests; history via `RAWAI_HISTORICAL_OVERLAY_TESTS=1`. Open: `my-player-number` misuse; `test_validators.py` split.
 
 ## T61/T62 correlator + 508 follow-up
 
-- Contracts from the AIRef (`command_contracts.py`); v4 run: 196,154 no-direct-packet, 2,199 candidates, 1,651 empty-input, 32 ambiguous; 0/38,259 `706` in brackets.
-- `706`: five heavy runs =85.0% of packets; writers farm-staffing1205/1202/1196. Migration: p2 retask->release+7,135 WORK; p7 DROPSITE-FAILED from the literal-0 `up-can-build` at `rawai-military.per:4833`.
-- Assault p8/7645: 573 boards/232 unloads/259 WORK after. 269 MAKE records, none p6.
-- 509 runtime (`T64-509-RUNTIME-RESULTS.md`): identity match; repaired error families 86277/3001/24490 -> 0, controls intact, sites36/63 exercised; shipyard reason64 .8665->.5118, reason63 now3415; 706 38259->4631 (no attribution).
-- 509 defects: taunt31 fixed in 510 (site1829 736->0); ROW hold/issue625-637 never executed in508/509; taunt48 open.
+- Correlator v4 (`command_contracts.py`): 2,199 candidates, 1,651 empty-input, 32 ambiguous. `706`: five heavy runs =85.0% of packets; writers farm-staffing1205/1202/1196; p7 DROPSITE-FAILED from the literal-0 `up-can-build` at `rawai-military.per:4833`; p2 retask->release+7,135 WORK.
+- 509 runtime (`T64-509-RUNTIME-RESULTS.md`): repaired error families -> 0; 706 38259->4631 (no attribution). taunt31 fixed in 510; ROW hold/issue625-637 never executed; taunt48 open.
 - T66-T71 (`T66-ORDER-STORM-ATTRIBUTION.md`): entering guard at 17 sites, unproven; 510 crashed, no stack; enemy scans require `player-in-game`.
-- T78-T84 (`T84-LADEN-BOARDING-ADMISSION.md`): storms are the native return intent of boarded laden passengers (target = the player's own drop-off; onset = enter->`garrisoned=1` while laden; no traced producer). 514 excludes `object-data-carry > 0` at 11 boarding admission sites; no SN/percentage change, nothing deployed.
+- T84/T91 (`T84-LADEN-BOARDING-ADMISSION.md`, `T91-ASSAULT-LIFT-DEPARTURE.md`): 514 (deployed, marker 514) bars laden passengers from 11 boarding sites; the 515 candidate returns an aborted attack lift home and bars entering soldiers from its 7 boarding sites.
 
 ## Defects retained
 
-17 findings live in `context/project-state.json` (render via the entry command above).
-T60/T61 boundaries: shipyard repaired pending runtime; migration p2 ready/retask kept.
+18 findings live in `context/project-state.json` (render via the entry command above).
+T60/T61 boundaries: shipyard pending; migration p2 ready/retask kept.
 `villager.order706`: ROOT-CAUSE-PROVEN, fixed pending runtime by 514; residual population = unladen work-task batch boarders.
 
-Preserve land trade, migration launch/landing, landed combat, three assault slots, partial loads, shoreline/danger gates, ownership, relic separation; no native gathering replacement.
+Preserve land trade, migration launch/landing, landed combat, three assault slots, partial loads, shoreline/danger gates, ownership, relic separation.
 
 ## Validation / next action
 
