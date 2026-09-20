@@ -82,7 +82,10 @@ def unit(i, flag=-2, player=1, idle=1, zone=4):
             'object-data-type': 74, 'object-data-class': 906,
             'object-data-under-attack': 0,
             'object-data-action': -1, 'object-data-language-id': 0,
-            'object-data-target': -1, 'object-data-distance': 10}
+            'object-data-target': -1, 'object-data-distance': 10,
+            # The migration passenger selections exclude members that are already
+            # entering a transport, so the fixtures must carry both fields.
+            'object-data-order': -1}
 
 
 class OwnershipContractTests(unittest.TestCase):
@@ -307,6 +310,18 @@ class OwnershipContractTests(unittest.TestCase):
         self.assertEqual(m.groups[11], [2])
         self.assertEqual(m.units[1]['object-data-group-flag'], -2)
         self.assertEqual(m.units[2]['object-data-group-flag'], 11)
+
+    def test_partial_release_keeps_a_member_that_is_already_entering(self):
+        """A passenger already entering the hull is not an ashore straggler, so the
+        shore STOP must not be issued to it. Without the enter filter the stop list
+        would carry both members and the boarding passenger would be halted."""
+        row = select('rawai-military.per', '(goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-PARTIAL)', 'action-stop')
+        c = constants()
+        ashore, boarding = unit(1, 11), unit(2, 11)
+        boarding['object-data-order'] = c['orderid-enter']
+        m = FilterMachine([ashore, boarding], groups={11: [1, 2]}, goals={'position-self-x': 0})
+        m.run(row[4])
+        self.assertEqual(m.commands[-1], [1])
 
     def test_all_direct_permission_sites_are_in_the_audit(self):
         from audit_ownership_source import inventory
