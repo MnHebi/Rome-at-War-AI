@@ -1248,7 +1248,7 @@ class FarmPolicyTests(unittest.TestCase):
             actions=(
                 "(set-strategic-number sn-minimum-boar-lure-group-size 300)",
                 "(set-strategic-number sn-minimum-boar-hunt-group-size 1)",
-                "(set-strategic-number sn-minimum-number-hunters 1)",
+                "(set-strategic-number sn-minimum-number-hunters 0)",
             ),
         )
         self.assertEqual(len(sheep_hold), 1)
