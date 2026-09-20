@@ -18520,6 +18520,8 @@
         "(up-remove-objects search-remote object-data-player != my-player-number)",
         "(up-remove-objects search-remote object-data-group-flag != attack-transport-group)",
         "(up-remove-objects search-local object-data-class == siege-weapon-class)",
+        "(up-remove-objects search-local object-data-action == actionid-enter)",
+        "(up-remove-objects search-local object-data-order == orderid-enter)",
         "(up-target-objects 0 action-garrison -1 stance-no-attack)",
         "(up-chat-data-to-all str-assault-event c: 23)",
         "(up-chat-data-to-all str-assault-hull g: gl-transport-route-id)",
@@ -18540,7 +18542,7 @@
           "legacy_boarding_writer": null
         },
         {
-          "index": 25,
+          "index": 27,
           "id": 1693,
           "command": "(up-target-objects 0 action-garrison -1 stance-no-attack)",
           "indirect": false,
@@ -18553,14 +18555,14 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-START)\n=>\n\t;The 120-second rendezvous lease includes travel from both sides. It is not\n\t;the boarding deadline and cannot silently become an unbounded preparation.\n\t(set-goal gl-assault-admission-last-stage 7)\n\t(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)\n\t(up-modify-goal gl-assault-rendezvous-until g:= gl-transport-load-clock)\n\t(up-modify-goal gl-assault-rendezvous-until c:+ 120)\n\t(up-modify-goal gl-assault-rendezvous-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-assault-rendezvous-next c:+ 4)\n\t(set-goal gl-transport-route-script-load YES)\n\t(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)\n\t(set-goal gl-transport-route-load-reported NO)\n\t(set-goal gl-transport-route-load-grace-used NO)\n\t(set-goal gl-transport-route-load-candidate-id -1)\n\t(up-full-reset-search)\n\t(up-set-group search-local c: attack-transport-group)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-transport-group)\n\t;OWNERSHIP command: attack-transport-group.\n\t(up-target-point gl-assault-rendezvous-x action-move -1 stance-no-attack)\n\t(up-full-reset-search)\n\t(up-set-group search-local c: attack-boarding-group)\n\t(up-remove-objects search-local object-data-garrisoned == 1)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-boarding-group)\n\t(up-add-object-by-id search-remote g: gl-transport-route-id)\n\t(up-remove-objects search-remote object-data-player != my-player-number)\n\t(up-remove-objects search-remote object-data-group-flag != attack-transport-group)\n\t;Ordinary passengers may share this command. Siege members are renewed one\n\t;at a time below so an obstructed engine cannot formation-stop its peers.\n\t(up-remove-objects search-local object-data-class == siege-weapon-class)\n\t;OWNERSHIP command: non-siege attack-boarding-group members.\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(up-chat-data-to-all str-assault-event c: 23)\n\t(up-chat-data-to-all str-assault-hull g: gl-transport-route-id)\n\t(set-goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)\n)\n",
-      "original_sha256": "afd0670dfae380b54dd8efa06de07acbe2f6528e3ba39929c8b686c56835300c",
-      "emitted_sha256": "fd2de21b824d8b256c498296bb4f8e7428df09b9834041b6544746060bc09bbf"
+      "original": "(defrule\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-START)\n=>\n\t;The 120-second rendezvous lease includes travel from both sides. It is not\n\t;the boarding deadline and cannot silently become an unbounded preparation.\n\t(set-goal gl-assault-admission-last-stage 7)\n\t(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)\n\t(up-modify-goal gl-assault-rendezvous-until g:= gl-transport-load-clock)\n\t(up-modify-goal gl-assault-rendezvous-until c:+ 120)\n\t(up-modify-goal gl-assault-rendezvous-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-assault-rendezvous-next c:+ 4)\n\t(set-goal gl-transport-route-script-load YES)\n\t(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)\n\t(set-goal gl-transport-route-load-reported NO)\n\t(set-goal gl-transport-route-load-grace-used NO)\n\t(set-goal gl-transport-route-load-candidate-id -1)\n\t(up-full-reset-search)\n\t(up-set-group search-local c: attack-transport-group)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-transport-group)\n\t;OWNERSHIP command: attack-transport-group.\n\t(up-target-point gl-assault-rendezvous-x action-move -1 stance-no-attack)\n\t(up-full-reset-search)\n\t(up-set-group search-local c: attack-boarding-group)\n\t(up-remove-objects search-local object-data-garrisoned == 1)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-boarding-group)\n\t(up-add-object-by-id search-remote g: gl-transport-route-id)\n\t(up-remove-objects search-remote object-data-player != my-player-number)\n\t(up-remove-objects search-remote object-data-group-flag != attack-transport-group)\n\t;Ordinary passengers may share this command. Siege members are renewed one\n\t;at a time below so an obstructed engine cannot formation-stop its peers.\n\t(up-remove-objects search-local object-data-class == siege-weapon-class)\n\t;OWNERSHIP command: non-siege attack-boarding-group members.\n\t(up-remove-objects search-local object-data-action == actionid-enter)\n\t(up-remove-objects search-local object-data-order == orderid-enter)\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(up-chat-data-to-all str-assault-event c: 23)\n\t(up-chat-data-to-all str-assault-hull g: gl-transport-route-id)\n\t(set-goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)\n)\n",
+      "original_sha256": "552fdfd89b4eaf5e738ba0b295168b2cebc0641b9ead28db49a6270df75ff2bb",
+      "emitted_sha256": "84afc3df2e6d8e645535c5bb1c530558ee75efe910476e9016ab9f6784f163f9"
     },
     {
       "id": 1694,
       "file": "rawai-military.per",
-      "line": 7366,
+      "line": 7368,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 12)\n\t(up-compare-goal gl-transport-load-clock g:< gl-assault-rendezvous-until)",
       "actions": [
@@ -18570,6 +18572,8 @@
         "(up-remove-objects search-local object-data-player != my-player-number)",
         "(up-remove-objects search-local object-data-group-flag != attack-boarding-group)",
         "(up-remove-objects search-local object-data-class == siege-weapon-class)",
+        "(up-remove-objects search-local object-data-action == actionid-enter)",
+        "(up-remove-objects search-local object-data-order == orderid-enter)",
         "(up-target-objects 0 action-garrison -1 stance-no-attack)",
         "(up-full-reset-search)",
         "(up-set-group search-local c: attack-transport-group)",
@@ -18582,7 +18586,7 @@
       ],
       "file_commands": [
         {
-          "index": 6,
+          "index": 8,
           "id": 1694,
           "command": "(up-target-objects 0 action-garrison -1 stance-no-attack)",
           "indirect": false,
@@ -18595,7 +18599,7 @@
           "legacy_boarding_writer": null
         },
         {
-          "index": 11,
+          "index": 13,
           "id": 1695,
           "command": "(up-target-point gl-assault-rendezvous-x action-move -1 stance-no-attack)",
           "indirect": false,
@@ -18608,14 +18612,14 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 12)\n\t(up-compare-goal gl-transport-load-clock g:< gl-assault-rendezvous-until)\n=>\n\t;Renew both halves only every eight seconds. The passenger order follows the\n\t;moving exact hull while the hull approaches the manifest's saved anchor.\n\t(up-add-object-by-id search-remote g: gl-transport-route-id)\n\t(up-remove-objects search-remote object-data-player != my-player-number)\n\t(up-remove-objects search-remote object-data-group-flag != attack-transport-group)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-boarding-group)\n\t(up-remove-objects search-local object-data-class == siege-weapon-class)\n\t;OWNERSHIP command: non-siege attack-boarding-group members.\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(up-full-reset-search)\n\t(up-set-group search-local c: attack-transport-group)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-transport-group)\n\t;OWNERSHIP command: attack-transport-group.\n\t(up-target-point gl-assault-rendezvous-x action-move -1 stance-no-attack)\n\t(up-modify-goal gl-assault-rendezvous-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-assault-rendezvous-next c:+ 8)\n\t(set-goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)\n)\n",
-      "original_sha256": "c94d7ce25e1d2bda2811d75a4aa8749b6843728395aabe9e61da423c2f2fa0d4",
-      "emitted_sha256": "5b3a7e83067946fdb162cb40dc0946d20d52bc4a70554bca0db0d8b0a6fed213"
+      "original": "(defrule\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 12)\n\t(up-compare-goal gl-transport-load-clock g:< gl-assault-rendezvous-until)\n=>\n\t;Renew both halves only every eight seconds. The passenger order follows the\n\t;moving exact hull while the hull approaches the manifest's saved anchor.\n\t(up-add-object-by-id search-remote g: gl-transport-route-id)\n\t(up-remove-objects search-remote object-data-player != my-player-number)\n\t(up-remove-objects search-remote object-data-group-flag != attack-transport-group)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-boarding-group)\n\t(up-remove-objects search-local object-data-class == siege-weapon-class)\n\t;OWNERSHIP command: non-siege attack-boarding-group members.\n\t(up-remove-objects search-local object-data-action == actionid-enter)\n\t(up-remove-objects search-local object-data-order == orderid-enter)\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(up-full-reset-search)\n\t(up-set-group search-local c: attack-transport-group)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-transport-group)\n\t;OWNERSHIP command: attack-transport-group.\n\t(up-target-point gl-assault-rendezvous-x action-move -1 stance-no-attack)\n\t(up-modify-goal gl-assault-rendezvous-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-assault-rendezvous-next c:+ 8)\n\t(set-goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)\n)\n",
+      "original_sha256": "a55c541809493381d3be463b257315949752883938931809a227ad5540d315a0",
+      "emitted_sha256": "858843fa1553413670d432fb5a147ec8159b7bf15758f55bb673567d800245c6"
     },
     {
       "id": 1696,
       "file": "rawai-military.per",
-      "line": 7393,
+      "line": 7397,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 12)\n\t(up-compare-goal gl-transport-load-clock g:>= gl-assault-rendezvous-until)",
       "actions": [
@@ -18652,7 +18656,7 @@
     {
       "id": 1697,
       "file": "rawai-military.per",
-      "line": 7413,
+      "line": 7417,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)\n\t(up-compare-goal gl-transport-route-load-target c:>= 5)\n\t(up-set-target-object search-remote c: 0)",
       "actions": [
@@ -18661,6 +18665,8 @@
         "(up-remove-objects search-local object-data-player != my-player-number)",
         "(up-remove-objects search-local object-data-group-flag != attack-boarding-group)",
         "(up-remove-objects search-local object-data-class == siege-weapon-class)",
+        "(up-remove-objects search-local object-data-action == actionid-enter)",
+        "(up-remove-objects search-local object-data-order == orderid-enter)",
         "(up-target-objects 0 action-garrison -1 stance-no-attack)",
         "(set-goal gl-transport-route-script-load YES)",
         "(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)",
@@ -18675,7 +18681,7 @@
       ],
       "file_commands": [
         {
-          "index": 5,
+          "index": 7,
           "id": 1697,
           "command": "(up-target-objects 0 action-garrison -1 stance-no-attack)",
           "indirect": false,
@@ -18688,14 +18694,14 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)\n\t(up-compare-goal gl-transport-route-load-target c:>= 5)\n\t(up-set-target-object search-remote c: 0)\n=>\n\t;OWNERSHIP command: non-siege attack-boarding-group members.\n\t(set-goal gl-assault-admission-last-stage 8)\n\t(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-boarding-group)\n\t(up-remove-objects search-local object-data-class == siege-weapon-class)\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(set-goal gl-transport-route-script-load YES)\n\t(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)\n\t(set-goal gl-transport-route-load-reported NO)\n\t(set-goal gl-transport-route-load-candidate-id -1)\n\t(up-modify-goal gl-transport-route-load-deadline g:= gl-transport-load-clock)\n\t(up-modify-goal gl-transport-route-load-deadline c:+ 30)\n\t(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-transport-route-load-next c:+ 4)\n\t(up-chat-data-to-self \"attack lift boarding target: %d\" g: gl-transport-route-load-target)\n\t(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)\n)\n",
-      "original_sha256": "1013a805a4651f00b57f0f78a471e8e9d75045bc5c958c9f8358af60bd2d2f7d",
-      "emitted_sha256": "2f978242f6d1cf038b9db18b5c4f90e3619c543300966be154005d58f649da64"
+      "original": "(defrule\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)\n\t(up-compare-goal gl-transport-route-load-target c:>= 5)\n\t(up-set-target-object search-remote c: 0)\n=>\n\t;OWNERSHIP command: non-siege attack-boarding-group members.\n\t(set-goal gl-assault-admission-last-stage 8)\n\t(up-modify-goal gl-assault-admission-last-time g:= gl-assault-mission-clock)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-boarding-group)\n\t(up-remove-objects search-local object-data-class == siege-weapon-class)\n\t(up-remove-objects search-local object-data-action == actionid-enter)\n\t(up-remove-objects search-local object-data-order == orderid-enter)\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(set-goal gl-transport-route-script-load YES)\n\t(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)\n\t(set-goal gl-transport-route-load-reported NO)\n\t(set-goal gl-transport-route-load-candidate-id -1)\n\t(up-modify-goal gl-transport-route-load-deadline g:= gl-transport-load-clock)\n\t(up-modify-goal gl-transport-route-load-deadline c:+ 30)\n\t(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-transport-route-load-next c:+ 4)\n\t(up-chat-data-to-self \"attack lift boarding target: %d\" g: gl-transport-route-load-target)\n\t(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)\n)\n",
+      "original_sha256": "1c1e5b25c99d19dadb3444ace5e73f0aae0f68861b84dbf42233ddcd6b213f0a",
+      "emitted_sha256": "ea3bbec416b01bf6de73255f17c447420552db88038921e72b4f33742321d4a6"
     },
     {
       "id": 1698,
       "file": "rawai-military.per",
-      "line": 7497,
+      "line": 7503,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count g:< gl-transport-route-load-target)\n\t(up-compare-goal gl-transport-load-clock g:< gl-transport-route-load-deadline)\n\t(up-compare-goal gl-transport-load-clock g:>= gl-transport-route-load-next)\n\t(goal gl-transport-route-load-reported YES)",
       "actions": [
@@ -18708,6 +18714,8 @@
         "(up-remove-objects search-local object-data-player != my-player-number)",
         "(up-remove-objects search-local object-data-group-flag != attack-boarding-group)",
         "(up-remove-objects search-local object-data-class == siege-weapon-class)",
+        "(up-remove-objects search-local object-data-action == actionid-enter)",
+        "(up-remove-objects search-local object-data-order == orderid-enter)",
         "(up-target-objects 0 action-garrison -1 stance-no-attack)",
         "(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)",
         "(up-modify-goal gl-transport-route-load-next c:+ 4)",
@@ -18715,7 +18723,7 @@
       ],
       "file_commands": [
         {
-          "index": 9,
+          "index": 11,
           "id": 1698,
           "command": "(up-target-objects 0 action-garrison -1 stance-no-attack)",
           "indirect": false,
@@ -18728,14 +18736,14 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count g:< gl-transport-route-load-target)\n\t(up-compare-goal gl-transport-load-clock g:< gl-transport-route-load-deadline)\n\t(up-compare-goal gl-transport-load-clock g:>= gl-transport-route-load-next)\n\t(goal gl-transport-route-load-reported YES)\n=>\n\t;A unit can lose its boarding order while walking. Reissue only on the bounded\n\t;four-second cadence and only to the still-reserved passengers ashore.\n\t(up-full-reset-search)\n\t(up-set-group search-local c: attack-boarding-group)\n\t(up-remove-objects search-local object-data-garrisoned == 1)\n\t(up-add-object-by-id search-remote g: gl-transport-route-id)\n\t(up-remove-objects search-remote object-data-player != my-player-number)\n\t(up-remove-objects search-remote object-data-group-flag != attack-transport-group)\n\t;OWNERSHIP command: non-siege attack-boarding-group members.\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-boarding-group)\n\t(up-remove-objects search-local object-data-class == siege-weapon-class)\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-transport-route-load-next c:+ 4)\n\t(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)\n)\n",
-      "original_sha256": "5a25124b8ee4f9d086763a3ed212849284f3783f78fdf397b1daf3d13c6ea2e0",
-      "emitted_sha256": "1ac20c6e3286dc71bba6a04292188fd278f3821d39de2942971d8e9403f9deec"
+      "original": "(defrule\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count g:< gl-transport-route-load-target)\n\t(up-compare-goal gl-transport-load-clock g:< gl-transport-route-load-deadline)\n\t(up-compare-goal gl-transport-load-clock g:>= gl-transport-route-load-next)\n\t(goal gl-transport-route-load-reported YES)\n=>\n\t;A unit can lose its boarding order while walking. Reissue only on the bounded\n\t;four-second cadence and only to the still-reserved passengers ashore.\n\t(up-full-reset-search)\n\t(up-set-group search-local c: attack-boarding-group)\n\t(up-remove-objects search-local object-data-garrisoned == 1)\n\t(up-add-object-by-id search-remote g: gl-transport-route-id)\n\t(up-remove-objects search-remote object-data-player != my-player-number)\n\t(up-remove-objects search-remote object-data-group-flag != attack-transport-group)\n\t;OWNERSHIP command: non-siege attack-boarding-group members.\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-boarding-group)\n\t(up-remove-objects search-local object-data-class == siege-weapon-class)\n\t(up-remove-objects search-local object-data-action == actionid-enter)\n\t(up-remove-objects search-local object-data-order == orderid-enter)\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-transport-route-load-next c:+ 4)\n\t(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)\n)\n",
+      "original_sha256": "54afcf62c77ef63f220bad3f8ae802a95fbf68969f3cd85d0b20f9a786c07492",
+      "emitted_sha256": "6a6f7905346cbb42024e77f8c77b397b1e82f4dd92ef6a21edd2f0404f4e577d"
     },
     {
       "id": 1699,
       "file": "rawai-military.per",
-      "line": 7628,
+      "line": 7636,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)\n\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)",
       "actions": [
@@ -18749,6 +18757,8 @@
         "(up-remove-objects search-local object-data-player != my-player-number)",
         "(up-remove-objects search-local object-data-group-flag != attack-boarding-group)",
         "(up-remove-objects search-local object-data-class == siege-weapon-class)",
+        "(up-remove-objects search-local object-data-action == actionid-enter)",
+        "(up-remove-objects search-local object-data-order == orderid-enter)",
         "(up-target-objects 0 action-garrison -1 stance-no-attack)",
         "(set-goal gl-transport-route-load-reported YES)",
         "(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)",
@@ -18757,7 +18767,7 @@
       ],
       "file_commands": [
         {
-          "index": 10,
+          "index": 12,
           "id": 1699,
           "command": "(up-target-objects 0 action-garrison -1 stance-no-attack)",
           "indirect": false,
@@ -18770,14 +18780,14 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)\n\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)\n=>\n\t;Resume the ordinary bounded retry after the one early diagnostic sample.\n\t(up-full-reset-search)\n\t(fe-filter-garrisoned c: 1)\n\t(up-set-group search-local c: attack-boarding-group)\n\t(up-remove-objects search-local object-data-garrisoned == 1)\n\t(up-add-object-by-id search-remote g: gl-transport-route-id)\n\t(up-remove-objects search-remote object-data-player != my-player-number)\n\t(up-remove-objects search-remote object-data-group-flag != attack-transport-group)\n\t;OWNERSHIP command: attack-boarding-group.\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-boarding-group)\n\t(up-remove-objects search-local object-data-class == siege-weapon-class)\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(set-goal gl-transport-route-load-reported YES)\n\t(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-transport-route-load-next c:+ 4)\n\t(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)\n)\n",
-      "original_sha256": "9612bc82c0afa246fb134a35d329e8b829cec6e139c12eee6f611a0dd2b021a4",
-      "emitted_sha256": "6dfc4d15ec75ca62b8e7c986bb51cda814b5e9289ba4dd4d28940a4afeaf4062"
+      "original": "(defrule\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)\n\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)\n=>\n\t;Resume the ordinary bounded retry after the one early diagnostic sample.\n\t(up-full-reset-search)\n\t(fe-filter-garrisoned c: 1)\n\t(up-set-group search-local c: attack-boarding-group)\n\t(up-remove-objects search-local object-data-garrisoned == 1)\n\t(up-add-object-by-id search-remote g: gl-transport-route-id)\n\t(up-remove-objects search-remote object-data-player != my-player-number)\n\t(up-remove-objects search-remote object-data-group-flag != attack-transport-group)\n\t;OWNERSHIP command: attack-boarding-group.\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-boarding-group)\n\t(up-remove-objects search-local object-data-class == siege-weapon-class)\n\t(up-remove-objects search-local object-data-action == actionid-enter)\n\t(up-remove-objects search-local object-data-order == orderid-enter)\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(set-goal gl-transport-route-load-reported YES)\n\t(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-transport-route-load-next c:+ 4)\n\t(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)\n)\n",
+      "original_sha256": "356ac3aae8770f6f8013511158b5e93d99e0703accfea8a22874996b43456ae6",
+      "emitted_sha256": "1de85422b3727a41028058ea2205acba46bf6c30afadd9743dbd9a03b3b40b2a"
     },
     {
       "id": 1700,
       "file": "rawai-military.per",
-      "line": 7651,
+      "line": 7661,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)\n\t(or\n\t\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-PARTIAL)\n\t\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-ABORT)\n\t)\n\t(goal gl-transport-route-load-grace-used NO)\n\t(up-compare-goal gl-transport-route-load-candidate-id c:>= 0)\n\t(up-compare-goal gl-transport-route-load-candidate-group-flag c:== attack-boarding-group)\n\t(up-compare-goal gl-transport-route-load-candidate-target-id g:== gl-transport-route-id)\n\t(up-compare-goal gl-transport-route-load-candidate-distance c:<= 12)\n\t(or\n\t\t(up-compare-goal gl-transport-route-load-candidate-action c:== action-garrison)\n\t\t(up-compare-goal gl-transport-route-load-candidate-order c:== orderid-transport)\n\t)",
       "actions": [
@@ -18791,6 +18801,8 @@
         "(up-remove-objects search-local object-data-player != my-player-number)",
         "(up-remove-objects search-local object-data-group-flag != attack-boarding-group)",
         "(up-remove-objects search-local object-data-class == siege-weapon-class)",
+        "(up-remove-objects search-local object-data-action == actionid-enter)",
+        "(up-remove-objects search-local object-data-order == orderid-enter)",
         "(up-target-objects 0 action-garrison -1 stance-no-attack)",
         "(set-goal gl-transport-route-load-grace-used YES)",
         "(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)",
@@ -18802,7 +18814,7 @@
       ],
       "file_commands": [
         {
-          "index": 10,
+          "index": 12,
           "id": 1700,
           "command": "(up-target-objects 0 action-garrison -1 stance-no-attack)",
           "indirect": false,
@@ -18815,14 +18827,14 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)\n\t(or\n\t\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-PARTIAL)\n\t\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-ABORT)\n\t)\n\t(goal gl-transport-route-load-grace-used NO)\n\t(up-compare-goal gl-transport-route-load-candidate-id c:>= 0)\n\t(up-compare-goal gl-transport-route-load-candidate-group-flag c:== attack-boarding-group)\n\t(up-compare-goal gl-transport-route-load-candidate-target-id g:== gl-transport-route-id)\n\t(up-compare-goal gl-transport-route-load-candidate-distance c:<= 12)\n\t(or\n\t\t(up-compare-goal gl-transport-route-load-candidate-action c:== action-garrison)\n\t\t(up-compare-goal gl-transport-route-load-candidate-order c:== orderid-transport)\n\t)\n=>\n\t;T25 repeatedly reached the fixed deadline with the next accepted passenger\n\t;still obeying the exact hull order only one to four tiles away. Give that\n\t;specific live manifest one bounded grace period; all existing useful-partial\n\t;and abort terminals remain authoritative after it expires.\n\t(up-full-reset-search)\n\t(fe-filter-garrisoned c: 1)\n\t(up-set-group search-local c: attack-boarding-group)\n\t(up-remove-objects search-local object-data-garrisoned == 1)\n\t(up-add-object-by-id search-remote g: gl-transport-route-id)\n\t(up-remove-objects search-remote object-data-player != my-player-number)\n\t(up-remove-objects search-remote object-data-group-flag != attack-transport-group)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-boarding-group)\n\t(up-remove-objects search-local object-data-class == siege-weapon-class)\n\t;OWNERSHIP command: non-siege attack-boarding-group members.\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(set-goal gl-transport-route-load-grace-used YES)\n\t(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)\n\t(up-modify-goal gl-transport-route-load-deadline g:= gl-transport-load-clock)\n\t(up-modify-goal gl-transport-route-load-deadline c:+ 12)\n\t(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-transport-route-load-next c:+ 4)\n\t(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)\n)\n",
-      "original_sha256": "78d8d4e1fe455337e8f5b6e2111aececba9ed696ff0b5a12c4d2d0f699e1f3e2",
-      "emitted_sha256": "1c48d01ee62f908b0fc409466a02c897bb84d857ac7ede0edf1adbe1301e4c96"
+      "original": "(defrule\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)\n\t(or\n\t\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-PARTIAL)\n\t\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-ABORT)\n\t)\n\t(goal gl-transport-route-load-grace-used NO)\n\t(up-compare-goal gl-transport-route-load-candidate-id c:>= 0)\n\t(up-compare-goal gl-transport-route-load-candidate-group-flag c:== attack-boarding-group)\n\t(up-compare-goal gl-transport-route-load-candidate-target-id g:== gl-transport-route-id)\n\t(up-compare-goal gl-transport-route-load-candidate-distance c:<= 12)\n\t(or\n\t\t(up-compare-goal gl-transport-route-load-candidate-action c:== action-garrison)\n\t\t(up-compare-goal gl-transport-route-load-candidate-order c:== orderid-transport)\n\t)\n=>\n\t;T25 repeatedly reached the fixed deadline with the next accepted passenger\n\t;still obeying the exact hull order only one to four tiles away. Give that\n\t;specific live manifest one bounded grace period; all existing useful-partial\n\t;and abort terminals remain authoritative after it expires.\n\t(up-full-reset-search)\n\t(fe-filter-garrisoned c: 1)\n\t(up-set-group search-local c: attack-boarding-group)\n\t(up-remove-objects search-local object-data-garrisoned == 1)\n\t(up-add-object-by-id search-remote g: gl-transport-route-id)\n\t(up-remove-objects search-remote object-data-player != my-player-number)\n\t(up-remove-objects search-remote object-data-group-flag != attack-transport-group)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-boarding-group)\n\t(up-remove-objects search-local object-data-class == siege-weapon-class)\n\t;OWNERSHIP command: non-siege attack-boarding-group members.\n\t(up-remove-objects search-local object-data-action == actionid-enter)\n\t(up-remove-objects search-local object-data-order == orderid-enter)\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(set-goal gl-transport-route-load-grace-used YES)\n\t(set-goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)\n\t(up-modify-goal gl-transport-route-load-deadline g:= gl-transport-load-clock)\n\t(up-modify-goal gl-transport-route-load-deadline c:+ 12)\n\t(up-modify-goal gl-transport-route-load-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-transport-route-load-next c:+ 4)\n\t(set-goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)\n)\n",
+      "original_sha256": "2900450bdc54feda4f28b4689ec65d73abe9006e95072b16f19a3e3dcb615a4a",
+      "emitted_sha256": "73c6a9ac9d1f329ad8290dd9f64147a45d0ed483948dc10b2f9d196f778a4e7d"
     },
     {
       "id": 1701,
       "file": "rawai-military.per",
-      "line": 7692,
+      "line": 7704,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)\n\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-PARTIAL)",
       "actions": [
@@ -18862,7 +18874,7 @@
     {
       "id": 1702,
       "file": "rawai-military.per",
-      "line": 7717,
+      "line": 7729,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-PARTIAL-MANIFEST)\n\t(goal gl-owner-explore-suspended NO)",
       "actions": [
@@ -18922,7 +18934,7 @@
     {
       "id": 1705,
       "file": "rawai-military.per",
-      "line": 7753,
+      "line": 7765,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)\n\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-ABORT)",
       "actions": [
@@ -18961,7 +18973,7 @@
     {
       "id": 1706,
       "file": "rawai-military.per",
-      "line": 7795,
+      "line": 7807,
       "jump_only": false,
       "facts": "(or\n\t\t(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)\n\t\t(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)\n\t)\n\t(up-compare-goal gl-transport-load-clock g:>= gl-assault-siege-board-next)",
       "actions": [
@@ -18978,6 +18990,8 @@
         "(up-add-object-by-id search-remote g: gl-transport-route-id)",
         "(up-remove-objects search-remote object-data-player != my-player-number)",
         "(up-remove-objects search-remote object-data-group-flag != attack-transport-group)",
+        "(up-remove-objects search-local object-data-action == actionid-enter)",
+        "(up-remove-objects search-local object-data-order == orderid-enter)",
         "(up-target-objects 0 action-garrison -1 stance-no-attack)",
         "(up-modify-goal gl-assault-siege-board-index c:+ 1)",
         "(up-modify-goal gl-assault-siege-board-next g:= gl-transport-load-clock)",
@@ -18985,7 +18999,7 @@
       ],
       "file_commands": [
         {
-          "index": 13,
+          "index": 15,
           "id": 1706,
           "command": "(up-target-objects 0 action-garrison -1 stance-no-attack)",
           "indirect": false,
@@ -18998,14 +19012,14 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(or\n\t\t(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)\n\t\t(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)\n\t)\n\t(up-compare-goal gl-transport-load-clock g:>= gl-assault-siege-board-next)\n=>\n\t(up-full-reset-search)\n\t(up-set-group search-local c: attack-boarding-group)\n\t(up-remove-objects search-local object-data-garrisoned == 1)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-boarding-group)\n\t(up-remove-objects search-local object-data-class != siege-weapon-class)\n\t(up-clean-search search-local object-data-id search-order-asc)\n\t(up-get-search-state local-total)\n\t(up-modify-goal gl-assault-siege-board-count g:= local-total)\n\t(up-remove-objects search-local object-data-index g:!= gl-assault-siege-board-index)\n\t(up-add-object-by-id search-remote g: gl-transport-route-id)\n\t(up-remove-objects search-remote object-data-player != my-player-number)\n\t(up-remove-objects search-remote object-data-group-flag != attack-transport-group)\n\t;OWNERSHIP command: one attack-boarding-group siege member.\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(up-modify-goal gl-assault-siege-board-index c:+ 1)\n\t(up-modify-goal gl-assault-siege-board-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-assault-siege-board-next c:+ 1)\n)\n",
-      "original_sha256": "f6d2d8fabcaebb37590f9adccac25aa29f49ddbaff26d2e05137d66c3757f294",
-      "emitted_sha256": "80f7d53c46508153089474ae960353717575081e2af1a2b887a931ee15ec7b8e"
+      "original": "(defrule\n\t(or\n\t\t(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)\n\t\t(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)\n\t)\n\t(up-compare-goal gl-transport-load-clock g:>= gl-assault-siege-board-next)\n=>\n\t(up-full-reset-search)\n\t(up-set-group search-local c: attack-boarding-group)\n\t(up-remove-objects search-local object-data-garrisoned == 1)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != attack-boarding-group)\n\t(up-remove-objects search-local object-data-class != siege-weapon-class)\n\t(up-clean-search search-local object-data-id search-order-asc)\n\t(up-get-search-state local-total)\n\t(up-modify-goal gl-assault-siege-board-count g:= local-total)\n\t(up-remove-objects search-local object-data-index g:!= gl-assault-siege-board-index)\n\t(up-add-object-by-id search-remote g: gl-transport-route-id)\n\t(up-remove-objects search-remote object-data-player != my-player-number)\n\t(up-remove-objects search-remote object-data-group-flag != attack-transport-group)\n\t;OWNERSHIP command: one attack-boarding-group siege member.\n\t(up-remove-objects search-local object-data-action == actionid-enter)\n\t(up-remove-objects search-local object-data-order == orderid-enter)\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(up-modify-goal gl-assault-siege-board-index c:+ 1)\n\t(up-modify-goal gl-assault-siege-board-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-assault-siege-board-next c:+ 1)\n)\n",
+      "original_sha256": "957b1572f7b4b79cec8dd5aa64bf5f41373f70c2bc70c0233e91a774433e6f3f",
+      "emitted_sha256": "2d7fa7ff440d810c18a920ecc9cb791433f5a51f76a35668baf45cc9508eb8da"
     },
     {
       "id": 1707,
       "file": "rawai-military.per",
-      "line": 8050,
+      "line": 8064,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-CHECK)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -19051,7 +19065,7 @@
     {
       "id": 1708,
       "file": "rawai-military.per",
-      "line": 8107,
+      "line": 8121,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-THREAT)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 10)\n\t(up-compare-goal gl-transport-screen-waits c:< 4)",
       "actions": [
@@ -19085,7 +19099,7 @@
     {
       "id": 1709,
       "file": "rawai-military.per",
-      "line": 8158,
+      "line": 8172,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-APPLY)\n\t(up-compare-goal remote-total <= 0)",
       "actions": [
@@ -19122,7 +19136,7 @@
     {
       "id": 1710,
       "file": "rawai-military.per",
-      "line": 8209,
+      "line": 8223,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-LANDING-THREAT)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 10)\n\t(up-compare-goal gl-transport-screen-waits c:< 4)",
       "actions": [
@@ -19156,7 +19170,7 @@
     {
       "id": 1711,
       "file": "rawai-military.per",
-      "line": 8260,
+      "line": 8274,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-LANDING-APPLY)\n\t(up-compare-goal remote-total <= 0)",
       "actions": [
@@ -19197,7 +19211,7 @@
     {
       "id": 1712,
       "file": "rawai-military.per",
-      "line": 8295,
+      "line": 8309,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-RECALL)",
       "actions": [
@@ -19256,7 +19270,7 @@
     {
       "id": 1714,
       "file": "rawai-military.per",
-      "line": 8401,
+      "line": 8415,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count > 0)\n\t(up-compare-goal gl-route-unload-attempts c:< 2)\n\t(up-compare-goal gl-game-time g:< gl-assault-recovery-until)",
       "actions": [
@@ -19290,7 +19304,7 @@
     {
       "id": 1715,
       "file": "rawai-military.per",
-      "line": 8419,
+      "line": 8433,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count > 0)\n\t(goal gl-route-unload-attempts 2)\n\t(up-compare-goal gl-game-time g:< gl-assault-recovery-until)",
       "actions": [
@@ -19324,7 +19338,7 @@
     {
       "id": 1716,
       "file": "rawai-military.per",
-      "line": 8436,
+      "line": 8450,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count <= 0)\n\t(up-object-data object-data-distance > 12)\n\t(up-compare-goal gl-game-time g:< gl-assault-recovery-until)",
       "actions": [
@@ -19357,7 +19371,7 @@
     {
       "id": 1717,
       "file": "rawai-military.per",
-      "line": 8652,
+      "line": 8666,
       "jump_only": false,
       "facts": "(goal gl-transport-recovery-state TRANSPORT-RECOVERY-OWNERSHIP-CLAIM)\n\t(goal gl-owner-explore-suspended NO)",
       "actions": [
@@ -19417,7 +19431,7 @@
     {
       "id": 1720,
       "file": "rawai-military.per",
-      "line": 8666,
+      "line": 8680,
       "jump_only": false,
       "facts": "(goal gl-transport-recovery-state TRANSPORT-RECOVERY-OWNERSHIP-CLAIM)",
       "actions": [
@@ -19474,7 +19488,7 @@
     {
       "id": 1721,
       "file": "rawai-military.per",
-      "line": 8735,
+      "line": 8749,
       "jump_only": false,
       "facts": "(goal gl-transport-recovery-state TRANSPORT-RECOVERY-CHECK-LOAD)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count g:>= gl-transport-recovery-load-target)",
       "actions": [
@@ -19507,7 +19521,7 @@
     {
       "id": 1722,
       "file": "rawai-military.per",
-      "line": 8761,
+      "line": 8775,
       "jump_only": false,
       "facts": "(goal gl-transport-recovery-state TRANSPORT-RECOVERY-CHECK-LOAD)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count > 0)\n\t(up-object-data object-data-garrison-count g:< gl-transport-recovery-load-target)\n\t(up-timer-status t-transport-recovery == timer-triggered)",
       "actions": [
@@ -19562,7 +19576,7 @@
     {
       "id": 1724,
       "file": "rawai-military.per",
-      "line": 8829,
+      "line": 8843,
       "jump_only": false,
       "facts": "(goal gl-transport-recovery-state TRANSPORT-RECOVERY-VERIFY-LANDING)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -19619,7 +19633,7 @@
     {
       "id": 1726,
       "file": "rawai-military.per",
-      "line": 8868,
+      "line": 8882,
       "jump_only": false,
       "facts": "(goal gl-transport-recovery-state TRANSPORT-RECOVERY-FIND-WRONG-ZONE)\n\t(up-set-target-object search-local c: 0)\n\t(up-compare-goal gl-transport-recovery-attempts c:< 3)",
       "actions": [
@@ -19660,7 +19674,7 @@
     {
       "id": 1727,
       "file": "rawai-military.per",
-      "line": 8918,
+      "line": 8932,
       "jump_only": false,
       "facts": "(goal gl-transport-recovery-state TRANSPORT-RECOVERY-FIND-WRONG-ZONE)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -19702,7 +19716,7 @@
     {
       "id": 1728,
       "file": "rawai-military.per",
-      "line": 8962,
+      "line": 8976,
       "jump_only": false,
       "facts": "(up-timer-status t-transport-recovery == timer-triggered)\n\t(not (goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE))\n\t(up-compare-goal gl-transport-recovery-transport-id c:>= 0)\n\t(up-compare-goal gl-transport-recovery-attempts c:< 3)",
       "actions": [
@@ -19739,7 +19753,7 @@
     {
       "id": 1729,
       "file": "rawai-military.per",
-      "line": 8981,
+      "line": 8995,
       "jump_only": false,
       "facts": "(up-timer-status t-transport-recovery == timer-triggered)\n\t(not (goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE))\n\t(up-compare-goal gl-transport-recovery-transport-id c:>= 0)\n\t(goal gl-transport-recovery-attempts 3)",
       "actions": [
@@ -19778,7 +19792,7 @@
     {
       "id": 1730,
       "file": "rawai-military.per",
-      "line": 9145,
+      "line": 9159,
       "jump_only": false,
       "facts": "(goal gl-relic-ferry-state RELIC-FERRY-FIND-TRANSPORT)\n\t(up-set-target-object search-remote c: 0)",
       "actions": [
@@ -19830,7 +19844,7 @@
     {
       "id": 1731,
       "file": "rawai-military.per",
-      "line": 9201,
+      "line": 9215,
       "jump_only": false,
       "facts": "(goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)\n\t(goal gl-relic-ferry-direction RELIC-FERRY-OUTBOUND)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrisoned == 1)",
       "actions": [
@@ -19867,7 +19881,7 @@
     {
       "id": 1732,
       "file": "rawai-military.per",
-      "line": 9220,
+      "line": 9234,
       "jump_only": false,
       "facts": "(goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)\n\t(goal gl-relic-ferry-direction RELIC-FERRY-RETURN)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrisoned == 1)",
       "actions": [
@@ -19903,7 +19917,7 @@
     {
       "id": 1733,
       "file": "rawai-military.per",
-      "line": 9310,
+      "line": 9324,
       "jump_only": false,
       "facts": "(goal gl-relic-ferry-state RELIC-FERRY-TASK-RELIC)",
       "actions": [
@@ -19940,7 +19954,7 @@
     {
       "id": 1734,
       "file": "rawai-military.per",
-      "line": 9339,
+      "line": 9353,
       "jump_only": false,
       "facts": "(goal gl-relic-ferry-state RELIC-FERRY-CHECK-CARRIER)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-class == monk-with-relic-class)\n\t(up-set-target-object search-remote c: 0)",
       "actions": [
@@ -19975,7 +19989,7 @@
     {
       "id": 1735,
       "file": "rawai-military.per",
-      "line": 9378,
+      "line": 9392,
       "jump_only": false,
       "facts": "(goal gl-relic-ferry-state RELIC-FERRY-TASK-HOME)",
       "actions": [
@@ -20017,7 +20031,7 @@
     {
       "id": 1736,
       "file": "rawai-military.per",
-      "line": 9399,
+      "line": 9413,
       "jump_only": false,
       "facts": "(up-timer-status t-relic-ferry == timer-triggered)\n\t(not (goal gl-relic-ferry-state RELIC-FERRY-IDLE))\n\t(nor\n\t\t(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-RETURN)\n\t\t(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-CHECK)\n\t)\n\t(up-compare-goal gl-relic-ferry-return-attempts c:< 3)",
       "actions": [
@@ -20053,7 +20067,7 @@
     {
       "id": 1737,
       "file": "rawai-military.per",
-      "line": 9447,
+      "line": 9461,
       "jump_only": false,
       "facts": "(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-compare-goal gl-relic-ferry-return-attempts c:< 3)\n\t(or\n\t\t(up-object-data object-data-garrison-count > 0)\n\t\t(up-object-data object-data-distance > 16)\n\t)",
       "actions": [
@@ -20088,7 +20102,7 @@
     {
       "id": 1738,
       "file": "rawai-military.per",
-      "line": 9654,
+      "line": 9668,
       "jump_only": false,
       "facts": "(goal gl-local-response-state LOCAL-RESPONSE-COMMAND)\n\t(or\n\t\t(up-compare-goal gl-local-response-zone g:== gl-home-zone)\n\t\t(up-compare-goal gl-local-response-zone g:== gl-island-colony-zone)\n\t)",
       "actions": [
@@ -20154,7 +20168,7 @@
     {
       "id": 1740,
       "file": "rawai-military.per",
-      "line": 9694,
+      "line": 9708,
       "jump_only": false,
       "facts": "(goal gl-local-response-state LOCAL-RESPONSE-COMMAND)\n\t(or\n\t\t(up-compare-goal gl-local-response-zone g:== gl-home-zone)\n\t\t(up-compare-goal gl-local-response-zone g:== gl-island-colony-zone)\n\t)",
       "actions": [
@@ -20220,7 +20234,7 @@
     {
       "id": 1742,
       "file": "rawai-military.per",
-      "line": 9810,
+      "line": 9824,
       "jump_only": false,
       "facts": "(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)\n\t(up-compare-goal gl-local-response-responders c:> 0)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-player g:== gl-local-response-player)\n\t(up-object-data object-data-status == status-ready)\n\t(goal gl-owner-explore-suspended NO)",
       "actions": [
@@ -20280,7 +20294,7 @@
     {
       "id": 1745,
       "file": "rawai-military.per",
-      "line": 9828,
+      "line": 9842,
       "jump_only": false,
       "facts": "(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)\n\t(up-compare-goal gl-local-response-responders c:> 0)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-player g:== gl-local-response-player)\n\t(up-object-data object-data-status == status-ready)",
       "actions": [
@@ -20317,7 +20331,7 @@
     {
       "id": 1746,
       "file": "rawai-military.per",
-      "line": 10026,
+      "line": 10040,
       "jump_only": false,
       "facts": "(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)\n\t(goal gl-naval-response-land-threat NO)\n\t(up-compare-goal gl-naval-response-responders c:> 0)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-player g:== gl-naval-response-player)\n\t(up-object-data object-data-status == status-ready)",
       "actions": [
@@ -20355,7 +20369,7 @@
     {
       "id": 1747,
       "file": "rawai-military.per",
-      "line": 10053,
+      "line": 10067,
       "jump_only": false,
       "facts": "(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)\n\t(goal gl-naval-response-land-threat YES)\n\t(up-compare-goal gl-naval-response-responders c:> 0)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-player g:== gl-naval-response-player)\n\t(up-object-data object-data-status == status-ready)",
       "actions": [
@@ -20393,7 +20407,7 @@
     {
       "id": 1748,
       "file": "rawai-military.per",
-      "line": 10132,
+      "line": 10146,
       "jump_only": false,
       "facts": "(goal gl-naval-response-state NAVAL-RESPONSE-FIND-THREAT)\n\t(up-set-target-object search-remote c: 0)\n\t(or\n\t\t(up-object-data object-data-class == warship-class)\n\t\t(up-object-data object-data-type == boarding-ship)\n\t)",
       "actions": [
@@ -20438,7 +20452,7 @@
     {
       "id": 1749,
       "file": "rawai-military.per",
-      "line": 10161,
+      "line": 10175,
       "jump_only": false,
       "facts": "(goal gl-naval-response-state NAVAL-RESPONSE-FIND-THREAT)\n\t(up-set-target-object search-remote c: 0)\n\t(and\n\t\t(up-object-data object-data-class != warship-class)\n\t\t(up-object-data object-data-type != boarding-ship)\n\t)",
       "actions": [
@@ -20482,7 +20496,7 @@
     {
       "id": 1750,
       "file": "rawai-military.per",
-      "line": 10300,
+      "line": 10314,
       "jump_only": false,
       "facts": "(goal gl-juggernaut-evasion-state JUGGERNAUT-EVASION-FIND-ANCHOR)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -20518,7 +20532,7 @@
     {
       "id": 1751,
       "file": "rawai-military.per",
-      "line": 10381,
+      "line": 10395,
       "jump_only": false,
       "facts": "(goal gl-siege-target-state SIEGE-TARGET-FALLBACK)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -20554,7 +20568,7 @@
     {
       "id": 1752,
       "file": "rawai-military.per",
-      "line": 10467,
+      "line": 10481,
       "jump_only": false,
       "facts": "(goal gl-siege-target-state SIEGE-TARGET-FIND-STRUCTURE)\n\t(up-set-target-object search-remote c: 0)",
       "actions": [
@@ -20599,7 +20613,7 @@
     {
       "id": 1753,
       "file": "rawai-military.per",
-      "line": 10547,
+      "line": 10561,
       "jump_only": false,
       "facts": "(goal gl-siege-target-state SIEGE-TARGET-COMMAND)\n\t(up-compare-goal gl-siege-source-count c:> 0)",
       "actions": [
@@ -20633,7 +20647,7 @@
     {
       "id": 1754,
       "file": "rawai-military.per",
-      "line": 10803,
+      "line": 10817,
       "jump_only": false,
       "facts": "(goal gl-naval-siege-state SIEGE-TARGET-ESCORT)\n\t(up-group-size c: juggernaut-bombardment-group > 0)",
       "actions": [
@@ -20683,7 +20697,7 @@
     {
       "id": 1755,
       "file": "rawai-military.per",
-      "line": 10983,
+      "line": 10997,
       "jump_only": false,
       "facts": "(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)\n\t(goal gl-naval-siege-family 0)\n\t(up-compare-goal gl-naval-siege-source-count c:> 0)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-id g:== gl-naval-siege-target-id)",
       "actions": [
@@ -20725,7 +20739,7 @@
     {
       "id": 1756,
       "file": "rawai-military.per",
-      "line": 11008,
+      "line": 11022,
       "jump_only": false,
       "facts": "(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)\n\t(goal gl-naval-siege-family 1)\n\t(up-compare-goal gl-naval-siege-source-count c:> 0)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-id g:== gl-naval-siege-target-id)",
       "actions": [
@@ -20767,7 +20781,7 @@
     {
       "id": 1757,
       "file": "rawai-military.per",
-      "line": 11155,
+      "line": 11169,
       "jump_only": false,
       "facts": "(up-timer-status t-defense-leash == timer-triggered)\n\t(up-group-size c: home-defense-response-group > 0)",
       "actions": [
@@ -20812,7 +20826,7 @@
     {
       "id": 1758,
       "file": "rawai-military.per",
-      "line": 11180,
+      "line": 11194,
       "jump_only": false,
       "facts": "(up-timer-status t-defense-leash == timer-triggered)\n\t(up-group-size c: home-naval-response-group > 0)",
       "actions": [
@@ -20851,7 +20865,7 @@
     {
       "id": 1759,
       "file": "rawai-military.per",
-      "line": 11334,
+      "line": 11348,
       "jump_only": false,
       "facts": "(goal gl-raid-state RAID-FIND-TARGET)\n\t(up-set-target-object search-remote c: 0)\n\t(goal gl-owner-explore-suspended NO)",
       "actions": [
@@ -20911,7 +20925,7 @@
     {
       "id": 1762,
       "file": "rawai-military.per",
-      "line": 11349,
+      "line": 11363,
       "jump_only": false,
       "facts": "(goal gl-raid-state RAID-FIND-TARGET)\n\t(up-set-target-object search-remote c: 0)",
       "actions": [
@@ -20961,7 +20975,7 @@
     {
       "id": 1763,
       "file": "rawai-military.per",
-      "line": 12120,
+      "line": 12134,
       "jump_only": true,
       "facts": "(up-compare-goal military-spread-time <= 0)",
       "actions": [
@@ -20981,7 +20995,7 @@
     {
       "id": 1764,
       "file": "rawai-military.per",
-      "line": 12124,
+      "line": 12138,
       "jump_only": true,
       "facts": "(goal spread-units 0)\n\t(up-timer-status t-unit-spread != timer-running)",
       "actions": [
@@ -21003,7 +21017,7 @@
     {
       "id": 1765,
       "file": "rawai-military.per",
-      "line": 12163,
+      "line": 12177,
       "jump_only": true,
       "facts": "(up-compare-goal military-superiority c:>= TOLERABLE)\n\t(or\t\n\t\t(up-compare-goal preferred-target-player <= 0)\n\t\t(up-compare-goal preferred-target-player >= 9)\n\t)",
       "actions": [
@@ -21023,7 +21037,7 @@
     {
       "id": 1766,
       "file": "rawai-military.per",
-      "line": 12182,
+      "line": 12196,
       "jump_only": true,
       "facts": "(up-compare-goal military-superiority c:>= TOLERABLE)\n\t(players-building-count target-player >= 1)\n\t(player-in-game target-player)\n(not\t\n\t(stance-toward target-player ally)\n)",
       "actions": [
@@ -21043,7 +21057,7 @@
     {
       "id": 1767,
       "file": "rawai-military.per",
-      "line": 12194,
+      "line": 12208,
       "jump_only": true,
       "facts": "(up-compare-goal military-superiority c:>= TOLERABLE)",
       "actions": [
@@ -21064,7 +21078,7 @@
     {
       "id": 1768,
       "file": "rawai-military.per",
-      "line": 12547,
+      "line": 12561,
       "jump_only": false,
       "facts": "(up-compare-goal gl-game-time g:>= gl-age-advantage-next)\n\t(goal gl-age-advantage-pressure YES)\n\t(goal gl-home-defense-state NO)\n\t(or\n\t\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t\t(goal gl-island-migration-state MIGRATION-QUARANTINED)\n\t)\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)\n\t(goal gl-land-transport-ready YES)\n\t(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)\n\t(up-compare-goal military-superiority c:>= TOLERABLE)\n\t(soldier-count g:>= gl-ten-percent)\n\t(players-building-count target-player >= 1)\n\t(player-in-game target-player)\n\t(not (stance-toward target-player ally))\n\t(nor\n\t\t(goal current-action ACTION-ATTACK)\n\t\t(goal current-action ACTION-RETREAT)\n\t)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)",
       "actions": [
@@ -21103,7 +21117,7 @@
     {
       "id": 1769,
       "file": "rawai-military.per",
-      "line": 12586,
+      "line": 12600,
       "jump_only": false,
       "facts": "(goal gl-age-up-attack-pending YES)\n\t(goal gl-age-advantage-pressure NO)\n\t(goal gl-home-defense-state NO)\n\t(or\n\t\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t\t(goal gl-island-migration-state MIGRATION-QUARANTINED)\n\t)\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)\n\t(goal gl-land-transport-ready YES)\n\t(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)\n\t(up-compare-goal military-superiority c:>= TOLERABLE)\n\t(soldier-count g:>= gl-ten-percent)\n\t(players-building-count target-player >= 1)\n\t(player-in-game target-player)\n\t(not (stance-toward target-player ally))\n\t(nor\n\t\t(goal current-action ACTION-ATTACK)\n\t\t(goal current-action ACTION-RETREAT)\n\t)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)",
       "actions": [
@@ -21138,7 +21152,7 @@
     {
       "id": 1770,
       "file": "rawai-military.per",
-      "line": 12700,
+      "line": 12714,
       "jump_only": false,
       "facts": "(up-compare-goal current-action c:== ACTION-ATTACK)\n\t(up-timer-status t-land-attack == timer-triggered)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-LAND)\n\t(goal gl-home-defense-state NO)\n\t(or\n\t\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t\t(goal gl-island-migration-state MIGRATION-QUARANTINED)\n\t)\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)\n\t(goal gl-land-transport-ready YES)\n\t(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)\n\t(and\n\t\t(up-compare-goal attack-type-land c:== PERCENTAGE)\n\t\t(and\n\t\t\t(up-compare-goal gl-game-time g:>= land-attack-delay)\n\t\t\t(soldier-count g:>= land-attack-requirement)\n\t\t)\n\t)",
       "actions": [
@@ -21171,7 +21185,7 @@
     {
       "id": 1771,
       "file": "rawai-military.per",
-      "line": 12760,
+      "line": 12774,
       "jump_only": false,
       "facts": "(up-compare-goal current-action c:== ACTION-ATTACK)\n\t(up-timer-status t-land-attack == timer-triggered)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-LAND)\n\t(goal gl-home-defense-state NO)\n\t(or\n\t\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t\t(goal gl-island-migration-state MIGRATION-QUARANTINED)\n\t)\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)\n\t(goal gl-land-transport-ready YES)\n\t(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)\n\t(and\n\t\t(up-compare-goal attack-type-land c:== TOWN-SIZE)\n\t\t(and\n\t\t\t(up-compare-goal gl-game-time g:>= land-attack-delay)\n\t\t\t(soldier-count g:>= land-attack-requirement)\n\t\t)\n\t)",
       "actions": [
@@ -21204,7 +21218,7 @@
     {
       "id": 1772,
       "file": "rawai-military.per",
-      "line": 12791,
+      "line": 12805,
       "jump_only": false,
       "facts": "(up-compare-goal current-action c:== ACTION-ATTACK)\n\t(up-timer-status t-land-attack == timer-triggered)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-LAND)\n\t(goal gl-home-defense-state NO)\n\t(or\n\t\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t\t(goal gl-island-migration-state MIGRATION-QUARANTINED)\n\t)\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)\n\t(goal gl-land-transport-ready YES)\n\t(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-REGROUP)\n\t(up-compare-goal gl-game-time g:>= land-attack-delay)\n\t(soldier-count g:>= gl-fifteen-percent)",
       "actions": [
@@ -21237,7 +21251,7 @@
     {
       "id": 1773,
       "file": "rawai-military.per",
-      "line": 12817,
+      "line": 12831,
       "jump_only": false,
       "facts": "(up-compare-goal current-action c:== ACTION-ATTACK)\n\t(up-timer-status t-land-attack == timer-triggered)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-LAND)\n\t(goal gl-home-defense-state NO)\n\t(or\n\t\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t\t(goal gl-island-migration-state MIGRATION-QUARANTINED)\n\t)\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)\n\t(goal gl-land-transport-ready YES)\n\t(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-SIEGE)\n\t(goal have-siege YES)\n\t(up-compare-goal gl-game-time g:>= land-attack-delay)\n\t(soldier-count g:>= gl-fifteen-percent)",
       "actions": [
@@ -21270,7 +21284,7 @@
     {
       "id": 1774,
       "file": "rawai-military.per",
-      "line": 12892,
+      "line": 12906,
       "jump_only": false,
       "facts": "(game-time > 300)\n\t(goal map-type LAND)\n\t(goal gl-home-defense-state NO)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)\n\t(up-compare-goal military-superiority c:>= EQUAL)\n\t(soldier-count g:>= gl-ten-percent)\n\t(up-timer-status t-periodic-attack != timer-running)\n\t(nor\n\t\t(goal current-action ACTION-ATTACK)\n\t\t(goal current-action ACTION-RETREAT)\n\t)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)",
       "actions": [

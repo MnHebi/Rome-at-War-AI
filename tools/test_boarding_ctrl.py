@@ -150,5 +150,27 @@ class BoardingCtrlTests(unittest.TestCase):
                     f'site {site["id"]} mixes {command} into boarding admission')
         self.assertGreaterEqual(guarded,11)
 
+    def test_attack_lift_passenger_selections_bar_entering_units(self):
+        """190351: the attack lift re-ordered a rotating subset of
+        attack-boarding-group every ~4 s (10-18 distinct units, single units up to
+        47 times, first and last packet sets disjoint) and finished with 0-4
+        soldiers aboard at the deadline, so the hull aborted and stranded. The
+        stock-AI guard that bars units already entering a transport now applies to
+        the attack lift list exactly as it does to every migration selection."""
+        registry=json.loads((ROOT/'command-boundary-registry.json').read_text())
+        guarded=0
+        for site in registry['sites']:
+            original=site.get('original') or ''
+            if 'attack-boarding-group' not in original:
+                continue
+            if not re.search(r'\(up-target-objects 0 action-garrison ',original):
+                continue
+            guarded+=1
+            self.assertIn('(up-remove-objects search-local object-data-action == actionid-enter)',
+                original,f'site {site["id"]} boards attackers without the enter guard')
+            self.assertIn('(up-remove-objects search-local object-data-order == orderid-enter)',
+                original,f'site {site["id"]} boards attackers without the enter-order guard')
+        self.assertGreaterEqual(guarded,7)
+
 if __name__=='__main__':
     unittest.main()
