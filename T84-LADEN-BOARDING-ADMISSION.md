@@ -17,10 +17,12 @@ retry reconsiders the worker once `carry` reaches 0.
   +0.3..+1.4 s after the last `617/717` enter sample, and the actor's recorded
   state flips to `gather/709` or `hunt/713` with **target -1** while
   `garrisoned=1` at that same second, still carrying its load.
-* Boarding episodes with a 300 s horizon: laden boarders emit a median 1,852
-  ORDER packets (61/61 non-zero) against 0 for unladen boarders; the earlier
-  "laden boarder that does not storm" controls turned out to be boarding
-  failures that un-garrisoned one second later.
+* Boarding episodes with a 300 s horizon: laden boarders (n=63) emit a median
+  1,852 ORDER packets, 47 of them >=150, and only one produced no packet at all.
+  Read as 62/63 non-zero; the stricter 61/61 figure belongs to the subgroup that
+  both stayed inside and kept a work task (median 1,905). Unladen boarders
+  (n=61) are median 0. The earlier "laden boarder that does not storm" controls
+  turned out to be boarding failures that un-garrisoned one second later.
 * The emission is co-extensive with the boarded episode: p2 actor 34151 has
   packets only in 2718-2902 s, the same seconds the trace shows `garrisoned=1`
   (0 of the preceding 708 gap seconds are garrisoned).
