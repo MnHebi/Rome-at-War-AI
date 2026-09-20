@@ -11,10 +11,10 @@ Candidate: `T58B-ALLIED-LANDING-FALLBACK.md`; replay: `T58A-RUNTIME-REPLAY-ASSES
 
 ## Deployment
 
-2026-09-20T11:03Z: `RAWAI-P3B44T58B:511`109 runtime files installed and hash verified. 511 = 510 + T69/T70 enemy-scan guards + the T71 native-gather experiment (`sn-intelligent-gathering 1`, both retask amounts 0; percentages unchanged).
-SHA256 `3f3430a6b3e541c64c8f726458afdca1a0a2041e9b94690d81f5c7662f450360`.
-Source: `7e49d173916498a2c8996b77e8fd420b9655b50f + deployed marker511; T71-DEPLOYMENT.md`.
-Manifest/registry/510 backup `.analysis/deployment-t71-511-20260920T110354Z/`.
+2026-09-20T12:11Z: `RAWAI-P3B44T58B:512`109 runtime files installed and hash verified. 512 = 511 + the T72 migration load-wait latch (the CHECK-LOAD -> LOADING ping-pong branch removed; retries unchanged).
+SHA256 `f9c6e3a564f7dc65f1164dab15d57d6092070f653d876504c50a3cc089c330e5`.
+Source: `cbb674e2269e72fafb95c7ab04c3f0de32cbb6a3 + deployed marker512; T72-DEPLOYMENT.md`.
+Manifest/registry/511 backup `.analysis/deployment-t72-512-20260920T121152Z/`.
 507 replay133042 failed: Green-owned locals; Age/goal floods. Keep `.analysis/deployment-t58a-507-20260912T102708Z/`.
 
 ## Active task

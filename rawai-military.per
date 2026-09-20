@@ -1,4 +1,4 @@
-
+﻿
 ;rule jumps, do not add rules here
 ;dictate which method to attack with, TSA or Group handler
 ;CB BEGIN 1297
@@ -12534,55 +12534,6 @@
 
 (load "rawai-boarding-ctrl-capture")
 
-;CB BEGIN 1516
-(defrule
-	(goal gl-island-migration-state MIGRATION-CHECK-LOAD)
-	(up-timer-status t-island-migration == timer-running)
-	(up-timer-status t-island-migration-board-retry == timer-running)
-	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
-=>
-	(set-goal gl-cbf-cont 1516)
-)
-(defrule
-	(goal gl-cbf-cont 1516)
-=>
-	(set-goal gl-cbf-site 1516)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1516)
-=>
-	(set-goal gl-island-migration-state MIGRATION-LOADING)
-)
-(defrule
-	(goal gl-cbf-cont 1516)
-=>
-	(set-goal gl-cbf-site 1516)
-	(set-goal gl-cbf-kind 7)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1516)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1516
 
 ;CB BEGIN 1517
 (defrule
