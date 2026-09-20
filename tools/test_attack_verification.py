@@ -16,9 +16,10 @@ def obj(i, player, target=-1, action=600, point=(50, 50), hp=100):
 
 
 class Verifier:
-    def __init__(self, objects, enemies=(7,), victim=2, relief=False):
+    def __init__(self, objects, enemies=(7,), victim=2, relief=False, departed=()):
         self.objects = {o['id']: o for o in objects}
         self.enemies = list(enemies)
+        self.departed = set(departed)
         # Native Age symbols are engine-provided, not project defconsts.
         self.constants = dict(zip(
             ('dark-age', 'feudal-age', 'castle-age', 'imperial-age'), range(4)))
@@ -64,6 +65,7 @@ class Verifier:
     def fact(self, e):
         op, *a = e
         if op == 'true': return True
+        if op == 'player-in-game': return int(a[0]) not in self.departed
         if op == 'goal': return self.g.get(a[0], 0) == self.val(a[1])
         if op == 'not': return not self.fact(a[0])
         if op == 'up-compare-goal': return self.compare(self.g.get(a[0], 0), a[1], a[2])
@@ -174,6 +176,13 @@ class AttackIdentityTests(unittest.TestCase):
 
     def test_no_victim_owned_target_no_claim(self):
         g = Verifier([obj(20, 2), obj(100, 7, 999)]).run()
+        self.assertEqual(g['gl-self-attack-verified'], 0)
+
+    def test_departed_attacker_is_never_searched(self):
+        """A player who has left the game keeps a valid player number, so the
+        verification scan must not focus them: the module advances the same way
+        it does for an unresolved enemy instead of searching an invalid owner."""
+        g = Verifier([obj(20, 2), obj(100, 7, 20)], enemies=(7,), departed=(7,)).run()
         self.assertEqual(g['gl-self-attack-verified'], 0)
 
     def test_invalid_first_asset_does_not_hide_next_asset(self):
