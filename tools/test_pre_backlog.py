@@ -123,8 +123,8 @@ class PackingTests(unittest.TestCase):
 class ConcreteHeavyRemeTests(unittest.TestCase):
     def test_sea_tower_constant_uses_physical_dat_unit(self):
         constants = source('rawai-unitconstants.per')
-        self.assertIn('(defconst sea-tower 1919)', constants)
-        self.assertNotIn('(defconst sea-tower 1921)', constants)
+        self.assertIn('(defconst sea-tower 1921)', constants)
+        self.assertNotIn('(defconst sea-tower 1919)', constants)
 
     def test_no_runtime_use_of_turtle_alias(self):
         for path in ROOT.glob('*.per'):
@@ -132,7 +132,7 @@ class ConcreteHeavyRemeTests(unittest.TestCase):
             code = re.sub(r'\(defconst quadrireme-line -282\)', '', code)
             self.assertNotIn('quadrireme-line', code, path.name)
         constants = source('rawai-unitconstants.per')
-        self.assertIn('(defconst quadrireme 1870)', constants)
+        self.assertIn('(defconst quadrireme 2660)', constants)
         self.assertIn('(defconst quinquereme 1750)', constants)
         self.assertIn('(defconst quadrireme-line -282)', constants)
 
