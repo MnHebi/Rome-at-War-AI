@@ -11,10 +11,10 @@ Cold: `context/archive/HANDOFF-through-T52.md`.
 
 ## Deployment
 
-2026-09-20T17:04Z: `RAWAI-P3B44T58B:514`109 runtime files installed and hash verified. 514 = 513 + T84 laden-passenger boarding admission (11 sites, `object-data-carry > 0` excluded).
-SHA256 `b6e24bf7d8ad17077e1aa0b4fe79e31d821afbd2eee708ad02f277ca39d872d0`.
-Source: `a226e0ef9bf5658466e022d2c1e8a005ff8ef198 + deployed marker514; T84-LADEN-BOARDING-ADMISSION.md`.
-Manifest/registry/513 backup `.analysis/deployment-t88-514-20260920T170428Z/`; 513 kept at `.analysis/deployment-t76-513-20260920T140436Z/`.
+2026-09-26T14:42Z: `RAWAI-P3B44T58B:515`109 runtime files installed and hash verified. 515 = 514 + the T91 lift fixes (abort returns the hull, entering soldiers barred from the lift list) and the T97-T108 id alignment with raw-datamod-uplifted.
+SHA256 `da21805229ae4cad69ee732e705724e1d7dc0712ebac6cc66ea470fa30499e73`.
+Source: `b0f8af9c5ce639d168b9a37f38f5f72c9d41db1e + deployed marker515; T91-ASSAULT-LIFT-DEPARTURE.md`.
+Manifest/registry/514 backup `.analysis/deployment-t109-515-20260926T144209Z/`; 514 kept at `.analysis/deployment-t88-514-20260920T170428Z/`.
 
 ## Active task
 

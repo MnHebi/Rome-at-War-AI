@@ -2,8 +2,10 @@
 
 Evidence: replay `SP Replay v101.103.48987.0 @2026.09.20 190351` (marker 513) with
 its 19:48:53 autosave. Analysis scripts and caches live in `.analysis`
-(`t88*`). Nothing in this report is deployed; the installed runtime is the 514
-payload (`T84-LADEN-BOARDING-ADMISSION.md`).
+(`t88*`). Deployed 2026-09-26T14:42Z as `RAWAI-P3B44T58B:515`, aggregate
+`da21805229ae4cad69ee732e705724e1d7dc0712ebac6cc66ea470fa30499e73`
+(`.analysis/deployment-t109-515-20260926T144209Z/`), together with the
+T97-T108 id alignment to raw-datamod-uplifted.
 
 ## Observed
 
