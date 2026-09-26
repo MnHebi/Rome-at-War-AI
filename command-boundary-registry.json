@@ -10657,6 +10657,8 @@
         "(up-remove-objects search-remote object-data-group-flag != migration-transport-group)",
         "(up-remove-objects search-local object-data-player != my-player-number)",
         "(up-remove-objects search-local object-data-group-flag != migration-boarding-group)",
+        "(up-remove-objects search-local object-data-action == actionid-enter)",
+        "(up-remove-objects search-local object-data-order == orderid-enter)",
         "(up-remove-objects search-local object-data-carry > 0)",
         "(up-target-objects 0 action-garrison -1 stance-no-attack)",
         "(up-full-reset-search)",
@@ -10670,7 +10672,7 @@
       ],
       "file_commands": [
         {
-          "index": 6,
+          "index": 8,
           "id": 1388,
           "command": "(up-target-objects 0 action-garrison -1 stance-no-attack)",
           "indirect": false,
@@ -10683,7 +10685,7 @@
           "legacy_boarding_writer": null
         },
         {
-          "index": 11,
+          "index": 13,
           "id": 1389,
           "command": "(up-target-point gl-migration-rendezvous-x action-move -1 stance-no-attack)",
           "indirect": false,
@@ -10696,7 +10698,7 @@
           "legacy_boarding_writer": null
         },
         {
-          "index": 14,
+          "index": 16,
           "id": 1390,
           "command": "(set-goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)",
           "indirect": true,
@@ -10709,14 +10711,14 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-RENDEZVOUS-PASSENGER)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 12)\n\t(up-compare-goal gl-transport-load-clock g:< gl-migration-rendezvous-until)\n\t(not (goal gl-island-migration-mission MIGRATION-MISSION-MINING))\n=>\n\t;Renew the exact passenger/hull contract every eight seconds. This is bounded\n\t;and cannot become the old per-sweep garrison command loop.\n\t(up-add-object-by-id search-remote g: gl-island-migration-transport-id)\n\t(up-remove-objects search-remote object-data-player != my-player-number)\n\t(up-remove-objects search-remote object-data-group-flag != migration-transport-group)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != migration-boarding-group)\n\t(up-remove-objects search-local object-data-carry > 0)\n\t;OWNERSHIP command: migration-boarding-group.\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(up-full-reset-search)\n\t(up-set-group search-local c: migration-transport-group)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != migration-transport-group)\n\t;OWNERSHIP command: migration-transport-group.\n\t(up-target-point gl-migration-rendezvous-x action-move -1 stance-no-attack)\n\t(up-modify-goal gl-migration-rendezvous-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-migration-rendezvous-next c:+ 8)\n\t(set-goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)\n)\n",
-      "original_sha256": "154389d3d396831986b8b2222fd19541d52b5d0f24482ad8e7eed48aa73ccf04",
-      "emitted_sha256": "e63c10844b0f63de3ac62caf09ef79182dec5693d7e4e20f8703b5948820f817"
+      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-RENDEZVOUS-PASSENGER)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 12)\n\t(up-compare-goal gl-transport-load-clock g:< gl-migration-rendezvous-until)\n\t(not (goal gl-island-migration-mission MIGRATION-MISSION-MINING))\n=>\n\t;Renew the exact passenger/hull contract every eight seconds. This is bounded\n\t;and cannot become the old per-sweep garrison command loop.\n\t(up-add-object-by-id search-remote g: gl-island-migration-transport-id)\n\t(up-remove-objects search-remote object-data-player != my-player-number)\n\t(up-remove-objects search-remote object-data-group-flag != migration-transport-group)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != migration-boarding-group)\n\t(up-remove-objects search-local object-data-action == actionid-enter)\n\t(up-remove-objects search-local object-data-order == orderid-enter)\n\t(up-remove-objects search-local object-data-carry > 0)\n\t;OWNERSHIP command: migration-boarding-group.\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(up-full-reset-search)\n\t(up-set-group search-local c: migration-transport-group)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != migration-transport-group)\n\t;OWNERSHIP command: migration-transport-group.\n\t(up-target-point gl-migration-rendezvous-x action-move -1 stance-no-attack)\n\t(up-modify-goal gl-migration-rendezvous-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-migration-rendezvous-next c:+ 8)\n\t(set-goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)\n)\n",
+      "original_sha256": "734f1c35d250da443fa714a6f9ac1521bc6ee8be300d64aefff0b3e2057b6be1",
+      "emitted_sha256": "d60004b3c67673b2a21044c50984eaacf6afbaa4ba22959e004410a13556f150"
     },
     {
       "id": 1391,
       "file": "rawai-military.per",
-      "line": 2712,
+      "line": 2714,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RENDEZVOUS-PASSENGER)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 12)\n\t(up-compare-goal gl-transport-load-clock g:< gl-migration-rendezvous-until)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-MINING)",
       "actions": [
@@ -10725,6 +10727,8 @@
         "(up-remove-objects search-remote object-data-group-flag != migration-transport-group)",
         "(up-remove-objects search-local object-data-player != my-player-number)",
         "(up-remove-objects search-local object-data-group-flag != migration-boarding-group)",
+        "(up-remove-objects search-local object-data-action == actionid-enter)",
+        "(up-remove-objects search-local object-data-order == orderid-enter)",
         "(up-remove-objects search-local object-data-carry > 0)",
         "(set-strategic-number sn-keystates 2)",
         "(up-target-objects 0 action-garrison -1 stance-no-attack)",
@@ -10744,7 +10748,7 @@
       ],
       "file_commands": [
         {
-          "index": 6,
+          "index": 8,
           "id": 1391,
           "command": "(set-strategic-number sn-keystates 2)",
           "indirect": true,
@@ -10757,7 +10761,7 @@
           "legacy_boarding_writer": null
         },
         {
-          "index": 7,
+          "index": 9,
           "id": 1392,
           "command": "(up-target-objects 0 action-garrison -1 stance-no-attack)",
           "indirect": false,
@@ -10770,7 +10774,7 @@
           "legacy_boarding_writer": 25
         },
         {
-          "index": 8,
+          "index": 10,
           "id": 1393,
           "command": "(set-strategic-number sn-keystates 0)",
           "indirect": true,
@@ -10783,7 +10787,7 @@
           "legacy_boarding_writer": null
         },
         {
-          "index": 17,
+          "index": 19,
           "id": 1394,
           "command": "(up-target-point gl-migration-rendezvous-x action-move -1 stance-no-attack)",
           "indirect": false,
@@ -10796,7 +10800,7 @@
           "legacy_boarding_writer": null
         },
         {
-          "index": 20,
+          "index": 22,
           "id": 1395,
           "command": "(set-goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)",
           "indirect": true,
@@ -10809,14 +10813,14 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-RENDEZVOUS-PASSENGER)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 12)\n\t(up-compare-goal gl-transport-load-clock g:< gl-migration-rendezvous-until)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-MINING)\n=>\n\t;Renew the exact passenger/hull contract every eight seconds. This is bounded\n\t;and cannot become the old per-sweep garrison command loop.\n\t(up-add-object-by-id search-remote g: gl-island-migration-transport-id)\n\t(up-remove-objects search-remote object-data-player != my-player-number)\n\t(up-remove-objects search-remote object-data-group-flag != migration-transport-group)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != migration-boarding-group)\n\t(up-remove-objects search-local object-data-carry > 0)\n\t;OWNERSHIP command: migration-boarding-group.\n\t(set-strategic-number sn-keystates 2)\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(set-strategic-number sn-keystates 0)\n\t(up-get-search-state gl-board-diag-local)\n\t(up-set-target-object search-local c: 0)\n\t(up-get-object-data object-data-id gl-board-diag-issued-actor)\n\t(set-goal gl-board-diag-issued 25)\n\t(up-full-reset-search)\n\t(up-set-group search-local c: migration-transport-group)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != migration-transport-group)\n\t;OWNERSHIP command: migration-transport-group.\n\t(up-target-point gl-migration-rendezvous-x action-move -1 stance-no-attack)\n\t(up-modify-goal gl-migration-rendezvous-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-migration-rendezvous-next c:+ 8)\n\t(set-goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)\n)\n",
-      "original_sha256": "e6fdf8e490480b3ceeac705e6823e08ad63ba0ef24c02cc0f417831c3f4a760f",
-      "emitted_sha256": "957955e52b38d7711d283dbe09acc230d312465152cc79e884d33481b8ccd4c9"
+      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-RENDEZVOUS-PASSENGER)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 12)\n\t(up-compare-goal gl-transport-load-clock g:< gl-migration-rendezvous-until)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-MINING)\n=>\n\t;Renew the exact passenger/hull contract every eight seconds. This is bounded\n\t;and cannot become the old per-sweep garrison command loop.\n\t(up-add-object-by-id search-remote g: gl-island-migration-transport-id)\n\t(up-remove-objects search-remote object-data-player != my-player-number)\n\t(up-remove-objects search-remote object-data-group-flag != migration-transport-group)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != migration-boarding-group)\n\t(up-remove-objects search-local object-data-action == actionid-enter)\n\t(up-remove-objects search-local object-data-order == orderid-enter)\n\t(up-remove-objects search-local object-data-carry > 0)\n\t;OWNERSHIP command: migration-boarding-group.\n\t(set-strategic-number sn-keystates 2)\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(set-strategic-number sn-keystates 0)\n\t(up-get-search-state gl-board-diag-local)\n\t(up-set-target-object search-local c: 0)\n\t(up-get-object-data object-data-id gl-board-diag-issued-actor)\n\t(set-goal gl-board-diag-issued 25)\n\t(up-full-reset-search)\n\t(up-set-group search-local c: migration-transport-group)\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != migration-transport-group)\n\t;OWNERSHIP command: migration-transport-group.\n\t(up-target-point gl-migration-rendezvous-x action-move -1 stance-no-attack)\n\t(up-modify-goal gl-migration-rendezvous-next g:= gl-transport-load-clock)\n\t(up-modify-goal gl-migration-rendezvous-next c:+ 8)\n\t(set-goal gl-island-migration-state MIGRATION-RENDEZVOUS-WAIT)\n)\n",
+      "original_sha256": "c67153eedb62f7dcd47c3550402cf73a8364680e4b968dc72abf41c36f2a9c2c",
+      "emitted_sha256": "92bf545c641cc9bf587adde463e6f363f1d327914757d5dc93068c336c81a316"
     },
     {
       "id": 1396,
       "file": "rawai-military.per",
-      "line": 2748,
+      "line": 2752,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RENDEZVOUS-PASSENGER)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 12)\n\t(up-compare-goal gl-transport-load-clock g:>= gl-migration-rendezvous-until)",
       "actions": [
@@ -10847,12 +10851,14 @@
     {
       "id": 1397,
       "file": "rawai-military.per",
-      "line": 2777,
+      "line": 2781,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-MINING)\n\t(up-compare-goal gl-island-migration-load-target c:>= 2)",
       "actions": [
         "(up-remove-objects search-local object-data-player != my-player-number)",
         "(up-remove-objects search-local object-data-group-flag != migration-boarding-group)",
+        "(up-remove-objects search-local object-data-action == actionid-enter)",
+        "(up-remove-objects search-local object-data-order == orderid-enter)",
         "(up-remove-objects search-local object-data-carry > 0)",
         "(set-strategic-number sn-keystates 2)",
         "(up-target-objects 0 action-garrison -1 stance-no-attack)",
@@ -10872,7 +10878,7 @@
       ],
       "file_commands": [
         {
-          "index": 3,
+          "index": 5,
           "id": 1397,
           "command": "(set-strategic-number sn-keystates 2)",
           "indirect": true,
@@ -10885,7 +10891,7 @@
           "legacy_boarding_writer": null
         },
         {
-          "index": 4,
+          "index": 6,
           "id": 1398,
           "command": "(up-target-objects 0 action-garrison -1 stance-no-attack)",
           "indirect": false,
@@ -10898,7 +10904,7 @@
           "legacy_boarding_writer": 21
         },
         {
-          "index": 5,
+          "index": 7,
           "id": 1399,
           "command": "(set-strategic-number sn-keystates 0)",
           "indirect": true,
@@ -10911,7 +10917,7 @@
           "legacy_boarding_writer": null
         },
         {
-          "index": 17,
+          "index": 19,
           "id": 1400,
           "command": "(set-goal gl-island-migration-state MIGRATION-LOADING)",
           "indirect": true,
@@ -10924,19 +10930,21 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-MINING)\n\t(up-compare-goal gl-island-migration-load-target c:>= 2)\n=>\n\t;OWNERSHIP command: migration-boarding-group.\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != migration-boarding-group)\n\t(up-remove-objects search-local object-data-carry > 0)\n\t(set-strategic-number sn-keystates 2)\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(set-strategic-number sn-keystates 0)\n\t(up-get-search-state gl-board-diag-local)\n\t(up-set-target-object search-local c: 0)\n\t(up-get-object-data object-data-id gl-board-diag-issued-actor)\n\t(set-goal gl-board-diag-issued 21)\n\t(up-chat-data-to-self \"migration board target: %d\" g: gl-island-migration-load-target)\n\t(set-goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)\n\t(set-goal gl-island-migration-load-reported NO)\n\t(set-goal gl-island-migration-load-candidate-id -1)\n\t(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)\n\t(up-set-timer c: t-island-migration c: 30)\n\t(up-set-timer c: t-island-migration-board-retry c: 3)\n\t(set-goal gl-island-migration-state MIGRATION-LOADING)\n)\n",
-      "original_sha256": "1f00a06c2aad06668814c6c8e78f5301c7f3a185eaeaf9cb734d942a2d5f9a33",
-      "emitted_sha256": "8ebc06c707a27f16fa2ab2cc319dddf1b42c2900db4193b0beaebdcd963552d5"
+      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-MINING)\n\t(up-compare-goal gl-island-migration-load-target c:>= 2)\n=>\n\t;OWNERSHIP command: migration-boarding-group.\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != migration-boarding-group)\n\t(up-remove-objects search-local object-data-action == actionid-enter)\n\t(up-remove-objects search-local object-data-order == orderid-enter)\n\t(up-remove-objects search-local object-data-carry > 0)\n\t(set-strategic-number sn-keystates 2)\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(set-strategic-number sn-keystates 0)\n\t(up-get-search-state gl-board-diag-local)\n\t(up-set-target-object search-local c: 0)\n\t(up-get-object-data object-data-id gl-board-diag-issued-actor)\n\t(set-goal gl-board-diag-issued 21)\n\t(up-chat-data-to-self \"migration board target: %d\" g: gl-island-migration-load-target)\n\t(set-goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)\n\t(set-goal gl-island-migration-load-reported NO)\n\t(set-goal gl-island-migration-load-candidate-id -1)\n\t(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)\n\t(up-set-timer c: t-island-migration c: 30)\n\t(up-set-timer c: t-island-migration-board-retry c: 3)\n\t(set-goal gl-island-migration-state MIGRATION-LOADING)\n)\n",
+      "original_sha256": "41ec7304d4c96ffd1c66c539af8226ad018fcf31e5e6b8711116af60ae8bd41b",
+      "emitted_sha256": "58e753b9e7267f46b232a4d2541e66918dfd78ac6233bd16aabd287d0b581993"
     },
     {
       "id": 1401,
       "file": "rawai-military.per",
-      "line": 2821,
+      "line": 2827,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)\n\t(up-compare-goal gl-island-migration-load-target c:>= 1)",
       "actions": [
         "(up-remove-objects search-local object-data-player != my-player-number)",
         "(up-remove-objects search-local object-data-group-flag != migration-boarding-group)",
+        "(up-remove-objects search-local object-data-action == actionid-enter)",
+        "(up-remove-objects search-local object-data-order == orderid-enter)",
         "(up-remove-objects search-local object-data-carry > 0)",
         "(up-target-objects 0 action-garrison -1 stance-no-attack)",
         "(up-chat-data-to-self \"migration scout board: %d\" g: gl-island-migration-load-target)",
@@ -10950,7 +10958,7 @@
       ],
       "file_commands": [
         {
-          "index": 3,
+          "index": 5,
           "id": 1401,
           "command": "(up-target-objects 0 action-garrison -1 stance-no-attack)",
           "indirect": false,
@@ -10963,7 +10971,7 @@
           "legacy_boarding_writer": null
         },
         {
-          "index": 11,
+          "index": 13,
           "id": 1402,
           "command": "(set-goal gl-island-migration-state MIGRATION-LOADING)",
           "indirect": true,
@@ -10976,14 +10984,14 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)\n\t(up-compare-goal gl-island-migration-load-target c:>= 1)\n=>\n\t;OWNERSHIP command: migration-boarding-group.\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != migration-boarding-group)\n\t(up-remove-objects search-local object-data-carry > 0)\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(up-chat-data-to-self \"migration scout board: %d\" g: gl-island-migration-load-target)\n\t(set-goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)\n\t(set-goal gl-island-migration-load-reported NO)\n\t(set-goal gl-island-migration-load-candidate-id -1)\n\t(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)\n\t(up-set-timer c: t-island-migration c: 30)\n\t(up-set-timer c: t-island-migration-board-retry c: 3)\n\t(set-goal gl-island-migration-state MIGRATION-LOADING)\n)\n",
-      "original_sha256": "4997ab6ec1aa2391653e1079253c347e0bd103091e8315ee40a2f36bd6ee4f3b",
-      "emitted_sha256": "577f98ad3ccc03a06b25b7605e34a82fa827e2c9b50901c29933692c94d06428"
+      "original": "(defrule\n\t(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)\n\t(up-compare-goal gl-island-migration-load-target c:>= 1)\n=>\n\t;OWNERSHIP command: migration-boarding-group.\n\t(up-remove-objects search-local object-data-player != my-player-number)\n\t(up-remove-objects search-local object-data-group-flag != migration-boarding-group)\n\t(up-remove-objects search-local object-data-action == actionid-enter)\n\t(up-remove-objects search-local object-data-order == orderid-enter)\n\t(up-remove-objects search-local object-data-carry > 0)\n\t(up-target-objects 0 action-garrison -1 stance-no-attack)\n\t(up-chat-data-to-self \"migration scout board: %d\" g: gl-island-migration-load-target)\n\t(set-goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)\n\t(set-goal gl-island-migration-load-reported NO)\n\t(set-goal gl-island-migration-load-candidate-id -1)\n\t(up-modify-sn sn-focus-player-number g:= gl-island-migration-focus)\n\t(up-set-timer c: t-island-migration c: 30)\n\t(up-set-timer c: t-island-migration-board-retry c: 3)\n\t(set-goal gl-island-migration-state MIGRATION-LOADING)\n)\n",
+      "original_sha256": "5e796ba7aac030111b7d34a7d1841d88d73b14cd03d73b6f377359ddff140ac6",
+      "emitted_sha256": "30f9e818ef24d4ff04db727b36c2422137490149c526388e864dcdb87c0a4980"
     },
     {
       "id": 1403,
       "file": "rawai-military.per",
-      "line": 2841,
+      "line": 2849,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-BOARD)\n\t(or\n\t\t(and\n\t\t\t(goal gl-island-migration-mission MIGRATION-MISSION-MINING)\n\t\t\t(up-compare-goal gl-island-migration-load-target c:< 2)\n\t\t)\n\t\t(and\n\t\t\t(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)\n\t\t\t(up-compare-goal gl-island-migration-load-target c:< 1)\n\t\t)\n\t)",
       "actions": [
@@ -11042,7 +11050,7 @@
     {
       "id": 1406,
       "file": "rawai-military.per",
-      "line": 2862,
+      "line": 2870,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-LOADING)",
       "actions": [
@@ -11074,7 +11082,7 @@
     {
       "id": 1407,
       "file": "rawai-military.per",
-      "line": 2878,
+      "line": 2886,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LOAD)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count >= 1)",
       "actions": [
@@ -11108,7 +11116,7 @@
     {
       "id": 1408,
       "file": "rawai-military.per",
-      "line": 2893,
+      "line": 2901,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LOAD)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-MINING)\n\t(up-compare-goal gl-island-migration-load-target c:>= 2)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count g:>= gl-island-migration-load-target)",
       "actions": [
@@ -11142,7 +11150,7 @@
     {
       "id": 1409,
       "file": "rawai-military.per",
-      "line": 2912,
+      "line": 2920,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LOAD)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-MINING)\n\t(up-timer-status t-island-migration == timer-triggered)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count >= 2)\n\t(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)",
       "actions": [
@@ -11175,7 +11183,7 @@
     {
       "id": 1410,
       "file": "rawai-military.per",
-      "line": 2931,
+      "line": 2939,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LOAD)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-MINING)\n\t(up-timer-status t-island-migration == timer-triggered)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count == 1)",
       "actions": [
@@ -11208,7 +11216,7 @@
     {
       "id": 1411,
       "file": "rawai-military.per",
-      "line": 2946,
+      "line": 2954,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LOAD)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)\n\t(up-timer-status t-island-migration == timer-triggered)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count <= 0)",
       "actions": [
@@ -11241,7 +11249,7 @@
     {
       "id": 1412,
       "file": "rawai-military.per",
-      "line": 2961,
+      "line": 2969,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LOAD)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-MINING)\n\t(up-timer-status t-island-migration == timer-triggered)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count <= 0)",
       "actions": [
@@ -11274,7 +11282,7 @@
     {
       "id": 1413,
       "file": "rawai-military.per",
-      "line": 2976,
+      "line": 2984,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-LOAD-DIAG-FIND)",
       "actions": [
@@ -11310,7 +11318,7 @@
     {
       "id": 1414,
       "file": "rawai-military.per",
-      "line": 2993,
+      "line": 3001,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-LOAD-DIAG-PASSENGER)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -11361,7 +11369,7 @@
     {
       "id": 1415,
       "file": "rawai-military.per",
-      "line": 3023,
+      "line": 3031,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-LOAD-DIAG-PASSENGER)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -11392,7 +11400,7 @@
     {
       "id": 1416,
       "file": "rawai-military.per",
-      "line": 3048,
+      "line": 3056,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-LOAD-DIAG-APPLY)\n\t(goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)\n\t(not (goal gl-island-migration-mission MIGRATION-MISSION-MINING))",
       "actions": [
@@ -11447,7 +11455,7 @@
     {
       "id": 1418,
       "file": "rawai-military.per",
-      "line": 3071,
+      "line": 3079,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-LOAD-DIAG-APPLY)\n\t(goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-MINING)",
       "actions": [
@@ -11534,7 +11542,7 @@
     {
       "id": 1422,
       "file": "rawai-military.per",
-      "line": 3128,
+      "line": 3136,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-LOAD-DIAG-APPLY)\n\t(goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-PARTIAL)",
       "actions": [
@@ -11634,7 +11642,7 @@
     {
       "id": 1427,
       "file": "rawai-military.per",
-      "line": 3178,
+      "line": 3186,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-LOAD-DIAG-APPLY)\n\t(goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-ABORT)\n\t(up-compare-goal gl-island-migration-load-observed c:== 1)",
       "actions": [
@@ -11709,7 +11717,7 @@
     {
       "id": 1430,
       "file": "rawai-military.per",
-      "line": 3230,
+      "line": 3238,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-LOAD-DIAG-APPLY)\n\t(goal gl-island-migration-load-terminal TRANSPORT-LOAD-TERMINAL-ABORT)\n\t(up-compare-goal gl-island-migration-load-observed c:<= 0)",
       "actions": [
@@ -11794,7 +11802,7 @@
     {
       "id": 1434,
       "file": "rawai-military.per",
-      "line": 3274,
+      "line": 3282,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LOAD)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -11875,7 +11883,7 @@
     {
       "id": 1438,
       "file": "rawai-military.per",
-      "line": 3305,
+      "line": 3313,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-PREPARE)",
       "actions": [
@@ -11914,7 +11922,7 @@
     {
       "id": 1439,
       "file": "rawai-military.per",
-      "line": 3322,
+      "line": 3330,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-DIRECT)",
       "actions": [
@@ -11954,7 +11962,7 @@
     {
       "id": 1440,
       "file": "rawai-military.per",
-      "line": 3340,
+      "line": 3348,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-LEFT)",
       "actions": [
@@ -11994,7 +12002,7 @@
     {
       "id": 1441,
       "file": "rawai-military.per",
-      "line": 3358,
+      "line": 3366,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-RIGHT)",
       "actions": [
@@ -12028,7 +12036,7 @@
     {
       "id": 1442,
       "file": "rawai-military.per",
-      "line": 3372,
+      "line": 3380,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-APPLY)\n\t(up-compare-goal gl-island-migration-route-left-threats c:> 0)\n\t(up-compare-goal gl-island-migration-route-right-threats c:> 0)",
       "actions": [
@@ -12083,7 +12091,7 @@
     {
       "id": 1444,
       "file": "rawai-military.per",
-      "line": 3395,
+      "line": 3403,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-APPLY)\n\t(or\n\t\t(up-compare-goal gl-island-migration-route-left-threats g:< gl-island-migration-route-right-threats)\n\t\t(and\n\t\t\t(up-compare-goal gl-island-migration-route-left-threats g:== gl-island-migration-route-right-threats)\n\t\t\t(up-compare-goal gl-island-migration-route-random c:== 0)\n\t\t)\n\t)",
       "actions": [
@@ -12113,7 +12121,7 @@
     {
       "id": 1445,
       "file": "rawai-military.per",
-      "line": 3410,
+      "line": 3418,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-APPLY)\n\t(or\n\t\t(up-compare-goal gl-island-migration-route-right-threats g:< gl-island-migration-route-left-threats)\n\t\t(and\n\t\t\t(up-compare-goal gl-island-migration-route-left-threats g:== gl-island-migration-route-right-threats)\n\t\t\t(up-compare-goal gl-island-migration-route-random c:== 1)\n\t\t)\n\t)",
       "actions": [
@@ -12143,7 +12151,7 @@
     {
       "id": 1446,
       "file": "rawai-military.per",
-      "line": 3428,
+      "line": 3436,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-PATH)",
       "actions": [
@@ -12176,7 +12184,7 @@
     {
       "id": 1447,
       "file": "rawai-military.per",
-      "line": 3439,
+      "line": 3447,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-DIRECT-PATH)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -12205,7 +12213,7 @@
     {
       "id": 1448,
       "file": "rawai-military.per",
-      "line": 3447,
+      "line": 3455,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-DIRECT-PATH)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -12233,7 +12241,7 @@
     {
       "id": 1449,
       "file": "rawai-military.per",
-      "line": 3454,
+      "line": 3462,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-PATH-RESULT)\n\t(up-compare-goal gl-msr-water-distance c:>= 0)\n\t(up-compare-goal gl-msr-water-distance c:!= 65535)",
       "actions": [
@@ -12280,7 +12288,7 @@
     {
       "id": 1451,
       "file": "rawai-military.per",
-      "line": 3469,
+      "line": 3477,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-PATH-RESULT)\n\t(or (up-compare-goal gl-msr-water-distance c:< 0)\n\t\t(goal gl-msr-water-distance 65535))\n\t(goal gl-msr-direct-threats 0)",
       "actions": [
@@ -12309,7 +12317,7 @@
     {
       "id": 1452,
       "file": "rawai-military.per",
-      "line": 3479,
+      "line": 3487,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-DIRECT-VALIDATE)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -12338,7 +12346,7 @@
     {
       "id": 1453,
       "file": "rawai-military.per",
-      "line": 3487,
+      "line": 3495,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-DIRECT-VALIDATE)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -12366,7 +12374,7 @@
     {
       "id": 1454,
       "file": "rawai-military.per",
-      "line": 3494,
+      "line": 3502,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-PATH-RESULT)\n\t(or (up-compare-goal gl-msr-water-distance c:< 0)\n\t\t(goal gl-msr-water-distance 65535))\n\t(up-compare-goal gl-msr-direct-threats c:> 0)",
       "actions": [
@@ -12395,7 +12403,7 @@
     {
       "id": 1455,
       "file": "rawai-military.per",
-      "line": 3504,
+      "line": 3512,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-DIRECT-RESULT)\n\t(up-compare-goal gl-msr-water-distance c:>= 0)\n\t(up-compare-goal gl-msr-water-distance c:!= 65535)",
       "actions": [
@@ -12442,7 +12450,7 @@
     {
       "id": 1457,
       "file": "rawai-military.per",
-      "line": 3519,
+      "line": 3527,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-DIRECT-RESULT)\n\t(or (up-compare-goal gl-msr-water-distance c:< 0)\n\t\t(goal gl-msr-water-distance 65535))",
       "actions": [
@@ -12471,7 +12479,7 @@
     {
       "id": 1458,
       "file": "rawai-military.per",
-      "line": 3528,
+      "line": 3536,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-WAIT)\n\t(up-timer-status t-island-migration == timer-triggered)",
       "actions": [
@@ -12503,7 +12511,7 @@
     {
       "id": 1459,
       "file": "rawai-military.per",
-      "line": 3539,
+      "line": 3547,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance <= 8)",
       "actions": [
@@ -12534,7 +12542,7 @@
     {
       "id": 1460,
       "file": "rawai-military.per",
-      "line": 3552,
+      "line": 3560,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 8)\n\t(up-object-data object-data-distance g:< gl-island-migration-route-distance)\n\t(up-compare-goal gl-island-migration-route-waits c:< 4)",
       "actions": [
@@ -12583,7 +12591,7 @@
     {
       "id": 1462,
       "file": "rawai-military.per",
-      "line": 3571,
+      "line": 3579,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 8)\n\t(up-object-data object-data-distance g:>= gl-island-migration-route-distance)\n\t(up-compare-goal gl-island-migration-route-waits c:< 4)",
       "actions": [
@@ -12631,7 +12639,7 @@
     {
       "id": 1464,
       "file": "rawai-military.per",
-      "line": 3589,
+      "line": 3597,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 8)\n\t(up-object-data object-data-distance <= 12)\n\t(up-object-data object-data-distance g:>= gl-island-migration-route-distance)\n\t(up-compare-goal gl-island-migration-route-waits c:>= 4)",
       "actions": [
@@ -12662,7 +12670,7 @@
     {
       "id": 1465,
       "file": "rawai-military.per",
-      "line": 3637,
+      "line": 3645,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 8)\n\t(up-object-data object-data-distance g:>= gl-island-migration-route-distance)\n\t(up-compare-goal gl-island-migration-route-waits c:>= 4)",
       "actions": [
@@ -12714,7 +12722,7 @@
     {
       "id": 1467,
       "file": "rawai-military.per",
-      "line": 3659,
+      "line": 3667,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ROUTE-WAYPOINT-CHECK)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -12745,7 +12753,7 @@
     {
       "id": 1468,
       "file": "rawai-military.per",
-      "line": 3669,
+      "line": 3677,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RETURNING)\n\t(up-timer-status t-island-migration == timer-triggered)",
       "actions": [
@@ -12776,7 +12784,7 @@
     {
       "id": 1469,
       "file": "rawai-military.per",
-      "line": 3679,
+      "line": 3687,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RETURN-CHECK)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-MINING)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count <= 0)",
       "actions": [
@@ -12815,7 +12823,7 @@
     {
       "id": 1470,
       "file": "rawai-military.per",
-      "line": 3703,
+      "line": 3711,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RETURN-DEPOSIT)\n\t(up-set-target-object search-remote c: 0)",
       "actions": [
@@ -12862,7 +12870,7 @@
     {
       "id": 1472,
       "file": "rawai-military.per",
-      "line": 3717,
+      "line": 3725,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RETURN-DEPOSIT)\n\t(not (up-set-target-object search-remote c: 0))",
       "actions": [
@@ -12893,7 +12901,7 @@
     {
       "id": 1473,
       "file": "rawai-military.per",
-      "line": 3727,
+      "line": 3735,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RETURN-CHECK)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count <= 0)",
       "actions": [
@@ -12923,7 +12931,7 @@
     {
       "id": 1474,
       "file": "rawai-military.per",
-      "line": 3738,
+      "line": 3746,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RETURN-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count > 0)\n\t(up-compare-goal gl-island-migration-route-waits c:< 4)",
       "actions": [
@@ -12971,7 +12979,7 @@
     {
       "id": 1476,
       "file": "rawai-military.per",
-      "line": 3780,
+      "line": 3788,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RETURN-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count > 0)\n\t(up-compare-goal gl-island-migration-route-waits c:>= 4)",
       "actions": [
@@ -13032,7 +13040,7 @@
     {
       "id": 1479,
       "file": "rawai-military.per",
-      "line": 3801,
+      "line": 3809,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RETURN-FAILED)\n\t(up-timer-status t-island-migration == timer-triggered)",
       "actions": [
@@ -13082,7 +13090,7 @@
     {
       "id": 1481,
       "file": "rawai-military.per",
-      "line": 3818,
+      "line": 3826,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-QUARANTINED)\n\t(up-timer-status t-island-migration == timer-triggered)",
       "actions": [
@@ -13113,7 +13121,7 @@
     {
       "id": 1482,
       "file": "rawai-military.per",
-      "line": 3831,
+      "line": 3839,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-QUARANTINE-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count <= 0)",
       "actions": [
@@ -13213,7 +13221,7 @@
     {
       "id": 1488,
       "file": "rawai-military.per",
-      "line": 3848,
+      "line": 3856,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-QUARANTINE-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count > 0)\n\t(up-compare-goal gl-quarantine-transport-id c:< 0)",
       "actions": [
@@ -13320,7 +13328,7 @@
     {
       "id": 1494,
       "file": "rawai-military.per",
-      "line": 3874,
+      "line": 3882,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-QUARANTINE-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count > 0)\n\t(up-compare-goal gl-quarantine-transport-id c:>= 0)",
       "actions": [
@@ -13439,7 +13447,7 @@
     {
       "id": 1501,
       "file": "rawai-military.per",
-      "line": 3901,
+      "line": 3909,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-QUARANTINE-CHECK)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -13539,7 +13547,7 @@
     {
       "id": 1507,
       "file": "rawai-military.per",
-      "line": 3933,
+      "line": 3941,
       "jump_only": false,
       "facts": "(goal gl-quarantine-transport-state TRANSPORT-QUARANTINE-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count > 0)\n\t(up-compare-goal gl-quarantine-transport-attempts c:< 3)",
       "actions": [
@@ -13576,7 +13584,7 @@
     {
       "id": 1508,
       "file": "rawai-military.per",
-      "line": 4082,
+      "line": 4090,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RETURN-CHECK)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -13606,7 +13614,7 @@
     {
       "id": 1509,
       "file": "rawai-military.per",
-      "line": 4091,
+      "line": 4099,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LOAD)\n\t(up-timer-status t-island-migration == timer-running)\n\t(up-timer-status t-island-migration-board-retry == timer-triggered)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)\n\t(goal gl-island-migration-load-reported NO)",
       "actions": [
@@ -13636,7 +13644,7 @@
     {
       "id": 1510,
       "file": "rawai-military.per",
-      "line": 4126,
+      "line": 4134,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LOAD)\n\t(up-timer-status t-island-migration == timer-running)\n\t(up-timer-status t-island-migration-board-retry == timer-triggered)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)\n\t(goal gl-island-migration-load-reported YES)\n\t(not (goal gl-island-migration-mission MIGRATION-MISSION-MINING))",
       "actions": [
@@ -13689,7 +13697,7 @@
     {
       "id": 1512,
       "file": "rawai-military.per",
-      "line": 4150,
+      "line": 4158,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LOAD)\n\t(up-timer-status t-island-migration == timer-running)\n\t(up-timer-status t-island-migration-board-retry == timer-triggered)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)\n\t(goal gl-island-migration-load-reported YES)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-MINING)",
       "actions": [
@@ -13774,7 +13782,7 @@
     {
       "id": 1517,
       "file": "rawai-military.per",
-      "line": 4184,
+      "line": 4192,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-SAILING)",
       "actions": [
@@ -13804,7 +13812,7 @@
     {
       "id": 1518,
       "file": "rawai-military.per",
-      "line": 4192,
+      "line": 4200,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LANDING)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-MINING)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count <= 0)",
       "actions": [
@@ -13839,7 +13847,7 @@
     {
       "id": 1519,
       "file": "rawai-military.per",
-      "line": 4208,
+      "line": 4216,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LANDING)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count <= 0)",
       "actions": [
@@ -13873,7 +13881,7 @@
     {
       "id": 1520,
       "file": "rawai-military.per",
-      "line": 4245,
+      "line": 4253,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-VERIFY-SCOUT-LANDING)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -13918,7 +13926,7 @@
     {
       "id": 1522,
       "file": "rawai-military.per",
-      "line": 4260,
+      "line": 4268,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-VERIFY-SCOUT-LANDING)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -13995,7 +14003,7 @@
     {
       "id": 1526,
       "file": "rawai-military.per",
-      "line": 4278,
+      "line": 4286,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-VERIFY-LANDING)\n\t(up-compare-goal local-total c:>= 1)",
       "actions": [
@@ -14025,7 +14033,7 @@
     {
       "id": 1527,
       "file": "rawai-military.per",
-      "line": 4290,
+      "line": 4298,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-VERIFY-LANDING)\n\t(up-compare-goal local-total c:< 1)",
       "actions": [
@@ -14059,7 +14067,7 @@
     {
       "id": 1528,
       "file": "rawai-military.per",
-      "line": 4306,
+      "line": 4314,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RECOVER-LANDING)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -14100,7 +14108,7 @@
     {
       "id": 1529,
       "file": "rawai-military.per",
-      "line": 4326,
+      "line": 4334,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RECOVER-LANDING)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -14177,7 +14185,7 @@
     {
       "id": 1533,
       "file": "rawai-military.per",
-      "line": 4344,
+      "line": 4352,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)\n\t(up-set-target-object search-remote c: 0)",
       "actions": [
@@ -14210,7 +14218,7 @@
     {
       "id": 1534,
       "file": "rawai-military.per",
-      "line": 4356,
+      "line": 4364,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)\n\t(not (up-set-target-object search-remote c: 0))",
       "actions": [
@@ -14240,7 +14248,7 @@
     {
       "id": 1535,
       "file": "rawai-military.per",
-      "line": 4368,
+      "line": 4376,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-TASK-MINING)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-MINING)",
       "actions": [
@@ -14270,7 +14278,7 @@
     {
       "id": 1536,
       "file": "rawai-military.per",
-      "line": 4380,
+      "line": 4388,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-OWNER)\n\t(goal gl-colony-towncenter-state COLONY-TC-IDLE)\n\t(up-pending-objects c: town-center <= 0)\n\t(not (up-pending-placement c: town-center))\n\t(goal gl-lumbercamp-placement-state PLACEMENT-IDLE)\n\t(goal gl-miningcamp-placement-state PLACEMENT-IDLE)\n\t(up-pending-objects c: mining-camp <= 0)\n\t(up-pending-objects c: lumber-camp <= 0)\n\t(up-pending-objects c: mill <= 0)\n\t(not (up-pending-placement c: mining-camp))\n\t(not (up-pending-placement c: lumber-camp))\n\t(not (up-pending-placement c: mill))",
       "actions": [
@@ -14298,7 +14306,7 @@
     {
       "id": 1537,
       "file": "rawai-military.per",
-      "line": 4398,
+      "line": 4406,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-CLEAR)\n\t(up-pending-objects c: house <= 0)\n\t(up-pending-objects c: market <= 0)\n\t(not (up-pending-placement c: house))\n\t(not (up-pending-placement c: market))",
       "actions": [
@@ -14352,7 +14360,7 @@
     {
       "id": 1539,
       "file": "rawai-military.per",
-      "line": 4430,
+      "line": 4438,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-PLACE-DROPSITE)\n\t(goal gl-island-migration-placement-attempts 0)",
       "actions": [
@@ -14387,7 +14395,7 @@
     {
       "id": 1540,
       "file": "rawai-military.per",
-      "line": 4444,
+      "line": 4452,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-PLACE-DROPSITE)\n\t(goal gl-island-migration-placement-attempts 1)",
       "actions": [
@@ -14422,7 +14430,7 @@
     {
       "id": 1541,
       "file": "rawai-military.per",
-      "line": 4458,
+      "line": 4466,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-PLACE-DROPSITE)\n\t(goal gl-island-migration-placement-attempts 2)",
       "actions": [
@@ -14457,7 +14465,7 @@
     {
       "id": 1542,
       "file": "rawai-military.per",
-      "line": 4472,
+      "line": 4480,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-PLACE-DROPSITE)\n\t(goal gl-island-migration-placement-attempts 3)",
       "actions": [
@@ -14492,7 +14500,7 @@
     {
       "id": 1543,
       "file": "rawai-military.per",
-      "line": 4490,
+      "line": 4498,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-VALIDATE-DROPSITE-ANCHOR)",
       "actions": [
@@ -14523,7 +14531,7 @@
     {
       "id": 1544,
       "file": "rawai-military.per",
-      "line": 4499,
+      "line": 4507,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-ANCHOR)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-class g:== gl-island-migration-anchor-class)\n\t(up-object-data object-data-map-zone-id g:== gl-island-migration-zone)\n\t(goal gl-island-migration-anchor-class tree-class)",
       "actions": [
@@ -14558,7 +14566,7 @@
     {
       "id": 1545,
       "file": "rawai-military.per",
-      "line": 4516,
+      "line": 4524,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-ANCHOR)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-class g:== gl-island-migration-anchor-class)\n\t(up-object-data object-data-map-zone-id g:== gl-island-migration-zone)\n\t(up-compare-goal gl-island-migration-anchor-class c:!= tree-class)",
       "actions": [
@@ -14589,7 +14597,7 @@
     {
       "id": 1546,
       "file": "rawai-military.per",
-      "line": 4529,
+      "line": 4537,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-TREES)\n\t(up-compare-goal remote-total c:>= 3)",
       "actions": [
@@ -14619,7 +14627,7 @@
     {
       "id": 1547,
       "file": "rawai-military.per",
-      "line": 4538,
+      "line": 4546,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-TREES)\n\t(up-compare-goal remote-total c:< 3)\n\t(goal gl-island-migration-anchor-rejections 0)",
       "actions": [
@@ -14650,7 +14658,7 @@
     {
       "id": 1548,
       "file": "rawai-military.per",
-      "line": 4549,
+      "line": 4557,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-TREES)\n\t(up-compare-goal remote-total c:< 3)\n\t(goal gl-island-migration-anchor-rejections 1)",
       "actions": [
@@ -14681,7 +14689,7 @@
     {
       "id": 1549,
       "file": "rawai-military.per",
-      "line": 4560,
+      "line": 4568,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-TREES)\n\t(up-compare-goal remote-total c:< 3)\n\t(goal gl-island-migration-anchor-rejections 2)",
       "actions": [
@@ -14712,7 +14720,7 @@
     {
       "id": 1550,
       "file": "rawai-military.per",
-      "line": 4571,
+      "line": 4579,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-TREES)\n\t(up-compare-goal remote-total c:< 3)\n\t(goal gl-island-migration-anchor-rejections 3)",
       "actions": [
@@ -14742,7 +14750,7 @@
     {
       "id": 1551,
       "file": "rawai-military.per",
-      "line": 4581,
+      "line": 4589,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-ANCHOR)\n\t(up-set-target-object search-remote c: 0)\n\t(or\n\t\t(up-object-data object-data-class g:!= gl-island-migration-anchor-class)\n\t\t(up-object-data object-data-map-zone-id g:!= gl-island-migration-zone)\n\t)",
       "actions": [
@@ -14770,7 +14778,7 @@
     {
       "id": 1552,
       "file": "rawai-military.per",
-      "line": 4592,
+      "line": 4600,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-ANCHOR)\n\t(not (up-set-target-object search-remote c: 0))",
       "actions": [
@@ -14798,7 +14806,7 @@
     {
       "id": 1553,
       "file": "rawai-military.per",
-      "line": 4599,
+      "line": 4607,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-ANCHOR)",
       "actions": [
@@ -14838,7 +14846,7 @@
     {
       "id": 1554,
       "file": "rawai-military.per",
-      "line": 4620,
+      "line": 4628,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)\n\t(up-set-target-object search-remote c: 0)",
       "actions": [
@@ -14871,7 +14879,7 @@
     {
       "id": 1555,
       "file": "rawai-military.per",
-      "line": 4632,
+      "line": 4640,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)\n\t(not (up-set-target-object search-remote c: 0))",
       "actions": [
@@ -14901,7 +14909,7 @@
     {
       "id": 1556,
       "file": "rawai-military.per",
-      "line": 4644,
+      "line": 4652,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-AFTER-SPARSE)",
       "actions": [
@@ -14938,7 +14946,7 @@
     {
       "id": 1557,
       "file": "rawai-military.per",
-      "line": 4659,
+      "line": 4667,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-NONTREE)\n\t(up-set-target-object search-remote c: 0)",
       "actions": [
@@ -14971,7 +14979,7 @@
     {
       "id": 1558,
       "file": "rawai-military.per",
-      "line": 4671,
+      "line": 4679,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE-NONTREE)\n\t(not (up-set-target-object search-remote c: 0))",
       "actions": [
@@ -14999,7 +15007,7 @@
     {
       "id": 1559,
       "file": "rawai-military.per",
-      "line": 4678,
+      "line": 4686,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-TREES)\n\t(goal gl-island-migration-anchor-rejections 1)",
       "actions": [
@@ -15034,7 +15042,7 @@
     {
       "id": 1560,
       "file": "rawai-military.per",
-      "line": 4692,
+      "line": 4700,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-TREES)\n\t(goal gl-island-migration-anchor-rejections 2)",
       "actions": [
@@ -15071,7 +15079,7 @@
     {
       "id": 1561,
       "file": "rawai-military.per",
-      "line": 4708,
+      "line": 4716,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-REFRESH-DROPSITE-TREES)\n\t(goal gl-island-migration-anchor-rejections 3)",
       "actions": [
@@ -15110,7 +15118,7 @@
     {
       "id": 1562,
       "file": "rawai-military.per",
-      "line": 4726,
+      "line": 4734,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)\n\t(up-set-target-object search-remote c: 0)",
       "actions": [
@@ -15143,7 +15151,7 @@
     {
       "id": 1563,
       "file": "rawai-military.per",
-      "line": 4738,
+      "line": 4746,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-FIND-RECOVERY-ANCHOR)\n\t(not (up-set-target-object search-remote c: 0))",
       "actions": [
@@ -15173,7 +15181,7 @@
     {
       "id": 1564,
       "file": "rawai-military.per",
-      "line": 4808,
+      "line": 4816,
       "jump_only": false,
       "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(up-pending-objects c: mining-camp <= 0)\n\t(not (up-pending-placement c: mining-camp))\n\t(up-can-build gl-no-escrow-state c: mining-camp)\n\t(up-can-build-line gl-no-escrow-state gl-migration-build-x c: mining-camp)",
       "actions": [
@@ -15220,7 +15228,7 @@
     {
       "id": 1566,
       "file": "rawai-military.per",
-      "line": 4835,
+      "line": 4843,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 3)\n\t(can-afford-building mining-camp)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: mining-camp))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: mining-camp))\n\t)",
       "actions": [
@@ -15251,7 +15259,7 @@
     {
       "id": 1567,
       "file": "rawai-military.per",
-      "line": 4854,
+      "line": 4862,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:>= 3)\n\t(can-afford-building mining-camp)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: mining-camp))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: mining-camp))\n\t)",
       "actions": [
@@ -15280,7 +15288,7 @@
     {
       "id": 1568,
       "file": "rawai-military.per",
-      "line": 4871,
+      "line": 4879,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 3)\n\t(can-afford-building lumber-camp)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: lumber-camp))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: lumber-camp))\n\t)",
       "actions": [
@@ -15311,7 +15319,7 @@
     {
       "id": 1569,
       "file": "rawai-military.per",
-      "line": 4887,
+      "line": 4895,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(up-compare-goal gl-island-migration-placement-attempts c:>= 3)\n\t(can-afford-building lumber-camp)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: lumber-camp))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: lumber-camp))\n\t)",
       "actions": [
@@ -15340,7 +15348,7 @@
     {
       "id": 1570,
       "file": "rawai-military.per",
-      "line": 4901,
+      "line": 4909,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 3)\n\t(can-afford-building mill)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: mill))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: mill))\n\t)",
       "actions": [
@@ -15371,7 +15379,7 @@
     {
       "id": 1571,
       "file": "rawai-military.per",
-      "line": 4920,
+      "line": 4928,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(up-compare-goal gl-island-migration-placement-attempts c:>= 3)\n\t(can-afford-building mill)\n\t(or\n\t\t(not (up-can-build gl-no-escrow-state c: mill))\n\t\t(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: mill))\n\t)",
       "actions": [
@@ -15400,7 +15408,7 @@
     {
       "id": 1572,
       "file": "rawai-military.per",
-      "line": 4957,
+      "line": 4965,
       "jump_only": false,
       "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(up-pending-objects c: lumber-camp <= 0)\n\t(not (up-pending-placement c: lumber-camp))\n\t(up-can-build gl-no-escrow-state c: lumber-camp)\n\t(up-can-build-line gl-no-escrow-state gl-migration-build-x c: lumber-camp)",
       "actions": [
@@ -15447,7 +15455,7 @@
     {
       "id": 1574,
       "file": "rawai-military.per",
-      "line": 4998,
+      "line": 5006,
       "jump_only": false,
       "facts": "(goal gl-owner-worker-hold NO)\n\t(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(up-pending-objects c: mill <= 0)\n\t(not (up-pending-placement c: mill))\n\t(up-can-build gl-no-escrow-state c: mill)\n\t(up-can-build-line gl-no-escrow-state gl-migration-build-x c: mill)",
       "actions": [
@@ -15494,7 +15502,7 @@
     {
       "id": 1576,
       "file": "rawai-military.per",
-      "line": 5019,
+      "line": 5027,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(not (can-afford-building mining-camp))",
       "actions": [
@@ -15524,7 +15532,7 @@
     {
       "id": 1577,
       "file": "rawai-military.per",
-      "line": 5032,
+      "line": 5040,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(not (can-afford-building lumber-camp))",
       "actions": [
@@ -15554,7 +15562,7 @@
     {
       "id": 1578,
       "file": "rawai-military.per",
-      "line": 5042,
+      "line": 5050,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(not (can-afford-building mill))",
       "actions": [
@@ -15584,7 +15592,7 @@
     {
       "id": 1579,
       "file": "rawai-military.per",
-      "line": 5057,
+      "line": 5065,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-RESOURCES)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)\n\t(can-build-with-escrow mining-camp)",
       "actions": [
@@ -15614,7 +15622,7 @@
     {
       "id": 1580,
       "file": "rawai-military.per",
-      "line": 5070,
+      "line": 5078,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-RESOURCES)\n\t(goal gl-island-migration-anchor-class tree-class)\n\t(can-build-with-escrow lumber-camp)",
       "actions": [
@@ -15644,7 +15652,7 @@
     {
       "id": 1581,
       "file": "rawai-military.per",
-      "line": 5080,
+      "line": 5088,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-RESOURCES)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)\n\t(can-build-with-escrow mill)",
       "actions": [
@@ -15674,7 +15682,7 @@
     {
       "id": 1582,
       "file": "rawai-military.per",
-      "line": 5093,
+      "line": 5101,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE-RESOURCES)\n\t(up-timer-status t-island-migration == timer-triggered)",
       "actions": [
@@ -15702,7 +15710,7 @@
     {
       "id": 1583,
       "file": "rawai-military.per",
-      "line": 5105,
+      "line": 5113,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class gold-mine-class)\n\t\t(goal gl-island-migration-anchor-class stone-mine-class)\n\t)",
       "actions": [
@@ -15741,7 +15749,7 @@
     {
       "id": 1584,
       "file": "rawai-military.per",
-      "line": 5126,
+      "line": 5134,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)\n\t(goal gl-island-migration-anchor-class tree-class)",
       "actions": [
@@ -15780,7 +15788,7 @@
     {
       "id": 1585,
       "file": "rawai-military.per",
-      "line": 5144,
+      "line": 5152,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)\n\t(or\n\t\t(goal gl-island-migration-anchor-class forage-class)\n\t\t(goal gl-island-migration-anchor-class prey-animal-class)\n\t)",
       "actions": [
@@ -15819,7 +15827,7 @@
     {
       "id": 1586,
       "file": "rawai-military.per",
-      "line": 5165,
+      "line": 5173,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-FIND-DROPSITE)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -15847,7 +15855,7 @@
     {
       "id": 1587,
       "file": "rawai-military.per",
-      "line": 5172,
+      "line": 5180,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-FIND-DROPSITE)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -15875,7 +15883,7 @@
     {
       "id": 1588,
       "file": "rawai-military.per",
-      "line": 5196,
+      "line": 5204,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -15931,7 +15939,7 @@
     {
       "id": 1590,
       "file": "rawai-military.per",
-      "line": 5219,
+      "line": 5227,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ASSIGN-DROPSITE)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -15959,7 +15967,7 @@
     {
       "id": 1591,
       "file": "rawai-military.per",
-      "line": 5226,
+      "line": 5234,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CONFIRM-DROPSITE)",
       "actions": [
@@ -15989,7 +15997,7 @@
     {
       "id": 1592,
       "file": "rawai-military.per",
-      "line": 5234,
+      "line": 5242,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-status == status-pending)",
       "actions": [
@@ -16017,7 +16025,7 @@
     {
       "id": 1593,
       "file": "rawai-military.per",
-      "line": 5260,
+      "line": 5268,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-status == status-ready)",
       "actions": [
@@ -16056,7 +16064,7 @@
     {
       "id": 1594,
       "file": "rawai-military.per",
-      "line": 5282,
+      "line": 5290,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RETASK-DROPSITE)",
       "actions": [
@@ -16087,7 +16095,7 @@
     {
       "id": 1595,
       "file": "rawai-military.per",
-      "line": 5291,
+      "line": 5299,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-RETASK-ANCHOR)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-class g:== gl-island-migration-anchor-class)\n\t(up-object-data object-data-map-zone-id g:== gl-island-migration-zone)",
       "actions": [
@@ -16117,7 +16125,7 @@
     {
       "id": 1596,
       "file": "rawai-military.per",
-      "line": 5302,
+      "line": 5310,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-RETASK-ANCHOR)\n\t(up-set-target-object search-remote c: 0)\n\t(or\n\t\t(up-object-data object-data-class g:!= gl-island-migration-anchor-class)\n\t\t(up-object-data object-data-map-zone-id g:!= gl-island-migration-zone)\n\t)",
       "actions": [
@@ -16145,7 +16153,7 @@
     {
       "id": 1597,
       "file": "rawai-military.per",
-      "line": 5313,
+      "line": 5321,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-RETASK-ANCHOR)\n\t(not (up-set-target-object search-remote c: 0))",
       "actions": [
@@ -16173,7 +16181,7 @@
     {
       "id": 1598,
       "file": "rawai-military.per",
-      "line": 5320,
+      "line": 5328,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-REFRESH-RETASK-ANCHOR)",
       "actions": [
@@ -16208,7 +16216,7 @@
     {
       "id": 1599,
       "file": "rawai-military.per",
-      "line": 5335,
+      "line": 5343,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-RETASK-REFRESH)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-class g:== gl-island-migration-anchor-class)\n\t(up-object-data object-data-map-zone-id g:== gl-island-migration-zone)",
       "actions": [
@@ -16240,7 +16248,7 @@
     {
       "id": 1600,
       "file": "rawai-military.per",
-      "line": 5348,
+      "line": 5356,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-RETASK-REFRESH)\n\t(not (up-set-target-object search-remote c: 0))",
       "actions": [
@@ -16270,7 +16278,7 @@
     {
       "id": 1601,
       "file": "rawai-military.per",
-      "line": 5357,
+      "line": 5365,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-RETASK-REFRESH)\n\t(up-set-target-object search-remote c: 0)\n\t(or\n\t\t(up-object-data object-data-class g:!= gl-island-migration-anchor-class)\n\t\t(up-object-data object-data-map-zone-id g:!= gl-island-migration-zone)\n\t)",
       "actions": [
@@ -16300,7 +16308,7 @@
     {
       "id": 1602,
       "file": "rawai-military.per",
-      "line": 5384,
+      "line": 5392,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-ASSIGN-RETASK-ANCHOR)",
       "actions": [
@@ -16358,7 +16366,7 @@
     {
       "id": 1604,
       "file": "rawai-military.per",
-      "line": 5420,
+      "line": 5428,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RELEASE-COLONY)",
       "actions": [
@@ -16436,7 +16444,7 @@
     {
       "id": 1608,
       "file": "rawai-military.per",
-      "line": 5438,
+      "line": 5446,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-status != status-pending)\n\t(up-object-data object-data-status != status-ready)",
       "actions": [
@@ -16465,7 +16473,7 @@
     {
       "id": 1609,
       "file": "rawai-military.per",
-      "line": 5448,
+      "line": 5456,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -16494,7 +16502,7 @@
     {
       "id": 1610,
       "file": "rawai-military.per",
-      "line": 5456,
+      "line": 5464,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)\n\t(up-timer-status t-island-migration == timer-triggered)\n\t(up-compare-goal gl-island-migration-placement-attempts c:> 0)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 4)\n\t(goal gl-island-migration-point-retry-used NO)\n\t(goal gl-owner-worker-hold NO)\n\t(up-pending-objects c: mining-camp <= 0)\n\t(up-pending-objects c: lumber-camp <= 0)\n\t(up-pending-objects c: mill <= 0)\n\t(not (up-pending-placement c: mining-camp))\n\t(not (up-pending-placement c: lumber-camp))\n\t(not (up-pending-placement c: mill))",
       "actions": [
@@ -16528,7 +16536,7 @@
     {
       "id": 1611,
       "file": "rawai-military.per",
-      "line": 5483,
+      "line": 5491,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)\n\t(up-timer-status t-island-migration == timer-triggered)\n\t(up-compare-goal gl-island-migration-placement-attempts c:< 4)",
       "actions": [
@@ -16560,7 +16568,7 @@
     {
       "id": 1612,
       "file": "rawai-military.per",
-      "line": 5495,
+      "line": 5503,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-WAIT-DROPSITE)\n\t(up-timer-status t-island-migration == timer-triggered)\n\t(up-compare-goal gl-island-migration-placement-attempts c:>= 4)",
       "actions": [
@@ -16588,7 +16596,7 @@
     {
       "id": 1613,
       "file": "rawai-military.per",
-      "line": 5503,
+      "line": 5511,
       "jump_only": false,
       "facts": "(or\n\t\t(goal gl-island-migration-state MIGRATION-CONFIRM-DROPSITE)\n\t\t(goal gl-island-migration-state MIGRATION-CHECK-DROPSITE)\n\t)\n\t(up-timer-status t-island-migration == timer-triggered)",
       "actions": [
@@ -16617,7 +16625,7 @@
     {
       "id": 1614,
       "file": "rawai-military.per",
-      "line": 5543,
+      "line": 5551,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-DROPSITE-FAILED)",
       "actions": [
@@ -16687,7 +16695,7 @@
     {
       "id": 1616,
       "file": "rawai-military.per",
-      "line": 5579,
+      "line": 5587,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RECALL-LOADING)\n\t(up-compare-goal gl-island-migration-load-target c:< 1)",
       "actions": [
@@ -16763,7 +16771,7 @@
     {
       "id": 1620,
       "file": "rawai-military.per",
-      "line": 5596,
+      "line": 5604,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RECALL-LOADING)\n\t(up-compare-goal gl-island-migration-load-target c:>= 1)",
       "actions": [
@@ -16793,7 +16801,7 @@
     {
       "id": 1621,
       "file": "rawai-military.per",
-      "line": 5605,
+      "line": 5613,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RECALL-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count g:>= gl-island-migration-load-target)",
       "actions": [
@@ -16840,7 +16848,7 @@
     {
       "id": 1623,
       "file": "rawai-military.per",
-      "line": 5620,
+      "line": 5628,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RECALL-CHECK)\n\t(up-timer-status t-island-migration == timer-triggered)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count > 0)\n\t(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)",
       "actions": [
@@ -16887,7 +16895,7 @@
     {
       "id": 1625,
       "file": "rawai-military.per",
-      "line": 5637,
+      "line": 5645,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RECALL-CHECK)\n\t(up-timer-status t-island-migration == timer-running)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)",
       "actions": [
@@ -16915,7 +16923,7 @@
     {
       "id": 1626,
       "file": "rawai-military.per",
-      "line": 5646,
+      "line": 5654,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RECALL-CHECK)\n\t(up-timer-status t-island-migration == timer-triggered)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count <= 0)",
       "actions": [
@@ -16990,7 +16998,7 @@
     {
       "id": 1630,
       "file": "rawai-military.per",
-      "line": 5664,
+      "line": 5672,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-RECALL-CHECK)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -17049,7 +17057,7 @@
     {
       "id": 1633,
       "file": "rawai-military.per",
-      "line": 5676,
+      "line": 5684,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-TASK-MINING)\n\t(goal gl-island-migration-mission MIGRATION-MISSION-SCOUT)",
       "actions": [
@@ -17077,7 +17085,7 @@
     {
       "id": 1634,
       "file": "rawai-military.per",
-      "line": 5683,
+      "line": 5691,
       "jump_only": false,
       "facts": "(current-age < imperial-age)\n\t(goal gl-island-migration-state MIGRATION-TASK-SCOUT)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -17113,7 +17121,7 @@
     {
       "id": 1635,
       "file": "rawai-military.per",
-      "line": 5699,
+      "line": 5707,
       "jump_only": false,
       "facts": "(current-age < imperial-age)\n\t(goal gl-island-migration-state MIGRATION-TASK-SCOUT)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -17190,7 +17198,7 @@
     {
       "id": 1639,
       "file": "rawai-military.per",
-      "line": 5718,
+      "line": 5726,
       "jump_only": false,
       "facts": "(current-age < imperial-age)\n\t(goal gl-island-migration-state MIGRATION-FIND-SCOUT-PATROL)\n\t(up-set-target-object search-remote c: 0)",
       "actions": [
@@ -17226,7 +17234,7 @@
     {
       "id": 1640,
       "file": "rawai-military.per",
-      "line": 5734,
+      "line": 5742,
       "jump_only": false,
       "facts": "(current-age < imperial-age)\n\t(goal gl-island-migration-state MIGRATION-FIND-SCOUT-PATROL)\n\t(not (up-set-target-object search-remote c: 0))",
       "actions": [
@@ -17264,7 +17272,7 @@
     {
       "id": 1641,
       "file": "rawai-military.per",
-      "line": 5755,
+      "line": 5763,
       "jump_only": false,
       "facts": "(current-age < imperial-age)\n\t(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT-FALLBACK)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -17334,7 +17342,7 @@
     {
       "id": 1644,
       "file": "rawai-military.per",
-      "line": 5781,
+      "line": 5789,
       "jump_only": false,
       "facts": "(current-age < imperial-age)\n\t(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -17404,7 +17412,7 @@
     {
       "id": 1647,
       "file": "rawai-military.per",
-      "line": 5807,
+      "line": 5815,
       "jump_only": false,
       "facts": "(current-age < imperial-age)\n\t(goal gl-island-migration-state MIGRATION-SCOUT-PATROL-WAIT)\n\t(up-timer-status t-island-migration == timer-triggered)",
       "actions": [
@@ -17438,7 +17446,7 @@
     {
       "id": 1648,
       "file": "rawai-military.per",
-      "line": 5821,
+      "line": 5829,
       "jump_only": false,
       "facts": "(current-age < imperial-age)\n\t(goal gl-island-migration-state MIGRATION-SCOUT-PATROL-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance <= 12)",
       "actions": [
@@ -17496,7 +17504,7 @@
     {
       "id": 1651,
       "file": "rawai-military.per",
-      "line": 5834,
+      "line": 5842,
       "jump_only": false,
       "facts": "(current-age < imperial-age)\n\t(goal gl-island-migration-state MIGRATION-SCOUT-PATROL-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 12)",
       "actions": [
@@ -17574,7 +17582,7 @@
     {
       "id": 1655,
       "file": "rawai-military.per",
-      "line": 5857,
+      "line": 5865,
       "jump_only": false,
       "facts": "(current-age < imperial-age)\n\t(goal gl-island-migration-state MIGRATION-SCOUT-PATROL-CHECK)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -17632,7 +17640,7 @@
     {
       "id": 1658,
       "file": "rawai-military.per",
-      "line": 5888,
+      "line": 5896,
       "jump_only": false,
       "facts": "(current-age < imperial-age)\n\t(or\n\t\t(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT)\n\t\t(goal gl-island-migration-state MIGRATION-CONFIRM-SCOUT-FALLBACK)\n\t)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -17731,7 +17739,7 @@
     {
       "id": 1663,
       "file": "rawai-military.per",
-      "line": 5921,
+      "line": 5929,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LANDING)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count > 0)\n\t(up-timer-status t-island-migration == timer-running)",
       "actions": [
@@ -17759,7 +17767,7 @@
     {
       "id": 1664,
       "file": "rawai-military.per",
-      "line": 5933,
+      "line": 5941,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LANDING)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count > 0)\n\t(up-timer-status t-island-migration == timer-triggered)",
       "actions": [
@@ -17788,7 +17796,7 @@
     {
       "id": 1665,
       "file": "rawai-military.per",
-      "line": 5974,
+      "line": 5982,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)\n\t(up-compare-goal gl-island-migration-landing-zone g:== gl-island-migration-zone)\n\t(up-set-target-object search-local c: 0)\n\t(up-path-distance gl-island-migration-route-waypoint-x 0 != 65535)",
       "actions": [
@@ -17836,7 +17844,7 @@
     {
       "id": 1667,
       "file": "rawai-military.per",
-      "line": 5991,
+      "line": 5999,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)\n\t(up-compare-goal gl-island-migration-landing-zone g:!= gl-island-migration-zone)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -17870,7 +17878,7 @@
     {
       "id": 1668,
       "file": "rawai-military.per",
-      "line": 6005,
+      "line": 6013,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)\n\t(up-compare-goal gl-island-migration-landing-zone g:== gl-island-migration-zone)\n\t(up-set-target-object search-local c: 0)\n\t(up-path-distance gl-island-migration-route-waypoint-x 0 == 65535)",
       "actions": [
@@ -17904,7 +17912,7 @@
     {
       "id": 1669,
       "file": "rawai-military.per",
-      "line": 6020,
+      "line": 6028,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LANDING-PATH)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -17934,7 +17942,7 @@
     {
       "id": 1670,
       "file": "rawai-military.per",
-      "line": 6044,
+      "line": 6052,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-CHECK-LANDING)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -18015,7 +18023,7 @@
     {
       "id": 1674,
       "file": "rawai-military.per",
-      "line": 6087,
+      "line": 6095,
       "jump_only": false,
       "facts": "(up-timer-status t-island-migration == timer-triggered)\n\t(not (goal gl-island-migration-state MIGRATION-IDLE))",
       "actions": [
@@ -18088,7 +18096,7 @@
     {
       "id": 1677,
       "file": "rawai-military.per",
-      "line": 6119,
+      "line": 6127,
       "jump_only": false,
       "facts": "(goal gl-island-migration-state MIGRATION-IDLE)\n\t(up-compare-goal gl-island-migration-transport-id c:>= 0)",
       "actions": [
@@ -18172,7 +18180,7 @@
     {
       "id": 1682,
       "file": "rawai-military.per",
-      "line": 6216,
+      "line": 6224,
       "jump_only": false,
       "facts": "(goal gl-transport-repair-state TRANSPORT-REPAIR-MOVE)",
       "actions": [
@@ -18207,7 +18215,7 @@
     {
       "id": 1683,
       "file": "rawai-military.per",
-      "line": 6229,
+      "line": 6237,
       "jump_only": false,
       "facts": "(goal gl-transport-repair-state TRANSPORT-REPAIR-TASK)",
       "actions": [
@@ -18249,7 +18257,7 @@
     {
       "id": 1684,
       "file": "rawai-military.per",
-      "line": 6336,
+      "line": 6344,
       "jump_only": false,
       "facts": "(goal gl-transport-clear-state TRANSPORT-CLEAR-STALE-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count > 0)\n\t(up-object-data object-data-garrison-count g:< gl-transport-min-load)\n\t(up-object-data object-data-idling == 1)\n\t(up-compare-goal gl-transport-clear-attempts c:< 2)",
       "actions": [
@@ -18283,7 +18291,7 @@
     {
       "id": 1685,
       "file": "rawai-military.per",
-      "line": 6472,
+      "line": 6480,
       "jump_only": false,
       "facts": "(goal gl-transport-clear-state TRANSPORT-CLEAR-EMPTY-STAGE)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -18321,7 +18329,7 @@
     {
       "id": 1686,
       "file": "rawai-military.per",
-      "line": 6653,
+      "line": 6661,
       "jump_only": false,
       "facts": "(goal gl-transport-clear-state TRANSPORT-CLEAR-FIND)\n\t(up-set-target-object search-local c: 0)\n\t(goal gl-row-active 0)",
       "actions": [
@@ -18359,7 +18367,7 @@
     {
       "id": 1687,
       "file": "rawai-military.per",
-      "line": 6700,
+      "line": 6708,
       "jump_only": false,
       "facts": "(goal gl-transport-clear-state TRANSPORT-CLEAR-MOVE-CHECK)\n\t(not (up-set-target-object search-local c: 0))\n\t(up-compare-goal gl-transport-clear-attempts c:< 2)\n\t(goal gl-row-active 0)",
       "actions": [
@@ -18396,7 +18404,7 @@
     {
       "id": 1688,
       "file": "rawai-military.per",
-      "line": 6958,
+      "line": 6966,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-READY)\n    (goal gl-assault-preflight-live NO)",
       "actions": [
@@ -18431,7 +18439,7 @@
     {
       "id": 1689,
       "file": "rawai-military.per",
-      "line": 7085,
+      "line": 7093,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-MANIFEST-FIND)\n\t(goal gl-owner-explore-suspended NO)",
       "actions": [
@@ -18491,7 +18499,7 @@
     {
       "id": 1692,
       "file": "rawai-military.per",
-      "line": 7249,
+      "line": 7257,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-START)",
       "actions": [
@@ -18562,7 +18570,7 @@
     {
       "id": 1694,
       "file": "rawai-military.per",
-      "line": 7368,
+      "line": 7376,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 12)\n\t(up-compare-goal gl-transport-load-clock g:< gl-assault-rendezvous-until)",
       "actions": [
@@ -18619,7 +18627,7 @@
     {
       "id": 1696,
       "file": "rawai-military.per",
-      "line": 7397,
+      "line": 7405,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-PASSENGER)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 12)\n\t(up-compare-goal gl-transport-load-clock g:>= gl-assault-rendezvous-until)",
       "actions": [
@@ -18656,7 +18664,7 @@
     {
       "id": 1697,
       "file": "rawai-military.per",
-      "line": 7417,
+      "line": 7425,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-ISSUE)\n\t(up-compare-goal gl-transport-route-load-target c:>= 5)\n\t(up-set-target-object search-remote c: 0)",
       "actions": [
@@ -18701,7 +18709,7 @@
     {
       "id": 1698,
       "file": "rawai-military.per",
-      "line": 7503,
+      "line": 7511,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count g:< gl-transport-route-load-target)\n\t(up-compare-goal gl-transport-load-clock g:< gl-transport-route-load-deadline)\n\t(up-compare-goal gl-transport-load-clock g:>= gl-transport-route-load-next)\n\t(goal gl-transport-route-load-reported YES)",
       "actions": [
@@ -18743,7 +18751,7 @@
     {
       "id": 1699,
       "file": "rawai-military.per",
-      "line": 7636,
+      "line": 7644,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)\n\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-NONE)",
       "actions": [
@@ -18787,7 +18795,7 @@
     {
       "id": 1700,
       "file": "rawai-military.per",
-      "line": 7661,
+      "line": 7669,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)\n\t(or\n\t\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-PARTIAL)\n\t\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-ABORT)\n\t)\n\t(goal gl-transport-route-load-grace-used NO)\n\t(up-compare-goal gl-transport-route-load-candidate-id c:>= 0)\n\t(up-compare-goal gl-transport-route-load-candidate-group-flag c:== attack-boarding-group)\n\t(up-compare-goal gl-transport-route-load-candidate-target-id g:== gl-transport-route-id)\n\t(up-compare-goal gl-transport-route-load-candidate-distance c:<= 12)\n\t(or\n\t\t(up-compare-goal gl-transport-route-load-candidate-action c:== action-garrison)\n\t\t(up-compare-goal gl-transport-route-load-candidate-order c:== orderid-transport)\n\t)",
       "actions": [
@@ -18834,7 +18842,7 @@
     {
       "id": 1701,
       "file": "rawai-military.per",
-      "line": 7704,
+      "line": 7712,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)\n\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-PARTIAL)",
       "actions": [
@@ -18874,7 +18882,7 @@
     {
       "id": 1702,
       "file": "rawai-military.per",
-      "line": 7729,
+      "line": 7737,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-PARTIAL-MANIFEST)\n\t(goal gl-owner-explore-suspended NO)",
       "actions": [
@@ -18934,7 +18942,7 @@
     {
       "id": 1705,
       "file": "rawai-military.per",
-      "line": 7765,
+      "line": 7773,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-DIAG-APPLY)\n\t(goal gl-transport-route-load-terminal TRANSPORT-LOAD-TERMINAL-ABORT)",
       "actions": [
@@ -18973,7 +18981,7 @@
     {
       "id": 1706,
       "file": "rawai-military.per",
-      "line": 7807,
+      "line": 7815,
       "jump_only": false,
       "facts": "(or\n\t\t(goal gl-transport-route-state TRANSPORT-ROUTE-RENDEZVOUS-WAIT)\n\t\t(goal gl-transport-route-state TRANSPORT-ROUTE-LOAD-WAIT)\n\t)\n\t(up-compare-goal gl-transport-load-clock g:>= gl-assault-siege-board-next)",
       "actions": [
@@ -19019,7 +19027,7 @@
     {
       "id": 1707,
       "file": "rawai-military.per",
-      "line": 8064,
+      "line": 8072,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-CHECK)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -19065,7 +19073,7 @@
     {
       "id": 1708,
       "file": "rawai-military.per",
-      "line": 8121,
+      "line": 8129,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-THREAT)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 10)\n\t(up-compare-goal gl-transport-screen-waits c:< 4)",
       "actions": [
@@ -19099,7 +19107,7 @@
     {
       "id": 1709,
       "file": "rawai-military.per",
-      "line": 8172,
+      "line": 8180,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-APPLY)\n\t(up-compare-goal remote-total <= 0)",
       "actions": [
@@ -19136,7 +19144,7 @@
     {
       "id": 1710,
       "file": "rawai-military.per",
-      "line": 8223,
+      "line": 8231,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-LANDING-THREAT)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-distance > 10)\n\t(up-compare-goal gl-transport-screen-waits c:< 4)",
       "actions": [
@@ -19170,7 +19178,7 @@
     {
       "id": 1711,
       "file": "rawai-military.per",
-      "line": 8274,
+      "line": 8282,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-LANDING-APPLY)\n\t(up-compare-goal remote-total <= 0)",
       "actions": [
@@ -19211,7 +19219,7 @@
     {
       "id": 1712,
       "file": "rawai-military.per",
-      "line": 8309,
+      "line": 8317,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-SCREEN-RECALL)",
       "actions": [
@@ -19270,7 +19278,7 @@
     {
       "id": 1714,
       "file": "rawai-military.per",
-      "line": 8415,
+      "line": 8423,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count > 0)\n\t(up-compare-goal gl-route-unload-attempts c:< 2)\n\t(up-compare-goal gl-game-time g:< gl-assault-recovery-until)",
       "actions": [
@@ -19304,7 +19312,7 @@
     {
       "id": 1715,
       "file": "rawai-military.per",
-      "line": 8433,
+      "line": 8441,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count > 0)\n\t(goal gl-route-unload-attempts 2)\n\t(up-compare-goal gl-game-time g:< gl-assault-recovery-until)",
       "actions": [
@@ -19338,7 +19346,7 @@
     {
       "id": 1716,
       "file": "rawai-military.per",
-      "line": 8450,
+      "line": 8458,
       "jump_only": false,
       "facts": "(goal gl-transport-route-state TRANSPORT-ROUTE-RECOVERY-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count <= 0)\n\t(up-object-data object-data-distance > 12)\n\t(up-compare-goal gl-game-time g:< gl-assault-recovery-until)",
       "actions": [
@@ -19371,7 +19379,7 @@
     {
       "id": 1717,
       "file": "rawai-military.per",
-      "line": 8666,
+      "line": 8674,
       "jump_only": false,
       "facts": "(goal gl-transport-recovery-state TRANSPORT-RECOVERY-OWNERSHIP-CLAIM)\n\t(goal gl-owner-explore-suspended NO)",
       "actions": [
@@ -19431,7 +19439,7 @@
     {
       "id": 1720,
       "file": "rawai-military.per",
-      "line": 8680,
+      "line": 8688,
       "jump_only": false,
       "facts": "(goal gl-transport-recovery-state TRANSPORT-RECOVERY-OWNERSHIP-CLAIM)",
       "actions": [
@@ -19488,7 +19496,7 @@
     {
       "id": 1721,
       "file": "rawai-military.per",
-      "line": 8749,
+      "line": 8757,
       "jump_only": false,
       "facts": "(goal gl-transport-recovery-state TRANSPORT-RECOVERY-CHECK-LOAD)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count g:>= gl-transport-recovery-load-target)",
       "actions": [
@@ -19521,7 +19529,7 @@
     {
       "id": 1722,
       "file": "rawai-military.per",
-      "line": 8775,
+      "line": 8783,
       "jump_only": false,
       "facts": "(goal gl-transport-recovery-state TRANSPORT-RECOVERY-CHECK-LOAD)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrison-count > 0)\n\t(up-object-data object-data-garrison-count g:< gl-transport-recovery-load-target)\n\t(up-timer-status t-transport-recovery == timer-triggered)",
       "actions": [
@@ -19576,7 +19584,7 @@
     {
       "id": 1724,
       "file": "rawai-military.per",
-      "line": 8843,
+      "line": 8851,
       "jump_only": false,
       "facts": "(goal gl-transport-recovery-state TRANSPORT-RECOVERY-VERIFY-LANDING)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -19633,7 +19641,7 @@
     {
       "id": 1726,
       "file": "rawai-military.per",
-      "line": 8882,
+      "line": 8890,
       "jump_only": false,
       "facts": "(goal gl-transport-recovery-state TRANSPORT-RECOVERY-FIND-WRONG-ZONE)\n\t(up-set-target-object search-local c: 0)\n\t(up-compare-goal gl-transport-recovery-attempts c:< 3)",
       "actions": [
@@ -19674,7 +19682,7 @@
     {
       "id": 1727,
       "file": "rawai-military.per",
-      "line": 8932,
+      "line": 8940,
       "jump_only": false,
       "facts": "(goal gl-transport-recovery-state TRANSPORT-RECOVERY-FIND-WRONG-ZONE)\n\t(not (up-set-target-object search-local c: 0))",
       "actions": [
@@ -19716,7 +19724,7 @@
     {
       "id": 1728,
       "file": "rawai-military.per",
-      "line": 8976,
+      "line": 8984,
       "jump_only": false,
       "facts": "(up-timer-status t-transport-recovery == timer-triggered)\n\t(not (goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE))\n\t(up-compare-goal gl-transport-recovery-transport-id c:>= 0)\n\t(up-compare-goal gl-transport-recovery-attempts c:< 3)",
       "actions": [
@@ -19753,7 +19761,7 @@
     {
       "id": 1729,
       "file": "rawai-military.per",
-      "line": 8995,
+      "line": 9003,
       "jump_only": false,
       "facts": "(up-timer-status t-transport-recovery == timer-triggered)\n\t(not (goal gl-transport-recovery-state TRANSPORT-RECOVERY-IDLE))\n\t(up-compare-goal gl-transport-recovery-transport-id c:>= 0)\n\t(goal gl-transport-recovery-attempts 3)",
       "actions": [
@@ -19792,7 +19800,7 @@
     {
       "id": 1730,
       "file": "rawai-military.per",
-      "line": 9159,
+      "line": 9167,
       "jump_only": false,
       "facts": "(goal gl-relic-ferry-state RELIC-FERRY-FIND-TRANSPORT)\n\t(up-set-target-object search-remote c: 0)",
       "actions": [
@@ -19844,7 +19852,7 @@
     {
       "id": 1731,
       "file": "rawai-military.per",
-      "line": 9215,
+      "line": 9223,
       "jump_only": false,
       "facts": "(goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)\n\t(goal gl-relic-ferry-direction RELIC-FERRY-OUTBOUND)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrisoned == 1)",
       "actions": [
@@ -19881,7 +19889,7 @@
     {
       "id": 1732,
       "file": "rawai-military.per",
-      "line": 9234,
+      "line": 9242,
       "jump_only": false,
       "facts": "(goal gl-relic-ferry-state RELIC-FERRY-CHECK-LOAD)\n\t(goal gl-relic-ferry-direction RELIC-FERRY-RETURN)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-garrisoned == 1)",
       "actions": [
@@ -19917,7 +19925,7 @@
     {
       "id": 1733,
       "file": "rawai-military.per",
-      "line": 9324,
+      "line": 9332,
       "jump_only": false,
       "facts": "(goal gl-relic-ferry-state RELIC-FERRY-TASK-RELIC)",
       "actions": [
@@ -19954,7 +19962,7 @@
     {
       "id": 1734,
       "file": "rawai-military.per",
-      "line": 9353,
+      "line": 9361,
       "jump_only": false,
       "facts": "(goal gl-relic-ferry-state RELIC-FERRY-CHECK-CARRIER)\n\t(up-set-target-object search-local c: 0)\n\t(up-object-data object-data-class == monk-with-relic-class)\n\t(up-set-target-object search-remote c: 0)",
       "actions": [
@@ -19989,7 +19997,7 @@
     {
       "id": 1735,
       "file": "rawai-military.per",
-      "line": 9392,
+      "line": 9400,
       "jump_only": false,
       "facts": "(goal gl-relic-ferry-state RELIC-FERRY-TASK-HOME)",
       "actions": [
@@ -20031,7 +20039,7 @@
     {
       "id": 1736,
       "file": "rawai-military.per",
-      "line": 9413,
+      "line": 9421,
       "jump_only": false,
       "facts": "(up-timer-status t-relic-ferry == timer-triggered)\n\t(not (goal gl-relic-ferry-state RELIC-FERRY-IDLE))\n\t(nor\n\t\t(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-RETURN)\n\t\t(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-CHECK)\n\t)\n\t(up-compare-goal gl-relic-ferry-return-attempts c:< 3)",
       "actions": [
@@ -20067,7 +20075,7 @@
     {
       "id": 1737,
       "file": "rawai-military.per",
-      "line": 9461,
+      "line": 9469,
       "jump_only": false,
       "facts": "(goal gl-relic-ferry-state RELIC-FERRY-WATCHDOG-CHECK)\n\t(up-set-target-object search-local c: 0)\n\t(up-compare-goal gl-relic-ferry-return-attempts c:< 3)\n\t(or\n\t\t(up-object-data object-data-garrison-count > 0)\n\t\t(up-object-data object-data-distance > 16)\n\t)",
       "actions": [
@@ -20102,7 +20110,7 @@
     {
       "id": 1738,
       "file": "rawai-military.per",
-      "line": 9668,
+      "line": 9676,
       "jump_only": false,
       "facts": "(goal gl-local-response-state LOCAL-RESPONSE-COMMAND)\n\t(or\n\t\t(up-compare-goal gl-local-response-zone g:== gl-home-zone)\n\t\t(up-compare-goal gl-local-response-zone g:== gl-island-colony-zone)\n\t)",
       "actions": [
@@ -20168,7 +20176,7 @@
     {
       "id": 1740,
       "file": "rawai-military.per",
-      "line": 9708,
+      "line": 9716,
       "jump_only": false,
       "facts": "(goal gl-local-response-state LOCAL-RESPONSE-COMMAND)\n\t(or\n\t\t(up-compare-goal gl-local-response-zone g:== gl-home-zone)\n\t\t(up-compare-goal gl-local-response-zone g:== gl-island-colony-zone)\n\t)",
       "actions": [
@@ -20234,7 +20242,7 @@
     {
       "id": 1742,
       "file": "rawai-military.per",
-      "line": 9824,
+      "line": 9832,
       "jump_only": false,
       "facts": "(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)\n\t(up-compare-goal gl-local-response-responders c:> 0)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-player g:== gl-local-response-player)\n\t(up-object-data object-data-status == status-ready)\n\t(goal gl-owner-explore-suspended NO)",
       "actions": [
@@ -20294,7 +20302,7 @@
     {
       "id": 1745,
       "file": "rawai-military.per",
-      "line": 9842,
+      "line": 9850,
       "jump_only": false,
       "facts": "(goal gl-local-response-state LOCAL-RESPONSE-DISPATCH)\n\t(up-compare-goal gl-local-response-responders c:> 0)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-player g:== gl-local-response-player)\n\t(up-object-data object-data-status == status-ready)",
       "actions": [
@@ -20331,7 +20339,7 @@
     {
       "id": 1746,
       "file": "rawai-military.per",
-      "line": 10040,
+      "line": 10048,
       "jump_only": false,
       "facts": "(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)\n\t(goal gl-naval-response-land-threat NO)\n\t(up-compare-goal gl-naval-response-responders c:> 0)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-player g:== gl-naval-response-player)\n\t(up-object-data object-data-status == status-ready)",
       "actions": [
@@ -20369,7 +20377,7 @@
     {
       "id": 1747,
       "file": "rawai-military.per",
-      "line": 10067,
+      "line": 10075,
       "jump_only": false,
       "facts": "(goal gl-naval-response-state NAVAL-RESPONSE-HOME-DISPATCH)\n\t(goal gl-naval-response-land-threat YES)\n\t(up-compare-goal gl-naval-response-responders c:> 0)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-player g:== gl-naval-response-player)\n\t(up-object-data object-data-status == status-ready)",
       "actions": [
@@ -20407,7 +20415,7 @@
     {
       "id": 1748,
       "file": "rawai-military.per",
-      "line": 10146,
+      "line": 10154,
       "jump_only": false,
       "facts": "(goal gl-naval-response-state NAVAL-RESPONSE-FIND-THREAT)\n\t(up-set-target-object search-remote c: 0)\n\t(or\n\t\t(up-object-data object-data-class == warship-class)\n\t\t(up-object-data object-data-type == boarding-ship)\n\t)",
       "actions": [
@@ -20452,7 +20460,7 @@
     {
       "id": 1749,
       "file": "rawai-military.per",
-      "line": 10175,
+      "line": 10183,
       "jump_only": false,
       "facts": "(goal gl-naval-response-state NAVAL-RESPONSE-FIND-THREAT)\n\t(up-set-target-object search-remote c: 0)\n\t(and\n\t\t(up-object-data object-data-class != warship-class)\n\t\t(up-object-data object-data-type != boarding-ship)\n\t)",
       "actions": [
@@ -20496,7 +20504,7 @@
     {
       "id": 1750,
       "file": "rawai-military.per",
-      "line": 10314,
+      "line": 10322,
       "jump_only": false,
       "facts": "(goal gl-juggernaut-evasion-state JUGGERNAUT-EVASION-FIND-ANCHOR)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -20532,7 +20540,7 @@
     {
       "id": 1751,
       "file": "rawai-military.per",
-      "line": 10395,
+      "line": 10403,
       "jump_only": false,
       "facts": "(goal gl-siege-target-state SIEGE-TARGET-FALLBACK)\n\t(up-set-target-object search-local c: 0)",
       "actions": [
@@ -20568,7 +20576,7 @@
     {
       "id": 1752,
       "file": "rawai-military.per",
-      "line": 10481,
+      "line": 10489,
       "jump_only": false,
       "facts": "(goal gl-siege-target-state SIEGE-TARGET-FIND-STRUCTURE)\n\t(up-set-target-object search-remote c: 0)",
       "actions": [
@@ -20613,7 +20621,7 @@
     {
       "id": 1753,
       "file": "rawai-military.per",
-      "line": 10561,
+      "line": 10569,
       "jump_only": false,
       "facts": "(goal gl-siege-target-state SIEGE-TARGET-COMMAND)\n\t(up-compare-goal gl-siege-source-count c:> 0)",
       "actions": [
@@ -20647,7 +20655,7 @@
     {
       "id": 1754,
       "file": "rawai-military.per",
-      "line": 10817,
+      "line": 10825,
       "jump_only": false,
       "facts": "(goal gl-naval-siege-state SIEGE-TARGET-ESCORT)\n\t(up-group-size c: juggernaut-bombardment-group > 0)",
       "actions": [
@@ -20697,7 +20705,7 @@
     {
       "id": 1755,
       "file": "rawai-military.per",
-      "line": 10997,
+      "line": 11005,
       "jump_only": false,
       "facts": "(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)\n\t(goal gl-naval-siege-family 0)\n\t(up-compare-goal gl-naval-siege-source-count c:> 0)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-id g:== gl-naval-siege-target-id)",
       "actions": [
@@ -20739,7 +20747,7 @@
     {
       "id": 1756,
       "file": "rawai-military.per",
-      "line": 11022,
+      "line": 11030,
       "jump_only": false,
       "facts": "(goal gl-naval-siege-state SIEGE-TARGET-COMMAND)\n\t(goal gl-naval-siege-family 1)\n\t(up-compare-goal gl-naval-siege-source-count c:> 0)\n\t(up-set-target-object search-remote c: 0)\n\t(up-object-data object-data-id g:== gl-naval-siege-target-id)",
       "actions": [
@@ -20781,7 +20789,7 @@
     {
       "id": 1757,
       "file": "rawai-military.per",
-      "line": 11169,
+      "line": 11177,
       "jump_only": false,
       "facts": "(up-timer-status t-defense-leash == timer-triggered)\n\t(up-group-size c: home-defense-response-group > 0)",
       "actions": [
@@ -20826,7 +20834,7 @@
     {
       "id": 1758,
       "file": "rawai-military.per",
-      "line": 11194,
+      "line": 11202,
       "jump_only": false,
       "facts": "(up-timer-status t-defense-leash == timer-triggered)\n\t(up-group-size c: home-naval-response-group > 0)",
       "actions": [
@@ -20865,7 +20873,7 @@
     {
       "id": 1759,
       "file": "rawai-military.per",
-      "line": 11348,
+      "line": 11356,
       "jump_only": false,
       "facts": "(goal gl-raid-state RAID-FIND-TARGET)\n\t(up-set-target-object search-remote c: 0)\n\t(goal gl-owner-explore-suspended NO)",
       "actions": [
@@ -20925,7 +20933,7 @@
     {
       "id": 1762,
       "file": "rawai-military.per",
-      "line": 11363,
+      "line": 11371,
       "jump_only": false,
       "facts": "(goal gl-raid-state RAID-FIND-TARGET)\n\t(up-set-target-object search-remote c: 0)",
       "actions": [
@@ -20975,7 +20983,7 @@
     {
       "id": 1763,
       "file": "rawai-military.per",
-      "line": 12134,
+      "line": 12142,
       "jump_only": true,
       "facts": "(up-compare-goal military-spread-time <= 0)",
       "actions": [
@@ -20995,7 +21003,7 @@
     {
       "id": 1764,
       "file": "rawai-military.per",
-      "line": 12138,
+      "line": 12146,
       "jump_only": true,
       "facts": "(goal spread-units 0)\n\t(up-timer-status t-unit-spread != timer-running)",
       "actions": [
@@ -21017,7 +21025,7 @@
     {
       "id": 1765,
       "file": "rawai-military.per",
-      "line": 12177,
+      "line": 12185,
       "jump_only": true,
       "facts": "(up-compare-goal military-superiority c:>= TOLERABLE)\n\t(or\t\n\t\t(up-compare-goal preferred-target-player <= 0)\n\t\t(up-compare-goal preferred-target-player >= 9)\n\t)",
       "actions": [
@@ -21037,7 +21045,7 @@
     {
       "id": 1766,
       "file": "rawai-military.per",
-      "line": 12196,
+      "line": 12204,
       "jump_only": true,
       "facts": "(up-compare-goal military-superiority c:>= TOLERABLE)\n\t(players-building-count target-player >= 1)\n\t(player-in-game target-player)\n(not\t\n\t(stance-toward target-player ally)\n)",
       "actions": [
@@ -21057,7 +21065,7 @@
     {
       "id": 1767,
       "file": "rawai-military.per",
-      "line": 12208,
+      "line": 12216,
       "jump_only": true,
       "facts": "(up-compare-goal military-superiority c:>= TOLERABLE)",
       "actions": [
@@ -21078,7 +21086,7 @@
     {
       "id": 1768,
       "file": "rawai-military.per",
-      "line": 12561,
+      "line": 12569,
       "jump_only": false,
       "facts": "(up-compare-goal gl-game-time g:>= gl-age-advantage-next)\n\t(goal gl-age-advantage-pressure YES)\n\t(goal gl-home-defense-state NO)\n\t(or\n\t\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t\t(goal gl-island-migration-state MIGRATION-QUARANTINED)\n\t)\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)\n\t(goal gl-land-transport-ready YES)\n\t(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)\n\t(up-compare-goal military-superiority c:>= TOLERABLE)\n\t(soldier-count g:>= gl-ten-percent)\n\t(players-building-count target-player >= 1)\n\t(player-in-game target-player)\n\t(not (stance-toward target-player ally))\n\t(nor\n\t\t(goal current-action ACTION-ATTACK)\n\t\t(goal current-action ACTION-RETREAT)\n\t)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)",
       "actions": [
@@ -21117,7 +21125,7 @@
     {
       "id": 1769,
       "file": "rawai-military.per",
-      "line": 12600,
+      "line": 12608,
       "jump_only": false,
       "facts": "(goal gl-age-up-attack-pending YES)\n\t(goal gl-age-advantage-pressure NO)\n\t(goal gl-home-defense-state NO)\n\t(or\n\t\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t\t(goal gl-island-migration-state MIGRATION-QUARANTINED)\n\t)\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)\n\t(goal gl-land-transport-ready YES)\n\t(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)\n\t(up-compare-goal military-superiority c:>= TOLERABLE)\n\t(soldier-count g:>= gl-ten-percent)\n\t(players-building-count target-player >= 1)\n\t(player-in-game target-player)\n\t(not (stance-toward target-player ally))\n\t(nor\n\t\t(goal current-action ACTION-ATTACK)\n\t\t(goal current-action ACTION-RETREAT)\n\t)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)",
       "actions": [
@@ -21152,7 +21160,7 @@
     {
       "id": 1770,
       "file": "rawai-military.per",
-      "line": 12714,
+      "line": 12722,
       "jump_only": false,
       "facts": "(up-compare-goal current-action c:== ACTION-ATTACK)\n\t(up-timer-status t-land-attack == timer-triggered)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-LAND)\n\t(goal gl-home-defense-state NO)\n\t(or\n\t\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t\t(goal gl-island-migration-state MIGRATION-QUARANTINED)\n\t)\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)\n\t(goal gl-land-transport-ready YES)\n\t(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)\n\t(and\n\t\t(up-compare-goal attack-type-land c:== PERCENTAGE)\n\t\t(and\n\t\t\t(up-compare-goal gl-game-time g:>= land-attack-delay)\n\t\t\t(soldier-count g:>= land-attack-requirement)\n\t\t)\n\t)",
       "actions": [
@@ -21185,7 +21193,7 @@
     {
       "id": 1771,
       "file": "rawai-military.per",
-      "line": 12774,
+      "line": 12782,
       "jump_only": false,
       "facts": "(up-compare-goal current-action c:== ACTION-ATTACK)\n\t(up-timer-status t-land-attack == timer-triggered)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-LAND)\n\t(goal gl-home-defense-state NO)\n\t(or\n\t\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t\t(goal gl-island-migration-state MIGRATION-QUARANTINED)\n\t)\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)\n\t(goal gl-land-transport-ready YES)\n\t(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)\n\t(and\n\t\t(up-compare-goal attack-type-land c:== TOWN-SIZE)\n\t\t(and\n\t\t\t(up-compare-goal gl-game-time g:>= land-attack-delay)\n\t\t\t(soldier-count g:>= land-attack-requirement)\n\t\t)\n\t)",
       "actions": [
@@ -21218,7 +21226,7 @@
     {
       "id": 1772,
       "file": "rawai-military.per",
-      "line": 12805,
+      "line": 12813,
       "jump_only": false,
       "facts": "(up-compare-goal current-action c:== ACTION-ATTACK)\n\t(up-timer-status t-land-attack == timer-triggered)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-LAND)\n\t(goal gl-home-defense-state NO)\n\t(or\n\t\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t\t(goal gl-island-migration-state MIGRATION-QUARANTINED)\n\t)\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)\n\t(goal gl-land-transport-ready YES)\n\t(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-REGROUP)\n\t(up-compare-goal gl-game-time g:>= land-attack-delay)\n\t(soldier-count g:>= gl-fifteen-percent)",
       "actions": [
@@ -21251,7 +21259,7 @@
     {
       "id": 1773,
       "file": "rawai-military.per",
-      "line": 12831,
+      "line": 12839,
       "jump_only": false,
       "facts": "(up-compare-goal current-action c:== ACTION-ATTACK)\n\t(up-timer-status t-land-attack == timer-triggered)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-LAND)\n\t(goal gl-home-defense-state NO)\n\t(or\n\t\t(goal gl-island-migration-state MIGRATION-IDLE)\n\t\t(goal gl-island-migration-state MIGRATION-QUARANTINED)\n\t)\n\t(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)\n\t(goal gl-land-transport-ready YES)\n\t(up-compare-goal gl-land-target-scan-player g:== gl-land-target-current-player)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-SIEGE)\n\t(goal have-siege YES)\n\t(up-compare-goal gl-game-time g:>= land-attack-delay)\n\t(soldier-count g:>= gl-fifteen-percent)",
       "actions": [
@@ -21284,7 +21292,7 @@
     {
       "id": 1774,
       "file": "rawai-military.per",
-      "line": 12906,
+      "line": 12914,
       "jump_only": false,
       "facts": "(game-time > 300)\n\t(goal map-type LAND)\n\t(goal gl-home-defense-state NO)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)\n\t(up-compare-goal military-superiority c:>= EQUAL)\n\t(soldier-count g:>= gl-ten-percent)\n\t(up-timer-status t-periodic-attack != timer-running)\n\t(nor\n\t\t(goal current-action ACTION-ATTACK)\n\t\t(goal current-action ACTION-RETREAT)\n\t)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)",
       "actions": [

@@ -150,6 +150,32 @@ class BoardingCtrlTests(unittest.TestCase):
                     f'site {site["id"]} mixes {command} into boarding admission')
         self.assertGreaterEqual(guarded,11)
 
+    def test_migration_boarding_issuance_always_bars_entering_passengers(self):
+        """215629: actor p4 34669 was commanded into the migration hull 42461 by
+        MIGRATION-RENDEZVOUS-PASSENGER (writers 25/21, 2833-2849 s) while its own
+        state was already `actionid-enter`/`orderid-enter` toward hull 36219, and
+        it then stormed for 46,911 ORDER packets. The four migration
+        boarding-issue sites applied the 514 zero-carry filter but omitted the
+        entering guard that every sibling boarding site carries, so a passenger
+        already entering one transport was re-commanded into a second hull. The
+        guard is required of every site that commands a migration-boarding-group
+        list, not only of the sites that also rebuild it via fe-filter-garrisoned.
+        """
+        registry=json.loads((ROOT/'command-boundary-registry.json').read_text())
+        guarded=0
+        for site in registry['sites']:
+            original=site.get('original') or ''
+            if 'object-data-group-flag != migration-boarding-group' not in original:
+                continue
+            if not re.search(r'\(up-target-objects 0 action-garrison ',original):
+                continue
+            guarded+=1
+            self.assertIn('(up-remove-objects search-local object-data-action == actionid-enter)',
+                original,f'site {site["id"]} commands migration passengers without the enter guard')
+            self.assertIn('(up-remove-objects search-local object-data-order == orderid-enter)',
+                original,f'site {site["id"]} commands migration passengers without the enter-order guard')
+        self.assertEqual(guarded,11)
+
     def test_attack_lift_passenger_selections_bar_entering_units(self):
         """190351: the attack lift re-ordered a rotating subset of
         attack-boarding-group every ~4 s (10-18 distinct units, single units up to
