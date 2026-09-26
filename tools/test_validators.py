@@ -5926,3 +5926,35 @@ class WallTownCenterTests(unittest.TestCase):
         self.assertIn('(up-compare-goal gl-wall-scan-state c:!= WALL-SCAN-IDLE)', facts)
         for action in ('(set-goal gl-wall-needed NO)', '(set-goal gl-wall-enabled NO)'):
             self.assertIn(action, cancels[0][4])
+
+
+class TownCenterPriorityTests(unittest.TestCase):
+    """A Town-Center-less player must re-arm the native TC directive.
+
+    215629: Green lost its TC and nothing asked the engine to build another one.
+    desired-number-towncenters is set once by the civ phase rules, and the maritime
+    colony controller is gated to RIVERS/ISLANDS/TEAM-ISLANDS plus an established
+    colony, so on a land map a lost TC was never replaced."""
+
+    def _rows(self):
+        from pathlib import Path
+        from validate_naval_doctrine import rule_blocks
+        text = (Path(__file__).resolve().parents[1]
+                / 'rawai-homebase.per').read_text(encoding='utf-8-sig')
+        return list(rule_blocks(text))
+
+    def test_town_centerless_player_rearms_the_native_directive(self):
+        rows = self._rows()
+        rearm = [r for r in rows
+                 if '(up-modify-goal desired-number-towncenters c:= 1)' in r[4]
+                 and 'building-type-count-total town-center' in r[3]]
+        self.assertEqual(len(rearm), 1, 'no TC-less re-arm of desired-number-towncenters')
+        self.assertIn('(building-type-count-total town-center <= 0)', rearm[0][3])
+        self.assertIn('(up-compare-goal desired-number-towncenters c:< 1)', rearm[0][3])
+
+    def test_retirement_never_deletes_the_last_town_center(self):
+        rows = self._rows()
+        retiring = [r for r in rows if 'action-delete' in r[4]
+                    and 'HOME-RETIRE' in r[3]]
+        self.assertEqual(len(retiring), 1)
+        self.assertIn('(building-type-count-total town-center >= 2)', retiring[0][3])

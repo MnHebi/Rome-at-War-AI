@@ -7888,6 +7888,17 @@
 	(set-goal gl-wall-enabled NO)
 	(set-goal gl-wall-scan-state WALL-SCAN-IDLE)
 )
+;A player with no Town Center has exactly one job: get one. The engine builds
+;Town Centers from desired-number-towncenters, which the civ phase rules set once;
+;re-arm it here so a lost TC is rebuilt even where the maritime colony controller
+;cannot run (it is gated to RIVERS/ISLANDS/TEAM-ISLANDS and an established colony).
+(defrule
+	(building-type-count-total town-center <= 0)
+	(up-compare-goal desired-number-towncenters c:< 1)
+=>
+	(up-modify-goal desired-number-towncenters c:= 1)
+)
+
 
 
 ;A known enemy economy or military structure in the same active land zone is
