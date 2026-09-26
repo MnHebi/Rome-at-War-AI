@@ -221,5 +221,39 @@ class AttackIdentityTests(unittest.TestCase):
         self.assertIn('(up-modify-goal gl-local-response-threats g:= remote-total)', rebuild[4])
 
 
+class SelfHelpRequestReachabilityTests(unittest.TestCase):
+    """The self attack verification must not depend on the responder state.
+
+    215629/175103 (515): no player ever emitted the taunt-48 help request.  The
+    caller-1 self scan required gl-ally-help-state ALLY-HELP-IDLE, but that state
+    machine serves the responder side, and the 24 s request window was stamped at
+    VERIFY-FOUND, before the threat/responder assessment finished."""
+
+    def _rows(self):
+        from pathlib import Path
+        from validate_naval_doctrine import rule_blocks
+        text = (Path(__file__).resolve().parents[1]
+                / 'rawai-attack-verification.per').read_text(encoding='utf-8-sig')
+        return list(rule_blocks(text))
+
+    def test_self_scan_is_not_gated_on_the_ally_help_responder_state(self):
+        rows = self._rows()
+        arming = [r for r in rows if '(set-goal gl-verify-caller 1)' in r[4]]
+        self.assertEqual(len(arming), 1)
+        self.assertNotIn('(goal gl-ally-help-state ALLY-HELP-IDLE)', arming[0][3],
+                         'the self scan is still blocked by the responder state')
+        self.assertIn('(goal gl-verify-state VERIFY-IDLE)', arming[0][3])
+        self.assertIn('(up-compare-goal gl-verify-clock g:>= gl-verify-next)', arming[0][3])
+
+    def test_request_window_is_stamped_when_the_assessment_completes(self):
+        rows = self._rows()
+        assessed = [r for r in rows if '(set-goal gl-help-assessment-ready YES)' in r[4]]
+        self.assertEqual(len(assessed), 1)
+        actions = assessed[0][4]
+        self.assertIn('(up-modify-goal gl-help-request-until g:= gl-verify-clock)', actions)
+        self.assertIn('(up-modify-goal gl-help-request-until c:+ 24)', actions)
+        self.assertIn('(set-goal gl-help-request-pending YES)', actions)
+
+
 if __name__ == '__main__':
     unittest.main()

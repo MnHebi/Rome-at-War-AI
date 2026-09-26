@@ -60,7 +60,11 @@
 )
 (defrule
 	(goal gl-verify-state VERIFY-IDLE)
-	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	;The self scan runs on its own cadence: the ally-help state machine owns
+	;the responder side, and a player busy helping allies must still be able
+	;to ask for help itself.  An accepted ally request keeps its priority:
+	;its rule is earlier and the verifier must still be VERIFY-IDLE.
+	;Cadence (gl-verify-next, 8s) below is unchanged.
 	(up-compare-goal gl-verify-clock g:>= gl-verify-next)
 =>
 	(set-goal gl-verify-caller 1)
@@ -383,6 +387,11 @@
 	(up-get-search-state local-total)
 	(up-modify-goal gl-help-responders g:= local-total)
 	(set-goal gl-help-assessment-ready YES)
+	;Stamp the request window when the assessment completes: the 24s armed at
+	;VERIFY-FOUND expired while the threat/responder scans were still running.
+	(up-modify-goal gl-help-request-until g:= gl-verify-clock)
+	(up-modify-goal gl-help-request-until c:+ 24)
+	(set-goal gl-help-request-pending YES)
 	(up-modify-sn sn-focus-player-number g:= gl-verify-focus)
 	(set-goal gl-verify-state VERIFY-SELF-DONE)
 )
