@@ -94,6 +94,30 @@ class AidTests(unittest.TestCase):
         self.assertIn('gl-resource-request-next c:+ 10', text)
 
 
+class TauntLatchTests(unittest.TestCase):
+    """A taunt detected with any-ally must be acknowledged with the detected ally.
+
+    175103 (515) emitted 218 "39 Yes my liege, attacking now" acknowledgements for
+    taunt 31 because the rule detected any-ally but acknowledged "any", leaving the
+    latch set so the gated rule re-fired.  this-any-ally is the idiom the other
+    ally taunts (45, 48, 52) already use.
+    """
+
+    def test_any_ally_taunts_acknowledge_the_detected_ally(self):
+        rows = list(rule_blocks(source('rawai-tauntcommands.per')))
+        checked = 0
+        for _a, _b, _block, facts, actions in rows:
+            for selector, number in re.findall(
+                    r'\(taunt-detected ([a-z0-9-]+) (\d+)\)', facts):
+                if selector != 'any-ally':
+                    continue
+                checked += 1
+                self.assertIn(f'(acknowledge-taunt this-any-ally {number})', actions,
+                              f'taunt {number} is detected any-ally but not acknowledged '
+                              'by the detected ally, so its latch survives')
+        self.assertGreaterEqual(checked, 1)
+
+
 class PortPolicyTests(unittest.TestCase):
     def test_supported_sn_policy_and_transition_only_writers(self):
         text = source('rawai-sn-defines.per')
