@@ -7,9 +7,12 @@ versus incomplete inputs, packet families, the labelled post-invocation second,
 ambiguity and unsupported contracts. Real-recording spot checks live in the
 T61 report; synthetic fixtures alone are not treated as proof about the match.
 """
+import tempfile
 import unittest
+from pathlib import Path
 
-from command_boundary_log import POST_INVOCATION_SECONDS, correlations
+from command_boundary_log import (BEGIN, END, ESCAPE, POST_INVOCATION_SECONDS,
+                                  checksum, correlations, decode_logs)
 from command_contracts import compatible, describe, packet_families
 
 POINT_MOVE = '(up-target-point gl-x action-move -1 stance-no-attack)'
@@ -57,6 +60,53 @@ def packet(sequence, seconds, action, object_ids=(10,), target_id=-1, order_id=N
     if order_id is not None:
         row['order_id'] = order_id
     return row
+
+
+def encode_frame(player, schema, values, record=1, event=5, typ=21, site=0, seconds=100, session=1):
+    """One physical token frame; the only place the wire layout is asserted.
+
+    The framing BEGIN is never escaped (framing flag set); a data value equal to
+    BEGIN or ESCAPE is. The tail END is bare and a data value equal to END is
+    legal, which is why the decoder uses the declared length.
+    """
+    payload = [BEGIN, schema, session, record, event, typ, site, seconds, len(values), *values]
+    tokens = []
+    for index, token in enumerate(payload):
+        if index and token in (BEGIN, ESCAPE):
+            tokens.append(ESCAPE)
+        tokens.append(token)
+    # The trailer's third token repeats the event id, as the emitted serial does.
+    tokens += [len(payload), checksum(payload), event, END]
+    return [f'RAW58P{player} {token}\n' for token in tokens]
+
+
+def decode_frames(lines):
+    with tempfile.TemporaryDirectory() as directory:
+        path = Path(directory) / 'engine.log'
+        path.write_text(''.join(lines), encoding='utf-8')
+        return list(decode_logs([path]))
+
+
+class SchemaCompatibilityTests(unittest.TestCase):
+    """T142: schema 59 appends the actor `gather-type` field.
+
+    The 509-515 captures were schema 58 (17-value actor rows). Appending the new
+    field must not invalidate them, and the two layouts must not be confused.
+    """
+
+    def test_schema_58_and_59_actor_records_both_decode(self):
+        old = decode_frames(encode_frame(2, 58, [0, 10, 20, 1] + [-2] * 13))
+        self.assertTrue(all(r['complete'] for r in old), old)
+        self.assertEqual(len(old[0]['values']), 17)
+        new = decode_frames(encode_frame(2, 59, [0, 10, 20, 1] + [-2] * 14))
+        self.assertTrue(all(r['complete'] for r in new), new)
+        self.assertEqual(len(new[0]['values']), 18)
+
+    def test_wrong_length_for_the_declared_schema_is_rejected(self):
+        mismatched = decode_frames(encode_frame(2, 58, [0, 10, 20, 1] + [-2] * 14))
+        self.assertEqual([r['errors'] for r in mismatched], [['record-shape']])
+        unknown = decode_frames(encode_frame(2, 57, [0, 10, 20, 1] + [-2] * 14))
+        self.assertEqual([r['errors'] for r in unknown], [['schema']])
 
 
 class ContractTests(unittest.TestCase):

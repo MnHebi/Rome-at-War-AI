@@ -16,7 +16,12 @@ ESCAPE=-2147483003
 TOKEN=re.compile(r'RAW58P([1-8]) (-?\d+)\s*$')
 HEADER=9
 MAX_FRAME=1024
-LENGTHS={1:24,2:1,10:15,11:15,12:8,20:3,21:17,22:16,23:4,30:2,31:11,32:2,40:8,41:4,90:1}
+# Schema 58 is the deployed 509-515 layout; 59 appends the actor `gather-type`
+# field (T142). Both stay decodable so earlier captures keep their analysis.
+LENGTHS={
+ 58:{1:24,2:1,10:15,11:15,12:8,20:3,21:17,22:16,23:4,30:2,31:11,32:2,40:8,41:4,90:1},
+ 59:{1:24,2:1,10:16,11:16,12:8,20:3,21:18,22:17,23:4,30:2,31:11,32:2,40:8,41:4,90:1},
+}
 
 
 def checksum(values):
@@ -68,8 +73,8 @@ def decode_logs(paths,stats=None):
                 schema,session,record,event,typ,site,seconds=frame[1:8]
                 payload=frame[:HEADER+count];n,check,tail_event,end=frame[-4:]
                 errors=[]
-                if schema!=58:errors.append('schema')
-                if LENGTHS.get(typ)!=count:errors.append('record-shape')
+                if schema not in LENGTHS:errors.append('schema')
+                elif LENGTHS[schema].get(typ)!=count:errors.append('record-shape')
                 if n!=len(payload):errors.append('count')
                 if check!=checksum(payload):errors.append('checksum')
                 if event!=tail_event:errors.append('serial')

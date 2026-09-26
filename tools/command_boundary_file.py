@@ -18,7 +18,12 @@ ROSTER_BASE = 10500
 STRIDE = 3  # actor, last observed reservation time, last hull
 RELEASE_SECONDS = 60
 FIELDS = ['id', 'type', 'class', 'player', 'precise-x', 'precise-y',
-          'action', 'order', 'target-id', 'garrisoned', 'carry', 'group-flag', 'garrison-count']
+          'action', 'order', 'target-id', 'garrisoned', 'carry', 'group-flag', 'garrison-count',
+          # T142: the only observable that separates the six pumping boarders from
+          # the sixty-seven silent ones is the villager's economy intent, which
+          # action/order/target cannot show because every boarder reads 617/717.
+          # -1 means no economy intent (rawai-constants.per: object-data-gather-type 71).
+          'gather-type']
 NAMES = ['mode','entry','return','cont','site','kind','serial','now','saved','valid',
          'local','local-last','remote','remote-last','idx','loop','selector',
          'value','count','sum','size','slot','address','found','actor','last','hull',
@@ -39,7 +44,10 @@ NAMES += ['token-return', 'token-framing']
 BEGIN = -2147483001
 END = -2147483002
 ESCAPE = -2147483003
-SCHEMA = 58
+# 59 appends the actor `gather-type` field: the only observable that separates
+# the pumping boarders from the silent ones (T142). Every 58 capture remains
+# decodable through the schema-keyed length table in command_boundary_log.py.
+SCHEMA = 59
 BOOTSTRAP = {'rawai-customconstants.per','rawai-init-goals.per'}
 DIRECT = re.compile(r'^\((up-target-objects|up-target-point|up-reset-unit|up-garrison|up-ungarrison|up-drop-resources)\b')
 INDIRECT = re.compile(r'^\((build|build-forward|build-wall|build-gate|up-build|up-build-line|up-assign-builders|up-retask-gatherers|up-request-hunters|up-reset-scouts|up-send-scout|delete-unit|up-delete-idle-units)\b')
