@@ -7856,6 +7856,7 @@
 	(current-age >= feudal-age)
 	(goal flank-position 1)
 	(goal gl-wall-needed NO)
+	(building-type-count-total town-center >= 1)
 =>
 	(set-goal gl-wall-needed YES)
 	(chat-local-to-self "Wall posture: exposed flank")
@@ -7871,10 +7872,23 @@
 		)
 	)
 	(goal gl-wall-needed NO)
+	(building-type-count-total town-center >= 1)
 =>
 	(set-goal gl-wall-needed YES)
 	(chat-local-to-self "Wall posture: local threat")
 )
+;A player with no Town Center cannot sustain a wall project. Cancelling hands
+;the villagers back so the colony/Town-Center path can be prioritised, and it
+;stops the local-response recall from stopping wall builders it cannot hide.
+(defrule
+	(up-compare-goal gl-wall-scan-state c:!= WALL-SCAN-IDLE)
+	(building-type-count-total town-center <= 0)
+=>
+	(set-goal gl-wall-needed NO)
+	(set-goal gl-wall-enabled NO)
+	(set-goal gl-wall-scan-state WALL-SCAN-IDLE)
+)
+
 
 ;A known enemy economy or military structure in the same active land zone is
 ;the engine-visible reachability proxy for a mainland opponent. This avoids
@@ -7883,6 +7897,7 @@
 	(current-age >= feudal-age)
 	(goal gl-wall-scan-state WALL-SCAN-IDLE)
 	(up-compare-goal gl-game-time g:>= gl-wall-scan-next)
+	(building-type-count-total town-center >= 1)
 	(goal gl-island-colony-established NO)
 =>
 	(up-modify-goal gl-wall-scan-focus s:= sn-focus-player-number)
@@ -7897,6 +7912,7 @@
 	(current-age >= feudal-age)
 	(goal gl-wall-scan-state WALL-SCAN-IDLE)
 	(up-compare-goal gl-game-time g:>= gl-wall-scan-next)
+	(building-type-count-total town-center >= 1)
 	(goal gl-island-colony-established YES)
 =>
 	(up-modify-goal gl-wall-scan-focus s:= sn-focus-player-number)
@@ -8001,6 +8017,7 @@
 (defrule
 	(goal gl-wall-scan-state WALL-SCAN-CHECK)
 	(up-set-target-object search-remote c: 0)
+	(building-type-count-total town-center >= 1)
 =>
 	(set-goal gl-hostile-land-route YES)
 	(set-goal gl-wall-needed YES)

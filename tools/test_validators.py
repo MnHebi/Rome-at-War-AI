@@ -5898,3 +5898,31 @@ class FarmPolicyTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WallTownCenterTests(unittest.TestCase):
+    """A Town-Center-less player must not run or keep a wall project.
+
+    215629: p3 armed the wall posture with no Town Center; the local-response
+    recall then stopped its wall builders and tried to garrison them into a TC
+    that did not exist, looping 116 times (2068-3052 s)."""
+
+    def test_wall_posture_requires_a_town_center_and_is_cancelled_without_one(self):
+        from pathlib import Path
+        from validate_naval_doctrine import rule_blocks
+        text = (Path(__file__).resolve().parents[1] / 'rawai-homebase.per').read_text(
+            encoding='utf-8-sig')
+        rows = list(rule_blocks(text))
+        arming = [r for r in rows if '(set-goal gl-wall-needed YES)' in r[4]]
+        self.assertGreaterEqual(len(arming), 2)
+        for _a, _b, _block, facts, _actions in arming:
+            self.assertIn('(building-type-count-total town-center >= 1)', facts,
+                          'wall posture can arm without a Town Center')
+        cancels = [r for r in rows
+                   if '(set-goal gl-wall-scan-state WALL-SCAN-IDLE)' in r[4]
+                   and '(building-type-count-total town-center <= 0)' in r[3]]
+        self.assertEqual(len(cancels), 1, 'no wall-project cancellation without a TC')
+        facts = cancels[0][3]
+        self.assertIn('(up-compare-goal gl-wall-scan-state c:!= WALL-SCAN-IDLE)', facts)
+        for action in ('(set-goal gl-wall-needed NO)', '(set-goal gl-wall-enabled NO)'):
+            self.assertIn(action, cancels[0][4])
