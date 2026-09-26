@@ -1917,7 +1917,7 @@
 ;warning, not a claim that the whole map is empty.
 (defrule
 	(up-timer-status t-home-resource-pressure == timer-triggered)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(or
 		(goal map-type RIVERS)
 		(or
@@ -1940,7 +1940,7 @@
 ;miner before low banked gold contributes to the migration pressure latch.
 (defrule
 	(up-timer-status t-home-resource-pressure == timer-triggered)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(gold-amount < 200)
 	(unit-type-count villager-gold < 1)
 	(up-compare-goal gl-home-low-gold-samples c:< 4)
@@ -1974,7 +1974,7 @@
 
 (defrule
 	(up-timer-status t-home-resource-pressure == timer-triggered)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(or
 		(goal map-type RIVERS)
 		(or
@@ -2398,7 +2398,7 @@
 	(goal resources-depleted NO)
 	(goal gl-home-resource-pressure NO)
 	(up-compare-goal gl-home-stone-count c:> 0)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(current-age < imperial-age)
 	(up-compare-goal gl-island-scout-attempts c:< 3)
 	(unit-type-count transport-ship >= 1)
@@ -2528,7 +2528,7 @@
 	(goal gl-island-migration-state MIGRATION-GATE-OWNER)
 	(goal gl-home-defense-state NO)
 	(goal gl-island-colony-threat NO)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(up-compare-goal gl-home-stone-count c:<= 0)
 	(unit-type-count transport-ship >= 1)
 	(or
@@ -2613,7 +2613,7 @@
 	(goal gl-island-migration-state MIGRATION-GATE-OWNER)
 	(goal gl-home-defense-state NO)
 	(goal gl-island-colony-threat NO)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(unit-type-count transport-ship >= 1)
 	(or
 		(up-idle-unit-count idle-type-villager >= 2)
@@ -2698,7 +2698,7 @@
 ;that the engine still considers assigned.
 (defrule
 	(goal gl-island-migration-state MIGRATION-GATE-OWNER)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(up-compare-goal gl-island-migration-gate-reports c:< 5)
 	(up-idle-unit-count idle-type-villager >= 2)
 	(or
@@ -2730,7 +2730,7 @@
 
 (defrule
 	(goal gl-island-migration-state MIGRATION-GATE-OWNER)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(up-compare-goal gl-island-migration-gate-reports c:< 5)
 	(up-idle-unit-count idle-type-villager < 2)
 	(or
@@ -5528,6 +5528,9 @@
 	(fe-filter-garrisoned c: 1)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
+	(up-remove-objects search-local object-data-carry > 0)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
@@ -5674,6 +5677,9 @@
 	(fe-filter-garrisoned c: 1)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
+	(up-remove-objects search-local object-data-carry > 0)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
@@ -6140,6 +6146,9 @@
 	(up-remove-objects search-remote object-data-group-flag != migration-transport-group)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
+	(up-remove-objects search-local object-data-carry > 0)
 )
 (defrule
 	(goal gl-cbf-cont 1388)
@@ -6278,6 +6287,9 @@
 	(up-remove-objects search-remote object-data-group-flag != migration-transport-group)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
+	(up-remove-objects search-local object-data-carry > 0)
 )
 (defrule
 	(goal gl-cbf-cont 1391)
@@ -6555,6 +6567,9 @@
 =>
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
+	(up-remove-objects search-local object-data-carry > 0)
 )
 (defrule
 	(goal gl-cbf-cont 1397)
@@ -6741,6 +6756,9 @@
 =>
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
+	(up-remove-objects search-local object-data-carry > 0)
 )
 (defrule
 	(goal gl-cbf-cont 1401)
@@ -7594,6 +7612,9 @@
 	(fe-filter-garrisoned c: 1)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
+	(up-remove-objects search-local object-data-carry > 0)
 	(up-find-remote c: transport-ship c: 40)
 	(up-remove-objects search-remote object-data-id g:!= gl-island-migration-transport-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
@@ -7692,6 +7713,9 @@
 	(fe-filter-garrisoned c: 1)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
+	(up-remove-objects search-local object-data-carry > 0)
 	(up-find-remote c: transport-ship c: 40)
 	(up-remove-objects search-remote object-data-id g:!= gl-island-migration-transport-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
@@ -7887,6 +7911,8 @@
 	(fe-filter-garrisoned c: 1)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-modify-goal gl-command-counter-5 c:+ 1)
@@ -8111,6 +8137,8 @@
 	(fe-filter-garrisoned c: 1)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-modify-goal gl-command-counter-6 c:+ 1)
@@ -8272,6 +8300,8 @@
 	(fe-filter-garrisoned c: 1)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-modify-goal gl-command-counter-7 c:+ 1)
@@ -8454,6 +8484,8 @@
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-modify-goal gl-command-counter-8 c:+ 1)
@@ -12259,6 +12291,9 @@
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
+	(up-remove-objects search-local object-data-carry > 0)
 	(up-find-remote c: transport-ship c: 40)
 	(up-remove-objects search-remote object-data-id g:!= gl-island-migration-transport-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
@@ -12359,6 +12394,9 @@
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
+	(up-remove-objects search-local object-data-carry > 0)
 	(up-find-remote c: transport-ship c: 40)
 	(up-remove-objects search-remote object-data-id g:!= gl-island-migration-transport-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
@@ -12514,55 +12552,6 @@
 
 (load "rawai-boarding-ctrl-capture")
 
-;CB BEGIN 1516
-(defrule
-	(goal gl-island-migration-state MIGRATION-CHECK-LOAD)
-	(up-timer-status t-island-migration == timer-running)
-	(up-timer-status t-island-migration-board-retry == timer-running)
-	(up-set-target-object search-local c: 0)
-	(up-object-data object-data-garrison-count g:< gl-island-migration-load-target)
-=>
-	(set-goal gl-cbf-cont 1516)
-)
-(defrule
-	(goal gl-cbf-cont 1516)
-=>
-	(set-goal gl-cbf-site 1516)
-	(set-goal gl-cbf-kind 3)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1516)
-=>
-	(set-goal gl-island-migration-state MIGRATION-LOADING)
-)
-(defrule
-	(goal gl-cbf-cont 1516)
-=>
-	(set-goal gl-cbf-site 1516)
-	(set-goal gl-cbf-kind 7)
-	(set-goal gl-cbf-args0 -2)
-	(set-goal gl-cbf-args1 -2)
-	(set-goal gl-cbf-args2 -2)
-	(set-goal gl-cbf-args3 -2)
-	(set-goal gl-cbf-point-y -2)
-	(up-get-rule-id gl-cbf-return)
-	(up-modify-goal gl-cbf-return c:+ 1)
-	(up-jump-direct g: gl-cbf-entry)
-)
-(defrule
-	(goal gl-cbf-cont 1516)
-=>
-	(set-goal gl-cbf-cont 0)
-)
-;CB END 1516
 
 ;CB BEGIN 1517
 (defrule
@@ -15135,8 +15124,8 @@
 	)
 	(up-pending-objects c: mining-camp <= 0)
 	(not (up-pending-placement c: mining-camp))
-	(up-can-build 0 c: mining-camp)
-	(up-can-build-line 0 gl-migration-build-x c: mining-camp)
+	(up-can-build gl-no-escrow-state c: mining-camp)
+	(up-can-build-line gl-no-escrow-state gl-migration-build-x c: mining-camp)
 	(up-compare-goal gl-mig-diag-dropsite-left c:> 0)
 =>
 	;T52 class-reserved diagnostic: exact remote Mining Camp issuance site.
@@ -15159,8 +15148,8 @@
 	)
 	(up-pending-objects c: mining-camp <= 0)
 	(not (up-pending-placement c: mining-camp))
-	(up-can-build 0 c: mining-camp)
-	(up-can-build-line 0 gl-migration-build-x c: mining-camp)
+	(up-can-build gl-no-escrow-state c: mining-camp)
+	(up-can-build-line gl-no-escrow-state gl-migration-build-x c: mining-camp)
 =>
 	(set-goal gl-cbf-cont 1564)
 )
@@ -15262,8 +15251,8 @@
 	(up-compare-goal gl-island-migration-placement-attempts c:< 3)
 	(can-afford-building mining-camp)
 	(or
-		(not (up-can-build 0 c: mining-camp))
-		(not (up-can-build-line 0 gl-migration-build-x c: mining-camp))
+		(not (up-can-build gl-no-escrow-state c: mining-camp))
+		(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: mining-camp))
 	)
 =>
 	(set-goal gl-cbf-cont 1566)
@@ -15325,8 +15314,8 @@
 	(up-compare-goal gl-island-migration-placement-attempts c:>= 3)
 	(can-afford-building mining-camp)
 	(or
-		(not (up-can-build 0 c: mining-camp))
-		(not (up-can-build-line 0 gl-migration-build-x c: mining-camp))
+		(not (up-can-build gl-no-escrow-state c: mining-camp))
+		(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: mining-camp))
 	)
 =>
 	(set-goal gl-cbf-cont 1567)
@@ -15383,8 +15372,8 @@
 	(up-compare-goal gl-island-migration-placement-attempts c:< 3)
 	(can-afford-building lumber-camp)
 	(or
-		(not (up-can-build 0 c: lumber-camp))
-		(not (up-can-build-line 0 gl-migration-build-x c: lumber-camp))
+		(not (up-can-build gl-no-escrow-state c: lumber-camp))
+		(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: lumber-camp))
 	)
 =>
 	(set-goal gl-cbf-cont 1568)
@@ -15443,8 +15432,8 @@
 	(up-compare-goal gl-island-migration-placement-attempts c:>= 3)
 	(can-afford-building lumber-camp)
 	(or
-		(not (up-can-build 0 c: lumber-camp))
-		(not (up-can-build-line 0 gl-migration-build-x c: lumber-camp))
+		(not (up-can-build gl-no-escrow-state c: lumber-camp))
+		(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: lumber-camp))
 	)
 =>
 	(set-goal gl-cbf-cont 1569)
@@ -15504,8 +15493,8 @@
 	(up-compare-goal gl-island-migration-placement-attempts c:< 3)
 	(can-afford-building mill)
 	(or
-		(not (up-can-build 0 c: mill))
-		(not (up-can-build-line 0 gl-migration-build-x c: mill))
+		(not (up-can-build gl-no-escrow-state c: mill))
+		(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: mill))
 	)
 =>
 	(set-goal gl-cbf-cont 1570)
@@ -15567,8 +15556,8 @@
 	(up-compare-goal gl-island-migration-placement-attempts c:>= 3)
 	(can-afford-building mill)
 	(or
-		(not (up-can-build 0 c: mill))
-		(not (up-can-build-line 0 gl-migration-build-x c: mill))
+		(not (up-can-build gl-no-escrow-state c: mill))
+		(not (up-can-build-line gl-no-escrow-state gl-migration-build-x c: mill))
 	)
 =>
 	(set-goal gl-cbf-cont 1571)
@@ -15624,8 +15613,8 @@
 	(goal gl-island-migration-anchor-class tree-class)
 	(up-pending-objects c: lumber-camp <= 0)
 	(not (up-pending-placement c: lumber-camp))
-	(up-can-build 0 c: lumber-camp)
-	(up-can-build-line 0 gl-migration-build-x c: lumber-camp)
+	(up-can-build gl-no-escrow-state c: lumber-camp)
+	(up-can-build-line gl-no-escrow-state gl-migration-build-x c: lumber-camp)
 	(up-compare-goal gl-mig-diag-dropsite-left c:> 0)
 =>
 	;T52 class-reserved diagnostic: exact remote Lumber Camp issuance site.
@@ -15645,8 +15634,8 @@
 	(goal gl-island-migration-anchor-class tree-class)
 	(up-pending-objects c: lumber-camp <= 0)
 	(not (up-pending-placement c: lumber-camp))
-	(up-can-build 0 c: lumber-camp)
-	(up-can-build-line 0 gl-migration-build-x c: lumber-camp)
+	(up-can-build gl-no-escrow-state c: lumber-camp)
+	(up-can-build-line gl-no-escrow-state gl-migration-build-x c: lumber-camp)
 =>
 	(set-goal gl-cbf-cont 1572)
 )
@@ -15745,8 +15734,8 @@
 	)
 	(up-pending-objects c: mill <= 0)
 	(not (up-pending-placement c: mill))
-	(up-can-build 0 c: mill)
-	(up-can-build-line 0 gl-migration-build-x c: mill)
+	(up-can-build gl-no-escrow-state c: mill)
+	(up-can-build-line gl-no-escrow-state gl-migration-build-x c: mill)
 	(up-compare-goal gl-mig-diag-dropsite-left c:> 0)
 =>
 	;T52 class-reserved diagnostic: exact remote Mill issuance site.
@@ -15769,8 +15758,8 @@
 	)
 	(up-pending-objects c: mill <= 0)
 	(not (up-pending-placement c: mill))
-	(up-can-build 0 c: mill)
-	(up-can-build-line 0 gl-migration-build-x c: mill)
+	(up-can-build gl-no-escrow-state c: mill)
+	(up-can-build-line gl-no-escrow-state gl-migration-build-x c: mill)
 =>
 	(set-goal gl-cbf-cont 1574)
 )
@@ -16567,6 +16556,8 @@
 	(up-set-target-point gl-island-migration-target-x)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-add-object-by-id search-remote g: gl-island-migration-dropsite-id)
@@ -17338,6 +17329,8 @@
 	(up-set-target-point gl-island-migration-target-x)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-get-search-state local-total)
@@ -17987,6 +17980,9 @@
 	(up-set-target-point gl-island-migration-target-x)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
+	(up-remove-objects search-local object-data-carry > 0)
 	(up-remove-objects search-local object-data-map-zone-id g:!= gl-island-migration-zone)
 	(up-clean-search search-local object-data-distance search-order-asc)
 	(up-get-search-state local-total)
@@ -17995,6 +17991,10 @@
 	(up-remove-objects search-remote object-data-player != my-player-number)
 	(up-remove-objects search-remote object-data-group-flag != migration-transport-group)
 	(up-remove-objects search-local object-data-player != my-player-number)
+)
+(defrule
+	(goal gl-cbf-cont 1614)
+=>
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 )
 (defrule
@@ -20003,6 +20003,8 @@
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-modify-goal gl-command-counter-10 c:+ 1)
@@ -20625,6 +20627,8 @@
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-modify-goal gl-command-counter-11 c:+ 1)
@@ -20810,6 +20814,8 @@
 	(up-full-reset-search)
 	(up-set-group search-local c: migration-boarding-group)
 	(up-remove-objects search-local object-data-garrisoned == 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
 	(up-modify-goal gl-command-counter-12 c:+ 1)
@@ -22023,7 +22029,7 @@
 ;32 repair, 64 berth clear, 128 home defense, 256 no Transport,
 ;512 no living seed enemy, 1024 route timer waiting.
 (defrule
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(or
 		(goal map-type LAKE)
 		(or
@@ -22753,6 +22759,8 @@
 	(up-remove-objects search-remote object-data-player != my-player-number)
 	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
 	(up-remove-objects search-local object-data-class == siege-weapon-class)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
 )
 (defrule
 	(goal gl-cbf-cont 1692)
@@ -22896,6 +22904,8 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
 	(up-remove-objects search-local object-data-class == siege-weapon-class)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
 )
 (defrule
 	(goal gl-cbf-cont 1694)
@@ -23067,6 +23077,8 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
 	(up-remove-objects search-local object-data-class == siege-weapon-class)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
 )
 (defrule
 	(goal gl-cbf-cont 1697)
@@ -23205,6 +23217,8 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
 	(up-remove-objects search-local object-data-class == siege-weapon-class)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
 )
 (defrule
 	(goal gl-cbf-cont 1698)
@@ -23378,6 +23392,8 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
 	(up-remove-objects search-local object-data-class == siege-weapon-class)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
 )
 (defrule
 	(goal gl-cbf-cont 1699)
@@ -23459,6 +23475,8 @@
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != attack-boarding-group)
 	(up-remove-objects search-local object-data-class == siege-weapon-class)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
 )
 (defrule
 	(goal gl-cbf-cont 1700)
@@ -23751,7 +23769,7 @@
 	(set-goal gl-cbf-site 1705)
 	(set-goal gl-cbf-kind 1)
 	(up-modify-goal gl-cbf-args0 g:= gl-transport-route-origin-x)
-	(set-goal gl-cbf-args1 action-unload)
+	(set-goal gl-cbf-args1 action-move)
 	(set-goal gl-cbf-args2 -1)
 	(set-goal gl-cbf-args3 stance-no-attack)
 	(up-modify-goal gl-cbf-point-y g:= gl-transport-route-origin-y)
@@ -23762,7 +23780,7 @@
 (defrule
 	(goal gl-cbf-cont 1705)
 =>
-	(up-target-point gl-transport-route-origin-x action-unload -1 stance-no-attack)
+	(up-target-point gl-transport-route-origin-x action-move -1 stance-no-attack)
 )
 (defrule
 	(goal gl-cbf-cont 1705)
@@ -23770,7 +23788,7 @@
 	(set-goal gl-cbf-site 1705)
 	(set-goal gl-cbf-kind 2)
 	(up-modify-goal gl-cbf-args0 g:= gl-transport-route-origin-x)
-	(set-goal gl-cbf-args1 action-unload)
+	(set-goal gl-cbf-args1 action-move)
 	(set-goal gl-cbf-args2 -1)
 	(set-goal gl-cbf-args3 stance-no-attack)
 	(up-modify-goal gl-cbf-point-y g:= gl-transport-route-origin-y)
@@ -23843,6 +23861,8 @@
 	(up-add-object-by-id search-remote g: gl-transport-route-id)
 	(up-remove-objects search-remote object-data-player != my-player-number)
 	(up-remove-objects search-remote object-data-group-flag != attack-transport-group)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-order == orderid-enter)
 )
 (defrule
 	(goal gl-cbf-cont 1706)
@@ -25056,7 +25076,7 @@
 	(goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
 	(up-compare-goal gl-quarantine-transport-id c:< 0)
 	(goal gl-home-defense-state NO)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(unit-type-count transport-ship >= 1)
 	(or
 		(goal map-type RIVERS)
@@ -26120,7 +26140,7 @@
 	(goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
 	(goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)
 	(goal gl-transport-clear-state TRANSPORT-CLEAR-IDLE)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(building-type-count-total monastery >= 1)
 	(unit-type-count transport-ship >= 1)
 	(or
@@ -30055,7 +30075,7 @@
 ;retreat when forces are too dwindled
 (defrule
 	(up-timer-status t-retreat == timer-triggered)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(or
 		(up-compare-goal gl-current-soldier-losses g:> gl-five-percent)
 		(up-compare-goal gl-current-warboat-losses g:> gl-five-percent)
@@ -30989,12 +31009,12 @@
 ;hysteresis: the lead necessarily persisted for that whole interval.
 (defrule
 	(goal gl-age-advantage-pressure NO)
-	(current-age == early-antiquity-age)
+	(current-age == feudal-age)
 	(current-age-time >= 120)
 	(players-building-count target-player >= 1)
 	(player-in-game target-player)
 	(not (stance-toward target-player ally))
-	(players-current-age target-player < early-antiquity-age)
+	(players-current-age target-player < feudal-age)
 =>
 	(set-goal gl-age-advantage-pressure YES)
 	(generate-random-number 60)
@@ -31007,12 +31027,12 @@
 
 (defrule
 	(goal gl-age-advantage-pressure NO)
-	(current-age == middle-antiquity-age)
+	(current-age == castle-age)
 	(current-age-time >= 120)
 	(players-building-count target-player >= 1)
 	(player-in-game target-player)
 	(not (stance-toward target-player ally))
-	(players-current-age target-player < middle-antiquity-age)
+	(players-current-age target-player < castle-age)
 =>
 	(set-goal gl-age-advantage-pressure YES)
 	(generate-random-number 60)
@@ -31043,8 +31063,8 @@
 
 (defrule
 	(goal gl-age-advantage-pressure YES)
-	(current-age == early-antiquity-age)
-	(players-current-age target-player >= early-antiquity-age)
+	(current-age == feudal-age)
+	(players-current-age target-player >= feudal-age)
 =>
 	(set-goal gl-age-advantage-pressure NO)
 	(set-goal gl-age-advantage-next 0)
@@ -31053,8 +31073,8 @@
 
 (defrule
 	(goal gl-age-advantage-pressure YES)
-	(current-age == middle-antiquity-age)
-	(players-current-age target-player >= middle-antiquity-age)
+	(current-age == castle-age)
+	(players-current-age target-player >= castle-age)
 =>
 	(set-goal gl-age-advantage-pressure NO)
 	(set-goal gl-age-advantage-next 0)
@@ -32583,7 +32603,7 @@
 ;just do some attacks once you aged up to Castle Age, and Imperial Age
 
 (defrule
-	(current-age == middle-antiquity-age)
+	(current-age == castle-age)
 	(current-age-time g:> gl-age-attack-delay)
 	(goal gl-home-defense-state NO)
 	(or

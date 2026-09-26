@@ -62,7 +62,7 @@ class FirstMilitaryBuildingTests(unittest.TestCase):
     @staticmethod
     def rule(kind):
         rows = [r for r in rule_blocks(source('rawai-homebase.per'))
-                if f'(up-build place-normal 0 c: {kind})' in r[4]]
+                if f'(up-build place-normal gl-no-escrow-state c: {kind})' in r[4]]
         assert len(rows) == 1, (kind, len(rows))
         return rows[0]
 
@@ -89,7 +89,7 @@ class FirstMilitaryBuildingTests(unittest.TestCase):
 
     def test_fortress_pressure_recovery_has_same_first_structure_admission(self):
         rows = [r for r in rule_blocks(source('rawai-homebase.per'))
-                if '(not (up-can-build 0 c: castle))' in r[3]]
+                if '(not (up-can-build gl-no-escrow-state c: castle))' in r[3]]
         self.assertEqual(len(rows), 1)
         g = build_gate('castle'); g.buildable = False
         self.assertTrue(g.accepts(rows[0]))

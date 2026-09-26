@@ -16,7 +16,12 @@ ESCAPE=-2147483003
 TOKEN=re.compile(r'RAW58P([1-8]) (-?\d+)\s*$')
 HEADER=9
 MAX_FRAME=1024
-LENGTHS={1:24,2:1,10:15,11:15,12:8,20:3,21:17,22:16,23:4,30:2,31:11,32:2,40:8,41:4,90:1}
+# Schema 58 is the deployed 509-515 layout; 59 appends the actor `gather-type`
+# field (T142). Both stay decodable so earlier captures keep their analysis.
+LENGTHS={
+ 58:{1:24,2:1,10:15,11:15,12:8,20:3,21:17,22:16,23:4,30:2,31:11,32:2,40:8,41:4,90:1},
+ 59:{1:24,2:1,10:16,11:16,12:8,20:3,21:18,22:17,23:4,30:2,31:11,32:2,40:8,41:4,90:1},
+}
 
 
 def checksum(values):
@@ -68,8 +73,8 @@ def decode_logs(paths,stats=None):
                 schema,session,record,event,typ,site,seconds=frame[1:8]
                 payload=frame[:HEADER+count];n,check,tail_event,end=frame[-4:]
                 errors=[]
-                if schema!=58:errors.append('schema')
-                if LENGTHS.get(typ)!=count:errors.append('record-shape')
+                if schema not in LENGTHS:errors.append('schema')
+                elif LENGTHS[schema].get(typ)!=count:errors.append('record-shape')
                 if n!=len(payload):errors.append('count')
                 if check!=checksum(payload):errors.append('checksum')
                 if event!=tail_event:errors.append('serial')
@@ -160,9 +165,57 @@ def observations(records):
         f['gaps'].append('truncated-observation');yield f
 
 
+OBJECT_ACTIONS=('action-garrison','action-unload','action-guard','action-attack')
+OBJECT_COMMANDS={'up-reset-unit','up-retreat-now','up-retreat-to','up-garrison','up-ungarrison',
+                 'up-guard-unit','up-delete-idle-units','delete-unit','delete-building'}
+ADMISSION_COMMANDS={'up-build','up-build-line','up-assign-builders','up-send-scout','up-reset-scouts'}
+GROUP_COMMANDS={'up-create-group','up-modify-group-flag','up-reset-group','up-disband-group-type'}
+# Deferred delivery: the writer-trace control shows an after-command chat
+# preceding its ORDER packet by 14-38 ms, so a command issued near a whole-second
+# boundary can deliver in the following second. One extra whole second is the
+# smallest interval that covers that boundary crossing at this timestamp
+# resolution; candidates stay labelled by offset, never selected by proximity.
+POST_INVOCATION_SECONDS=1
+
+
+def contract(command):
+    """Recipient/target contract of one registered command, from its operands.
+
+    Object-target DUC commands require the packet's target to be a traced remote
+    object. Point commands use their point/action inputs and must not inherit an
+    irrelevant remote-target requirement. State, group and native-admission
+    writes expect no directly attributable packet.
+    """
+    text=command.strip().lstrip('(')
+    if text.startswith(('up-target-point','up-target-objects')):
+        if any(action in text for action in OBJECT_ACTIONS):return 'object-target'
+        return 'point'
+    head=text.split()[0]
+    if head in OBJECT_COMMANDS:return 'object-target'
+    if head in ADMISSION_COMMANDS:return 'native-admission'
+    if head in GROUP_COMMANDS:return 'group-write'
+    return 'state-write'
+
+
 def correlations(records,events,registry):
-    """Require intact PRE plus INVOKED. Whole-second timing is only a candidate."""
-    from audit_writer_trace import compatible
+    """Require intact PRE plus INVOKED. Whole-second timing is only a candidate.
+
+    Target and recipient requirements follow the AIRef command contracts
+    (tools/command_contracts.py), so a point command is not rejected by an
+    unrelated remote list, an object command keeps its object-target relation,
+    and each unmatched row states why nothing could be matched:
+
+    * ``empty-input-recorded``      - complete PRE declares the consumed list empty
+    * ``incomplete-inputs``         - declared rows missing/invalid (with gaps)
+    * ``type-based-recipients``     - command acts on a type/global set, not a list
+    * ``unsupported-contract``      - command or action not documented; no claim
+    * ``no-direct-packet-expected`` - state/group/engine-side admission command
+
+    The PRE frame records its declared local/remote counts and the selected
+    object (``saved``/``valid``), so select-object commands are anchored on that
+    identity instead of demanding unrelated list rows.
+    """
+    from command_contracts import UNCLASSIFIED, compatible, describe
     commands={c['id']:c for s in registry['sites'] for c in s.get('file_commands',[])}
     buckets=defaultdict(list)
     for e in events:buckets[(e.get('player_id'),e['milliseconds']//1000)].append(e)
@@ -177,21 +230,73 @@ def correlations(records,events,registry):
         gaps=pre['gaps']+f['gaps']
         if (a['session'],a['event']+1,a['site'])!=(entry['session'],entry['event'],entry['site']):
             gaps.append('PRE-INVOKED-mismatch')
+        # Declared list counts and the selected object belong to the PRE frame:
+        # the INVOKED frame records only the kind that closed the observation.
+        declared_local,declared_remote=a['values'][1:3]
+        saved,valid=a['values'][3:5]
         actors=[v[2] for v in pre['local'] if v[1]==1]
         targets=[v[2] for v in pre['remote'] if v[1]==1]
+        shape=describe(c['command']) if c else None
+        category=None;reason=None
+        if not c:
+            category,reason='unsupported-contract','site absent from the executed registry'
+        elif shape['kind']=='unclassified':
+            category,reason='unsupported-contract',shape['note']
+        elif shape['target']==UNCLASSIFIED and shape['kind']=='duc-target':
+            category,reason='unsupported-contract','target source not documented for this option'
+        elif shape['kind'] in ('state-write','group-write','state-read','native-effect-command'):
+            category,reason='no-direct-packet-expected',shape['note']
+        elif shape['kind']=='type-based':
+            category,reason='type-based-recipients',f"{shape['recipients']} recipients are not list-anchored"
+        elif shape['recipients']=='local-list' and declared_local==0 and not pre['local']:
+            category,reason='empty-input-recorded','complete PRE declares an empty local list'
+        elif shape['recipients']=='local-list' and len(pre['local'])<declared_local:
+            category,reason='incomplete-inputs',f"PRE declares {declared_local} local rows, {len(pre['local'])} recorded"
+        elif shape['target'] in ('remote-list',) and declared_remote==0 and not pre['remote']:
+            category,reason='empty-input-recorded','complete PRE declares an empty remote list (no target object)'
+        if gaps and category is None:
+            category,reason='incomplete-inputs','; '.join(str(g) for g in gaps)
+        anchors=actors
+        selected=saved if valid==1 and saved is not None else None
         candidates=[]
-        if c and not gaps and not c['indirect']:
-            for second in range(a['game_seconds'],entry['game_seconds']+1):
+        if category is None and anchors:
+            for second in range(a['game_seconds'],entry['game_seconds']+1+POST_INVOCATION_SECONDS):
                 for e in buckets[(player,second)]:
                     ids=set(e.get('object_ids',[]))
-                    if (ids and ids<=set(actors) and (not targets or e.get('target_id') in targets)
-                        and compatible(e,{'actions':c['command']})):
-                        candidates.append(e['sequence'])
+                    if not ids or not ids<=set(anchors):
+                        continue
+                    target=e.get('target_id')
+                    if shape['target']=='remote-list':
+                        if not targets or target not in targets:continue
+                    elif shape['target']=='selected-object':
+                        if selected is None or target not in (selected,):
+                            continue
+                    # Point-directed commands carry no remote-object
+                    # requirement: the packet's target field is auxiliary (an
+                    # UNGARRISON packet names the released object, a point order
+                    # may report -1) and point coordinates are not compared
+                    # without verified precision, so only recipients, player,
+                    # documented family and the labelled window constrain it.
+                    if compatible(e,c['command']):
+                        candidates.append(dict(sequence=e['sequence'],second_offset=second-a['game_seconds'],
+                            exact_recipients=ids==set(anchors),target_source=shape['target'],
+                            families=sorted(shape['packets'])))
+            if not candidates:
+                category='unmatched-not-native-proof'
+            elif len(candidates)>1:
+                category='ambiguous'
+            else:
+                category='candidate-not-causation'
         yield dict(player=player,event=a['event'],site=a['site'],actors=actors,targets=targets,
-            coverage_gaps=gaps,packet_sequences=candidates,
-            status='incomplete-inputs' if gaps else 'indirect-recipients-unknown' if c and c['indirect'] else
-                   'ambiguous' if len(candidates)>1 else 'candidate-not-causation' if candidates else 'unmatched-not-native-proof',
-            timing='PRE through INVOKED whole game-second buckets; subsets may be native expansion')
+            command=c['command'] if c else None,contract=shape['kind'] if shape else None,
+            declared_local=declared_local,declared_remote=declared_remote,
+            selected_object=saved if valid==1 else None,
+            category=category,category_reason=reason,
+            coverage_gaps=gaps,packet_sequences=[x['sequence'] for x in candidates],
+            candidates=candidates,
+            status=category,
+            window_seconds=[a['game_seconds'],entry['game_seconds']+POST_INVOCATION_SECONDS],
+            timing='PRE through INVOKED whole game-second buckets plus one post-invocation second; subsets may be native expansion')
 
 
 def actor_timelines(cache,classification):

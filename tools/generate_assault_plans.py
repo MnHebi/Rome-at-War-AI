@@ -105,18 +105,32 @@ def plans():
                 '(up-modify-group-flag 0 c: transport-screen-group)',
                 '(up-reset-group c: transport-screen-group)', '(set-goal gl-transport-screen-id -1)',
                 '(set-goal gl-transport-screen-waits 0)']
-    def find_objectives(same_zone):
-        a = ['(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)',
+    def find_objectives(same_zone, player=None):
+        # A remote search focused on a player who has left the game is an engine
+        # error, so the caller emits one rule per literal enemy instead of one
+        # rule that focuses a goal.
+        focus = (f'(set-strategic-number sn-focus-player-number {player})' if player
+                 else '(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)')
+        owner = (f'(up-remove-objects search-remote object-data-player != {player})'
+                 if player else
+                 '(up-remove-objects search-remote object-data-player g:!= gl-assault-manifest-player)')
+        a = [focus,
              '(up-full-reset-search)', '(up-set-target-point gl-transport-route-target-x)']
         a += [f'(up-find-remote c: {kind} c: 20)' for kind in
               ('town-center', 'market', 'barracks', 'archery-range', 'stable', 'siege-workshop', 'castle', 'house')]
-        a += ['(up-remove-objects search-remote object-data-player g:!= gl-assault-manifest-player)',
+        a += [owner,
               '(up-remove-objects search-remote object-data-hitpoints <= 0)']
         if same_zone:
             a += ['(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)',
                   '(up-remove-objects search-remote object-data-distance < 24)']
         a += [f'(up-remove-objects search-remote object-data-id g:== gl-ap-seen{i})' for i in (1, 2, 3)]
         return a + ['(up-clean-search search-remote object-data-distance search-order-asc)']
+    def objective_scan(site, same_zone, fail):
+        for p in range(1, 9):
+            emit([state(site), f'(goal gl-assault-manifest-player {p})',
+                  f'(player-in-game {p})'], find_objectives(same_zone, p))
+            emit([state(site), f'(goal gl-assault-manifest-player {p})',
+                  f'(not (player-in-game {p}))'], [go(fail)])
     emit(['(true)'], ['(set-goal gl-ap-active NO)', '(set-goal gl-ap-write 1)',
                      '(set-goal gl-ap-ally-mode NO)', '(set-goal gl-ap-ally-tried NO)',
                      '(set-goal gl-ap-ally-self my-player-number)',
@@ -307,27 +321,40 @@ def plans():
     # below cliffs and reach the selected enemy objective. Ask up to three
     # visible mobile enemy witnesses near the objective whether the landing is
     # connected to that objective region.
-    emit([state('AP-EGRESS-SEARCH')], [
-        '(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)',
-        '(up-full-reset-search)',
-        '(up-set-target-point gl-transport-route-target-x)',
-        '(up-filter-distance c: -1 c: 80)',
-        '(up-find-remote c: scout-cavalry-class c: 40)',
-        '(up-find-remote c: cavalry-archer-class c: 40)',
-        '(up-find-remote c: cavalry-class c: 40)',
-        '(up-find-remote c: infantry-class c: 40)',
-        '(up-find-remote c: archery-class c: 40)',
-        '(up-find-remote c: siege-weapon-class c: 40)',
-        '(up-find-remote c: villager-class c: 40)',
-        '(up-find-remote c: priest c: 10)',
-        '(up-remove-objects search-remote object-data-player g:!= gl-assault-manifest-player)',
-        '(up-remove-objects search-remote object-data-hitpoints <= 0)',
-        '(up-remove-objects search-remote object-data-garrisoned == 1)',
-        '(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)',
-        '(up-set-target-point gl-transport-route-landing-x)',
-        '(up-clean-search search-remote object-data-distance search-order-asc)',
-        '(up-get-search-state local-total)',
-        '(up-modify-goal gl-ap-egress-count g:= remote-total)', go('AP-EGRESS-0')])
+    def egress_scan(p):
+        return [
+            f'(set-strategic-number sn-focus-player-number {p})',
+            '(up-full-reset-search)',
+            '(up-set-target-point gl-transport-route-target-x)',
+            '(up-filter-distance c: -1 c: 80)',
+            '(up-find-remote c: scout-cavalry-class c: 40)',
+            '(up-find-remote c: cavalry-archer-class c: 40)',
+            '(up-find-remote c: cavalry-class c: 40)',
+            '(up-find-remote c: infantry-class c: 40)',
+            '(up-find-remote c: archery-class c: 40)',
+            '(up-find-remote c: siege-weapon-class c: 40)',
+            '(up-find-remote c: villager-class c: 40)',
+            '(up-find-remote c: priest c: 10)',
+            f'(up-remove-objects search-remote object-data-player != {p})',
+            '(up-remove-objects search-remote object-data-hitpoints <= 0)',
+            '(up-remove-objects search-remote object-data-garrisoned == 1)',
+            '(up-remove-objects search-remote object-data-map-zone-id g:!= gl-transport-route-target-zone)',
+            '(up-set-target-point gl-transport-route-landing-x)',
+            '(up-clean-search search-remote object-data-distance search-order-asc)',
+            '(up-get-search-state local-total)',
+            '(up-modify-goal gl-ap-egress-count g:= remote-total)', go('AP-EGRESS-0')]
+    # A departed target player can never field a witness, and focusing a remote
+    # search on them is an engine error; treat that as the existing empty-witness
+    # result. The unguarded rule keeps the previous behaviour for an unresolved
+    # target identity.
+    for p in range(1, 9):
+        emit([state('AP-EGRESS-SEARCH'), f'(goal gl-assault-manifest-player {p})',
+              f'(player-in-game {p})'], egress_scan(p))
+        emit([state('AP-EGRESS-SEARCH'), f'(goal gl-assault-manifest-player {p})',
+              f'(not (player-in-game {p}))'],
+             ['(set-goal gl-ap-egress-count 0)', go('AP-EGRESS-0')])
+    emit([state('AP-EGRESS-SEARCH')],
+         ['(set-goal gl-ap-egress-count 0)', go('AP-EGRESS-0')])
     # Structure-only cleanup can have no mobile witness.  Retain the existing
     # bounded zone/hull proof for that case rather than eliminating
     # all end-game assaults.  When witnesses exist, one of the nearest three
@@ -496,7 +523,7 @@ def plans():
               f'(up-compare-goal gl-ap-enemy{p}-failures c:>= 3)'], [go('AP-ENEMY-FAILED')])
     emit([state('AP-OBJECTIVE-FAILED'), '(up-compare-goal gl-ap-objective-count c:>= 3)'], [go('AP-ENEMY-FAILED')])
     emit([state('AP-OBJECTIVE-FAILED')], [go('AP-NEXT-OBJECTIVE')])
-    emit([state('AP-NEXT-OBJECTIVE')], find_objectives(True))
+    objective_scan('AP-NEXT-OBJECTIVE', True, 'AP-ENEMY-FAILED')
     emit([state('AP-NEXT-OBJECTIVE'), '(up-set-target-object search-remote c: 0)'], [
         '(up-get-object-data object-data-id gl-ap-objective)',
         '(up-get-point position-object gl-transport-route-target-x)', go('AP-OBJECTIVE')])
@@ -591,7 +618,7 @@ def plans():
         '(set-goal gl-ap-valid NO)', '(set-goal gl-ap-seen1 -1)', '(set-goal gl-ap-seen2 -1)', '(set-goal gl-ap-seen3 -1)',
         '(up-modify-sn sn-focus-player-number g:= gl-assault-manifest-player)',
         '(up-get-point position-focus gl-transport-route-target-x)', go('AP-ENEMY-SEARCH')])
-    emit([state('AP-ENEMY-SEARCH')], find_objectives(False))
+    objective_scan('AP-ENEMY-SEARCH', False, 'AP-ENEMY-FAILED')
     emit([state('AP-ENEMY-SEARCH'), '(goal gl-transport-route-script-load YES)'], [
         '(up-remove-objects search-remote object-data-map-zone-id < 0)',
         '(up-remove-objects search-remote object-data-map-zone-id g:== gl-home-zone)'])

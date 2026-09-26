@@ -33,7 +33,7 @@ class AssaultAdmissionDiagnosticTests(unittest.TestCase):
         start = next(row for row in self.rules
                      if 'gl-assault-admission-diag-next' in row[3]
                      and 'set-goal gl-assault-admission-diag-mask 0' in row[4])
-        self.assertIn('current-age >= early-antiquity-age', start[3])
+        self.assertIn('current-age >= feudal-age', start[3])
         self.assertIn('up-modify-goal gl-assault-admission-diag-next c:+ 60', start[4])
         expected = {
             1: 'gl-transport-route-state TRANSPORT-ROUTE-IDLE',

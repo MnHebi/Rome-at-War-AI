@@ -1,56 +1,50 @@
 # Rome at War AI current handoff
 
-Latest candidate: `T58B-ALLIED-LANDING-FALLBACK.md`; replay evidence: `T58A-RUNTIME-REPLAY-ASSESSMENT.md`.
-Cold history: `context/archive/HANDOFF-through-T52.md`.
+Cold: `context/archive/HANDOFF-through-T52.md`.
 
 ## Workspace
 
 - Canonical: `G:\Projects\Codex\Rome at War AI\.trade-work\T30-trade-cap-civ-fix`
-- Branch: `fix/trade-cog-cap-dacian`; current HEAD: `git rev-parse HEAD`. T58B source commit `5e9e548`; maintenance `4250e7f`. Both published to PR11.
-- PR: https://github.com/MnHebi/Rome-at-War-AI/pull/11
-- PR11 refresh includes pending508 source/tests and507 evidence; deployment history: `T58-DEPLOYMENT.md`.
-- One owner; no new branch/worktree/overlay. Do not edit obsolete .pr-work.
+- Branch: `t59/age-operand-and-test-suite-cleanup`; HEAD `git rev-parse HEAD`.
+- PR: https://github.com/MnHebi/Rome-at-War-AI/pull/12 (PR11 merged)
+- PR11 holds earlier508 source/tests and507 evidence. One owner; no new branch/worktree.
 
-## Current deployment
+## Deployment
 
-2026-09-12: `RAWAI-P3B44T58A:507`,109 canonical runtime files installed and hash verified.
-SHA256 `9e3823727574792e3677321a1ca07a92f2e5f80144269844f0f967b0d7ac5969`.
-Source: `a635d5598a6d292a9571d14abd178b669189b345 + working changes; installed experiments reconciled in canonical source (T58-DEPLOYMENT.md)`. Counter1 is NOT STOP proof.
-**507 MATCH FINISHED, ACCEPTANCE FAILED**. Replay133042 lasted87:53; all109 installed hashes reverified.207,244 frames labeledP1 actually expose Green-owned locals. Never join that raw label to Blue. Age/goal floods remain unresolved.
-Manifest/frozen registry/506 backup: `.analysis/deployment-t58a-507-20260912T102708Z/`. No deployment this turn.
+2026-09-26T14:42Z: `RAWAI-P3B44T58B:515`109 runtime files installed and hash verified. 515 = 514 + the T91 lift fixes (abort returns the hull, entering soldiers barred from the lift list) and the T97-T108 id alignment with raw-datamod-uplifted.
+SHA256 `da21805229ae4cad69ee732e705724e1d7dc0712ebac6cc66ea470fa30499e73`.
+Source: `b0f8af9c5ce639d168b9a37f38f5f72c9d41db1e + deployed marker515; T91-ASSAULT-LIFT-DEPARTURE.md`.
+Manifest/registry/514 backup `.analysis/deployment-t109-515-20260926T144209Z/`; 514 kept at `.analysis/deployment-t88-514-20260920T170428Z/`.
 
 ## Active task
 
 - Node `task.t52-runtime`; capsule `context/tasks/t52-runtime.json`.
 - Entry: `py -3.12 tools/context_pack.py task.t52-runtime --role runtime-analyst`.
-- Local508 (not deployed): player initializer, TC-independent migration admission, cap4 and last-choice allied-base landing. Earlier fixes/uncertainty: `T58B-MIGRATION-TC-ADMISSION.md`.
-- Allied fallback: exhausted enemy plan -> ready allied TC on objective landmass -> existing shoreline/danger checks + mandatory exact mobile witness -> same enemy/manifest dispatch.120-second local allowance within unchanged360 total; three slots unchanged. `T58B-ALLIED-LANDING-FALLBACK.md`.
-- Preserve507 frozen registry for old logs. Candidate9312/10000 rules,1498/1500 literals; reclaim before adding strings. Protocol: `T58-FILE-TRACE.md`.
-- Operand probe not installed: `T58A-RUNTIME-OPERAND-ERRORS.md`.
-- 508 also caps TC targets/colony expansion at4 (all34 civs); protected lineups unchanged. `T58A-BACKLOG-SWEEP.md`: all8 Shipyards ready but mostly late; no recorded ROW/help verification; all8 Skirmisher queues; Gray20,142 order706 packets. No backlog closure.
+- Installed508: Age facts, TC-independent migration admission, cap4, allied landing (`T58B-MIGRATION-TC-ADMISSION.md`).
+- Preserve507 registry. Protocol `T58-FILE-TRACE.md`; Age probe not installed.
+
+## Tests
+
+- `TEST-EXECUTION-POLICY.md`: -17 default tests; history via `RAWAI_HISTORICAL_OVERLAY_TESTS=1`. Open: `my-player-number` misuse; `test_validators.py` split.
+
+## T61/T62 correlator + 508 follow-up
+
+- Correlator v4 (`command_contracts.py`): 2,199 candidates, 1,651 empty-input, 32 ambiguous. `706`: five heavy runs =85.0% of packets; writers farm-staffing1205/1202/1196; p7 DROPSITE-FAILED from the literal-0 `up-can-build` at `rawai-military.per:4833`; p2 retask->release+7,135 WORK.
+- 509 runtime (`T64-509-RUNTIME-RESULTS.md`): repaired error families -> 0; 706 38259->4631 (no attribution). taunt31 fixed in 510; ROW hold/issue625-637 never executed; taunt48 open.
+- T66-T71 (`T66-ORDER-STORM-ATTRIBUTION.md`): entering guard at 17 sites, unproven; 510 crashed, no stack; enemy scans require `player-in-game`.
+- T84/T91 (`T84-LADEN-BOARDING-ADMISSION.md`, `T91-ASSAULT-LIFT-DEPARTURE.md`): 514 (deployed, marker 514) bars laden passengers from 11 boarding sites; the 515 candidate returns an aborted attack lift home and bars entering soldiers from its 7 boarding sites.
 
 ## Defects retained
 
-| ID | Status | Next boundary |
-|---|---|---|
-| villager.order706 | INVESTIGATING | Ordinary-match paired command/onset attribution. |
-| diagnostics.command-boundary.t57 | INVESTIGATING | Player initializer FIXED-PENDING-RUNTIME; oldP1 label is not Blue. Operand floods/all-player delivery remain open. |
-| villager.keystates.t53 | INVESTIGATING | Existing Ctrl experiment inconclusive; policy constant. |
-| shipyard.sampler.t51 | FIXED-PENDING-RUNTIME | T57 foundations all8, ready7;11,524 rejected samples spatially evaluated. Late Purple53:02; coastal buildability still unresolved. |
-| help.exact-episode.t53 | FIXED-PENDING-RUNTIME | Exact312–317 request/silence outcome. |
-| assault.shore-egress.t53 | INVESTIGATING | Actual unload path; no-witness gap. |
-| assault.voyage.t55b | INVESTIGATING | Commands vs positions, private680–690. |
-| assault.preparation.close-boarders | INVESTIGATING | Blockage/reissue/ownership at abort. |
-| migration.productive-dropsite | INVESTIGATING | TC-admission fix pending runtime; require resource launch, safe construction, gather/deposit; inner gates remain unresolved. |
-| merchant.row.real-choke | INVESTIGATING | Yield → hull progress → native trade. |
-| expedition.commitment | INVESTIGATING | No tuning before upstream acceptance. |
-| production.reactive-skirmisher.t56 | FIXED-PENDING-RUNTIME | T57 all8 queue counters; births/threat matching/live bounds still unproven. |
+18 findings live in `context/project-state.json` (render via the entry command above).
+T60/T61 boundaries: shipyard pending; migration p2 ready/retask kept.
+`villager.order706`: ROOT-CAUSE-PROVEN, fixed pending runtime by 514; residual population = unladen work-task batch boarders.
 
-Preserve land trade, migration launch/landing, landed combat, three independent assault slots, partial loads, shoreline/danger gates, ownership and relic separation. No native gathering replacement.
+Preserve land trade, migration launch/landing, landed combat, three assault slots, partial loads, shoreline/danger gates, ownership, relic separation.
 
 ## Validation / next action
 
-508:131 assault/PER/generator/capacity checks PASS. Full Python3.12 discovery:683run,681PASS,2retired skips(98.462s). All109 installed507 hashes unchanged; runtime acceptance pending.
+509: capacity PASS; engine-boundary acceptance PASSED, gameplay open (`T64-509-RUNTIME-RESULTS.md`).
 Maintenance: `MAINTENANCE-CONSISTENCY.md`; preserve Dacian/Syracusan lineups.
 
-Next: authorized508 runtime must prove allied unload/land advance and resource migration productivity. Operand probe/backlog remain separate. No deployment authorized.
+Next: run 514 and compare the predicted storm split, departures and partial loads; then dropsite status-ready and allied unload/land observation.

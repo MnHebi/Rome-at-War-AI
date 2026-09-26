@@ -103,5 +103,100 @@ class BoardingCtrlTests(unittest.TestCase):
         self.assertEqual(sum(s['policy']=='EXPERIMENT: mining boarding' for s in policy['sites']),5)
         self.assertTrue(all(s['assessment'] for s in policy['sites']))
 
+    def test_passenger_task_selections_bar_entering_units(self):
+        """A selection that commands reserved passengers must exclude units that
+        are already entering a transport, exactly as the stock AI does. Without
+        this guard the boarding retry re-tasks villagers that are mid-board
+        (T66: every sustained ORDER storm follows such a re-task)."""
+        registry=json.loads((ROOT/'command-boundary-registry.json').read_text())
+        guarded=0
+        for site in registry['sites']:
+            original=site.get('original') or ''
+            if 'migration-boarding-group' not in original:
+                continue
+            if '(up-remove-objects search-local object-data-garrisoned == 1)' not in original:
+                continue
+            if not re.search(r'\(up-target-(objects|point) ',original):
+                continue
+            guarded+=1
+            self.assertIn('(up-remove-objects search-local object-data-action == actionid-enter)',
+                original,f'site {site["id"]} commands passengers without the enter guard')
+            self.assertIn('(up-remove-objects search-local object-data-order == orderid-enter)',
+                original,f'site {site["id"]} commands passengers without the enter-order guard')
+        self.assertGreaterEqual(guarded,17)
+
+    def test_passenger_task_selections_bar_laden_villagers(self):
+        """514: a villager carrying resources is not admitted to the transport
+        boarding command. T78/T80: every sustained ORDER storm follows a laden
+        passenger that actually boards, and the carried load is what leaves the
+        native return intent alive inside the hull. Laden units stay with the
+        economy (no stop/reset/idle) and re-enter the boarding list once their
+        carry reaches zero."""
+        registry=json.loads((ROOT/'command-boundary-registry.json').read_text())
+        guarded=0
+        for site in registry['sites']:
+            original=site.get('original') or ''
+            if 'migration-boarding-group' not in original:
+                continue
+            if not re.search(r'\(up-target-objects 0 action-garrison ',original):
+                continue
+            guarded+=1
+            self.assertIn('(up-remove-objects search-local object-data-carry > 0)',
+                original,f'site {site["id"]} boards passengers without the laden filter')
+            # The filter is an admission rule only: no release, stop or reset.
+            for command in ('(up-reset-unit','action-stop','(up-retreat-now',
+                            '(up-retreat-to','(up-delete-idle-units','(up-ungarrison'):
+                self.assertNotIn(command,original,
+                    f'site {site["id"]} mixes {command} into boarding admission')
+        self.assertGreaterEqual(guarded,11)
+
+    def test_migration_boarding_issuance_always_bars_entering_passengers(self):
+        """215629: actor p4 34669 was commanded into the migration hull 42461 by
+        MIGRATION-RENDEZVOUS-PASSENGER (writers 25/21, 2833-2849 s) while its own
+        state was already `actionid-enter`/`orderid-enter` toward hull 36219, and
+        it then stormed for 46,911 ORDER packets. The four migration
+        boarding-issue sites applied the 514 zero-carry filter but omitted the
+        entering guard that every sibling boarding site carries, so a passenger
+        already entering one transport was re-commanded into a second hull. The
+        guard is required of every site that commands a migration-boarding-group
+        list, not only of the sites that also rebuild it via fe-filter-garrisoned.
+        """
+        registry=json.loads((ROOT/'command-boundary-registry.json').read_text())
+        guarded=0
+        for site in registry['sites']:
+            original=site.get('original') or ''
+            if 'object-data-group-flag != migration-boarding-group' not in original:
+                continue
+            if not re.search(r'\(up-target-objects 0 action-garrison ',original):
+                continue
+            guarded+=1
+            self.assertIn('(up-remove-objects search-local object-data-action == actionid-enter)',
+                original,f'site {site["id"]} commands migration passengers without the enter guard')
+            self.assertIn('(up-remove-objects search-local object-data-order == orderid-enter)',
+                original,f'site {site["id"]} commands migration passengers without the enter-order guard')
+        self.assertEqual(guarded,11)
+
+    def test_attack_lift_passenger_selections_bar_entering_units(self):
+        """190351: the attack lift re-ordered a rotating subset of
+        attack-boarding-group every ~4 s (10-18 distinct units, single units up to
+        47 times, first and last packet sets disjoint) and finished with 0-4
+        soldiers aboard at the deadline, so the hull aborted and stranded. The
+        stock-AI guard that bars units already entering a transport now applies to
+        the attack lift list exactly as it does to every migration selection."""
+        registry=json.loads((ROOT/'command-boundary-registry.json').read_text())
+        guarded=0
+        for site in registry['sites']:
+            original=site.get('original') or ''
+            if 'attack-boarding-group' not in original:
+                continue
+            if not re.search(r'\(up-target-objects 0 action-garrison ',original):
+                continue
+            guarded+=1
+            self.assertIn('(up-remove-objects search-local object-data-action == actionid-enter)',
+                original,f'site {site["id"]} boards attackers without the enter guard')
+            self.assertIn('(up-remove-objects search-local object-data-order == orderid-enter)',
+                original,f'site {site["id"]} boards attackers without the enter-order guard')
+        self.assertGreaterEqual(guarded,7)
+
 if __name__=='__main__':
     unittest.main()

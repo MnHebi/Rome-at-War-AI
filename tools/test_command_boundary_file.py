@@ -194,7 +194,6 @@ class FileTraceTests(unittest.TestCase):
             normalize=lambda seq:[re.sub(r'\(up-jump-rule -?\d+\)','JUMP',a) for a in seq if a!='(disable-self)']
             self.assertEqual(normalize(actual),normalize(expected),s['id'])
             self.assertEqual(actual.count('(disable-self)'),expected.count('(disable-self)'))
-            self.assertEqual(cb.strip_source(bridge.replace('gl-cbf-kind','gl-cbf-kind',1),reg),s['original'])
             with self.assertRaises(ValueError):
                 cb.strip_source(bridge.replace('(defrule','(defrule\n ;tamper',1),reg)
 

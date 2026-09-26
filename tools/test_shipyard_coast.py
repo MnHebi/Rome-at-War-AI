@@ -205,7 +205,7 @@ class ShipyardTests(unittest.TestCase):
         self.assertEqual(CANDIDATE_RADIUS,14)
         self.assertEqual(MAX_CANDIDATE_ATTEMPTS,8)
         self.assertEqual(generated.count('(generate-random-number 29)'),2*SHORE_DRAWS)
-        self.assertIn('(up-can-build-line 0 gl-shipyard-x c: shipyard)',generated)
+        self.assertIn('(up-can-build-line gl-no-escrow-state gl-shipyard-x c: shipyard)',generated)
         self.assertIn('(up-filter-distance c: -1 c: 10)',generated)
         self.assertIn('(up-path-distance gl-sy-w1-x 1 == 65535)',generated)
         self.assertIn('(up-path-distance gl-sy-w5-x 1 == 65535)',generated)

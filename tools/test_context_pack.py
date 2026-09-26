@@ -62,21 +62,27 @@ class ContextMetadataTests(unittest.TestCase):
         self.assertNotIn("migration.productive-dropsite", packet)
         self.assertNotIn("RAWAI-P3B44T10R4:455", packet)
 
-    def test_task_packet_preserves_order_and_runtime_boundary(self) -> None:
+    def test_dependency_closure_preserves_declared_order_within_bounds(self) -> None:
+        # Controlled graph: order and depth are program behavior; the current
+        # backlog topic list is task data and must not be frozen here.
+        nodes = {
+            "a": {"id": "a", "depends_on": ["b", "c"]},
+            "b": {"id": "b", "depends_on": ["d"]},
+            "c": {"id": "c"},
+            "d": {"id": "d", "depends_on": ["c"]},
+        }
+        self.assertEqual(context_pack.node_closure("a", nodes, 0), ["a"])
+        self.assertEqual(context_pack.node_closure("a", nodes, 1), ["a", "b", "c"])
+        self.assertEqual(context_pack.node_closure("a", nodes, 2), ["a", "b", "c", "d"])
+
+    def test_task_packet_keeps_runtime_and_source_identity_distinct(self) -> None:
         packet = context_pack.render_context("task.t52-runtime", "runtime-analyst")
-        positions = [
-            packet.index("Shipyard recovery"),
-            packet.index("first Villager order-706 onset"),
-            packet.index("assault preparation aborts"),
-            packet.index("migration drop-site productivity"),
-            packet.index("Merchant right-of-way real-choke exercise"),
-            packet.index("expeditionary commitment reassessment"),
-        ]
-        self.assertEqual(positions, sorted(positions))
-        self.assertIn("Telemetry presence alone does not close", packet)
-        state=json.loads((ROOT / "context" / "project-state.json").read_text(encoding="utf-8"))
-        self.assertIn(state['repository']['runtime_marker'], packet)
-        self.assertIn("Never attribute undeployed repairs", packet)
+        state = json.loads((ROOT / "context" / "project-state.json").read_text(encoding="utf-8"))
+        repository = state["repository"]
+        self.assertIn(f"`{repository['runtime_marker']}`", packet)
+        self.assertIn(f"`{repository['runtime_source_commit']}`", packet)
+        self.assertNotEqual(repository["runtime_marker"], repository["runtime_source_commit"])
+        self.assertIn(state["current_task"], packet)
 
     def test_role_packet_excludes_full_history_by_policy(self) -> None:
         packet = context_pack.render_context("subsystem.assault-transport", "reviewer")
