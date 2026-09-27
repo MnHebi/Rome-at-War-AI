@@ -21,6 +21,10 @@ def normalized(facts,actions):
         r'\(up-get-object-data object-data-id gl-board-diag-issued-actor\)\s*'
         r'\(set-goal gl-board-diag-issued \d+\)', '',actions)
     actions=actions.replace(SET_CTRL,'').replace(RESET_KEYS,'')
+    # STOP/scout counters are instrumentation, not a gameplay contract, and the
+    # mining/non-mining twins must stay digest-identical.
+    actions=re.sub(r'; RAW12 counter \d+\s*','',actions)
+    actions=re.sub(r'\(up-modify-goal gl-command-counter-\d+ c:\+ 1\)','',actions)
     # Existing phase chat moved to the adjacent observer solely for rule size.
     actions=re.sub(r'\(up-chat-data[^\n]*', '',actions)
     return ' '.join((facts+actions).split())

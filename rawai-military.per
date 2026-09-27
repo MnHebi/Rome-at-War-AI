@@ -5536,6 +5536,7 @@
 	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
 	(up-remove-objects search-remote object-data-player != my-player-number)
 	(up-remove-objects search-remote object-data-group-flag != migration-transport-group)
+	(up-modify-goal gl-command-counter-27 c:+ 1)
 	(up-target-objects 0 action-stop -1 stance-no-attack)
 )
 (defrule
@@ -5686,6 +5687,7 @@
 	(up-add-object-by-id search-remote g: gl-island-migration-transport-id)
 	(up-remove-objects search-remote object-data-player != my-player-number)
 	(up-remove-objects search-remote object-data-group-flag != migration-transport-group)
+	(up-modify-goal gl-command-counter-28 c:+ 1)
 	(up-target-objects 0 action-stop -1 stance-no-attack)
 )
 (defrule
@@ -6151,6 +6153,7 @@
 	(up-remove-objects search-local object-data-action == actionid-enter)
 	(up-remove-objects search-local object-data-order == orderid-enter)
 	(up-remove-objects search-local object-data-carry > 0)
+	(up-modify-goal gl-command-counter-29 c:+ 1)
 	(up-target-objects 0 action-stop -1 stance-no-attack)
 )
 (defrule
@@ -6293,6 +6296,7 @@
 	(up-remove-objects search-local object-data-action == actionid-enter)
 	(up-remove-objects search-local object-data-order == orderid-enter)
 	(up-remove-objects search-local object-data-carry > 0)
+	(up-modify-goal gl-command-counter-30 c:+ 1)
 	(up-target-objects 0 action-stop -1 stance-no-attack)
 )
 (defrule
@@ -6574,6 +6578,7 @@
 	(up-remove-objects search-local object-data-action == actionid-enter)
 	(up-remove-objects search-local object-data-order == orderid-enter)
 	(up-remove-objects search-local object-data-carry > 0)
+	(up-modify-goal gl-command-counter-31 c:+ 1)
 	(up-target-objects 0 action-stop -1 stance-no-attack)
 )
 (defrule
@@ -6764,6 +6769,7 @@
 	(up-remove-objects search-local object-data-action == actionid-enter)
 	(up-remove-objects search-local object-data-order == orderid-enter)
 	(up-remove-objects search-local object-data-carry > 0)
+	(up-modify-goal gl-command-counter-32 c:+ 1)
 	(up-target-objects 0 action-stop -1 stance-no-attack)
 )
 (defrule
@@ -7625,6 +7631,7 @@
 	(up-remove-objects search-remote object-data-id g:!= gl-island-migration-transport-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-modify-goal gl-command-counter-33 c:+ 1)
 	(up-target-objects 0 action-stop -1 stance-no-attack)
 )
 (defrule
@@ -7727,6 +7734,7 @@
 	(up-remove-objects search-remote object-data-id g:!= gl-island-migration-transport-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-modify-goal gl-command-counter-34 c:+ 1)
 	(up-target-objects 0 action-stop -1 stance-no-attack)
 )
 (defrule
@@ -12306,6 +12314,7 @@
 	(up-remove-objects search-remote object-data-id g:!= gl-island-migration-transport-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-modify-goal gl-command-counter-35 c:+ 1)
 	(up-target-objects 0 action-stop -1 stance-no-attack)
 )
 (defrule
@@ -12410,6 +12419,7 @@
 	(up-remove-objects search-remote object-data-id g:!= gl-island-migration-transport-id)
 	(up-remove-objects search-local object-data-player != my-player-number)
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-modify-goal gl-command-counter-36 c:+ 1)
 	(up-target-objects 0 action-stop -1 stance-no-attack)
 )
 (defrule
@@ -18006,6 +18016,7 @@
 	(goal gl-cbf-cont 1614)
 =>
 	(up-remove-objects search-local object-data-group-flag != migration-boarding-group)
+	(up-modify-goal gl-command-counter-37 c:+ 1)
 	(up-target-objects 0 action-stop -1 stance-no-attack)
 )
 (defrule
@@ -30264,7 +30275,7 @@
 (defrule
 	(up-timer-status t-mil-pop-check == timer-disabled)
 =>
-	(enable-timer t-mil-pop-check 60)
+	(enable-timer t-mil-pop-check 30)
 	(chat-local-to-self "start military population check timer")
 )
 
@@ -30276,6 +30287,11 @@
 	(set-goal milcheck-concluded BEGAN)
 	(up-modify-goal gl-team-combined-mil-pop c:= 0)
 	(up-modify-goal gl-team-combined-navy c:= 0)
+
+;T157: the candidate from the census that just ended is the reference the new
+;one must agree with, which is what makes a rung change need two polls.
+(up-modify-goal gl-parity-prev g:= gl-parity-candidate)
+(up-modify-goal gl-parity-prev-navy g:= gl-parity-candidate-navy)
 	(chat-local-to-self "start checking military populations")
 )
 
@@ -30297,12 +30313,31 @@
 	(chat-local-to-self "military population check, own team done")
 )
 
+;T157: no enemy is in game, so there is no army to compare against. Zero the
+;totals rather than summing whatever a departed player still owns.
+(defrule
+	(and
+		(goal check-mil-pop YES)
+		(goal milcheck-concluded OWN)
+	)
+	(not (player-in-game any-enemy))
+=>
+	(up-modify-goal gl-enemy-team-military-population c:= 0)
+	(up-modify-goal gl-enemy-team-navy c:= 0)
+	(up-modify-goal gl-enemy-team-mil-pop-divided c:= 0)
+	(up-modify-goal gl-enemy-team-navy-divided c:= 0)
+	(set-goal milcheck-concluded ENEMY)
+)
+
 (defrule
 	(and
 		(goal check-mil-pop YES)
 		(goal milcheck-concluded OWN)
 	)
 =>
+	;T157: a fact sum cannot exclude a defeated player, so the census only runs while
+	;an enemy is still in game; with none left the comparison is moot.
+	(player-in-game any-enemy)
 	(up-get-fact-sum any-enemy soldier-count 0 gl-enemy-team-military-population)
 	(up-get-fact-sum any-enemy warboat-count 0 gl-enemy-team-navy)
 	(up-get-fact-sum any-enemy soldier-count 0 gl-enemy-team-mil-pop-divided)
@@ -30319,286 +30354,245 @@
 =>
 	(up-modify-goal gl-enemy-team-mil-pop-divided c:z/ 2)
 	(up-modify-goal gl-enemy-team-navy-divided c:z/ 2)
-	(set-goal milcheck-concluded COMPARISONS)
+	(set-goal milcheck-concluded RATIOS)
 	(chat-local-to-self "military population check, comparisons done")
 )
 
-;land check
-
+;T157 parity: every band is a ratio of own (or team) strength to the enemy's
+;fielded army, so one unit can no longer swing the posture. 200 is the sentinel
+;for "no enemy army to compare against" -- that is SUPERIOR, not a zero ratio.
 (defrule
-	(and
-		(goal team-game NO)
-		(and
-			(goal check-mil-pop YES)
-			(goal milcheck-concluded COMPARISONS)
-		)
-	)
-	(up-compare-goal gl-own-military-population g:< gl-enemy-team-mil-pop-divided)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded RATIOS)
+	(up-compare-goal gl-enemy-team-military-population c:<= 0)
 =>
-	(set-goal military-superiority INFERIOR)
-	(set-goal milcheck-concluded CONCLUDED-LAND)
-	(set-goal land-attack-percentage 10)
-	(chat-local-to-self "military-superiority INFERIOR")
+	(up-modify-goal gl-parity-ratio c:= 200)
 )
 
 (defrule
-	(and
-		(goal team-game YES)
-		(and
-			(goal check-mil-pop YES)
-			(goal milcheck-concluded COMPARISONS)
-		)
-	)
-	(up-compare-goal gl-team-combined-mil-pop g:< gl-enemy-team-mil-pop-divided)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded RATIOS)
+	(goal team-game NO)
+	(up-compare-goal gl-enemy-team-military-population c:> 0)
 =>
-	(set-goal military-superiority INFERIOR)
-	(set-goal milcheck-concluded CONCLUDED-LAND)
-	(set-goal land-attack-percentage 10)
-	(chat-local-to-self "military-superiority INFERIOR")
+	(up-modify-goal gl-parity-ratio g:= gl-own-military-population)
+	(up-modify-goal gl-parity-ratio c:* 100)
+	(up-modify-goal gl-parity-ratio g:z/ gl-enemy-team-military-population)
 )
 
 (defrule
-	(and
-		(goal team-game NO)
-		(and
-			(goal check-mil-pop YES)
-			(goal milcheck-concluded COMPARISONS)
-		)
-	)
-	(up-compare-goal gl-own-military-population g:>= gl-enemy-team-mil-pop-divided)
-	(up-compare-goal gl-own-military-population g:< gl-enemy-team-military-population)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded RATIOS)
+	(goal team-game YES)
+	(up-compare-goal gl-enemy-team-military-population c:> 0)
 =>
-	(set-goal military-superiority TOLERABLE)
-	(set-goal milcheck-concluded CONCLUDED-LAND)
-	(set-goal land-attack-percentage 30)
-	(chat-local-to-self "military-superiority TOLERABLE")
+	(up-modify-goal gl-parity-ratio g:= gl-team-combined-mil-pop)
+	(up-modify-goal gl-parity-ratio c:* 100)
+	(up-modify-goal gl-parity-ratio g:z/ gl-enemy-team-military-population)
 )
 
 (defrule
-	(and
-		(goal team-game YES)
-		(and
-			(goal check-mil-pop YES)
-			(goal milcheck-concluded COMPARISONS)
-		)
-	)
-	(up-compare-goal gl-team-combined-mil-pop g:>= gl-enemy-team-mil-pop-divided)
-	(up-compare-goal gl-team-combined-mil-pop g:< gl-enemy-team-military-population)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded RATIOS)
+	(up-compare-goal gl-enemy-team-navy c:<= 0)
 =>
-	(set-goal military-superiority TOLERABLE)
-	(set-goal milcheck-concluded CONCLUDED-LAND)
-	(set-goal land-attack-percentage 30)
-	(chat-local-to-self "military-superiority TOLERABLE")
+	(up-modify-goal gl-parity-ratio-navy c:= 200)
 )
 
 (defrule
-	(and
-		(goal team-game NO)
-		(and
-			(goal check-mil-pop YES)
-			(goal milcheck-concluded COMPARISONS)
-		)
-	)
-	(up-compare-goal gl-own-military-population g:== gl-enemy-team-military-population)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded RATIOS)
+	(goal team-game NO)
+	(up-compare-goal gl-enemy-team-navy c:> 0)
 =>
-	(set-goal military-superiority EQUAL)
-	(set-goal milcheck-concluded CONCLUDED-LAND)
-	(set-goal land-attack-percentage 50)
-	(chat-local-to-self "military-superiority EQUAL")
+	(up-modify-goal gl-parity-ratio-navy g:= gl-own-navy)
+	(up-modify-goal gl-parity-ratio-navy c:* 100)
+	(up-modify-goal gl-parity-ratio-navy g:z/ gl-enemy-team-navy)
 )
 
 (defrule
-	(and
-		(goal team-game YES)
-		(and
-			(goal check-mil-pop YES)
-			(goal milcheck-concluded COMPARISONS)
-		)
-	)
-	(up-compare-goal gl-team-combined-mil-pop g:== gl-enemy-team-military-population)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded RATIOS)
+	(goal team-game YES)
+	(up-compare-goal gl-enemy-team-navy c:> 0)
 =>
-	(set-goal military-superiority EQUAL)
-	(set-goal milcheck-concluded CONCLUDED-LAND)
-	(set-goal land-attack-percentage 50)
-	(chat-local-to-self "military-superiority EQUAL")
+	(up-modify-goal gl-parity-ratio-navy g:= gl-team-combined-navy)
+	(up-modify-goal gl-parity-ratio-navy c:* 100)
+	(up-modify-goal gl-parity-ratio-navy g:z/ gl-enemy-team-navy)
+)
+
+;The committed share follows the ratio instead of a four-step ladder: 20 % of the
+;enemy commits 10 %, parity commits 50 %, and 160 % commits the 80 % ceiling.
+(defrule
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded RATIOS)
+=>
+	(up-modify-goal land-attack-percentage g:= gl-parity-ratio)
+	(up-modify-goal land-attack-percentage c:z/ 2)
+	(up-modify-goal land-attack-percentage c:min 80)
+	(up-modify-goal land-attack-percentage c:max 10)
+	(up-modify-goal naval-attack-percentage g:= gl-parity-ratio-navy)
+	(up-modify-goal naval-attack-percentage c:z/ 2)
+	(up-modify-goal naval-attack-percentage c:min 80)
+	(up-modify-goal naval-attack-percentage c:max 10)
+	(set-goal milcheck-concluded COMPARISONS)
+)
+
+;land check: below 60 % of the enemy army is hopeless, 60-99 % tolerable,
+;100-119 % equal, 120 % and above superior. The exact-equality rung is gone.
+(defrule
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded COMPARISONS)
+	(up-compare-goal gl-parity-ratio c:< 60)
+=>
+	(set-goal gl-parity-candidate INFERIOR)
+)
+
+
+
+(defrule
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded COMPARISONS)
+	(up-compare-goal gl-parity-ratio c:>= 60)
+	(up-compare-goal gl-parity-ratio c:< 100)
+=>
+	(set-goal gl-parity-candidate TOLERABLE)
 )
 
 (defrule
-	(and
-		(goal team-game NO)
-		(and
-			(goal check-mil-pop YES)
-			(goal milcheck-concluded COMPARISONS)
-		)
-	)
-	(up-compare-goal gl-own-military-population g:> gl-enemy-team-military-population)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded COMPARISONS)
+	(up-compare-goal gl-parity-ratio c:>= 100)
+	(up-compare-goal gl-parity-ratio c:< 120)
 =>
-	(set-goal military-superiority SUPERIOR)
-	(set-goal milcheck-concluded CONCLUDED-LAND)
-	(set-goal land-attack-percentage 80)
-	(chat-local-to-self "military-superiority SUPERIOR")
+	(set-goal gl-parity-candidate EQUAL)
 )
 
 (defrule
-	(and
-		(goal team-game YES)
-		(and
-			(goal check-mil-pop YES)
-			(goal milcheck-concluded COMPARISONS)
-		)
-	)
-	(up-compare-goal gl-team-combined-mil-pop g:> gl-enemy-team-military-population)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded COMPARISONS)
+	(up-compare-goal gl-parity-ratio c:>= 120)
 =>
-	(set-goal military-superiority SUPERIOR)
-	(set-goal milcheck-concluded CONCLUDED-LAND)
-	(set-goal land-attack-percentage 80)
-	(chat-local-to-self "military-superiority SUPERIOR")
+	(set-goal gl-parity-candidate SUPERIOR)
 )
 
 ;navy check
-
 (defrule
-	(and
-		(goal team-game NO)
-		(and
-			(goal check-mil-pop YES)
-			(goal milcheck-concluded CONCLUDED-LAND)
-		)
-	)
-	(or
-		(up-compare-goal gl-own-navy g:< gl-enemy-team-navy-divided)
-		(and
-			(up-compare-goal gl-own-navy c:<= 0)
-			(up-compare-goal gl-enemy-team-navy c:> 0)
-		)
-	)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded COMPARISONS)
+	(up-compare-goal gl-parity-ratio-navy c:< 60)
 =>
-	(set-goal naval-superiority INFERIOR)
-	(set-goal milcheck-concluded CONCLUDED-NAVY)
-	(set-goal naval-attack-percentage 10)
-	(chat-local-to-self "naval-superiority INFERIOR")
+	(set-goal gl-parity-candidate-navy INFERIOR)
 )
 
 (defrule
-	(and
-		(goal team-game YES)
-		(and
-			(goal check-mil-pop YES)
-			(goal milcheck-concluded CONCLUDED-LAND)
-		)
-	)
-	(or
-		(up-compare-goal gl-team-combined-navy g:< gl-enemy-team-navy-divided)
-		(and
-			(up-compare-goal gl-team-combined-navy c:<= 0)
-			(up-compare-goal gl-enemy-team-navy c:> 0)
-		)
-	)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded COMPARISONS)
+	(up-compare-goal gl-parity-ratio-navy c:>= 60)
+	(up-compare-goal gl-parity-ratio-navy c:< 100)
 =>
-	(set-goal naval-superiority INFERIOR)
-	(set-goal milcheck-concluded CONCLUDED-NAVY)
-	(set-goal naval-attack-percentage 10)
-	(chat-local-to-self "naval-superiority INFERIOR")
+	(set-goal gl-parity-candidate-navy TOLERABLE)
 )
 
 (defrule
-	(and
-		(goal team-game NO)
-		(and
-			(goal check-mil-pop YES)
-			(goal milcheck-concluded CONCLUDED-LAND)
-		)
-	)
-	(up-compare-goal gl-own-navy g:>= gl-enemy-team-navy-divided)
-	(up-compare-goal gl-own-navy c:> 0)
-	(up-compare-goal gl-own-navy g:< gl-enemy-team-navy)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded COMPARISONS)
+	(up-compare-goal gl-parity-ratio-navy c:>= 100)
+	(up-compare-goal gl-parity-ratio-navy c:< 120)
 =>
-	(set-goal naval-superiority TOLERABLE)
-	(set-goal milcheck-concluded CONCLUDED-NAVY)
-	(set-goal naval-attack-percentage 30)
-	(chat-local-to-self "naval-superiority TOLERABLE")
+	(set-goal gl-parity-candidate-navy EQUAL)
 )
 
 (defrule
-	(and
-		(goal team-game YES)
-		(and
-			(goal check-mil-pop YES)
-			(goal milcheck-concluded CONCLUDED-LAND)
-		)
-	)
-	(up-compare-goal gl-team-combined-navy g:>= gl-enemy-team-navy-divided)
-	(up-compare-goal gl-team-combined-navy c:> 0)
-	(up-compare-goal gl-team-combined-navy g:< gl-enemy-team-navy)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded COMPARISONS)
+	(up-compare-goal gl-parity-ratio-navy c:>= 120)
 =>
-	(set-goal naval-superiority TOLERABLE)
-	(set-goal milcheck-concluded CONCLUDED-NAVY)
-	(set-goal naval-attack-percentage 30)
-	(chat-local-to-self "naval-superiority TOLERABLE")
+	(set-goal gl-parity-candidate-navy SUPERIOR)
+)
+
+;Two consecutive censuses must agree before a rung changes, so one sample taken
+;mid-battle cannot flip the whole posture.
+(defrule
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded COMPARISONS)
+	(up-compare-goal gl-parity-candidate g:== gl-parity-prev)
+=>
+	(up-modify-goal military-superiority g:= gl-parity-candidate)
 )
 
 (defrule
-	(and
-		(goal team-game NO)
-		(and
-			(goal check-mil-pop YES)
-			(goal milcheck-concluded CONCLUDED-LAND)
-		)
-	)
-	(up-compare-goal gl-own-navy g:== gl-enemy-team-navy)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded COMPARISONS)
+	(up-compare-goal gl-parity-candidate-navy g:== gl-parity-prev-navy)
 =>
-	(set-goal naval-superiority EQUAL)
-	(set-goal milcheck-concluded CONCLUDED-NAVY)
-	(set-goal naval-attack-percentage 50)
-	(chat-local-to-self "naval-superiority EQUAL")
+	(up-modify-goal naval-superiority g:= gl-parity-candidate-navy)
+)
+
+;T157 measure 5: parity is a two-way signal. Being behind is a reason to spend
+;differently, not only to attack less. Held off until the opening is over so the
+;first census cannot read as hopeless before anything has been measured.
+(defrule
+	(game-time > 300)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded COMPARISONS)
+	(goal military-superiority INFERIOR)
+=>
+	(set-goal gl-parity-army-priority 2)
 )
 
 (defrule
-	(and
-		(goal team-game YES)
-		(and
-			(goal check-mil-pop YES)
-			(goal milcheck-concluded CONCLUDED-LAND)
-		)
-	)
-	(up-compare-goal gl-team-combined-navy g:== gl-enemy-team-navy)
+	(game-time > 300)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded COMPARISONS)
+	(goal military-superiority TOLERABLE)
 =>
-	(set-goal naval-superiority EQUAL)
-	(set-goal milcheck-concluded CONCLUDED-NAVY)
-	(set-goal naval-attack-percentage 50)
-	(chat-local-to-self "naval-superiority EQUAL")
+	(set-goal gl-parity-army-priority 1)
 )
 
 (defrule
-	(and
-		(goal team-game NO)
-		(and
-			(goal check-mil-pop YES)
-			(goal milcheck-concluded CONCLUDED-LAND)
-		)
-	)
-	(up-compare-goal gl-own-navy g:> gl-enemy-team-navy)
+	(game-time > 300)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded COMPARISONS)
+	(up-compare-goal military-superiority c:>= EQUAL)
 =>
-	(set-goal naval-superiority SUPERIOR)
-	(set-goal milcheck-concluded CONCLUDED-NAVY)
-	(set-goal naval-attack-percentage 80)
-	(chat-local-to-self "naval-superiority SUPERIOR")
+	(set-goal gl-parity-army-priority 0)
 )
 
 (defrule
-	(and
-		(goal team-game YES)
-		(and
-			(goal check-mil-pop YES)
-			(goal milcheck-concluded CONCLUDED-LAND)
-		)
-	)
-	(up-compare-goal gl-team-combined-navy g:> gl-enemy-team-navy)
+	(goal check-mil-pop YES)
+	(goal milcheck-concluded COMPARISONS)
 =>
-	(set-goal naval-superiority SUPERIOR)
 	(set-goal milcheck-concluded CONCLUDED-NAVY)
-	(set-goal naval-attack-percentage 80)
-	(chat-local-to-self "naval-superiority SUPERIOR")
+)
+
+;T157 measure 4b: a census can be half a minute old in the middle of a fight.
+;The loss sampler already reports soldiers lost this window, so a real loss
+;re-runs the census instead of waiting for the next poll.
+(defrule
+	(up-timer-status t-check-losses == timer-triggered)
+	(up-compare-goal gl-current-soldier-losses c:>= 8)
+	(up-timer-status t-mil-pop-check == timer-running)
+=>
+	(up-set-timer c: t-mil-pop-check c: 1)
+)
+
+;T157 measure 5 cont.: while hopelessly behind, insist on a real army before
+;committing it; the phase writers own the value at every other rung.
+(defrule
+	(goal gl-parity-army-priority 2)
+	(up-compare-goal land-attack-requirement c:< gl-five-percent)
+=>
+	(up-modify-goal land-attack-requirement g:= gl-five-percent)
+	(up-modify-goal naval-attack-requirement g:= gl-five-percent)
+)
+
+(defrule
+	(up-compare-goal gl-parity-army-priority c:< 2)
+	(up-compare-goal land-attack-requirement g:== gl-five-percent)
+=>
+	(up-modify-goal land-attack-requirement g:= gl-one-percent)
+	(up-modify-goal naval-attack-requirement g:= gl-one-percent)
 )
 
 ;The superiority checks above still measure a support fleet for defensive
@@ -32660,6 +32654,7 @@
 		(gold-amount < 500)
 	)
 	(goal train-type MAIN)
+	(goal gl-parity-army-priority 2)
 =>
 	(chat-local-to-self "unit type switch to TRASH")
 	(set-goal train-type TRASH)
