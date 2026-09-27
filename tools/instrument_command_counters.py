@@ -42,7 +42,7 @@ def render():
             if code is None:
                 code, next_code = next_code, next_code + 1
             kind = 'reset-scouts' if '(up-reset-scouts)' in actions else 'STOP'
-            sites.append((code, path.name, kind, ' '.join(facts.split())[:170]))
+            sites.append((code, path.name, kind, ' '.join(facts.split())[:170].rstrip()))
             command = re.search(r'\((?:up-target-(?:point|objects)[^\n]*action-stop[^\n]*|up-reset-scouts)\)', body)
             assert command, (path, kind)
             at = base.rfind('\n', 0, a + command.start()) + 1
