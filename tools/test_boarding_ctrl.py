@@ -143,12 +143,45 @@ class BoardingCtrlTests(unittest.TestCase):
             guarded+=1
             self.assertIn('(up-remove-objects search-local object-data-carry > 0)',
                 original,f'site {site["id"]} boards passengers without the laden filter')
-            # The filter is an admission rule only: no release, stop or reset.
-            for command in ('(up-reset-unit','action-stop','(up-retreat-now',
-                            '(up-retreat-to','(up-delete-idle-units','(up-ungarrison'):
+            # T146 replaced the old "admission only" rule: the passengers are now
+            # stopped before boarding, but a map-wide or destructive release is
+            # still forbidden here.
+            for command in ('(up-reset-unit','(up-retreat-now','(up-retreat-to',
+                            '(up-delete-idle-units','(up-ungarrison'):
                 self.assertNotIn(command,original,
                     f'site {site["id"]} mixes {command} into boarding admission')
         self.assertGreaterEqual(guarded,11)
+
+    def test_no_villager_boards_with_a_leftover_task(self):
+        """T146: no villager that goes into a transport keeps a task or assignment.
+
+        Every site that commands `migration-boarding-group` passengers issues the
+        stock-AI list-anchored stop (Promisory's own idiom; `up-reset-unit` is
+        map-wide by unit type, so it cannot express a passenger list) immediately
+        before the boarding command, ahead of the `sn-keystates` wrapper where one
+        is present. Carry is already zero for every admitted passenger, so nothing
+        can be dropped, and a released unit falls back to the bounded economy
+        passes.
+        """
+        registry=json.loads((ROOT/'command-boundary-registry.json').read_text())
+        stop='(up-target-objects 0 action-stop -1 stance-no-attack)'
+        garrison='(up-target-objects 0 action-garrison -1 stance-no-attack)'
+        guarded=0
+        for site in registry['sites']:
+            original=site.get('original') or ''
+            actions=site.get('actions') or []
+            if 'migration-boarding-group' not in original or garrison not in actions:
+                continue
+            guarded+=1
+            index=actions.index(garrison)
+            before=actions[index-1]
+            if before == '(set-strategic-number sn-keystates 2)':
+                before=actions[index-2]
+            self.assertEqual(before,stop,
+                f'site {site["id"]} orders passengers aboard without quiescing them first')
+            self.assertLess(original.index(stop),original.index(garrison),
+                f'site {site["id"]} quiesces after the boarding order')
+        self.assertEqual(guarded,11)
 
     def test_migration_boarding_issuance_always_bars_entering_passengers(self):
         """215629: actor p4 34669 was commanded into the migration hull 42461 by

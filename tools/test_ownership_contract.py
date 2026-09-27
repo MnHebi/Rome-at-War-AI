@@ -124,7 +124,9 @@ class OwnershipContractTests(unittest.TestCase):
             m = FilterMachine([unit(1, 11), unit(2, 4), unit(3, 13),
                                unit(4, 11, carry=5)])
             m.run(row[4])
-            self.assertEqual(m.commands, [[1]])
+            # T146: the released passengers are stopped before they are ordered
+            # aboard, so the same protected list is commanded twice.
+            self.assertEqual(m.commands, [[1], [1]])
 
     def test_selection_to_reservation_race_refuses_worker_command(self):
         row = select('rawai-homebase.per', '(goal gl-farm-staffing-state FARM-STAFFING-CHECK-IDLE)', 'up-target-objects')

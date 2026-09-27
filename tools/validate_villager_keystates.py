@@ -14,6 +14,10 @@ SET_CTRL = "(set-strategic-number sn-keystates 2)"
 RESET_KEYS = "(set-strategic-number sn-keystates 0)"
 RETASK = "(up-target-objects 0 action-default -1 stance-no-attack)"
 CARRY_RECHECK = "(up-remove-objects search-local object-data-carry > 0)"
+BOARD_STOP = "(up-target-objects 0 action-stop -1 stance-no-attack)"
+BOARD_GARRISON = "(up-target-objects 0 action-garrison -1 stance-no-attack)"
+FORBIDDEN_RELEASE = ("(up-reset-unit", "(up-retreat-now", "(up-retreat-to",
+                     "(up-delete-idle-units", "(up-ungarrison")
 EXPECTED_STATES = {
     "FARM-STAFFING-CHECK-FISHERMAN",
     "FARM-STAFFING-CHECK-IDLE",
@@ -36,6 +40,7 @@ def validate_repository(root: Path = ROOT) -> list[str]:
     issues: list[str] = []
     wrappers: list[tuple[str, str]] = []
     modifier_lines: list[tuple[str, str]] = []
+    boardings: list[tuple[str, list[str]]] = []
     for path in sorted(root.glob("*.per")):
         text = path.read_text(encoding="utf-8-sig")
         for raw in text.splitlines():
@@ -62,6 +67,8 @@ def validate_repository(root: Path = ROOT) -> list[str]:
             if boarding:
                 state_match = re.search(r'\(goal gl-island-migration-state ([^)]+)\)', facts)
                 state = state_match.group(1) if state_match else '<no-migration-state>'
+                if 'migration-boarding-group' in actions and BOARD_GARRISON in semantic:
+                    boardings.append((state, semantic))
             for index, action in enumerate(semantic):
                 match = re.fullmatch(
                     r"\(set-strategic-number sn-keystates (-?\d+)\)", action
@@ -103,6 +110,29 @@ def validate_repository(root: Path = ROOT) -> list[str]:
         issues.append(f"Ctrl wrapper boundary mismatch; missing={missing}, extra={extra}")
     if sum(line == RESET_KEYS for _path, line in modifier_lines) != 9:
         issues.append("each of the 9 Ctrl wrappers must have exactly one reset")
+
+    # T146: no villager that goes into a transport keeps a task or assignment.
+    if len(boardings) != 11:
+        issues.append(f"expected exactly 11 migration boarding commands, found {len(boardings)}")
+    for state, semantic in boardings:
+        index = semantic.index(BOARD_GARRISON)
+        if index == 0:
+            issues.append(f"rawai-military.per:{state}: boarding command has no preceding action")
+            continue
+        before = semantic[index - 1]
+        if before == SET_CTRL:
+            before = semantic[index - 2] if index >= 2 else ""
+        if before != BOARD_STOP:
+            issues.append(
+                f"rawai-military.per:{state}: passengers are ordered aboard without the "
+                "list-anchored stop that clears their task first"
+            )
+        for forbidden in FORBIDDEN_RELEASE:
+            if any(forbidden in action for action in semantic):
+                issues.append(
+                    f"rawai-military.per:{state}: boarding mixes {forbidden} into the "
+                    "passenger selection"
+                )
 
     for forbidden in (
         "rawai-hunt.per",

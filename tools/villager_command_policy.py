@@ -47,7 +47,14 @@ def inventory(root=ROOT):
                 last_modifier=re.findall(r'sn-keystates ([02])', prefix)
                 modifier=int(last_modifier[-1]) if last_modifier else 0
                 action=re.search(r' action-[\w-]+',command).group().strip()
-                if modifier==2:
+                if (action=='action-stop' and 'migration-boarding-group' in actions
+                        and 'action-garrison' in actions):
+                    # T146: no villager boards a transport with a leftover task.
+                    policy='T146: pre-boarding quiescence'
+                    assessment=('Stock-AI list-anchored stop issued immediately before the boarding '
+                                'order; every admitted passenger already carries nothing, and a '
+                                'released unit falls back to the bounded economy passes.')
+                elif modifier==2:
                     policy='EXPERIMENT: mining boarding' if action=='action-garrison' else 'EXISTING: zero-carry economy'
                     assessment='Ctrl2 issuance semantics documented; family runtime effect unproven.'
                 else:
