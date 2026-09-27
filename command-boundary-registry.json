@@ -1664,7 +1664,7 @@
     {
       "id": 1045,
       "file": "rawai-customconstants.per",
-      "line": 2359,
+      "line": 2362,
       "jump_only": false,
       "facts": "(goal gl-owner-worker-hold NO)\n\t(true)",
       "actions": [
@@ -1681,7 +1681,10 @@
         "(set-strategic-number sn-percent-civilian-explorers 100)",
         "(set-strategic-number sn-defense-distance 12)",
         "(set-strategic-number sn-sentry-distance 12)",
-        "(set-strategic-number sn-percent-enemy-sighted-response 100)",
+        "(set-strategic-number sn-sentry-distance-variation 0)",
+        "(set-strategic-number sn-local-targeting-mode 1)",
+        "(set-strategic-number sn-gather-idle-soldiers-at-center 1)",
+        "(set-strategic-number sn-percent-enemy-sighted-response 60)",
         "(set-strategic-number sn-number-explore-groups 0)",
         "(set-strategic-number sn-percent-attack-soldiers 0)",
         "(set-strategic-number sn-percent-attack-boats 0)",
@@ -1774,7 +1777,7 @@
           "legacy_boarding_writer": null
         },
         {
-          "index": 20,
+          "index": 23,
           "id": 1051,
           "command": "(set-strategic-number sn-total-number-explorers 0)",
           "indirect": true,
@@ -1787,9 +1790,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(true)\n=>\n\t(set-strategic-number sn-maximum-food-drop-distance 0)\n\t(set-strategic-number sn-maximum-wood-drop-distance 0)\n\t(set-strategic-number sn-maximum-gold-drop-distance 0)\n\t(set-strategic-number sn-maximum-hunt-drop-distance 0)\n\t(set-strategic-number sn-maximum-stone-drop-distance 0)\n\t(set-strategic-number sn-food-gatherer-percentage 0)\n\t(set-strategic-number sn-wood-gatherer-percentage 0)\n\t(set-strategic-number sn-gold-gatherer-percentage 0)\n\t(set-strategic-number sn-stone-gatherer-percentage 0)\t\n\t(set-strategic-number sn-cap-civilian-explorers 0)\n\t(set-strategic-number sn-percent-civilian-explorers 100)\n\t(set-strategic-number sn-defense-distance 12)\n\t(set-strategic-number sn-sentry-distance 12)\n\t(set-strategic-number sn-percent-enemy-sighted-response 100)\n\t(set-strategic-number sn-number-explore-groups 0)\n\t(set-strategic-number sn-percent-attack-soldiers 0)\n\t(set-strategic-number sn-percent-attack-boats 0)\n\t(set-strategic-number sn-task-ungrouped-soldiers 0)\n\t(set-strategic-number sn-number-attack-groups 0)\n\t(set-strategic-number sn-enemy-sighted-response-distance 6)\n\t(set-strategic-number sn-total-number-explorers 0)\n\t(set-strategic-number sn-minimum-town-size 0)\n\t(set-strategic-number sn-maximum-town-size 0)\n\t(set-strategic-number sn-enable-offensive-priority 1)\n\t(disable-self)\n)\n",
-      "original_sha256": "6be355a0a2e5a43e6270b9bdc7b558830cff620364479e93419c1711052a9ba7",
-      "emitted_sha256": "085747c54682040a4fabf7c2236277a87fc24138d9bc4a76bde3d847265268e3"
+      "original": "(defrule\n\t(goal gl-owner-worker-hold NO)\n\t(true)\n=>\n\t(set-strategic-number sn-maximum-food-drop-distance 0)\n\t(set-strategic-number sn-maximum-wood-drop-distance 0)\n\t(set-strategic-number sn-maximum-gold-drop-distance 0)\n\t(set-strategic-number sn-maximum-hunt-drop-distance 0)\n\t(set-strategic-number sn-maximum-stone-drop-distance 0)\n\t(set-strategic-number sn-food-gatherer-percentage 0)\n\t(set-strategic-number sn-wood-gatherer-percentage 0)\n\t(set-strategic-number sn-gold-gatherer-percentage 0)\n\t(set-strategic-number sn-stone-gatherer-percentage 0)\t\n\t(set-strategic-number sn-cap-civilian-explorers 0)\n\t(set-strategic-number sn-percent-civilian-explorers 100)\n\t(set-strategic-number sn-defense-distance 12)\n\t(set-strategic-number sn-sentry-distance 12)\n\t(set-strategic-number sn-sentry-distance-variation 0)\n\t(set-strategic-number sn-local-targeting-mode 1)\n\t(set-strategic-number sn-gather-idle-soldiers-at-center 1)\n\t(set-strategic-number sn-percent-enemy-sighted-response 60)\n\t(set-strategic-number sn-number-explore-groups 0)\n\t(set-strategic-number sn-percent-attack-soldiers 0)\n\t(set-strategic-number sn-percent-attack-boats 0)\n\t(set-strategic-number sn-task-ungrouped-soldiers 0)\n\t(set-strategic-number sn-number-attack-groups 0)\n\t(set-strategic-number sn-enemy-sighted-response-distance 6)\n\t(set-strategic-number sn-total-number-explorers 0)\n\t(set-strategic-number sn-minimum-town-size 0)\n\t(set-strategic-number sn-maximum-town-size 0)\n\t(set-strategic-number sn-enable-offensive-priority 1)\n\t(disable-self)\n)\n",
+      "original_sha256": "83ae6e219a84adef753d75be89f7b878a9127820f86907b18d5ad38f20b176b6",
+      "emitted_sha256": "0edb458b4f05f55c750ab0cb563c12431293623ac7e39ccc89343f18eb389b0f"
     },
     {
       "id": 1052,
@@ -7001,6 +7004,7 @@
       "actions": [
         "(set-goal gl-attack-timer-random 0)",
         "(set-goal gl-attack-timer-next 0)",
+        "(set-goal gl-chase-leash-next 0)",
         "(set-goal gl-home-defense-state NO)",
         "(set-goal gl-transport-min-load 5)",
         "(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)",
@@ -7030,7 +7034,7 @@
       ],
       "file_commands": [
         {
-          "index": 10,
+          "index": 11,
           "id": 1265,
           "command": "(set-goal gl-island-migration-state MIGRATION-IDLE)",
           "indirect": true,
@@ -7043,7 +7047,7 @@
           "legacy_boarding_writer": null
         },
         {
-          "index": 11,
+          "index": 12,
           "id": 1266,
           "command": "(set-goal gl-island-migration-transport-id -1)",
           "indirect": true,
@@ -7056,9 +7060,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(true)\n=>\n\t(set-goal gl-attack-timer-random 0)\n\t(set-goal gl-attack-timer-next 0)\n\t(set-goal gl-home-defense-state NO)\n\t(set-goal gl-transport-min-load 5)\n\t(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)\n\t(set-goal gl-transport-route-focus 0)\n\t(set-goal gl-transport-route-left-threats 0)\n\t(set-goal gl-transport-route-right-threats 0)\n\t(set-goal gl-transport-route-random 0)\n\t(set-goal gl-transport-route-id -1)\n\t(set-goal gl-island-migration-state MIGRATION-IDLE)\n\t(set-goal gl-island-migration-transport-id -1)\n\t(set-goal gl-island-migration-focus 0)\n\t(set-goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)\n\t(set-goal gl-transport-repair-id -1)\n\t(set-goal gl-transport-repair-hp 0)\n\t(set-goal gl-transport-repair-maxhp 1)\n\t(set-goal gl-transport-repair-percent 100)\n\t(set-goal gl-transport-repair-focus 0)\n\t;The active roster rotation only accepts known choices. T13 stayed at -1\n\t;because disabling the legacy switcher also removed its implicit bootstrap.\n\t(set-goal ship-train SCOUTSHIP)\n\t(up-set-timer c: t-ship-train c: 12)\n\t(generate-random-number 121)\n\t(up-get-fact random-number 0 gl-age-attack-delay)\n\t(up-modify-goal gl-age-attack-delay c:+ 120)\n\t(generate-random-number 121)\n\t(up-get-fact random-number 0 gl-rush-attack-delay)\n\t(up-modify-goal gl-rush-attack-delay c:+ 300)\n\n\t(disable-self)\n)\n",
-      "original_sha256": "c410e62d641746f4ce77a0f9e1ae7ce85671ac2921b0c32f078113e17b523000",
-      "emitted_sha256": "2974c3e26a128e11efc4b605fec2d49bfff935216881f539b91a4fdbb95fb67a"
+      "original": "(defrule\n\t(true)\n=>\n\t(set-goal gl-attack-timer-random 0)\n\t(set-goal gl-attack-timer-next 0)\n\t(set-goal gl-chase-leash-next 0)\n\t(set-goal gl-home-defense-state NO)\n\t(set-goal gl-transport-min-load 5)\n\t(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)\n\t(set-goal gl-transport-route-focus 0)\n\t(set-goal gl-transport-route-left-threats 0)\n\t(set-goal gl-transport-route-right-threats 0)\n\t(set-goal gl-transport-route-random 0)\n\t(set-goal gl-transport-route-id -1)\n\t(set-goal gl-island-migration-state MIGRATION-IDLE)\n\t(set-goal gl-island-migration-transport-id -1)\n\t(set-goal gl-island-migration-focus 0)\n\t(set-goal gl-transport-repair-state TRANSPORT-REPAIR-IDLE)\n\t(set-goal gl-transport-repair-id -1)\n\t(set-goal gl-transport-repair-hp 0)\n\t(set-goal gl-transport-repair-maxhp 1)\n\t(set-goal gl-transport-repair-percent 100)\n\t(set-goal gl-transport-repair-focus 0)\n\t;The active roster rotation only accepts known choices. T13 stayed at -1\n\t;because disabling the legacy switcher also removed its implicit bootstrap.\n\t(set-goal ship-train SCOUTSHIP)\n\t(up-set-timer c: t-ship-train c: 12)\n\t(generate-random-number 121)\n\t(up-get-fact random-number 0 gl-age-attack-delay)\n\t(up-modify-goal gl-age-attack-delay c:+ 120)\n\t(generate-random-number 121)\n\t(up-get-fact random-number 0 gl-rush-attack-delay)\n\t(up-modify-goal gl-rush-attack-delay c:+ 300)\n\n\t(disable-self)\n)\n",
+      "original_sha256": "b926ec0683c716f3e8429901f5a61dc6d9ceec34703d676e4adc170b713562bb",
+      "emitted_sha256": "a0d01f69236c6870b49db2218d041d1aba05a627c7f2226102efe1d54a9126cf"
     },
     {
       "id": 1267,
@@ -21305,7 +21309,7 @@
       "file": "rawai-military.per",
       "line": 12947,
       "jump_only": false,
-      "facts": "(game-time > 300)\n\t(goal map-type LAND)\n\t(goal gl-home-defense-state NO)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)\n\t(up-compare-goal military-superiority c:>= EQUAL)\n\t(soldier-count g:>= gl-ten-percent)\n\t(up-timer-status t-periodic-attack != timer-running)\n\t(nor\n\t\t(goal current-action ACTION-ATTACK)\n\t\t(goal current-action ACTION-RETREAT)\n\t)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)",
+      "facts": "(game-time > 300)\n\t(goal map-type LAND)\n\t(goal gl-home-defense-state NO)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)\n\t(up-compare-goal military-superiority c:>= TOLERABLE)\n\t(soldier-count g:>= gl-ten-percent)\n\t(up-timer-status t-periodic-attack != timer-running)\n\t(nor\n\t\t(goal current-action ACTION-ATTACK)\n\t\t(goal current-action ACTION-RETREAT)\n\t)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)",
       "actions": [
         "(set-goal current-action ACTION-ATTACK)",
         "(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)",
@@ -21333,9 +21337,9 @@
           "legacy_boarding_writer": null
         }
       ],
-      "original": "(defrule\n\t(game-time > 300)\n\t(goal map-type LAND)\n\t(goal gl-home-defense-state NO)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)\n\t(up-compare-goal military-superiority c:>= EQUAL)\n\t(soldier-count g:>= gl-ten-percent)\n\t(up-timer-status t-periodic-attack != timer-running)\n\t(nor\n\t\t(goal current-action ACTION-ATTACK)\n\t\t(goal current-action ACTION-RETREAT)\n\t)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)\n=>\n\t(set-goal current-action ACTION-ATTACK)\n\t(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)\n\t(chat-local-to-self \"periodic attack\")\n\t(up-modify-sn sn-percent-attack-soldiers g:= land-attack-percentage)\n\t;The periodic land producer is also a global attack-now path. Explicitly\n\t;exclude boats so it cannot steal light fleets from opportunity ownership.\n\t(set-strategic-number sn-percent-attack-boats 0)\n\t(up-modify-sn sn-maximum-town-size c:= 250)\n\t(attack-now)\n\t(up-modify-sn sn-maximum-town-size g:= outer-townsize)\n\t(set-strategic-number sn-percent-attack-soldiers 0)\n\t(set-strategic-number sn-percent-attack-boats 0)\n)\n",
-      "original_sha256": "4ae6d667969e3b200681fe79df359d3705c6628b90180cc2c559ff5f8f86d3f8",
-      "emitted_sha256": "9d0b335d2ad4acaabeaf90c4d3b0740656a0d7b822bd650b34dc5ebb4123f797"
+      "original": "(defrule\n\t(game-time > 300)\n\t(goal map-type LAND)\n\t(goal gl-home-defense-state NO)\n\t(goal gl-attack-escalation-state ATTACK-ESCALATION-NORMAL)\n\t(up-compare-goal military-superiority c:>= TOLERABLE)\n\t(soldier-count g:>= gl-ten-percent)\n\t(up-timer-status t-periodic-attack != timer-running)\n\t(nor\n\t\t(goal current-action ACTION-ATTACK)\n\t\t(goal current-action ACTION-RETREAT)\n\t)\n\t(goal gl-attack-dispatch-owner ATTACK-DISPATCH-NONE)\n=>\n\t(set-goal current-action ACTION-ATTACK)\n\t(set-goal gl-attack-dispatch-owner ATTACK-DISPATCH-COMPLETE)\n\t(chat-local-to-self \"periodic attack\")\n\t(up-modify-sn sn-percent-attack-soldiers g:= land-attack-percentage)\n\t;The periodic land producer is also a global attack-now path. Explicitly\n\t;exclude boats so it cannot steal light fleets from opportunity ownership.\n\t(set-strategic-number sn-percent-attack-boats 0)\n\t(up-modify-sn sn-maximum-town-size c:= 250)\n\t(attack-now)\n\t(up-modify-sn sn-maximum-town-size g:= outer-townsize)\n\t(set-strategic-number sn-percent-attack-soldiers 0)\n\t(set-strategic-number sn-percent-attack-boats 0)\n)\n",
+      "original_sha256": "eb22c73a3dabfacd11ec4faeb1cdf9a570a696161d35692ab8bacce83cac6105",
+      "emitted_sha256": "4f07b9be36e03e6391819d86f4a8541adbc042f7b37cd69d8b4675c63b667eb9"
     },
     {
       "id": 1775,
