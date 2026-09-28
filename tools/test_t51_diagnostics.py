@@ -3,25 +3,16 @@ import re
 import unittest
 from pathlib import Path
 
-from generate_assault_missions import outputs as assault_outputs
-from generate_expedition_admission import outputs as expedition_outputs
-from generate_naval_right_of_way import outputs as row_outputs
-from generate_shipyard_placement import outputs as shipyard_outputs
 from test_pre_backlog import source
 from validate_naval_doctrine import rule_blocks
-from validate_per import validate_file
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class T52DiagnosticTests(unittest.TestCase):
-    def test_generated_sources_are_synchronized(self):
-        generated = {}
-        for producer in (assault_outputs, expedition_outputs, row_outputs, shipyard_outputs):
-            generated.update(producer())
-        for name, text in generated.items():
-            self.assertEqual(source(name), text, name)
-
+    # Generator synchronization and per-file PER validation are single-owner
+    # checks: each subsystem suite compares its own generator output, and
+    # `py -3.12 tools/validate_per.py` validates the whole current payload.
     def test_diagnostics_are_armed_by_real_episodes_not_match_lifetime(self):
         joined = '\n'.join(source(name) for name in (
             'rawai-specialplacement.per', 'rawai-naval-right-of-way.per',
@@ -157,17 +148,6 @@ class T52DiagnosticTests(unittest.TestCase):
         pre_issue = text.index('(up-chat-data-to-all str-t12-diag-id c: 631)')
         command = text.index('(up-target-point gl-row-hold-x action-move -1 stance-no-attack)', pre_issue)
         self.assertLess(pre_issue, command)
-
-    def test_changed_sources_pass_per_validation(self):
-        for name in ('rawai-assault-missions.per', 'rawai-assault-admission.per',
-                     'rawai-assault-mission-defs.per', 'rawai-specialplacement.per',
-                     'rawai-shipyard-defs.per', 'rawai-naval-right-of-way.per',
-                     'rawai-naval-row-defs.per', 'rawai-expedition-admission.per',
-                     'rawai-expedition-budget.per', 'rawai-expedition-defs.per',
-                     'rawai-military.per', 'rawai-exploration-policy.per',
-                     'rawai-customconstants.per'):
-            self.assertEqual(validate_file(ROOT / name), [], name)
-
 
 if __name__ == '__main__':
     unittest.main()

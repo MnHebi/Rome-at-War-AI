@@ -185,7 +185,8 @@ def coverage():
     return rule(['(true)'],[f'(up-get-fact game-time 0 {g("now")})'])+text
 
 
-def support():
+def support_definitions():
+    """Private observation defs/init, shared by legacy and file-mode output."""
     names=NAMES+['b-report','r-report']
     assert BASE+len(names)-1<=16000
     defs=';Generated. Private command observations; no gameplay consumer.\n'
@@ -193,8 +194,14 @@ def support():
     init=''
     for c in chunks([setg(n,1 if n=='enabled' else -2 if n.startswith('p') and '-' in n else 0) for n in names],28):
         init+=rule(['(true)'],c+['(disable-self)'])
-    return {'rawai-command-boundary-defs.per':defs,'rawai-command-boundary-init.per':init,
-            'rawai-command-boundary.per':library(),'rawai-command-boundary-coverage.per':coverage()}
+    return {'rawai-command-boundary-defs.per':defs,'rawai-command-boundary-init.per':init}
+
+
+def support():
+    result=support_definitions()
+    result.update({'rawai-command-boundary.per':library(),
+                   'rawai-command-boundary-coverage.per':coverage()})
+    return result
 
 
 def clean_actions(actions):

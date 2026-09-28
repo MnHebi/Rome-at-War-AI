@@ -682,6 +682,14 @@
 (defconst gl-buildingescrow-state 689)
 (defconst gl-researchescrow-state 690)
 
+;Dedicated immutable no-escrow EscrowGoalId for every command whose escrow
+;operand previously used the literal-0 shortcut that the engine rejects with
+;"Invalid goal used (0)" (up-can-build, up-can-build-line, up-build).
+;Extended-goal range 41-510 is the documented valid range for this operand
+;role. 396 is unused by every goal/point/technology name and is not adjacent to
+;an x/y point pair. Initialized once in rawai-init-goals.per and never modified.
+(defconst gl-no-escrow-state 396)
+
 (defconst gl-current-civilian-losses 691)
 (defconst gl-total-civilian-losses 692)
 
@@ -1449,6 +1457,19 @@
 (defconst gl-help-episode-until 14198)
 (defconst gl-help-assessment-reported 14199)
 (defconst gl-help-report-pending 15990)
+;T157: bounded chase-leash clock. 15972 is an audited unused goal slot
+;between the command-boundary block (ends 15971) and gl-help-report-pending.
+(defconst gl-chase-leash-next 15972)
+
+;T157 parity goals: 15973-15979 are audited unused slots.
+;15972 stays reserved for the chase leash.
+(defconst gl-parity-ratio 15973) ;land strength as a percentage of the enemy army
+(defconst gl-parity-ratio-navy 15974) ;the same for the fleets
+(defconst gl-parity-candidate 15975) ;rung implied by this census
+(defconst gl-parity-candidate-navy 15976) ;rung implied for the fleets
+(defconst gl-parity-prev 15977) ;candidate at the previous census (two-poll rule)
+(defconst gl-parity-prev-navy 15978) ;the same for the fleets
+(defconst gl-parity-army-priority 15979) ;2 hopelessly behind, 1 tolerable, 0 even or better
 
 ;T51 migration diagnostic-only storage.  IDs 15800-15815 are deliberately
 ;outside every controller allocation below 16000.  T52 reserves independent
@@ -1595,6 +1616,7 @@
 (defconst CONCLUDED-LAND 4)
 (defconst CONCLUDED-NAVY 5)
 (defconst RESET 6)
+(defconst RATIOS 7)
 
 ;military-superiority & naval-superiority
 (defconst INFERIOR 0)
@@ -2448,7 +2470,10 @@
 =>
 	(set-strategic-number sn-defense-distance 12)
 	(set-strategic-number sn-sentry-distance 12)
-	(set-strategic-number sn-percent-enemy-sighted-response 100)
+	(set-strategic-number sn-sentry-distance-variation 0)
+	(set-strategic-number sn-local-targeting-mode 1)
+	(set-strategic-number sn-gather-idle-soldiers-at-center 1)
+	(set-strategic-number sn-percent-enemy-sighted-response 60)
 	(set-strategic-number sn-number-explore-groups 0)
 	(set-strategic-number sn-percent-attack-soldiers 0)
 	(set-strategic-number sn-percent-attack-boats 0)

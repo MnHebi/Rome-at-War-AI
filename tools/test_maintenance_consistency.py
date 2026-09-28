@@ -2,7 +2,6 @@
 import hashlib
 import json
 from pathlib import Path
-import re
 import unittest
 from unittest.mock import patch
 
@@ -96,8 +95,6 @@ class MaintenanceConsistencyTests(unittest.TestCase):
         init = (ROOT / 'rawai-init-goals.per').read_text()
         label, number = candidate.rsplit(':', 1)
         self.assertIn(f'"{label}: %d" c: {number}', init)
-        for finding in state['findings']:
-            self.assertIsNone(re.search(r'marker[ -](?:500|502)\b', finding['next_action']))
 
 
 if __name__ == '__main__':

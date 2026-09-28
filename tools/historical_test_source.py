@@ -1,11 +1,21 @@
-"""Immutable diagnostic-stage fixtures, distinct from current behavioral source."""
+"""Immutable diagnostic-stage fixtures, distinct from current behavioral source.
+
+Historical overlay reconstruction is opt-in tool coverage. It validates a
+frozen commit, so it must not gate routine work on the current runtime.
+"""
 import io
+import os
 from pathlib import Path
 import subprocess
 import tarfile
 
 ROOT = Path(__file__).resolve().parents[1]
 DIAGNOSTIC_BASE = 'a5de7d85bad71f36f4c8903747908d71ac164a7e'
+HISTORICAL_OPT_IN = 'RAWAI_HISTORICAL_OVERLAY_TESTS'
+
+
+def historical_overlay_enabled() -> bool:
+    return os.environ.get(HISTORICAL_OPT_IN) == '1'
 
 
 def historical_source(name):

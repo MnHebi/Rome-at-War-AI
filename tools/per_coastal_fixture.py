@@ -45,7 +45,10 @@ class CoastalFixture(Missions):
         if op=='up-pending-objects': return self.compare(self.pending,a[2],a[3])
         if op=='up-pending-placement': return self.placement
         if op=='up-can-build-line':
-            assert a[0]=='0'
+            # Operand 1 is an EscrowGoalId. The repaired payload passes a real
+            # goal (the literal 0 shortcut is rejected by the engine with
+            # "Invalid goal used (0)"), so the fixture requires a goal operand.
+            assert a[0]!='0' and not a[0].lstrip('-').isdigit(), a[0]
             return self.can_site(self.pair(a[1]))
         if op=='up-point-terrain':
             return self.compare(self.terrain_at(self.pair(a[0])), a[1], a[2])

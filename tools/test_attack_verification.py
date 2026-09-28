@@ -16,10 +16,13 @@ def obj(i, player, target=-1, action=600, point=(50, 50), hp=100):
 
 
 class Verifier:
-    def __init__(self, objects, enemies=(7,), victim=2, relief=False):
+    def __init__(self, objects, enemies=(7,), victim=2, relief=False, departed=()):
         self.objects = {o['id']: o for o in objects}
         self.enemies = list(enemies)
-        self.constants = {}
+        self.departed = set(departed)
+        # Native Age symbols are engine-provided, not project defconsts.
+        self.constants = dict(zip(
+            ('dark-age', 'feudal-age', 'castle-age', 'imperial-age'), range(4)))
         for name in ('rawai-constants.per', 'rawai-customconstants.per', 'rawai-unitconstants.per'):
             self.constants.update({k: int(v) for k, v in re.findall(r'\(defconst ([\w-]+) (-?\d+)\)', source(name))})
         self.g = {'gl-self-player-number': 2, 'gl-ally-help-player': victim,
@@ -62,6 +65,7 @@ class Verifier:
     def fact(self, e):
         op, *a = e
         if op == 'true': return True
+        if op == 'player-in-game': return int(a[0]) not in self.departed
         if op == 'goal': return self.g.get(a[0], 0) == self.val(a[1])
         if op == 'not': return not self.fact(a[0])
         if op == 'up-compare-goal': return self.compare(self.g.get(a[0], 0), a[1], a[2])
@@ -174,6 +178,13 @@ class AttackIdentityTests(unittest.TestCase):
         g = Verifier([obj(20, 2), obj(100, 7, 999)]).run()
         self.assertEqual(g['gl-self-attack-verified'], 0)
 
+    def test_departed_attacker_is_never_searched(self):
+        """A player who has left the game keeps a valid player number, so the
+        verification scan must not focus them: the module advances the same way
+        it does for an unresolved enemy instead of searching an invalid owner."""
+        g = Verifier([obj(20, 2), obj(100, 7, 20)], enemies=(7,), departed=(7,)).run()
+        self.assertEqual(g['gl-self-attack-verified'], 0)
+
     def test_invalid_first_asset_does_not_hide_next_asset(self):
         g = Verifier([obj(10, 2, hp=0), obj(20, 2), obj(90, 7, 10), obj(100, 7, 20)]).run()
         self.assertEqual((g['gl-self-attack-verified'], g['gl-verify-asset']), (1, 20))
@@ -208,6 +219,40 @@ class AttackIdentityTests(unittest.TestCase):
                        if '(goal gl-local-response-state LOCAL-RESPONSE-COMMAND)' in row[3]
                        and '(set-goal gl-local-response-state LOCAL-RESPONSE-REBUILD)' in row[4])
         self.assertIn('(up-modify-goal gl-local-response-threats g:= remote-total)', rebuild[4])
+
+
+class SelfHelpRequestReachabilityTests(unittest.TestCase):
+    """The self attack verification must not depend on the responder state.
+
+    215629/175103 (515): no player ever emitted the taunt-48 help request.  The
+    caller-1 self scan required gl-ally-help-state ALLY-HELP-IDLE, but that state
+    machine serves the responder side, and the 24 s request window was stamped at
+    VERIFY-FOUND, before the threat/responder assessment finished."""
+
+    def _rows(self):
+        from pathlib import Path
+        from validate_naval_doctrine import rule_blocks
+        text = (Path(__file__).resolve().parents[1]
+                / 'rawai-attack-verification.per').read_text(encoding='utf-8-sig')
+        return list(rule_blocks(text))
+
+    def test_self_scan_is_not_gated_on_the_ally_help_responder_state(self):
+        rows = self._rows()
+        arming = [r for r in rows if '(set-goal gl-verify-caller 1)' in r[4]]
+        self.assertEqual(len(arming), 1)
+        self.assertNotIn('(goal gl-ally-help-state ALLY-HELP-IDLE)', arming[0][3],
+                         'the self scan is still blocked by the responder state')
+        self.assertIn('(goal gl-verify-state VERIFY-IDLE)', arming[0][3])
+        self.assertIn('(up-compare-goal gl-verify-clock g:>= gl-verify-next)', arming[0][3])
+
+    def test_request_window_is_stamped_when_the_assessment_completes(self):
+        rows = self._rows()
+        assessed = [r for r in rows if '(set-goal gl-help-assessment-ready YES)' in r[4]]
+        self.assertEqual(len(assessed), 1)
+        actions = assessed[0][4]
+        self.assertIn('(up-modify-goal gl-help-request-until g:= gl-verify-clock)', actions)
+        self.assertIn('(up-modify-goal gl-help-request-until c:+ 24)', actions)
+        self.assertIn('(set-goal gl-help-request-pending YES)', actions)
 
 
 if __name__ == '__main__':

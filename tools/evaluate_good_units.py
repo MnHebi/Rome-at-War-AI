@@ -179,6 +179,30 @@ TREE_ID_TO_KEY = {
 }
 
 
+def resolve_trees(trees: list[dict], civ_records: list[dict]) -> dict[str, dict]:
+    """Map tech-tree documents onto AI civ keys for both data-mod layouts.
+
+    Legacy RaW shipped civTechTrees.json keyed by the Rome at War civ identity
+    (ARMENIANS, ATHENIANS, ...).  raw-datamod-uplifted ships one document per
+    vanilla slot (BERBERS, LITHUANIANS, ...) and records the slot in
+    civilizations.json, so a slot name resolves through the civ list index.
+    """
+    slot_to_key: dict[str, str] = {}
+    for index, record in enumerate(civ_records):
+        key = CIV_KEYS.get(index)
+        slot = str(record.get("tech_tree_name") or "").upper()
+        if key and slot:
+            slot_to_key.setdefault(slot, key)
+    resolved: dict[str, dict] = {}
+    for tree in trees:
+        ident = str(tree.get("civ_id") or "").upper()
+        key = TREE_ID_TO_KEY.get(ident) or slot_to_key.get(ident)
+        if key is None:
+            raise ValueError(f"unmapped civTechTrees civ id {tree.get('civ_id')!r}")
+        resolved[key] = tree
+    return resolved
+
+
 HOST_NAMES = {
     "armenia": "Berbers",
     "athenians": "Lithuanians",
@@ -308,12 +332,12 @@ NAVAL_CATEGORIES = (
     NavalCategory("Polyreme", ((539, 0.4), (21, 0.7), (442, 1.0)), 442, 12.0, 3, "ranged", (34, 35)),
     NavalCategory("Fire Ship", ((1103, 0.4), (529, 0.7), (532, 1.0)), 532, 10.0, 4, "fire", (34, 246)),
     NavalCategory("Demolition Ship", ((1104, 0.4), (527, 0.7), (528, 1.0)), 528, 6.0, 4, "demolition", (34, 1033, 244)),
-    NavalCategory("Scout Ship", ((1877, 0.4), (1878, 0.7), (1879, 1.0)), 1879, 8.0, 3, "scout", (1007, 1008)),
-    NavalCategory("Hemiolia", ((1881, 0.4), (1882, 0.7), (1883, 1.0)), 1883, 8.0, 3, "ranged", (1005, 1006)),
-    NavalCategory("Boarding Ship", ((1880, 1.0),), 1880, 4.0, 3, "boarding"),
+    NavalCategory("Scout Ship", ((2667, 0.4), (2668, 0.7), (2669, 1.0)), 2669, 8.0, 3, "scout", (1007, 1008)),
+    NavalCategory("Hemiolia", ((2671, 0.4), (2672, 0.7), (2673, 1.0)), 2673, 8.0, 3, "ranged", (1005, 1006)),
+    NavalCategory("Boarding Ship", ((2670, 1.0),), 2670, 4.0, 3, "boarding"),
     NavalCategory("Juggernaut", ((420, 0.7), (691, 1.0)), 691, 9.0, 4, "naval_siege", (376,)),
-    NavalCategory("Quadrireme/Quinquereme", ((1870, 0.7), (1750, 1.0)), 1750, 8.0, 3, "heavy_reme", (1003,)),
-    NavalCategory("Octeres", ((1884, 1.0),), 1884, 7.0, 4, "naval_siege"),
+    NavalCategory("Quadrireme/Quinquereme", ((2660, 0.7), (1750, 1.0)), 1750, 8.0, 3, "heavy_reme", (1003,)),
+    NavalCategory("Octeres", ((2674, 1.0),), 2674, 7.0, 4, "naval_siege"),
     NavalCategory(
         "Naval unique unit",
         ((1923, 1.0), (2008, 0.7), (2009, 1.0)),
@@ -338,14 +362,14 @@ NAVAL_UPGRADE_CHAINS = {
         1033: ((1104, 527),),
         244: ((527, 528), (1104, 528)),
     },
-    "Scout Ship": {1007: ((1877, 1878),), 1008: ((1877, 1879), (1878, 1879))},
+    "Scout Ship": {1007: ((2667, 2668),), 1008: ((2667, 2669), (2668, 2669))},
     "Hemiolia": {
-        1005: ((1881, 1882), (1950, 1951)),
-        1006: ((1882, 1883), (1881, 1883), (1950, 1952), (1951, 1952)),
+        1005: ((2671, 2672), (1950, 1951)),
+        1006: ((2672, 2673), (2671, 2673), (1950, 1952), (1951, 1952)),
     },
     "Boarding Ship": {},
-    "Juggernaut": {376: ((420, 691), (1885, 1886))},
-    "Quadrireme/Quinquereme": {1003: ((1870, 1750),)},
+    "Juggernaut": {376: ((420, 691), (2675, 2676))},
+    "Quadrireme/Quinquereme": {1003: ((2660, 1750),)},
     "Octeres": {},
     "Naval unique unit": {1174: ((2008, 2009),)},
 }
@@ -356,18 +380,24 @@ NAVAL_UPGRADE_CHAINS = {
 # absent from Carthage's unit table in the current DAT and is therefore not
 # credited).  Expanded Docking Bays changes each four-ship batch to five.
 COTHON_BUILDING_UNIT_ID = 2480
+# raw-datamod-uplifted renumbered the nine Cothon batch hulls (legacy
+# 2699/2700/2701/2702/2703/2704/2705/2706/2707) and moved the four-ship batch
+# out of the enable technology into the data itself: tech 515 no longer sets
+# attributes 126/127 on the physical Cothon.  Tech 994 still maps these batch
+# hulls' costs to the five-ship batch.
+COTHON_BATCH_UNIT_IDS = (2699, 2700, 2701, 2702, 2703, 2704, 2705, 2706, 2707)
 COTHON_ENABLE_TECH_ID = 515
 COTHON_WORK_RATE_TECH_ID = 993
 COTHON_FIFTH_SHIP_TECH_ID = 994
 COTHON_BATCH_SPECS = {
-    "Scout Ship": (1892, 1879),
-    "Polyreme": (1893, 442),
-    "Fire Ship": (1894, 532),
-    "Demolition Ship": (1895, 528),
-    "Hemiolia": (1897, 1883),
-    "Juggernaut": (1898, 691),
-    "Quadrireme/Quinquereme": (1899, 1750),
-    "Octeres": (1900, 1884),
+    "Scout Ship": (2699, 2669),
+    "Polyreme": (2700, 442),
+    "Fire Ship": (2701, 532),
+    "Demolition Ship": (2702, 528),
+    "Hemiolia": (2704, 2673),
+    "Juggernaut": (2705, 691),
+    "Quadrireme/Quinquereme": (2706, 1750),
+    "Octeres": (2707, 2674),
 }
 
 
@@ -1023,20 +1053,33 @@ def naval_candidates_after_upgrade_closure(
 def validate_cothon_production(data: Any) -> None:
     """Validate the physical Cothon and batch mechanics used by scoring."""
     enable = data.effects[data.techs[COTHON_ENABLE_TECH_ID].effect_id].effect_commands
-    if not any(
+    legacy_enable = any(
         command.type == 0
         and int(command.a) == COTHON_BUILDING_UNIT_ID
         and int(command.c) == 126
         and int(round(command.d)) == 1
         for command in enable
-    ) or not any(
+    ) and any(
         command.type == 4
         and int(command.a) == COTHON_BUILDING_UNIT_ID
         and int(command.c) == 127
         and int(round(command.d)) == 4
         for command in enable
-    ):
-        raise ValueError("Cothon enable technology no longer grants a four-ship batch at unit 2480")
+    )
+    if not legacy_enable:
+        # Uplifted data: the batch is data-inherent, so the observable proof is
+        # that every batch hull still trains at the physical Cothon and that
+        # technology 994 still covers their costs (both verified below).
+        for batch_id in COTHON_BATCH_UNIT_IDS:
+            unit = data.civs[0].units[batch_id] if batch_id < len(data.civs[0].units) else None
+            if unit is None or not unit.creatable or not any(
+                location.unit_id == COTHON_BUILDING_UNIT_ID
+                for location in unit.creatable.train_locations
+            ):
+                raise ValueError(
+                    "Cothon enable technology is absent and batch unit "
+                    f"{batch_id} does not train at unit 2480"
+                )
 
     rate = data.effects[data.techs[COTHON_WORK_RATE_TECH_ID].effect_id].effect_commands
     if not any(
@@ -1049,10 +1092,11 @@ def validate_cothon_production(data: Any) -> None:
         raise ValueError("Assembly Line Methods no longer gives Cothon unit 2480 1.5x work rate")
 
     fifth = data.effects[data.techs[COTHON_FIFTH_SHIP_TECH_ID].effect_id].effect_commands
-    # Tech 994 still targets 1896, but that slot is ARGALI in Gaia and absent
-    # from Carthage, so it is validated as effect metadata without being
-    # credited as usable Boarding Ship production.
-    expected_batches = {batch_id for batch_id, _ in COTHON_BATCH_SPECS.values()} | {1896}
+    # The legacy data targeted a stray 2703 (ARGALI in Gaia, absent from
+    # Carthage); the uplift targets the real nine-hull batch block instead, so
+    # the expectation is the batch block plus the four scored spec hulls.
+    expected_batches = (set(COTHON_BATCH_UNIT_IDS)
+                        | {batch_id for batch_id, _ in COTHON_BATCH_SPECS.values()})
     cost_batches = {
         int(command.a)
         for command in fifth
@@ -1429,8 +1473,8 @@ def rate_navy(
 
     available_support = sorted(set(NAVAL_SUPPORT_TECH_WEIGHTS) & selected_package)
     missing_support = sorted(set(NAVAL_SUPPORT_TECH_WEIGHTS) - selected_package)
-    has_heavy_reme = bool({1870, 1750} & available_units)
-    has_octeres = 1884 in available_units
+    has_heavy_reme = bool({2660, 1750} & available_units)
+    has_octeres = 2674 in available_units
     return {
         "rating": rating,
         "unit_name": f"Fleet capability {capability:.2f}/100",
@@ -1526,8 +1570,8 @@ def main() -> None:
     affinities = load_affinities(ai_path)
 
     trees = tree_doc["civs"]
-    trees_by_key = {TREE_ID_TO_KEY[tree["civ_id"]]: tree for tree in trees}
     civ_records = civ_doc["civilization_list"]
+    trees_by_key = resolve_trees(trees, civ_records)
     if len(trees) != 34 or len(data.civs) < 35 or len(civ_records) < 35:
         raise ValueError("Expected 34 playable Rome at War civilizations")
 

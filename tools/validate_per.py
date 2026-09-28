@@ -278,9 +278,38 @@ def defrule_blocks(lines: list[str]) -> list[tuple[int, str]]:
     return blocks
 
 
+def validate_age_operands(lines: list[str]) -> list[dict[str, object]]:
+    """Enforce native Age names in engine facts, not RAW phase/goal values.
+
+    This is a project domain policy. Cached AIRef also lists numeric Age IDs;
+    it does not alone prove numeric aliases caused the runtime error flood.
+    """
+    code = "\n".join(code_without_comments_or_strings(line) for line in lines)
+    pattern = re.compile(
+        r"\((?P<command>current-age|players-current-age|starting-age)\s+"
+        r"(?P<operands>[^()]*)\)", re.IGNORECASE,
+    )
+    native = {"dark-age", "feudal-age", "castle-age", "imperial-age"}
+    issues = []
+    for match in pattern.finditer(code):
+        command = match.group("command").casefold()
+        operands = match.group("operands").split()
+        expected_count = 3 if command == "players-current-age" else 2
+        allowed = native | ({"post-imperial-age"} if command == "starting-age" else set())
+        if len(operands) != expected_count or operands[-1].casefold() not in allowed:
+            issues.append({
+                "kind": "non_native_engine_age_operand",
+                "command": command,
+                "operand": operands[-1] if operands else "",
+                "expected": sorted(allowed),
+                "line": code.count("\n", 0, match.start()) + 1,
+            })
+    return issues
+
+
 def validate_command_domains(lines: list[str]) -> list[dict[str, object]]:
     """Catch technology/unit operand swaps and guarded research mismatches."""
-    issues: list[dict[str, object]] = []
+    issues: list[dict[str, object]] = validate_age_operands(lines)
     code = "\n".join(code_without_comments_or_strings(line) for line in lines)
 
     # Resolve both repository-wide constants and constants declared by an

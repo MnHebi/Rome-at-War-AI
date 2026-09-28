@@ -60,7 +60,11 @@
 )
 (defrule
 	(goal gl-verify-state VERIFY-IDLE)
-	(goal gl-ally-help-state ALLY-HELP-IDLE)
+	;The self scan runs on its own cadence: the ally-help state machine owns
+	;the responder side, and a player busy helping allies must still be able
+	;to ask for help itself.  An accepted ally request keeps its priority:
+	;its rule is earlier and the verifier must still be VERIFY-IDLE.
+	;Cadence (gl-verify-next, 8s) below is unchanged.
 	(up-compare-goal gl-verify-clock g:>= gl-verify-next)
 =>
 	(set-goal gl-verify-caller 1)
@@ -81,6 +85,72 @@
 (defrule
 	(goal gl-verify-state VERIFY-SCAN)
 	(up-compare-goal gl-verify-enemy c:< 1)
+=>
+	(set-goal gl-verify-state VERIFY-DONE)
+)
+;A departed attacker keeps a valid player number, so the remote search
+;below would focus an invalid owner. Treat it as the empty case.
+
+(defrule
+	(goal gl-verify-state VERIFY-SCAN)
+	(goal gl-verify-enemy 1)
+	(not (player-in-game 1))
+=>
+	(set-goal gl-verify-state VERIFY-DONE)
+)
+
+(defrule
+	(goal gl-verify-state VERIFY-SCAN)
+	(goal gl-verify-enemy 2)
+	(not (player-in-game 2))
+=>
+	(set-goal gl-verify-state VERIFY-DONE)
+)
+
+(defrule
+	(goal gl-verify-state VERIFY-SCAN)
+	(goal gl-verify-enemy 3)
+	(not (player-in-game 3))
+=>
+	(set-goal gl-verify-state VERIFY-DONE)
+)
+
+(defrule
+	(goal gl-verify-state VERIFY-SCAN)
+	(goal gl-verify-enemy 4)
+	(not (player-in-game 4))
+=>
+	(set-goal gl-verify-state VERIFY-DONE)
+)
+
+(defrule
+	(goal gl-verify-state VERIFY-SCAN)
+	(goal gl-verify-enemy 5)
+	(not (player-in-game 5))
+=>
+	(set-goal gl-verify-state VERIFY-DONE)
+)
+
+(defrule
+	(goal gl-verify-state VERIFY-SCAN)
+	(goal gl-verify-enemy 6)
+	(not (player-in-game 6))
+=>
+	(set-goal gl-verify-state VERIFY-DONE)
+)
+
+(defrule
+	(goal gl-verify-state VERIFY-SCAN)
+	(goal gl-verify-enemy 7)
+	(not (player-in-game 7))
+=>
+	(set-goal gl-verify-state VERIFY-DONE)
+)
+
+(defrule
+	(goal gl-verify-state VERIFY-SCAN)
+	(goal gl-verify-enemy 8)
+	(not (player-in-game 8))
 =>
 	(set-goal gl-verify-state VERIFY-DONE)
 )
@@ -196,6 +266,80 @@
 	(set-goal gl-verify-state VERIFY-SELF-THREATS)
 )
 
+;A departed attacker keeps a valid player number, so the remote search
+;below would focus an invalid owner. Treat it as the empty case.
+
+(defrule
+	(goal gl-verify-state VERIFY-SELF-THREATS)
+	(goal gl-verify-enemy 1)
+	(not (player-in-game 1))
+=>
+	(set-goal gl-help-threats 0)
+	(set-goal gl-verify-state VERIFY-SELF-RESPONDERS)
+)
+
+(defrule
+	(goal gl-verify-state VERIFY-SELF-THREATS)
+	(goal gl-verify-enemy 2)
+	(not (player-in-game 2))
+=>
+	(set-goal gl-help-threats 0)
+	(set-goal gl-verify-state VERIFY-SELF-RESPONDERS)
+)
+
+(defrule
+	(goal gl-verify-state VERIFY-SELF-THREATS)
+	(goal gl-verify-enemy 3)
+	(not (player-in-game 3))
+=>
+	(set-goal gl-help-threats 0)
+	(set-goal gl-verify-state VERIFY-SELF-RESPONDERS)
+)
+
+(defrule
+	(goal gl-verify-state VERIFY-SELF-THREATS)
+	(goal gl-verify-enemy 4)
+	(not (player-in-game 4))
+=>
+	(set-goal gl-help-threats 0)
+	(set-goal gl-verify-state VERIFY-SELF-RESPONDERS)
+)
+
+(defrule
+	(goal gl-verify-state VERIFY-SELF-THREATS)
+	(goal gl-verify-enemy 5)
+	(not (player-in-game 5))
+=>
+	(set-goal gl-help-threats 0)
+	(set-goal gl-verify-state VERIFY-SELF-RESPONDERS)
+)
+
+(defrule
+	(goal gl-verify-state VERIFY-SELF-THREATS)
+	(goal gl-verify-enemy 6)
+	(not (player-in-game 6))
+=>
+	(set-goal gl-help-threats 0)
+	(set-goal gl-verify-state VERIFY-SELF-RESPONDERS)
+)
+
+(defrule
+	(goal gl-verify-state VERIFY-SELF-THREATS)
+	(goal gl-verify-enemy 7)
+	(not (player-in-game 7))
+=>
+	(set-goal gl-help-threats 0)
+	(set-goal gl-verify-state VERIFY-SELF-RESPONDERS)
+)
+
+(defrule
+	(goal gl-verify-state VERIFY-SELF-THREATS)
+	(goal gl-verify-enemy 8)
+	(not (player-in-game 8))
+=>
+	(set-goal gl-help-threats 0)
+	(set-goal gl-verify-state VERIFY-SELF-RESPONDERS)
+)
 ;Assess the exact verified attacker around the exact victim-owned asset.  This
 ;is independent of the ordinary ten-second defense leash and persists long
 ;enough for the request cooldown to observe a continuous attack episode.
@@ -243,6 +387,11 @@
 	(up-get-search-state local-total)
 	(up-modify-goal gl-help-responders g:= local-total)
 	(set-goal gl-help-assessment-ready YES)
+	;Stamp the request window when the assessment completes: the 24s armed at
+	;VERIFY-FOUND expired while the threat/responder scans were still running.
+	(up-modify-goal gl-help-request-until g:= gl-verify-clock)
+	(up-modify-goal gl-help-request-until c:+ 24)
+	(set-goal gl-help-request-pending YES)
 	(up-modify-sn sn-focus-player-number g:= gl-verify-focus)
 	(set-goal gl-verify-state VERIFY-SELF-DONE)
 )

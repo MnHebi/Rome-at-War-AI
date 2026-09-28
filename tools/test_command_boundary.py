@@ -1,23 +1,58 @@
 """Execute the emitted observer's supported PER subset, not an AoE2 emulator.
 
-Proves private-state/list/pointer/command contracts in deterministic fixtures.
-Does not prove native scheduling, object lifetime during a sweep or navigation.
+Proves private-state/list/pointer/command contracts in deterministic fixtures
+and decodes explicit historical record fixtures; the retired chat emitter is
+neither generated nor executed here. Does not prove native scheduling, object
+lifetime during a sweep or navigation.
 """
-from copy import deepcopy
-import json
 import math
 import re
 import unittest
 
 import generate_command_boundary as gen
 from command_boundary_observations import decode, paired_progress, correlate, frame_integrity
-from validate_naval_doctrine import rule_blocks
 
 
 def atoms(text):return re.findall(r'\(([^()]*)\)',text)
 
 
+PREV_FIELDS=('actor','hull','time','x','y','hx','hy','owner','group','howner','hgroup')
+
+
+def record(player,label,value,sequence=0,milliseconds=100000):
+    return dict(player=player,diag_id=gen.CODES[label],value=value,
+                sequence=sequence,milliseconds=milliseconds)
+
+
+def pair_records(player=2,site=24,serial=1,milliseconds=100000,end=None,frame=None,
+                 member=None,drop=()):
+    """Explicit historical record stream for one complete actor/hull pair.
+
+    The decoder contract is exercised from recorded fields, not from executing
+    the retired chat scheduler library. Overrides mutate the decoded frame or
+    its single member so negative cases stay readable.
+    """
+    f=dict(site=site,serial=serial,now=100,modifier=2,local=1,remote=1,stage=4,
+           reserved=20,tid=20,ttype=545,tclass=20,tx=6000,ty=5000,towner=player,tgroup=10)
+    m=dict(index=0,actor=1,atype=83,aclass=4,ax=5900,ay=5000,owner=player,group=11,
+           action=6,order=5,intent=1,garrison=0,carry=0,elapsed=5,**{'previous-member':1})
+    for name,value in zip(PREV_FIELDS,(1,20,95,5000,5000,6000,5000,player,11,player,10)):
+        m['previous-'+name]=value
+    f.update(frame or {});m.update(member or {})
+    for name in drop:
+        f.pop(name,None);m.pop(name,None)
+    rows=[record(player,k,v,milliseconds=milliseconds) for k,v in f.items()]
+    rows+=[record(player,k,v,milliseconds=milliseconds) for k,v in m.items()]
+    rows.append(record(player,'end',serial if end is None else end,milliseconds=milliseconds))
+    return rows
+
+
 class Observer:
+    """Execution helper for the current file-mode library.
+
+    FileObserver replaces `rules` with the emitted file-trace library; the
+    retired chat library is no longer constructed here.
+    """
     def __init__(self,enabled=1):
         self.goals={gen.g(n):(-2 if n.startswith('p') and '-' in n else 0) for n in gen.NAMES}
         self.goals[gen.g('enabled')]=enabled
@@ -29,7 +64,6 @@ class Observer:
                 'precise-x':100*n,'precise-y':100,'player':1,'group-flag':11 if n<10 else 10,
                 'action':6,'order':5,'target-id':20,'garrisoned':0,'carry':0}
         self.time=100;self.messages=[];self.steps=0;self.pc=0
-        self.rules=rule_blocks(gen.library(),diagnostic_view=False)
 
     def value(self,v):
         try:return int(v)
@@ -105,147 +139,57 @@ class Observer:
 
 
 class CommandBoundaryTests(unittest.TestCase):
-    def test_two_member_pair_tracks_actor_and_hull_separately(self):
-        o=Observer();self.assertEqual(o.call(),[]) # quiet first observation
-        o.time+=5;o.local=[3,2,1]
-        o.objects[1]['precise-x']+=100;o.objects[20]['precise-x']+=300
-        second=o.call()[0];members=second['members']
-        self.assertEqual([m['actor'] for m in members],[1,2])
-        self.assertEqual([m['index'] for m in members],[2,1])
-        p=paired_progress(second,members[0])
-        self.assertTrue(p['valid']);self.assertEqual(p['actor_displacement'],1)
-        self.assertEqual(p['hull_displacement'],3)
-        self.assertGreater(p['separation_after'],p['separation_before'])
+    def test_pair_tracks_actor_and_hull_displacement_separately(self):
+        frames,_=decode(pair_records())
+        self.assertEqual(len(frames),1);self.assertFalse(frames[0]['incomplete'])
+        pair=paired_progress(frames[0],frames[0]['members'][0])
+        self.assertTrue(pair['valid'],pair)
+        self.assertEqual(pair['actor_displacement'],9)
+        self.assertEqual(pair['hull_displacement'],0)
+        self.assertEqual(pair['separation_before'],10)
+        self.assertEqual(pair['separation_after'],1)
 
-    def test_stale_changed_hull_owner_and_unresolved_positions_are_unknown(self):
-        for change in ['stale','owner','position','group']:
-            o=Observer();o.call();o.time+=5
-            if change=='stale':o.time+=20
-            if change=='owner':o.objects[1]['player']=2
-            if change=='position':o.objects[1]['precise-x']=-2
-            if change=='group':o.objects[20]['group-flag']=0
-            frame=o.call()[0]
-            self.assertFalse(paired_progress(frame,frame['members'][0])['valid'],change)
-        o=Observer();o.call();o.time+=5
-        o.remote=[21];o.goals['gl-island-migration-transport-id']=21
-        self.assertEqual(o.call(),[]) # new hull cannot pair against old hull
-        self.assertEqual(o.goals[gen.g('p0-hull')],21)
+    def test_unverifiable_pairs_name_the_failed_condition(self):
+        cases=(('stale',dict(member={'elapsed':0}),'stale-or-same-time'),
+               ('time-mismatch',dict(member={'previous-time':94}),'time-mismatch'),
+               ('actor-changed',dict(member={'previous-actor':2}),'identity-changed'),
+               ('hull-changed',dict(frame={'tid':21}),'not-exact-reserved-hull'),
+               ('more-than-one-target',dict(frame={'remote':2}),'not-exact-reserved-hull'),
+               ('passenger-owner',dict(member={'owner':3}),'passenger-ownership'),
+               ('passenger-group',dict(member={'group':10}),'passenger-ownership'),
+               ('hull-owner',dict(frame={'towner':1}),'hull-ownership'),
+               ('hull-group',dict(frame={'tgroup':11}),'hull-ownership'),
+               ('not-final-member',dict(member={'previous-member':0}),'no-final-membership-proof'),
+               ('invalid-position',dict(member={'ax':-1}),'invalid-position'))
+        for name,change,reason in cases:
+            with self.subTest(case=name):
+                frames,_=decode(pair_records(**change))
+                pair=paired_progress(frames[0],frames[0]['members'][0])
+                self.assertFalse(pair['valid'],name)
+                self.assertIn(reason,pair['reasons'],name)
 
-    def test_missing_final_member_is_not_false_pair(self):
-        o=Observer();o.call();o.time+=5;o.local=[3,2]
-        f=o.call()[0]
-        self.assertEqual(f['members'][0]['previous-member'],0)
-        self.assertFalse(paired_progress(f,f['members'][0])['valid'])
+    def test_incomplete_frame_or_missing_member_field_is_not_a_pair(self):
+        frames,_=decode(pair_records(end=7))
+        self.assertTrue(frames[0]['incomplete'])
+        self.assertEqual(paired_progress(frames[0],frames[0]['members'][0]),
+                         dict(valid=False,reasons=['incomplete-pair']))
+        frames,_=decode(pair_records(drop=('actor',)))
+        self.assertFalse(frames[0]['incomplete'])
+        self.assertEqual(paired_progress(frames[0],frames[0]['members'][0]),
+                         dict(valid=False,reasons=['incomplete-pair']))
 
-    def test_unknown_after_bounded_search_and_rotation(self):
-        o=Observer();o.local=list(range(100,140))
-        for n in o.local:o.objects[n]=dict(o.objects[1],id=n)
-        o.call();o.time+=5;o.local=o.local[2:]+o.local[:2]
-        f=o.call()[0]
-        self.assertEqual(f['members'][0]['previous-member'],-1)
-        self.assertFalse(paired_progress(f,f['members'][0])['valid'])
-        self.assertEqual(o.goals[gen.g('b-rotation')],2)
-
-    def test_actual_resource_target_not_reserved_or_intended_goal(self):
-        o=Observer();o.remote=[90];o.objects[90].update(type=69,**{'class':33,'player':0})
-        f=o.call(2,111)[0]
-        self.assertEqual((f['tid'],f['ttype'],f['tclass']),(90,69,33))
-        self.assertNotEqual(f['tid'],f['reserved']);self.assertEqual(len(f['members']),1)
-        self.assertEqual(f['modifier'],2)
-        ev=dict(action='WORK',player_id=1,object_ids=[1,2,3],target_id=90,milliseconds=100000,sequence=100)
-        r=correlate([f],[ev])[0]
-        self.assertEqual(r['status'],'matching-packet')
-        self.assertEqual(r['task_outcome'],'not-established-by-command-packet')
-        ev['object_ids']=[2,3]
-        self.assertEqual(correlate([f],[ev])[0]['status'],'unmatched-not-native-proof')
-
-    def test_independent_quotas_empty_calls_late_game_and_output_maximum(self):
-        o=Observer();o.local=[];o.call();self.assertEqual(o.goals[gen.g('b-left')],0)
-        o.local=[1,2,3,4];o.objects[4]=dict(o.objects[1],id=4)
-        self.assertEqual(o.call(site=21),[])
-        for age in (3,12,20,28):o.time=100+age;self.assertEqual(len(o.call()),1)
-        count=len(o.messages)
-        for i in range(100):o.time=129;self.assertEqual(o.call(),[])
-        self.assertEqual(len(o.messages),count)
-        self.assertEqual(o.goals[gen.g('b-suppressed')],101)
-        self.assertEqual(o.goals[gen.g('b-missed')],412)
-        self.assertEqual(len(o.call(2,101)),1)
-        o.time=7200;self.assertEqual(len(o.call()),1)
-        # Header16 + end1 + two members(14 current +13 previous), all two lines.
-        self.assertEqual(count,4*(16+1+2*(14+13))*2)
-        r=Observer();r.call(2,101);self.assertEqual(len(r.messages),(16+1+14)*2)
-
-    def test_duplicate_tracked_actor_not_double_counted_after_list_change(self):
-        o=Observer();o.call();o.time+=5;o.local=[2]
-        f=o.call()[0]
-        self.assertEqual([m['actor'] for m in f['members']],[2])
-        self.assertEqual(o.goals[gen.g('covered')],1)
-
-    def test_pointer_lists_shared_goals_and_modifier_preserved_with_output_on_or_off(self):
-        traces=[]
-        for enabled in (0,1):
-            o=Observer(enabled);o.pointer=90
-            before=(deepcopy(o.local),deepcopy(o.remote),o.pointer,o.sn,
-                    {k:v for k,v in o.goals.items() if not k.startswith(gen.PREFIX)})
-            for i in range(7):
-                o.time=100+i*4;o.call()
-                self.assertEqual(before,(o.local,o.remote,o.pointer,o.sn,
-                    {k:v for k,v in o.goals.items() if not k.startswith(gen.PREFIX)}))
-            traces.append((tuple(o.local),tuple(o.remote),'action-garrison',-1,'stance-no-attack',o.sn))
-        self.assertEqual(traces[0],traces[1])
-
-    def test_invalid_pointer_and_multiple_targets_coverage(self):
-        o=Observer();o.pointer=-1;o.call()
-        self.assertEqual(o.pointer,-1);self.assertEqual(o.goals[gen.g('b-invalid')],1)
-        self.assertEqual(o.messages,[])
-        o.pointer=20;o.remote=[20,21];self.assertEqual(o.call(),[])
-        o.time+=3;f=o.call()[0]
-        self.assertEqual(o.goals[gen.g('b-targets')],1)
-        self.assertFalse(paired_progress(f,f['members'][0])['valid'])
-
-    def test_stale_objects_in_final_lists_are_not_substituted_by_pointer(self):
-        o=Observer();o.local=[999];o.call();o.time+=3;f=o.call()[0]
-        self.assertEqual(f['members'],[]);self.assertEqual(o.pointer,20)
-        o=Observer();o.remote=[999];o.call();o.time+=3;f=o.call()[0]
-        self.assertEqual(f['tid'],-2);self.assertEqual(o.pointer,20)
-        self.assertFalse(paired_progress(f,f['members'][0])['valid'])
-
-    def test_source_bridges_preserve_ordered_original_actions_and_are_tamper_evident(self):
-        reg=json.loads(gen.REG.read_text())
-        if reg.get('schema')==2:
-            self.skipTest('Legacy chat bridge retired; all physical file bridges checked in test_command_boundary_file')
-        self.assertEqual(len(reg['sites']),18)
-        for s in reg['sites']:
-            bridge=gen.render_site(s);actual=[]
-            for _,_,_,_,a in rule_blocks(bridge,diagnostic_view=False):
-                actual+=['('+x+')' for x in atoms(a) if gen.PREFIX not in x]
-            self.assertEqual(actual,s['actions'],s['id'])
-            self.assertEqual(gen.strip_source(bridge,reg),s['original'])
-            with self.assertRaises(ValueError):gen.strip_source(bridge.replace('action-', 'altered-action-',1),reg)
-        for name in gen.SOURCE_FILES:
-            text=(gen.ROOT/name).read_text(encoding='utf-8-sig')
-            physical=rule_blocks(text,diagnostic_view=False)
-            self.assertGreater(len(physical),len(rule_blocks(text)))
-
-    def test_no_list_mutators_shared_writers_or_new_strings_in_observer(self):
-        if json.loads(gen.REG.read_text()).get('schema')==2:
-            self.skipTest('Legacy chat support retired; file-mode private state and string budget checked separately')
-        for name,text in gen.support().items():
-            self.assertEqual((gen.ROOT/name).read_text(encoding='utf-8-sig'),text)
-            self.assertNotIn('"',text)
-            self.assertNotRegex(text,r'\((?:up-target-|up-find-|up-add-|up-remove-|up-reset-|up-full-|up-set-timer|set-strategic-number|up-modify-group)')
-            for n in re.findall(r'\((?:set-goal|up-modify-goal) ([^ ]+)',text):self.assertTrue(n.startswith(gen.PREFIX))
-        defs=gen.support()['rawai-command-boundary-defs.per']
-        nums={n:int(v) for n,v in re.findall(r'\(defconst (\S+) (\d+)\)',defs)}
-        for i,n in enumerate(['local','local-last','remote','remote-last']):
-            self.assertEqual(nums[gen.g(n)],nums[gen.g('local')]+i)
-
-    def test_natural_traversal_skips_library_and_direct_call_returns(self):
-        o=Observer();o.pc=0;o.next_pc=1
-        for s in atoms(o.rules[0][4]):o.action(s)
-        self.assertEqual(o.goals[gen.g('entry')],2)
-        self.assertEqual(o.next_pc,len(o.rules))
-        o.call();self.assertEqual(o.pc,len(o.rules))
+    def test_packet_attribution_requires_recorded_actor_and_target(self):
+        frames,_=decode(pair_records())
+        event=dict(action='WORK',player_id=2,object_ids=[1,2,3],target_id=20,
+                   milliseconds=100000,sequence=100)
+        row=correlate(frames,[event])[0]
+        self.assertEqual(row['status'],'matching-packet')
+        self.assertEqual(row['packet_sequences'],[100])
+        self.assertEqual(row['task_outcome'],'not-established-by-command-packet')
+        event['object_ids']=[2,3]
+        self.assertEqual(correlate(frames,[event])[0]['status'],'unmatched-not-native-proof')
+        event['object_ids']=[1];event['target_id']=21
+        self.assertEqual(correlate(frames,[event])[0]['status'],'unmatched-not-native-proof')
 
     def test_legacy_line_endings_preserved_without_reverting_text(self):
         old=b'a\r\nb\nc\r\n'

@@ -357,5 +357,22 @@ class AssaultMissionTests(unittest.TestCase):
         self.assertFalse(any(92 in ids for ids, _, _ in m.commands))
         self.assertEqual(m.objects[92]['flag'], 9)
 
+    def test_enemy_scans_require_the_player_to_be_in_game(self):
+        """A remote search focused on a player who has left the game is an engine
+        error, so every rule that names an enemy player and scans remotely must
+        carry the matching in-game fact."""
+        checked = unguarded = 0
+        for a, b, block, facts, actions in rule_blocks(source('rawai-assault-missions.per')):
+            if 'up-find-remote' not in actions:
+                continue
+            m = re.search(r'\(goal gl-am\d-enemy (\d)\)', facts)
+            if not m:
+                continue
+            checked += 1
+            if f'(player-in-game {m.group(1)})' not in facts:
+                unguarded += 1
+        self.assertGreaterEqual(checked, 24)
+        self.assertEqual(unguarded, 0, f'{unguarded} enemy scan(s) lack an in-game guard')
+
 
 if __name__ == '__main__': unittest.main()

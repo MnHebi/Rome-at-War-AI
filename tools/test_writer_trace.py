@@ -1,12 +1,12 @@
 from pathlib import Path
-from historical_test_source import historical_runtime
+from historical_test_source import historical_overlay_enabled, historical_runtime
 import re
 import tempfile
 import unittest
 
 from audit_writer_trace import analyze_writer_trace
 from validate_naval_doctrine import rule_blocks
-from validate_per import code_without_comments_or_strings, validate_file
+from validate_per import code_without_comments_or_strings, validate_age_operands, validate_file
 from writer_trace import (BLOCK, PRIVATE, TRACE_TEXT, MARKER, VALUE, RESERVATION_MUTATION,
                           compile_payload, strip_payload, string_budget)
 
@@ -18,7 +18,132 @@ def normalized(text):
                             for line in text.splitlines()).split())
 
 
+FIXTURE_SOURCE = {
+    'AI RAW.per': b'(load "rawai-init-goals")\n(load "rawai-fixture")\n',
+    'rawai-init-goals.per': (b'(defrule\n\t(true)\n=>\n'
+                             b'\t(chat-to-self "RAWAI-P3B44T9: %d" c: 450)\n'
+                             b'\t(disable-self)\n)\n'),
+    'rawai-fixture.per': (b'(defrule\n\t(true)\n=>\n'
+                          b'\t(up-target-point gl-writer-target action-move -1 stance-no-attack)\n'
+                          b'\t(disable-self)\n)\n'),
+}
+
+
+def fixture_source():
+    return dict(FIXTURE_SOURCE)
+
+
+def chat(sequence, player, message):
+    return dict(sequence=sequence, milliseconds=1, player=player, action='CHAT', message=message)
+
+
+class WriterTraceToolTests(unittest.TestCase):
+    """Current writer-trace tool: compile, decode, identity and string budget.
+
+    Deliberately built from a small synthetic control, not from the frozen
+    historical overlay: this keeps the current tool covered on every change
+    without reconstructing and validating a retired deployment payload.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.payload, cls.manifest = compile_payload(fixture_source())
+
+    def test_original_rules_survive_and_source_identity_is_exact(self):
+        restored = strip_payload(self.payload, self.manifest)
+        self.assertEqual(set(restored), set(FIXTURE_SOURCE))
+        restored['rawai-init-goals.per'] = restored['rawai-init-goals.per'].replace(
+            f'{MARKER}" c: {VALUE}', 'RAWAI-P3B44T9: %d" c: 450')
+        for name, data in FIXTURE_SOURCE.items():
+            self.assertEqual(normalized(data.decode('utf-8-sig')), normalized(restored[name]), name)
+        self.assertEqual([s['id'] for s in self.manifest['sites']], [1])
+        self.assertEqual(self.manifest['sites'][0]['file'], 'rawai-fixture.per')
+        self.assertEqual(self.manifest['excluded_sites'], [])
+        changed = fixture_source()
+        changed['rawai-fixture.per'] += b'\n; source identity change\n'
+        _, other = compile_payload(changed)
+        self.assertNotEqual(self.manifest['map_sha256'], other['map_sha256'])
+
+    def test_string_budget_counts_allocations_and_rejects_overspend(self):
+        self.assertEqual(string_budget(self.payload), self.manifest['string_budget'])
+        self.assertEqual(self.manifest['string_budget']['payload_limit'], 1500)
+        # Comments don't allocate; a semicolon/escaped quote inside a string does.
+        fixture = {'test.per': b'; "ignore"\n(chat-to-all "a;\\\"b") ; "ignore"\n'
+                              b'(chat-to-all "a;\\\"b")\n'}
+        self.assertEqual(string_budget(fixture)['payload_literals'], 2)
+        changed = dict(fixture)
+        changed['future.per'] = b'(defrule (true) => (chat-to-all "repeated"))\n' * 1600
+        with self.assertRaisesRegex(ValueError, 'string budget exceeded'):
+            string_budget(changed)
+
+    def test_double_instrumentation_and_scratch_collisions_fail_closed(self):
+        with self.assertRaisesRegex(ValueError, 'already instrumented'):
+            compile_payload(self.payload)
+        for name, body, pattern in (
+                ('collision.per', b'(defconst incompatible 13007)\n', 'collision'),
+                ('collision.per', b'(defconst str-writer-begin "collision")\n', 'namespace collision')):
+            changed = fixture_source()
+            changed[name] = body
+            with self.assertRaisesRegex(ValueError, pattern):
+                compile_payload(changed)
+        self.assertEqual(len(set(PRIVATE.values())), len(PRIVATE))
+
+    def test_inserted_observers_stay_private_and_template_driven(self):
+        allowed = {'set-goal', 'up-modify-goal', 'up-get-fact', 'up-get-object-data',
+                   'up-chat-data-to-all', 'disable-self', 'up-jump-rule'}
+        main = self.payload['AI RAW.per'].decode()
+        definitions = dict(re.findall(r'\(defconst str-writer-([\w-]+) "([^"]+)"\)', main))
+        self.assertEqual(definitions, TRACE_TEXT)
+        fields = []
+        for data in self.payload.values():
+            for block_text in BLOCK.finditer(data.decode('utf-8-sig')):
+                for _, _, _, _, actions in rule_blocks(block_text[0]):
+                    for command, operands in re.findall(r'\(([\w-]+) ([^()]*)\)', actions):
+                        self.assertIn(command, allowed)
+                        if command in {'set-goal', 'up-modify-goal'}:
+                            self.assertTrue(operands.startswith('gl-writer-'))
+                        if command in {'up-get-fact', 'up-get-object-data'}:
+                            self.assertTrue(operands.split()[-1].startswith('gl-writer-'))
+                        if command == 'up-chat-data-to-all' and operands.startswith('str-writer-'):
+                            field = operands.split()[0].removeprefix('str-writer-')
+                            fields.append(field)
+                            self.assertIn(field, TRACE_TEXT)
+                            self.assertIn('%d', TRACE_TEXT[field])
+        self.assertEqual(len(fields), len(self.manifest['sites']) * 12)
+
+    def test_decoder_pairs_brackets_gaps_and_source_map_identity(self):
+        site_id = self.manifest['sites'][0]['id']
+        identity = [chat(-4 + i, 2, f'RAW44W map{i}: {self.manifest["map_sha256"][i*16:(i+1)*16]}')
+                    for i in range(4)]
+        bounded = identity + [chat(1, 2, f'RAW44W begin: {site_id}'),
+                              chat(2, 2, f'RAW44W end: {site_id}')]
+        out = analyze_writer_trace(bounded, self.manifest)
+        self.assertEqual(out['identity_verified_players'], [2])
+        self.assertEqual([row['file'] for row in out['invocations']], ['rawai-fixture.per'])
+        self.assertEqual(out['invocations'][0]['site_id'], site_id)
+        # A closed bracket without matching source-map records stays incomplete.
+        out = analyze_writer_trace(bounded[4:], self.manifest)
+        self.assertFalse(out['invocations'])
+        self.assertEqual(out['identity_verified_players'], [])
+        self.assertEqual([row['reason'] for row in out['incomplete']],
+                         ['missing/mismatched replay source-map fingerprint'])
+        # An unclosed bracket and a quota gap are reported, never resolved.
+        out = analyze_writer_trace([chat(1, 2, f'RAW44W begin: {site_id}'),
+                                    chat(2, 2, 'RAW44W coverage gap: 3')], self.manifest)
+        self.assertEqual([row['reason'] for row in out['incomplete']],
+                         ['replay ended before bracket end'])
+        self.assertEqual(len(out['coverage_gaps']), 1)
+        self.assertEqual(out['marker'], self.manifest['marker'])
+
+
+@unittest.skipUnless(historical_overlay_enabled(),
+                     'historical RAW44W overlay control: set RAWAI_HISTORICAL_OVERLAY_TESTS=1')
 class WriterTraceTests(unittest.TestCase):
+    """Historical overlay control for the retired writer-trace generator.
+
+    Kept as an opt-in tool test; it validates frozen a5de7d85 source, not the
+    current runtime. Current-tool coverage lives in WriterTraceToolTests.
+    """
     @classmethod
     def setUpClass(cls):
         # R4 diagnostics remain analyzable with immutable historical site IDs.
@@ -46,7 +171,18 @@ class WriterTraceTests(unittest.TestCase):
                     continue
                 path = Path(directory) / name
                 path.write_bytes(data)
-                self.assertEqual(validate_file(path), [], name)
+                issues = validate_file(path)
+                # This immutable historical control predates the native-Age
+                # policy. Instrumentation duplicates original rule guards, so
+                # permit only existing (fact, operand) pairs, not equal counts.
+                # Original rules are round-trip checked separately above;
+                # current runtime sources have a zero-findings test.
+                age_issues = [i for i in issues if i['kind'] == 'non_native_engine_age_operand']
+                original_age = validate_age_operands(self.source[name].decode('utf-8-sig').splitlines())
+                self.assertEqual(
+                    {(i['command'], i['operand']) for i in age_issues},
+                    {(i['command'], i['operand']) for i in original_age}, name)
+                self.assertEqual([i for i in issues if i not in age_issues], [], name)
 
     def test_trace_templates_are_defined_once_and_every_chat_keeps_its_text(self):
         main = self.payload['AI RAW.per'].decode()

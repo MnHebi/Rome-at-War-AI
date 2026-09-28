@@ -512,8 +512,12 @@ def missions():
         # Diagnose the sealed opponent with literal-player filters.  This is an
         # observer search only; the ordinary selector below reconstructs its
         # own list and retains the original focus-player behavior for T51.
+        # A player that has left the game can never own the diagnosed units, and
+        # a remote search focused on them returns an invalid-player error, so
+        # the observation is skipped rather than issued against a dead player.
         for p in range(1, 9):
             facts = [*seeking, f'(goal {v("enemy")} {p})',
+                     f'(player-in-game {p})',
                      f'(goal {v("combat-diag-player")} 0)',
                      f'(up-compare-goal {v("combat-diag-left")} c:> 0)']
             # up-get-search-state always writes its four-value record at

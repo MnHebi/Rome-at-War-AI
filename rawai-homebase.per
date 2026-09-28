@@ -5,11 +5,11 @@
 ;CB BEGIN 1152
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(building-type-count-total university < 1)
 	(up-pending-objects c: university <= 0)
 	(not (up-pending-placement c: university))
-	(up-can-build 0 c: university)
+	(up-can-build gl-no-escrow-state c: university)
 =>
 	(set-goal gl-cbf-cont 1152)
 )
@@ -30,7 +30,7 @@
 (defrule
 	(goal gl-cbf-cont 1152)
 =>
-	(up-build place-normal 0 c: university)
+	(up-build place-normal gl-no-escrow-state c: university)
 )
 (defrule
 	(goal gl-cbf-cont 1152)
@@ -57,11 +57,11 @@
 ;CB BEGIN 1153
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(building-type-count-total monastery < 1)
 	(up-pending-objects c: monastery <= 0)
 	(not (up-pending-placement c: monastery))
-	(up-can-build 0 c: monastery)
+	(up-can-build gl-no-escrow-state c: monastery)
 =>
 	(set-goal gl-cbf-cont 1153)
 )
@@ -82,7 +82,7 @@
 (defrule
 	(goal gl-cbf-cont 1153)
 =>
-	(up-build place-normal 0 c: monastery)
+	(up-build place-normal gl-no-escrow-state c: monastery)
 )
 (defrule
 	(goal gl-cbf-cont 1153)
@@ -113,7 +113,7 @@
 	(building-type-count-total barracks < 1)
 	(up-pending-objects c: barracks <= 0)
 	(not (up-pending-placement c: barracks))
-	(up-can-build 0 c: barracks)
+	(up-can-build gl-no-escrow-state c: barracks)
 =>
 	(set-goal gl-cbf-cont 1154)
 )
@@ -134,7 +134,7 @@
 (defrule
 	(goal gl-cbf-cont 1154)
 =>
-	(up-build place-normal 0 c: barracks)
+	(up-build place-normal gl-no-escrow-state c: barracks)
 )
 (defrule
 	(goal gl-cbf-cont 1154)
@@ -175,7 +175,7 @@
 	(building-type-count-total dock < 1)
 	(up-pending-objects c: dock <= 0)
 	(not (up-pending-placement c: dock))
-	(up-can-build 0 c: dock)
+	(up-can-build gl-no-escrow-state c: dock)
 =>
 	(set-goal gl-cbf-cont 1155)
 )
@@ -196,7 +196,7 @@
 (defrule
 	(goal gl-cbf-cont 1155)
 =>
-	(up-build place-normal 0 c: dock)
+	(up-build place-normal gl-no-escrow-state c: dock)
 )
 (defrule
 	(goal gl-cbf-cont 1155)
@@ -665,36 +665,20 @@
 		(unit-type-count villager-shepherd >= 1)
 		(unit-type-count villager-hunter >= 1)
 	)
-	(or
-		(strategic-number sn-disable-builder-assistance != 1)
-		(or
-			(strategic-number sn-retask-gather-amount != 40)
-			(strategic-number sn-max-retask-gather-amount != 40)
-		)
-	)
+	(strategic-number sn-disable-builder-assistance != 1)
 =>
 	(set-strategic-number sn-disable-builder-assistance 1)
-	;This is a global engine control, so use the documented normal maximum as a
-	;bounded retention floor instead of freezing every resource worker.
-	(set-strategic-number sn-retask-gather-amount 40)
-	(set-strategic-number sn-max-retask-gather-amount 40)
+	;The native retask configuration is fixed at bootstrap (intelligent gathering
+	;on, both retask amounts 0); this rule only owns builder assistance.
 )
 
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(unit-type-count villager-shepherd <= 0)
 	(unit-type-count villager-hunter <= 0)
-	(or
-		(strategic-number sn-disable-builder-assistance != 0)
-		(or
-			(strategic-number sn-retask-gather-amount != 20)
-			(strategic-number sn-max-retask-gather-amount != 40)
-		)
-	)
+	(strategic-number sn-disable-builder-assistance != 0)
 =>
 	(set-strategic-number sn-disable-builder-assistance 0)
-	(set-strategic-number sn-retask-gather-amount 20)
-	(set-strategic-number sn-max-retask-gather-amount 40)
 )
 
 ;Temporarily pull extra villagers onto large foundations. The percentages and
@@ -1252,7 +1236,7 @@
 	(up-pending-objects c: house <= 0)
 	(not (up-pending-placement c: house))
 	(can-afford-building house)
-	(not (up-can-build 0 c: house))
+	(not (up-can-build gl-no-escrow-state c: house))
 =>
 	(set-goal gl-placement-pressure-category PLACEMENT-KIND-ECONOMY)
 	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
@@ -1261,13 +1245,13 @@
 (defrule
 	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
 	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(goal gl-migration-placement-lock NO)
 	(building-type-count-total market g:< desired-number-markets)
 	(up-pending-objects c: market <= 0)
 	(not (up-pending-placement c: market))
 	(can-afford-building market)
-	(not (up-can-build 0 c: market))
+	(not (up-can-build gl-no-escrow-state c: market))
 =>
 	(set-goal gl-placement-pressure-category PLACEMENT-KIND-ECONOMY)
 	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
@@ -1285,7 +1269,7 @@
 	(up-pending-objects c: farm <= 0)
 	(not (up-pending-placement c: farm))
 	(can-afford-building farm)
-	(not (up-can-build 0 c: farm))
+	(not (up-can-build gl-no-escrow-state c: farm))
 =>
 	(set-goal gl-placement-pressure-category PLACEMENT-KIND-ECONOMY)
 	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
@@ -1301,7 +1285,7 @@
 	(up-pending-objects c: town-center <= 0)
 	(not (up-pending-placement c: town-center))
 	(can-afford-building town-center)
-	(not (up-can-build 0 c: town-center))
+	(not (up-can-build gl-no-escrow-state c: town-center))
 =>
 	(set-goal gl-placement-pressure-category PLACEMENT-KIND-ECONOMY)
 	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
@@ -1316,7 +1300,7 @@
 	(up-pending-objects c: barracks <= 0)
 	(not (up-pending-placement c: barracks))
 	(can-afford-building barracks)
-	(not (up-can-build 0 c: barracks))
+	(not (up-can-build gl-no-escrow-state c: barracks))
 =>
 	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
 	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
@@ -1325,14 +1309,14 @@
 (defrule
 	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
 	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(goal wait-techup-requirements NO)
 	(building-type-count-total barracks > 0)
 	(building-type-count-total archery-range g:< desired-number-ranges)
 	(up-pending-objects c: archery-range <= 0)
 	(not (up-pending-placement c: archery-range))
 	(can-afford-building archery-range)
-	(not (up-can-build 0 c: archery-range))
+	(not (up-can-build gl-no-escrow-state c: archery-range))
 =>
 	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
 	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
@@ -1341,14 +1325,14 @@
 (defrule
 	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
 	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(goal wait-techup-requirements NO)
 	(building-type-count-total barracks > 0)
 	(building-type-count-total stable g:< desired-number-stables)
 	(up-pending-objects c: stable <= 0)
 	(not (up-pending-placement c: stable))
 	(can-afford-building stable)
-	(not (up-can-build 0 c: stable))
+	(not (up-can-build gl-no-escrow-state c: stable))
 =>
 	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
 	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
@@ -1357,13 +1341,13 @@
 (defrule
 	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
 	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(goal wait-techup-requirements NO)
 	(building-type-count-total siege-workshop g:< desired-number-workshops)
 	(up-pending-objects c: siege-workshop <= 0)
 	(not (up-pending-placement c: siege-workshop))
 	(can-afford-building siege-workshop)
-	(not (up-can-build 0 c: siege-workshop))
+	(not (up-can-build gl-no-escrow-state c: siege-workshop))
 =>
 	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
 	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
@@ -1372,12 +1356,12 @@
 (defrule
 	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
 	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(building-type-count-total blacksmith g:< desired-number-blacksmiths)
 	(up-pending-objects c: blacksmith <= 0)
 	(not (up-pending-placement c: blacksmith))
 	(can-afford-building blacksmith)
-	(not (up-can-build 0 c: blacksmith))
+	(not (up-can-build gl-no-escrow-state c: blacksmith))
 =>
 	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
 	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
@@ -1386,12 +1370,12 @@
 (defrule
 	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
 	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(building-type-count-total university g:< desired-number-universities)
 	(up-pending-objects c: university <= 0)
 	(not (up-pending-placement c: university))
 	(can-afford-building university)
-	(not (up-can-build 0 c: university))
+	(not (up-can-build gl-no-escrow-state c: university))
 =>
 	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
 	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
@@ -1400,12 +1384,12 @@
 (defrule
 	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
 	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(building-type-count-total monastery g:< desired-number-monasteries)
 	(up-pending-objects c: monastery <= 0)
 	(not (up-pending-placement c: monastery))
 	(can-afford-building monastery)
-	(not (up-can-build 0 c: monastery))
+	(not (up-can-build gl-no-escrow-state c: monastery))
 =>
 	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
 	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
@@ -1414,7 +1398,7 @@
 (defrule
 	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
 	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	;A crowded island must not lose its FIRST demanded Fortress merely because
 	;it has room for only one TC. Retain the two-TC policy for further Fortresses.
 	(or (building-type-count town-center >= 2)
@@ -1424,7 +1408,7 @@
 	(up-pending-objects c: castle <= 0)
 	(not (up-pending-placement c: castle))
 	(can-afford-building castle)
-	(not (up-can-build 0 c: castle))
+	(not (up-can-build gl-no-escrow-state c: castle))
 =>
 	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
 	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
@@ -1433,13 +1417,13 @@
 (defrule
 	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
 	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(building-type-count town-center >= 2)
 	(building-type-count-total outpost g:< desired-number-outposts)
 	(up-pending-objects c: outpost <= 0)
 	(not (up-pending-placement c: outpost))
 	(can-afford-building outpost)
-	(not (up-can-build 0 c: outpost))
+	(not (up-can-build gl-no-escrow-state c: outpost))
 =>
 	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
 	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
@@ -1448,12 +1432,12 @@
 (defrule
 	(goal gl-placement-pressure-state PLACEMENT-PRESSURE-IDLE)
 	(up-compare-goal gl-game-time g:>= gl-placement-pressure-next)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(building-type-count-total watch-tower g:< desired-number-watchtowers)
 	(up-pending-objects c: watch-tower <= 0)
 	(not (up-pending-placement c: watch-tower))
 	(can-afford-building watch-tower)
-	(not (up-can-build 0 c: watch-tower))
+	(not (up-can-build gl-no-escrow-state c: watch-tower))
 =>
 	(set-goal gl-placement-pressure-category PLACEMENT-KIND-DEFENSE)
 	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
@@ -1586,7 +1570,7 @@
 	(goal gl-colony-towncenter-state COLONY-TC-GATE)
 	(goal gl-lumbercamp-placement-state PLACEMENT-IDLE)
 	(goal gl-miningcamp-placement-state PLACEMENT-IDLE)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(building-type-count-total town-center < 4)
 	(or
 		(building-type-count-total town-center g:< desired-number-towncenters)
@@ -1765,7 +1749,7 @@
 	(goal gl-colony-towncenter-state COLONY-TC-ISSUE)
 	(up-pending-objects c: town-center <= 0)
 	(not (up-pending-placement c: town-center))
-	(up-can-build 0 c: town-center)
+	(up-can-build gl-no-escrow-state c: town-center)
 =>
 	(set-goal gl-cbf-cont 1174)
 )
@@ -1786,7 +1770,7 @@
 (defrule
 	(goal gl-cbf-cont 1174)
 =>
-	(up-build place-point 0 c: town-center)
+	(up-build place-point gl-no-escrow-state c: town-center)
 )
 (defrule
 	(goal gl-cbf-cont 1174)
@@ -1822,7 +1806,7 @@
 	(goal gl-colony-towncenter-state COLONY-TC-ISSUE)
 	(up-compare-goal gl-colony-towncenter-attempts c:< 3)
 	(can-afford-building town-center)
-	(not (up-can-build 0 c: town-center))
+	(not (up-can-build gl-no-escrow-state c: town-center))
 =>
 	(up-modify-goal gl-colony-towncenter-attempts c:+ 1)
 	(set-goal gl-colony-towncenter-state COLONY-TC-PLACE)
@@ -1832,7 +1816,7 @@
 	(goal gl-colony-towncenter-state COLONY-TC-ISSUE)
 	(up-compare-goal gl-colony-towncenter-attempts c:>= 3)
 	(can-afford-building town-center)
-	(not (up-can-build 0 c: town-center))
+	(not (up-can-build gl-no-escrow-state c: town-center))
 =>
 	(up-chat-data-to-self "colony TC placement exhausted: %d" g: gl-island-colony-zone)
 	(up-modify-sn sn-focus-player-number g:= gl-colony-towncenter-focus)
@@ -2286,14 +2270,14 @@
 ;CB BEGIN 1177
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(goal gl-colony-towncenter-state COLONY-TC-IDLE)
 	(goal gl-migration-placement-lock NO)
 	(can-afford-building town-center)
 	(building-type-count-total town-center g:< desired-number-towncenters)
 	(up-pending-objects c: town-center <= 0)
 	(not (up-pending-placement c: town-center))
-	(up-can-build 0 c: town-center)
+	(up-can-build gl-no-escrow-state c: town-center)
 =>
 	(set-goal gl-cbf-cont 1177)
 )
@@ -2314,7 +2298,7 @@
 (defrule
 	(goal gl-cbf-cont 1177)
 =>
-	(up-build place-normal 0 c: town-center)
+	(up-build place-normal gl-no-escrow-state c: town-center)
 )
 (defrule
 	(goal gl-cbf-cont 1177)
@@ -2349,7 +2333,7 @@
 	(housing-headroom < 5)
 	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
-	(up-can-build 0 c: house)
+	(up-can-build gl-no-escrow-state c: house)
 =>
 	(set-goal gl-cbf-cont 1178)
 )
@@ -2370,7 +2354,7 @@
 (defrule
 	(goal gl-cbf-cont 1178)
 =>
-	(up-build place-normal 0 c: house)
+	(up-build place-normal gl-no-escrow-state c: house)
 )
 (defrule
 	(goal gl-cbf-cont 1178)
@@ -2401,7 +2385,7 @@
 ;CB BEGIN 1179
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age <= early-antiquity-age)
+	(current-age <= feudal-age)
 	(goal allow-houses 1)
 	(building-type-count-total house > 0)
 	(building-type-count-total mill == 0)
@@ -2411,7 +2395,7 @@
 	(housing-headroom < 5)
 	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
-	(up-can-build 0 c: house)
+	(up-can-build gl-no-escrow-state c: house)
 =>
 	(set-goal gl-cbf-cont 1179)
 )
@@ -2437,7 +2421,7 @@
 (defrule
 	(goal gl-cbf-cont 1179)
 =>
-	(up-build place-control 0 c: house)
+	(up-build place-control gl-no-escrow-state c: house)
 )
 (defrule
 	(goal gl-cbf-cont 1179)
@@ -2468,7 +2452,7 @@
 ;CB BEGIN 1180
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age <= early-antiquity-age)
+	(current-age <= feudal-age)
 	(goal allow-houses 1)
 	(building-type-count-total house > 0)
 	(building-type-count-total mill >= 1)
@@ -2478,7 +2462,7 @@
 	(housing-headroom < 5)
 	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
-	(up-can-build 0 c: house)
+	(up-can-build gl-no-escrow-state c: house)
 =>
 	(set-goal gl-cbf-cont 1180)
 )
@@ -2504,7 +2488,7 @@
 (defrule
 	(goal gl-cbf-cont 1180)
 =>
-	(up-build place-control 0 c: house)
+	(up-build place-control gl-no-escrow-state c: house)
 )
 (defrule
 	(goal gl-cbf-cont 1180)
@@ -2535,7 +2519,7 @@
 ;CB BEGIN 1181
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(goal allow-houses 1)
 	(building-type-count-total house > 0)
 	(building-type-count-total mill == 0)
@@ -2545,7 +2529,7 @@
 	(housing-headroom < 5)
 	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
-	(up-can-build 0 c: house)
+	(up-can-build gl-no-escrow-state c: house)
 =>
 	(set-goal gl-cbf-cont 1181)
 )
@@ -2566,7 +2550,7 @@
 (defrule
 	(goal gl-cbf-cont 1181)
 =>
-	(up-build place-normal 0 c: house)
+	(up-build place-normal gl-no-escrow-state c: house)
 )
 (defrule
 	(goal gl-cbf-cont 1181)
@@ -2606,7 +2590,7 @@
 	(housing-headroom < 5)
 	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
-	(up-can-build 0 c: house)
+	(up-can-build gl-no-escrow-state c: house)
 =>
 	(set-goal gl-cbf-cont 1182)
 )
@@ -2632,7 +2616,7 @@
 (defrule
 	(goal gl-cbf-cont 1182)
 =>
-	(up-build place-control 0 c: house)
+	(up-build place-control gl-no-escrow-state c: house)
 )
 (defrule
 	(goal gl-cbf-cont 1182)
@@ -2675,7 +2659,7 @@
 	(housing-headroom < 3)
 	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
-	(up-can-build 0 c: house)
+	(up-can-build gl-no-escrow-state c: house)
 	(or
 		(goal map-type RIVERS)
 		(or
@@ -2712,7 +2696,7 @@
 (defrule
 	(goal gl-cbf-cont 1183)
 =>
-	(up-build place-point 0 c: house)
+	(up-build place-point gl-no-escrow-state c: house)
 )
 (defrule
 	(goal gl-cbf-cont 1183)
@@ -2753,7 +2737,7 @@
 	(housing-headroom < 3)
 	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
-	(up-can-build 0 c: house)
+	(up-can-build gl-no-escrow-state c: house)
 =>
 	(set-goal gl-cbf-cont 1184)
 )
@@ -2779,7 +2763,7 @@
 (defrule
 	(goal gl-cbf-cont 1184)
 =>
-	(up-build place-control 0 c: house)
+	(up-build place-control gl-no-escrow-state c: house)
 )
 (defrule
 	(goal gl-cbf-cont 1184)
@@ -2820,7 +2804,7 @@
 	(housing-headroom < 3)
 	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
-	(up-can-build 0 c: house)
+	(up-can-build gl-no-escrow-state c: house)
 =>
 	(set-goal gl-cbf-cont 1185)
 )
@@ -2841,7 +2825,7 @@
 (defrule
 	(goal gl-cbf-cont 1185)
 =>
-	(up-build place-normal 0 c: house)
+	(up-build place-normal gl-no-escrow-state c: house)
 )
 (defrule
 	(goal gl-cbf-cont 1185)
@@ -2873,7 +2857,7 @@
 ;CB BEGIN 1186
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(goal allow-houses 1)
 	(building-type-count-total house > 0)
 	(building-type-count-total mill >= 1)
@@ -2883,7 +2867,7 @@
 	(housing-headroom < 5)
 	(up-timer-status t-house-placement != timer-running)
 	(can-afford-building house)
-	(up-can-build 0 c: house)
+	(up-can-build gl-no-escrow-state c: house)
 =>
 	(set-goal gl-cbf-cont 1186)
 )
@@ -2909,7 +2893,7 @@
 (defrule
 	(goal gl-cbf-cont 1186)
 =>
-	(up-build place-control 0 c: house)
+	(up-build place-control gl-no-escrow-state c: house)
 )
 (defrule
 	(goal gl-cbf-cont 1186)
@@ -3168,7 +3152,7 @@
 (defrule
 	(goal gl-cbf-cont 1187)
 =>
-	(up-build place-point 0 c: lumber-camp)
+	(up-build place-point gl-no-escrow-state c: lumber-camp)
 )
 (defrule
 	(goal gl-cbf-cont 1187)
@@ -3234,7 +3218,7 @@
 (defrule
 	(goal gl-cbf-cont 1188)
 =>
-	(up-build place-point 0 c: lumber-camp)
+	(up-build place-point gl-no-escrow-state c: lumber-camp)
 )
 (defrule
 	(goal gl-cbf-cont 1188)
@@ -3299,7 +3283,7 @@
 (defrule
 	(goal gl-cbf-cont 1189)
 =>
-	(up-build place-point 0 c: lumber-camp)
+	(up-build place-point gl-no-escrow-state c: lumber-camp)
 )
 (defrule
 	(goal gl-cbf-cont 1189)
@@ -3364,7 +3348,7 @@
 (defrule
 	(goal gl-cbf-cont 1190)
 =>
-	(up-build place-point 0 c: lumber-camp)
+	(up-build place-point gl-no-escrow-state c: lumber-camp)
 )
 (defrule
 	(goal gl-cbf-cont 1190)
@@ -3794,7 +3778,7 @@
 	(dropsite-min-distance food g:< map-size)
 	(can-afford-building mill)
 	(up-pending-objects c: mill <= 0)
-	(up-can-build 0 c: mill)
+	(up-can-build gl-no-escrow-state c: mill)
 =>
 	(set-goal gl-cbf-cont 1194)
 )
@@ -3815,7 +3799,7 @@
 (defrule
 	(goal gl-cbf-cont 1194)
 =>
-	(up-build place-normal 0 c: mill)
+	(up-build place-normal gl-no-escrow-state c: mill)
 )
 (defrule
 	(goal gl-cbf-cont 1194)
@@ -4924,7 +4908,7 @@
 (or	(up-compare-goal gl-farm-build-target <= 0)
 (or	(building-type-count-total farm g:>= gl-farm-build-target)
 (or	(up-pending-placement c: farm)
-	(not (up-can-build 0 c: farm))))))
+	(not (up-can-build gl-no-escrow-state c: farm))))))
 =>
 	(up-jump-rule 26)
 
@@ -5004,7 +4988,7 @@
 
 (defrule
 	(up-compare-goal point-x >= 0)
-	(up-can-build-line 0 point-x c: farm)
+	(up-can-build-line gl-no-escrow-state point-x c: farm)
 	(up-point-distance point2-x point-x g:< temporary-goal9)
 =>
 	(up-get-point-distance point2-x point-x temporary-goal9)
@@ -5073,8 +5057,8 @@
 	(goal gl-farm-placement-suspended NO)
 	(building-type-count mill >= 1)
 	(up-compare-goal point3-x >= 0)
-	(up-can-build-line 0 point3-x c: farm)
-	(up-can-build 0 c: farm)
+	(up-can-build-line gl-no-escrow-state point3-x c: farm)
+	(up-can-build gl-no-escrow-state c: farm)
 =>
 	(set-goal gl-cbf-cont 1214)
 )
@@ -5161,7 +5145,7 @@
 	(goal gl-farm-placement-suspended NO)
 	(wood-amount > 150)
 	(building-type-count mill >= 1)
-	(up-can-build 0 c: farm)
+	(up-can-build gl-no-escrow-state c: farm)
 =>
 	(set-goal gl-cbf-cont 1217)
 )
@@ -5182,7 +5166,7 @@
 (defrule
 	(goal gl-cbf-cont 1217)
 =>
-	(up-build place-normal 0 c: farm)
+	(up-build place-normal gl-no-escrow-state c: farm)
 )
 (defrule
 	(goal gl-cbf-cont 1217)
@@ -5215,7 +5199,7 @@
 	(building-type-count-total town-center == 0)
 	(up-pending-objects c: town-center <= 0)
 	(not (up-pending-placement c: town-center))
-	(up-can-build 0 c: town-center)
+	(up-can-build gl-no-escrow-state c: town-center)
 =>
 	(set-goal gl-cbf-cont 1218)
 )
@@ -5236,7 +5220,7 @@
 (defrule
 	(goal gl-cbf-cont 1218)
 =>
-	(up-build place-normal 0 c: town-center)
+	(up-build place-normal gl-no-escrow-state c: town-center)
 )
 (defrule
 	(goal gl-cbf-cont 1218)
@@ -5277,7 +5261,7 @@
 	(up-pending-objects c: mill <= 0)
 	(not (up-pending-placement c: mill))
 	(can-afford-building mill)
-	(up-can-build 0 c: mill)
+	(up-can-build gl-no-escrow-state c: mill)
 =>
 	(up-modify-goal gl-opening-mill-focus s:= sn-focus-player-number)
 	(set-goal gl-migration-placement-lock YES)
@@ -5299,7 +5283,7 @@
 	(up-pending-objects c: mill <= 0)
 	(not (up-pending-placement c: mill))
 	(can-afford-building mill)
-	(up-can-build 0 c: mill)
+	(up-can-build gl-no-escrow-state c: mill)
 =>
 	(up-modify-goal gl-opening-mill-focus s:= sn-focus-player-number)
 	(set-goal gl-migration-placement-lock YES)
@@ -5347,6 +5331,80 @@
 	(set-goal gl-opening-mill-state OPENING-MILL-START-ALLY-CHECK)
 )
 
+;A departed ally has no Town Center to reject; leave the search empty so
+;the existing nothing-found branch advances to the next ally.
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-START-ALLY-CHECK)
+	(goal gl-opening-mill-ally-player 1)
+	(not (player-in-game 1))
+=>
+	(up-full-reset-search)
+	(set-goal gl-opening-mill-state OPENING-MILL-CHECK-ALLY-TC)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-START-ALLY-CHECK)
+	(goal gl-opening-mill-ally-player 2)
+	(not (player-in-game 2))
+=>
+	(up-full-reset-search)
+	(set-goal gl-opening-mill-state OPENING-MILL-CHECK-ALLY-TC)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-START-ALLY-CHECK)
+	(goal gl-opening-mill-ally-player 3)
+	(not (player-in-game 3))
+=>
+	(up-full-reset-search)
+	(set-goal gl-opening-mill-state OPENING-MILL-CHECK-ALLY-TC)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-START-ALLY-CHECK)
+	(goal gl-opening-mill-ally-player 4)
+	(not (player-in-game 4))
+=>
+	(up-full-reset-search)
+	(set-goal gl-opening-mill-state OPENING-MILL-CHECK-ALLY-TC)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-START-ALLY-CHECK)
+	(goal gl-opening-mill-ally-player 5)
+	(not (player-in-game 5))
+=>
+	(up-full-reset-search)
+	(set-goal gl-opening-mill-state OPENING-MILL-CHECK-ALLY-TC)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-START-ALLY-CHECK)
+	(goal gl-opening-mill-ally-player 6)
+	(not (player-in-game 6))
+=>
+	(up-full-reset-search)
+	(set-goal gl-opening-mill-state OPENING-MILL-CHECK-ALLY-TC)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-START-ALLY-CHECK)
+	(goal gl-opening-mill-ally-player 7)
+	(not (player-in-game 7))
+=>
+	(up-full-reset-search)
+	(set-goal gl-opening-mill-state OPENING-MILL-CHECK-ALLY-TC)
+)
+
+(defrule
+	(goal gl-opening-mill-state OPENING-MILL-START-ALLY-CHECK)
+	(goal gl-opening-mill-ally-player 8)
+	(not (player-in-game 8))
+=>
+	(up-full-reset-search)
+	(set-goal gl-opening-mill-state OPENING-MILL-CHECK-ALLY-TC)
+)
 (defrule
 	(goal gl-opening-mill-state OPENING-MILL-START-ALLY-CHECK)
 =>
@@ -5505,7 +5563,7 @@
 (defrule
 	(goal gl-cbf-cont 1219)
 =>
-	(up-build place-normal 0 c: mill)
+	(up-build place-normal gl-no-escrow-state c: mill)
 )
 (defrule
 	(goal gl-cbf-cont 1219)
@@ -5615,7 +5673,7 @@
 (defrule
 	(goal gl-cbf-cont 1220)
 =>
-	(up-build place-point 0 c: mill)
+	(up-build place-point gl-no-escrow-state c: mill)
 )
 (defrule
 	(goal gl-cbf-cont 1220)
@@ -5681,7 +5739,7 @@
 (defrule
 	(goal gl-cbf-cont 1221)
 =>
-	(up-build place-point 0 c: mill)
+	(up-build place-point gl-no-escrow-state c: mill)
 )
 (defrule
 	(goal gl-cbf-cont 1221)
@@ -5747,7 +5805,7 @@
 (defrule
 	(goal gl-cbf-cont 1222)
 =>
-	(up-build place-point 0 c: mill)
+	(up-build place-point gl-no-escrow-state c: mill)
 )
 (defrule
 	(goal gl-cbf-cont 1222)
@@ -5813,7 +5871,7 @@
 (defrule
 	(goal gl-cbf-cont 1223)
 =>
-	(up-build place-point 0 c: mill)
+	(up-build place-point gl-no-escrow-state c: mill)
 )
 (defrule
 	(goal gl-cbf-cont 1223)
@@ -5989,7 +6047,7 @@
 	(goal gl-miningcamp-placement-state PLACEMENT-IDLE)
 	(goal gl-island-migration-state MIGRATION-IDLE)
 	(goal gl-miningcamp-next-resource gold)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(building-type-count-total mining-camp == 0)
 	(up-compare-goal desired-number-miningcamps c:>= 1)
 	(up-compare-goal gl-home-zone c:>= 0)
@@ -6023,7 +6081,7 @@
 	(goal gl-miningcamp-placement-state PLACEMENT-IDLE)
 	(goal gl-island-migration-state MIGRATION-IDLE)
 	(goal gl-miningcamp-next-resource stone)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(building-type-count-total mining-camp == 0)
 	(up-compare-goal desired-number-miningcamps c:>= 1)
 	(up-compare-goal gl-home-zone c:>= 0)
@@ -6059,7 +6117,7 @@
 	(goal gl-miningcamp-placement-state PLACEMENT-IDLE)
 	(goal gl-island-migration-state MIGRATION-IDLE)
 	(goal gl-miningcamp-next-resource gold)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(building-type-count-total mining-camp >= 1)
 	(building-type-count-total mining-camp g:< desired-number-miningcamps)
 	(building-type-count-total lumber-camp >= 1)
@@ -6089,7 +6147,7 @@
 	(goal gl-miningcamp-placement-state PLACEMENT-IDLE)
 	(goal gl-island-migration-state MIGRATION-IDLE)
 	(goal gl-miningcamp-next-resource stone)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(building-type-count-total mining-camp >= 1)
 	(building-type-count-total mining-camp g:< desired-number-miningcamps)
 	(building-type-count-total lumber-camp >= 1)
@@ -6301,7 +6359,7 @@
 (defrule
 	(goal gl-cbf-cont 1224)
 =>
-	(up-build place-point 0 c: mining-camp)
+	(up-build place-point gl-no-escrow-state c: mining-camp)
 )
 (defrule
 	(goal gl-cbf-cont 1224)
@@ -6366,7 +6424,7 @@
 (defrule
 	(goal gl-cbf-cont 1225)
 =>
-	(up-build place-point 0 c: mining-camp)
+	(up-build place-point gl-no-escrow-state c: mining-camp)
 )
 (defrule
 	(goal gl-cbf-cont 1225)
@@ -6431,7 +6489,7 @@
 (defrule
 	(goal gl-cbf-cont 1226)
 =>
-	(up-build place-point 0 c: mining-camp)
+	(up-build place-point gl-no-escrow-state c: mining-camp)
 )
 (defrule
 	(goal gl-cbf-cont 1226)
@@ -6496,7 +6554,7 @@
 (defrule
 	(goal gl-cbf-cont 1227)
 =>
-	(up-build place-point 0 c: mining-camp)
+	(up-build place-point gl-no-escrow-state c: mining-camp)
 )
 (defrule
 	(goal gl-cbf-cont 1227)
@@ -6828,7 +6886,7 @@
 	(up-pending-objects c: lumber-camp <= 0)
 	(up-pending-objects c: mill <= 0)
 	(or
-		(current-age < middle-antiquity-age)
+		(current-age < castle-age)
 		(or
 			(building-type-count town-center >= 2)
 			(or
@@ -6843,7 +6901,7 @@
 			)
 		)
 	)
-	(up-can-build 0 c: barracks)
+	(up-can-build gl-no-escrow-state c: barracks)
 =>
 	(set-goal gl-cbf-cont 1230)
 )
@@ -6864,7 +6922,7 @@
 (defrule
 	(goal gl-cbf-cont 1230)
 =>
-	(up-build place-normal 0 c: barracks)
+	(up-build place-normal gl-no-escrow-state c: barracks)
 )
 (defrule
 	(goal gl-cbf-cont 1230)
@@ -6894,13 +6952,13 @@
 ;CB BEGIN 1231
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(goal gl-local-threat-active YES)
 	(building-type-count-total barracks < 1)
 	(up-pending-objects c: barracks <= 0)
 	(not (up-pending-placement c: barracks))
 	(can-afford-building barracks)
-	(up-can-build 0 c: barracks)
+	(up-can-build gl-no-escrow-state c: barracks)
 =>
 	(set-goal gl-cbf-cont 1231)
 )
@@ -6921,7 +6979,7 @@
 (defrule
 	(goal gl-cbf-cont 1231)
 =>
-	(up-build place-normal 0 c: barracks)
+	(up-build place-normal gl-no-escrow-state c: barracks)
 )
 (defrule
 	(goal gl-cbf-cont 1231)
@@ -6957,7 +7015,7 @@
 	(up-pending-objects c: barracks <= 0)
 	(not (up-pending-placement c: barracks))
 	(can-afford-building barracks)
-	(not (up-can-build 0 c: barracks))
+	(not (up-can-build gl-no-escrow-state c: barracks))
 =>
 	(set-goal gl-placement-pressure-category PLACEMENT-KIND-MILITARY)
 	(set-goal gl-placement-pressure-state PLACEMENT-PRESSURE-EXPAND)
@@ -6966,13 +7024,13 @@
 ;CB BEGIN 1232
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(goal wait-techup-requirements NO)
 	(can-afford-building archery-range)
 	(building-type-count-total barracks > 0)
 	(building-type-count-total archery-range g:< desired-number-ranges)
 	(or
-		(current-age < middle-antiquity-age)
+		(current-age < castle-age)
 		(or
 			(or (building-type-count town-center >= 2)
 			    (and (building-type-count town-center >= 1)
@@ -6983,7 +7041,7 @@
 			)
 		)
 	)
-	(up-can-build 0 c: archery-range)
+	(up-can-build gl-no-escrow-state c: archery-range)
 =>
 	(set-goal gl-cbf-cont 1232)
 )
@@ -7004,7 +7062,7 @@
 (defrule
 	(goal gl-cbf-cont 1232)
 =>
-	(up-build place-normal 0 c: archery-range)
+	(up-build place-normal gl-no-escrow-state c: archery-range)
 )
 (defrule
 	(goal gl-cbf-cont 1232)
@@ -7030,13 +7088,13 @@
 ;CB BEGIN 1233
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(goal wait-techup-requirements NO)
 	(can-afford-building stable)
 	(building-type-count-total barracks > 0)
 	(building-type-count-total stable g:< desired-number-stables)
 	(or
-		(current-age < middle-antiquity-age)
+		(current-age < castle-age)
 		(or
 			(or (building-type-count town-center >= 2)
 			    (and (building-type-count town-center >= 1)
@@ -7047,7 +7105,7 @@
 			)
 		)
 	)
-	(up-can-build 0 c: stable)
+	(up-can-build gl-no-escrow-state c: stable)
 =>
 	(set-goal gl-cbf-cont 1233)
 )
@@ -7068,7 +7126,7 @@
 (defrule
 	(goal gl-cbf-cont 1233)
 =>
-	(up-build place-normal 0 c: stable)
+	(up-build place-normal gl-no-escrow-state c: stable)
 )
 (defrule
 	(goal gl-cbf-cont 1233)
@@ -7094,7 +7152,7 @@
 ;CB BEGIN 1234
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(goal wait-techup-requirements NO)
 	(can-afford-building siege-workshop)
 	(building-type-count-total siege-workshop g:< desired-number-workshops)
@@ -7105,7 +7163,7 @@
 			(goal rush-rushing YES)
 		)
 	)
-	(up-can-build 0 c: siege-workshop)
+	(up-can-build gl-no-escrow-state c: siege-workshop)
 =>
 	(set-goal gl-cbf-cont 1234)
 )
@@ -7126,7 +7184,7 @@
 (defrule
 	(goal gl-cbf-cont 1234)
 =>
-	(up-build place-normal 0 c: siege-workshop)
+	(up-build place-normal gl-no-escrow-state c: siege-workshop)
 )
 (defrule
 	(goal gl-cbf-cont 1234)
@@ -7152,17 +7210,17 @@
 ;CB BEGIN 1235
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(can-afford-building blacksmith)
 	(building-type-count-total blacksmith g:< desired-number-blacksmiths)
 	(or
-		(current-age < middle-antiquity-age)
+		(current-age < castle-age)
 		(or
 			(building-type-count town-center >= 2)
 			(goal gl-home-defense-state YES)
 		)
 	)
-	(up-can-build 0 c: blacksmith)
+	(up-can-build gl-no-escrow-state c: blacksmith)
 =>
 	(set-goal gl-cbf-cont 1235)
 )
@@ -7183,7 +7241,7 @@
 (defrule
 	(goal gl-cbf-cont 1235)
 =>
-	(up-build place-normal 0 c: blacksmith)
+	(up-build place-normal gl-no-escrow-state c: blacksmith)
 )
 (defrule
 	(goal gl-cbf-cont 1235)
@@ -7207,7 +7265,7 @@
 ;CB END 1235
 
 (defrule
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(building-type-count-total market g:< desired-number-markets)
 	(up-pending-objects c: market <= 0)
 	(up-pending-placement c: market)
@@ -7223,9 +7281,9 @@
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(or
-		(current-age == early-antiquity-age)
+		(current-age == feudal-age)
 		(and
-			(current-age == middle-antiquity-age)
+			(current-age == castle-age)
 			(or
 				(building-type-count town-center >= 2)
 				(or
@@ -7242,7 +7300,7 @@
 	(not (up-pending-placement c: market))
 	(up-timer-status t-market-placement != timer-running)
 	(up-compare-goal gl-market-placement-attempts c:< 3)
-	(up-can-build 0 c: market)
+	(up-can-build gl-no-escrow-state c: market)
 =>
 	(set-goal gl-cbf-cont 1236)
 )
@@ -7263,7 +7321,7 @@
 (defrule
 	(goal gl-cbf-cont 1236)
 =>
-	(up-build place-normal 0 c: market)
+	(up-build place-normal gl-no-escrow-state c: market)
 )
 (defrule
 	(goal gl-cbf-cont 1236)
@@ -7297,10 +7355,10 @@
 ;CB BEGIN 1237
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(goal gl-migration-placement-lock NO)
 	(or
-		(current-age != middle-antiquity-age)
+		(current-age != castle-age)
 		(or
 			(building-type-count town-center >= 2)
 			(or
@@ -7313,7 +7371,7 @@
 	(up-pending-objects c: market <= 0)
 	(up-timer-status t-market-placement != timer-running)
 	(up-compare-goal gl-market-placement-attempts c:>= 3)
-	(up-can-build 0 c: market)
+	(up-can-build gl-no-escrow-state c: market)
 =>
 	(set-goal gl-cbf-cont 1237)
 )
@@ -7340,7 +7398,7 @@
 (defrule
 	(goal gl-cbf-cont 1237)
 =>
-	(up-build place-control 0 c: market)
+	(up-build place-control gl-no-escrow-state c: market)
 )
 (defrule
 	(goal gl-cbf-cont 1237)
@@ -7387,7 +7445,7 @@
 	(not (up-pending-placement c: market))
 	(up-timer-status t-market-placement != timer-running)
 	(up-compare-goal gl-market-placement-attempts c:< 3)
-	(up-can-build 0 c: market)
+	(up-can-build gl-no-escrow-state c: market)
 =>
 	(set-goal gl-cbf-cont 1238)
 )
@@ -7408,7 +7466,7 @@
 (defrule
 	(goal gl-cbf-cont 1238)
 =>
-	(up-build place-normal 0 c: market)
+	(up-build place-normal gl-no-escrow-state c: market)
 )
 (defrule
 	(goal gl-cbf-cont 1238)
@@ -7454,7 +7512,7 @@
 	)
 	(building-type-count-total dock g:< desired-number-docks)
 	(building-type-count-total lumber-camp >= 1)
-	(up-can-build 0 c: dock)
+	(up-can-build gl-no-escrow-state c: dock)
 =>
 	(set-goal gl-cbf-cont 1239)
 )
@@ -7475,7 +7533,7 @@
 (defrule
 	(goal gl-cbf-cont 1239)
 =>
-	(up-build place-normal 0 c: dock)
+	(up-build place-normal gl-no-escrow-state c: dock)
 )
 (defrule
 	(goal gl-cbf-cont 1239)
@@ -7501,12 +7559,12 @@
 ;CB BEGIN 1240
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(can-afford-building university)
 	(building-type-count-total university g:< desired-number-universities)
 	(up-pending-objects c: university <= 0)
 	(not (up-pending-placement c: university))
-	(up-can-build 0 c: university)
+	(up-can-build gl-no-escrow-state c: university)
 =>
 	(set-goal gl-cbf-cont 1240)
 )
@@ -7527,7 +7585,7 @@
 (defrule
 	(goal gl-cbf-cont 1240)
 =>
-	(up-build place-normal 0 c: university)
+	(up-build place-normal gl-no-escrow-state c: university)
 )
 (defrule
 	(goal gl-cbf-cont 1240)
@@ -7553,7 +7611,7 @@
 ;CB BEGIN 1241
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(or
 		(building-type-count-total monastery < 1)
 		(or
@@ -7565,7 +7623,7 @@
 	(building-type-count-total monastery g:< desired-number-monasteries)
 	(up-pending-objects c: monastery <= 0)
 	(not (up-pending-placement c: monastery))
-	(up-can-build 0 c: monastery)
+	(up-can-build gl-no-escrow-state c: monastery)
 =>
 	(set-goal gl-cbf-cont 1241)
 )
@@ -7586,7 +7644,7 @@
 (defrule
 	(goal gl-cbf-cont 1241)
 =>
-	(up-build place-normal 0 c: monastery)
+	(up-build place-normal gl-no-escrow-state c: monastery)
 )
 (defrule
 	(goal gl-cbf-cont 1241)
@@ -7612,7 +7670,7 @@
 ;CB BEGIN 1242
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 		(or (building-type-count town-center >= 2)
 	    (and (building-type-count town-center >= 1)
 	         (building-type-count-total castle < 1)))
@@ -7623,7 +7681,7 @@
 	(building-type-count-total castle g:< desired-number-castles)
 	(up-pending-objects c: castle <= 0)
 	(not (up-pending-placement c: castle))
-	(up-can-build 0 c: castle)
+	(up-can-build gl-no-escrow-state c: castle)
 =>
 	(set-goal gl-cbf-cont 1242)
 )
@@ -7644,7 +7702,7 @@
 (defrule
 	(goal gl-cbf-cont 1242)
 =>
-	(up-build place-normal 0 c: castle)
+	(up-build place-normal gl-no-escrow-state c: castle)
 )
 (defrule
 	(goal gl-cbf-cont 1242)
@@ -7676,11 +7734,11 @@
 ;CB BEGIN 1243
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= middle-antiquity-age)
+	(current-age >= castle-age)
 	(building-type-count town-center >= 2)
 	(can-afford-building outpost)
 	(building-type-count-total outpost g:< desired-number-outposts)
-	(up-can-build 0 c: outpost)
+	(up-can-build gl-no-escrow-state c: outpost)
 =>
 	(set-goal gl-cbf-cont 1243)
 )
@@ -7701,7 +7759,7 @@
 (defrule
 	(goal gl-cbf-cont 1243)
 =>
-	(up-build place-normal 0 c: outpost)
+	(up-build place-normal gl-no-escrow-state c: outpost)
 )
 (defrule
 	(goal gl-cbf-cont 1243)
@@ -7727,9 +7785,9 @@
 ;CB BEGIN 1244
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(or
-		(current-age < middle-antiquity-age)
+		(current-age < castle-age)
 		(or
 			(building-type-count town-center >= 2)
 			(goal gl-home-defense-state YES)
@@ -7737,7 +7795,7 @@
 	)
 	(can-afford-building watch-tower)
 	(building-type-count-total watch-tower g:< desired-number-watchtowers)
-	(up-can-build 0 c: watch-tower)
+	(up-can-build gl-no-escrow-state c: watch-tower)
 	(up-pending-objects c: watch-tower < 1)
 =>
 	(set-goal gl-cbf-cont 1244)
@@ -7769,7 +7827,7 @@
 (defrule
 	(goal gl-cbf-cont 1244)
 =>
-	(up-build place-control 0 c: watch-tower)
+	(up-build place-control gl-no-escrow-state c: watch-tower)
 )
 (defrule
 	(goal gl-cbf-cont 1244)
@@ -7795,16 +7853,17 @@
 ;Wall posture starts with the actual exposed flank role. Pocket detection was
 ;formerly inverted in rawai-map, which gave this doctrine to the wrong players.
 (defrule
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(goal flank-position 1)
 	(goal gl-wall-needed NO)
+	(building-type-count-total town-center >= 1)
 =>
 	(set-goal gl-wall-needed YES)
 	(chat-local-to-self "Wall posture: exposed flank")
 )
 
 (defrule
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(or
 		(goal gl-home-defense-state YES)
 		(or
@@ -7813,18 +7872,43 @@
 		)
 	)
 	(goal gl-wall-needed NO)
+	(building-type-count-total town-center >= 1)
 =>
 	(set-goal gl-wall-needed YES)
 	(chat-local-to-self "Wall posture: local threat")
 )
+;A player with no Town Center cannot sustain a wall project. Cancelling hands
+;the villagers back so the colony/Town-Center path can be prioritised, and it
+;stops the local-response recall from stopping wall builders it cannot hide.
+(defrule
+	(up-compare-goal gl-wall-scan-state c:!= WALL-SCAN-IDLE)
+	(building-type-count-total town-center <= 0)
+=>
+	(set-goal gl-wall-needed NO)
+	(set-goal gl-wall-enabled NO)
+	(set-goal gl-wall-scan-state WALL-SCAN-IDLE)
+)
+;A player with no Town Center has exactly one job: get one. The engine builds
+;Town Centers from desired-number-towncenters, which the civ phase rules set once;
+;re-arm it here so a lost TC is rebuilt even where the maritime colony controller
+;cannot run (it is gated to RIVERS/ISLANDS/TEAM-ISLANDS and an established colony).
+(defrule
+	(building-type-count-total town-center <= 0)
+	(up-compare-goal desired-number-towncenters c:< 1)
+=>
+	(up-modify-goal desired-number-towncenters c:= 1)
+)
+
+
 
 ;A known enemy economy or military structure in the same active land zone is
 ;the engine-visible reachability proxy for a mainland opponent. This avoids
 ;walling an isolated island merely because the Real World map is hybrid.
 (defrule
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(goal gl-wall-scan-state WALL-SCAN-IDLE)
 	(up-compare-goal gl-game-time g:>= gl-wall-scan-next)
+	(building-type-count-total town-center >= 1)
 	(goal gl-island-colony-established NO)
 =>
 	(up-modify-goal gl-wall-scan-focus s:= sn-focus-player-number)
@@ -7836,9 +7920,10 @@
 )
 
 (defrule
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(goal gl-wall-scan-state WALL-SCAN-IDLE)
 	(up-compare-goal gl-game-time g:>= gl-wall-scan-next)
+	(building-type-count-total town-center >= 1)
 	(goal gl-island-colony-established YES)
 =>
 	(up-modify-goal gl-wall-scan-focus s:= sn-focus-player-number)
@@ -7849,6 +7934,80 @@
 	(set-goal gl-wall-scan-state WALL-SCAN-START)
 )
 
+;A departed enemy holds no building on the colony landmass; leave the
+;search empty so the existing nothing-found branch advances.
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-START)
+	(goal gl-wall-scan-player 1)
+	(not (player-in-game 1))
+=>
+	(up-full-reset-search)
+	(set-goal gl-wall-scan-state WALL-SCAN-CHECK)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-START)
+	(goal gl-wall-scan-player 2)
+	(not (player-in-game 2))
+=>
+	(up-full-reset-search)
+	(set-goal gl-wall-scan-state WALL-SCAN-CHECK)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-START)
+	(goal gl-wall-scan-player 3)
+	(not (player-in-game 3))
+=>
+	(up-full-reset-search)
+	(set-goal gl-wall-scan-state WALL-SCAN-CHECK)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-START)
+	(goal gl-wall-scan-player 4)
+	(not (player-in-game 4))
+=>
+	(up-full-reset-search)
+	(set-goal gl-wall-scan-state WALL-SCAN-CHECK)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-START)
+	(goal gl-wall-scan-player 5)
+	(not (player-in-game 5))
+=>
+	(up-full-reset-search)
+	(set-goal gl-wall-scan-state WALL-SCAN-CHECK)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-START)
+	(goal gl-wall-scan-player 6)
+	(not (player-in-game 6))
+=>
+	(up-full-reset-search)
+	(set-goal gl-wall-scan-state WALL-SCAN-CHECK)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-START)
+	(goal gl-wall-scan-player 7)
+	(not (player-in-game 7))
+=>
+	(up-full-reset-search)
+	(set-goal gl-wall-scan-state WALL-SCAN-CHECK)
+)
+
+(defrule
+	(goal gl-wall-scan-state WALL-SCAN-START)
+	(goal gl-wall-scan-player 8)
+	(not (player-in-game 8))
+=>
+	(up-full-reset-search)
+	(set-goal gl-wall-scan-state WALL-SCAN-CHECK)
+)
 (defrule
 	(goal gl-wall-scan-state WALL-SCAN-START)
 =>
@@ -7869,6 +8028,7 @@
 (defrule
 	(goal gl-wall-scan-state WALL-SCAN-CHECK)
 	(up-set-target-object search-remote c: 0)
+	(building-type-count-total town-center >= 1)
 =>
 	(set-goal gl-hostile-land-route YES)
 	(set-goal gl-wall-needed YES)
@@ -7910,7 +8070,7 @@
 )
 
 (defrule
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(goal gl-wall-needed YES)
 	(goal gl-wall-enabled NO)
 =>
@@ -7974,7 +8134,7 @@
 ;CB BEGIN 1245
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(goal gl-wall-needed YES)
 	(goal gl-wall-material WALL-MATERIAL-STONE)
 	(building-type-count town-center >= 1)
@@ -8044,7 +8204,7 @@
 ;CB BEGIN 1246
 (defrule
 	(goal gl-owner-worker-hold NO)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(goal gl-wall-needed YES)
 	(goal gl-wall-material WALL-MATERIAL-PALISADE)
 	(building-type-count town-center >= 1)
@@ -8652,7 +8812,7 @@
 (defrule
 	(goal gl-owner-worker-hold NO)
 	(goal gl-farm-placement-suspended NO)
-	(current-age >= early-antiquity-age)
+	(current-age >= feudal-age)
 	(wood-amount > 150)
 	(up-compare-goal gl-farm-build-target > 0)
 	(and
@@ -8660,7 +8820,7 @@
 		(building-type-count farm == 0)
 	)
 		(building-type-count farm < gl-farm-build-target)
-	(up-can-build 0 c: farm)
+	(up-can-build gl-no-escrow-state c: farm)
 =>
 	(set-goal gl-cbf-cont 1253)
 )
@@ -8686,7 +8846,7 @@
 (defrule
 	(goal gl-cbf-cont 1253)
 =>
-	(up-build place-normal 0 c: farm)
+	(up-build place-normal gl-no-escrow-state c: farm)
 )
 (defrule
 	(goal gl-cbf-cont 1253)

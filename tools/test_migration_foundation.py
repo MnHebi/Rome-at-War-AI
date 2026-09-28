@@ -168,7 +168,7 @@ class PlacementPoint(Gate):
     def issue(self):
         for r in rule_blocks(source('rawai-military.per')):
             if ('(goal gl-island-migration-state MIGRATION-ISSUE-DROPSITE)' in r[3]
-                    and (f'(up-build place-point 0 c: {self.kind})' in r[4]
+                    and (f'(up-build place-point gl-no-escrow-state c: {self.kind})' in r[4]
                          or f'(up-build-line gl-migration-build-x gl-migration-build-x c: {self.kind})' in r[4])):
                 self.execute(r)
 

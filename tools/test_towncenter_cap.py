@@ -32,7 +32,7 @@ class TownCenterCapTests(unittest.TestCase):
 
     def test_home_expansion_uses_total_including_pending_foundations(self):
         row = next(r for r in rule_blocks(source('rawai-homebase.per'))
-                   if '(up-build place-normal 0 c: town-center)' in r[4]
+                   if '(up-build place-normal gl-no-escrow-state c: town-center)' in r[4]
                    and 'desired-number-towncenters' in r[3])
         self.assertIn('(building-type-count-total town-center g:< desired-number-towncenters)', row[3])
         self.assertIn('(up-pending-objects c: town-center <= 0)', row[3])

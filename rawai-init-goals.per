@@ -432,7 +432,7 @@
 	;is visible live but was absent from the replay command stream.
 	;Keep the replay marker short: long formatted chat records have not appeared
 	;in recent recordings even though later up-chat-data debug records do.
-	(up-chat-data-to-all "RAWAI-P3B44T58B: %d" c: 508)
+	(up-chat-data-to-all "RAWAI-P3B44T58B: %d" c: 515)
 	(disable-self)
 )
 
@@ -914,6 +914,7 @@
 	(set-goal gl-unitescrow-state without-escrow)
 	(set-goal gl-buildingescrow-state without-escrow)
 	(set-goal gl-researchescrow-state without-escrow)
+	(set-goal gl-no-escrow-state without-escrow)
 
 	(disable-self)
 )
@@ -957,6 +958,7 @@
 =>
 	(set-goal gl-attack-timer-random 0)
 	(set-goal gl-attack-timer-next 0)
+	(set-goal gl-chase-leash-next 0)
 	(set-goal gl-home-defense-state NO)
 	(set-goal gl-transport-min-load 5)
 	(set-goal gl-transport-route-state TRANSPORT-ROUTE-IDLE)
@@ -1286,5 +1288,20 @@
 	(up-set-timer c: t-naval-response c: 10)
 	(up-set-timer c: t-juggernaut-evasion c: 10)
 	(up-set-timer c: t-transport-clear c: 15)
+	(disable-self)
+)
+
+;T157 parity state. Goals already default to zero; stated here so the
+;two-poll rule and the army priority have an explicit start.
+(defrule
+	(true)
+=>
+	(set-goal gl-parity-ratio 0)
+	(set-goal gl-parity-ratio-navy 0)
+	(set-goal gl-parity-candidate 0)
+	(set-goal gl-parity-candidate-navy 0)
+	(set-goal gl-parity-prev 0)
+	(set-goal gl-parity-prev-navy 0)
+	(set-goal gl-parity-army-priority 0)
 	(disable-self)
 )

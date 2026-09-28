@@ -177,19 +177,34 @@ class SelfTargetRecoveryTests(unittest.TestCase):
                        if n == candidate][0]
             self.assertTrue(all(evaluate(f, candidate, candidate) for f in mutated))
 
-    def test_self_identity_is_initialized_before_fallbacks(self):
+    def test_self_identity_has_one_engine_sourced_initializer_before_fallbacks(self):
+        # The invariant is behavioral: self identity is read from the engine's
+        # own player number once, before any fallback compares against it, and
+        # never assigned a literal or an unrelated fact. The exact PER spelling
+        # is implementation detail and is deliberately not frozen here.
         entry = (ROOT / "AI RAW.per").read_text(encoding="utf-8-sig")
         self.assertLess(entry.index('(load "rawai-init-goals")'),
                         entry.index('(load "rawai-military")'))
-        initializers = []
+        writers = []
         for path in ROOT.glob("*.per"):
             for rule in rule_blocks(path.read_text(encoding="utf-8-sig")):
-                if "(up-get-fact my-player-number 0 gl-self-player-number)" in rule[4]:
-                    initializers.append(rule)
-                self.assertNotRegex(rule[4], r"\((?:set-goal|up-modify-goal) gl-self-player-number\b")
-        self.assertEqual(len(initializers), 1)
-        self.assertEqual(compact(initializers[0][3]), "(defrule (true)")
-        self.assertIn("(disable-self)", initializers[0][4])
+                self.assertNotRegex(
+                    rule[4], r"\((?:set-goal|up-modify-goal)\s+gl-self-player-number\s+-?\d")
+                for atom in re.findall(r"\(([^()]*)\)", rule[4]):
+                    tokens = atom.split()
+                    if not tokens or "gl-self-player-number" not in tokens:
+                        continue
+                    assignment = (tokens[0] in ("set-goal", "up-modify-goal")
+                                  and len(tokens) > 1 and tokens[1] == "gl-self-player-number")
+                    destination = (tokens[0].startswith("up-get-")
+                                   and tokens[-1] == "gl-self-player-number")
+                    if assignment or destination:
+                        writers.append((path.name, atom, rule))
+        self.assertEqual(len(writers), 1, [w[0] for w in writers])
+        name, atom, rule = writers[0]
+        self.assertIn("my-player-number", atom.split()[1:], name)
+        self.assertEqual(compact(rule[3]), "(defrule (true)")
+        self.assertIn("(disable-self)", rule[4])
 
 
 if __name__ == "__main__":

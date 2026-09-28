@@ -71,6 +71,38 @@ class PreparationRecoveryTests(unittest.TestCase):
         self.assertFalse(m.commands)
 
 
+class LoadAbort(Missions):
+    """Executes the LOAD-DIAG-APPLY abort terminal only."""
+
+    def __init__(self):
+        super().__init__()
+        self.rules = [r for r in rule_blocks(source('rawai-military.per'))
+                      if 'TRANSPORT-ROUTE-LOAD-DIAG-APPLY' in r[3]]
+        self.g.update({'gl-transport-route-state': self.val('TRANSPORT-ROUTE-LOAD-DIAG-APPLY'),
+                       'gl-transport-route-load-terminal':
+                           self.val('TRANSPORT-LOAD-TERMINAL-ABORT'),
+                       'gl-transport-route-id': 10,
+                       'gl-transport-route-origin-x': 10, 'gl-transport-route-origin-y': 10})
+        self.objects[10] = dict(id=10, player=2, type='transport-ship', point=(60, 60),
+                                cargo=3, idle=1, garrisoned=0, under_attack=0, order=-1,
+                                flag=self.val('attack-transport-group'))
+        self.groups[self.val('attack-transport-group')] = [10]
+
+
+class LoadAbortTerminalTests(unittest.TestCase):
+    def test_abort_returns_the_hull_instead_of_unloading_in_place(self):
+        """190351: aborted lifts with 2-4 soldiers aboard received only unload orders
+        at alternating points, never a move, and stayed parked (54518, 44090, 36098).
+        A failed lift must return its hull so the berth owner can unload it."""
+        m = LoadAbort()
+        m.sweep()
+        self.assertTrue(m.commands, 'abort terminal issued no hull order')
+        self.assertTrue(any('move' in str(c[1]) for c in m.commands),
+                        'aborted lift was not returned to its berth')
+        self.assertFalse(any('unload' in str(c[1]) for c in m.commands),
+                         'aborted lift still unloads in place')
+
+
 class Admission(Missions):
     def __init__(self):
         super().__init__()
